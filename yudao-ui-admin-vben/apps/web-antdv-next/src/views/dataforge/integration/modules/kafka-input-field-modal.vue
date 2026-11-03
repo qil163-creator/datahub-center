@@ -49,10 +49,18 @@ const types = computed(() => {
 const keyLabel = computed(() =>
   props.keyMode === 'index' ? '索引' : 'JSON解析值',
 );
-const fieldIssue = (key: 'key' | 'name' | 'type') => {
-  const issue = props.errors.find((item) =>
+const rawIssue = (key: 'key' | 'name' | 'type') =>
+  props.errors.find((item) =>
     item.includes({ key: keyLabel.value, name: '名称', type: '类型' }[key]),
   );
+// Like the reference form, only the first invalid control shows its message.
+const firstIssueKey = computed(() =>
+  (['name', 'type', 'key'] as const).find((key) => resolveIssue(key)),
+);
+const fieldIssue = (key: 'key' | 'name' | 'type') =>
+  firstIssueKey.value === key ? resolveIssue(key) : undefined;
+function resolveIssue(key: 'key' | 'name' | 'type') {
+  const issue = rawIssue(key);
   if (!issue) return undefined;
   // The shared "name and type" message only flags the control that is actually empty.
   if (issue.includes('名称与类型')) {
@@ -65,8 +73,9 @@ const fieldIssue = (key: 'key' | 'name' | 'type') => {
     (props.field.index === undefined || props.field.index === null)
   )
     return '请输入索引';
+  if (key === 'type' && !props.field.type) return '请选择字段类型';
   return key === 'name' && !props.field.name?.trim() ? '请输入字段名称' : issue;
-};
+}
 // Dropdown class for the reference option style (blue bold selection on a light background).
 const popupClasses = { popup: { root: 'qi-file-field-popup' } };
 function updateIndex(value: number | string | undefined) {

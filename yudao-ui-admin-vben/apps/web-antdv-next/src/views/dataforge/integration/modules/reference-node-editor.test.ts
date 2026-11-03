@@ -214,7 +214,8 @@ describe('qData补齐配置的真实交互', () => {
       topic: 'levels',
     });
     await flush();
-    await click('新增');
+    // Kafka input follows the reference "+ 新增" button.
+    await click('+ 新增');
     const name = host.querySelector<HTMLInputElement>(
       '[aria-label="属性字段编辑名称"]',
     )!;

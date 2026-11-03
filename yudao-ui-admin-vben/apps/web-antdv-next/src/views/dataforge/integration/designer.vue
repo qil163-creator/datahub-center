@@ -1379,6 +1379,12 @@ function toggleGroup(key: string) {
             :type-name="currentComponent?.name"
             :disabled="!editable"
             :show-description="!editorDescription && !advancedDescription"
+            :heading="editingCode === 'read-json' ? '属性字段' : undefined"
+            :description-placeholder="
+              editingCode === 'read-json'
+                ? '请输入描述（可选），如：从JSONL文件读取结构化数据，要求每行一个JSON对象且结构一致'
+                : undefined
+            "
             :hide-type="editingCode === 'sub-pipeline'"
             :stacked="editingCode === 'sub-pipeline'"
           />

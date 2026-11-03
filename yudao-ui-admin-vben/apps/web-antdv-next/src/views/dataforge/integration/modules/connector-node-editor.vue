@@ -1535,39 +1535,6 @@ defineExpose({ validate });
   border: 0;
 }
 
-/* Stacked up/down carets; the active direction turns primary blue. */
-.qi-sort-caret {
-  position: relative;
-  width: 8px;
-  height: 12px;
-}
-
-.qi-sort-caret::before,
-.qi-sort-caret::after {
-  position: absolute;
-  left: 0;
-  content: '';
-  border: 4px solid transparent;
-}
-
-.qi-sort-caret::before {
-  top: -3px;
-  border-bottom-color: #a8abb2;
-}
-
-.qi-sort-caret::after {
-  bottom: -3px;
-  border-top-color: #a8abb2;
-}
-
-.qi-sort-caret[data-sort='1']::before {
-  border-bottom-color: #2d63ff;
-}
-
-.qi-sort-caret[data-sort='-1']::after {
-  border-top-color: #2d63ff;
-}
-
 .qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
   .qi-reference-empty {
   display: flex;

@@ -36,6 +36,7 @@ import { getIntegrationFileSchema } from '#/api/dataforge/integration';
 import { uploadFileWithInfo } from '#/api/infra/file';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
+import DatabaseConnectionPicker from './database-connection-picker.vue';
 import FileInputFieldModal from './file-input-field-modal.vue';
 import {
   safeFileDownloadUrl,
@@ -299,6 +300,15 @@ const kafkaConnectionMismatch = computed(
     connectionProduct(selectedConnection.value) &&
     !/kafka/iu.test(connectionProduct(selectedConnection.value)),
 );
+// Kafka input uses the categorized picker limited to Kafka connections.
+const kafkaPickerConnections = computed(() =>
+  connections.value.filter(
+    (item) =>
+      !connectionProduct(item) ||
+      /kafka/iu.test(connectionProduct(item)) ||
+      String(item.id) === String(props.config.databaseId),
+  ),
+);
 const connectionOptions = computed(() => {
   const options = connections.value
     .filter(
@@ -324,10 +334,18 @@ const connectionOptions = computed(() => {
   return options;
 });
 const parameters = computed({
-  get: () =>
-    typeof props.config.configParameters === 'string'
-      ? props.config.configParameters
-      : JSON.stringify(props.config.configParameters ?? {}, null, 2),
+  get: () => {
+    const value: unknown = props.config.configParameters;
+    if (typeof value === 'string') return value;
+    // Absent or empty parameters show the placeholder instead of "{}".
+    if (
+      value === undefined ||
+      value === null ||
+      (typeof value === 'object' && Object.keys(value).length === 0)
+    )
+      return '';
+    return JSON.stringify(value, null, 2);
+  },
   set: (value: string) => {
     if (props.disabled) return;
     props.config.configParameters = value;
@@ -944,12 +962,12 @@ defineExpose({ validate });
               >
                 <Button
                   class="qi-reference-button"
-                  :class="{ 'qi-file-select-button': tabularUpload }"
+                  :class="{ 'qi-file-select-button': tabularUpload || toolCode === 'read-json' }"
                   :loading="uploading"
                   :disabled="disabled || parsing || legacyFile"
                 >
                   <svg
-                    v-if="tabularUpload"
+                    v-if="tabularUpload || toolCode === 'read-json'"
                     class="qi-file-select-icon"
                     viewBox="0 0 1024 1024"
                     aria-hidden="true"
@@ -1086,6 +1104,26 @@ defineExpose({ validate });
               {{ toolCode === 'read-csv' ? '解析csv' : '解析Excel' }}
             </Button>
           </Popover>
+          <Popover
+            v-else-if="toolCode === 'read-json'"
+            placement="left"
+            :arrow="false"
+            root-class="qi-file-parse-help qi-file-parse-help-left"
+          >
+            <template #content>
+              <p>解析上传的JSONL文件，并生成属性字段</p>
+            </template>
+            <Button
+              class="qi-jsonl-parse-button"
+              type="primary"
+              :loading="parsing"
+              :auto-insert-space="false"
+              :disabled="disabled || !config.fileId || uploading || legacyFile"
+              @click="parseFile"
+            >
+              解析JSONL
+            </Button>
+          </Popover>
           <Button
             v-else
             :class="
@@ -1156,7 +1194,15 @@ defineExpose({ validate });
     </section>
     <div v-if="isKafka" class="qi-reference-kafka-grid">
       <div class="qi-reference-form-row">
-        <label><em>*</em>{{ isOutput ? '目标数据连接' : '数据源连接' }}</label><Select
+        <label><em>*</em>{{ isOutput ? '目标数据连接' : '数据源连接' }}</label><DatabaseConnectionPicker
+          v-if="!isOutput"
+          :value="config.databaseId ?? undefined"
+          :databases="kafkaPickerConnections"
+          :loading="connectionsLoading"
+          :disabled="disabled"
+          @change="(value) => setConfig('databaseId', value)"
+        /><Select
+          v-else
           :value="
             config.databaseId == null ? undefined : String(config.databaseId)
           "
@@ -1183,7 +1229,7 @@ defineExpose({ validate });
           v-model:value="parameters"
           :disabled="disabled"
           :rows="4"
-          placeholder="例如 {&quot;group.id&quot;:&quot;demo_test&quot;}"
+          placeholder="例如: {&quot;group.id&quot;:&quot;demo_test&quot;}"
           :maxlength="256"
           :show-count="isOutput ? true : { formatter: referenceCount }"
         />
@@ -1219,13 +1265,11 @@ defineExpose({ validate });
                 aria-label="按字段长度排序"
                 @click="sortMetadata('length')"
               >
-                字段长度<span aria-hidden="true">{{
-                  metadataSort?.key === 'length'
-                    ? metadataSort.direction === 1
-                      ? ' ▴'
-                      : ' ▾'
-                    : ' ↕'
-                }}</span>
+                字段长度<span
+                  class="qi-sort-caret"
+                  :data-sort="metadataSort?.key === 'length' ? metadataSort.direction : 0"
+                  aria-hidden="true"
+                ></span>
               </button>
             </th>
             <th :aria-sort="metadataSortState('precision')">
@@ -1234,13 +1278,11 @@ defineExpose({ validate });
                 aria-label="按小数精度排序"
                 @click="sortMetadata('precision')"
               >
-                小数精度<span aria-hidden="true">{{
-                  metadataSort?.key === 'precision'
-                    ? metadataSort.direction === 1
-                      ? ' ▴'
-                      : ' ▾'
-                    : ' ↕'
-                }}</span>
+                小数精度<span
+                  class="qi-sort-caret"
+                  :data-sort="metadataSort?.key === 'precision' ? metadataSort.direction : 0"
+                  aria-hidden="true"
+                ></span>
               </button>
             </th>
           </tr>
@@ -1272,7 +1314,12 @@ defineExpose({ validate });
       </summary>
       <div class="qi-reference-section-header">
         <h3 v-if="isMapping">需要选择与修改的字段</h3>
-        <h3 v-else :class="{ 'qi-file-fields-heading': tabularUpload }">
+        <h3
+          v-else
+          :class="{
+            'qi-file-fields-heading': tabularUpload || (isKafka && !isOutput),
+          }"
+        >
           {{ isOutput ? '字段映射' : '属性字段' }}
         </h3>
         <div>
@@ -1306,7 +1353,7 @@ defineExpose({ validate });
             </template>
           </Dropdown>
           <Button
-            v-if="tabularUpload"
+            v-if="tabularUpload || (isKafka && !isOutput)"
             class="qi-reference-button qi-file-add-button"
             :disabled="disabled"
             @click="addRow"
@@ -2254,6 +2301,154 @@ defineExpose({ validate });
 
 .qi-tabular-file-reference .qi-reference-fields-table .qi-reference-empty::before {
   display: none;
+}
+
+/* Kafka input reference layout. */
+[data-tool-code='read-kafka'] :deep(.qi-reference-form-row) {
+  gap: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-form-row > label {
+  padding-right: 12px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-form-row em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header {
+  margin-bottom: 16px;
+}
+
+[data-tool-code='read-kafka'] .qi-file-add-button.ant-btn {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table {
+  min-width: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table thead th,
+[data-tool-code='read-kafka'] .qi-reference-fields-table tbody td {
+  font-size: 14px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th {
+  height: 35px;
+  font-weight: 600;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:last-child {
+  width: 236px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:last-child,
+[data-tool-code='read-kafka'] .qi-reference-fields-table td:last-child {
+  text-align: center;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty {
+  height: 274px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty::before {
+  display: none;
+}
+
+/* JSONL reference layout. */
+[data-tool-code='read-json'].qi-file-reference-editor .qi-reference-io-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+[data-tool-code='read-json'].qi-file-reference-editor .qi-reference-io-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+[data-tool-code='read-json'] :deep(.qi-reference-form-row) {
+  gap: 0;
+}
+
+[data-tool-code='read-json'] .qi-reference-form-row > label {
+  padding-right: 12px;
+}
+
+[data-tool-code='read-json'] .qi-reference-form-row em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+[data-tool-code='read-json'] .qi-file-select-button.ant-btn {
+  gap: 4px;
+  height: 25px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-json'] .qi-reference-file-tip strong {
+  font-weight: 400;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-parse-button.ant-btn {
+  height: 32px;
+  padding: 0 15px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-parse-button.ant-btn:disabled {
+  color: #fff;
+  background: #a9c1ff;
+  border-color: #a9c1ff;
+}
+
+[data-tool-code='read-json'] .qi-reference-json-samples p {
+  font-size: 11px;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-reference-fields th {
+  font-weight: 600;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-reference-fields th button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
 }
 </style>
 

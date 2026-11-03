@@ -642,3 +642,57 @@
     grid-template-columns: 80px minmax(0, 1fr);
   }
 }
+
+/* Section heading with the reference rounded bar (used above basic fields). */
+.qi-node-basics-heading {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 9px;
+  align-items: center;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.qi-node-basics-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+/* Stacked up/down sort carets; the active direction turns primary blue. */
+.qi-sort-caret {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 12px;
+  vertical-align: middle;
+}
+
+.qi-sort-caret::before,
+.qi-sort-caret::after {
+  position: absolute;
+  left: 0;
+  content: '';
+  border: 4px solid transparent;
+}
+
+.qi-sort-caret::before {
+  top: -3px;
+  border-bottom-color: #a8abb2;
+}
+
+.qi-sort-caret::after {
+  bottom: -3px;
+  border-top-color: #a8abb2;
+}
+
+.qi-sort-caret[data-sort='1']::before {
+  border-bottom-color: #2d63ff;
+}
+
+.qi-sort-caret[data-sort='-1']::after {
+  border-top-color: #2d63ff;
+}
