@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "product": "DM",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.dm.DmProductProvider",
+  "artifact": "yudao-dbswitch-product-dm",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "DM_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "DEPLOYMENT_PINNED_NATIVE_GENERATION_SERIALIZABLE_NUMERIC_KEYS"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "NON_IDENTITY_NUMERIC_PRIMARY_KEY_TRANSACTIONAL_MERGE"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "DM",
+    "POSTGRESQL"
+  ]
+}

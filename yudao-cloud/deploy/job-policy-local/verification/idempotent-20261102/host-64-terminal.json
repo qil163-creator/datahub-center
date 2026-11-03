@@ -1,0 +1,88 @@
+{
+  "platform": {
+    "id": 64,
+    "status": "SUCCESS",
+    "queueState": "DONE",
+    "queueReason": "真实父子终态已确认：SUCCESS",
+    "queuedTime": "2026-11-02 12:34:44",
+    "scheduledTime": null,
+    "executionType": "START",
+    "dsProjectCode": 188566818730880,
+    "dsDefinitionCode": 188583616159360,
+    "dsInstanceId": 93,
+    "submissionStage": "BOUND",
+    "startTime": "2026-11-02 12:34:48",
+    "endTime": "2026-11-02 12:35:19",
+    "children": [
+      {
+        "id": 180829751976983,
+        "kind": "INTEGRATION",
+        "origin": "MANAGED",
+        "status": "SUCCESS",
+        "taskId": 1007
+      },
+      {
+        "id": 56,
+        "kind": "DEVELOPMENT",
+        "origin": "PLATFORM",
+        "status": "SUCCESS",
+        "taskId": 12
+      }
+    ]
+  },
+  "children": [
+    {
+      "parentTaskId": 115,
+      "instanceId": 95,
+      "state": "SUCCESS",
+      "definitionCode": "188583616138880",
+      "startTime": "2026-11-02 12:35:09",
+      "endTime": "2026-11-02 12:35:10",
+      "workers": [
+        {
+          "id": 116,
+          "taskType": "SQL",
+          "state": "SUCCESS",
+          "flag": "YES",
+          "host": "172.18.0.2:1235",
+          "startTime": "2026-11-02 12:35:10",
+          "endTime": "2026-11-02 12:35:10",
+          "processId": null,
+          "retryTimes": 0,
+          "logPath": "/opt/dolphinscheduler/logs/20261102/188583616138880/1/95/116.log"
+        }
+      ]
+    },
+    {
+      "parentTaskId": 113,
+      "instanceId": 94,
+      "state": "SUCCESS",
+      "definitionCode": "188583231688320",
+      "startTime": "2026-11-02 12:34:49",
+      "endTime": "2026-11-02 12:35:01",
+      "workers": [
+        {
+          "id": 114,
+          "taskType": "DATAX_UPSERT",
+          "state": "SUCCESS",
+          "flag": "YES",
+          "host": "172.18.0.2:1235",
+          "startTime": "2026-11-02 12:34:50",
+          "endTime": "2026-11-02 12:35:00",
+          "processId": null,
+          "retryTimes": 0,
+          "logPath": "/opt/dolphinscheduler/logs/20261102/188583231688320/1/94/114.log"
+        }
+      ]
+    }
+  ],
+  "parent": {
+    "id": 93,
+    "state": "SUCCESS",
+    "startTime": "2026-11-02 12:34:48",
+    "endTime": "2026-11-02 12:35:19",
+    "workflowDefinitionCode": 188583616159360,
+    "projectCode": 188566818730880,
+    "host": "172.18.0.2:5678"
+  }
+}

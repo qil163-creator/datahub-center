@@ -1,0 +1,36 @@
+{
+  "suffix": "20261102_122553",
+  "policies": {
+    "worker": {
+      "integrationTaskId": 1006,
+      "integrationDefinitionCode": "188583071166080",
+      "developmentTaskId": 11,
+      "developmentVersionId": 13,
+      "jobId": 9,
+      "jobName": "codex_job_e2e_worker_混合策略验收_20261102_122553",
+      "integrationName": "codex_job_e2e_worker_幂等写入_20261102_122553",
+      "developmentName": "codex_job_e2e_worker_只读核验_20261102_122553",
+      "jobRevision": 1,
+      "strategy": "SERIAL_WAIT",
+      "scheduleStatus": 0,
+      "phase": "READY"
+    },
+    "host": {
+      "integrationTaskId": 1007,
+      "integrationDefinitionCode": "188583231688320",
+      "developmentTaskId": 12,
+      "developmentVersionId": 14,
+      "jobId": 10,
+      "jobName": "codex_job_e2e_host_混合策略验收_20261102_122553",
+      "integrationName": "codex_job_e2e_host_幂等写入_20261102_122553",
+      "developmentName": "codex_job_e2e_host_只读核验_20261102_122553",
+      "jobRevision": 1,
+      "strategy": "SERIAL_WAIT",
+      "scheduleStatus": 0,
+      "phase": "READY"
+    }
+  },
+  "integrationCategoryId": 1002,
+  "devDirectoryId": 36,
+  "jobCategoryId": 10
+}

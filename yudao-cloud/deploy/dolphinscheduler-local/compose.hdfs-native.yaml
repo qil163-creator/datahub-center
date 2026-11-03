@@ -1,0 +1,47 @@
+services:
+  standalone:
+    environment:
+      DATAHUB_ETL_HDFS_ROOTS: hdfs://hdfs-native-namenode:8020/datahub_components
+  hdfs-native-namenode:
+    image: apache/hadoop:3.4.1@sha256:69ffa97339aff768c4e6120c3fb27aa04c121402b1c8158408a5fb5be586a30e
+    platform: linux/amd64
+    hostname: hdfs-native-namenode
+    command: ["hdfs", "namenode"]
+    environment:
+      HADOOP_HEAPSIZE: "256"
+      CORE-SITE.XML_fs.defaultFS: hdfs://hdfs-native-namenode:8020
+      CORE-SITE.XML_hadoop.proxyuser.datahub.users: datahub
+      CORE-SITE.XML_hadoop.proxyuser.datahub.hosts: hive-native-server
+      HDFS-SITE.XML_dfs.namenode.rpc-address: hdfs-native-namenode:8020
+      HDFS-SITE.XML_dfs.namenode.name.dir: file:///data/name
+      HDFS-SITE.XML_dfs.replication: "1"
+      HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: "false"
+      ENSURE_NAMENODE_DIR: /data/name
+    volumes:
+      - hdfs-native-name:/data
+    healthcheck:
+      test: ["CMD", "hdfs", "dfs", "-test", "-d", "/"]
+      interval: 15s
+      timeout: 15s
+      retries: 12
+  hdfs-native-datanode:
+    image: apache/hadoop:3.4.1@sha256:69ffa97339aff768c4e6120c3fb27aa04c121402b1c8158408a5fb5be586a30e
+    platform: linux/amd64
+    hostname: hdfs-native-datanode
+    command: ["hdfs", "datanode"]
+    depends_on:
+      hdfs-native-namenode:
+        condition: service_healthy
+    environment:
+      HADOOP_HEAPSIZE: "256"
+      CORE-SITE.XML_fs.defaultFS: hdfs://hdfs-native-namenode:8020
+      HDFS-SITE.XML_dfs.namenode.rpc-address: hdfs-native-namenode:8020
+      HDFS-SITE.XML_dfs.datanode.data.dir: file:///data/datanode
+      HDFS-SITE.XML_dfs.datanode.hostname: hdfs-native-datanode
+      HDFS-SITE.XML_dfs.replication: "1"
+    volumes:
+      - hdfs-native-data:/data
+
+volumes:
+  hdfs-native-name:
+  hdfs-native-data:

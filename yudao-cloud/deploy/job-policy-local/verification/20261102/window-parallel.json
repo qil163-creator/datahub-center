@@ -1,0 +1,61 @@
+{
+  "policy": "parallel",
+  "jobId": 8,
+  "jobName": "codex_job_e2e_parallel_混合策略验收_20261102_080442_28e9",
+  "recordIds": [
+    57,
+    58
+  ],
+  "records": [
+    {
+      "id": 57,
+      "status": "RUNNING",
+      "queueState": "ACTIVE",
+      "queueReason": "真实父工作流已确认，等待所有子执行终态",
+      "queuedTime": "2026-11-02 12:00:47",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188581530557056,
+      "dsInstanceId": 77,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:00:52",
+      "endTime": null,
+      "children": [
+        {
+          "id": 180829751976977,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "RUNNING",
+          "taskId": 1005
+        },
+        {
+          "id": 50,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "taskId": 10
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "status": "FAILURE",
+      "queueState": "REJECTED",
+      "queueReason": "业务父流程未触发，本次准备已终止：任务正在运行中，请稍后再试",
+      "queuedTime": "2026-11-02 12:01:01",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": null,
+      "dsInstanceId": null,
+      "submissionStage": "PREPARING",
+      "startTime": null,
+      "endTime": "2026-11-02 12:01:04",
+      "children": []
+    }
+  ],
+  "apiPort": 50027,
+  "preview": "http://127.0.0.1:6006",
+  "sharedDevelopmentSingleActivePreserved": true
+}

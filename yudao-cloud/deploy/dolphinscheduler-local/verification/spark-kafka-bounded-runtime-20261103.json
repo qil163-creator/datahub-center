@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "scope": "Actual isolated DS SPARK plugin, Spark3.5.6 V2 provider and Kafka3.9.1 finite offset source -> upper-case transform -> confirmed output",
+  "checks": {
+    "kafka-v2": {
+      "taskType": "SPARK",
+      "workflowCode": "188631063442944",
+      "workflowInstanceId": 16,
+      "taskInstanceId": 16,
+      "state": "SUCCESS",
+      "markerInLog": true
+    }
+  },
+  "cleanup": [
+    {
+      "workflowCode": "188631063442944",
+      "state": "OFFLINE"
+    },
+    {
+      "fixtureContainerRemoved": true,
+      "workerNetworkDetached": true,
+      "isolatedNetworkRemoved": true,
+      "workerTemporaryJarRemoved": true
+    }
+  ],
+  "seedConfirmed": true,
+  "exactResult": "spark-kafka-exact-rows=[{\"id\":\"9007199254740993\",\"label\":\"RIVER O'REILLY😀\",\"amount\":\"12345678901234567890.12345678\"}, {\"id\":\"9007199254740994\",\"label\":null,\"amount\":null}]",
+  "jarSha256": "0f831fdb39398945c809ee0a448841f9902a5f383eeb182743e85407fdcfbb9d",
+  "sqlSha256": "a58de624a3a9ca5f458e8054e3a90028b139781addf9b3e09bb686dad459a818",
+  "generatorSha256": "fbebfa63df11fb81ddc06d798900994fe09a2a250025f07cd5d512d54d99d5fa",
+  "limits": [
+    "Explicit anonymous isolated broker; no SASL/TLS support claimed.",
+    "Output confirmation is at least once; retries may duplicate external messages.",
+    "Runtime/DS native plugin acceptance, not a published management API integration task."
+  ]
+}

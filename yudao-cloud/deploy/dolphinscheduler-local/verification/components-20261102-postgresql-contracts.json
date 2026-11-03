@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-11-02T16:53:21+0800",
+  "status": "PASS",
+  "postgresVersion": "16.15",
+  "serverImageId": "sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab",
+  "driverVersion": "42.7.13",
+  "container": "datahub-components-contract-postgres",
+  "volume": "datahub-components-contract-pg-a9561911d852",
+  "database": "components_test",
+  "hostBinding": "127.0.0.1",
+  "onlyNewFixtureDatabaseTouched": true,
+  "authentication": "TLS_CLIENT_CERTIFICATE",
+  "tlsObserved": true,
+  "clientCertificateDn": "/CN=dataforge_test",
+  "jdbcUrlContainsPassword": false,
+  "jvmArgfileMode": "0600",
+  "credentialMaterialPrinted": false,
+  "privateKeyMaterialInLog": false,
+  "reactorExitCode": 0,
+  "counts": [
+    {
+      "class": "EtlDatabasePostgreSqlTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "8752a696d7392dc70e45906cf655c31e3aaa87545c93b2eb7b36dd97248ef50d"
+    },
+    {
+      "class": "EtlSchemaPostgreSqlTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "6a517353931e579a1245874d646ea2f7e13c913246a6a16a91ce731b37f964b5"
+    },
+    {
+      "class": "IntegrationPostgreSqlContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "e44110c49cc1c1639376b4d516e7c8248e06418fff2d82e41ddf4917e32f0562"
+    }
+  ],
+  "executed": 10,
+  "skipped": 0,
+  "logSha256": "59822e1669d8e7e1fb83fc3cf07808b9bfdfa1c7a6847ba4672d9acf995086e2",
+  "baselineDdlSha256": "4353055bf68aae0d72e1541c14b1cbda86b04b892443894056f1499911e84889",
+  "workbenchDdlSha256": "0999d2188019f081b0c0cd58c40a822eeb65e042624df64a9715ff9b166b9b08",
+  "valueChecks": {
+    "long": "9007199254740993",
+    "decimal": "12345678901234567890.1234",
+    "jsonbSemanticallyEqual": true,
+    "jsonbObjectKeyOrderChangedByRealPostgres": true,
+    "jsonbArrayOrderPreserved": true,
+    "originalFlowSha256": "5d9df9fc37731ea9a0f3f4abcc7474e3caa149a1b39b36d52b8a5b0f7a1d7dce",
+    "postgresJsonbSha256": "1cc990a34f45bfeb82545bdd1f5b8d42a58f61a5f1b872e39dd981e1466cff56",
+    "revisionReturnedToZeroAfterRollback": true,
+    "onlySeedCategoryRemains": true,
+    "temporarySchemasRemaining": 0
+  },
+  "scope": [
+    "本任务新建PostgreSQL16隔离库，抽取现有基线和0215/0252实际DDL创建契约所需表，无用户业务数据",
+    "ETL原生JDBC INSERT/COPY与commit证据、upsert与拒绝条件、NUMERIC/nullable/SQL表达式元数据、类目锁/部分唯一索引/修订CAS均真实通过",
+    "此报告不声明额外DBswitch产品、云端服务或新的Spark/Flink/DS任务验收"
+  ],
+  "containerStopped": true,
+  "historicalSkipAccounting": {
+    "etlOriginallyReportedSkipped": 6,
+    "etlActuallyExecutedNow": 7,
+    "dataforgeOriginallyReportedSkipped": 3,
+    "dataforgeActuallyExecutedNow": 3,
+    "explanation": "EtlDatabasePostgreSqlTest的INSERT/COPY参数化用例在整类禁用时只占1个skipped槽，启用后展开为2个真实执行；本报告总数是7+3=10，不修改原suite历史skipped记录。"
+  }
+}

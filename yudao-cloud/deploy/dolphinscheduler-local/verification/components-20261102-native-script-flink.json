@@ -1,0 +1,422 @@
+{
+  "verifiedAt": "2026-11-02T16:32:40+0800",
+  "engine": "Official Apache Flink1.20.3 / Java17",
+  "launcherSha256": "f651e7a5564b017c2f11432a5b710529b4583e8282cb1bc77e3695b25767a701",
+  "executionBoundary": "Independent fixture mTLS identity, trusted host broker18448, immutable Java25 Docker network=none worker; actual production Flink operator.",
+  "cases": [
+    {
+      "case": "bounded",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 5.063
+    },
+    {
+      "case": "overflow",
+      "phase": "run",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 3.047
+    },
+    {
+      "case": "badtype",
+      "phase": "run",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 5.653
+    },
+    {
+      "case": "unauthorized",
+      "phase": "run",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 3.257
+    },
+    {
+      "case": "count",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 5.761
+    },
+    {
+      "case": "timer",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 6.165
+    },
+    {
+      "case": "resume",
+      "phase": "save-timer",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 1.948
+    },
+    {
+      "case": "resume",
+      "phase": "restore-timer",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 15.03
+    },
+    {
+      "case": "replay",
+      "phase": "save-session",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 4.467
+    },
+    {
+      "case": "replay",
+      "phase": "restore-session",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 4.764
+    },
+    {
+      "case": "replay",
+      "phase": "restore-rescaled",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 1.95
+    },
+    {
+      "case": "replay",
+      "phase": "restore-scope",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 1.945
+    },
+    {
+      "case": "cache",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 5.763
+    },
+    {
+      "case": "cancel",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 4.356
+    }
+  ],
+  "outputs": {
+    "timer": [
+      "9007199254740993|YmF0Y2g9MXzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789"
+    ],
+    "replay": [
+      "9007199254740993|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740994|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTE=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740995|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTI=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740996|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTM=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789"
+    ],
+    "cache": [
+      "9007199254740993|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740993|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740994|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTE=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789"
+    ],
+    "count": [
+      "9007199254740993|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740994|YmF0Y2g9MnzmsrPpgZMgTydSZWlsbHnwn5iALTE=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789"
+    ],
+    "resume": [
+      "9007199254740993|YmF0Y2g9MXzmsrPpgZMgTydSZWlsbHnwn5iALTA=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789",
+      "9007199254740994|YmF0Y2g9MXzmsrPpgZMgTydSZWlsbHnwn5iALTE=|12345678901234567890123456.7800|2026-11-02|2026-11-02T12:34:56.123456789"
+    ],
+    "badtype-sql-output": [],
+    "bounded-sql-output": [
+      {
+        "id": 9007199254740993,
+        "label": "batch=2|河道 O'Reilly😀",
+        "amount": "12345678901234567890123456.78",
+        "day": "2026-11-02",
+        "moment": "2026-11-02T12:34:56.123456789"
+      },
+      {
+        "id": 9007199254740994,
+        "label": "batch=2|null",
+        "amount": null,
+        "day": null,
+        "moment": null
+      }
+    ],
+    "overflow-sql-output": [],
+    "unauthorized-sql-output": []
+  },
+  "fixtureDirectory": "/private/tmp/datahub-script-flink-uzqr50pw",
+  "actualSerializationScans": [
+    {
+      "artifact": "bounded.args",
+      "bytes": 2074,
+      "privateMaterialMatches": 0,
+      "sha256": "baf474a5e17e6ccadccb3e1546fcae84de0c88a2cf04f8220102770cdfadfc30",
+      "decodedProgramBytes": 1553,
+      "retainedArtifact": "native-script-flink-artifacts/baf474a5e17e6ccadccb3e15.args"
+    },
+    {
+      "artifact": "count-run.jobgraph",
+      "bytes": 48042,
+      "privateMaterialMatches": 0,
+      "sha256": "f37fb61aebeb845a7989c0ec929ed72772524b9891c4089887649308c18ed190",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/f37fb61aebeb845a7989c0ec.bin"
+    },
+    {
+      "artifact": "overflow.args",
+      "bytes": 2078,
+      "privateMaterialMatches": 0,
+      "sha256": "f31b8fb3636298652b9b036480fe14e283e42efbef10c60c3f4579dcffd907fa",
+      "decodedProgramBytes": 1555,
+      "retainedArtifact": "native-script-flink-artifacts/f31b8fb3636298652b9b0364.args"
+    },
+    {
+      "artifact": "unauthorized.args",
+      "bytes": 2086,
+      "privateMaterialMatches": 0,
+      "sha256": "d603a8052dbb4dec2b057fecae7d5df6fd764a2de6de2e0b378b7dce66720c6b",
+      "decodedProgramBytes": 1561,
+      "retainedArtifact": "native-script-flink-artifacts/d603a8052dbb4dec2b057fec.args"
+    },
+    {
+      "artifact": "replay.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "fe95309daa6b1ad0633a9ee276ecfbfc817e34e71ee08cb6d618dca2a2126f3f",
+      "decodedProgramBytes": 1551,
+      "retainedArtifact": "native-script-flink-artifacts/fe95309daa6b1ad0633a9ee2.args"
+    },
+    {
+      "artifact": "timer.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "44f3595ce830e73f82aa6f8b013010db19a54520f5f9d0c5ad19f3c7cf051431",
+      "decodedProgramBytes": 1549,
+      "retainedArtifact": "native-script-flink-artifacts/44f3595ce830e73f82aa6f8b.args"
+    },
+    {
+      "artifact": "replay-save-session.jobgraph",
+      "bytes": 48052,
+      "privateMaterialMatches": 0,
+      "sha256": "05d5c1eb5ddfa7767c0d635e7c297f1a5de240ea008b540f2ef98cf85dda7fbf",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/05d5c1eb5ddfa7767c0d635e.bin"
+    },
+    {
+      "artifact": "resume-restore-timer.jobgraph",
+      "bytes": 48324,
+      "privateMaterialMatches": 0,
+      "sha256": "5b68461142ce074fd6230a5e3e6036656f955b22ae84db09567d16d28141fd25",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/5b68461142ce074fd6230a5e.bin"
+    },
+    {
+      "artifact": "cancel-run.jobgraph",
+      "bytes": 48052,
+      "privateMaterialMatches": 0,
+      "sha256": "954d52d13e9b546f6beab444475694dd9a9178014b8b9ffaef84c7ef2fa37483",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/954d52d13e9b546f6beab444.bin"
+    },
+    {
+      "artifact": "replay-restore-rescaled.jobgraph",
+      "bytes": 49847,
+      "privateMaterialMatches": 0,
+      "sha256": "fda792ebda13aa8c2b51a72ad94579f0843deea697e35c6eef75a127ecf58eb5",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/fda792ebda13aa8c2b51a72a.bin"
+    },
+    {
+      "artifact": "cache-run.jobgraph",
+      "bytes": 48234,
+      "privateMaterialMatches": 0,
+      "sha256": "e8955194d78624e4bdd6dcdb79caf6ac11484733014437e335843ba69d12d6b9",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/e8955194d78624e4bdd6dcdb.bin"
+    },
+    {
+      "artifact": "replay-restore-scope.jobgraph",
+      "bytes": 48324,
+      "privateMaterialMatches": 0,
+      "sha256": "6b4fd0c9733b1bd93e7b0e58f75f634abbcec71413820beb88fc57c8e422d21e",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/6b4fd0c9733b1bd93e7b0e58.bin"
+    },
+    {
+      "artifact": "replay-restore-session.jobgraph",
+      "bytes": 48324,
+      "privateMaterialMatches": 0,
+      "sha256": "4d78fd7e57b13d03c6856d91cf426a5575a7fb023333929292864e6d6068c9c8",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/4d78fd7e57b13d03c6856d91.bin"
+    },
+    {
+      "artifact": "timer-run.jobgraph",
+      "bytes": 48042,
+      "privateMaterialMatches": 0,
+      "sha256": "c3d39314d53bb9ace6260b013c66d7d0486c37312a0cbeb7f520b3d6b7a261c7",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/c3d39314d53bb9ace6260b01.bin"
+    },
+    {
+      "artifact": "resume.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "29cfd0682286a240470763e9b95bc8b60de0dcb07d11835ecdb1033a6af61876",
+      "decodedProgramBytes": 1551,
+      "retainedArtifact": "native-script-flink-artifacts/29cfd0682286a240470763e9.args"
+    },
+    {
+      "artifact": "resume-save-timer.jobgraph",
+      "bytes": 48052,
+      "privateMaterialMatches": 0,
+      "sha256": "49853beeed82f192fcca9d9bc5609e4cba3d169131bd487328144955d7a005d4",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/49853beeed82f192fcca9d9b.bin"
+    },
+    {
+      "artifact": "badtype.args",
+      "bytes": 2074,
+      "privateMaterialMatches": 0,
+      "sha256": "6bf310fd2a1ac0a224c49c5f35bc10497f487018469496813bb7943beaf4c7c3",
+      "decodedProgramBytes": 1553,
+      "retainedArtifact": "native-script-flink-artifacts/6bf310fd2a1ac0a224c49c5f.args"
+    },
+    {
+      "artifact": "cancel.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "bc68b4316002bdb2e868004274f78c33232d60966d0578e399957d636f05cdad",
+      "decodedProgramBytes": 1551,
+      "retainedArtifact": "native-script-flink-artifacts/bc68b4316002bdb2e8680042.args"
+    },
+    {
+      "artifact": "cache.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "00c6d71a57dfdd006c9e584e255ba2dd15b77653b8f224ce067ae2709b854fc5",
+      "decodedProgramBytes": 1549,
+      "retainedArtifact": "native-script-flink-artifacts/00c6d71a57dfdd006c9e584e.args"
+    },
+    {
+      "artifact": "count.args",
+      "bytes": 2070,
+      "privateMaterialMatches": 0,
+      "sha256": "9d742b73adc81c1a8f707b04d1055d0f0cdf67080e534be6bf4757fb8958473c",
+      "decodedProgramBytes": 1549,
+      "retainedArtifact": "native-script-flink-artifacts/9d742b73adc81c1a8f707b04.args"
+    },
+    {
+      "artifact": "savepoints/savepoint-1b55e3-eccef08ad6d1/_metadata",
+      "bytes": 1687,
+      "privateMaterialMatches": 0,
+      "sha256": "c20c1f4d587d0081b483746440f7faf48bd48a02bb4ee886679a626efb9c3ea8",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/c20c1f4d587d0081b4837464.bin"
+    },
+    {
+      "artifact": "savepoints/savepoint-a841e2-a2181d76e09c/_metadata",
+      "bytes": 1900,
+      "privateMaterialMatches": 0,
+      "sha256": "057199370bcfd6f53886e28a511f02cc94f2b06a9509256024e844a607d639dc",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/057199370bcfd6f53886e28a.bin"
+    },
+    {
+      "artifact": "savepoints/savepoint-8e1ac5-d8731cdc7a57/_metadata",
+      "bytes": 1724,
+      "privateMaterialMatches": 0,
+      "sha256": "b87bce9aaac61fe110b5c27b53ad2c692df3b1f4da5c4c22c13b5d4650fa7e07",
+      "decodedProgramBytes": null,
+      "retainedArtifact": "native-script-flink-artifacts/b87bce9aaac61fe110b5c27b.bin"
+    }
+  ],
+  "activeWorkersAfterStop": 0,
+  "workerCleanupObservedBeforeBrokerClose": true,
+  "brokerSessions": [
+    {
+      "id": "5e47bfb9-3b84-4adf-b804-5f87f4c66bdc",
+      "binding": "script_9b6bc6550b473dbf28e68de52d3bb2a91e45f16b9acccc73",
+      "sequence": 1,
+      "acknowledged": 1,
+      "closed": false,
+      "inFlight": false,
+      "case": "timer"
+    },
+    {
+      "id": "f158309e-db14-45cd-91af-d4d80a0bf779",
+      "binding": "script_1bd5010889cf86f5416b43b168c08ca4332c9ab9e29c3361",
+      "sequence": 1,
+      "acknowledged": 1,
+      "closed": false,
+      "inFlight": false,
+      "case": "count"
+    },
+    {
+      "id": "41955937-c849-4040-8fe5-8fec23bff20a",
+      "binding": "script_9d72ca9b9e9e498beb75c96f8814bddee37aeca0535832c8",
+      "sequence": 1,
+      "acknowledged": 0,
+      "closed": true,
+      "inFlight": false,
+      "case": "bounded"
+    },
+    {
+      "id": "1289fe26-6e7a-4ddf-819e-f21122f94bc7",
+      "binding": "script_46b513d882406e64e958c981ea787e54a1bbfbfe5c0537df",
+      "sequence": 0,
+      "acknowledged": 0,
+      "closed": true,
+      "inFlight": true,
+      "case": "badtype"
+    },
+    {
+      "id": "50fa644f-fe57-49e8-a5a2-98c9f5ee92b1",
+      "binding": "script_1a4f2eb9622d8e123f9cc77838798b66b9ac340f17bbb0f3",
+      "sequence": 1,
+      "acknowledged": 1,
+      "closed": false,
+      "inFlight": false,
+      "case": "cache"
+    },
+    {
+      "id": "0f9540f3-fc26-40f7-b721-f3e42c63dc13",
+      "binding": "script_64a9d5f615bc6c3885b8ddaa069568d693b6fb0859a5f62a",
+      "sequence": 0,
+      "acknowledged": 0,
+      "closed": true,
+      "inFlight": true,
+      "case": "cancel"
+    },
+    {
+      "id": "6e0d594f-1db5-4e80-a25c-7cf97310cbde",
+      "binding": "script_061e71b20c8cb7b6f573114eb0b645cb6a2d757e2f7b7764",
+      "sequence": 2,
+      "acknowledged": 2,
+      "closed": false,
+      "inFlight": false,
+      "case": "resume"
+    },
+    {
+      "id": "230e49fc-e443-4c84-b3b4-18b7324d0691",
+      "binding": "script_a7c9fd584019eda9bf7b32e4c24a2840145c44d52b705e6f",
+      "sequence": 2,
+      "acknowledged": 2,
+      "closed": false,
+      "inFlight": false,
+      "case": "replay"
+    }
+  ],
+  "limits": [
+    "Technical component acceptance with controlled SQL VALUES/DataStream test sources; not a management API task or physical database continuous source.",
+    "Flink custom-token initializers remain unsupported because HTTP consumers are Spark only.",
+    "External sinks remain at least once; checkpoint response caching does not make arbitrary user side effects transactional."
+  ],
+  "boundedUserInterface": "qData EtlBase / JSONObject data.data; no JSON string conversion",
+  "responseReplayUserExecutions": 1,
+  "responseReplaySinkRows": 3,
+  "rawTokenApplicable": false,
+  "stoppedBrokerAfterObservation": true
+}

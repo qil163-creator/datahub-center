@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "javaPid1": true,
+  "serialCoordinatorPresent": true,
+  "sameTokenAuthenticated": true,
+  "sameProjectCode": "188566818730880",
+  "beforeAfterRecordsTasksAndTargetsEqual": true,
+  "historyCleared": false,
+  "registrySqlDeletion": false,
+  "allBusinessSchedulesOff": true,
+  "oldDesktopSchedulerTouchedByThisMaintenance": false,
+  "before": {
+    "platformRecords": "1:SUCCESS:\n2:SUCCESS:\n3:FAILURE:\n4:FAILURE:DONE\n5:STOPPED:DONE\n6:STOPPED:DONE\n7:SUCCESS:DONE\n8:SUCCESS:DONE\n9:SUCCESS:DONE\n10:SUCCESS:DONE\n11:SUCCESS:DONE\n12:STOPPED:CANCELLED\n13:SUCCESS:DONE\n14:STOPPED:DISCARDED\n15:SUCCESS:DONE\n16:STOPPED:DONE\n17:STOPPED:CANCELLED\n18:SUCCESS:DONE\n19:STOPPED:DONE\n20:STOPPED:SUPERSEDED\n21:SUCCESS:DONE\n52:STOPPED:DONE\n53:STOPPED:SUPERSEDED\n54:SUCCESS:DONE\n55:SUCCESS:DONE\n56:FAILURE:REJECTED",
+    "dsInstances": "1:6\n2:6\n3:5\n4:7\n5:5\n6:5\n7:7\n8:5\n9:7\n10:7\n11:7\n12:7\n13:7\n14:7\n15:7\n16:7\n17:7\n18:7\n19:7\n20:7\n21:7\n22:7\n23:7\n24:7\n25:7\n26:7\n27:7\n28:7\n29:7\n30:5\n31:5\n32:7\n33:7\n34:7\n35:5\n36:5\n37:7\n38:7\n68:7\n69:5\n70:5\n71:7\n72:7\n73:7\n74:7\n75:7\n76:7",
+    "dsTasks": "1:6\n2:6\n3:7\n4:7\n5:9\n6:7\n7:7\n8:9\n9:7\n10:7\n11:7\n12:7\n13:7\n14:7\n15:7\n16:7\n17:7\n18:7\n19:7\n20:7\n21:7\n22:7\n23:7\n24:7\n25:7\n26:7\n27:7\n28:7\n29:7\n30:7\n31:7\n32:7\n33:7\n34:7\n35:7\n36:7\n37:9\n38:9\n39:7\n40:7\n41:7\n42:7\n43:9\n44:9\n45:8\n46:8\n76:7\n77:7\n78:7\n79:7\n80:9\n81:9\n82:7\n83:7\n84:7\n85:7\n86:7\n87:7\n88:7\n89:7",
+    "targets": {
+      "cron": {
+        "count": 6,
+        "sum": 62
+      },
+      "wait": {
+        "count": 15,
+        "sum": 155
+      },
+      "discard": {
+        "count": 6,
+        "sum": 62
+      },
+      "priority": {
+        "count": 12,
+        "sum": 124
+      },
+      "parallel": {
+        "count": 3,
+        "sum": 31
+      }
+    }
+  },
+  "after": {
+    "platformRecords": "1:SUCCESS:\n2:SUCCESS:\n3:FAILURE:\n4:FAILURE:DONE\n5:STOPPED:DONE\n6:STOPPED:DONE\n7:SUCCESS:DONE\n8:SUCCESS:DONE\n9:SUCCESS:DONE\n10:SUCCESS:DONE\n11:SUCCESS:DONE\n12:STOPPED:CANCELLED\n13:SUCCESS:DONE\n14:STOPPED:DISCARDED\n15:SUCCESS:DONE\n16:STOPPED:DONE\n17:STOPPED:CANCELLED\n18:SUCCESS:DONE\n19:STOPPED:DONE\n20:STOPPED:SUPERSEDED\n21:SUCCESS:DONE\n52:STOPPED:DONE\n53:STOPPED:SUPERSEDED\n54:SUCCESS:DONE\n55:SUCCESS:DONE\n56:FAILURE:REJECTED",
+    "dsInstances": "1:6\n2:6\n3:5\n4:7\n5:5\n6:5\n7:7\n8:5\n9:7\n10:7\n11:7\n12:7\n13:7\n14:7\n15:7\n16:7\n17:7\n18:7\n19:7\n20:7\n21:7\n22:7\n23:7\n24:7\n25:7\n26:7\n27:7\n28:7\n29:7\n30:5\n31:5\n32:7\n33:7\n34:7\n35:5\n36:5\n37:7\n38:7\n68:7\n69:5\n70:5\n71:7\n72:7\n73:7\n74:7\n75:7\n76:7",
+    "dsTasks": "1:6\n2:6\n3:7\n4:7\n5:9\n6:7\n7:7\n8:9\n9:7\n10:7\n11:7\n12:7\n13:7\n14:7\n15:7\n16:7\n17:7\n18:7\n19:7\n20:7\n21:7\n22:7\n23:7\n24:7\n25:7\n26:7\n27:7\n28:7\n29:7\n30:7\n31:7\n32:7\n33:7\n34:7\n35:7\n36:7\n37:9\n38:9\n39:7\n40:7\n41:7\n42:7\n43:9\n44:9\n45:8\n46:8\n76:7\n77:7\n78:7\n79:7\n80:9\n81:9\n82:7\n83:7\n84:7\n85:7\n86:7\n87:7\n88:7\n89:7",
+    "targets": {
+      "cron": {
+        "count": 6,
+        "sum": 62
+      },
+      "wait": {
+        "count": 15,
+        "sum": 155
+      },
+      "discard": {
+        "count": 6,
+        "sum": 62
+      },
+      "priority": {
+        "count": 12,
+        "sum": 124
+      },
+      "parallel": {
+        "count": 3,
+        "sum": 31
+      }
+    }
+  }
+}

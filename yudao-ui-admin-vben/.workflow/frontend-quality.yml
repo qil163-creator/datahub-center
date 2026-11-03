@@ -1,0 +1,30 @@
+version: '1.0'
+name: frontend-quality
+displayName: FrontendQuality
+triggers:
+  trigger: auto
+  push:
+    branches:
+      precise:
+        - master
+  pr:
+    branches:
+      precise:
+        - master
+stages:
+  - stage:
+      name: quality
+      displayName: AntdvNextQuality
+      strategy: naturally
+      trigger: auto
+      steps:
+        - step: build@nodejs
+          name: quality_antdv_next
+          displayName: AntdvNextQuality
+          nodeVersion: 24.16.0
+          commands:
+            - corepack enable
+            - corepack prepare pnpm@11.16.0 --activate
+            - pnpm install --frozen-lockfile
+            - git fetch origin master --depth=1000
+            - QUALITY_BASE_REF=origin/master pnpm run quality:antdv-next

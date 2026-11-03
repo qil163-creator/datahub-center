@@ -1,0 +1,766 @@
+{
+  "cases": {
+    "priority": {
+      "records": {
+        "resume2_A": {
+          "recordId": 52,
+          "request": {
+            "id": 7,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_priority_resume2_resume2_A"
+          }
+        },
+        "resume2_B": {
+          "recordId": 53,
+          "request": {
+            "id": 7,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_priority_resume2_resume2_B"
+          }
+        },
+        "resume2_C": {
+          "recordId": 54,
+          "request": {
+            "id": 7,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_priority_resume2_resume2_C"
+          }
+        }
+      },
+      "observations": [],
+      "window": {
+        "policy": "priority",
+        "jobId": 7,
+        "recordIds": [
+          52,
+          53,
+          54
+        ],
+        "records": [
+          {
+            "id": 52,
+            "status": "STOPPED",
+            "queueState": "DONE",
+            "queueReason": "真实父子终态已确认：STOPPED",
+            "queuedTime": "2026-11-02 11:50:09",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188580877429632,
+            "dsInstanceId": 69,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 11:50:14",
+            "endTime": "2026-11-02 11:50:35",
+            "children": [
+              {
+                "id": 180829751976974,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "STOPPED",
+                "taskId": 1004
+              },
+              {
+                "id": 46,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "STOPPED",
+                "taskId": 9
+              }
+            ]
+          },
+          {
+            "id": 53,
+            "status": "STOPPED",
+            "queueState": "SUPERSEDED",
+            "queueReason": "已被更新的串行优先请求取代；未执行",
+            "queuedTime": "2026-11-02 11:50:24",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": null,
+            "dsInstanceId": null,
+            "submissionStage": "QUEUED",
+            "startTime": null,
+            "endTime": "2026-11-02 11:50:34",
+            "children": []
+          },
+          {
+            "id": 54,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 11:50:34",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188580912424832,
+            "dsInstanceId": 71,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 11:50:48",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976975,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1004
+              },
+              {
+                "id": 47,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 9
+              }
+            ]
+          }
+        ],
+        "oldWriterPids": [
+          1417
+        ],
+        "oldWriterBackendsGoneBeforeUnlock": true,
+        "targetBeforeUnlock": {
+          "count": 9,
+          "sum": 93
+        },
+        "latestBlocked": {
+          "record": {
+            "id": 54,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 11:50:34",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188580912424832,
+            "dsInstanceId": 71,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 11:50:48",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976975,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1004
+              },
+              {
+                "id": 47,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 9
+              }
+            ]
+          },
+          "writerWaiters": [
+            {
+              "pid": 1629,
+              "waitEventType": "Lock",
+              "waitEvent": "relation",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "result": {
+        "validation": "PASS",
+        "proof": {
+          "platform": {
+            "id": 54,
+            "status": "SUCCESS",
+            "queueState": "DONE",
+            "queueReason": "真实父子终态已确认：SUCCESS",
+            "queuedTime": "2026-11-02 11:50:34",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188580912424832,
+            "dsInstanceId": 71,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 11:50:48",
+            "endTime": "2026-11-02 11:51:28",
+            "children": [
+              {
+                "id": 180829751976975,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "SUCCESS",
+                "taskId": 1004
+              },
+              {
+                "id": 47,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "SUCCESS",
+                "taskId": 9
+              }
+            ]
+          },
+          "parentInstanceId": 71,
+          "parentDefinitionCode": "188580912424832",
+          "parentStartTime": "2026-11-02 11:50:48",
+          "parentEndTime": "2026-11-02 11:51:28",
+          "dsChildren": [
+            {
+              "instanceId": 73,
+              "definitionCode": "188580912397184",
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 11:51:18",
+              "endTime": "2026-11-02 11:51:18",
+              "workerTaskId": 85,
+              "workerType": "SQL",
+              "workerStartTime": "2026-11-02 11:51:18",
+              "workerEndTime": "2026-11-02 11:51:18",
+              "reverseParentVerified": true,
+              "executionRowCount": 12,
+              "rawLogSha256": "d1e763194d6767db36000677178aa20cfed147eccba6583a63750662bb679d66",
+              "rawLogSaved": false,
+              "secretLeakDetected": false
+            },
+            {
+              "instanceId": 72,
+              "definitionCode": "188567594801024",
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 11:50:48",
+              "endTime": "2026-11-02 11:51:09",
+              "workerTaskId": 83,
+              "workerType": "DATAX",
+              "workerStartTime": "2026-11-02 11:50:49",
+              "workerEndTime": "2026-11-02 11:51:09",
+              "reverseParentVerified": true
+            }
+          ],
+          "globalParams": [
+            {
+              "prop": "datahub_job_request",
+              "direct": "IN",
+              "type": "VARCHAR",
+              "value": "cjp_20261102_080442_28e9_priority_resume2_resume2_C"
+            }
+          ],
+          "logs": [
+            {
+              "identity": {
+                "id": 54,
+                "kind": "JOB",
+                "origin": "PLATFORM"
+              },
+              "file": "priority-54-job.txt",
+              "sha256": "019b06abba9215efc03803833b1f366511758f0d07491b673fa564d156bcf75b",
+              "bytes": 18723,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            },
+            {
+              "identity": {
+                "id": 180829751976975,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED"
+              },
+              "file": "priority-54-integration.txt",
+              "sha256": "62d1dec8abd0f4ddf910eabc5cacc71738d7e90759404c20c8c5ece8e8c8b0e1",
+              "bytes": 15949,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            },
+            {
+              "identity": {
+                "id": 47,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM"
+              },
+              "file": "priority-54-development.txt",
+              "sha256": "5012e5f30eaa7bc985f7cd0b04ca1f165544d4f8b00a94ddaa969dd4ed9bc82b",
+              "bytes": 2345,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            }
+          ],
+          "dependencyVerified": true
+        },
+        "superseded": {
+          "record": {
+            "id": 53,
+            "status": "STOPPED",
+            "queueState": "SUPERSEDED",
+            "queueReason": "已被更新的串行优先请求取代；未执行",
+            "queuedTime": "2026-11-02 11:50:24",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": null,
+            "dsInstanceId": null,
+            "submissionStage": "QUEUED",
+            "startTime": null,
+            "endTime": "2026-11-02 11:50:34",
+            "children": []
+          },
+          "actualDsDefinitionCount": 0,
+          "workerCount": 0,
+          "viewDownloadEqual": true,
+          "reasonPresent": true
+        },
+        "oldStopped": {
+          "id": 52,
+          "status": "STOPPED",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：STOPPED",
+          "queuedTime": "2026-11-02 11:50:09",
+          "scheduledTime": null,
+          "executionType": "START",
+          "dsProjectCode": 188566818730880,
+          "dsDefinitionCode": 188580877429632,
+          "dsInstanceId": 69,
+          "submissionStage": "BOUND",
+          "startTime": "2026-11-02 11:50:14",
+          "endTime": "2026-11-02 11:50:35",
+          "children": [
+            {
+              "id": 180829751976974,
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "STOPPED",
+              "taskId": 1004
+            },
+            {
+              "id": 46,
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "taskId": 9
+            }
+          ]
+        },
+        "oldDsEndTime": "2026-11-02 11:50:35",
+        "oldWriterPids": [
+          1417
+        ],
+        "oldWriterBackendsGoneBeforeUnlock": true,
+        "manualPgTerminateUsed": false,
+        "targetBefore": {
+          "count": 9,
+          "sum": 93
+        },
+        "target": {
+          "rowsWithMultiplicity": [
+            [
+              1,
+              "  alice  ",
+              7,
+              4
+            ],
+            [
+              2,
+              "Bob",
+              11,
+              4
+            ],
+            [
+              3,
+              "q'Data",
+              13,
+              4
+            ]
+          ],
+          "totals": {
+            "count": 12,
+            "sum": 124
+          },
+          "totalDataxCopies": 4
+        },
+        "coordinatorPause": {
+          "jobId": 4,
+          "groupId": 3,
+          "officialStopAndResume": true,
+          "oldJob2OrMainJob5Touched": false
+        }
+      }
+    },
+    "parallel": {
+      "records": {
+        "A": {
+          "recordId": 55,
+          "request": {
+            "id": 8,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_parallel_resume2_A"
+          }
+        },
+        "B": {
+          "recordId": 56,
+          "request": {
+            "id": 8,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_parallel_resume2_B"
+          }
+        },
+        "busyfix_A": {
+          "recordId": 57,
+          "request": {
+            "id": 8,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_parallel_busyfix_busyfix_A"
+          }
+        },
+        "busyfix_B": {
+          "recordId": 58,
+          "request": {
+            "id": 8,
+            "revision": 1,
+            "requestId": "cjp_20261102_080442_28e9_parallel_busyfix_busyfix_B"
+          }
+        }
+      },
+      "observations": [],
+      "result": {
+        "validation": "PASS",
+        "completeSuccessfulParents": 1,
+        "proof": {
+          "platform": {
+            "id": 57,
+            "status": "SUCCESS",
+            "queueState": "DONE",
+            "queueReason": "真实父子终态已确认：SUCCESS",
+            "queuedTime": "2026-11-02 12:00:47",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188581530557056,
+            "dsInstanceId": 77,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:00:52",
+            "endTime": "2026-11-02 12:01:43",
+            "children": [
+              {
+                "id": 180829751976977,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "SUCCESS",
+                "taskId": 1005
+              },
+              {
+                "id": 50,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "SUCCESS",
+                "taskId": 10
+              }
+            ]
+          },
+          "parentInstanceId": 77,
+          "parentDefinitionCode": "188581530557056",
+          "parentStartTime": "2026-11-02 12:00:52",
+          "parentEndTime": "2026-11-02 12:01:43",
+          "dsChildren": [
+            {
+              "instanceId": 79,
+              "definitionCode": "188581530471040",
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 12:01:33",
+              "endTime": "2026-11-02 12:01:34",
+              "workerTaskId": 93,
+              "workerType": "SQL",
+              "workerStartTime": "2026-11-02 12:01:34",
+              "workerEndTime": "2026-11-02 12:01:34",
+              "reverseParentVerified": true,
+              "executionRowCount": 6,
+              "rawLogSha256": "c11dec3c80f96b0788ecfad12e1430944828df6ea806b6ab898ed6fdcbee4262",
+              "rawLogSaved": false,
+              "secretLeakDetected": false
+            },
+            {
+              "instanceId": 78,
+              "definitionCode": "188567605869440",
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 12:00:53",
+              "endTime": "2026-11-02 12:01:25",
+              "workerTaskId": 91,
+              "workerType": "DATAX",
+              "workerStartTime": "2026-11-02 12:00:54",
+              "workerEndTime": "2026-11-02 12:01:25",
+              "reverseParentVerified": true
+            }
+          ],
+          "globalParams": [
+            {
+              "prop": "datahub_job_request",
+              "direct": "IN",
+              "type": "VARCHAR",
+              "value": "cjp_20261102_080442_28e9_parallel_busyfix_busyfix_A"
+            }
+          ],
+          "logs": [
+            {
+              "identity": {
+                "id": 57,
+                "kind": "JOB",
+                "origin": "PLATFORM"
+              },
+              "file": "parallel-57-job.txt",
+              "sha256": "8d17ed75597bac99168f28bd9d34f958c6e519e337e79f5e7896adde75e76b08",
+              "bytes": 19000,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            },
+            {
+              "identity": {
+                "id": 180829751976977,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED"
+              },
+              "file": "parallel-57-integration.txt",
+              "sha256": "28960dd5aaf0a79967c74f83c2984b3e1c55b73e98876a561bca6a74b11a2136",
+              "bytes": 16226,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            },
+            {
+              "identity": {
+                "id": 50,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM"
+              },
+              "file": "parallel-57-development.txt",
+              "sha256": "754f6efb3ca1ee676a79addf079d2343f068359a135578bea2276831b4c21192",
+              "bytes": 2345,
+              "viewDownloadEqual": true,
+              "secretLeakDetected": false
+            }
+          ],
+          "dependencyVerified": true
+        },
+        "rejectedBusySecond": {
+          "record": {
+            "id": 58,
+            "status": "FAILURE",
+            "queueState": "REJECTED",
+            "queueReason": "业务父流程未触发，本次准备已终止：任务正在运行中，请稍后再试",
+            "queuedTime": "2026-11-02 12:01:01",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": null,
+            "dsInstanceId": null,
+            "submissionStage": "PREPARING",
+            "startTime": null,
+            "endTime": "2026-11-02 12:01:04",
+            "children": []
+          },
+          "actualDsDefinitionCount": 0,
+          "workerCount": 0,
+          "viewDownloadEqual": true,
+          "reasonPresent": true
+        },
+        "sharedDevelopmentSingleActivePreserved": true,
+        "claimsSharedDevelopmentConcurrentExecution": false,
+        "targetBefore": {
+          "count": 3,
+          "sum": 31
+        },
+        "target": {
+          "rowsWithMultiplicity": [
+            [
+              1,
+              "  alice  ",
+              7,
+              2
+            ],
+            [
+              2,
+              "Bob",
+              11,
+              2
+            ],
+            [
+              3,
+              "q'Data",
+              13,
+              2
+            ]
+          ],
+          "totals": {
+            "count": 6,
+            "sum": 62
+          },
+          "totalDataxCopies": 2
+        }
+      },
+      "previousResults": [
+        {
+          "validation": "PASS",
+          "completeSuccessfulParents": 1,
+          "proof": {
+            "platform": {
+              "id": 55,
+              "status": "SUCCESS",
+              "queueState": "DONE",
+              "queueReason": "真实父子终态已确认：SUCCESS",
+              "queuedTime": "2026-11-02 11:51:48",
+              "scheduledTime": null,
+              "executionType": "START",
+              "dsProjectCode": 188566818730880,
+              "dsDefinitionCode": 188580978955136,
+              "dsInstanceId": 74,
+              "submissionStage": "BOUND",
+              "startTime": "2026-11-02 11:51:53",
+              "endTime": "2026-11-02 11:52:34",
+              "children": [
+                {
+                  "id": 180829751976976,
+                  "kind": "INTEGRATION",
+                  "origin": "MANAGED",
+                  "status": "SUCCESS",
+                  "taskId": 1005
+                },
+                {
+                  "id": 48,
+                  "kind": "DEVELOPMENT",
+                  "origin": "PLATFORM",
+                  "status": "SUCCESS",
+                  "taskId": 10
+                }
+              ]
+            },
+            "parentInstanceId": 74,
+            "parentDefinitionCode": "188580978955136",
+            "parentStartTime": "2026-11-02 11:51:53",
+            "parentEndTime": "2026-11-02 11:52:34",
+            "dsChildren": [
+              {
+                "instanceId": 76,
+                "definitionCode": "188580978918272",
+                "state": "SUCCESS",
+                "startTime": "2026-11-02 11:52:24",
+                "endTime": "2026-11-02 11:52:26",
+                "workerTaskId": 89,
+                "workerType": "SQL",
+                "workerStartTime": "2026-11-02 11:52:25",
+                "workerEndTime": "2026-11-02 11:52:25",
+                "reverseParentVerified": true,
+                "executionRowCount": 3,
+                "rawLogSha256": "edfa0bfb5c22fa10df22f3981bf851959a62f9201dd669453721b2c88f859158",
+                "rawLogSaved": false,
+                "secretLeakDetected": false
+              },
+              {
+                "instanceId": 75,
+                "definitionCode": "188567605869440",
+                "state": "SUCCESS",
+                "startTime": "2026-11-02 11:51:54",
+                "endTime": "2026-11-02 11:52:16",
+                "workerTaskId": 87,
+                "workerType": "DATAX",
+                "workerStartTime": "2026-11-02 11:51:55",
+                "workerEndTime": "2026-11-02 11:52:16",
+                "reverseParentVerified": true
+              }
+            ],
+            "globalParams": [
+              {
+                "prop": "datahub_job_request",
+                "direct": "IN",
+                "type": "VARCHAR",
+                "value": "cjp_20261102_080442_28e9_parallel_resume2_A"
+              }
+            ],
+            "logs": [
+              {
+                "identity": {
+                  "id": 55,
+                  "kind": "JOB",
+                  "origin": "PLATFORM"
+                },
+                "file": "parallel-55-job.txt",
+                "sha256": "f614138490175e15badfddfa136df0d1c058a20349beddd64d87d213c003778f",
+                "bytes": 18715,
+                "viewDownloadEqual": true,
+                "secretLeakDetected": false
+              },
+              {
+                "identity": {
+                  "id": 180829751976976,
+                  "kind": "INTEGRATION",
+                  "origin": "MANAGED"
+                },
+                "file": "parallel-55-integration.txt",
+                "sha256": "317bd5efb2806ac80ad69892d0f7273f3e328b573b081262e35a6a42bf51500b",
+                "bytes": 15941,
+                "viewDownloadEqual": true,
+                "secretLeakDetected": false
+              },
+              {
+                "identity": {
+                  "id": 48,
+                  "kind": "DEVELOPMENT",
+                  "origin": "PLATFORM"
+                },
+                "file": "parallel-55-development.txt",
+                "sha256": "b321105f4e65531523fd77ba15271fe34deda33e42e9c8a4c083c4fe635f461d",
+                "bytes": 2345,
+                "viewDownloadEqual": true,
+                "secretLeakDetected": false
+              }
+            ],
+            "dependencyVerified": true
+          },
+          "rejectedBusySecond": {
+            "record": {
+              "id": 56,
+              "status": "FAILURE",
+              "queueState": "REJECTED",
+              "queueReason": "业务父流程未触发，本次准备已终止：DuplicateKeyException",
+              "queuedTime": "2026-11-02 11:52:01",
+              "scheduledTime": null,
+              "executionType": "START",
+              "dsProjectCode": 188566818730880,
+              "dsDefinitionCode": null,
+              "dsInstanceId": null,
+              "submissionStage": "PREPARING",
+              "startTime": null,
+              "endTime": "2026-11-02 11:52:04",
+              "children": []
+            },
+            "actualDsDefinitionCount": 0,
+            "workerCount": 0,
+            "viewDownloadEqual": true,
+            "reasonPresent": true
+          },
+          "sharedDevelopmentSingleActivePreserved": true,
+          "claimsSharedDevelopmentConcurrentExecution": false,
+          "target": {
+            "rowsWithMultiplicity": [
+              [
+                1,
+                "  alice  ",
+                7,
+                1
+              ],
+              [
+                2,
+                "Bob",
+                11,
+                1
+              ],
+              [
+                3,
+                "q'Data",
+                13,
+                1
+              ]
+            ],
+            "totals": {
+              "count": 3,
+              "sum": 31
+            },
+            "totalDataxCopies": 1
+          }
+        }
+      ]
+    }
+  },
+  "executionApiPort": 50027
+}

@@ -1,0 +1,17 @@
+# Disposable small-data functional tests. Docker memory/CPU limits remain enabled.
+[storage]
+reserve-space = "128MB"
+[storage.block-cache]
+capacity = "256MB"
+[readpool.unified]
+min-thread-count = 1
+max-thread-count = 2
+[rocksdb]
+max-background-jobs = 2
+[raftdb]
+max-background-jobs = 2
+[raftstore]
+store-pool-size = 1
+apply-pool-size = 1
+[server]
+grpc-concurrency = 2

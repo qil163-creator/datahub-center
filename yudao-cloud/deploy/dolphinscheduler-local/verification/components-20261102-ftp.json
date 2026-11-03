@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "scope": "real pyftpdlib2.2.0 + CommonsNet3.13 worker probe + real Spark3.5.6 compiler SQL",
+  "managementApiAccepted": false,
+  "checks": {
+    "network_stou_jail_and_factory_secret": {
+      "passed": true,
+      "exitCode": 0,
+      "outputSha256": "7a1ae8664e733ba679d9cf8c6021c7a422bec5f17d7729d1704f9d77409d1373"
+    },
+    "write": {
+      "passed": true,
+      "exitCode": 0,
+      "rows": [],
+      "sqlSha256": "19983a7aea964d143312e92c1b72bb412515dc581642faa37d70f330fa66edcb",
+      "outputSha256": "ec9a2928f0add0279797ab3e78df3206b83e84969cbbc9527072fa1689c9032b"
+    },
+    "read": {
+      "passed": true,
+      "exitCode": 0,
+      "rows": [
+        {
+          "id": "9007199254740993",
+          "label": "河道😀,\nO'Reilly\"",
+          "amount": "123456.120000000000000001",
+          "flag": true,
+          "day": "2026-11-02",
+          "observed": "2026-11-02 08:01:02.123456"
+        },
+        {
+          "id": "9007199254740994",
+          "label": "",
+          "flag": false
+        }
+      ],
+      "sqlSha256": "1afbe7252f0b586ebd3fa609e354acc7d7d42f47be894a619b34cb1cf60d6e3e",
+      "outputSha256": "cda19c92355c0a868c882d77f226430bb79746f52c321ae67b323df38edb01cb"
+    },
+    "text-invalid": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "8e369bc440d1521362c480955ce7ad6f6701bf1fbffbf690948360e984f46cd2",
+      "outputSha256": "18922c9664181771315fa7b490c4e131deb23c5685f0427ba71d0b7c598f793f"
+    },
+    "unbound-root": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "1afbe7252f0b586ebd3fa609e354acc7d7d42f47be894a619b34cb1cf60d6e3e",
+      "outputSha256": "cb9539b2a3941798a95261d673d6482fbca3bff8751396dcc98d4e7870375feb"
+    },
+    "unbound-secret": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "1afbe7252f0b586ebd3fa609e354acc7d7d42f47be894a619b34cb1cf60d6e3e",
+      "outputSha256": "3d627c51322cc760ca8b8b49944440f877045c4e29018827f17fa211227911eb"
+    }
+  }
+}

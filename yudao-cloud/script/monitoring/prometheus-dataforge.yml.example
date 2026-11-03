@@ -1,0 +1,16 @@
+# 合并到私有监控服务器配置中，并替换目标地址。
+# cluster 是目标标签，仅设置 external_labels 不会参与本地规则计算。
+global:
+  scrape_interval: 30s
+rule_files:
+  - dataforge-run.rules.yml
+scrape_configs:
+  - job_name: dataforge-run
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['dataforge-node-a.internal:19095', 'dataforge-node-b.internal:19095']
+        labels:
+          cluster: datahub-staging
+# 部署前配置 HTTPS、mTLS 或已有的私有监控认证方式。
+# 不要通过公共网关暴露此端点，也不要在此填写真实凭据。

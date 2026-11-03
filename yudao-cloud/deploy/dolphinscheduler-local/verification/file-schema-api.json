@@ -1,0 +1,155 @@
+{
+  "infra": "https://localhost:48085",
+  "integration": "http://127.0.0.1:50025",
+  "transport": "mutual TLS; pinned client certificate; hostname and CA verification",
+  "cases": {
+    "csv": {
+      "fileId": "32",
+      "result": {
+        "fields": [
+          {
+            "name": "编号",
+            "dataType": "STRING",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          },
+          {
+            "name": "站名,别称",
+            "dataType": "STRING",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          },
+          {
+            "name": "日期",
+            "dataType": "STRING",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          }
+        ],
+        "warnings": [
+          "CSV按UTF-8逗号分隔文本读取；文件未声明字段长度与精度，请确认属性字段类型和日期格式。"
+        ],
+        "partial": true
+      },
+      "asserted": true
+    },
+    "wrongFormatDenied": {
+      "asserted": true
+    },
+    "jsonl": {
+      "fileId": "33",
+      "result": {
+        "fields": [
+          {
+            "name": "id",
+            "dataType": "LONG",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": "$['id']"
+          },
+          {
+            "name": "name",
+            "dataType": "STRING",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": "$['name']"
+          },
+          {
+            "name": "nested",
+            "dataType": null,
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": "$['nested']"
+          },
+          {
+            "name": "empty",
+            "dataType": null,
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": "$['empty']"
+          }
+        ],
+        "warnings": [
+          "字段类型来自最多1000行的实际采样；文件没有声明数据库字段长度与精度，未知值保持为空，请确认字段配置。",
+          "字段【nested】为空、类型混合或属于未支持结构，未推断类型。",
+          "字段【empty】为空、类型混合或属于未支持结构，未推断类型。"
+        ],
+        "partial": true
+      },
+      "asserted": true
+    },
+    "excel": {
+      "fileId": "34",
+      "result": {
+        "fields": [
+          {
+            "name": "编号",
+            "dataType": "LONG",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          },
+          {
+            "name": "名称",
+            "dataType": "STRING",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          },
+          {
+            "name": "启用",
+            "dataType": "BOOLEAN",
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          },
+          {
+            "name": "公式",
+            "dataType": null,
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "path": null
+          }
+        ],
+        "warnings": [
+          "字段类型来自最多1000行的实际采样；文件没有声明数据库字段长度与精度，未知值保持为空，请确认字段配置。",
+          "字段【公式】为空、类型混合或属于未支持结构，未推断类型。"
+        ],
+        "partial": true
+      },
+      "formulaNotEvaluated": true,
+      "asserted": true
+    },
+    "excelNoHeader": {
+      "preservesFirstRow": true,
+      "generatedColumn": "column_2",
+      "mixedTypeUnknown": true,
+      "asserted": true
+    },
+    "otherUploaderDenied": {
+      "code": 1001003001,
+      "asserted": true
+    },
+    "missingCertificateDenied": {
+      "asserted": true
+    },
+    "duplicateKeyDenied": {
+      "code": 1500090001,
+      "asserted": true
+    }
+  }
+}

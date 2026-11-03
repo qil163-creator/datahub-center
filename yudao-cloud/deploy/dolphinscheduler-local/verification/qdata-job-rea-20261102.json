@@ -1,0 +1,320 @@
+{
+  "evidence_id": "ev_2d270106d68a2cae61b9f7ddae00d5171a65491e66ec4ab6dacbe13b1f31293f",
+  "source": "https://pro-demo.qdata.tech/login?redirect=/index",
+  "scriptsObserved": 46,
+  "routes": [
+    {
+      "value": "/dpp/job/add",
+      "mechanism": "property:path",
+      "location": {
+        "script_key": "scr_6fe885fa547376367724b409153d6601cd21a08c4ed3129f7b37c6d4e16923b0",
+        "line": 2576,
+        "column": 38790
+      }
+    },
+    {
+      "value": "/dpp/job/edit",
+      "mechanism": "property:path",
+      "location": {
+        "script_key": "scr_6fe885fa547376367724b409153d6601cd21a08c4ed3129f7b37c6d4e16923b0",
+        "line": 2576,
+        "column": 39120
+      }
+    },
+    {
+      "value": "/dpp/job/detail",
+      "mechanism": "property:path",
+      "location": {
+        "script_key": "scr_6fe885fa547376367724b409153d6601cd21a08c4ed3129f7b37c6d4e16923b0",
+        "line": 2576,
+        "column": 39614
+      }
+    }
+  ],
+  "chunks": [
+    {
+      "script_key": "scr_04d1efeedaf492f78a032c7c2b4977a753c25457227901df6fbb59bc4169cfaa",
+      "url": "https://pro-demo.qdata.tech/assets/memoize-one-BdPwpGay.js",
+      "artifact_sha256": "8e4e6c7e19b4ed93060ea2d3d63a9edbb9ec7b2d8320f6c8369f14e1b80ffd02",
+      "bytes": 522
+    },
+    {
+      "script_key": "scr_05d767331fb1dee6c5f60e9ca407c851aaf320a542afa1d9334062d7b95d70d1",
+      "url": "https://pro-demo.qdata.tech/assets/useTimeGreeting-BbZrXIJ-.js",
+      "artifact_sha256": "29994f0f27d39990878b7e5b640f07c3b25b1edeb4c9f34eb4e58d70270c4352",
+      "bytes": 659
+    },
+    {
+      "script_key": "scr_07a47d1dd963c1e66a4e198e4dc1cb981e9b5b3a51cbaf24bb0dec023568eeeb",
+      "url": "https://pro-demo.qdata.tech/assets/axios-Cq4ssun6.js",
+      "artifact_sha256": "edb4ac54dcc3b6c0f7b779dc8060da78b8edbcd362a0ae2a569d26da744a596d",
+      "bytes": 23362
+    },
+    {
+      "script_key": "scr_1de88a38c469f4fc8a5b9165c01819c56a832b3d79a0f0e1f3aeab9b8e2f0b55",
+      "url": "https://pro-demo.qdata.tech/assets/ssr-window-xvpIGbSh.js",
+      "artifact_sha256": "14bb4372b9c085a9dd12b4458095a7c572d343c33ab320f302931ade64985026",
+      "bytes": 1428
+    },
+    {
+      "script_key": "scr_20111f3af121b0fd707444938ab6658ab8023f79e825c1333ed936388b824b31",
+      "url": "https://pro-demo.qdata.tech/assets/lodash.clonedeep-CrvPZu-3.js",
+      "artifact_sha256": "5d8d5622f3c5fdeebb3778b9e6624f363f024ffc3ef4b027ea008b0898844256",
+      "bytes": 8942
+    },
+    {
+      "script_key": "scr_29dbc5e4a377ad6f9bb835aca8c47b9280cbf5b95aa1dc9e1af75a5af3a18ecc",
+      "url": "https://pro-demo.qdata.tech/assets/async-validator-9PlIezaS.js",
+      "artifact_sha256": "3e1c559cc9cd80743fca6e729b34daecbe802799f0924a181c88100d21373520",
+      "bytes": 16896
+    },
+    {
+      "script_key": "scr_2a30a08594855a9c766af268a84fcf31a873cdd538dd89ae7ab35b605f9e31e7",
+      "url": "https://pro-demo.qdata.tech/assets/normalize-wheel-es-BQoi3Ox2.js",
+      "artifact_sha256": "f47f0e82e43683f0d0e15d2d8d698bf67571d776667041846fdb555a62c51f2e",
+      "bytes": 3103
+    },
+    {
+      "script_key": "scr_33e0f019521ee026ec05e83eb1e411b90c0f0cbcbef15786f03573ecf6acbb47",
+      "url": "https://pro-demo.qdata.tech/assets/echarts-WN7hvAi-.js",
+      "artifact_sha256": "4fd971fb24dd16a63618cff3c43f34305cf8ecd378f8f23bace522bed14ce0c3",
+      "bytes": 821042
+    },
+    {
+      "script_key": "scr_3daca6101aacd845756d5835edbc8423898dd5281649643ffa0057d05fcc766f",
+      "url": "https://pro-demo.qdata.tech/assets/login-CwUV08KP.js",
+      "artifact_sha256": "5afba777d996618e0c748a74c6350398c2fd8406ad652b4d956658721f217082",
+      "bytes": 10795
+    },
+    {
+      "script_key": "scr_3fb76e7f3b972ea69ecaadf837340cdeec43ce94314e9b17de75c468ddf7fadd",
+      "url": "https://pro-demo.qdata.tech/assets/@ctrl-r5W6hzzQ.js",
+      "artifact_sha256": "539628298b6ff904c53213ac619de71d389324c3e4eaa9da8390bddd0e629d74",
+      "bytes": 14128
+    },
+    {
+      "script_key": "scr_41ca3882bc2cbcb8f515d277b40f3af0fbd81e57509f06e27df771b5f0cd0045",
+      "url": "https://pro-demo.qdata.tech/assets/dayjs-CobK7giO.js",
+      "artifact_sha256": "62fade1f95b35dbe0dd6321178133fde8534b6fdbaa3514fdb6366909d76241d",
+      "bytes": 16748
+    },
+    {
+      "script_key": "scr_45272bcdb03c9db41a36bf19edd13dcc3d47545f8724ce397a109ae5ba108de5",
+      "url": "https://pro-demo.qdata.tech/assets/dom7-uPS57C8e.js",
+      "artifact_sha256": "3a9961f78ead84e1cb963e9be3155d3fb8d2bdd1f5c0a2039669f05f2803fb96",
+      "bytes": 9138
+    },
+    {
+      "script_key": "scr_4d4e037172268efcf3ccd97db0ee08aa9fe30e98ddf3431652f6383bbf006fbe",
+      "url": "https://pro-demo.qdata.tech/assets/moment-DhcW7dz8.js",
+      "artifact_sha256": "fd07a8248cc1e941e5b0bdb2dd2cbd7e3880030160c96e6838da57b6910e7bf1",
+      "bytes": 126331
+    },
+    {
+      "script_key": "scr_50b0976baf5f4f72b8809b3daa910355006cf58c4d76dc76678a59253bdd3c02",
+      "url": "https://pro-demo.qdata.tech/assets/lodash.isequal-CI6dD7ai.js",
+      "artifact_sha256": "3cb472d8c58c49abf079d8d34b7e9d90820cb1170d7d4eacc4594da7ac603079",
+      "bytes": 10179
+    },
+    {
+      "script_key": "scr_53e29a71818b11ab03658b20a951f940d74235e95db55330e095148dff6ac4cc",
+      "url": "https://pro-demo.qdata.tech/assets/vue-router-Bz67kkVq.js",
+      "artifact_sha256": "87743ea21d3423be9af17b45adcb351865fb3e6d0b7334cd4dab221f11dfaf82",
+      "bytes": 23347
+    },
+    {
+      "script_key": "scr_574d58556a6df0ceace486c4c6c02799341fcd0577b0d133ce8b2faadf6ee412",
+      "url": "https://pro-demo.qdata.tech/assets/quill-delta-CN7ZlXTC.js",
+      "artifact_sha256": "1ed3124f2846600b0e79af399e37f2c8442549e3aa1f0299fe17a33cecc8db98",
+      "bytes": 9290
+    },
+    {
+      "script_key": "scr_5789661f13788ed7cd98125f3494a1008078d18f398c6fc953843b037540f2cb",
+      "url": "https://pro-demo.qdata.tech/assets/form-data-OP5aAfGs.js",
+      "artifact_sha256": "5c1a2deccb95f1b544c160288147a8dbb028c78db093d37c785339659506ce7d",
+      "bytes": 74
+    },
+    {
+      "script_key": "scr_6009d390df7874eb56a73bc94cad38f920a744a7c5404e4824f87ae4c510a5c7",
+      "url": "https://pro-demo.qdata.tech/assets/zrender-D_lq1Bnt.js",
+      "artifact_sha256": "d3534d9a497f93d3086e9fdde13a6e1366c1ffa4cc15eb63e768bdede1f09318",
+      "bytes": 214903
+    },
+    {
+      "script_key": "scr_6fe885fa547376367724b409153d6601cd21a08c4ed3129f7b37c6d4e16923b0",
+      "url": "https://pro-demo.qdata.tech/assets/main-BKUMEHhG.js",
+      "artifact_sha256": "1a993d3ff7f7f0962e3debd82ebe3d369798161ce667ba702d167243a2fd89f6",
+      "bytes": 3735478
+    },
+    {
+      "script_key": "scr_72140a567fd091ca3f818c8c5ce1d37d786e1edf338333cb7e4c52be6903c202",
+      "url": "https://pro-demo.qdata.tech/assets/@form-create-D0Y2kP-N.js",
+      "artifact_sha256": "1a2c839a5631392d4de60a9ffe60f3b00a92801e29ebc6c4592319fd54bd24d6",
+      "bytes": 2125406
+    },
+    {
+      "script_key": "scr_81656da263c00650be35e5f8712c30c3dfaaf08472c2947ffbc44e94417c4dc9",
+      "url": "https://pro-demo.qdata.tech/assets/@floating-ui-8KT9v1di.js",
+      "artifact_sha256": "c5b8912e112a8dc533a73dda887eaab0a54dcb39c8c8cf7e84efd5fae1dc974b",
+      "bytes": 16952
+    },
+    {
+      "script_key": "scr_8f8896436fe964eee46f890e0d0128def8a1b3f4528144b6fa958f448c0f8193",
+      "url": "https://pro-demo.qdata.tech/assets/js-cookie-Cz0CWeBA.js",
+      "artifact_sha256": "f3dbcba86e69e3565a2207b1e61d09ac77433bf97791c17d2df0aab23c2b4482",
+      "bytes": 1413
+    },
+    {
+      "script_key": "scr_93279a2e79d2e4d0f9db66a63362c9886c27d41c02e121e81a402ee8666bef9d",
+      "url": "https://pro-demo.qdata.tech/assets/@vue-mwDU4Xuy.js",
+      "artifact_sha256": "8edc9d13d7fb7e15b54e2b6f7d45d9cd4c774e3743e4df3e9c8cc94afeebd73d",
+      "bytes": 113898
+    },
+    {
+      "script_key": "scr_9497e8086b086ef6e03862ba837517753886dc489a74d3eeba99fa169304fc89",
+      "url": "https://pro-demo.qdata.tech/assets/clipboard-BsSS-isu.js",
+      "artifact_sha256": "7c0fb718e28c804cbe3509e5ddb47f012c19f85a4e79f8698d9e6579152e9b4d",
+      "bytes": 9435
+    },
+    {
+      "script_key": "scr_951730e77f2a1b0ad52ace998d88310b365a3d07cf1637fe4b3f0929a43fd41b",
+      "url": "https://pro-demo.qdata.tech/assets/fuse.js-BiDyM4rQ.js",
+      "artifact_sha256": "a58d2686d310580acda5ce7aaeb80f9e1263f613605d202320427b047a80066a",
+      "bytes": 15777
+    },
+    {
+      "script_key": "scr_9827382cf3dd8f268838251fae45ee1ebb5d40d1778e78c5b7afac2bb4671ee1",
+      "url": "https://pro-demo.qdata.tech/plugins/clklog.webjs.sdk.v3/session-event/index.js",
+      "artifact_sha256": "91961ad75fd0168e54d1916869e4810bc4f5fa1156258ec03ab2e3094f1bc80b",
+      "bytes": 6900
+    },
+    {
+      "script_key": "scr_a60712fa858ced5b7ddfb855f8bf94d4e99a7c2748f195e47a25140f4eeb766a",
+      "url": "https://pro-demo.qdata.tech/assets/file-saver-BK0HliNL.js",
+      "artifact_sha256": "08e1885b0e321af297d6ec67336fa8e4c233a6f1928dcb3bf59223e1ba53e4ca",
+      "bytes": 2590
+    },
+    {
+      "script_key": "scr_a903ff9c99aeee50383fd25dc5d8358b84e2e8dc3c4244191cbd8f5b6bac19bf",
+      "url": "https://pro-demo.qdata.tech/assets/nprogress-DEdWDoSF.js",
+      "artifact_sha256": "6aa0910ba1ec4bdcbcd7394195d380f10aac094663f15ec5af6e8237603ad16f",
+      "bytes": 4251
+    },
+    {
+      "script_key": "scr_a96d33adf39459a55d400328550a81b564f47e3b6fbc273ba8b26c047a322dfc",
+      "url": "https://pro-demo.qdata.tech/assets/xlsx-owguX6gh.js",
+      "artifact_sha256": "d76184639c4c46491cf906733a02753e46353ee73a005e98c4ba8e848802dba4",
+      "bytes": 282740
+    },
+    {
+      "script_key": "scr_b1564da89a1243e2b8a4582ae16b932e31c52cdbcf2e40faf473c511180c1754",
+      "url": "https://pro-demo.qdata.tech/assets/@vueuse-CmiIA6T5.js",
+      "artifact_sha256": "41d14c8240d7c76be13a3792348d0dde0d621fead704eab81283818b069aa0a1",
+      "bytes": 10341
+    },
+    {
+      "script_key": "scr_b228ecf65acd134ed17d141baf2b7425c66f78eb62832add8b747e9db6f9a8d6",
+      "url": "https://pro-demo.qdata.tech/assets/jsencrypt-CPIycj-3.js",
+      "artifact_sha256": "6d703fa25f3a89e048b5f8eecfa2ceb1c1d0c986512d38fa9b055777004d7be9",
+      "bytes": 57214
+    },
+    {
+      "script_key": "scr_b4527414d580917608696e059a49d3e431fc0ad5bac09ab1138f81f64d0dd505",
+      "url": "https://pro-demo.qdata.tech/assets/vue-clipboard3-CzNCSZFe.js",
+      "artifact_sha256": "0a1a7823730c0394c16eeabca646db7ad7d0b6159c7c1bae9b984eceec271dd1",
+      "bytes": 384
+    },
+    {
+      "script_key": "scr_b53b2221af7d72997304b4afcffd7cc072e865e69aa3d04a950a01e621a21557",
+      "url": "https://pro-demo.qdata.tech/plugins/clklog.webjs.sdk.v3/autotrack.js",
+      "artifact_sha256": "0e3a875a18117393586f42f4e096079ab2ac6ebb0ff23034a131b72decf5b635",
+      "bytes": 6031
+    },
+    {
+      "script_key": "scr_b883462e314943e2a618fd734c5290c585f23ca504c0147715d19011ef0107c1",
+      "url": "https://pro-demo.qdata.tech/plugins/clklog.webjs.sdk.v3/sensorsdata2.js",
+      "artifact_sha256": "71bd9af5b654e6b5e46c80196eeb88f5ca5b0a506be2a8f6a4636628b15a08cf",
+      "bytes": 284673
+    },
+    {
+      "script_key": "scr_c1bc553628778f2fa2c120474535cf14c20d86ef3b421074dbea1856c3a211f2",
+      "url": "https://pro-demo.qdata.tech/assets/@element-plus-DOE6gaC2.js",
+      "artifact_sha256": "99108902e90790f88847972ccf36cace289e5de3dedac2f47774e3e81df5fc79",
+      "bytes": 173460
+    },
+    {
+      "script_key": "scr_c6b68c21d2bbd9de39c4b0f343c0923a0a372d8a439f4989919860aade9374cc",
+      "url": "https://pro-demo.qdata.tech/assets/pinia-BurAqDqV.js",
+      "artifact_sha256": "4b547c7da45c488eae4a0c4c456d78bd5400eb02c69973919cb87e1c2833b758",
+      "bytes": 3614
+    },
+    {
+      "script_key": "scr_c75f1e02c496f571a1702959546445a057202b253f85156303914caf25feae97",
+      "url": "https://pro-demo.qdata.tech/assets/lodash-es-ClfHDHGc.js",
+      "artifact_sha256": "890c833b83095170e71e8e03eed4756b6ce9a9c0223d39c58eedfb8b6302d9b1",
+      "bytes": 35633
+    },
+    {
+      "script_key": "scr_c9dcc795ab610080efc24339e942d2c786ac5b8128a5eaff3caacd9eff994973",
+      "url": "https://pro-demo.qdata.tech/assets/anivia-components-BILsXjcU.js",
+      "artifact_sha256": "8cfa10ce270880fa326a8f997345978dd4571877fb140a3b69897a12348a0786",
+      "bytes": 13202
+    },
+    {
+      "script_key": "scr_d2e0a526c00c038bbf68f5d7aa24d32b8ca7259ce3d2defb9aece328d9cbac09",
+      "url": "https://pro-demo.qdata.tech/assets/element-plus-Df19GMMb.js",
+      "artifact_sha256": "f3cdc1b97a44d583c4c04df8a262b1d37f304d1eabd83770d72ad564e395896a",
+      "bytes": 690175
+    },
+    {
+      "script_key": "scr_d83d5cd89bf2469160b0ed4f3050ee7111c339a4aec14e463c2da46d4c8842d1",
+      "url": "https://pro-demo.qdata.tech/assets/monaco-editor-ijhDlXGY.js",
+      "artifact_sha256": "dd13eecdfb6451cfa2f310f13ed9086443006802ad6bc0356ad9f11190637662",
+      "bytes": 3915264
+    },
+    {
+      "script_key": "scr_e06e7e888f15061c4259aa61fa8fb3eea6c0eacc89d39333e0c3efff35da4afb",
+      "url": "https://pro-demo.qdata.tech/assets/swiper-DRrKHMtw.js",
+      "artifact_sha256": "d794ee9fd3bacf4c812979afccd43918aece6eda5222c5b85c16f2cbe3ce6e79",
+      "bytes": 85391
+    },
+    {
+      "script_key": "scr_e0c678dd2687c88dee60ee9107b48f5350b30edb9b0794b3299666ec35dd86bb",
+      "url": "https://pro-demo.qdata.tech/assets/@popperjs-C5az9QE8.js",
+      "artifact_sha256": "7777a597a57fc460ac52ccbc5e4b64c7751adbe9fd534bba7ae0d178ad8dd201",
+      "bytes": 20080
+    },
+    {
+      "script_key": "scr_e11e988350e7371978ac3c8517aa2f96205956014ea75cad594d876615d71422",
+      "url": "https://pro-demo.qdata.tech/assets/quill-BJTvcrOv.js",
+      "artifact_sha256": "9e13b6f62e7527c86622692bba01b87c1350f71d863f17a0b9351221f264e47c",
+      "bytes": 216473
+    },
+    {
+      "script_key": "scr_eb19c36b9b5fa990bb9a00de9e59514071998d3ee41dc0df7e9162ddcca8de49",
+      "url": "https://pro-demo.qdata.tech/assets/@vueup-DmaoivDS.js",
+      "artifact_sha256": "cc9991b2ca0f232f4a3d7c1dc4da231734ef96d410e6ecd84e5c40422c001b9a",
+      "bytes": 5304
+    },
+    {
+      "script_key": "scr_ebc2c346db8e508a19695d959881b8f6e69ad03bae55f0aee73b0d9451d116ee",
+      "url": "https://pro-demo.qdata.tech/assets/crypto-js-D7CT6pN3.js",
+      "artifact_sha256": "781b2caaa326261db3c6b7af696f6a51874d5d04847abdebde13553e97ad795a",
+      "bytes": 69867
+    },
+    {
+      "script_key": "scr_f5e06dcfeaa8ed3239a978248fd3d7ea8493cb2e5e9dff8375bb92cf2c20598e",
+      "url": "https://pro-demo.qdata.tech/assets/fast-diff-DNDSwfiB.js",
+      "artifact_sha256": "654a39f2e77d2ff4a15f15bb171b9830681d06cd3e00218a2458c8104643ae65",
+      "bytes": 5829
+    }
+  ],
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "Bare string arguments of unbound HTTP-method-named calls are low-confidence endpoint candidates; form, translation, storage and other APIs can use the same syntax. URL-shaped findings still do not prove network execution.",
+    "Endpoint candidates are deduplicated by script, value and detector; basis retains only the first matching source coordinate. They are not a complete call-site inventory or a runtime occurrence count. completeness.status=\"complete\" describes examination of captured source, not a call-site census.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ]
+}

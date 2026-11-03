@@ -1,0 +1,114 @@
+{
+  "referenceCanvas": {
+    "width": 3558,
+    "height": 1882
+  },
+  "inferredCssViewport": {
+    "width": 2372,
+    "height": 1254.67
+  },
+  "inferredDeviceScaleFactor": 1.5,
+  "regions": {
+    "business": {
+      "sourceBox": [
+        314,
+        144,
+        3556,
+        1881
+      ]
+    },
+    "hero": {
+      "sourceBox": [
+        338,
+        165,
+        3526,
+        466
+      ],
+      "cssHeight": 200.67
+    },
+    "filter": {
+      "sourceBox": [
+        338,
+        489,
+        808,
+        1880
+      ],
+      "cssWidth": 313.33
+    },
+    "statistics": {
+      "sourceBox": [
+        831,
+        489,
+        3526,
+        609
+      ],
+      "cssHeight": 80
+    },
+    "card1": {
+      "sourceBox": [
+        831,
+        633,
+        3526,
+        885
+      ],
+      "cssHeight": 168
+    },
+    "card2": {
+      "sourceBox": [
+        831,
+        909,
+        3526,
+        1161
+      ],
+      "cssHeight": 168
+    },
+    "gap": {
+      "css": 16
+    }
+  },
+  "detail": {
+    "metadata": {
+      "sourceBox": [
+        338,
+        165,
+        3526,
+        472
+      ]
+    },
+    "tabs": {
+      "sourceBox": [
+        338,
+        496,
+        3526,
+        1871
+      ]
+    },
+    "emptyPermission": {
+      "sourceBox": [
+        1797,
+        674,
+        2048,
+        917
+      ]
+    }
+  },
+  "applicationModal": {
+    "sourceBox": [
+      1329,
+      114,
+      2231,
+      645
+    ],
+    "cssWidth": 601.33,
+    "cssHeight": 354
+  },
+  "tokens": {
+    "primary": "#4266f4",
+    "pageBackground": "#f0f2f5",
+    "surface": "#ffffff",
+    "label": "#7f7f7f",
+    "border": "#ebeef5",
+    "text": "#333333",
+    "tagBackground": "#f0f6fc"
+  }
+}

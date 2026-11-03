@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.iocoder.cloud</groupId>
+        <artifactId>yudao-dbswitch-product</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>yudao-dbswitch-product-odps</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>cn.iocoder.cloud</groupId>
+            <artifactId>yudao-dbswitch-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun.odps</groupId>
+            <artifactId>odps-sdk-core</artifactId>
+            <version>0.52.3-public</version>
+            <!-- 本产品只读项目授权与 REST 目录，不引入 Tunnel/Arrow 数据传输与完整 Netty 聚合包。 -->
+            <exclusions>
+                <exclusion><groupId>org.apache.arrow</groupId><artifactId>arrow-vector</artifactId></exclusion>
+                <exclusion><groupId>org.apache.arrow</groupId><artifactId>arrow-compression</artifactId></exclusion>
+                <exclusion><groupId>org.apache.arrow</groupId><artifactId>arrow-memory-netty</artifactId></exclusion>
+                <exclusion><groupId>io.netty</groupId><artifactId>netty-all</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,1525 @@
+{
+  "scope": "owned50026 immutable classpath; authenticated read-only six-context component capability API",
+  "status": "PASS",
+  "recordedPID": 8826,
+  "classpathSnapshot": "/tmp/datahub-components-classpath-e1d532edb71647d9a61a2f5bdb18b53d",
+  "sourceSha256": {
+    "yudao-module-dataforge/yudao-module-dataforge-server/src/main/java/cn/iocoder/yudao/module/dataforge/service/integration/IntegrationComponentCapabilitiesService.java": "9411fd130292dca8e1577ad7c5aa59d51857dfc395811ed5930bf80f9ba01eba",
+    "yudao-framework/yudao-spring-boot-starter-biz-etl/src/main/java/cn/iocoder/yudao/framework/etl/core/compile/EtlNativeScriptCompiler.java": "e1dbb610e29e74137463f942023a58430fcb185facd904863eb865a7b4abc246"
+  },
+  "contexts": [
+    {
+      "engine": "SPARK",
+      "mode": "OFFLINE",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定；不支持自定义 SQL 或游标增量"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "PARTIAL",
+          "reason": "需要授权的项目、表分区、完整字段和受管凭据，支持有界读取及提交写入；云端真实读写尚待验收"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "PARTIAL",
+          "reason": "使用当前任务获授权的执行资源和相对路径，需显式声明源字段；上传附件仅用于字段解析"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "PARTIAL",
+          "reason": "使用当前任务获授权的执行资源和相对路径，需显式声明源字段；上传附件仅用于字段解析"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "PARTIAL",
+          "reason": "使用当前任务获授权的执行资源和相对路径，需显式声明源字段；上传附件仅用于字段解析"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "PARTIAL",
+          "reason": "需要已授权的Hive普通外部文本表与HDFS存储绑定，支持有界读取及追加写入；事务表和分区表须独立适配"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的HDFS根目录及工作节点路径授权，支持CSV或文本读取与新文件写入，已有文件不覆盖"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的接口资源与执行环境地址白名单，支持有界分页与显式字段类型；认证须通过受管秘密适配"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的集合与原生连接器，字段类型、查询和写入键须通过流程检查"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的Redis数据库、键范围和受管秘密引用，支持有界string/hash/list读写；SCAN不保证快照，list追加采用至少一次语义"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "PARTIAL",
+          "reason": "需要锁定到专用账户虚拟根目录的FTP资源和受管秘密引用，支持有界CSV/文本读取、完整字段映射及STOU新文件输出"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "PARTIAL",
+          "reason": "需要授权WSDL、导入文档及服务端点，支持SOAP literal与HTTP绑定、显式字段和受管秘密请求头；encoded及复杂Schema语义需独立适配"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "PARTIAL",
+          "reason": "需要任务专属mTLS脚本资源、隔离Docker工作进程和已发布源码版本；每个有界分区独立整批执行，Token只留受管运行上下文"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "PARTIAL",
+          "reason": "需要任务专属mTLS脚本资源、隔离Docker工作进程和已发布源码版本；每个有界分区独立整批执行，Token只留受管运行上下文"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "PARTIAL",
+          "reason": "仅本地字段删除、TRIM/大小写格式化及整行去重；按键或忽略大小写去重须声明全序并校验唯一性，保留首条原值"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "PARTIAL",
+          "reason": "支持2至8路 INNER/LEFT Join；需要配置输出行数上限"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "PARTIAL",
+          "reason": "仅支持有界任务，排序后须直接连接输出或脚本输入"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "PARTIAL",
+          "reason": "支持字面/正则、包裹符、类型/长度/精度转换及日期格式；正则模式须绑定 DH_SPLIT_TOKEN 受管函数"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "PARTIAL",
+          "reason": "支持七种操作；表达式仅数值算术或字段插值；子串按引擎字符边界处理"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "PARTIAL",
+          "reason": "支持整行去重；按键或忽略大小写须明确排序及唯一字段，运行时核验后保留首条完整行"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "PARTIAL",
+          "reason": "列转行需同类型字段；行转列需显式排序及运行时唯一键验证，按顺序末值覆盖"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "PARTIAL",
+          "reason": "列转行需同类型字段；行转列需显式排序及运行时唯一键验证，按顺序末值覆盖"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "PARTIAL",
+          "reason": "支持 MD5/SHA1/SHA256/SHA512/BASE64；AES/SM4/AES128/AES256/DES/3DES 需要受管函数与当前任务授权的密钥引用"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "PARTIAL",
+          "reason": "支持 BASE64 和受管 AES/SM4/AES128/AES256/DES/3DES；需当前任务授权的密钥引用，摘要算法不可逆"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "PARTIAL",
+          "reason": "支持 UUID 或具有显式排序及运行时唯一键验证的 SEQUENCE；必须直接连接唯一表输出"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "PARTIAL",
+          "reason": "支持24种操作及顺序规则；Decimal(38,18)值域，日期按引擎时间戳解析"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "PARTIAL",
+          "reason": "保留原值策略要求字符串字段，输出为字符串"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "PARTIAL",
+          "reason": "支持 String、Integer、Long、Double、Boolean、Date；数值与日期须能解析"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "PARTIAL",
+          "reason": "要求数值输入，范围与常量精度最多38位，输出为字符串"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "PARTIAL",
+          "reason": "支持 Unicode 去空格、大小写和左右/双侧填充，填充长度最多 1000000"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "PARTIAL",
+          "reason": "支持字面/Java 正则、整词、大小写及字段替换；Flink 正则替换及两引擎整词替换须绑定 DH_REGEX_REPLACE 受管函数"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "PARTIAL",
+          "reason": "类型与长度转换遵循原生引擎 CAST；Decimal 精度最多 38 位"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "SUPPORTED",
+          "reason": ""
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "PARTIAL",
+          "reason": "支持 IF/ELSE 分流；ERROR 策略要求 ELSE 分支；每个分支均须连接输出"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "PARTIAL",
+          "reason": "需要具有执行权限的已发布固定版本，内部组件和具名端口须通过当前引擎检查"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定，仅向已有表追加写入，不支持清空、建表或覆盖"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "PARTIAL",
+          "reason": "需要授权的项目、表分区、完整字段和受管凭据，支持有界读取及提交写入；云端真实读写尚待验收"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "PARTIAL",
+          "reason": "需要已授权的Hive普通外部文本表与HDFS存储绑定，支持有界读取及追加写入；事务表和分区表须独立适配"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的HDFS根目录及工作节点路径授权，支持CSV或文本读取与新文件写入，已有文件不覆盖"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的集合与原生连接器，字段类型、查询和写入键须通过流程检查"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的Redis数据库、键范围和受管秘密引用，支持有界string/hash/list读写；SCAN不保证快照，list追加采用至少一次语义"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "PARTIAL",
+          "reason": "需要锁定到专用账户虚拟根目录的FTP资源和受管秘密引用，支持有界CSV/文本读取、完整字段映射及STOU新文件输出"
+        }
+      ],
+      "configurableCount": 42
+    },
+    {
+      "engine": "SPARK",
+      "mode": "REALTIME",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        }
+      ],
+      "configurableCount": 0
+    },
+    {
+      "engine": "FLINK",
+      "mode": "OFFLINE",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定；不支持自定义 SQL 或游标增量"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的连接与主题及受管连接器，当前仅支持显式无凭据绑定；SASL/TLS认证尚未适配，消息格式和位点须通过流程检查"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "PARTIAL",
+          "reason": "需要任务专属mTLS脚本资源与隔离Docker工作进程，按完整有界分区执行并验证声明的类型和行/字节预算"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "PARTIAL",
+          "reason": "仅本地字段删除、TRIM/大小写格式化及整行去重；按键或忽略大小写去重须声明全序并校验唯一性，保留首条原值"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "PARTIAL",
+          "reason": "支持2至8路 INNER/LEFT Join；需要配置输出行数上限"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "PARTIAL",
+          "reason": "仅支持有界任务，排序后须直接连接输出或脚本输入"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "PARTIAL",
+          "reason": "支持字面/正则、包裹符、类型/长度/精度转换及日期格式；正则模式须绑定 DH_SPLIT_TOKEN 受管函数"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "PARTIAL",
+          "reason": "支持七种操作；表达式仅数值算术或字段插值；子串按引擎字符边界处理"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "PARTIAL",
+          "reason": "支持整行去重；按键或忽略大小写须明确排序及唯一字段，运行时核验后保留首条完整行"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "PARTIAL",
+          "reason": "列转行需同类型字段；行转列需显式排序及运行时唯一键验证，按顺序末值覆盖"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "PARTIAL",
+          "reason": "列转行需同类型字段；行转列需显式排序及运行时唯一键验证，按顺序末值覆盖"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "PARTIAL",
+          "reason": "支持 MD5/SHA1/SHA256/SHA512/BASE64；AES/SM4/AES128/AES256/DES/3DES 需要受管函数与当前任务授权的密钥引用"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "PARTIAL",
+          "reason": "支持 BASE64 和受管 AES/SM4/AES128/AES256/DES/3DES；需当前任务授权的密钥引用，摘要算法不可逆"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "PARTIAL",
+          "reason": "支持 UUID 或具有显式排序及运行时唯一键验证的 SEQUENCE；必须直接连接唯一表输出"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "PARTIAL",
+          "reason": "支持24种操作及顺序规则；Decimal(38,18)值域，日期按引擎时间戳解析"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "PARTIAL",
+          "reason": "保留原值策略要求字符串字段，输出为字符串"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "PARTIAL",
+          "reason": "支持 String、Integer、Long、Double、Boolean、Date；数值与日期须能解析"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "PARTIAL",
+          "reason": "要求数值输入，范围与常量精度最多38位，输出为字符串"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "PARTIAL",
+          "reason": "支持 Unicode 去空格、大小写和左右/双侧填充，填充长度最多 1000000"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "PARTIAL",
+          "reason": "支持字面/Java 正则、整词、大小写及字段替换；Flink 正则替换及两引擎整词替换须绑定 DH_REGEX_REPLACE 受管函数"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "PARTIAL",
+          "reason": "类型与长度转换遵循原生引擎 CAST；Decimal 精度最多 38 位"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "SUPPORTED",
+          "reason": ""
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "PARTIAL",
+          "reason": "支持 IF/ELSE 分流；ERROR 策略要求 ELSE 分支；每个分支均须连接输出"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "PARTIAL",
+          "reason": "需要具有执行权限的已发布固定版本，内部组件和具名端口须通过当前引擎检查"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定，仅向已有表追加写入，不支持清空、建表或覆盖"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的连接与主题及受管连接器，当前仅支持显式无凭据绑定；SASL/TLS认证尚未适配，消息格式和位点须通过流程检查"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        }
+      ],
+      "configurableCount": 26
+    },
+    {
+      "engine": "FLINK",
+      "mode": "REALTIME",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定；不支持自定义 SQL 或游标增量；实时模式必须绑定持续产出的源"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的连接与主题及受管连接器，当前仅支持显式无凭据绑定；SASL/TLS认证尚未适配，消息格式和位点须通过流程检查"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "PARTIAL",
+          "reason": "需要授权队列及秘密引用、受管连接器和启用checkpoint的工作环境，支持持续JSON消息与发布确认，采用至少一次语义"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "PARTIAL",
+          "reason": "需要授权的TMQ主题、消费者组及秘密引用，执行环境须安装受管连接器，TDengine版本和完整字段合同须通过核验；主题结构变化会明确失败"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "PARTIAL",
+          "reason": "需要授权的NameServer、Broker、主题、独立消费者组及秘密引用，支持持续JSON消息、checkpoint位点恢复和同步发送确认，采用至少一次语义"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "PARTIAL",
+          "reason": "需要显式条数/时间窗口、checkpoint及任务专属mTLS脚本资源，支持有界状态恢复和批次缓存重放，外部输出采用至少一次语义"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "PARTIAL",
+          "reason": "仅本地字段删除、TRIM/大小写格式化；不支持实时去重"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "UNAVAILABLE",
+          "reason": "实时关联需要事件时间、状态保留和窗口边界"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时排序需要时间和窗口边界"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "PARTIAL",
+          "reason": "支持字面/正则、包裹符、类型/长度/精度转换及日期格式；正则模式须绑定 DH_SPLIT_TOKEN 受管函数"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "PARTIAL",
+          "reason": "支持七种操作；表达式仅数值算术或字段插值；子串按引擎字符边界处理"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时去重尚未配置事件时间、窗口与状态保留边界"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "UNAVAILABLE",
+          "reason": "实时行转列需要明确窗口、排序和状态边界"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "PARTIAL",
+          "reason": "仅列转行，同一组字段必须类型一致"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "PARTIAL",
+          "reason": "支持 MD5/SHA1/SHA256/SHA512/BASE64；AES/SM4/AES128/AES256/DES/3DES 需要受管函数与当前任务授权的密钥引用"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "PARTIAL",
+          "reason": "支持 BASE64 和受管 AES/SM4/AES128/AES256/DES/3DES；需当前任务授权的密钥引用，摘要算法不可逆"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "PARTIAL",
+          "reason": "仅 UUID 模式，必须直接连接唯一表输出"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "PARTIAL",
+          "reason": "支持24种操作及顺序规则；Decimal(38,18)值域，日期按引擎时间戳解析"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "PARTIAL",
+          "reason": "保留原值策略要求字符串字段，输出为字符串"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "PARTIAL",
+          "reason": "支持 String、Integer、Long、Double、Boolean、Date；数值与日期须能解析"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "PARTIAL",
+          "reason": "要求数值输入，范围与常量精度最多38位，输出为字符串"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "PARTIAL",
+          "reason": "支持 Unicode 去空格、大小写和左右/双侧填充，填充长度最多 1000000"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "PARTIAL",
+          "reason": "支持字面/Java 正则、整词、大小写及字段替换；Flink 正则替换及两引擎整词替换须绑定 DH_REGEX_REPLACE 受管函数"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "PARTIAL",
+          "reason": "类型与长度转换遵循原生引擎 CAST；Decimal 精度最多 38 位"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "SUPPORTED",
+          "reason": ""
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "PARTIAL",
+          "reason": "支持 IF/ELSE 分流；ERROR 策略要求 ELSE 分支；每个分支均须连接输出"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "PARTIAL",
+          "reason": "需要具有执行权限的已发布固定版本，内部组件和具名端口须通过当前引擎检查"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "PARTIAL",
+          "reason": "需要管理员受管 Catalog 绑定，仅向已有表追加写入，不支持清空、建表或覆盖"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "PARTIAL",
+          "reason": "需要授权队列及秘密引用、受管连接器和启用checkpoint的工作环境，支持持续JSON消息与发布确认，采用至少一次语义"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "PARTIAL",
+          "reason": "需要当前任务获授权的连接与主题及受管连接器，当前仅支持显式无凭据绑定；SASL/TLS认证尚未适配，消息格式和位点须通过流程检查"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "PARTIAL",
+          "reason": "需要授权的NameServer、Broker、主题、独立消费者组及秘密引用，支持持续JSON消息、checkpoint位点恢复和同步发送确认，采用至少一次语义"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入当前引擎的集成执行链"
+        }
+      ],
+      "configurableCount": 27
+    },
+    {
+      "engine": "DATAX",
+      "mode": "OFFLINE",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "PARTIAL",
+          "reason": "需要数据源执行绑定，仅支持直接连接的全量表输入和表输出；幂等写入还需配置对应工作组"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "PARTIAL",
+          "reason": "需要管理员绑定受管资源与已安装插件，仅支持已声明的文件格式或集合读取、追加写入"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "PARTIAL",
+          "reason": "需要管理员绑定受管资源与已安装插件，仅支持已声明的文件格式或集合读取、追加写入"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "PARTIAL",
+          "reason": "需要管理员绑定受管资源与已安装插件，仅支持已声明的文件格式或集合读取、追加写入"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "PARTIAL",
+          "reason": "需要数据源执行绑定，仅支持直接连接的全量表输入和表输出；幂等写入还需配置对应工作组"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "PARTIAL",
+          "reason": "需要管理员绑定受管资源与已安装插件，仅支持已声明的文件格式或集合读取、追加写入"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "PARTIAL",
+          "reason": "需要管理员绑定受管资源与已安装插件，仅支持已声明的文件格式或集合读取、追加写入"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "此组件尚未接入 DataX 集成执行链"
+        }
+      ],
+      "configurableCount": 7
+    },
+    {
+      "engine": "DATAX",
+      "mode": "REALTIME",
+      "components": [
+        {
+          "componentCode": "read-db",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-odps",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-excel",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-csv",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-json",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-hive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "rest-api",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-redis",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-tdengine",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "read-webservice",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "java-script",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "custom-token",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-clean",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "multi-join",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "sort-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "field-split",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "field-derive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "dedup-records",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "row-to-column",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "column-to-row",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-encrypt",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-decrypt",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "id-generator",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "calculator",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "value-map",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "add-constant",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "number-range",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "string-operation",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "string-replace",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "column-map",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "set-field-value",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "data-condition",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "sub-pipeline",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "insert-db",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-odps",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-hive",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-hdfs",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-mongodb",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-redis",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-rabbitmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-kafka",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-rocketmq",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        },
+        {
+          "componentCode": "write-ftp",
+          "status": "UNAVAILABLE",
+          "reason": "实时任务必须选择 Flink 引擎"
+        }
+      ],
+      "configurableCount": 0
+    }
+  ],
+  "componentUnionCount": 49
+}

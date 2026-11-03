@@ -1,0 +1,37 @@
+{
+  "sources": [
+    {
+      "file": "asset.svg",
+      "origin": "https://pro-demo.qdata.tech/assets/tit-eC3rWAw6.svg",
+      "cssSize": [
+        22,
+        20
+      ]
+    },
+    {
+      "file": "intro-bg.png",
+      "origin": "https://pro-demo.qdata.tech/assets/yellow-bg-BlWsDAlY.png"
+    },
+    {
+      "file": "content.png",
+      "origin": "https://pro-demo.qdata.tech/assets/content(2)-Ii7y0pJw.png",
+      "cssSize": [
+        40,
+        40
+      ]
+    }
+  ],
+  "svgIcons": "icon-*.svg 来自已授权 qData 资产地图实际 DOM 的 symbol 或 data URI；未引入外部图库。",
+  "scoreEvidence": {
+    "origin": "https://pro-demo.qdata.tech/assets/index-BdP8ZWY9.js",
+    "literal": "{text:\"93.33分\"}",
+    "meaning": "源站固定展示文字，不是资产真实健康评分"
+  },
+  "geometry": {
+    "sidebar": 280,
+    "card": 160,
+    "gap": 16,
+    "cardPadding": "18px 18px 14px",
+    "titleFontSize": 14
+  }
+}

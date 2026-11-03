@@ -1,0 +1,46 @@
+{
+  "pageErrors": [],
+  "httpErrors": [],
+  "businessErrors": [],
+  "mutations": [],
+  "screenshots": [
+    "ui-cron-idle.png",
+    "ui-priority-instances.png",
+    "ui-priority-log.png",
+    "ui-parallel-instances.png",
+    "ui-parallel-log.png",
+    "ui-cron-instances.png"
+  ],
+  "checks": [
+    {
+      "name": "enabled-idle-cron-polling",
+      "pollsAfterInitial": 2,
+      "zeroActiveZeroQueued": true,
+      "nextRunVisible": true
+    },
+    {
+      "name": "priority-real-operation-status",
+      "marker": "已被抢占"
+    },
+    {
+      "name": "priority-decision-log-download",
+      "bytes": 278,
+      "sha256": "b5a7a7a02acad93fc593ec9ccdbe0a6a0c8e784ac1cd78aeecf0028c54f138ce"
+    },
+    {
+      "name": "parallel-real-operation-status",
+      "marker": "已拒绝"
+    },
+    {
+      "name": "parallel-decision-log-download",
+      "bytes": 530,
+      "sha256": "91e2bb1dbb3c66423e193fb3bca548e73aa96838a502b9929900bca325592dc3"
+    },
+    {
+      "name": "cron-real-operation-status",
+      "marker": "定时调度"
+    }
+  ],
+  "passed": true,
+  "authStateRemoved": true
+}

@@ -1,0 +1,67 @@
+{
+  "sourceReference": "https://pro-demo.qdata.tech/dm/materializedModel",
+  "detailReference": "https://pro-demo.qdata.tech/dm/model/materializedModel/detail?id=122",
+  "description": "从用户授权的参考页面提取原始矢量路径，用于发布模型业务区域复刻；未重画图标。",
+  "assets": [
+    {
+      "file": "icon-fhs.svg",
+      "source": "页面原始 SVG symbol",
+      "symbolId": "icon-fhs",
+      "sha256": "c3a52fb819f54605f3d1ce1691a9810c8ea2c7dba141409e2805137c8f5c44ff"
+    },
+    {
+      "file": "icon-wh.svg",
+      "source": "页面原始 SVG symbol",
+      "symbolId": "icon-wh",
+      "sha256": "faf7bd365f4aba59a4be4dc3f6c504436ffd17df573f3c3bf7927a3f6fc27eb4"
+    },
+    {
+      "file": "qdata-category-all.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "006311064776f9381592c1cd017c592d43acb05543dd7579b4d31fba7137879b"
+    },
+    {
+      "file": "qdata-category-analytical.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "29671d28681878ee534f99e8ec05291fbb716ea75d9243b71909a3cf208b2378"
+    },
+    {
+      "file": "qdata-category-file-object.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "d886b134d3c05ad92c4a5d1cc31a5b33cb498b020e40d211398b63db6e8800d6"
+    },
+    {
+      "file": "qdata-category-relational.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "48cbe53c4c905d94708d6f8b53078f1a3a3d54e9bbee5692b5b2ef5ca9740b7e"
+    },
+    {
+      "file": "qdata-category-semi-structured.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "e330599d63d773a175613342cf573f45b5fc331aa7a7bf384bd1e5f14b883c99"
+    },
+    {
+      "file": "qdata-category-vector.svg",
+      "source": "页面数据连接选择器中的内联 SVG",
+      "symbolId": null,
+      "sha256": "2144e586fd3d4b4ad0df0d60006f08bc4f7c4464b95aa5872c0e8b7b3d663ae1"
+    },
+    {
+      "file": "republish.svg",
+      "source": "页面原始 SVG symbol",
+      "symbolId": "icon-zhongxinfabu",
+      "sha256": "03911f6a8171e44755f681bbe3d2ed7fa0c3fdbf908e6f4bbbbcf4a4da77788c"
+    },
+    {
+      "file": "send-plane.svg",
+      "source": "页面原始 SVG symbol",
+      "symbolId": "icon-send-plane-line",
+      "sha256": "31b6c42e960dceb87b6a486ecb8e26d2aa837cae9865a65e57e8b53b5bbc71ce"
+    }
+  ]
+}

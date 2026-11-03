@@ -1,0 +1,57 @@
+{
+  "sourcePolicy": "Tree icons are reference crops. Business condition SVG is the original shipped qData glyph referenced by its current page bundle.",
+  "assets": [
+    {
+      "file": "tree-folder-open.png",
+      "sourceFile": "codex-clipboard-049ffc7e-b8bb-43d6-9527-c877a5efaf9f.png",
+      "sourceBox": [
+        381,
+        377,
+        406,
+        402
+      ],
+      "sha256": "ef380d3b32c06ad628f859e67d5d7beb247a03b692cca909aae5521d4b8ec3e2",
+      "transformation": "Crop; blue foreground alpha separated from uniform reference background; no invented geometry."
+    },
+    {
+      "file": "tree-folder.png",
+      "sourceFile": "codex-clipboard-049ffc7e-b8bb-43d6-9527-c877a5efaf9f.png",
+      "sourceBox": [
+        408,
+        417,
+        434,
+        443
+      ],
+      "sha256": "58a6cab1bccedd38540922dc3b34a17f37079427a221e4801bdc63ccfe6297c5",
+      "transformation": "Crop; blue foreground alpha separated from uniform reference background; no invented geometry."
+    },
+    {
+      "file": "tree-document.png",
+      "sourceFile": "codex-clipboard-049ffc7e-b8bb-43d6-9527-c877a5efaf9f.png",
+      "sourceBox": [
+        409,
+        454,
+        434,
+        480
+      ],
+      "sha256": "d3958b332e8ebbdce0acf8970ee757001faaf703bb3b3de44ec3584ac1793813",
+      "transformation": "Crop; blue foreground alpha separated from uniform reference background; no invented geometry."
+    },
+    {
+      "file": "business-condition.svg",
+      "source": "https://pro-demo.qdata.tech/assets/biz-condition-DRBiOd08.js",
+      "export": "_ (local constant k)",
+      "sha256": "3ed5e8e808a287c3f34ba0009f46d0031a8f4473fd4ad611c9a02c9aed8ee99d"
+    },
+    {
+      "file": "../../logictable/icons.ts",
+      "glyphs": [
+        "Back",
+        "DocumentCopy"
+      ],
+      "source": "https://pro-demo.qdata.tech/assets/@element-plus-DOE6gaC2.js",
+      "sourceBundleSha256": "99108902e90790f88847972ccf36cace289e5de3dedac2f47774e3e81df5fc79",
+      "transformation": "Verbatim viewBox and path data; currentColor preserves existing component behavior."
+    }
+  ]
+}

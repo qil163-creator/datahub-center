@@ -1,0 +1,254 @@
+.atomic-modal {
+  top: 6vh;
+  width: 778px;
+  max-height: calc(100dvh - 120px);
+  color: #606266;
+  background: #fff;
+  border: 0;
+  border-radius: var(--radius);
+}
+
+.atomic-modal-header {
+  min-height: 38px;
+  padding: 9px 16px;
+  background: #f8f8f8;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.atomic-modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.atomic-modal-content {
+  padding: 17px 34px 18px;
+}
+
+.atomic-modal-footer {
+  gap: 10px;
+  min-height: 54px;
+  padding: 12px 18px;
+  border-top: 1px solid #f1f2f4;
+}
+
+.atomic-modal-footer button {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 14px;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.atomic-editor {
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial,
+    sans-serif;
+  font-size: 14px;
+  color: #606266;
+}
+
+.atomic-editor .ant-alert {
+  margin-bottom: 14px;
+}
+
+.atomic-notice {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  padding: 6px 16px;
+  font-size: 12px;
+  line-height: 20px;
+  background: hsl(var(--primary) / 10%);
+  border: 1px solid #bac7ff;
+  border-radius: var(--radius);
+}
+
+.atomic-notice .qd-icon {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  color: hsl(var(--primary));
+}
+
+.atomic-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 14px 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
+  color: #303133;
+}
+
+.atomic-section::before {
+  width: 5px;
+  height: 14px;
+  content: '';
+  background: hsl(var(--primary));
+  border-radius: 3px;
+}
+
+.atomic-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px 32px;
+}
+
+.atomic-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.atomic-item > label {
+  flex: 0 0 88px;
+  padding-top: 5px;
+  line-height: 18px;
+  text-align: right;
+}
+
+.atomic-item > label.required::before {
+  margin-right: 4px;
+  color: #f56c6c;
+  content: '*';
+}
+
+.atomic-item > :last-child {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.atomic-item .ant-select,
+.atomic-item .ant-input,
+.atomic-item .ant-input-textarea-affix-wrapper {
+  width: 100%;
+}
+
+.atomic-item .ant-input,
+.atomic-item .ant-select-selector {
+  border-color: #dcdfe6;
+  box-shadow: none;
+}
+
+.atomic-item .ant-input:disabled {
+  color: #a8abb2;
+  background: #f5f7fa;
+}
+
+.atomic-item .ant-radio-wrapper {
+  margin-right: 20px;
+  font-size: 14px;
+  line-height: 28px;
+}
+
+.atomic-item .metric-entity-trigger {
+  height: 28px;
+}
+
+.atomic-full {
+  grid-column: 1 / -1;
+}
+
+.atomic-form > .atomic-section {
+  margin: 3px 0 0;
+}
+
+.atomic-help {
+  margin: 3px 0 -7px;
+  font-size: 12px;
+  line-height: 14px;
+  color: #909399;
+}
+
+.atomic-item small {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  z-index: 1;
+  font-size: 12px;
+  line-height: 14px;
+  color: #f56c6c;
+}
+
+.atomic-item small:empty {
+  display: none;
+}
+
+.atomic-full textarea {
+  height: 82px;
+  min-height: 82px;
+  resize: vertical;
+}
+
+.atomic-editor .ant-input-data-count {
+  right: 8px;
+  bottom: 4px;
+  font-size: 12px;
+}
+
+.atomic-domain-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: -3px;
+}
+
+.metric-derived-modal {
+  color: #606266;
+  background: #fff;
+  border: 0;
+  border-radius: var(--radius);
+}
+
+.metric-derived-modal-header {
+  min-height: 38px;
+  padding: 9px 16px;
+  font-size: 14px;
+  background: #f8f8f8;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.metric-derived-modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.metric-derived-modal-content {
+  padding: 18px 30px;
+  font-size: 14px;
+}
+
+.metric-derived-modal-content .ant-alert-info {
+  background: hsl(var(--primary) / 10%);
+  border-color: #bac7ff;
+}
+
+@media (max-width: 767px) {
+  .atomic-modal {
+    top: 20px;
+    max-height: calc(100dvh - 40px);
+  }
+
+  .atomic-modal-content {
+    padding: 16px;
+  }
+
+  .atomic-form {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 18px;
+  }
+
+  .atomic-item {
+    gap: 8px;
+  }
+
+  .atomic-item > label {
+    flex-basis: 86px;
+  }
+}

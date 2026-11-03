@@ -1,0 +1,30 @@
+== Abstract Syntax Tree ==
+LogicalSink(table=[default_catalog.default_database.window_target], targetColumns=[[0],[1],[2],[3],[4]], fields=[key, seq, value, group_id, text])
++- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4])
+   +- LogicalProject(key=[ITEM($0, 1)], seq=[CAST(ITEM($0, 2)):BIGINT], value=[CAST(ITEM($0, 3)):DECIMAL(38, 18)], group_id=[CAST(ITEM($0, 4)):BIGINT], text=[ITEM($0, 5)])
+      +- LogicalProject(__dh_picked=[$3])
+         +- LogicalAggregate(group=[{0, 1, 2}], __dh_picked=[DH_WINDOW_PICK($3, $4)])
+            +- LogicalProject(window_start=[$6], window_end=[$7], $f2=[LOWER($0)], $f3=[ARRAY($0, CAST($1):VARCHAR(2147483647) CHARACTER SET "UTF-16LE", CAST($2):VARCHAR(2147483647) CHARACTER SET "UTF-16LE", CAST($3):VARCHAR(2147483647) CHARACTER SET "UTF-16LE", $4)], $f4=[_UTF-16LE'1|F|1000|1048576|1:A:N|1'])
+               +- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4], __dh_window_clock=[$5], window_start=[$6], window_end=[$7], window_time=[$8])
+                  +- LogicalTableFunctionScan(invocation=[TUMBLE(DESCRIPTOR($5), 2000:INTERVAL SECOND)], rowType=[RecordType(VARCHAR(2147483647) key, BIGINT seq, DECIMAL(38, 18) value, BIGINT group_id, VARCHAR(2147483647) text, TIMESTAMP_LTZ(3) *PROCTIME* __dh_window_clock, TIMESTAMP(3) window_start, TIMESTAMP(3) window_end, TIMESTAMP_LTZ(3) *PROCTIME* window_time)])
+                     +- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4], __dh_window_clock=[$5])
+                        +- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4], __dh_window_clock=[PROCTIME()])
+                           +- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4])
+                              +- LogicalProject(key=[$0], seq=[$1], value=[$2], group_id=[$3], text=[$4])
+                                 +- LogicalTableScan(table=[[default_catalog, default_database, window_source]])
+
+== Optimized Physical Plan ==
+Sink(table=[default_catalog.default_database.window_target], targetColumns=[[0],[1],[2],[3],[4]], fields=[key, seq, value, group_id, text])
++- Calc(select=[ITEM(__dh_picked, 1) AS key, CAST(ITEM(__dh_picked, 2) AS BIGINT) AS seq, CAST(ITEM(__dh_picked, 3) AS DECIMAL(38, 18)) AS value, CAST(ITEM(__dh_picked, 4) AS BIGINT) AS group_id, ITEM(__dh_picked, 5) AS text])
+   +- WindowAggregate(groupBy=[$f2], window=[TUMBLE(time_col=[__dh_window_clock], size=[2 s])], select=[$f2, DH_WINDOW_PICK($f3, $f4) AS __dh_picked, start('w$) AS window_start, end('w$) AS window_end])
+      +- Exchange(distribution=[hash[$f2]])
+         +- Calc(select=[LOWER(key) AS $f2, ARRAY(key, CAST(seq AS VARCHAR(2147483647) CHARACTER SET "UTF-16LE"), CAST(value AS VARCHAR(2147483647) CHARACTER SET "UTF-16LE"), CAST(group_id AS VARCHAR(2147483647) CHARACTER SET "UTF-16LE"), text) AS $f3, _UTF-16LE'1|F|1000|1048576|1:A:N|1' AS $f4, PROCTIME() AS __dh_window_clock])
+            +- TableSourceScan(table=[[default_catalog, default_database, window_source]], fields=[key, seq, value, group_id, text])
+
+== Optimized Execution Plan ==
+Sink(table=[default_catalog.default_database.window_target], targetColumns=[[0],[1],[2],[3],[4]], fields=[key, seq, value, group_id, text])
++- Calc(select=[ITEM(__dh_picked, 1) AS key, CAST(ITEM(__dh_picked, 2) AS BIGINT) AS seq, CAST(ITEM(__dh_picked, 3) AS DECIMAL(38, 18)) AS value, CAST(ITEM(__dh_picked, 4) AS BIGINT) AS group_id, ITEM(__dh_picked, 5) AS text])
+   +- WindowAggregate(groupBy=[$f2], window=[TUMBLE(time_col=[__dh_window_clock], size=[2 s])], select=[$f2, DH_WINDOW_PICK($f3, $f4) AS __dh_picked, start('w$) AS window_start, end('w$) AS window_end])
+      +- Exchange(distribution=[hash[$f2]])
+         +- Calc(select=[LOWER(key) AS $f2, ARRAY(key, CAST(seq AS VARCHAR(2147483647)), CAST(value AS VARCHAR(2147483647)), CAST(group_id AS VARCHAR(2147483647)), text) AS $f3, '1|F|1000|1048576|1:A:N|1' AS $f4, PROCTIME() AS __dh_window_clock])
+            +- TableSourceScan(table=[[default_catalog, default_database, window_source]], fields=[key, seq, value, group_id, text])

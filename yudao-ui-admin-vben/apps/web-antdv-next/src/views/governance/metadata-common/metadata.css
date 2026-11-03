@@ -1,0 +1,269 @@
+.metadata-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.metadata-grid {
+  flex: 1;
+  min-height: 0;
+}
+
+.metadata-grid .metadata-grid-custom-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: url('./reference-assets/icons/grid.png') center / contain
+    no-repeat;
+}
+
+.metadata-grid-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background: hsl(var(--card));
+}
+
+.metadata-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.metadata-tools {
+  display: flex;
+  gap: 10px;
+}
+
+.metadata-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  line-height: 20px;
+}
+
+.metadata-info__title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.metadata-link {
+  padding: 0;
+  color: hsl(var(--primary));
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.metadata-muted {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 17px;
+  color: hsl(var(--muted-foreground));
+  -webkit-box-orient: vertical;
+}
+
+.metadata-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metadata-grid .metadata-muted,
+.metadata-grid .metadata-ellipsis {
+  display: block;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.metadata-grid .metadata-info__title > .metadata-link {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.metadata-tag {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0 5px;
+  font-size: 12px;
+  line-height: 18px;
+  color: hsl(var(--primary));
+  white-space: nowrap;
+  background: hsl(var(--primary) / 10%);
+}
+
+.metadata-tag--file {
+  color: #d4a24d;
+  background: #fff7e5;
+}
+
+.metadata-tag--success {
+  color: #5aa548;
+  background: #edf5e9;
+}
+
+.metadata-tag--error {
+  color: #e57b76;
+  background: #fdf0ed;
+}
+
+.metadata-tag--source {
+  color: #9764c7;
+  background: #f3eef8;
+}
+
+.metadata-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  min-height: 0;
+}
+
+.metadata-panel {
+  padding: 15px;
+  background: hsl(var(--card));
+}
+
+.metadata-grid-shell,
+.metadata-panel {
+  border-radius: var(--radius);
+}
+
+.metadata-detail__title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.metadata-detail__title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.metadata-detail__id {
+  padding: 0 3px;
+  color: white;
+  background: hsl(var(--primary));
+}
+
+.metadata-detail__back {
+  margin-left: auto;
+}
+
+.metadata-task-instances {
+  min-height: 360px;
+}
+
+.metadata-section {
+  padding-left: 10px;
+  margin: 16px 0 12px;
+  font-size: 16px;
+  border-left: 4px solid hsl(var(--primary));
+}
+
+.metadata-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+  padding: 8px 18px 20px;
+}
+
+.metadata-form-item {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.metadata-form-item > label {
+  padding-top: 5px;
+  font-size: 14px;
+  text-align: right;
+}
+
+.metadata-form-item--required > label::before {
+  margin-right: 4px;
+  color: hsl(var(--destructive));
+  content: '*';
+}
+
+.metadata-form-item--wide {
+  grid-column: 1 / -1;
+}
+
+.metadata-form-item .ant-select {
+  width: 100%;
+}
+
+.metadata-form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.metadata-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  min-height: 0;
+}
+
+.metadata-layout__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.metadata-modal__body .metadata-form-grid {
+  padding: 0;
+}
+
+.metadata-modal .metadata-form-item {
+  grid-template-columns: 100px minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .metadata-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+}
+
+
+@media (width <= 640px) {
+  .metadata-layout {
+    flex-direction: column;
+  }
+
+  .metadata-layout > .sidebar-collapse {
+    flex: 0 0 12px;
+    width: 100%;
+    height: 12px;
+  }
+
+  .metadata-layout > .sidebar-collapse svg {
+    transform: rotate(-90deg);
+  }
+}

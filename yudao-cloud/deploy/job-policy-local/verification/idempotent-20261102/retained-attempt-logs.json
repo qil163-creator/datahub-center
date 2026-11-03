@@ -1,0 +1,66 @@
+[
+  {
+    "policy": "worker",
+    "workerTaskId": 99,
+    "file": "worker-worker-attempt-99.log",
+    "bytes": 13238,
+    "sha256": "03aa046fd037ca9812d77fb4a15435f4ec43b81dfd5a7e357e07e9c558b6c565",
+    "credentialsRedacted": true
+  },
+  {
+    "policy": "worker",
+    "workerTaskId": 100,
+    "file": "worker-worker-attempt-100.log",
+    "bytes": 17672,
+    "sha256": "93ea7916f6ba43efa5948c96e7c563e2413784dc9b08fa60b289c03852a76038",
+    "credentialsRedacted": true
+  },
+  {
+    "policy": "worker",
+    "workerTaskId": 102,
+    "file": "worker-worker-attempt-102.log",
+    "bytes": 3323,
+    "sha256": "b40d6a029d72c68ea4443718e61a429303e3d69319316460250d7c31be832c6f",
+    "credentialsRedacted": true
+  },
+  {
+    "policy": "host",
+    "workerTaskId": 104,
+    "file": "host-worker-attempt-104.log",
+    "bytes": 13897,
+    "sha256": "dd914a4608635f7ab5b0c542650c8d28b62cffaa22f82b6bfc4c179cc6cc07d4",
+    "credentialsRedacted": true
+  },
+  {
+    "policy": "host",
+    "workerTaskId": 106,
+    "file": "host-worker-attempt-106.log",
+    "bytes": 17668,
+    "sha256": "843911ef33cb5260660ddc3a9d4d65deea43b9890c9ad875dc52964602123e19",
+    "credentialsRedacted": true
+  },
+  {
+    "policy": "host",
+    "workerTaskId": 108,
+    "file": "host-worker-attempt-108.log",
+    "bytes": 3311,
+    "sha256": "df58070fb4de8e70bcb3002ea0087ad9238491c5eb9b7aa03bcef7516b4a34b6",
+    "credentialsRedacted": true
+  },
+  {
+    "recordId": 59,
+    "status": "FAILURE",
+    "file": "failed-59-job.log",
+    "bytes": 29622,
+    "sha256": "94e3ee30df7a37fd8c66a7e2e4d05c4cfdde343f84e26d9e914843a91f30d150",
+    "viewDownloadEqual": true
+  },
+  {
+    "recordId": 60,
+    "status": "FAILURE",
+    "file": "failed-60-job.log",
+    "bytes": 28272,
+    "sha256": "4bc71172081b705492ad54d7cb35765c76ecb3ef96cfe7f39c698059f6b98fe1",
+    "viewDownloadEqual": true
+  }
+]

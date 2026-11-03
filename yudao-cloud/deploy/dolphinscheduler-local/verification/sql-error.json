@@ -1,0 +1,16 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "failure",
+  "checks": {
+    "SQL_ERROR_PROPAGATION": {
+      "taskType": "FLINK",
+      "workflowCode": "188510777251808",
+      "workflowInstanceId": 25,
+      "taskInstanceId": 24,
+      "state": "FAILURE",
+      "markerInLog": true,
+      "expectedErrorExitPropagated": true
+    }
+  },
+  "status": "PASS"
+}

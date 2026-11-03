@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "scope": "Latest indicator-model reference set; existing project navigation is retained.",
+  "measurementSpace": {
+    "preview": [
+      2048,
+      1084
+    ],
+    "note": "Measurements below are estimates in the scaled preview, not unverified native browser computed styles. Source dimensions and hashes are exact.",
+    "treeWidth": 242,
+    "businessGutter": 14,
+    "sectionGap": 12,
+    "filterHeight": 54,
+    "headerHeight": 32,
+    "rowHeight": 56,
+    "controlHeight": 28,
+    "atomicDialogWidth": 778
+  },
+  "behaviorOverride": "User explicitly requested keeping existing derived and associated functionality while matching reference style.",
+  "sources": [
+    {
+      "file": "codex-clipboard-049ffc7e-b8bb-43d6-9527-c877a5efaf9f.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "e840392f86c8ba49ad3aa4b22ba122619b36244ac4fdc7beb6d6592d8866bea4"
+    },
+    {
+      "file": "codex-clipboard-d2a11f97-9566-40c5-87e7-86b75f790da1.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "ea3686d167dceedd001a46e037a0d67a1b43504f628eafc4bc7e0775c7d91e5a"
+    },
+    {
+      "file": "codex-clipboard-48f038c3-d0f0-4333-9942-5d938bcc6088.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "03d1f2d2adf16fe7b7a49bb146e796510e19dd944d83f99c28bc8d65887aa36f"
+    },
+    {
+      "file": "codex-clipboard-82b33f44-6279-4db1-a606-e85599f5c954.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "68b15759153223f33daf4bfcf1b00025afebd4557daa8c38e1a4406f392ba4ac"
+    },
+    {
+      "file": "codex-clipboard-eb37591b-bd2a-4155-9602-a8ed0a25ea2f.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "cbcd8276a94d93cd11777cdab21d865cd06b6d1945c764f48c46347f51fb06e4"
+    },
+    {
+      "file": "codex-clipboard-6dcafd07-693a-4ec8-ae87-1684219de491.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "a853b321c7403f18b46a54c05f3907435346dc067ea698b26e2541ee80d618b5"
+    },
+    {
+      "file": "codex-clipboard-d98b4969-5bf2-4bc4-ad92-b1111d546b4f.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "238dc53faf36d6487d3a3f7fde091c4ea14c275afa0bd5c38d90dde43b1a2c5b"
+    },
+    {
+      "file": "codex-clipboard-d3c75806-7e64-4cf5-ad35-78d29f7a5415.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "0bf82ea6f7c6b2e1db3e71a665142cce5570bef34df613a017aae51c3f4b80a5"
+    },
+    {
+      "file": "codex-clipboard-e6478e75-85c3-40cc-98a9-b4fd6edddb52.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "b18348592d848e1a1de18026c87aa89ee6ca7877cc9aa05ef918c0b9fd8090a3"
+    },
+    {
+      "file": "codex-clipboard-e6b516d0-c88e-4241-b061-65b46ff74256.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "b1c634abb0e4f3b2a964660b40b9234cba254fdb48f8d7837faf567a452693ae"
+    },
+    {
+      "file": "codex-clipboard-d450151d-718f-435e-84c9-9db55c12865a.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "23ec96928a84a731137ba6bf2fd3564151a94c3b02366e71c14c75ae680d0660"
+    },
+    {
+      "file": "codex-clipboard-a21e73fe-b259-4706-b1f2-fff60e779422.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "dd3158f3b924337bff0f32f680d5782363a2e214fe33435b4a72a559de54da4c"
+    },
+    {
+      "file": "codex-clipboard-a7083d1e-9f8e-4915-a034-79b75e0790e3.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "f368f7d64d565c315bddc56ab2896ce6d529629868dd8e5aaa05885f9f7a93cc"
+    },
+    {
+      "file": "codex-clipboard-1cc63445-a0c1-4866-be33-1b5276236034.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "2899e33348678bf7eb5b3899daca2a8099b6008cfccf078d28bedce1ccd9285d"
+    },
+    {
+      "file": "codex-clipboard-917a2ee9-1b27-48d6-bd11-e5ab9aef50e9.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "c17a1af4bfbae1d11216bf3ea35900526188a44e4baa6326ab302669d9f2efe1"
+    },
+    {
+      "file": "codex-clipboard-6f639448-878a-4169-a935-fd101bc2ab3c.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "9e9c9b8dd969706f358474a250712ceb97ba5aef2f5c3f0b7dd4d6c815b43b8f"
+    },
+    {
+      "file": "codex-clipboard-fdd04430-5e56-4810-aa45-86965d30fffd.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "89b4ce38c0d04812c4a274a50687cc26a9ded621722401dbffd7fa2465590237"
+    },
+    {
+      "file": "codex-clipboard-1c3aa6fc-1c6f-4746-9e3f-9004fdfc3aa1.png",
+      "canvas": [
+        3558,
+        1882
+      ],
+      "sha256": "db5eab7ef0e34c8689e5c3da04c71050565e5aa32e155c474bbdc60a922dff12"
+    }
+  ]
+}

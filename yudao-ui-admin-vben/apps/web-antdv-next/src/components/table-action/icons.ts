@@ -1,0 +1,17 @@
+export const ACTION_ICON = {
+  DOWNLOAD: 'lucide:download',
+  UPLOAD: 'lucide:upload',
+  ADD: 'lucide:plus',
+  EDIT: 'lucide:edit',
+  DELETE: 'lucide:trash-2',
+  REFRESH: 'lucide:refresh-cw',
+  SEARCH: 'lucide:search',
+  FILTER: 'lucide:filter',
+  MORE: 'lucide:ellipsis-vertical',
+  VIEW: 'lucide:eye',
+  PREVIEW: 'lucide:table-2',
+  COPY: 'lucide:copy',
+  CLOSE: 'lucide:x',
+  BOOK: 'lucide:book',
+  AUDIT: 'lucide:file-check',
+};

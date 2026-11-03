@@ -1,0 +1,237 @@
+{
+  "sources": [
+    "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+    "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-d3a76cdb-0c20-4d65-9618-27c9df4ba3fb.png"
+  ],
+  "coordinateCanvas": [
+    2048,
+    1083
+  ],
+  "assets": {
+    "add": {
+      "file": "add.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        3226,
+        459,
+        3250,
+        483
+      ],
+      "displaySize": [
+        14,
+        14
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "delete": {
+      "file": "delete.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        488,
+        311,
+        513,
+        337
+      ],
+      "displaySize": [
+        14,
+        15
+      ],
+      "background": [
+        251,
+        240,
+        240
+      ],
+      "edgeAlphaMax": 0
+    },
+    "expand": {
+      "file": "expand.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        606,
+        311,
+        632,
+        337
+      ],
+      "displaySize": [
+        15,
+        15
+      ],
+      "background": [
+        240,
+        246,
+        252
+      ],
+      "edgeAlphaMax": 0
+    },
+    "query": {
+      "file": "query.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        1386,
+        196,
+        1419,
+        226
+      ],
+      "displaySize": [
+        15,
+        15
+      ],
+      "background": [
+        240,
+        246,
+        252
+      ],
+      "edgeAlphaMax": 0
+    },
+    "reset": {
+      "file": "reset.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        1503,
+        198,
+        1529,
+        224
+      ],
+      "displaySize": [
+        15,
+        15
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "search": {
+      "file": "search.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        3343,
+        309,
+        3370,
+        339
+      ],
+      "displaySize": [
+        16,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "refresh": {
+      "file": "refresh.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        3409,
+        309,
+        3438,
+        339
+      ],
+      "displaySize": [
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "columns": {
+      "file": "columns.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        3475,
+        309,
+        3504,
+        339
+      ],
+      "displaySize": [
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "edit": {
+      "file": "edit.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        3127,
+        459,
+        3153,
+        485
+      ],
+      "displaySize": [
+        15,
+        15
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "chevron-right": {
+      "file": "chevron-right.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c800de94-d25c-4244-a3eb-8e7a7550ac46.png",
+      "sourceBox": [
+        506,
+        455,
+        528,
+        483
+      ],
+      "displaySize": [
+        13,
+        16
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "edgeAlphaMax": 0
+    },
+    "close": {
+      "file": "close.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-d3a76cdb-0c20-4d65-9618-27c9df4ba3fb.png",
+      "sourceBox": [
+        2330,
+        130,
+        2358,
+        156
+      ],
+      "displaySize": [
+        16,
+        15
+      ],
+      "background": [
+        248,
+        248,
+        248
+      ],
+      "edgeAlphaMax": 0
+    },
+    "collapse": {
+      "file": "collapse.png",
+      "sameSourceAs": "expand",
+      "note": "源站展开与折叠均使用同一个#icon-toggle，运行态与CatPage静态源码已核实"
+    }
+  }
+}

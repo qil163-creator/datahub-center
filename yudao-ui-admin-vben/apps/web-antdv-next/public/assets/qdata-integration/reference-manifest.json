@@ -1,0 +1,684 @@
+{
+  "canvas": [
+    3646,
+    2080
+  ],
+  "cssScale": 0.5,
+  "businessRegion": [
+    450,
+    460,
+    3616,
+    2050
+  ],
+  "layout": {
+    "headerHeight": 50,
+    "sidebarWidth": 274,
+    "columnGap": 15,
+    "nodeIconSize": 36
+  },
+  "assets": {
+    "read-db": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        680,
+        584,
+        716
+      ]
+    },
+    "read-odps": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        732,
+        584,
+        768
+      ]
+    },
+    "read-excel": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        784,
+        584,
+        820
+      ]
+    },
+    "read-csv": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        836,
+        584,
+        872
+      ]
+    },
+    "read-json": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        888,
+        584,
+        924
+      ]
+    },
+    "read-kafka": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        940,
+        584,
+        976
+      ]
+    },
+    "read-hive": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        992,
+        584,
+        1028
+      ]
+    },
+    "read-hdfs": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1044,
+        584,
+        1080
+      ]
+    },
+    "rest-api": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1096,
+        584,
+        1132
+      ]
+    },
+    "read-mongodb": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1148,
+        584,
+        1184
+      ]
+    },
+    "read-redis": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1200,
+        584,
+        1236
+      ]
+    },
+    "read-rabbitmq": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1252,
+        584,
+        1288
+      ]
+    },
+    "read-tdengine": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1304,
+        584,
+        1340
+      ]
+    },
+    "read-rocketmq": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1356,
+        584,
+        1392
+      ]
+    },
+    "read-ftp": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1408,
+        584,
+        1444
+      ]
+    },
+    "read-webservice": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1460,
+        584,
+        1496
+      ]
+    },
+    "script-group": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        512,
+        1512,
+        548,
+        1548
+      ]
+    },
+    "java-script": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1565,
+        584,
+        1601
+      ]
+    },
+    "custom-token": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        548,
+        1617,
+        584,
+        1653
+      ]
+    },
+    "data-clean": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        842,
+        584,
+        878
+      ]
+    },
+    "multi-join": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        894,
+        584,
+        930
+      ]
+    },
+    "sort-records": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        946,
+        584,
+        982
+      ]
+    },
+    "field-split": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        998,
+        584,
+        1034
+      ]
+    },
+    "field-derive": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1050,
+        584,
+        1086
+      ]
+    },
+    "dedup-records": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1102,
+        584,
+        1138
+      ]
+    },
+    "row-to-column": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1154,
+        584,
+        1190
+      ]
+    },
+    "column-to-row": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1206,
+        584,
+        1242
+      ]
+    },
+    "data-encrypt": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1258,
+        584,
+        1294
+      ]
+    },
+    "data-decrypt": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1310,
+        584,
+        1346
+      ]
+    },
+    "id-generator": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1362,
+        584,
+        1398
+      ]
+    },
+    "calculator": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1414,
+        584,
+        1450
+      ]
+    },
+    "value-map": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1466,
+        584,
+        1502
+      ]
+    },
+    "add-constant": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1518,
+        584,
+        1554
+      ]
+    },
+    "number-range": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1570,
+        584,
+        1606
+      ]
+    },
+    "string-operation": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1622,
+        584,
+        1658
+      ]
+    },
+    "string-replace": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1674,
+        584,
+        1710
+      ]
+    },
+    "column-map": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1726,
+        584,
+        1762
+      ]
+    },
+    "set-field-value": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1778,
+        584,
+        1814
+      ]
+    },
+    "data-condition": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1880,
+        584,
+        1916
+      ]
+    },
+    "sub-pipeline": {
+      "source": "codex-clipboard-10737cd6-5084-4a12-a685-d28a588fa92a.png",
+      "box": [
+        548,
+        1932,
+        584,
+        1968
+      ]
+    },
+    "insert-db": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1528,
+        584,
+        1564
+      ]
+    },
+    "write-odps": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1580,
+        584,
+        1616
+      ]
+    },
+    "write-hive": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1632,
+        584,
+        1668
+      ]
+    },
+    "write-hdfs": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1684,
+        584,
+        1720
+      ]
+    },
+    "write-mongodb": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1736,
+        584,
+        1772
+      ]
+    },
+    "write-redis": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1788,
+        584,
+        1824
+      ]
+    },
+    "write-rabbitmq": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1840,
+        584,
+        1876
+      ]
+    },
+    "write-kafka": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1892,
+        584,
+        1928
+      ]
+    },
+    "write-rocketmq": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1944,
+        584,
+        1980
+      ]
+    },
+    "write-ftp": {
+      "source": "codex-clipboard-b3b6508e-df29-4cf9-a1cd-c2ea9acf48e5.png",
+      "box": [
+        548,
+        1996,
+        584,
+        2032
+      ]
+    },
+    "icon-fit": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        1300,
+        620,
+        1372,
+        690
+      ]
+    },
+    "icon-draft": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        2660,
+        492,
+        2698,
+        528
+      ]
+    },
+    "icon-save": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        2816,
+        492,
+        2854,
+        528
+      ]
+    },
+    "icon-check": {
+      "source": "codex-clipboard-4a33013a-ec1b-443b-ad3d-f33259df56ed.png",
+      "box": [
+        3220,
+        492,
+        3258,
+        528
+      ]
+    },
+    "node-read-db-ref": {
+      "file": "node-read-db-ref.png",
+      "source": "codex-clipboard-147fe1a7-811e-4b09-95ee-8da6994f914f.png",
+      "sourceSha256": "543608c80655093203a204ab4603b43ec2e0410026865a90c4a147ca92285477",
+      "box": [
+        1488,
+        1054,
+        1560,
+        1126
+      ],
+      "pixelSize": [
+        72,
+        72
+      ],
+      "cssSize": [
+        36,
+        36
+      ],
+      "role": "semantic",
+      "edgeAlpha": "Only boundary-connected near-white pixels (min RGB >= 239) receive conservative alpha; interior blue background and white glyph remain from reference. White compositing differs by at most 1/255 per channel.",
+      "qa": {
+        "pixelSize": [
+          72,
+          72
+        ],
+        "cssSize": [
+          36,
+          36
+        ],
+        "alphaZeroPixels": 24,
+        "partialAlphaPixels": 12,
+        "whiteCompositeMaxChannelError": 0
+      }
+    },
+    "node-insert-db-ref": {
+      "file": "node-insert-db-ref.png",
+      "source": "codex-clipboard-147fe1a7-811e-4b09-95ee-8da6994f914f.png",
+      "sourceSha256": "543608c80655093203a204ab4603b43ec2e0410026865a90c4a147ca92285477",
+      "box": [
+        1788,
+        1094,
+        1860,
+        1166
+      ],
+      "pixelSize": [
+        72,
+        72
+      ],
+      "cssSize": [
+        36,
+        36
+      ],
+      "role": "semantic",
+      "edgeAlpha": "Only boundary-connected near-white pixels (min RGB >= 239) receive conservative alpha; interior blue background and white glyph remain from reference. White compositing differs by at most 1/255 per channel.",
+      "qa": {
+        "pixelSize": [
+          72,
+          72
+        ],
+        "cssSize": [
+          36,
+          36
+        ],
+        "alphaZeroPixels": 24,
+        "partialAlphaPixels": 12,
+        "whiteCompositeMaxChannelError": 0
+      }
+    },
+    "icon-export-ref": {
+      "file": "icon-export-ref.png",
+      "source": "codex-clipboard-147fe1a7-811e-4b09-95ee-8da6994f914f.png",
+      "sourceSha256": "543608c80655093203a204ab4603b43ec2e0410026865a90c4a147ca92285477",
+      "box": [
+        1314,
+        632,
+        1358,
+        676
+      ],
+      "pixelSize": [
+        44,
+        44
+      ],
+      "cssSize": [
+        22,
+        22
+      ],
+      "role": "decorative",
+      "matteRemoval": "Removed sampled flat toolbar background RGB(244,244,245) with per-pixel alpha matting; reference glyph RGB/antialias preserved when composited over source background. Transparent padding intentionally retained for ~16 CSS px optical glyph inside 22px image.",
+      "qa": {
+        "pixelSize": [
+          44,
+          44
+        ],
+        "imageCssSize": [
+          22,
+          22
+        ],
+        "sourceDarkGlyphBox": [
+          6,
+          8,
+          39,
+          38
+        ],
+        "renderedDarkGlyphCssSize": [
+          16.5,
+          15.0
+        ],
+        "alphaBounds": [
+          5,
+          7,
+          41,
+          39
+        ],
+        "edgeAlphaZero": true,
+        "referenceBackgroundCompositeMaxChannelError": 1
+      }
+    },
+    "icon-field-drag-ref": {
+      "file": "icon-field-drag-ref.png",
+      "source": "main-BKUMEHhG.js",
+      "sourceSha256": "1a993d3ff7f7f0962e3debd82ebe3d369798161ce667ba702d167243a2fd89f6",
+      "extraction": "Original embedded PNG variable pd, exported as cK and consumed by fieldMap-INI4QEf9.js; decoded unchanged.",
+      "sha256": "91e7c8fd22bec1cb6f4586498d6dc62fa3d2080befe9ec073cd392320d4e3498",
+      "pixelSize": [128, 128],
+      "cssSize": [16, 16],
+      "role": "decorative"
+    },
+    "icon-center-ref": {
+      "file": "icon-center-ref.png",
+      "source": "codex-clipboard-147fe1a7-811e-4b09-95ee-8da6994f914f.png",
+      "sourceSha256": "543608c80655093203a204ab4603b43ec2e0410026865a90c4a147ca92285477",
+      "box": [
+        1234,
+        630,
+        1282,
+        678
+      ],
+      "pixelSize": [
+        48,
+        48
+      ],
+      "cssSize": [
+        22,
+        22
+      ],
+      "role": "decorative",
+      "matteRemoval": "Removed sampled flat toolbar background RGB(244,244,245) with per-pixel alpha matting; reference glyph RGB/antialias preserved when composited over source background. Transparent padding intentionally retained for ~16 CSS px optical glyph inside 22px image.",
+      "qa": {
+        "pixelSize": [
+          48,
+          48
+        ],
+        "imageCssSize": [
+          22,
+          22
+        ],
+        "sourceDarkGlyphBox": [
+          6,
+          6,
+          42,
+          42
+        ],
+        "renderedDarkGlyphCssSize": [
+          16.0,
+          16.0
+        ],
+        "alphaBounds": [
+          3,
+          3,
+          45,
+          45
+        ],
+        "edgeAlphaZero": true,
+        "referenceBackgroundCompositeMaxChannelError": 1
+      }
+    }
+  },
+  "sourceDirectory": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T"
+}

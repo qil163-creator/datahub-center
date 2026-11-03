@@ -1,0 +1,18 @@
+{
+  "assets": [
+    {
+      "file": "banner-info.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [3558, 1882],
+      "crop": [349, 175, 427, 255],
+      "purpose": "本次参考截图原始说明条装饰；无外部素材"
+    },
+    {
+      "file": "banner-gold.png",
+      "source": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [3558, 1882],
+      "crop": [2853, 167, 3277, 259],
+      "purpose": "本次参考截图原始说明条装饰；无外部素材"
+    }
+  ]
+}

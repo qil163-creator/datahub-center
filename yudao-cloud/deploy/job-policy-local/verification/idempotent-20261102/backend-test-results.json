@@ -1,0 +1,37 @@
+[
+  {
+    "name": "cn.iocoder.yudao.module.dataforge.service.integration.IntegrationFlowCompilerTest",
+    "tests": "11",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "cn.iocoder.yudao.module.dataforge.service.job.JobManagedRunServiceTest",
+    "tests": "18",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "cn.iocoder.yudao.framework.dbswitch.dbwriter.pg.PostgresUpsertSqlTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "cn.iocoder.yudao.framework.dolphinscheduler.DataxCustomParametersTest",
+    "tests": "2",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "cn.iocoder.yudao.framework.dolphinscheduler.DataxTaskParametersTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

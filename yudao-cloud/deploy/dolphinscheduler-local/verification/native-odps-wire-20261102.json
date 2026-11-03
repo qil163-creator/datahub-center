@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-11-02T15:35:05+0800",
+  "engine": "Spark3.5.6 native SQL",
+  "connector": "com.aliyun.odps:odps-sdk-core:0.52.3-public",
+  "runtimeJarSha256": "b3fadb94f2fe27e24a597c5a139cd39b91dce375d7d31d9f85097883b96086e3",
+  "fixtureJarSha256": "5e775ef602dcdc5044c3df7190a62410904bfb58e7f7d8ed93152fc5fb1919cc",
+  "fixtureKind": "OFFICIAL_SDK_TUNNEL_WIRE_ONLY",
+  "cloudAcceptance": "OPEN",
+  "cases": [
+    {
+      "name": "official-protobuf-copy-and-final-commit",
+      "exitCode": 0,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0
+    },
+    {
+      "name": "tunnel-read-target",
+      "exitCode": 0,
+      "sqlSha256": "c44de77d18b189d2b16902e4adfcdda0474d4c70a2bdadc203a55dfa1a4872c0",
+      "secretEncodingMatches": 0
+    },
+    {
+      "name": "sdk-http403-rejected",
+      "exitCode": 1,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0,
+      "targetUnchanged": true
+    },
+    {
+      "name": "native-schema-mismatch-rejected",
+      "exitCode": 1,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0,
+      "targetUnchanged": true
+    },
+    {
+      "name": "official-protobuf-crc-rejected",
+      "exitCode": 1,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0,
+      "targetUnchanged": true
+    },
+    {
+      "name": "final-commit-not-confirmed",
+      "exitCode": 1,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0,
+      "targetUnchanged": true
+    },
+    {
+      "name": "ungranted-runtime-reference-rejected",
+      "exitCode": 1,
+      "sqlSha256": "6a380eeb7abcb256c62ec6df0cc95a58ce8c60790e997d9eb47763193d26a234",
+      "secretEncodingMatches": 0
+    }
+  ],
+  "credentialPlaintextRecorded": false,
+  "submission": "NATIVE_SPARK_SQL_CLIENT_NOT_DS_INSTANCE",
+  "workerContainer": "datahub-ds-local-odps-spark-worker",
+  "workerImageId": "sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966",
+  "nativeSqlClient": "/opt/spark/bin/spark-sql",
+  "nativeFloatBinaryValuePreserved": true,
+  "exactLongDecimalDateUnicodeEmptyNull": true,
+  "existingRowPreserved": true,
+  "longUnicodeCodePoints": 4400,
+  "signedSdkRequests": 26,
+  "limits": [
+    "本地Docker内HTTP与官方SDK protobuf/CRC/Tunnel session协议验收，不是官方MaxCompute服务端，也不证明真实云端IAM或计费路径",
+    "云端真实TableTunnel读写、IAM授权、地域TLS端点与故障后提交状态核验均OPEN",
+    "精确项目/表/完整分区绑定，Driver唯一UploadSession；分片只暂存block，全部成功后最终commit",
+    "最终提交应答丢失可能产生不确定状态，不声明跨作业恰好一次或自动回滚；当前不执行附加ODPS SQL、持久增量游标或三层Schema表"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "assets": [
+    {
+      "file": "engine-spark.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 36,
+      "height": 36
+    },
+    {
+      "file": "engine-flink.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 37,
+      "height": 36
+    },
+    {
+      "file": "engine-datax.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 37,
+      "height": 36
+    },
+    {
+      "file": "policy-active.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 15,
+      "height": 15
+    },
+    {
+      "file": "policy-normal.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 15,
+      "height": 15
+    },
+    {
+      "file": "type-mysql.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "file": "type-doris.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "file": "type-postgresql.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "file": "back.png",
+      "source": "https://pro-demo.qdata.tech/dpp/synchronizeTask/edit?id=36",
+      "method": "来自参考系统可见元素的浏览器截图裁切",
+      "width": 28,
+      "height": 30
+    }
+  ]
+}

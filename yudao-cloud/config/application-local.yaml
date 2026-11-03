@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: "optional:file:///Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/runtime/dev-native/application-dolphinscheduler-private.yaml"

@@ -1,0 +1,12 @@
+{
+  "verifiedLocalContainersRunning": [
+    "datahub-xxl-local-admin-1",
+    "codex-integration-pg-test",
+    "codex-integration-pg-api-test",
+    "datahub-ds-local-standalone-1"
+  ],
+  "xxlAdminHttpStatus": 200,
+  "resourceConfigurationPermanentlySolved": false,
+  "newExecutionAfterSuccess": false,
+  "purpose": "Bounded local resource maintenance restored; metadata/data were not reset"
+}

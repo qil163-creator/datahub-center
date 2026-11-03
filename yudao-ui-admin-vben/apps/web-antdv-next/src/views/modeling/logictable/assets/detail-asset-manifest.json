@@ -1,0 +1,23 @@
+{
+  "empty-records.png": {
+    "source": "codex-clipboard-8966e39d-761a-456f-9b63-51aa3ba131b9.png",
+    "canvas": [3378, 1882],
+    "crop": [1545, 1240, 1838, 1428],
+    "purpose": "参考图中的暂无记录插画，仅提取非交互装饰"
+  },
+  "referenceLayout": {
+    "canvas": [3378, 1882],
+    "cssScale": 0.6063,
+    "businessLeft": 205,
+    "businessGutter": 14,
+    "dialogTop": 68,
+    "sourceDialogWidth": 1020,
+    "fieldDialogWidth": 1090,
+    "summaryDialogWidth": 1090,
+    "detailHeaderHeight": 180,
+    "editorStepsHeight": 88,
+    "controlHeight": 30,
+    "tableHeaderHeight": 34,
+    "fieldRowHeight": 44
+  }
+}

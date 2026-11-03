@@ -1,0 +1,333 @@
+{
+  "provenance": "connectorDefaults(code) + UI field edits + ConnectorNodeEditor new columns (including hidden index) and output mappings; no hidden fields stripped",
+  "configs": {
+    "read-hive": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "ifSql": 0,
+      "readMode": "FULL",
+      "databaseId": "1",
+      "tableName": "source_table"
+    },
+    "write-hive": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "标签",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "writeModeType": 2,
+      "databaseId": "2",
+      "tableName": "target_table",
+      "fieldMappings": [
+        {
+          "source": "id",
+          "target": "id",
+          "enabled": true
+        },
+        {
+          "source": "name",
+          "target": "标签",
+          "enabled": true
+        }
+      ]
+    },
+    "read-odps": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "ifSql": 0,
+      "readMode": "FULL",
+      "databaseId": "1",
+      "tableName": "source_table"
+    },
+    "write-odps": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "标签",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "writeModeType": 2,
+      "batchSize": 1000,
+      "databaseId": "2",
+      "tableName": "target_table",
+      "fieldMappings": [
+        {
+          "source": "id",
+          "target": "id",
+          "enabled": true
+        },
+        {
+          "source": "name",
+          "target": "标签",
+          "enabled": true
+        }
+      ]
+    },
+    "read-ftp": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "maxBytes": 8388608,
+      "maxRows": 100000,
+      "encoding": "UTF-8",
+      "fileType": "csv",
+      "fieldDelimiter": ",",
+      "ftpConfig": "{}",
+      "compression": "",
+      "resourceBindingId": "ftp.fixture",
+      "credentialRef": "ftp.fixture",
+      "path": "input.csv"
+    },
+    "write-ftp": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "标签",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "maxBytes": 8388608,
+      "maxRows": 100000,
+      "encoding": "UTF-8",
+      "fileType": "csv",
+      "fieldDelimiter": ",",
+      "compression": "",
+      "ftpConfig": "{}",
+      "fileName": "data",
+      "writeModeType": 2,
+      "resourceBindingId": "ftp.fixture",
+      "credentialRef": "ftp.fixture",
+      "path": "out",
+      "fieldMappings": [
+        {
+          "source": "id",
+          "target": "id",
+          "enabled": true
+        },
+        {
+          "source": "name",
+          "target": "标签",
+          "enabled": true
+        }
+      ]
+    },
+    "read-webservice": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "apiMethod": "soap11",
+      "requestParams": "{}",
+      "headerParams": "{}",
+      "headerSecretRefs": "{}",
+      "maxRows": 100000,
+      "maxResponseBytes": 8388608,
+      "returnFormat": "XML",
+      "resourceBindingId": "soap.fixture",
+      "apiUrl": "http://soap-native:8080/service?wsdl",
+      "operationName": "query"
+    },
+    "read-rabbitmq": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "config": "{}",
+      "databaseId": "1",
+      "topic": "components.in"
+    },
+    "write-rabbitmq": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "标签",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "config": "{}",
+      "batchSize": 1,
+      "databaseId": "2",
+      "topic": "components.out",
+      "fieldMappings": [
+        {
+          "source": "id",
+          "target": "id",
+          "enabled": true
+        },
+        {
+          "source": "name",
+          "target": "标签",
+          "enabled": true
+        }
+      ]
+    },
+    "read-rocketmq": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "name",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "config": "{}",
+      "offsetReset": "earliest",
+      "databaseId": "1",
+      "topic": "components_input",
+      "groupId": "components_read"
+    },
+    "write-rocketmq": {
+      "columns": [
+        {
+          "name": "id",
+          "key": "id",
+          "type": "LONG",
+          "comment": "",
+          "index": 0
+        },
+        {
+          "name": "标签",
+          "key": "name",
+          "type": "STRING",
+          "comment": "",
+          "index": 1
+        }
+      ],
+      "config": "{}",
+      "batchSize": 1,
+      "databaseId": "2",
+      "topic": "components_output",
+      "groupId": "components_write",
+      "fieldMappings": [
+        {
+          "source": "id",
+          "target": "id",
+          "enabled": true
+        },
+        {
+          "source": "name",
+          "target": "标签",
+          "enabled": true
+        }
+      ]
+    }
+  },
+  "frontendValidation": {
+    "verifiedAt": "2026-11-02T07:25:12.467Z",
+    "configCount": 11,
+    "allConfigsValid": true,
+    "checkedBy": "validateConnectorConfig(code, actual default-based config), without stripping indices or mappings"
+  }
+}

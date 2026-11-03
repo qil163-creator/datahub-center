@@ -1,0 +1,201 @@
+{
+  "jobId": 11,
+  "jobName": "codex_job_e2e_真实混合验收_20261101_233720",
+  "suffix": "20261101_233720",
+  "expectedStatus": "SUCCESS",
+  "requestId": "codex_job_e2e_20261101_233720_parallel",
+  "phase": "SUCCESS",
+  "recordId": 5,
+  "status": "SUCCESS",
+  "children": [
+    {
+      "categoryId": null,
+      "children": null,
+      "createTime": null,
+      "creatorName": null,
+      "description": "",
+      "dsDefinitionCode": null,
+      "dsInstanceId": null,
+      "dsProjectCode": null,
+      "duration": 443,
+      "endTime": "2026-11-02 00:11:47",
+      "executionType": null,
+      "flowJson": "{\"nodes\":[],\"edges\":[]}",
+      "id": 180829751977008,
+      "instanceName": "dh_integration_1001_v1_a15f59ae18e6-20261102000424452",
+      "kind": "INTEGRATION",
+      "origin": "MANAGED",
+      "ownerName": null,
+      "runCount": null,
+      "startTime": "2026-11-02 00:04:24",
+      "status": "SUCCESS",
+      "submissionStage": null,
+      "taskId": 1001,
+      "taskName": "codex_job_e2e_集成PG搬数_20261101_233720",
+      "taskType": null,
+      "updateTime": null,
+      "logMarker": "codex_job_e2e_source_20261101_233720",
+      "logMarkerPresent": true
+    },
+    {
+      "categoryId": null,
+      "children": null,
+      "createTime": null,
+      "creatorName": null,
+      "description": "",
+      "dsDefinitionCode": null,
+      "dsInstanceId": null,
+      "dsProjectCode": null,
+      "duration": 112,
+      "endTime": "2026-11-02 00:13:49",
+      "executionType": null,
+      "flowJson": "{\"nodes\":[],\"edges\":[]}",
+      "id": 9,
+      "instanceName": "codex_job_e2e_开发只读核验_20261101_233720-9",
+      "kind": "DEVELOPMENT",
+      "origin": "PLATFORM",
+      "ownerName": null,
+      "runCount": null,
+      "startTime": "2026-11-02 00:11:56",
+      "status": "SUCCESS",
+      "submissionStage": null,
+      "taskId": 12,
+      "taskName": "codex_job_e2e_开发只读核验_20261101_233720",
+      "taskType": null,
+      "updateTime": null,
+      "logMarker": "execution_row_count",
+      "logMarkerPresent": true
+    }
+  ],
+  "dependencyTiming": {
+    "integrationEndTime": "2026-11-02 00:11:47",
+    "developmentStartTime": "2026-11-02 00:11:54",
+    "verified": true
+  },
+  "dsProjectCode": "188507725745120",
+  "dsParentInstanceId": 50,
+  "dsParentDefinitionCode": "188537373107168",
+  "dsParentState": "SUCCESS",
+  "dsChildren": [
+    {
+      "workflowInstanceId": 54,
+      "definitionCode": "188537372932064",
+      "state": "SUCCESS",
+      "startTime": "2026-11-02 00:11:54",
+      "endTime": "2026-11-02 00:13:48",
+      "parentTaskInstanceId": 53,
+      "parentTaskCode": "188537373055969",
+      "workerTasks": [
+        {
+          "id": 55,
+          "type": "SQL",
+          "state": "SUCCESS",
+          "host": "172.20.0.2:1234",
+          "startTime": "2026-11-02 00:13:48",
+          "endTime": "2026-11-02 00:13:48"
+        }
+      ],
+      "reverseParentVerified": true
+    },
+    {
+      "workflowInstanceId": 52,
+      "definitionCode": "188537133844448",
+      "state": "SUCCESS",
+      "startTime": "2026-11-02 00:04:24",
+      "endTime": "2026-11-02 00:11:47",
+      "parentTaskInstanceId": 49,
+      "parentTaskCode": "188537373055968",
+      "workerTasks": [
+        {
+          "id": 52,
+          "type": "DATAX",
+          "state": "SUCCESS",
+          "host": "172.20.0.2:1234",
+          "startTime": "2026-11-02 00:11:36",
+          "endTime": "2026-11-02 00:11:46"
+        }
+      ],
+      "reverseParentVerified": true
+    }
+  ],
+  "targetRows": [
+    [
+      1,
+      "  alice  ",
+      7
+    ],
+    [
+      2,
+      "Bob",
+      11
+    ],
+    [
+      3,
+      "q'Data",
+      13
+    ]
+  ],
+  "movedRows": 3,
+  "amountTotal": 31,
+  "assertion": "independent exact rows count=3 and sum=31",
+  "developmentSummaryOutput": "单表只读SELECT经受管SQL汇总输出execution_row_count=3；目标另用只读角色逐行核验3条/sum31",
+  "logs": [
+    {
+      "identity": {
+        "kind": "JOB",
+        "origin": "PLATFORM",
+        "id": "5"
+      },
+      "logFile": "job-mixed-20261102-job-5.txt",
+      "bytes": 18086,
+      "sha256": "57fac86f88366290b6e019ad8edae611bda772e37dd881e737f2d042cd803eae",
+      "viewDownloadEqual": true,
+      "secretLeakDetected": false,
+      "fixtureSuffixPresent": true
+    },
+    {
+      "identity": {
+        "kind": "INTEGRATION",
+        "origin": "MANAGED",
+        "id": 180829751977008
+      },
+      "logFile": "job-mixed-20261102-integration-180829751977008.txt",
+      "bytes": 15519,
+      "sha256": "0c4fbe75204d14daa92fca9ed49f30f43ae9533cceb0067d1b5ea6f03e223051",
+      "viewDownloadEqual": true,
+      "secretLeakDetected": false,
+      "fixtureSuffixPresent": true
+    },
+    {
+      "identity": {
+        "kind": "DEVELOPMENT",
+        "origin": "PLATFORM",
+        "id": 9
+      },
+      "logFile": "job-mixed-20261102-development-9.txt",
+      "bytes": 2345,
+      "sha256": "bd215641831ede07d30341400ac04ab45cb2ca1f68112d20c7adced2b4f3ab9f",
+      "viewDownloadEqual": true,
+      "secretLeakDetected": false,
+      "fixtureSuffixPresent": false
+    }
+  ],
+  "secretLeakDetected": false,
+  "idempotency": {
+    "sameRequestId": true,
+    "returnedRecordId": 5,
+    "sameRecord": true,
+    "parentInstanceCount": 1,
+    "targetUnchanged": true
+  },
+  "sqlWorkerSummary": {
+    "workerTaskInstanceId": 55,
+    "count": 3,
+    "rawWorkerLogSha256": "c99e569ad8501ed3b7dce0f3af353f1e16a774d5baac01c1a948be2e867130c8",
+    "rawWorkerLogBytes": 3281,
+    "secretLeakDetected": false,
+    "rawLogSaved": false,
+    "verified": true
+  },
+  "verificationReport": "job-mixed-20261102-reusable-report.json"
+}

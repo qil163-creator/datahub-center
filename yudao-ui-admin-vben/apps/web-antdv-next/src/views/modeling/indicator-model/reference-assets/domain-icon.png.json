@@ -1,0 +1,38 @@
+{
+  "src": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-0b707866-f717-4d81-a417-a76cb81fa6cb.png",
+  "out": "apps\\web-antdv-next\\src\\views\\modeling\\indicator-model\\reference-assets\\domain-icon.png",
+  "source_size": [
+    3619,
+    1776
+  ],
+  "crop_box": [
+    1348,
+    468,
+    1375,
+    496
+  ],
+  "transparent_edge": [
+    255,
+    255,
+    255
+  ],
+  "threshold": 3,
+  "feather": 0.0,
+  "matte": null,
+  "brightness": 1.0,
+  "saturation": 1.0,
+  "output": {
+    "size": [
+      27,
+      28
+    ],
+    "alpha_bbox": [
+      2,
+      2,
+      26,
+      26
+    ],
+    "opaque_edge_pixel_count": 0,
+    "opaque_edge_pixel_ratio": 0.0
+  }
+}

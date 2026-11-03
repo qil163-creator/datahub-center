@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "product": "MONGODB",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.mongodb.MongodbProductProvider",
+  "artifact": "yudao-dbswitch-product-mongodb",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "DDL_ALTER": {
+      "status": "UNSUPPORTED",
+      "reason": "SyntaxError"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "MONGODB_PINNED_FIXED_UPPER_SINGLE_TYPE_WATERMARK_GROUPS_WITHOUT_SNAPSHOT"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "MONGODB_SINGLE_ID_TYPED_UPSERT_MAJORITY_JOURNALED"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "MONGODB"
+  ]
+}

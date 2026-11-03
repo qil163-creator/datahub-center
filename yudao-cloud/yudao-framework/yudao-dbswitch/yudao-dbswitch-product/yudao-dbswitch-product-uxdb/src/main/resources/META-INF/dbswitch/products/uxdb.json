@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "product": "UXDB",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.uxdb.UxdbProductProvider",
+  "artifact": "yudao-dbswitch-product-uxdb",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "UXDB_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "UXSINODB_2_1_0_3_PINNED_GENERATION_REPEATABLE_READ_EXACT_WATERMARK_KEYSET"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "UXSINODB_2_1_0_3_ON_CONFLICT_EXACT_UNIQUE_KEY_COMMIT_RETURNED"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "UXDB"
+  ]
+}

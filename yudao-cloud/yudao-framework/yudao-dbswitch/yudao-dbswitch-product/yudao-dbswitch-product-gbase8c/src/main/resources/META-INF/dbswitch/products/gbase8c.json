@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "product": "GBASE8C",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.gbase8c.Gbase8cProductProvider",
+  "artifact": "yudao-dbswitch-product-gbase8c",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "DDL_CREATE": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "DDL_ALTER": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "READ": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "WRITE_INSERT": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "WRITE_UPSERT": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_DIFF": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_CURSOR": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": []
+}

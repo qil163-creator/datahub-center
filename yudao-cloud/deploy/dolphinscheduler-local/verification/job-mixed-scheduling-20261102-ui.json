@@ -1,0 +1,965 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-02T00:52:00.847Z",
+  "status": "completed",
+  "completed": true,
+  "baseUrl": "http://127.0.0.1:6006",
+  "apiPort": 50027,
+  "isolatedFixture": "/tmp/qdata-job-policy-e2e/tasks.json",
+  "scope": "真实浏览器 UI 验收；运行成功、数据结果及重启持久性由独立运行证据确认。未 mock 请求、状态或日志。",
+  "staticValidation": {
+    "fullQualityPassed": true,
+    "command": "quality:antdv-next",
+    "testFiles": 420,
+    "tests": 3687,
+    "typecheck": true,
+    "productionBuild": true,
+    "lintErrors": 0,
+    "existingLintWarnings": 79,
+    "log": "/tmp/qdata-mixed-scheduling-full-quality-final.log",
+    "finalLayoutAdjustment": {
+      "scope": "仅策略帮助class与局部CSS，避免长文案遮挡周期配置",
+      "eslint": true,
+      "stylelint": true,
+      "productionBuild": true,
+      "buildLog": "/tmp/qdata-mixed-scheduling-layout-build.log",
+      "desktopAndNarrowNoOverlap": true
+    }
+  },
+  "cases": [
+    {
+      "case": "wait-restart",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": false,
+      "pageErrors": [],
+      "httpErrors": [],
+      "screenshots": [],
+      "startedAt": "2026-11-02T00:23:16.742Z",
+      "error": "业务请求失败500",
+      "finishedAt": "2026-11-02T00:23:20.968Z"
+    },
+    {
+      "case": "wait-retained-audit",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": true,
+      "pageErrors": [],
+      "httpErrors": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-retained-audit-operations.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-retained-audit-queue-log.png"
+      ],
+      "startedAt": "2026-11-02T00:25:32.175Z",
+      "records": [
+        {
+          "id": "5",
+          "origin": "PLATFORM",
+          "status": "RUNNING",
+          "queueState": "ACTIVE",
+          "queueReason": "真实父工作流已确认，等待所有子执行终态",
+          "queuedTime": "2026-11-02 08:21:22",
+          "scheduledTime": null,
+          "childCount": 2
+        },
+        {
+          "id": "4",
+          "origin": "PLATFORM",
+          "status": "FAILURE",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：FAILURE",
+          "queuedTime": "2026-11-02 08:18:30",
+          "scheduledTime": null,
+          "childCount": 2
+        },
+        {
+          "id": "7",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行",
+          "queuedTime": "2026-11-02 08:21:33",
+          "scheduledTime": null,
+          "childCount": 0
+        },
+        {
+          "id": "6",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行",
+          "queuedTime": "2026-11-02 08:21:30",
+          "scheduledTime": null,
+          "childCount": 0
+        }
+      ],
+      "log": {
+        "identity": {
+          "id": "6",
+          "kind": "JOB",
+          "origin": "PLATFORM"
+        },
+        "queueState": "QUEUED",
+        "marker": "已持久受理",
+        "bytes": 296,
+        "sha256": "63f79cf81eb38023b935546efb230ead348418c597b8b2571328c508c3e0f4c1"
+      },
+      "finishedAt": "2026-11-02T00:25:34.651Z"
+    },
+    {
+      "case": "wait-snapshot-recovered",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": true,
+      "pageErrors": [],
+      "httpErrors": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-job-controls.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-operations.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-queue-log.png"
+      ],
+      "startedAt": "2026-11-02T00:32:06.902Z",
+      "job": {
+        "id": "5",
+        "strategy": "SERIAL_WAIT",
+        "hasActiveRuns": true,
+        "activeRunCount": 1,
+        "queuedRunCount": 1,
+        "scheduleStatus": 0,
+        "nextRunTime": null,
+        "latestRecord": {
+          "id": "7",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行"
+        }
+      },
+      "runAndStopVisible": true,
+      "records": [
+        {
+          "id": "6",
+          "origin": "PLATFORM",
+          "status": "RUNNING",
+          "queueState": "ACTIVE",
+          "queueReason": "真实父工作流已确认，等待所有子执行终态",
+          "queuedTime": "2026-11-02 08:21:30",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 6,
+          "children": [
+            {
+              "id": "180829751976931",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:30:22",
+              "endTime": "2026-11-02 08:30:34"
+            },
+            {
+              "id": "3",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "WAITING",
+              "startTime": "2026-11-02 08:30:45",
+              "endTime": null
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：STOPPED",
+          "queuedTime": "2026-11-02 08:21:22",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 3,
+          "children": [
+            {
+              "id": "180829751976930",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:21:26",
+              "endTime": "2026-11-02 08:23:07"
+            },
+            {
+              "id": "2",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "startTime": "2026-11-02 08:23:17",
+              "endTime": "2026-11-02 08:30:20"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "origin": "PLATFORM",
+          "status": "FAILURE",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：FAILURE",
+          "queuedTime": "2026-11-02 08:18:30",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 1,
+          "children": [
+            {
+              "id": "180829751976929",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "FAILURE",
+              "startTime": "2026-11-02 08:18:34",
+              "endTime": "2026-11-02 08:18:35"
+            },
+            {
+              "id": "1",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "startTime": null,
+              "endTime": "2026-11-02 08:18:45"
+            }
+          ]
+        },
+        {
+          "id": "7",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行",
+          "queuedTime": "2026-11-02 08:21:33",
+          "scheduledTime": null,
+          "childCount": 0,
+          "dsInstanceId": null,
+          "children": []
+        }
+      ],
+      "log": {
+        "identity": {
+          "id": "7",
+          "kind": "JOB",
+          "origin": "PLATFORM"
+        },
+        "queueState": "QUEUED",
+        "marker": "已持久受理",
+        "bytes": 296,
+        "sha256": "63f79cf81eb38023b935546efb230ead348418c597b8b2571328c508c3e0f4c1"
+      },
+      "finishedAt": "2026-11-02T00:32:16.583Z"
+    },
+    {
+      "case": "wait-recovery-live",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": true,
+      "pageErrors": [],
+      "httpErrors": [],
+      "mutatingRequests": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-job-controls.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-operations.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-queue-log.png"
+      ],
+      "startedAt": "2026-11-02T00:38:16.737Z",
+      "job": {
+        "id": "5",
+        "strategy": "SERIAL_WAIT",
+        "hasActiveRuns": true,
+        "activeRunCount": 1,
+        "queuedRunCount": 2,
+        "scheduleStatus": 0,
+        "nextRunTime": null,
+        "latestRecord": {
+          "id": "9",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行"
+        }
+      },
+      "runAndStopVisible": true,
+      "records": [
+        {
+          "id": "7",
+          "origin": "PLATFORM",
+          "status": "RUNNING",
+          "queueState": "ACTIVE",
+          "queueReason": "真实父工作流已确认，等待所有子执行终态",
+          "queuedTime": "2026-11-02 08:21:33",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 9,
+          "dsDefinitionCode": 188569044763520,
+          "children": [
+            {
+              "id": "180829751976932",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:37:38",
+              "endTime": "2026-11-02 08:38:20"
+            },
+            {
+              "id": "4",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "WAITING",
+              "startTime": null,
+              "endTime": null
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：STOPPED",
+          "queuedTime": "2026-11-02 08:21:30",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 6,
+          "dsDefinitionCode": 188568597883776,
+          "children": [
+            {
+              "id": "180829751976931",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:30:22",
+              "endTime": "2026-11-02 08:30:34"
+            },
+            {
+              "id": "3",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "startTime": "2026-11-02 08:30:45",
+              "endTime": "2026-11-02 08:37:35"
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：STOPPED",
+          "queuedTime": "2026-11-02 08:21:22",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 3,
+          "dsDefinitionCode": 188568048331648,
+          "children": [
+            {
+              "id": "180829751976930",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:21:26",
+              "endTime": "2026-11-02 08:23:07"
+            },
+            {
+              "id": "2",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "startTime": "2026-11-02 08:23:17",
+              "endTime": "2026-11-02 08:30:20"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "origin": "PLATFORM",
+          "status": "FAILURE",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：FAILURE",
+          "queuedTime": "2026-11-02 08:18:30",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 1,
+          "dsDefinitionCode": 188567872147328,
+          "children": [
+            {
+              "id": "180829751976929",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "FAILURE",
+              "startTime": "2026-11-02 08:18:34",
+              "endTime": "2026-11-02 08:18:35"
+            },
+            {
+              "id": "1",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "STOPPED",
+              "startTime": null,
+              "endTime": "2026-11-02 08:18:45"
+            }
+          ]
+        },
+        {
+          "id": "9",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行",
+          "queuedTime": "2026-11-02 08:37:41",
+          "scheduledTime": null,
+          "childCount": 0,
+          "dsInstanceId": null,
+          "dsDefinitionCode": null,
+          "children": []
+        },
+        {
+          "id": "8",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "queueState": "QUEUED",
+          "queueReason": "已持久受理，等待作业级派发；尚无 Worker 执行",
+          "queuedTime": "2026-11-02 08:37:35",
+          "scheduledTime": null,
+          "childCount": 0,
+          "dsInstanceId": null,
+          "dsDefinitionCode": null,
+          "children": []
+        }
+      ],
+      "log": {
+        "identity": {
+          "id": "9",
+          "kind": "JOB",
+          "origin": "PLATFORM"
+        },
+        "queueState": "QUEUED",
+        "marker": "已持久受理",
+        "bytes": 296,
+        "sha256": "63f79cf81eb38023b935546efb230ead348418c597b8b2571328c508c3e0f4c1"
+      },
+      "finishedAt": "2026-11-02T00:38:25.431Z"
+    },
+    {
+      "case": "form-policies-and-cron",
+      "completed": true,
+      "pageErrors": [],
+      "writes": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/form-four-policies.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/form-narrow-long-help.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/form-cron.png"
+      ],
+      "defaultStrategy": "PARALLEL",
+      "policies": [
+        {
+          "label": "串行等待",
+          "help": "按请求顺序排队，当前实例结束后再执行下一个实例。人工执行与周期调度使用相同策略。"
+        },
+        {
+          "label": "串行抛弃",
+          "help": "已有未结束的运行或排队请求时，抛弃新请求并保留原因。人工执行与周期调度使用相同策略。"
+        },
+        {
+          "label": "串行优先",
+          "help": "替换旧排队请求并请求停止当前实例；确认旧实例全部停止后，再执行新请求。人工执行与周期调度使用相同策略。"
+        },
+        {
+          "label": "并行",
+          "help": "允许同一作业的多个实例同时执行。开发节点仍遵守单任务并发限制，资源忙会拒绝本次执行。人工执行与周期调度使用相同策略。"
+        }
+      ],
+      "longHelpDoesNotOverlap": true,
+      "cronJob": {
+        "id": "4",
+        "strategy": "SERIAL_WAIT",
+        "scheduleStatus": 0,
+        "nextRunTime": null,
+        "cronExpression": "0/30 * * * * ?"
+      },
+      "cronHint": "周期调度与人工执行使用相同的作业策略，运行状态及排队原因可在运行实例中查看。"
+    },
+    {
+      "case": "cron-retained-history",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": true,
+      "pageErrors": [],
+      "httpErrors": [],
+      "mutatingRequests": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/cron-retained-history-operations.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/cron-retained-history-queue-log.png"
+      ],
+      "startedAt": "2026-11-02T00:43:22.950Z",
+      "records": [
+        {
+          "id": "11",
+          "origin": "PLATFORM",
+          "executionType": "SCHEDULE",
+          "status": "SUCCESS",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：SUCCESS",
+          "queuedTime": "2026-11-02 08:42:00",
+          "scheduledTime": "2026-11-02 08:42:00",
+          "childCount": 2,
+          "dsInstanceId": 21,
+          "dsDefinitionCode": 188569362920320,
+          "children": [
+            {
+              "id": "180829751976936",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:42:49",
+              "endTime": "2026-11-02 08:43:01"
+            },
+            {
+              "id": "8",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:43:10",
+              "endTime": "2026-11-02 08:43:11"
+            }
+          ]
+        },
+        {
+          "id": "10",
+          "origin": "PLATFORM",
+          "executionType": "SCHEDULE",
+          "status": "SUCCESS",
+          "queueState": "DONE",
+          "queueReason": "真实父子终态已确认：SUCCESS",
+          "queuedTime": "2026-11-02 08:41:30",
+          "scheduledTime": "2026-11-02 08:41:30",
+          "childCount": 2,
+          "dsInstanceId": 18,
+          "dsDefinitionCode": 188569284834176,
+          "children": [
+            {
+              "id": "180829751976935",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:41:33",
+              "endTime": "2026-11-02 08:42:24"
+            },
+            {
+              "id": "7",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "SUCCESS",
+              "startTime": "2026-11-02 08:42:34",
+              "endTime": "2026-11-02 08:42:35"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "origin": "PLATFORM",
+          "executionType": "SCHEDULE",
+          "status": "STOPPED",
+          "queueState": "CANCELLED",
+          "queueReason": "周期代次已关闭或更新，未派发槽位已取消",
+          "queuedTime": "2026-11-02 08:42:30",
+          "scheduledTime": "2026-11-02 08:42:30",
+          "childCount": 0,
+          "dsInstanceId": null,
+          "dsDefinitionCode": null,
+          "children": []
+        }
+      ],
+      "log": {
+        "identity": {
+          "id": "12",
+          "kind": "JOB",
+          "origin": "PLATFORM"
+        },
+        "queueState": "CANCELLED",
+        "marker": "周期代次已关闭或更新",
+        "bytes": 307,
+        "sha256": "9102f629a374255fb37b8de19f4f15496c42f574f778a0772cb8c417cd53e284"
+      },
+      "finishedAt": "2026-11-02T00:43:26.364Z"
+    },
+    {
+      "case": "discard-live",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": true,
+      "pageErrors": [],
+      "httpErrors": [],
+      "mutatingRequests": [
+        {
+          "method": "POST",
+          "path": "/admin-api/dataforge/job/run",
+          "id": "6",
+          "revision": 1,
+          "requestId": "29cf28e1-5273-4a64-be7f-e4bc4880edca"
+        }
+      ],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/discard-live-run-confirmation.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/discard-live-job-controls.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/discard-live-operations.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/discard-live-queue-log.png"
+      ],
+      "startedAt": "2026-11-02T00:46:53.217Z",
+      "admittedRecordId": "14",
+      "job": {
+        "id": "6",
+        "strategy": "SERIAL_DISCARD",
+        "hasActiveRuns": true,
+        "activeRunCount": 1,
+        "queuedRunCount": 0,
+        "scheduleStatus": 0,
+        "nextRunTime": null,
+        "latestRecord": {
+          "id": "14",
+          "status": "STOPPED",
+          "queueState": "DISCARDED",
+          "queueReason": "作业已有未结束运行或排队，本次串行抛弃；未创建子运行、未触发 Worker"
+        }
+      },
+      "runAndStopVisible": true,
+      "records": [
+        {
+          "id": "13",
+          "origin": "PLATFORM",
+          "executionType": "START",
+          "status": "RUNNING",
+          "queueState": "ACTIVE",
+          "queueReason": "真实父工作流已确认，等待所有子执行终态",
+          "queuedTime": "2026-11-02 08:46:18",
+          "scheduledTime": null,
+          "childCount": 2,
+          "dsInstanceId": 24,
+          "dsDefinitionCode": 188569581027200,
+          "children": [
+            {
+              "id": "180829751976937",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "RUNNING",
+              "startTime": "2026-11-02 08:46:23",
+              "endTime": null
+            },
+            {
+              "id": "9",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "WAITING",
+              "startTime": null,
+              "endTime": null
+            }
+          ]
+        },
+        {
+          "id": "14",
+          "origin": "PLATFORM",
+          "executionType": "START",
+          "status": "STOPPED",
+          "queueState": "DISCARDED",
+          "queueReason": "作业已有未结束运行或排队，本次串行抛弃；未创建子运行、未触发 Worker",
+          "queuedTime": "2026-11-02 08:47:14",
+          "scheduledTime": null,
+          "childCount": 0,
+          "dsInstanceId": null,
+          "dsDefinitionCode": null,
+          "children": []
+        }
+      ],
+      "log": {
+        "identity": {
+          "id": "14",
+          "kind": "JOB",
+          "origin": "PLATFORM"
+        },
+        "queueState": "DISCARDED",
+        "marker": "作业已有未结束运行或排队，本次串行抛弃；未创建子运行、未触发 Worker",
+        "bytes": 369,
+        "sha256": "1d57e0fcc462ded582008b0317efb7175395c81056b897f988537883fbea3b53"
+      },
+      "finishedAt": "2026-11-02T00:47:26.791Z"
+    },
+    {
+      "case": "cron-live",
+      "baseUrl": "http://127.0.0.1:6006",
+      "completed": false,
+      "pageErrors": [],
+      "httpErrors": [],
+      "mutatingRequests": [],
+      "screenshots": [],
+      "startedAt": "2026-11-02T00:42:50.589Z",
+      "job": {
+        "id": "4",
+        "strategy": "SERIAL_WAIT",
+        "hasActiveRuns": true,
+        "activeRunCount": 1,
+        "queuedRunCount": 0,
+        "scheduleStatus": 0,
+        "nextRunTime": null,
+        "latestRecord": {
+          "id": "12",
+          "status": "STOPPED",
+          "queueState": "CANCELLED",
+          "queueReason": "周期代次已关闭或更新，未派发槽位已取消"
+        }
+      },
+      "error": "最新请求队列状态不符",
+      "finishedAt": "2026-11-02T00:42:57.196Z"
+    },
+    {
+      "case": "main-existing-job-regression",
+      "baseUrl": "http://127.0.0.1:6005",
+      "mutatingRequests": [],
+      "startedAt": "2026-11-02T00:48:37.805Z",
+      "completed": true,
+      "checks": [
+        {
+          "name": "job-management-real-success",
+          "jobId": "11",
+          "recordId": "5",
+          "status": "SUCCESS"
+        },
+        {
+          "name": "job-parent-real-log",
+          "identity": {
+            "id": "5",
+            "kind": "JOB",
+            "origin": "PLATFORM"
+          },
+          "status": "SUCCESS",
+          "available": true,
+          "importedSnapshot": false,
+          "markerFound": true,
+          "searchHighlight": true,
+          "download": {
+            "filename": "codex_job_e2e_真实混合验收_20261101_233720-20261102000228.log",
+            "bytes": 18256,
+            "sha256": "d730504e1a2ddfd2d7fc479194e1ffc31503bdcbe95959c8b88071c6158598cc"
+          }
+        },
+        {
+          "name": "job-operations-real-children",
+          "identity": {
+            "id": "5",
+            "kind": "JOB",
+            "origin": "PLATFORM"
+          },
+          "status": "SUCCESS",
+          "children": [
+            {
+              "id": "180829751977008",
+              "kind": "INTEGRATION",
+              "origin": "MANAGED",
+              "status": "SUCCESS",
+              "taskName": "codex_job_e2e_集成PG搬数_20261101_233720",
+              "startTime": "2026-11-02 00:04:24",
+              "endTime": "2026-11-02 00:11:47"
+            },
+            {
+              "id": "9",
+              "kind": "DEVELOPMENT",
+              "origin": "PLATFORM",
+              "status": "SUCCESS",
+              "taskName": "codex_job_e2e_开发只读核验_20261101_233720",
+              "startTime": "2026-11-02 00:11:56",
+              "endTime": "2026-11-02 00:13:49"
+            }
+          ]
+        },
+        {
+          "name": "job-child-integration-real-log",
+          "identity": {
+            "id": "180829751977008",
+            "kind": "INTEGRATION",
+            "origin": "MANAGED"
+          },
+          "status": "SUCCESS",
+          "available": true,
+          "importedSnapshot": false,
+          "markerFound": true,
+          "searchHighlight": true,
+          "download": {
+            "filename": "dh_integration_1001_v1_a15f59ae18e6-20261102000424452.log",
+            "bytes": 15519,
+            "sha256": "0c4fbe75204d14daa92fca9ed49f30f43ae9533cceb0067d1b5ea6f03e223051"
+          }
+        },
+        {
+          "name": "job-child-development-real-log",
+          "identity": {
+            "id": "9",
+            "kind": "DEVELOPMENT",
+            "origin": "PLATFORM"
+          },
+          "status": "SUCCESS",
+          "available": true,
+          "importedSnapshot": false,
+          "markerFound": true,
+          "searchHighlight": true,
+          "download": {
+            "filename": "codex_job_e2e_开发只读核验_20261101_233720-9.log",
+            "bytes": 2345,
+            "sha256": "bd215641831ede07d30341400ac04ab45cb2ca1f68112d20c7adced2b4f3ab9f"
+          }
+        },
+        {
+          "name": "independent-integration-real-success",
+          "id": "180829751977008",
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS"
+        },
+        {
+          "name": "independent-development-real-success",
+          "id": "9",
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS"
+        }
+      ],
+      "pageErrors": [],
+      "httpErrors": [],
+      "screenshots": [
+        "/tmp/qdata-job-mixed-scheduling-ui/main-job-management-real-success.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-job-parent-log-search.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-job-operations-real-children.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-job-child-integration-log-search.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-job-child-development-log-search.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-independent-integration-real-success.png",
+        "/tmp/qdata-job-mixed-scheduling-ui/main-independent-development-real-success.png"
+      ],
+      "finishedAt": "2026-11-02T00:48:52.756Z"
+    }
+  ],
+  "images": [
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-retained-audit-operations.png",
+      "bytes": 220943,
+      "sha256": "133c07e8673491dfad6bc99ee66da430398d433d246a52f27e2209e7a673ef4b"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-retained-audit-queue-log.png",
+      "bytes": 240503,
+      "sha256": "684ca7ba6da9c5e1f75eee5845e1092670887bb32e2602c4cc156fed08ae4592"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-job-controls.png",
+      "bytes": 213261,
+      "sha256": "9895cb12020633baa5013e1e134a2086f7f04cd7c2cc131d4484e7db7255d140"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-operations.png",
+      "bytes": 241963,
+      "sha256": "5d96b96696cf9da29b6d55bff23d0147dead4fb65c75da03f92f41f0175a5600"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-snapshot-recovered-queue-log.png",
+      "bytes": 188352,
+      "sha256": "4418c3c35a41ee464279648d0519a111932fe4598167fd6f58414556dbcda857"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-job-controls.png",
+      "bytes": 212933,
+      "sha256": "8721f3a4d8a2971c4ab74d9cf8e618c840b28a31d9bd78eb623bb081f0421b69"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-operations.png",
+      "bytes": 289134,
+      "sha256": "1bbe2fb9bfbf9fcaad89a12bff755e939c6176c2df983fd2d4e323fca4ac6ace"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/wait-recovery-live-queue-log.png",
+      "bytes": 214751,
+      "sha256": "91090df7f140926d73b006571e9e55f1811a84466deb2f211e8a610ff08281ac"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/form-four-policies.png",
+      "bytes": 288692,
+      "sha256": "19a576f17d4dabb5e56a8f172b90d42392a03ab6f9e853a6f23883809f9d7195"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/form-narrow-long-help.png",
+      "bytes": 76925,
+      "sha256": "fa506e865e4b951769437c1f38eae36f5a9c64eeacb61a6bee2e19b796c7ad9a"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/form-cron.png",
+      "bytes": 193376,
+      "sha256": "515c63a7b3d10a3d1a5a75ff4a2dc2eaf260cd231fa030e31e9126976161a1d1"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/cron-retained-history-operations.png",
+      "bytes": 211461,
+      "sha256": "39b87d6e30d942d113cdfaa4daff56c6bec16333d86e5b9cd34af7904db5c8c8"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/cron-retained-history-queue-log.png",
+      "bytes": 189235,
+      "sha256": "b6b505a70bd3fb6dc77d60d0e1781e60a0502bc8bee968ff39a5f6fcea63040c"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/discard-live-run-confirmation.png",
+      "bytes": 205994,
+      "sha256": "3b1c6231c6223332e892cdf50177763344f9383eff57b9a2e93c1e948cce9d57"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/discard-live-job-controls.png",
+      "bytes": 216995,
+      "sha256": "6c7879a8b1cd293c802e5a96fa3c0de067f7ef60be97ab487cd1160fbb1a66b3"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/discard-live-operations.png",
+      "bytes": 196705,
+      "sha256": "8f3ad9564e282338aaaac52958217df05d3fca5dd21015be19a31b3c99c34279"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/discard-live-queue-log.png",
+      "bytes": 188443,
+      "sha256": "0e844f445045303af65e272605436ddfcfebf8a97a5882eef432509a138cf531"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-job-management-real-success.png",
+      "bytes": 196431,
+      "sha256": "87c7ce2c6b7d4a242d59454970d6ff5b6e56c2fde209a39b1151359bba01d088"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-job-parent-log-search.png",
+      "bytes": 198984,
+      "sha256": "63de4a9bb77350c70b345bb1d835fdd1d5d494d8bf100741cbdeb2a005c8099a"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-job-operations-real-children.png",
+      "bytes": 224710,
+      "sha256": "20d156ac362ac80c129581fe4b67eff0cfc94b6562e93ef620bc41923c5ea074"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-job-child-integration-log-search.png",
+      "bytes": 204743,
+      "sha256": "3a3dff79852c5c2c8da95c543ca4ccd45a19846bf77ff4250046351e558ad091"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-job-child-development-log-search.png",
+      "bytes": 219168,
+      "sha256": "53adf00556a99308b1f818cc47f8f6b9bba8fc6503f2f48dddac24bd55a6255d"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-independent-integration-real-success.png",
+      "bytes": 216342,
+      "sha256": "156575a2e0e91fbd296d39afecaca7b575d2d61c42791d7c96e3c2cd8afcd0e2"
+    },
+    {
+      "path": "/tmp/qdata-job-mixed-scheduling-ui/main-independent-development-real-success.png",
+      "bytes": 202417,
+      "sha256": "77f3d6047f5117b8b10eae11eda3469fb5b36fcc1b98b5467a70618ab4bffdeb"
+    }
+  ],
+  "qualification": [
+    "首个 WAIT UI 尝试遇到真实业务 code500，原始失败保留。后端类加载快照修复后同作业只读复验通过。",
+    "原 A5/B6 已停止，保留真实 STOPPED 终态及已有部分写入，不计为三个 SUCCESS。",
+    "wait-recovery-live 确认原 C7 活动、D8/E9 排队、active1/queued2，审计日志搜索和下载正常；该 UI 检查不把 HTTP 受理当作实际执行成功。"
+  ],
+  "pending": [],
+  "authStateRemoved": true,
+  "completedAt": "2026-11-02T12:05:48.966306+08:00",
+  "finalVerification": "../../job-policy-local/verification/20261102/final-ui.json",
+  "finalReport": "../../job-policy-local/VALIDATION_20261102.md",
+  "historicalArtifactsNote": "原 /tmp 文件随宿主重启丢失；历史元数据保留。新截图、运行复核、日志及最终质量结果见 finalVerification / finalReport。"
+}

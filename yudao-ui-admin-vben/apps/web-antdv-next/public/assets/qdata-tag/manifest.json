@@ -1,0 +1,19 @@
+{
+  "origin": "https://pro-demo.qdata.tech/da/tag",
+  "assets": {
+    "guide-bg.png": "yellow-bg-BlWsDAlY.png",
+    "content-info.png": "GuideTip .remind-icon 46x46",
+    "query/reset": "复用 qdata-project-category 原生透明 PNG mask"
+  },
+  "icons": {
+    "search": 29,
+    "collapse": 38,
+    "chevron": 39,
+    "plus": 40,
+    "delete": 41,
+    "columns": 42,
+    "edit": 43,
+    "detail": 45,
+    "refresh": 23
+  }
+}

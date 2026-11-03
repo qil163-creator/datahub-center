@@ -1,0 +1,28 @@
+{
+  "nodeVersion": "24.16.0",
+  "nodeArchiveSha256": "e28ad5531b2aafe0ea555a51b2412c42fdc0f91a6a53fbd03ac93e3847e91389",
+  "command": "pnpm run quality:antdv-next",
+  "logSha256": "74dd8622745297fb41fa6388edc1ee76823da7b9427627f509af5dbb82ad2128",
+  "checks": {
+    "boundaries": true,
+    "lint": true,
+    "typecheck": true,
+    "vitest": true,
+    "build": true
+  },
+  "notes": [
+    "先前系统Node26的两份jsdom测试因全局localStorage冲突失败；改用项目.node-version指定的官方Node24.16.0复验。",
+    "未修改建模/治理测试来适配未支持的Node26。"
+  ],
+  "status": "PASS",
+  "vitest": {
+    "testFiles": 429,
+    "tests": 3751,
+    "failures": 0
+  },
+  "build": {
+    "successfulTasks": 11,
+    "totalTasks": 11
+  },
+  "dedupUiIncluded": true
+}

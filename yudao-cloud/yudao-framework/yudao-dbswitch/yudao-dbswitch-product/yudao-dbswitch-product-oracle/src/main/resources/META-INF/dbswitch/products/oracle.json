@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "product": "ORACLE",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.oracle.OracleProductProvider",
+  "artifact": "yudao-dbswitch-product-oracle",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "ORACLE_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "ORACLE23AI_FREE_PINNED_SERIALIZABLE_ROW_SHARE_EXACT_KEYS"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "ORACLE23AI_SINGLE_UNIQUE_KEY_DERIVED_TABLE_MERGE_EXACT_VALUES"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "ORACLE"
+  ]
+}

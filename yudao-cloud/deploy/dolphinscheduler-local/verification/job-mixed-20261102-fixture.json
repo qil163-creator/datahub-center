@@ -1,0 +1,59 @@
+{
+  "database": "codex_job_e2e_20261101_233720",
+  "pgContainer": "codex-integration-pg-api-test",
+  "sourceTable": "codex_job_e2e_source_20261101_233720",
+  "targetTable": "codex_job_e2e_target_20261101_233720",
+  "suffix": "20261101_233720",
+  "marker": "codex_job_e2e_target_20261101_233720",
+  "expectedRows": [
+    [
+      1,
+      "  alice  ",
+      7
+    ],
+    [
+      2,
+      "Bob",
+      11
+    ],
+    [
+      3,
+      "q'Data",
+      13
+    ]
+  ],
+  "expectedCount": 3,
+  "expectedSum": 31,
+  "platformConnections": {
+    "reader": 10,
+    "writer": 11,
+    "query": 12
+  },
+  "dsDatasources": {
+    "reader": 2,
+    "writer": 3,
+    "query": 4
+  },
+  "target": {
+    "projectCode": "188507725745120",
+    "tenantCode": "datahub",
+    "workerGroup": "datahub-integration",
+    "environmentCode": "188507725973472"
+  },
+  "fixtureCreated": true,
+  "businessTargetRowsBeforeRun": 0,
+  "queryHost": "127.0.0.1",
+  "workerLoopbackForward": {
+    "port": 60274,
+    "targetHost": "codex-integration-pg-api-test",
+    "targetPort": 5432,
+    "containerFile": "/home/datahub/codex_job_e2e_forward_20261101_233720.py",
+    "validatedByDsJdbcConnect": true
+  },
+  "strictSqlAssertion": "Existing single-table projection guard preserved; DS summary execution_row_count=3; independent read-only exact row/count/sum verification.",
+  "preExecutionProof": {
+    "queryRoleReadOnly": true,
+    "targetCount": 0,
+    "sourceRowsVerified": true
+  }
+}

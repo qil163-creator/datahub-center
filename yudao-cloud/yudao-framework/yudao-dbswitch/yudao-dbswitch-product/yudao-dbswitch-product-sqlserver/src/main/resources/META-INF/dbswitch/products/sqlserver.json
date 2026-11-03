@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "product": "SQLSERVER",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.sqlserver.SqlserverProductProvider",
+  "artifact": "yudao-dbswitch-product-sqlserver",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "SQLSERVER_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "SQLSERVER16_SNAPSHOT_MANAGED_GENERATION_TYPED_KEYS"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "POSTGRESQL",
+    "SQLSERVER"
+  ]
+}

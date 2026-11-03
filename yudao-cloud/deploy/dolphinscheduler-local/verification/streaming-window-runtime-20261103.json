@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-11-03T01:36:49+0800",
+  "scope": "ISOLATED_FLINK_1_20_3_NO_PLATFORM_OR_DS",
+  "workerImage": "datahub/dolphinscheduler-local:3.4.2",
+  "cases": [
+    {
+      "case": "checkpoint-restore",
+      "exitCode": 0,
+      "log": "deploy/dolphinscheduler-local/verification/streaming-window-runtime-20261103-checkpoint-restore.log",
+      "passed": true,
+      "appendOnlyRows": 2,
+      "restoredSourceIndex": 3
+    },
+    {
+      "case": "dedup",
+      "exitCode": 0,
+      "log": "deploy/dolphinscheduler-local/verification/streaming-window-runtime-20261103-dedup.log",
+      "passed": true,
+      "rows": [
+        {
+          "key": "A",
+          "seq": 9007199254740993,
+          "value": "1E+1",
+          "group_id": 1,
+          "text": "first"
+        },
+        {
+          "key": "day",
+          "seq": 9007199254740996,
+          "value": 0,
+          "group_id": 1,
+          "text": "2026-11-03"
+        },
+        {
+          "key": "b",
+          "seq": 9007199254740995,
+          "value": 5,
+          "group_id": 1,
+          "text": "third"
+        },
+        {
+          "key": "a",
+          "seq": 9007199254741100,
+          "value": 7,
+          "group_id": 1,
+          "text": "next-window"
+        }
+      ],
+      "explain": "deploy/dolphinscheduler-local/verification/streaming-window-runtime-20261103-dedup-explain.txt"
+    },
+    {
+      "case": "pivot",
+      "exitCode": 0,
+      "log": "deploy/dolphinscheduler-local/verification/streaming-window-runtime-20261103-pivot.log",
+      "passed": true,
+      "rows": [
+        {
+          "group_id": 1,
+          "total": 7,
+          "average": "7.0",
+          "minimum": "7.0",
+          "maximum": "7.0",
+          "last": "next-window",
+          "day": null
+        },
+        {
+          "group_id": 1,
+          "total": "2E+1",
+          "average": "20.0",
+          "minimum": "20.0",
+          "maximum": "20.0",
+          "last": "third",
+          "day": "2026-11-03 00:00:00"
+        }
+      ],
+      "explain": "deploy/dolphinscheduler-local/verification/streaming-window-runtime-20261103-pivot-explain.txt"
+    }
+  ],
+  "limits": [
+    "处理时间滚动窗口，按到达分窗；不声明事件时间迟到补发或业务目标端到端执行。"
+  ],
+  "dedupCompilerSqlSha256": "78bc449bc0d46bcac6affb863919b7b4d285f4faa33b19913afc48de687b830a",
+  "pivotCompilerSqlSha256": "f4cbc621422e5bb6434d7384e9bc2ad1a5b256c2e935f27c2510022a191f5835"
+}

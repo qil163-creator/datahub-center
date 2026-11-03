@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "scope": "DataForge API -> DolphinScheduler native task -> real Spark3.5.6 -> loopback FTP fixture",
+  "checks": {
+    "http-ftp": {
+      "taskId": 1002,
+      "recordId": 180829751977009,
+      "definitionCode": 188594003510240,
+      "flowSha256": "5d9df9fc37731ea9a0f3f4abcc7474e3caa149a1b39b36d52b8a5b0f7a1d7dce",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 4,
+      "passed": true,
+      "actualFiles": [
+        "result-4d9baa70-e381-4ba6-9758-b2015bf9128a-0-0.csv._dv551rx"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "河道😀,\nO'Reilly\"",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ]
+      ]
+    },
+    "crypto-ftp": {
+      "taskId": 1003,
+      "recordId": 180829751977010,
+      "definitionCode": 188594138384352,
+      "flowSha256": "97f59f0d5cf392ea72c9afdd5286120d8593603288f77b919831f2ae0214bf28",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 5,
+      "passed": true,
+      "actualFiles": [
+        "result-600c7586-8d22-49d0-9f3a-022aba3595b0-0-0.csv.mvp9pare"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount",
+          "restored"
+        ],
+        [
+          "9007199254740993",
+          "河道😀,\nO'Reilly\"",
+          "123456.120000000000000001",
+          "河道😀,\nO'Reilly\""
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N",
+          ""
+        ]
+      ]
+    }
+  },
+  "managementApiAccepted": true,
+  "functionsJarSha256": "35c44f92c2b3d75f46904f1dc6c18b878521ee65fef732e24dc585c5927fc5ed",
+  "ftpRuntimeJarSha256": "e8220f557ee7fbafde0e8269e6c2604da265b66af00f05eab7e781bbc9cae61f",
+  "jsonbObjectOrderRegression": {
+    "before": "saved flow could not go online due changed binding fingerprint",
+    "after": "same graph saved, online and actual DS instances 4/5 SUCCESS",
+    "canonicalInputOnly": true,
+    "orderedArraysAndPhysicalSchemaPreserved": true
+  },
+  "actualInitializationJars": {
+    "/opt/flink/usrlib/datahub-etl-dependency-14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60.jar": "14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60",
+    "/opt/flink/usrlib/datahub-etl-dependency-64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731.jar": "64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731",
+    "/opt/flink/usrlib/datahub-etl-functions-35c44f92c2b3d75f.jar": "35c44f92c2b3d75f46904f1dc6c18b878521ee65fef732e24dc585c5927fc5ed",
+    "/opt/spark/jars/datahub-etl-ftp.jar": "e8220f557ee7fbafde0e8269e6c2604da265b66af00f05eab7e781bbc9cae61f"
+  }
+}

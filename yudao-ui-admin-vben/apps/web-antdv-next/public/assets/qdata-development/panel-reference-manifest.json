@@ -1,0 +1,61 @@
+{
+  "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-2c080f00-73ab-4bf4-87ab-364ec416cdd3.png",
+  "referenceCanvas": {
+    "width": 3646,
+    "height": 2080
+  },
+  "targetPanel": {
+    "width": 340,
+    "scale": 0.5,
+    "sourceBox": [
+      2836,
+      589,
+      3516,
+      1995
+    ]
+  },
+  "assets": {
+    "panel-reparse": {
+      "file": "panel-reparse.png",
+      "sourceBox": [
+        3344,
+        709,
+        3370,
+        735
+      ],
+      "role": "semantic",
+      "size": [
+        26,
+        26
+      ]
+    },
+    "panel-add-node": {
+      "file": "panel-add-node.png",
+      "sourceBox": [
+        3286,
+        1125,
+        3314,
+        1153
+      ],
+      "role": "semantic",
+      "size": [
+        28,
+        28
+      ]
+    },
+    "panel-lineage-detail": {
+      "file": "panel-lineage-detail.png",
+      "sourceBox": [
+        3344,
+        1335,
+        3370,
+        1363
+      ],
+      "role": "semantic",
+      "size": [
+        26,
+        28
+      ]
+    }
+  }
+}

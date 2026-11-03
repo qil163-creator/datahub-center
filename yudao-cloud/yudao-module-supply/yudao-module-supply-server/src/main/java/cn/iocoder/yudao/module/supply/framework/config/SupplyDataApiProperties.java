@@ -1,0 +1,35 @@
+package cn.iocoder.yudao.module.supply.framework.config;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+/**
+ * 数据服务开放 API 安全配置。
+ */
+@Data
+@Component
+@ConfigurationProperties(prefix = "yudao.supply.data-api")
+public class SupplyDataApiProperties {
+
+    /**
+     * 允许 FORWARD 类型 API 转发到的外部主机名。为空时禁止发布和执行转发 API。
+     */
+    private Set<String> forwardAllowHosts = new LinkedHashSet<>();
+
+    /**
+     * 部门应用调用的对外基址，例如 https://api.example.gov/supply/gateway。
+     * 未配置时文档不得从管理端 URL 猜测。
+     */
+    private String publicBaseUrl = "";
+
+    /**
+     * 结果缓存。M1 默认关闭：缺少治理策略版本和发布 revision 时不能证明撤权及时。
+     * 恢复条件见 docs/research/2026-09-16-supply-m0-design.md。
+     */
+    private boolean resultCacheEnabled = false;
+
+}

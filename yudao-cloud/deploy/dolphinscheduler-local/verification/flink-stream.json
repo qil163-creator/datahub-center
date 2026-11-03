@@ -1,0 +1,16 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "stream",
+  "checks": {
+    "FLINK_STREAM": {
+      "taskType": "FLINK",
+      "workflowCode": "188510941122528",
+      "workflowInstanceId": 28,
+      "taskInstanceId": 28,
+      "outputWhileRunning": true,
+      "stateAfterStop": "FAILURE",
+      "processTreeExitConfirmed": true
+    }
+  },
+  "status": "PASS"
+}

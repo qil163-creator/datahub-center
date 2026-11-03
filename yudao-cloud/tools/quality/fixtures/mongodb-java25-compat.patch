@@ -1,0 +1,53 @@
+diff --git a/src/main/java/com/gitee/jdbc/mongodb/MongoConnection.java b/src/main/java/com/gitee/jdbc/mongodb/MongoConnection.java
+index 6e73e5b..57450c5 100644
+--- a/src/main/java/com/gitee/jdbc/mongodb/MongoConnection.java
++++ b/src/main/java/com/gitee/jdbc/mongodb/MongoConnection.java
+@@ -132,8 +132,9 @@ public class MongoConnection implements Connection {
+ 
+   @Override
+   public void close() {
+-    client.close();
+-    isClosed = true;
++    if (isClosed) return;
++    try { if (context != null) context.close(); }
++    finally { client.close(); isClosed = true; }
+   }
+ 
+   @Override
+@@ -412,14 +413,15 @@ public class MongoConnection implements Connection {
+   private Context context;
+ 
+   public Context createContext() {
+-    // System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
+-    // Without this it doesn't find the JS or Truffle
+-    Thread.currentThread().setContextClassLoader(Context.class.getClassLoader());
+-    //https://github.com/oracle/graaljs/issues/214
+-    if (context == null) {
+-      context = Context.newBuilder("js").allowAllAccess(true).build();
+-    }
+-    return context;
++    ClassLoader caller = Thread.currentThread().getContextClassLoader();
++    try {
++      Thread.currentThread().setContextClassLoader(Context.class.getClassLoader());
++      if (context == null) {
++        context = Context.newBuilder("js").allowAllAccess(true)
++            .hostClassLoader(Context.class.getClassLoader()).build();
++      }
++      return context;
++    } finally { Thread.currentThread().setContextClassLoader(caller); }
+   }
+ 
+ }
+diff --git a/src/main/java/com/gitee/jdbc/mongodb/wrappers/WrappedMongoClient.java b/src/main/java/com/gitee/jdbc/mongodb/wrappers/WrappedMongoClient.java
+index 82ce640..2ac7e02 100644
+--- a/src/main/java/com/gitee/jdbc/mongodb/wrappers/WrappedMongoClient.java
++++ b/src/main/java/com/gitee/jdbc/mongodb/wrappers/WrappedMongoClient.java
+@@ -62,7 +62,7 @@ public class WrappedMongoClient {
+       throw new MongoClientException("invalid mongo jdbc url", e);
+     }
+ 
+-    LOGGER.info("MongoClient URL: " + uri + " rewritten as " + this.uri);
++    LOGGER.fine("Creating MongoDB client");
+ 
+     final ConnectionString connectionString = new ConnectionString(this.uri) {
+       @Override

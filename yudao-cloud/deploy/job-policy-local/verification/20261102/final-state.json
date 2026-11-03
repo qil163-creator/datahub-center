@@ -1,0 +1,338 @@
+{
+  "checkedAt": "2026-11-02T12:05:48.966306+08:00",
+  "jobs": [
+    {
+      "policy": "cron",
+      "id": 4,
+      "name": "codex_job_e2e_cron_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0,
+      "revision": 8
+    },
+    {
+      "policy": "wait",
+      "id": 5,
+      "name": "codex_job_e2e_wait_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0,
+      "revision": 1
+    },
+    {
+      "policy": "discard",
+      "id": 6,
+      "name": "codex_job_e2e_discard_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0,
+      "revision": 1
+    },
+    {
+      "policy": "priority",
+      "id": 7,
+      "name": "codex_job_e2e_priority_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0,
+      "revision": 1
+    },
+    {
+      "policy": "parallel",
+      "id": 8,
+      "name": "codex_job_e2e_parallel_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0,
+      "revision": 1
+    }
+  ],
+  "targets": {
+    "cron": {
+      "totals": {
+        "count": 6,
+        "sum": 62
+      },
+      "multiset": [
+        [
+          1,
+          "  alice  ",
+          7,
+          2
+        ],
+        [
+          2,
+          "Bob",
+          11,
+          2
+        ],
+        [
+          3,
+          "q'Data",
+          13,
+          2
+        ]
+      ]
+    },
+    "wait": {
+      "totals": {
+        "count": 15,
+        "sum": 155
+      },
+      "multiset": [
+        [
+          1,
+          "  alice  ",
+          7,
+          5
+        ],
+        [
+          2,
+          "Bob",
+          11,
+          5
+        ],
+        [
+          3,
+          "q'Data",
+          13,
+          5
+        ]
+      ]
+    },
+    "discard": {
+      "totals": {
+        "count": 6,
+        "sum": 62
+      },
+      "multiset": [
+        [
+          1,
+          "  alice  ",
+          7,
+          2
+        ],
+        [
+          2,
+          "Bob",
+          11,
+          2
+        ],
+        [
+          3,
+          "q'Data",
+          13,
+          2
+        ]
+      ]
+    },
+    "priority": {
+      "totals": {
+        "count": 12,
+        "sum": 124
+      },
+      "multiset": [
+        [
+          1,
+          "  alice  ",
+          7,
+          4
+        ],
+        [
+          2,
+          "Bob",
+          11,
+          4
+        ],
+        [
+          3,
+          "q'Data",
+          13,
+          4
+        ]
+      ]
+    },
+    "parallel": {
+      "totals": {
+        "count": 6,
+        "sum": 62
+      },
+      "multiset": [
+        [
+          1,
+          "  alice  ",
+          7,
+          2
+        ],
+        [
+          2,
+          "Bob",
+          11,
+          2
+        ],
+        [
+          3,
+          "q'Data",
+          13,
+          2
+        ]
+      ]
+    }
+  },
+  "decisions": {
+    "53": {
+      "record": {
+        "id": 53,
+        "status": "STOPPED",
+        "queueState": "SUPERSEDED",
+        "queueReason": "已被更新的串行优先请求取代；未执行",
+        "queuedTime": "2026-11-02 11:50:24",
+        "scheduledTime": null,
+        "executionType": "START",
+        "dsProjectCode": 188566818730880,
+        "dsDefinitionCode": null,
+        "dsInstanceId": null,
+        "submissionStage": "QUEUED",
+        "startTime": null,
+        "endTime": "2026-11-02 11:50:34",
+        "children": []
+      },
+      "actualDsDefinitionCount": 0,
+      "workerCount": 0,
+      "viewDownloadEqual": true,
+      "reasonPresent": true
+    },
+    "56": {
+      "record": {
+        "id": 56,
+        "status": "FAILURE",
+        "queueState": "REJECTED",
+        "queueReason": "业务父流程未触发，本次准备已终止：DuplicateKeyException",
+        "queuedTime": "2026-11-02 11:52:01",
+        "scheduledTime": null,
+        "executionType": "START",
+        "dsProjectCode": 188566818730880,
+        "dsDefinitionCode": null,
+        "dsInstanceId": null,
+        "submissionStage": "PREPARING",
+        "startTime": null,
+        "endTime": "2026-11-02 11:52:04",
+        "children": []
+      },
+      "actualDsDefinitionCount": 0,
+      "workerCount": 0,
+      "viewDownloadEqual": true,
+      "reasonPresent": true
+    },
+    "58": {
+      "record": {
+        "id": 58,
+        "status": "FAILURE",
+        "queueState": "REJECTED",
+        "queueReason": "业务父流程未触发，本次准备已终止：任务正在运行中，请稍后再试",
+        "queuedTime": "2026-11-02 12:01:01",
+        "scheduledTime": null,
+        "executionType": "START",
+        "dsProjectCode": 188566818730880,
+        "dsDefinitionCode": null,
+        "dsInstanceId": null,
+        "submissionStage": "PREPARING",
+        "startTime": null,
+        "endTime": "2026-11-02 12:01:04",
+        "children": []
+      },
+      "actualDsDefinitionCount": 0,
+      "workerCount": 0,
+      "viewDownloadEqual": true,
+      "reasonPresent": true
+    }
+  },
+  "coordinator": {
+    "jobId": 4,
+    "enabled": true,
+    "recentCompletedCallbacks": [
+      {
+        "id": 2667,
+        "triggerTime": "2026-11-02T04:05:45.000+00:00",
+        "handleTime": "2026-11-02T04:05:45.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2666,
+        "triggerTime": "2026-11-02T04:05:40.000+00:00",
+        "handleTime": "2026-11-02T04:05:40.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2664,
+        "triggerTime": "2026-11-02T04:05:35.000+00:00",
+        "handleTime": "2026-11-02T04:05:35.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2662,
+        "triggerTime": "2026-11-02T04:05:30.000+00:00",
+        "handleTime": "2026-11-02T04:05:30.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2660,
+        "triggerTime": "2026-11-02T04:05:25.000+00:00",
+        "handleTime": "2026-11-02T04:05:25.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2657,
+        "triggerTime": "2026-11-02T04:05:20.000+00:00",
+        "handleTime": "2026-11-02T04:05:20.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2655,
+        "triggerTime": "2026-11-02T04:05:15.000+00:00",
+        "handleTime": "2026-11-02T04:05:15.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2653,
+        "triggerTime": "2026-11-02T04:05:10.000+00:00",
+        "handleTime": "2026-11-02T04:05:10.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2652,
+        "triggerTime": "2026-11-02T04:05:05.000+00:00",
+        "handleTime": "2026-11-02T04:05:05.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      },
+      {
+        "id": 2649,
+        "triggerTime": "2026-11-02T04:05:00.000+00:00",
+        "handleTime": "2026-11-02T04:05:00.000+00:00",
+        "triggerCode": 200,
+        "handleCode": 200
+      }
+    ]
+  },
+  "allBusinessSchedulesOff": true,
+  "allRealRunsTerminal": true
+}

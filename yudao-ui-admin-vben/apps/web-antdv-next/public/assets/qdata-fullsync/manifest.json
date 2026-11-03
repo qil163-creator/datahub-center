@@ -1,0 +1,113 @@
+{
+  "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-5bb91bd8-e7ad-4157-855e-5010811676c6.png",
+  "assets": {
+    "add": {
+      "file": "/assets/qdata-fullsync/add.png",
+      "sourceBox": [
+        501,
+        659,
+        529,
+        687
+      ]
+    },
+    "delete": {
+      "file": "/assets/qdata-fullsync/delete.png",
+      "sourceBox": [
+        652,
+        659,
+        680,
+        687
+      ]
+    },
+    "config": {
+      "file": "/assets/qdata-fullsync/config.png",
+      "sourceBox": [
+        3136,
+        874,
+        3167,
+        903
+      ]
+    },
+    "eye": {
+      "file": "/assets/qdata-fullsync/eye.png",
+      "sourceBox": [
+        3264,
+        874,
+        3299,
+        903
+      ]
+    },
+    "down": {
+      "file": "/assets/qdata-fullsync/down.png",
+      "sourceBox": [
+        3399,
+        875,
+        3430,
+        904
+      ]
+    },
+    "query": {
+      "file": "/assets/qdata-fullsync/query.png",
+      "sourceBox": [
+        2305,
+        505,
+        2337,
+        537
+      ]
+    },
+    "reset": {
+      "file": "/assets/qdata-fullsync/reset.png",
+      "sourceBox": [
+        2462,
+        505,
+        2495,
+        537
+      ]
+    },
+    "search": {
+      "file": "/assets/qdata-fullsync/search.png",
+      "sourceBox": [
+        3357,
+        653,
+        3397,
+        694
+      ]
+    },
+    "refresh": {
+      "file": "/assets/qdata-fullsync/refresh.png",
+      "sourceBox": [
+        3443,
+        653,
+        3486,
+        694
+      ]
+    },
+    "columns": {
+      "file": "/assets/qdata-fullsync/columns.png",
+      "sourceBox": [
+        3534,
+        653,
+        3575,
+        694
+      ]
+    },
+    "clock": {
+      "file": "/assets/qdata-fullsync/clock.png",
+      "sourceBox": [
+        2371,
+        903,
+        2402,
+        933
+      ]
+    },
+    "arrow": {
+      "file": "/assets/qdata-fullsync/arrow.png",
+      "sourceBox": [
+        1832,
+        871,
+        1860,
+        900
+      ]
+    }
+  }
+}

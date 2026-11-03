@@ -1,0 +1,5 @@
+.env
+data/
+.gitignore
+README.md
+init.py

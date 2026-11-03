@@ -1,0 +1,872 @@
+{
+  "cases": {
+    "worker": {
+      "records": {
+        "fault_first": {
+          "recordId": 59,
+          "request": {
+            "id": 9,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_worker_first_fault_first"
+          }
+        },
+        "fault_typesfix": {
+          "recordId": 60,
+          "request": {
+            "id": 9,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_worker_typesfix_fault_typesfix"
+          }
+        },
+        "fault_probe": {
+          "recordId": 61,
+          "request": {
+            "id": 9,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_worker_probe_fault_probe"
+          }
+        },
+        "replay_repeat": {
+          "recordId": 63,
+          "request": {
+            "id": 9,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_worker_repeat_replay_repeat"
+          }
+        }
+      },
+      "observations": [],
+      "beforeFault": {
+        "at": "2026-11-02T12:31:20.774323",
+        "window": {
+          "row": {
+            "id": 61,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 12:31:12",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583398828672,
+            "dsInstanceId": 84,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:31:16",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976980,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1006
+              },
+              {
+                "id": 53,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 11
+              }
+            ]
+          },
+          "totals": {
+            "count": 2001,
+            "sum": 14006999
+          },
+          "waiters": [
+            {
+              "pid": 8888,
+              "waitEventType": "Lock",
+              "waitEvent": "transactionid",
+              "state": "active"
+            }
+          ]
+        },
+        "execution": {
+          "platform": {
+            "id": 61,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 12:31:12",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583398828672,
+            "dsInstanceId": 84,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:31:16",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976980,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1006
+              },
+              {
+                "id": 53,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 11
+              }
+            ]
+          },
+          "children": [
+            {
+              "parentTaskId": 98,
+              "instanceId": 85,
+              "state": "RUNNING_EXECUTION",
+              "definitionCode": "188583071166080",
+              "startTime": "2026-11-02 12:31:17",
+              "endTime": null,
+              "workers": [
+                {
+                  "id": 99,
+                  "taskType": "DATAX_UPSERT",
+                  "state": "RUNNING_EXECUTION",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:31:18",
+                  "endTime": null,
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583071166080/1/85/99.log"
+                }
+              ]
+            }
+          ],
+          "parent": {
+            "id": 84,
+            "state": "RUNNING_EXECUTION",
+            "startTime": "2026-11-02 12:31:16",
+            "endTime": null,
+            "workflowDefinitionCode": 188583398828672,
+            "projectCode": 188566818730880,
+            "host": "172.18.0.2:5678"
+          }
+        }
+      },
+      "faultInjectedAt": "2026-11-02T12:31:21.964043",
+      "result": {
+        "recordId": 61,
+        "execution": {
+          "platform": {
+            "id": 61,
+            "status": "SUCCESS",
+            "queueState": "DONE",
+            "queueReason": "真实父子终态已确认：SUCCESS",
+            "queuedTime": "2026-11-02 12:31:12",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583398828672,
+            "dsInstanceId": 84,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:31:16",
+            "endTime": "2026-11-02 12:31:57",
+            "children": [
+              {
+                "id": 180829751976980,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "SUCCESS",
+                "taskId": 1006
+              },
+              {
+                "id": 53,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "SUCCESS",
+                "taskId": 11
+              }
+            ]
+          },
+          "children": [
+            {
+              "parentTaskId": 101,
+              "instanceId": 86,
+              "state": "SUCCESS",
+              "definitionCode": "188583398801024",
+              "startTime": "2026-11-02 12:31:47",
+              "endTime": "2026-11-02 12:31:48",
+              "workers": [
+                {
+                  "id": 102,
+                  "taskType": "SQL",
+                  "state": "SUCCESS",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:31:48",
+                  "endTime": "2026-11-02 12:31:48",
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583398801024/1/86/102.log"
+                }
+              ]
+            },
+            {
+              "parentTaskId": 98,
+              "instanceId": 85,
+              "state": "SUCCESS",
+              "definitionCode": "188583071166080",
+              "startTime": "2026-11-02 12:31:17",
+              "endTime": "2026-11-02 12:31:46",
+              "workers": [
+                {
+                  "id": 100,
+                  "taskType": "DATAX_UPSERT",
+                  "state": "SUCCESS",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:31:36",
+                  "endTime": "2026-11-02 12:31:46",
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583071166080/1/85/100.log"
+                }
+              ]
+            }
+          ],
+          "parent": {
+            "id": 84,
+            "state": "SUCCESS",
+            "startTime": "2026-11-02 12:31:16",
+            "endTime": "2026-11-02 12:31:57",
+            "workflowDefinitionCode": 188583398828672,
+            "projectCode": 188566818730880,
+            "host": "172.18.0.2:5678"
+          }
+        },
+        "data": {
+          "count": 3007,
+          "distinctKeys": 3007,
+          "symmetricExceptAllCount": 0,
+          "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "totals": {
+            "count": 3007,
+            "sum": 31657696
+          }
+        },
+        "logs": [
+          {
+            "file": "worker-61-job.log",
+            "bytes": 19527,
+            "sha256": "ace6c7c0fb6d955ec2a5b4a4fd18b27d8a00be8b99b6625ba2ddd43330771c36",
+            "viewDownloadEqual": true
+          },
+          {
+            "file": "worker-61-integration.log",
+            "bytes": 16751,
+            "sha256": "cc2e1903da794c65dd6073849247fdb9f370385d8696642a50411deb49b940c7",
+            "viewDownloadEqual": true
+          },
+          {
+            "file": "worker-61-development.log",
+            "bytes": 2347,
+            "sha256": "b64a4f565bb8db9c850e7be7e6dc6759c2d1ca29f37619a9cc45567052877e2c",
+            "viewDownloadEqual": true
+          }
+        ],
+        "sameParentRecovered": true
+      },
+      "replays": [
+        {
+          "recordId": 63,
+          "execution": {
+            "platform": {
+              "id": 63,
+              "status": "SUCCESS",
+              "queueState": "DONE",
+              "queueReason": "真实父子终态已确认：SUCCESS",
+              "queuedTime": "2026-11-02 12:34:14",
+              "scheduledTime": null,
+              "executionType": "START",
+              "dsProjectCode": 188566818730880,
+              "dsDefinitionCode": 188583585268352,
+              "dsInstanceId": 90,
+              "submissionStage": "BOUND",
+              "startTime": "2026-11-02 12:34:18",
+              "endTime": "2026-11-02 12:34:49",
+              "children": [
+                {
+                  "id": 180829751976982,
+                  "kind": "INTEGRATION",
+                  "origin": "MANAGED",
+                  "status": "SUCCESS",
+                  "taskId": 1006
+                },
+                {
+                  "id": 55,
+                  "kind": "DEVELOPMENT",
+                  "origin": "PLATFORM",
+                  "status": "SUCCESS",
+                  "taskId": 11
+                }
+              ]
+            },
+            "children": [
+              {
+                "parentTaskId": 111,
+                "instanceId": 92,
+                "state": "SUCCESS",
+                "definitionCode": "188583585222272",
+                "startTime": "2026-11-02 12:34:39",
+                "endTime": "2026-11-02 12:34:40",
+                "workers": [
+                  {
+                    "id": 112,
+                    "taskType": "SQL",
+                    "state": "SUCCESS",
+                    "flag": "YES",
+                    "host": "172.18.0.2:1235",
+                    "startTime": "2026-11-02 12:34:40",
+                    "endTime": "2026-11-02 12:34:40",
+                    "processId": null,
+                    "retryTimes": 0,
+                    "logPath": "/opt/dolphinscheduler/logs/20261102/188583585222272/1/92/112.log"
+                  }
+                ]
+              },
+              {
+                "parentTaskId": 109,
+                "instanceId": 91,
+                "state": "SUCCESS",
+                "definitionCode": "188583071166080",
+                "startTime": "2026-11-02 12:34:19",
+                "endTime": "2026-11-02 12:34:31",
+                "workers": [
+                  {
+                    "id": 110,
+                    "taskType": "DATAX_UPSERT",
+                    "state": "SUCCESS",
+                    "flag": "YES",
+                    "host": "172.18.0.2:1235",
+                    "startTime": "2026-11-02 12:34:20",
+                    "endTime": "2026-11-02 12:34:30",
+                    "processId": null,
+                    "retryTimes": 0,
+                    "logPath": "/opt/dolphinscheduler/logs/20261102/188583071166080/1/91/110.log"
+                  }
+                ]
+              }
+            ],
+            "parent": {
+              "id": 90,
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 12:34:18",
+              "endTime": "2026-11-02 12:34:49",
+              "workflowDefinitionCode": 188583585268352,
+              "projectCode": 188566818730880,
+              "host": "172.18.0.2:5678"
+            }
+          },
+          "data": {
+            "count": 3007,
+            "distinctKeys": 3007,
+            "symmetricExceptAllCount": 0,
+            "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+            "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+            "totals": {
+              "count": 3007,
+              "sum": 31657696
+            }
+          },
+          "logs": [
+            {
+              "file": "worker-63-job.log",
+              "bytes": 19530,
+              "sha256": "14a3363b5db833ab109a51d6fe7216f9071b9ee091055478517bf5e6e15e5468",
+              "viewDownloadEqual": true
+            },
+            {
+              "file": "worker-63-integration.log",
+              "bytes": 16754,
+              "sha256": "2340bd206ddd1557215735eda0a479cc03f3bc85d7dbe72fdf4711a7abce402d",
+              "viewDownloadEqual": true
+            },
+            {
+              "file": "worker-63-development.log",
+              "bytes": 2347,
+              "sha256": "dc8d0a74b26bbf9327517d0a94dc69de05844ac2eea35885e688c236fcb5ab34",
+              "viewDownloadEqual": true
+            }
+          ],
+          "sameParentRecovered": false
+        }
+      ],
+      "revalidatedReplayRecords": [
+        63
+      ]
+    },
+    "host": {
+      "records": {
+        "fault_commitack": {
+          "recordId": 62,
+          "request": {
+            "id": 10,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_host_commitack_fault_commitack"
+          }
+        },
+        "replay_repeat": {
+          "recordId": 64,
+          "request": {
+            "id": 10,
+            "revision": 1,
+            "requestId": "cjp_20261102_122553_host_repeat_replay_repeat"
+          }
+        }
+      },
+      "observations": [],
+      "beforeFault": {
+        "at": "2026-11-02T12:32:44.190123",
+        "window": {
+          "row": {
+            "id": 62,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 12:32:36",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583485516416,
+            "dsInstanceId": 87,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976981,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1007
+              },
+              {
+                "id": 54,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 12
+              }
+            ]
+          },
+          "totals": {
+            "count": 2001,
+            "sum": 14006999
+          },
+          "waiters": [
+            {
+              "pid": 9252,
+              "waitEventType": "Lock",
+              "waitEvent": "transactionid",
+              "state": "active"
+            }
+          ]
+        },
+        "execution": {
+          "platform": {
+            "id": 62,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 12:32:36",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583485516416,
+            "dsInstanceId": 87,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976981,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1007
+              },
+              {
+                "id": 54,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 12
+              }
+            ]
+          },
+          "children": [
+            {
+              "parentTaskId": 103,
+              "instanceId": 88,
+              "state": "RUNNING_EXECUTION",
+              "definitionCode": "188583231688320",
+              "startTime": "2026-11-02 12:32:41",
+              "endTime": null,
+              "workers": [
+                {
+                  "id": 104,
+                  "taskType": "DATAX_UPSERT",
+                  "state": "RUNNING_EXECUTION",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:32:42",
+                  "endTime": null,
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583231688320/1/88/104.log"
+                }
+              ]
+            }
+          ],
+          "parent": {
+            "id": 87,
+            "state": "RUNNING_EXECUTION",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": null,
+            "workflowDefinitionCode": 188583485516416,
+            "projectCode": 188566818730880,
+            "host": "172.18.0.2:5678"
+          }
+        }
+      },
+      "committedBeforeHostFault": {
+        "at": "2026-11-02T12:32:45.370846",
+        "execution": {
+          "platform": {
+            "id": 62,
+            "status": "RUNNING",
+            "queueState": "ACTIVE",
+            "queueReason": "真实父工作流已确认，等待所有子执行终态",
+            "queuedTime": "2026-11-02 12:32:36",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583485516416,
+            "dsInstanceId": 87,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": null,
+            "children": [
+              {
+                "id": 180829751976981,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "RUNNING",
+                "taskId": 1007
+              },
+              {
+                "id": 54,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "WAITING",
+                "taskId": 12
+              }
+            ]
+          },
+          "children": [
+            {
+              "parentTaskId": 103,
+              "instanceId": 88,
+              "state": "RUNNING_EXECUTION",
+              "definitionCode": "188583231688320",
+              "startTime": "2026-11-02 12:32:41",
+              "endTime": null,
+              "workers": [
+                {
+                  "id": 104,
+                  "taskType": "DATAX_UPSERT",
+                  "state": "RUNNING_EXECUTION",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:32:42",
+                  "endTime": null,
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583231688320/1/88/104.log"
+                }
+              ]
+            }
+          ],
+          "parent": {
+            "id": 87,
+            "state": "RUNNING_EXECUTION",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": null,
+            "workflowDefinitionCode": 188583485516416,
+            "projectCode": 188566818730880,
+            "host": "172.18.0.2:5678"
+          }
+        },
+        "data": {
+          "count": 3007,
+          "distinctKeys": 3007,
+          "symmetricExceptAllCount": 0,
+          "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "totals": {
+            "count": 3007,
+            "sum": 31657696
+          }
+        }
+      },
+      "faultInjectedAt": "2026-11-02T12:32:55.915355",
+      "result": {
+        "recordId": 62,
+        "execution": {
+          "platform": {
+            "id": 62,
+            "status": "SUCCESS",
+            "queueState": "DONE",
+            "queueReason": "真实父子终态已确认：SUCCESS",
+            "queuedTime": "2026-11-02 12:32:36",
+            "scheduledTime": null,
+            "executionType": "START",
+            "dsProjectCode": 188566818730880,
+            "dsDefinitionCode": 188583485516416,
+            "dsInstanceId": 87,
+            "submissionStage": "BOUND",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": "2026-11-02 12:33:42",
+            "children": [
+              {
+                "id": 180829751976981,
+                "kind": "INTEGRATION",
+                "origin": "MANAGED",
+                "status": "SUCCESS",
+                "taskId": 1007
+              },
+              {
+                "id": 54,
+                "kind": "DEVELOPMENT",
+                "origin": "PLATFORM",
+                "status": "SUCCESS",
+                "taskId": 12
+              }
+            ]
+          },
+          "children": [
+            {
+              "parentTaskId": 107,
+              "instanceId": 89,
+              "state": "SUCCESS",
+              "definitionCode": "188583485493888",
+              "startTime": "2026-11-02 12:33:32",
+              "endTime": "2026-11-02 12:33:33",
+              "workers": [
+                {
+                  "id": 108,
+                  "taskType": "SQL",
+                  "state": "SUCCESS",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:33:33",
+                  "endTime": "2026-11-02 12:33:33",
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583485493888/1/89/108.log"
+                }
+              ]
+            },
+            {
+              "parentTaskId": 105,
+              "instanceId": 88,
+              "state": "SUCCESS",
+              "definitionCode": "188583231688320",
+              "startTime": "2026-11-02 12:32:41",
+              "endTime": "2026-11-02 12:33:23",
+              "workers": [
+                {
+                  "id": 106,
+                  "taskType": "DATAX_UPSERT",
+                  "state": "SUCCESS",
+                  "flag": "YES",
+                  "host": "172.18.0.2:1235",
+                  "startTime": "2026-11-02 12:33:12",
+                  "endTime": "2026-11-02 12:33:23",
+                  "processId": null,
+                  "retryTimes": 0,
+                  "logPath": "/opt/dolphinscheduler/logs/20261102/188583231688320/1/88/106.log"
+                }
+              ]
+            }
+          ],
+          "parent": {
+            "id": 87,
+            "state": "SUCCESS",
+            "startTime": "2026-11-02 12:32:41",
+            "endTime": "2026-11-02 12:33:42",
+            "workflowDefinitionCode": 188583485516416,
+            "projectCode": 188566818730880,
+            "host": "172.18.0.2:5678"
+          }
+        },
+        "data": {
+          "count": 3007,
+          "distinctKeys": 3007,
+          "symmetricExceptAllCount": 0,
+          "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+          "totals": {
+            "count": 3007,
+            "sum": 31657696
+          }
+        },
+        "logs": [
+          {
+            "file": "host-62-job.log",
+            "bytes": 19634,
+            "sha256": "4eee866ca8e7adcfd6c1ed9655cf507d57a1f148734001528a64c300f6b556ac",
+            "viewDownloadEqual": true
+          },
+          {
+            "file": "host-62-integration.log",
+            "bytes": 16747,
+            "sha256": "b3fbf0023af18ac19a2c481a911a49e0f38155144aef6e5f67df89a1f5487597",
+            "viewDownloadEqual": true
+          },
+          {
+            "file": "host-62-development.log",
+            "bytes": 2347,
+            "sha256": "353912fb5561e3ee357636c904acfa9c6cc60373ae2a4373d0a928688e93da1a",
+            "viewDownloadEqual": true
+          }
+        ],
+        "sameParentRecovered": true
+      },
+      "replays": [
+        {
+          "recordId": 64,
+          "execution": {
+            "platform": {
+              "id": 64,
+              "status": "SUCCESS",
+              "queueState": "DONE",
+              "queueReason": "真实父子终态已确认：SUCCESS",
+              "queuedTime": "2026-11-02 12:34:44",
+              "scheduledTime": null,
+              "executionType": "START",
+              "dsProjectCode": 188566818730880,
+              "dsDefinitionCode": 188583616159360,
+              "dsInstanceId": 93,
+              "submissionStage": "BOUND",
+              "startTime": "2026-11-02 12:34:48",
+              "endTime": "2026-11-02 12:35:19",
+              "children": [
+                {
+                  "id": 180829751976983,
+                  "kind": "INTEGRATION",
+                  "origin": "MANAGED",
+                  "status": "SUCCESS",
+                  "taskId": 1007
+                },
+                {
+                  "id": 56,
+                  "kind": "DEVELOPMENT",
+                  "origin": "PLATFORM",
+                  "status": "SUCCESS",
+                  "taskId": 12
+                }
+              ]
+            },
+            "children": [
+              {
+                "parentTaskId": 115,
+                "instanceId": 95,
+                "state": "SUCCESS",
+                "definitionCode": "188583616138880",
+                "startTime": "2026-11-02 12:35:09",
+                "endTime": "2026-11-02 12:35:10",
+                "workers": [
+                  {
+                    "id": 116,
+                    "taskType": "SQL",
+                    "state": "SUCCESS",
+                    "flag": "YES",
+                    "host": "172.18.0.2:1235",
+                    "startTime": "2026-11-02 12:35:10",
+                    "endTime": "2026-11-02 12:35:10",
+                    "processId": null,
+                    "retryTimes": 0,
+                    "logPath": "/opt/dolphinscheduler/logs/20261102/188583616138880/1/95/116.log"
+                  }
+                ]
+              },
+              {
+                "parentTaskId": 113,
+                "instanceId": 94,
+                "state": "SUCCESS",
+                "definitionCode": "188583231688320",
+                "startTime": "2026-11-02 12:34:49",
+                "endTime": "2026-11-02 12:35:01",
+                "workers": [
+                  {
+                    "id": 114,
+                    "taskType": "DATAX_UPSERT",
+                    "state": "SUCCESS",
+                    "flag": "YES",
+                    "host": "172.18.0.2:1235",
+                    "startTime": "2026-11-02 12:34:50",
+                    "endTime": "2026-11-02 12:35:00",
+                    "processId": null,
+                    "retryTimes": 0,
+                    "logPath": "/opt/dolphinscheduler/logs/20261102/188583231688320/1/94/114.log"
+                  }
+                ]
+              }
+            ],
+            "parent": {
+              "id": 93,
+              "state": "SUCCESS",
+              "startTime": "2026-11-02 12:34:48",
+              "endTime": "2026-11-02 12:35:19",
+              "workflowDefinitionCode": 188583616159360,
+              "projectCode": 188566818730880,
+              "host": "172.18.0.2:5678"
+            }
+          },
+          "data": {
+            "count": 3007,
+            "distinctKeys": 3007,
+            "symmetricExceptAllCount": 0,
+            "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+            "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+            "totals": {
+              "count": 3007,
+              "sum": 31657696
+            }
+          },
+          "logs": [
+            {
+              "file": "host-64-job.log",
+              "bytes": 19518,
+              "sha256": "f88a44578ff7ff9e0814a81ae7a9769f051640e2e65cb198bf965466cf051eed",
+              "viewDownloadEqual": true
+            },
+            {
+              "file": "host-64-integration.log",
+              "bytes": 16742,
+              "sha256": "81394b72c14a1ec81430923d3dc5d5f850125fb57b1cbae643c1c04d3b590a4b",
+              "viewDownloadEqual": true
+            },
+            {
+              "file": "host-64-development.log",
+              "bytes": 2347,
+              "sha256": "19b69a742207ba11787216d9fc36ec2a11b02b8e54697949f4313444528e92cd",
+              "viewDownloadEqual": true
+            }
+          ],
+          "sameParentRecovered": false
+        }
+      ]
+    }
+  },
+  "executionApiPort": 50027
+}

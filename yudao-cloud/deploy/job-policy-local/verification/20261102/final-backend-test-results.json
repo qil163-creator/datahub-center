@@ -1,0 +1,44 @@
+[
+  {
+    "test": "DevDsRecoveryTest",
+    "tests": 28,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "test": "DevJobExecutionTest",
+    "tests": 8,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "test": "JobManagedRunServiceTest",
+    "tests": 18,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "test": "JobServiceTest",
+    "tests": 6,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "test": "JobRuntimeBoundaryTest",
+    "tests": 5,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "test": "JobStateBoundaryTest",
+    "tests": 3,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  }
+]

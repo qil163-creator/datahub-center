@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "command": "python3 tools/quality/run_all.py --base-ref HEAD",
+  "checks": [
+    "DB Switch architecture and manifest",
+    "ordered SQL migration filenames and headers",
+    "error codes",
+    "module dependency boundaries"
+  ],
+  "output": [
+    "[dbswitch] architecture and manifest checks: 0 violation(s)",
+    "[migrations] checked 126 SQL file(s), 126 valid numbered filename(s), base=HEAD",
+    "[migrations] PASSED",
+    "[error-codes] checked 1107 declaration(s) in 10 file(s), base=HEAD",
+    "[error-codes] historical debt accepted by base ref: 290 finding(s)",
+    "[error-codes] PASSED",
+    "[module-boundaries] checked 182 POM(s) and 6318 Java source file(s), base=HEAD",
+    "[module-boundaries] historical debt accepted by base ref: 1 finding(s)",
+    "[module-boundaries] PASSED"
+  ],
+  "logSha256": "b537a9fcfd28ce018fc0b409461b0584323c8d1e4be70297d97859094ec3b487"
+}

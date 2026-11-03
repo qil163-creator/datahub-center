@@ -1,0 +1,43 @@
+{
+  "provenance": "actual NodeConfigurationEditor + TransformNodeEditor + NativeOrderEditor user interaction regression",
+  "keyed": {
+    "enableDeduplication": true,
+    "deduplicationStrategy": "KEY_FIELDS",
+    "keyFields": [
+      "group"
+    ],
+    "ignoreCase": true,
+    "orderBy": [
+      {
+        "field": "id",
+        "order": "ASC"
+      }
+    ],
+    "uniqueFields": [
+      "id"
+    ]
+  },
+  "wholeRow": {
+    "enableDeduplication": true,
+    "deduplicationStrategy": "ALL_FIELDS",
+    "keyFields": [],
+    "ignoreCase": false
+  },
+  "caseInsensitiveWholeRow": {
+    "enableDeduplication": true,
+    "deduplicationStrategy": "ALL_FIELDS",
+    "keyFields": [],
+    "ignoreCase": true,
+    "orderBy": [
+      {
+        "field": "id",
+        "order": "ASC"
+      }
+    ],
+    "uniqueFields": [
+      "id"
+    ]
+  },
+  "readonlyEventsPreserveConfig": true,
+  "automaticSortInferred": false
+}

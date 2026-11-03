@@ -1,0 +1,373 @@
+.fsm-step {
+  font-size: 14px;
+  color: #606266;
+}
+
+.fsm-heading {
+  position: relative;
+  padding-left: 14px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #303133;
+}
+
+.fsm-heading::before {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #4267ff;
+  border-radius: 4px;
+}
+
+.fsm-description {
+  margin: 0 0 20px;
+  line-height: 20px;
+  color: #303133;
+}
+
+.fsm-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.fsm-toolbar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fsm-step :is(.ant-btn),
+.fsm-dialog :is(.ant-btn) {
+  height: 32px;
+  padding: 4px 15px;
+  font-size: 14px;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.fsm-primary {
+  color: #fff;
+  background: #4267ff;
+  border-color: #4267ff;
+}
+
+.fsm-primary:hover {
+  color: #fff !important;
+  background: #6685ff !important;
+  border-color: #6685ff !important;
+}
+
+.fsm-primary:disabled {
+  color: #fff;
+  background: #a6b8f6;
+  border-color: #a6b8f6;
+}
+
+.fsm-outline {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: #4267ff;
+  background: #f1f5ff;
+  border-color: #afc1ff;
+}
+
+.fsm-filter {
+  width: 300px;
+  min-width: 220px;
+  margin-left: auto;
+}
+
+.fsm-step :is(.ant-input),
+.fsm-step :is(.ant-input-affix-wrapper),
+.fsm-step :is(.ant-input-number),
+.fsm-step :is(.ant-select-selector),
+.fsm-dialog :is(.ant-input),
+.fsm-dialog :is(.ant-select-selector) {
+  min-height: 32px;
+  font-size: 14px;
+  border-color: #dcdfe6;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+.fsm-step :is(.ant-input::placeholder),
+.fsm-dialog :is(.ant-input::placeholder) {
+  color: #a8abb2;
+}
+
+.fsm-table :is(.ant-table) {
+  font-size: 14px;
+  color: #606266;
+}
+
+.fsm-table :is(.ant-table-thead > tr > th) {
+  height: 37px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #606266;
+  text-align: center;
+  background: #f0f0f5;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.fsm-table :is(.ant-table-tbody > tr > td) {
+  height: 48px;
+  padding: 8px 10px;
+  font-size: 12px;
+  text-align: center;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.fsm-table :is(.ant-table-tbody > tr:hover > td) {
+  background: #f5f7ff;
+}
+
+.fsm-table :is(.ant-table-tbody > tr > .ant-table-cell-fix-right) {
+  background: #fff;
+}
+
+.fsm-table :is(.ant-table-thead > tr > th::before) {
+  display: none !important;
+}
+
+.fsm-table :is(.ant-table-container) {
+  border-radius: 0;
+}
+
+.fsm-table :is(.ant-checkbox-inner) {
+  width: 14px;
+  height: 14px;
+  border-color: #dcdfe6;
+  border-radius: 2px;
+}
+
+.fsm-table :is(.ant-input-number) {
+  width: 100%;
+}
+
+.fsm-table :is(.ant-select) {
+  width: 100%;
+  text-align: left;
+}
+
+.fsm-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.fsm-actions button,
+.fsm-delete-column {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  font-size: 14px;
+  line-height: 24px;
+  color: #4267ff;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.fsm-actions button:hover {
+  color: #6685ff;
+}
+
+.fsm-danger,
+.fsm-actions .fsm-danger {
+  color: #ff6b6b;
+}
+
+.fsm-append {
+  margin-top: 42px;
+}
+
+.fsm-add-column {
+  margin-bottom: 20px;
+}
+
+.fsm-empty {
+  padding: 36px 12px;
+  font-size: 14px;
+  color: #909399;
+}
+
+.fsm-empty-large {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.fsm-empty-large img {
+  width: 180px;
+  height: 105px;
+  object-fit: contain;
+}
+
+.fsm-form {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);
+  gap: 16px 12px;
+  align-items: center;
+  padding: 4px 20px 16px 0;
+}
+
+.fsm-form label {
+  color: #303133;
+  text-align: right;
+}
+
+.fsm-required {
+  color: #f56c6c;
+}
+
+.fsm-rule-button {
+  justify-self: start;
+}
+
+.fsm-form-prefix {
+  grid-template-columns: 130px minmax(0, 1fr);
+  padding-top: 16px;
+}
+
+.fsm-add-filter {
+  margin-bottom: 15px;
+}
+
+.fsm-add-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.fsm-field-caption {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: #4267ff;
+}
+
+.fsm-field-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0;
+}
+
+.fsm-field-error {
+  color: #f56c6c;
+}
+
+@media (width <= 1200px) {
+  .fsm-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fsm-filter {
+    width: min(100%, 400px);
+    margin-left: 0;
+  }
+}
+
+@media (width <= 600px) {
+  .fsm-form {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .fsm-form label {
+    text-align: left;
+  }
+
+  .fsm-toolbar-buttons {
+    gap: 8px;
+  }
+
+  .fsm-step :is(.ant-btn) {
+    padding-inline: 10px;
+  }
+}
+
+.fsm-actions button:disabled {
+  color: #b6b8bd;
+  cursor: not-allowed;
+}
+
+.fsm-dialog .ant-modal-content {
+  padding: 0;
+  border-radius: 0;
+}
+
+.fsm-dialog .ant-modal-header {
+  padding: 12px 20px;
+  margin: 0;
+  background: #f7f7f7;
+  border-radius: 0;
+}
+
+.fsm-dialog .ant-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.fsm-dialog .ant-modal-body {
+  padding: 20px;
+}
+
+.fsm-dialog .ant-modal-footer {
+  padding: 15px 20px;
+  margin: 0;
+  border-top: 1px solid #ebeef5;
+}
+
+.fsm-prefix-input {
+  padding: 0 0 20px;
+}
+
+.fsm-dialog:not(.fsm-prefix-dialog) {
+  top: 60px;
+}
+
+.fsm-dialog .ant-modal-container {
+  padding: 0;
+  border-radius: 0;
+}
+
+.fsm-dialog .ant-modal-close {
+  top: 10px;
+  right: 14px;
+}
+
+.fsm-step .ant-btn,
+.fsm-dialog .ant-btn {
+  font-weight: 400;
+}
+
+
+.fsm-table :is(.ant-table-tbody > tr > .ant-table-cell-fix-end) {
+  background: #fff;
+}

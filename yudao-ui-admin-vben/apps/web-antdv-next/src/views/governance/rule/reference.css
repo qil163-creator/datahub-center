@@ -1,0 +1,132 @@
+.safety-rule-name > span {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.safety-scene-tags {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.safety-rule-detail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.safety-rule-overview {
+  padding: 14px;
+  background: white;
+  border-radius: var(--radius);
+}
+
+.safety-rule-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+  margin-bottom: 12px;
+}
+
+.safety-rule-heading strong {
+  font-size: 16px;
+  color: #303133;
+}
+
+.safety-rule-heading > .ant-btn {
+  margin-left: auto;
+}
+
+.safety-rule-id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  font-size: 14px;
+  color: white;
+  background: #4266f4;
+}
+
+.safety-rule-overview table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.safety-rule-overview td,
+.safety-rule-info td {
+  height: 42px;
+  padding: 8px 10px;
+  font-weight: 400;
+  vertical-align: middle;
+  border: 1px solid #f1f3f7;
+}
+
+.safety-rule-overview td.label {
+  width: 150px;
+  color: #a8abb2;
+  background: #fafafa;
+}
+
+.safety-rule-content {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 14px;
+  background: white;
+  border-radius: var(--radius);
+}
+
+.safety-rule-content .ant-tabs-nav {
+  margin-bottom: 14px;
+}
+
+.safety-rule-content .ant-tabs-tab {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.safety-rule-info {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.safety-rule-info .label {
+  width: 200px;
+  background: #f5f7fa;
+}
+
+.safety-rule-content .category-results {
+  padding: 0;
+}
+
+.safety-rule-content .category-toolbar {
+  height: 48px;
+}
+
+.safety-rule-empty,
+.safety-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  height: 280px;
+  color: #909399;
+}
+
+.safety-rule-empty img,
+.safety-empty img {
+  width: 207px;
+  height: 148px;
+  object-fit: contain;
+}
+
+.safety-rule-return {
+  width: 14px;
+  height: 14px;
+}

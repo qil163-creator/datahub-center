@@ -1,0 +1,15 @@
+{
+  "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-market-evidence-20261022\\publish-dialog.html",
+  "assets": {
+    "publish-table-type": {
+      "file": "/assets/qdata-market/publish-table-type.svg",
+      "role": "decorative",
+      "source": "原始HTML内的data URI"
+    },
+    "publish-doris": {
+      "file": "/assets/qdata-market/publish-doris.svg",
+      "role": "decorative",
+      "source": "原始HTML内的data URI"
+    }
+  }
+}

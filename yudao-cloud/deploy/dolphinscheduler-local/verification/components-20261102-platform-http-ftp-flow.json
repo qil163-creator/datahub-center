@@ -1,0 +1,128 @@
+{
+  "provenance": "实际平台任务1002正式保存请求的原始flowJson，未删除配置参数",
+  "taskId": 1002,
+  "flow": {
+    "nodes": [
+      {
+        "id": "api",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "api",
+          "toolCode": "rest-api",
+          "toolType": 1,
+          "nodeJson": {
+            "resourceBindingId": "componentHttp",
+            "fetchSize": 500,
+            "maxPages": 10,
+            "maxRows": 1000,
+            "maxResponseBytes": 8388608,
+            "headerSecretRefs": {
+              "Authorization": "apiAccess"
+            },
+            "apiConfig": {
+              "apiName": "真实平台组件验收",
+              "requestUrl": "http://127.0.0.1:19087/rows",
+              "requestMethod": "GET",
+              "bodyType": "none",
+              "ifPage": 0,
+              "dataType": 2,
+              "dataKey": "data.rows",
+              "dataColumns": [
+                {
+                  "fieldName": "id",
+                  "fieldType": -5,
+                  "nullable": false
+                },
+                {
+                  "fieldName": "label",
+                  "fieldType": 12
+                },
+                {
+                  "fieldName": "amount",
+                  "fieldType": 3,
+                  "displaySize": 38,
+                  "precisionSize": 18
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "write",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "write",
+          "toolCode": "write-ftp",
+          "toolType": 3,
+          "nodeJson": {
+            "resourceBindingId": "componentFtp",
+            "credentialRef": "ftpAccess",
+            "path": "http",
+            "fileType": "csv",
+            "fieldDelimiter": ",",
+            "encoding": "UTF-8",
+            "compression": "",
+            "ftpConfig": {
+              "includeHeader": true
+            },
+            "fileName": "result",
+            "writeModeType": 2,
+            "columns": [
+              {
+                "name": "id",
+                "key": "id",
+                "type": "LONG",
+                "comment": ""
+              },
+              {
+                "name": "标签",
+                "key": "label",
+                "type": "STRING",
+                "comment": ""
+              },
+              {
+                "name": "amount",
+                "key": "amount",
+                "type": "DECIMAL",
+                "length": 38,
+                "precision": 18,
+                "comment": ""
+              }
+            ],
+            "maxRows": 1000,
+            "maxBytes": 8388608,
+            "fieldMappings": [
+              {
+                "source": "id",
+                "target": "id",
+                "enabled": true
+              },
+              {
+                "source": "label",
+                "target": "标签",
+                "enabled": true
+              },
+              {
+                "source": "amount",
+                "target": "amount",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "api-write",
+        "sourceNodeId": "api",
+        "targetNodeId": "write"
+      }
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "graphs",
+  "checks": {
+    "BRANCH_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188509913564128",
+      "workflowInstanceId": 14,
+      "taskInstanceId": 14,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_TARGET_HIGH|2|c",
+        "RESULT_TARGET_LOW|1| a|b ",
+        "RESULT_TARGET_LOW|NULL|NULL"
+      ],
+      "exactRowsMatched": true
+    },
+    "BRANCH_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188509923898336",
+      "workflowInstanceId": 15,
+      "taskInstanceId": 15,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_TARGET_HIGH> +I[2, c]",
+        "RESULT_TARGET_LOW> +I[1,  a|b ]",
+        "RESULT_TARGET_LOW> +I[null, null]"
+      ],
+      "exactRowsMatched": true
+    },
+    "JOIN_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188512737163232",
+      "workflowInstanceId": 38,
+      "taskInstanceId": 38,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_JOIN_TARGET|1| a|b |match",
+        "RESULT_JOIN_TARGET|2|c|NULL",
+        "RESULT_JOIN_TARGET|NULL|null-right|null-match"
+      ],
+      "exactRowsMatched": true
+    },
+    "JOIN_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188512755903456",
+      "workflowInstanceId": 40,
+      "taskInstanceId": 40,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_JOIN_TARGET> +I[1,  a|b , match]",
+        "RESULT_JOIN_TARGET> +I[2, c, null]",
+        "RESULT_JOIN_TARGET> +I[null, null-right, null-match]"
+      ],
+      "exactRowsMatched": true
+    },
+    "SPLIT_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188509952800736",
+      "workflowInstanceId": 18,
+      "taskInstanceId": 18,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_SPLIT_TARGET|1|a|b ",
+        "RESULT_SPLIT_TARGET|2|c|NULL",
+        "RESULT_SPLIT_TARGET|NULL||NULL"
+      ],
+      "exactRowsMatched": true
+    },
+    "SPLIT_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188511195544544",
+      "workflowInstanceId": 29,
+      "taskInstanceId": 29,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_SPLIT_TARGET> +I[1, a, b ]",
+        "RESULT_SPLIT_TARGET> +I[2, c, null]",
+        "RESULT_SPLIT_TARGET> +I[null, , null]"
+      ],
+      "exactRowsMatched": true
+    }
+  },
+  "status": "PASS",
+  "note": "分支、拆分和 Join 分多次真实运行；Join 更新为带每 stage 行数 guard 的最终编译产物，预算正反例见 join-budget.json。"
+}

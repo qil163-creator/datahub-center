@@ -1,0 +1,153 @@
+# 数据库快照表示集群总量，应取 MAX 而非 SUM；仅使用最新且可访问的采样值。
+# 阈值为初始运维预算，尚不是经过生产测量的服务等级目标（SLO）。
+groups:
+  - name: dataforge-run
+    interval: 30s
+    rules:
+      - record: dataforge:run_sample:fresh
+        expr: >-
+          (dataforge_run_metrics_available{job="dataforge-run"} == 1)
+          and (dataforge_run_metrics_age_seconds{job="dataforge-run"} <= 90)
+          and (dataforge_run_metrics_age_seconds{job="dataforge-run"} >= 0)
+          and on (cluster, job, instance) (up{job="dataforge-run"} == 1)
+      - record: dataforge:run_queued
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_queued{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_queue_age_seconds
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_queue_oldest_age_seconds{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_slots
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_slots{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_unknown
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_unknown{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_review_required
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_review_required{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_stop_pending
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_stop_pending{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_stop_age_seconds
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_stop_oldest_age_seconds{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_lease_expired
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_lease_expired{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - record: dataforge:run_schedule_overdue_seconds
+        expr: >-
+          max by (cluster, job, domain) (dataforge_run_schedule_overdue_age_seconds{job="dataforge-run"}
+          and on (cluster, job, instance, domain) dataforge:run_sample:fresh)
+      - alert: DataForgeRunTargetDown
+        expr: >-
+          up{job="dataforge-run"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DataForge metrics target is unreachable"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunMetricsMissing
+        expr: >-
+          (up{job="dataforge-run"} == 1 unless on (cluster, job, instance) (count by (cluster, job, instance) (dataforge_run_metrics_available{job="dataforge-run",domain=~"ETL|ACCESS"}) == 2))
+          or (up{job="dataforge-run"} == 1 unless on (cluster, job, instance) (count by (cluster, job, instance) (dataforge_run_metrics_age_seconds{job="dataforge-run",domain=~"ETL|ACCESS"}) == 2))
+          or (up{job="dataforge-run"} == 1 unless on (cluster, job, instance) (count by (cluster, job, instance) (dataforge_run_capacity_limit{job="dataforge-run",scope=~"tenant|datasource"}) == 2))
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DataForge run metrics are missing or the node version is inconsistent"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunSampleUnavailable
+        expr: >-
+          (dataforge_run_metrics_available{job="dataforge-run"} != 1
+          or dataforge_run_metrics_age_seconds{job="dataforge-run"} > 90
+          or dataforge_run_metrics_age_seconds{job="dataforge-run"} < 0
+          or dataforge_run_metrics_age_seconds{job="dataforge-run"} != dataforge_run_metrics_age_seconds{job="dataforge-run"})
+          and on (cluster, job, instance) (up{job="dataforge-run"} == 1)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge database observation is unavailable or stale"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunCapacityConfigMismatch
+        expr: >-
+          max by (cluster, job, scope) (dataforge_run_capacity_limit{job="dataforge-run"} and on (cluster, job, instance) (up{job="dataforge-run"} == 1)) != min by (cluster, job, scope) (dataforge_run_capacity_limit{job="dataforge-run"} and on (cluster, job, instance) (up{job="dataforge-run"} == 1))
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DataForge nodes disagree on shared capacity limits"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunQueueDelayed
+        expr: >-
+          dataforge:run_queue_age_seconds > 300 and dataforge:run_queued > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge accepted runs have waited beyond the queue budget"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunUnknownUnresolved
+        expr: >-
+          dataforge:run_unknown > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge has unresolved UNKNOWN runs; do not blindly replay them"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunReviewRequired
+        expr: >-
+          dataforge:run_review_required > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge run evidence requires operator review"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunStopDelayed
+        expr: >-
+          dataforge:run_stop_age_seconds > 120 and dataforge:run_stop_pending > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DataForge cancellation has no confirmed physical exit"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunLeaseRecoveryDelayed
+        expr: >-
+          dataforge:run_lease_expired > 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DataForge expired execution leases are not recovering"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunScheduleDelayed
+        expr: >-
+          dataforge:run_schedule_overdue_seconds > 120
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge schedules remain overdue"
+          runbook: docs/operations/dataforge-run-capacity.md
+      - alert: DataForgeRunScanFailures
+        expr: >-
+          sum by (cluster, job, domain, phase) (increase(dataforge_run_scan_failures_total{job="dataforge-run"}[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DataForge coordinator scans are repeatedly failing"
+          runbook: docs/operations/dataforge-run-capacity.md

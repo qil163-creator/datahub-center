@@ -1,0 +1,33 @@
+{
+  "verifiedAt": "2026-11-02T15:08:00+08:00",
+  "frontendPort": 5999,
+  "dataforgePort": 50024,
+  "dolphinSchedulerPort": 12345,
+  "jobId": "12",
+  "originalJobId": "11",
+  "savedDevelopmentNodePriority": "HIGHEST",
+  "unchangedIntegrationNodePriority": "MEDIUM",
+  "reloadPriorityVerified": true,
+  "sqlConfigurationVisible": true,
+  "uncategorizedTasks": 5,
+  "jobScheduleSwitches": [
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "activeInstances": 0,
+  "additionalServices": 0,
+  "limitation": "原隔离测试数据库连接 10/11/12 保持停止，元数据查询提示失败；当前副本是配置验收数据，不将其视为正常环境新执行证据。",
+  "checks": {
+    "backendFocused": 42,
+    "frontendFullBeforeFinalUiFixes": 3729,
+    "frontendFinalFocused": 9,
+    "typecheck": "PASS",
+    "build": "PASS",
+    "cssStylelint": "PASS",
+    "changedFilesLint": "PASS",
+    "wholeRepositoryGate": "BLOCKED_BY_CONCURRENT_CONNECTOR_TEST_TITLE_LINT"
+  }
+}

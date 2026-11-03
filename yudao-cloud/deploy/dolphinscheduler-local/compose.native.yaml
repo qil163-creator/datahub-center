@@ -1,0 +1,15 @@
+services:
+  standalone:
+    image: datahub/dolphinscheduler-native-local:3.4.2
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    command: ["/opt/datahub-native-runtime/start.sh"]
+    volumes:
+      - native-state:/var/lib/datahub-native-runtime
+      - ./runtime/native-tls/ca.pem:/run/datahub-native-runtime-tls-source/ca.pem:ro
+      - ./runtime/native-tls/server.pem:/run/datahub-native-runtime-tls-source/server.pem:ro
+      - ./runtime/native-tls/server-key.pem:/run/datahub-native-runtime-tls-source/server-key.pem:ro
+
+volumes:
+  native-state:

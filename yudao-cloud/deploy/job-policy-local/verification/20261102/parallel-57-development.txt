@@ -1,0 +1,54 @@
+2026-11-02 12:01:34.455 INFO  - 🐬 Initialize Task Context
+2026-11-02 12:01:34.456 INFO  - TenantCode: datahub check successfully
+2026-11-02 12:01:34.457 INFO  - TaskInstance working directory: /tmp/dolphinscheduler/exec/process/93 create successfully
+2026-11-02 12:01:34.457 INFO  - Download resources successfully: ResourceContext(resourceItemMap={})
+2026-11-02 12:01:34.457 INFO  - 🐬 Load Task Instance Plugin
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.460 INFO  - Initialized physicalTask: SQL successfully
+2026-11-02 12:01:34.460 INFO  - Set taskVarPool: null successfully
+2026-11-02 12:01:34.460 INFO  - 🐬 Execute Task Instance
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.460 INFO  - sql type : POSTGRESQL, datasource : 4, sql : SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.484 INFO  - after replace sql , preparing : SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.494 INFO  - main statement execute query, for sql: SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.496 INFO  - display sql result 1 rows as follows:
+*** [日志续行已隐藏]
+2026-11-02 12:01:34.702 INFO  - 🐬 Finalize Task Instance
+2026-11-02 12:01:34.703 INFO  - FINALIZE_SESSION
+2026-11-02 12:01:34.703 INFO  - Deleted task exec directory: /tmp/dolphinscheduler/exec/process/93
+

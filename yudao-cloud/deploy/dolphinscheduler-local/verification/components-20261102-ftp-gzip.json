@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "scope": "real pyftpdlib2.2.0 + CommonsNet3.13 worker probe + real Spark3.5.6 compiler SQL",
+  "managementApiAccepted": false,
+  "checks": {
+    "network_stou_jail_and_factory_secret": {
+      "passed": true,
+      "exitCode": 0,
+      "outputSha256": "7a1ae8664e733ba679d9cf8c6021c7a422bec5f17d7729d1704f9d77409d1373"
+    },
+    "gzip": {
+      "passed": true,
+      "exitCode": 0,
+      "rows": [
+        {
+          "id": "9007199254740993",
+          "label": "河道😀,\nO'Reilly\"",
+          "amount": "123456.120000000000000001",
+          "flag": true,
+          "day": "2026-11-02",
+          "observed": "2026-11-02 08:01:02.123456"
+        },
+        {
+          "id": "9007199254740994",
+          "label": "",
+          "flag": false
+        }
+      ],
+      "sqlSha256": "4ce014c048bcbea59b454420fe666170281dc855e077bf62edded7ba5b2e30da",
+      "outputSha256": "963d3177dc4468514065c75195c46773ca6aba2c07449626ef19d7a75807269b"
+    }
+  }
+}

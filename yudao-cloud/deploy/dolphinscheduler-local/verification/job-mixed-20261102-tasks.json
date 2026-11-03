@@ -1,0 +1,26 @@
+{
+  "suffix": "20261101_233720",
+  "phase": "READY",
+  "integrationCategoryId": 1001,
+  "devDirectoryId": 36,
+  "jobCategoryId": 12,
+  "integrationTaskId": 1001,
+  "integrationDefinitionCode": "188537133844448",
+  "developmentTaskId": 12,
+  "developmentVersionId": 15,
+  "jobId": 11,
+  "jobCheck": {
+    "errors": [],
+    "executable": true,
+    "valid": true
+  },
+  "jobName": "codex_job_e2e_真实混合验收_20261101_233720",
+  "integrationName": "codex_job_e2e_集成PG搬数_20261101_233720",
+  "developmentName": "codex_job_e2e_开发只读核验_20261101_233720",
+  "jobRevision": 4,
+  "requestId": "codex_job_e2e_20261101_233720_parallel",
+  "cronEnabled": false,
+  "strategy": "PARALLEL",
+  "stoppedAttemptRecordId": 4,
+  "stoppedAttemptDsId": 49
+}

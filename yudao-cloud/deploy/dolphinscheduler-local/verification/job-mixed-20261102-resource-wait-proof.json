@@ -1,0 +1,7 @@
+{
+  "dsInstanceId": 50,
+  "firstObservedState": "SUBMITTED_SUCCESS",
+  "taskCount": 0,
+  "cause": "DS Master load protection rejected command consumption; system memory over default80% threshold",
+  "logSummary": "[WI-0][TI-0] - 2026-11-02 00:04:55.415 INFO  [MasterHeartBeatTask] o.a.d.m.m.BaseServerLoadProtection:[61] - OverLoad: the SystemMemoryUsedPercentage: 0.8844080739373864 is over then the maxSystemMemoryUsagePercentageThresholds 0.8\n[WI-0][TI-0] - 2026-11-02 00:04:55.419 INFO  [MasterCommandLoopThread] o.a.d.m.m.BaseServerLoadProtection:[61] - OverLoad: the SystemMemoryUsedPercentage: 0.8844080739373864 is over then the maxSystemMemoryUsagePercentageThresholds 0.8\n[WI-0][TI-0] - 2026-11-02 00:04:55.419 WARN  [MasterCommandLoopThread] o.a.d.s.m.e.c.CommandEngine:[128] - The current server is overload, cannot consumes commands.\n[WI-0][TI-0] - 2026-11-02 00:04:55.684 INFO  [WorkerHeartBeatTask] o.a.d.m.m.BaseServerLoadProtection:[61] - OverLoad: the SystemMemoryUsedPercentage: 0.8862075571399938 is over then the maxSystemMemoryUsagePercentageThresholds 0.8"
+}

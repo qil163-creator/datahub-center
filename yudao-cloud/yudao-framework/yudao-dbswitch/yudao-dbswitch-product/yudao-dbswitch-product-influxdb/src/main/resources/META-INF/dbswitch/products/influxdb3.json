@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "product": "INFLUXDB3",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.influxdb3.Influxdb3ProductProvider",
+  "artifact": "yudao-dbswitch-product-influxdb",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "NATIVE_CORE_TABLE_MANAGEMENT_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "DURABLE_BOUNDED_WHOLE_TABLE_REWRITE_WITH_EXCLUSIVE_OWNERSHIP"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "INFLUX_PINNED_FIXED_UPPER_NANOSECOND_TAGSET_KEYSET_WITHOUT_SNAPSHOT"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "INFLUX_NATIVE_TAGSET_TIME_FIELD_MERGE_REQUEST_ACKNOWLEDGED"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "INFLUXDB3"
+  ]
+}

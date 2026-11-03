@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-11-02T13:56:26+0800",
+  "engine": "Spark 3.5.6 native SQL",
+  "hdfs": "Apache Hadoop 3.4.1",
+  "root": "hdfs://hdfs-native-namenode:8020/datahub_components",
+  "fixtureDirectory": "/datahub_components/hdfs_acceptance_f4b2ff8f18b0",
+  "cases": [
+    {
+      "name": "csv-gzip",
+      "exitCode": 0,
+      "sqlSha256": "c2669fb22c931cc6a17c6f6cf1250ed2df7f684f43e7d3dd769e788f80dd2006",
+      "file": "/datahub_components/hdfs_acceptance_f4b2ff8f18b0/csv-gzip/measurements-01c06431-1ddd-4dce-8f9f-709c0888ae73-0-0.csv.gz",
+      "decodedTextSha256": "3b0e473c8d7addbf0d297145f3901391d477896387e5c17fc483e8e94ce9bfe3",
+      "exactLargeIntegerAndDecimal": true,
+      "date": "2026-11-02",
+      "existingFileUnchanged": true,
+      "fileNamePrefixApplied": true,
+      "csvEmptyStringAndNullDiffer": true
+    },
+    {
+      "name": "csv-gbk",
+      "exitCode": 0,
+      "sqlSha256": "70ac52f834cd32b6e7dce981f833618189672f4a7607e95ce8c63af9561c90fb",
+      "file": "/datahub_components/hdfs_acceptance_f4b2ff8f18b0/csv-gbk/measurements-12634cf1-3b16-48eb-9040-febc87b0fdf4-0-0.csv",
+      "decodedTextSha256": "3b0e473c8d7addbf0d297145f3901391d477896387e5c17fc483e8e94ce9bfe3",
+      "exactLargeIntegerAndDecimal": true,
+      "date": "2026-11-02",
+      "existingFileUnchanged": true,
+      "fileNamePrefixApplied": true,
+      "csvEmptyStringAndNullDiffer": true
+    },
+    {
+      "name": "text-bzip2",
+      "exitCode": 0,
+      "sqlSha256": "b7165b4c33b5c820d0830d9a184258031b87e395d131a0c1248d9f7dccba7c00",
+      "file": "/datahub_components/hdfs_acceptance_f4b2ff8f18b0/text-bzip2/measurements-82d03590-8c87-47ce-ab8a-1c61b42485e7-0-0.txt.bz2",
+      "decodedTextSha256": "45e60b38c169474ddbdc06e187a0d5f5467da382b58e36598f2d4387d5b4b655",
+      "exactLargeIntegerAndDecimal": true,
+      "date": "2026-11-02",
+      "existingFileUnchanged": true,
+      "fileNamePrefixApplied": true,
+      "csvEmptyStringAndNullDiffer": false
+    },
+    {
+      "name": "bad-type",
+      "exitCode": 1,
+      "rejected": true,
+      "sqlSha256": "928c54476bf2c6ce946a39f4e841838ca2d174609b61135f4fa38733f912e9b6"
+    },
+    {
+      "name": "ungranted-root",
+      "exitCode": 1,
+      "rejected": true,
+      "sqlSha256": "644e9a0db1fc1dd666eb64c9abf29edbb499644d4732feb3a4e0d67f4b16b678"
+    },
+    {
+      "name": "ambiguous-text",
+      "exitCode": 1,
+      "rejected": true,
+      "sqlSha256": "cb0a2347cc750126bdd3c5355086d1f053ca195ae0989df30d4c8550a74ae289"
+    }
+  ],
+  "limits": [
+    "原生引擎与真实HDFS端到端，不声明本次管理端触发验收",
+    "只创建新数据文件；文件名包含前缀、作业UUID与分片编号；不提供跨作业恰好一次或提交中断全局回滚",
+    "无Kerberos受管测试环境；snappy/lzo需要独立确认的原生编解码器"
+  ]
+}

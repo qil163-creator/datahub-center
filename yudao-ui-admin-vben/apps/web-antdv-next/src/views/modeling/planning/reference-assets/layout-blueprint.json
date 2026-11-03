@@ -1,0 +1,44 @@
+{
+  "referenceCanvas": {
+    "width": 3594,
+    "height": 1787
+  },
+  "measurementViewport": {
+    "width": 2048,
+    "height": 1018
+  },
+  "scale": 1.7548828125,
+  "retainedRegion": "项目导航",
+  "businessRegion": {
+    "x": 193,
+    "y": 94,
+    "width": 1837,
+    "height": 924
+  },
+  "sections": [
+    {
+      "name": "guide",
+      "y": 94,
+      "height": 55
+    },
+    {
+      "name": "filters",
+      "y": 161,
+      "height": 53
+    },
+    {
+      "name": "table",
+      "y": 227,
+      "height": 791
+    }
+  ],
+  "subjectSidebar": {
+    "width": 240,
+    "gap": 12
+  },
+  "modalWidths": {
+    "domain": 666,
+    "naming": 838,
+    "subject": 598
+  }
+}

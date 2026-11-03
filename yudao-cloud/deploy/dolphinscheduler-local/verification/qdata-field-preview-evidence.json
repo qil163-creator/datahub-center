@@ -1,0 +1,122 @@
+[
+  {
+    "file": "/tmp/qdata-rea-analysis/index-5CNfT-KX.js",
+    "sha256": "68f2f0a42f83eb45932b84f586826b6ce79186a3a6837260b4ee17e36570e160",
+    "term": "e.data.taskParams.type!==P.INPUT",
+    "utf8ByteOffset": 56376,
+    "oneBasedLine": 2,
+    "excerpt": ":\"删除节点\",action:()=>{Is(r.value,[e],i)}},{label:\"编辑节点\",action:()=>{Fs({node:e}),i==null||i.hide()}}];e.data.taskParams.type!==P.INPUT&&n.push({label:\"显示输入字段\",action:()=>{const _=e.data.taskParams.inputFields;!Array.isArray(_)||_.length===0?Gs.warning(\"无法找到输入字段\"):Ns(_,e,\"输入字段\"),i==null||i.hide()}}),n.push({label:\"显示输出字段\",action:()=>{const _=F(e);!Array.isArray(_)||_.length===0?Gs.warning(\"无法找到输出字段\"):Ns(_,e,\"输出字段\"),i==null||i.hide()}}),i=Us({x:o.x,y:o.y,menuItems:n,container:l})}function be({edge:s}){if(!D.value){x.value=!0;const e=s.getSourceCell(),t=s.getTargetCell(),o=Qo(e,t,r.value,s);if(!o.valid){r.value.removeEdge(s),w.$m"
+  },
+  {
+    "file": "/tmp/qdata-rea-analysis/index-5CNfT-KX.js",
+    "sha256": "68f2f0a42f83eb45932b84f586826b6ce79186a3a6837260b4ee17e36570e160",
+    "term": "const _=e.data.taskParams.inputFields",
+    "utf8ByteOffset": 56457,
+    "oneBasedLine": 2,
+    "excerpt": "{node:e}),i==null||i.hide()}}];e.data.taskParams.type!==P.INPUT&&n.push({label:\"显示输入字段\",action:()=>{const _=e.data.taskParams.inputFields;!Array.isArray(_)||_.length===0?Gs.warning(\"无法找到输入字段\"):Ns(_,e,\"输入字段\"),i==null||i.hide()}}),n.push({label:\"显示输出字段\",action:()=>{const _=F(e);!Array.isArray(_)||_.length===0?Gs.warning(\"无法找到输出字段\"):Ns(_,e,\"输出字段\"),i==null||i.hide()}}),i=Us({x:o.x,y:o.y,menuItems:n,container:l})}function be({edge:s}){if(!D.value){x.value=!0;const e=s.getSourceCell(),t=s.getTargetCell(),o=Qo(e,t,r.value,s);if(!o.valid){r.value.removeEdge(s),w.$modal.msgWarning(o.message);return}ke(e,t,s)}}function ke(s,e,t){var i,n;cs"
+  },
+  {
+    "file": "/tmp/qdata-rea-analysis/index-5CNfT-KX.js",
+    "sha256": "68f2f0a42f83eb45932b84f586826b6ce79186a3a6837260b4ee17e36570e160",
+    "term": "const _=F(e)",
+    "utf8ByteOffset": 56657,
+    "oneBasedLine": 2,
+    "excerpt": "h===0?Gs.warning(\"无法找到输入字段\"):Ns(_,e,\"输入字段\"),i==null||i.hide()}}),n.push({label:\"显示输出字段\",action:()=>{const _=F(e);!Array.isArray(_)||_.length===0?Gs.warning(\"无法找到输出字段\"):Ns(_,e,\"输出字段\"),i==null||i.hide()}}),i=Us({x:o.x,y:o.y,menuItems:n,container:l})}function be({edge:s}){if(!D.value){x.value=!0;const e=s.getSourceCell(),t=s.getTargetCell(),o=Qo(e,t,r.value,s);if(!o.valid){r.value.removeEdge(s),w.$modal.msgWarning(o.message);return}ke(e,t,s)}}function ke(s,e,t){var i,n;cs(e,r.value),((i=s.data)==null?void 0:i.componentType)===\"CONDITION_DISTRIBUTE\"&&Te(s,e),is(e,r.value).forEach(_=>{var f;(f=_.data)!=null&&f"
+  },
+  {
+    "file": "/tmp/qdata-rea-analysis/index-5CNfT-KX.js",
+    "sha256": "68f2f0a42f83eb45932b84f586826b6ce79186a3a6837260b4ee17e36570e160",
+    "term": "T.query.info||r.value.on(\"node:contextmenu\"",
+    "utf8ByteOffset": 53756,
+    "oneBasedLine": 2,
+    "excerpt": "(\"node:added\",me),r.value.on(\"node:mouseenter\",()=>Ms(!0)),r.value.on(\"node:mouseleave\",()=>Ms(!1)),T.query.info||r.value.on(\"node:contextmenu\",fe),r.value.on(\"edge:connected\",be),r.value.on(\"edge:contextmenu\",Ce),r.value.on(\"node:dblclick\",Fs)}function ve({cell:s}){const e=s.prop(\"attrs/line/stroke\");ms();const t=e===\"#D3D8EA\"?\"#2666FB\":\"#D3D8EA\";s.prop(\"attrs/line/stroke\",t),ts.value=s}async function me({node:s}){var e;if(s.data.code||(s.data.code=await Go()),s.data.code=String(s.data.code),!D.value){x.value=!0,R.value={},Ds.value={};const t=es(g.value.draftJson),o=(e=s.data.taskParams)==null?void 0:e.type;if(t===Cs.FLINK&&(o===P.INP"
+  },
+  {
+    "file": "/tmp/qdata-rea-analysis/index-5CNfT-KX.js",
+    "sha256": "68f2f0a42f83eb45932b84f586826b6ce79186a3a6837260b4ee17e36570e160",
+    "term": "v=b.map(c=>({...c,source:s.name||\"\"}))",
+    "utf8ByteOffset": 50021,
+    "oneBasedLine": 2,
+    "excerpt": ",n=s.name||\"\",_=i!==n,f=s.taskParams||{},h=f.type,b=f.tableFields||[];let v=[],p=[];if(h===P.INPUT?(v=b.map(c=>({...c,source:s.name||\"\"})),p=v):h===P.OUTPUT?o.length>0&&(v=[],o.forEach(c=>{v=v.concat(F(c,e))}),p=(f.outputFields||[]).map(c=>({...c,source:s.name||\"\"}))):(p=f.outputFields||[],o.length>0&&(v=[],o.forEach(c=>{v=v.concat(F(c,e))}))),_){const c=E=>E.map(Q=>{let A=Q.source;return A===i?A=n:A===`${i}(True组件字段)`?A=`${n}(True组件字段)`:A===`${i}(False组件字段)`&&(A=`${n}(False组件字段)`),{...Q,source:A}});v=c(v),p=c(p)}const I=((M=t.taskParams)==null?void 0:M.outputFields)||[],d=!Ho(p,I),O={...t,...s,taskParams:{...t.taskParams,...f,inp"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/opBase-BNyha8yA.js",
+    "sha256": "e0f90ebd3ed1c5df9ec40ebf29788cf7360498713b76be217a4aa427a6b8b1db",
+    "term": "function W0(e,M=null)",
+    "utf8ByteOffset": 129345,
+    "oneBasedLine": 1,
+    "excerpt": ".push(i)});const j=[...g.map(i=>i.left),...o],c=[...g.map(i=>i.right),...L];return{left:j,right:c}};function W0(e,M=null){var I,g,l,N;const a=((I=e==null?void 0:e.getProp)==null?void 0:I.call(e,\"data\"))||(e==null?void 0:e.data)||{},t=(a==null?void 0:a.taskParams)||{};if(a.componentType===\"CONDITION_DISTRIBUTE\"&&M){const o=((l=(g=M==null?void 0:M.getProp)==null?void 0:g.call(M,\"data\"))==null?void 0:l.code)||((N=M==null?void 0:M.data)==null?void 0:N.code)||(M==null?void 0:M.id);let L=[],j=\"\";if(o===t.trueTaskTaskCode?(L=t.trueOutputFields&&t.trueOutputFields.length>0?t.trueOutputFields:t.inputFields||[],j=\"(True组件字段"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/opBase-BNyha8yA.js",
+    "sha256": "e0f90ebd3ed1c5df9ec40ebf29788cf7360498713b76be217a4aa427a6b8b1db",
+    "term": "g0=(e,M)=>",
+    "utf8ByteOffset": 115986,
+    "oneBasedLine": 1,
+    "excerpt": "},attrs:{line:{stroke:\"#D3D8EA\",strokeWidth:1,targetMarker:{name:\"block\",width:12,height:8}}}})}})},g0=(e,M)=>{e=Array.isArray(e)?e:[],M=Array.isArray(M)?M:[];const a=[],t=[],n=Math.min(e.length,M.length);for(let I=0;I<n;I++){const g=e[I],l=M[I];g.isChecked&&l.isChecked&&(a.push(l.columnName),t.push(g.columnName))}return{target_columns:a,columns:t}},h0=async e=>{const M=JSON.parse(JSON.stringify(e.getNodes())),a=JSON.parse(JSON.stringify(e.getEdges())),t=a.reduce((L,j)=>(L[j.target.cell]=!0,L),{}),n=L=>!t[L],I=[],g={},l=[],N=M.filter(L=>L.shape===\"vue-node\").sort((L,j)=>{var c,i,u,s,D,A,r,m,C,p,E,O;retu"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/opBase-BNyha8yA.js",
+    "sha256": "e0f90ebd3ed1c5df9ec40ebf29788cf7360498713b76be217a4aa427a6b8b1db",
+    "term": "t.engine.includes(e)?t.disabled=!1:t.disabled=!0",
+    "utf8ByteOffset": 111367,
+    "oneBasedLine": 1,
+    "excerpt": "tasource:{datasourceId:\"\"}}}]}],m0=e=>{var M=[...f];return M.map(a=>{a.children&&a.children.map(t=>{t.engine.includes(e)?t.disabled=!1:t.disabled=!0}),a.engine.includes(e)?a.disabled=!1:a.disabled=!0}),M},V=e=>{if(!e)return null;const M=String(e).trim();for(const a of f)if(a.children){const t=a.children.find(n=>String(n.componentType).trim()==M);if(t)return t.icon}return null},J=e=>{if(!e)return{};const M=String(e).trim();for(const a of f)if(a.children){const t=a.children.find(n=>String(n.componentType).trim()==M);if(t)return t.defaultParams||{}}return{}},s0=e=>{if(!e)return null;const M=String(e).trim();for(const a of f)if(a.children){cons"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldPreview-BOi-nANL.js",
+    "sha256": "2c22c6d881fa29cd7ef59ade02a7542928e72d238d0e04937010c229418651fc",
+    "term": "title:\"步骤里的字段和其来源\"",
+    "utf8ByteOffset": 1973,
+    "oneBasedLine": 1,
+    "excerpt": "-divider\"),p=n(\"el-table-column\"),w=n(\"el-table\"),h=n(\"el-button\"),x=n(\"el-dialog\");return k(),B(x,{title:\"步骤里的字段和其来源\",modelValue:m(s),\"onUpdate:modelValue\":o[0]||(o[0]=t=>C(s)?s.value=t:null),width:\"800px\",\"append-to\":_.$refs[\"app-container\"],draggable:\"\",\"destroy-on-close\":\"\"},{footer:e(()=>[l(\"div\",I,[a(h,{onClick:v},{default:e(()=>[...o[3]||(o[3]=[r(\"关 闭\",-1)])]),_:1})])]),default:e(()=>[l(\"div\",D,[o[1]||(o[1]=l(\"span\",{class:\"label\"},\"步骤名称：\",-1)),l(\"span\",T,i(m(c).name||\"-\"),1)]),a(f,{\"content-position\":\"center\"},{default:e(()=>[l(\"span\",F,i(m(g)),1)]),_:1}),a(w,{stripe:\"\",height:\"420px\",data:m(u)},{empty:"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldPreview-BOi-nANL.js",
+    "sha256": "2c22c6d881fa29cd7ef59ade02a7542928e72d238d0e04937010c229418651fc",
+    "term": "t.row.length||\"-\"",
+    "utf8ByteOffset": 3110,
+    "oneBasedLine": 1,
+    "excerpt": ",1)]),_:1}),a(p,{label:\"字段长度\",align:\"left\",prop:\"length\",width:\"70\",sortable:\"\"},{default:e(t=>[r(i(t.row.length||\"-\"),1)]),_:1}),a(p,{label:\"字段精度\",align:\"left\",prop:\"precision\",width:\"70\",sortable:\"\"},{default:e(t=>[r(i(t.row.precision||\"-\"),1)]),_:1}),a(p,{label:\"步骤来源\",align:\"left\",prop:\"source\",\"show-overflow-tooltip\":{effect:\"light\"}},{default:e(t=>[r(i(t.row.source||\"-\"),1)]),_:1})]),_:1},8,[\"data\"])]),_:1},8,[\"modelValue\",\"append-to\"])}}}),yo=y(R,[[\"__scopeId\",\"data-v-e3b55bda\"]]);export{yo as default};\n"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldPreview-BOi-nANL.js",
+    "sha256": "2c22c6d881fa29cd7ef59ade02a7542928e72d238d0e04937010c229418651fc",
+    "term": "t.row.precision||\"-\"",
+    "utf8ByteOffset": 3239,
+    "oneBasedLine": 1,
+    "excerpt": "]),_:1}),a(p,{label:\"字段精度\",align:\"left\",prop:\"precision\",width:\"70\",sortable:\"\"},{default:e(t=>[r(i(t.row.precision||\"-\"),1)]),_:1}),a(p,{label:\"步骤来源\",align:\"left\",prop:\"source\",\"show-overflow-tooltip\":{effect:\"light\"}},{default:e(t=>[r(i(t.row.source||\"-\"),1)]),_:1})]),_:1},8,[\"data\"])]),_:1},8,[\"modelValue\",\"append-to\"])}}}),yo=y(R,[[\"__scopeId\",\"data-v-e3b55bda\"]]);export{yo as default};\n"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldPreview-BOi-nANL.js",
+    "sha256": "2c22c6d881fa29cd7ef59ade02a7542928e72d238d0e04937010c229418651fc",
+    "term": "t.row.source||\"-\"",
+    "utf8ByteOffset": 3386,
+    "oneBasedLine": 1,
+    "excerpt": "abel:\"步骤来源\",align:\"left\",prop:\"source\",\"show-overflow-tooltip\":{effect:\"light\"}},{default:e(t=>[r(i(t.row.source||\"-\"),1)]),_:1})]),_:1},8,[\"data\"])]),_:1},8,[\"modelValue\",\"append-to\"])}}}),yo=y(R,[[\"__scopeId\",\"data-v-e3b55bda\"]]);export{yo as default};\n"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldDetection-D13bnv3j.js",
+    "sha256": "c36cccde70b26c9e54ba1f08f9828d679aad68332cefcde8a4ada2a1935d716d",
+    "term": "addNewOnly",
+    "utf8ByteOffset": 809,
+    "oneBasedLine": 1,
+    "excerpt": "stroy-on-close\":\"\",class:\"MessageBox\"},{footer:o(()=>[d(n,{type:\"warning\",onClick:e[0]||(e[0]=s=>u(\"addNewOnly\"))},{default:o(()=>[...e[4]||(e[4]=[i(\"增加新的\",-1)])]),_:1}),d(n,{type:\"primary\",onClick:e[1]||(e[1]=s=>u(\"addAll\"))},{default:o(()=>[...e[5]||(e[5]=[i(\"增加所有\",-1)])]),_:1}),d(n,{type:\"danger\",onClick:e[2]||(e[2]=s=>u(\"clearAndAddAll\"))},{default:o(()=>[...e[6]||(e[6]=[i(\"清除并增加所有\",-1)])]),_:1}),d(n,{onClick:V},{default:o(()=>[...e[7]||(e[7]=[i(\"取消\",-1)])]),_:1})]),default:o(()=>[C(\"div\",c,\" 已有 \"+p(a.existingFields.length)+\" 个字段，检测到 \"+p(Math.max(0,a.newFields.length-a.existingFields.length))+\" 个新字段"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldDetection-D13bnv3j.js",
+    "sha256": "c36cccde70b26c9e54ba1f08f9828d679aad68332cefcde8a4ada2a1935d716d",
+    "term": "addAll",
+    "utf8ByteOffset": 933,
+    "oneBasedLine": 1,
+    "excerpt": "default:o(()=>[...e[4]||(e[4]=[i(\"增加新的\",-1)])]),_:1}),d(n,{type:\"primary\",onClick:e[1]||(e[1]=s=>u(\"addAll\"))},{default:o(()=>[...e[5]||(e[5]=[i(\"增加所有\",-1)])]),_:1}),d(n,{type:\"danger\",onClick:e[2]||(e[2]=s=>u(\"clearAndAddAll\"))},{default:o(()=>[...e[6]||(e[6]=[i(\"清除并增加所有\",-1)])]),_:1}),d(n,{onClick:V},{default:o(()=>[...e[7]||(e[7]=[i(\"取消\",-1)])]),_:1})]),default:o(()=>[C(\"div\",c,\" 已有 \"+p(a.existingFields.length)+\" 个字段，检测到 \"+p(Math.max(0,a.newFields.length-a.existingFields.length))+\" 个新字段，如何处理？ \",1)]),_:1},8,[\"modelValue\"])}}};export{F as default};\n"
+  },
+  {
+    "file": "/tmp/qdata-rea-audit-supplement/fieldDetection-D13bnv3j.js",
+    "sha256": "c36cccde70b26c9e54ba1f08f9828d679aad68332cefcde8a4ada2a1935d716d",
+    "term": "clearAndAddAll",
+    "utf8ByteOffset": 1052,
+    "oneBasedLine": 1,
+    "excerpt": "{default:o(()=>[...e[5]||(e[5]=[i(\"增加所有\",-1)])]),_:1}),d(n,{type:\"danger\",onClick:e[2]||(e[2]=s=>u(\"clearAndAddAll\"))},{default:o(()=>[...e[6]||(e[6]=[i(\"清除并增加所有\",-1)])]),_:1}),d(n,{onClick:V},{default:o(()=>[...e[7]||(e[7]=[i(\"取消\",-1)])]),_:1})]),default:o(()=>[C(\"div\",c,\" 已有 \"+p(a.existingFields.length)+\" 个字段，检测到 \"+p(Math.max(0,a.newFields.length-a.existingFields.length))+\" 个新字段，如何处理？ \",1)]),_:1},8,[\"modelValue\"])}}};export{F as default};\n"
+  }
+]

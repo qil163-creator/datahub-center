@@ -1,0 +1,164 @@
+{
+  "read-db": [
+    "SPARK",
+    "FLINK",
+    "DATAX"
+  ],
+  "read-odps": [
+    "SPARK"
+  ],
+  "read-excel": [
+    "SPARK"
+  ],
+  "read-csv": [
+    "SPARK"
+  ],
+  "read-json": [
+    "SPARK"
+  ],
+  "read-kafka": [
+    "SPARK",
+    "FLINK"
+  ],
+  "read-hive": [
+    "SPARK"
+  ],
+  "read-hdfs": [
+    "SPARK"
+  ],
+  "rest-api": [
+    "SPARK"
+  ],
+  "read-mongodb": [
+    "SPARK"
+  ],
+  "read-redis": [
+    "SPARK"
+  ],
+  "read-rabbitmq": [
+    "SPARK"
+  ],
+  "read-tdengine": [
+    "SPARK",
+    "FLINK"
+  ],
+  "read-rocketmq": [
+    "SPARK"
+  ],
+  "read-ftp": [
+    "SPARK"
+  ],
+  "read-webservice": [
+    "SPARK"
+  ],
+  "java-script": [
+    "SPARK",
+    "FLINK"
+  ],
+  "custom-token": [
+    "SPARK",
+    "FLINK"
+  ],
+  "data-clean": [
+    "SPARK",
+    "FLINK"
+  ],
+  "multi-join": [
+    "SPARK"
+  ],
+  "sort-records": [
+    "SPARK"
+  ],
+  "field-split": [
+    "SPARK",
+    "FLINK"
+  ],
+  "field-derive": [
+    "SPARK"
+  ],
+  "dedup-records": [
+    "SPARK",
+    "FLINK",
+    "DATAX"
+  ],
+  "row-to-column": [
+    "SPARK",
+    "FLINK"
+  ],
+  "column-to-row": [
+    "SPARK",
+    "FLINK"
+  ],
+  "data-encrypt": [
+    "SPARK"
+  ],
+  "data-decrypt": [
+    "SPARK"
+  ],
+  "id-generator": [
+    "SPARK"
+  ],
+  "calculator": [
+    "SPARK"
+  ],
+  "value-map": [
+    "SPARK",
+    "FLINK"
+  ],
+  "add-constant": [
+    "SPARK"
+  ],
+  "number-range": [
+    "SPARK"
+  ],
+  "string-operation": [
+    "SPARK"
+  ],
+  "string-replace": [
+    "SPARK"
+  ],
+  "column-map": [
+    "SPARK"
+  ],
+  "set-field-value": [
+    "SPARK"
+  ],
+  "data-condition": [
+    "SPARK"
+  ],
+  "sub-pipeline": [
+    "SPARK"
+  ],
+  "insert-db": [
+    "SPARK",
+    "FLINK",
+    "DATAX"
+  ],
+  "write-odps": [
+    "SPARK"
+  ],
+  "write-hive": [
+    "SPARK"
+  ],
+  "write-hdfs": [
+    "SPARK"
+  ],
+  "write-mongodb": [
+    "SPARK"
+  ],
+  "write-redis": [
+    "SPARK"
+  ],
+  "write-rabbitmq": [
+    "SPARK"
+  ],
+  "write-kafka": [
+    "SPARK"
+  ],
+  "write-rocketmq": [
+    "SPARK"
+  ],
+  "write-ftp": [
+    "SPARK"
+  ]
+}

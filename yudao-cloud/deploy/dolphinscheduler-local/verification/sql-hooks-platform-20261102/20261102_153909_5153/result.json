@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "runId": "20261102_153909_5153",
+  "scope": "DataForge API -> normal DolphinScheduler -> PostgreSQL hooks V2",
+  "platformDatabaseId": "1",
+  "projectCode": "188590885122016",
+  "normalDsPort": 12345,
+  "additionalServices": 0,
+  "schedulesEnabled": 0,
+  "schema": "fill-center",
+  "tables": {
+    "src": "codex_phooks_src_20261102_153909_5153",
+    "target": "codex_phooks_target_20261102_153909_5153",
+    "audit": "codex_phooks_audit_20261102_153909_5153"
+  },
+  "runs": [],
+  "cleanup": {},
+  "sourceRows": 5,
+  "categoryId": "1002",
+  "error": "{\"path\": \"/create\", \"code\": 1500090001, \"message\": \"数据集成配置不合法：调度周期不是有效的 Quartz Cron 表达式\"}"
+}

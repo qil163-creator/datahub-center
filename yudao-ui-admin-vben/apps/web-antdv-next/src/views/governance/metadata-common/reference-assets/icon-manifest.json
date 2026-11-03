@@ -1,0 +1,463 @@
+{
+  "assets": [
+    {
+      "name": "query",
+      "file": "icons/query.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        1367,
+        318,
+        1393,
+        344
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "reset",
+      "file": "icons/reset.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        1482,
+        318,
+        1510,
+        346
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "search",
+      "file": "icons/search.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3332,
+        427,
+        3363,
+        459
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "refresh",
+      "file": "icons/refresh.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3402,
+        427,
+        3433,
+        459
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "grid",
+      "file": "icons/grid.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3468,
+        427,
+        3499,
+        459
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "edit",
+      "file": "icons/edit.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3172,
+        589,
+        3200,
+        617
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "detail",
+      "file": "icons/detail.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3270,
+        589,
+        3297,
+        617
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "more",
+      "file": "icons/more.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3367,
+        591,
+        3395,
+        618
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "folder",
+      "file": "icons/folder.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        377,
+        374,
+        407,
+        403
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "database",
+      "file": "icons/database.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        433,
+        452,
+        464,
+        483
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "doris",
+      "file": "icons/doris.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        407,
+        412,
+        438,
+        443
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "mysql",
+      "file": "icons/mysql.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        407,
+        490,
+        438,
+        521
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "hdfs",
+      "file": "icons/hdfs.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-88733ddd-7b43-45e5-9ed9-835636db10b6.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        405,
+        608,
+        436,
+        639
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "copy",
+      "file": "icons/copy.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-b6e28cf8-5fb7-4b07-ba8e-61724d2ceafe.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        2265,
+        191,
+        2297,
+        222
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "download",
+      "file": "icons/download.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-b66123a0-76d7-4e70-84ed-56b24ccb21a1.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3310,
+        469,
+        3341,
+        500
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "back",
+      "file": "icons/back.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-e0a2f0c4-17f7-4705-a32e-1a2689f8d312.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3419,
+        191,
+        3450,
+        222
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "instances",
+      "file": "icons/instances.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-ff7812f8-442f-4f43-afd8-25c40db18c6c.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3334,
+        780,
+        3365,
+        811
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "play",
+      "file": "icons/play.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-ff7812f8-442f-4f43-afd8-25c40db18c6c.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3334,
+        822,
+        3365,
+        853
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "delete",
+      "file": "icons/delete.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-ff7812f8-442f-4f43-afd8-25c40db18c6c.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3353,
+        863,
+        3384,
+        895
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "publish",
+      "file": "icons/publish.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        818,
+        427,
+        846,
+        455
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "unpublish",
+      "file": "icons/unpublish.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4f0d081e-6bd7-432d-9e21-5b6e181f1d14.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        933,
+        427,
+        961,
+        455
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "finalize",
+      "file": "icons/finalize.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f6e71856-7801-4a5e-92a1-8fb253900b57.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        2907,
+        665,
+        2934,
+        693
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "fields",
+      "file": "icons/fields.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-b7befdc9-4221-4281-8a56-154a4b6a3ded.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3219,
+        457,
+        3250,
+        488
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "warning",
+      "file": "icons/warning.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-b8302509-c504-4fe1-873b-f244ad86ef24.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        1482,
+        921,
+        1518,
+        957
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "settings",
+      "file": "icons/settings.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-0adc1ce9-0699-47b8-a89d-8c452baeeea5.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        3454,
+        413,
+        3485,
+        445
+      ],
+      "role": "decorative",
+      "alpha": "以裁切背景去底，保留原始抗锯齿颜色"
+    },
+    {
+      "name": "directory",
+      "file": "icons/directory.png",
+      "sourceReference": "E:\\AnJieCloud\\Workspace\\DevSpace\\datahub_projects\\project-git\\yudao-cloud\\target\\qdata-file-picker-reference.png",
+      "sourceSize": [
+        1920,
+        1000
+      ],
+      "sourceBox": [
+        615,
+        199,
+        636,
+        220
+      ],
+      "role": "decorative",
+      "alpha": "从REA采集的目录选择器参考裁切去底"
+    },
+    {
+      "name": "finalize-confirm",
+      "file": "icons/finalize-confirm.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-b8302509-c504-4fe1-873b-f244ad86ef24.png",
+      "sourceSize": [
+        3558,
+        1882
+      ],
+      "sourceBox": [
+        2910,
+        764,
+        2941,
+        797
+      ],
+      "role": "decorative",
+      "alpha": "原始加号文件图标裁切；按边缘灰底比例移除截图模态遮罩后去底"
+    }
+  ]
+}

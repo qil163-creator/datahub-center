@@ -1,0 +1,27 @@
+{
+  "server": "http://127.0.0.1:12345/dolphinscheduler",
+  "projectCode": "188507725745120",
+  "tenantCode": "datahub",
+  "workerGroup": "datahub-integration",
+  "checks": {
+    "execution": {
+      "workflowCode": "188509337369568",
+      "workflowInstanceId": 10,
+      "taskInstanceId": 10,
+      "state": "SUCCESS",
+      "markerInLog": true
+    },
+    "schedule": {
+      "id": 1,
+      "onlineAndOffline": true
+    },
+    "stop": {
+      "workflowInstanceId": 11,
+      "state": "FAILURE",
+      "workerOutputBeforeStop": true,
+      "processTreeExitConfirmed": true,
+      "reportedAsStop": false
+    }
+  },
+  "status": "PASS_WITH_DS_STOP_STATE_MISMATCH"
+}

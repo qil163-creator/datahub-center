@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-11-02T15:21:13+0800",
+  "scope": "正式Java编译/字段分析及受管DS执行参数摘要；引擎执行证据单独记录",
+  "fixtures": [
+    {
+      "path": "deploy/dolphinscheduler-local/verification/components-20261102-platform-crypto-ftp-flow.json",
+      "sha256": "05b5a5b80f9c984b5225e2c13a17958f897dccaea01e9bc3859a767d13b9a8ff"
+    },
+    {
+      "path": "deploy/dolphinscheduler-local/verification/components-20261102-platform-http-ftp-flow.json",
+      "sha256": "ad315880c93ad65acefbd2debfedbf95368bd5a827b3f76572f5139100d771d2"
+    },
+    {
+      "path": "deploy/dolphinscheduler-local/verification/components-20261102-ui-default-payloads.json",
+      "sha256": "8727e7513f804724d44ee23c1d8a5a7d6f079ec444e8a4564c24048329dddfe3",
+      "configCount": 11
+    }
+  ],
+  "before": {
+    "assertionFailures": 2,
+    "cases": [
+      "ftpEditorDottedResourceAndSecretReferencesReachNativeRenameInsert",
+      "soapEditorDottedResourceAndStringJsonDefaultsReachFormalNativePayload"
+    ],
+    "capturedLogSha256": "2b76164a0377435572c9e32e76c005a3b5ceb65f518a912bad7f61df1c8406d1"
+  },
+  "after": {
+    "sameNativeParameters": true,
+    "sameDsFingerprint": true,
+    "recursiveObjectKeysReversed": true,
+    "arrayAndPhysicalColumnOrderRetained": true,
+    "tests": [
+      {
+        "class": "IntegrationUiConnectorDefaultsCompilationTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "IntegrationManagedConnectorCompilationTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "IntegrationScriptPublicationCompilationTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "IntegrationTaskServiceTest",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "IntegrationFlowCompilerTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "IntegrationComponentCapabilitiesServiceTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      }
+    ]
+  },
+  "limits": [
+    "字段/绑定为隔离fixture；本报告不声明已通过管理端触发引擎任务",
+    "ODPS云端真实读写仍为OPEN，另见native-odps-wire-20261102.json"
+  ]
+}

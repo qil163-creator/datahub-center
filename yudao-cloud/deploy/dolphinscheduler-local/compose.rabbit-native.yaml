@@ -1,0 +1,24 @@
+services:
+  rabbit-native:
+    image: rabbitmq:4.1.4@sha256:45c46011117e65ff84bd5e48806af3e4c220161a1b6d670f934b5cee6e282711
+    hostname: rabbit-native
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: +S 2:2
+    volumes:
+      - ./rabbit-native-conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./runtime/rabbit-native/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - rabbit_native_data:/var/lib/rabbitmq
+    networks: [native_components]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    # 本机隔离验收只在已有 Docker 网络内通信，不发布宿主机端口。
+volumes:
+  rabbit_native_data:
+networks:
+  native_components:
+    external: true
+    name: datahub-ds-local_default

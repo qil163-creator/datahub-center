@@ -1,0 +1,13 @@
+services:
+  redis-native:
+    image: redis:8.2.3-alpine@sha256:08ad0b1d280850169a790dba1393ff7a90aef951fc19632cf4d3ce4f78e679ba
+    hostname: redis-native
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--aclfile", "/usr/local/etc/redis/users.acl"]
+    mem_limit: 256m
+    volumes:
+      - ./runtime/redis-fixture/users.acl:/usr/local/etc/redis/users.acl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping 2>&1 | grep -q NOAUTH"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

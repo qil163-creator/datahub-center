@@ -1,0 +1,3 @@
+# Disposable single-product functional tests only, not production availability settings.
+[replication]
+max-replicas = 1

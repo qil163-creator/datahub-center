@@ -1,0 +1,51 @@
+services:
+  rocket-native-store-init:
+    image: apache/rocketmq:5.3.2@sha256:4a80ff5cd4b0a3d3ef6dc338ce2028a85bd995648cb3aa5c3e753746d2dbc587
+    user: '0:0'
+    entrypoint: [sh, -c, 'mkdir -p /fixture-store/config && chown -R 3000:3000 /fixture-store && chmod 0750 /fixture-store']
+    volumes: [rocket_native_store:/fixture-store]
+    mem_limit: 64m
+    network_mode: none
+  rocket-native-namesrv:
+    image: apache/rocketmq:5.3.2@sha256:4a80ff5cd4b0a3d3ef6dc338ce2028a85bd995648cb3aa5c3e753746d2dbc587
+    hostname: rocket-native-namesrv
+    environment:
+      HEAP_OPTS: -Xms96m -Xmx128m -Xmn32m
+    command: [sh, mqnamesrv]
+    mem_limit: 256m
+    networks: [native_components]
+    healthcheck:
+      test: [CMD, bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/9876']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  rocket-native-broker:
+    image: apache/rocketmq:5.3.2@sha256:4a80ff5cd4b0a3d3ef6dc338ce2028a85bd995648cb3aa5c3e753746d2dbc587
+    hostname: rocket-native-broker
+    environment:
+      HEAP_OPTS: -Xms192m -Xmx256m -Xmn64m -XX:MaxDirectMemorySize=64m
+    command: [sh, mqbroker, -c, /home/rocketmq/rocketmq-5.3.2/conf/broker-native.conf]
+    depends_on:
+      rocket-native-namesrv:
+        condition: service_healthy
+      rocket-native-store-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./rocket-native-conf/broker-native.conf:/home/rocketmq/rocketmq-5.3.2/conf/broker-native.conf:ro
+      - ./runtime/rocket-native/plain_acl.yml:/home/rocketmq/rocketmq-5.3.2/conf/plain_acl.yml:ro
+      - ./runtime/rocket-native/tools.yml:/home/rocketmq/rocketmq-5.3.2/conf/tools.yml:ro
+      - rocket_native_store:/home/rocketmq/store
+    mem_limit: 512m
+    networks: [native_components]
+    healthcheck:
+      test: [CMD, bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/10911']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # 仅隔离 Docker 网络通信，不发布宿主机端口；生产绑定仍默认要求认证和 TLS。
+volumes:
+  rocket_native_store:
+networks:
+  native_components:
+    external: true
+    name: datahub-ds-local_default

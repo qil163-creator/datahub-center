@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "baseline": {
+    "path": "sql/postgresql/datahub-center.sql",
+    "included_through": "0144",
+    "source": "2026-10-11 user-authorized repair of the repository development/release starting point. Commit 1721e133b6d39d13698f4172b0a870c3153d6048 retired 0032-0132; commit d08b58e688849a43b25ebca7a0017b124118b88d already declares baseline 0144. Include the original local 0133-0143 files without rewriting SQL; only the two exact 0133 prerequisite edges are continued. See docs/ci/quality-gates.md. This declaration is not proof of any deployed database upgrade."
+  },
+  "dependencies": [
+    {
+      "dependent": "sql/postgresql/migrations/0133_modeling_drop-planning-change.sql",
+      "sha256": "2f515d0f2c7a3ce49a98d25a2435430097c5879d395a182ba1bfdc0e676da77d",
+      "missing_dependency": "0131_modeling_simplify-design-deploy.sql"
+    },
+    {
+      "dependent": "sql/postgresql/migrations/0133_modeling_drop-planning-change.sql",
+      "sha256": "2f515d0f2c7a3ce49a98d25a2435430097c5879d395a182ba1bfdc0e676da77d",
+      "missing_dependency": "0132_dataforge_database-password-ciphertext.sql"
+    }
+  ]
+}

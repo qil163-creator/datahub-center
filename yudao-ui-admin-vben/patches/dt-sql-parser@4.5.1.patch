@@ -1,0 +1,38 @@
+diff --git a/dist/parser/common/basicSQL.js b/dist/parser/common/basicSQL.js
+index 4f46b3b3d1c178571e4f2957b0e26033f552956b..8578d5967964312b7d0a8207594092129dee0c9e 100644
+--- a/dist/parser/common/basicSQL.js
++++ b/dist/parser/common/basicSQL.js
+@@ -418,7 +418,8 @@ export class BasicSQL {
+          * and c3 will collect candidates in the newly generated parseTree when input changed.
+          */
+         if (inputSlice !== input) {
+-            sqlParserIns = this.createParser(inputSlice);
++            // PATCH: no-op errorListener, see getAllEntities.
++            sqlParserIns = this.createParser(inputSlice, () => { });
+             parseTree = sqlParserIns.program();
+         }
+         return {
+@@ -533,7 +534,8 @@ export class BasicSQL {
+          * and c3 will collect candidates in the newly generated parseTree when input changed.
+          */
+         if (inputSlice !== input) {
+-            sqlParserIns = this.createParser(inputSlice);
++            // PATCH: no-op errorListener, see getAllEntities.
++            sqlParserIns = this.createParser(inputSlice, () => { });
+             parseTree = sqlParserIns.program();
+         }
+         const candidates = this.collectSuggestionCandidates(sqlParserIns, parseTree, caretTokenIndex);
+@@ -560,8 +562,12 @@ export class BasicSQL {
+         /**
+          * Create a new parser to generate brand new parse tree.
+          * And the new parse tree should not effect cached parse tree which is used by validate and getSuggestionAtCaretPosition method.
++         *
++         * PATCH: pass a no-op errorListener so createParser removes the default antlr4ng
++         * ConsoleErrorListener; otherwise every syntax error of incomplete SQL typed by the
++         * user gets printed to the console during completion (getAllEntities).
+          */
+-        const parser = this.createParser(input);
++        const parser = this.createParser(input, () => { });
+         const allTokens = parser.tokenStream.getTokens();
+         const caretTokenIndex = caretPosition
+             ? findCaretTokenIndex(caretPosition, allTokens)

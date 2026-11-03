@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "product": "DORIS",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.doris.DorisProductProvider",
+  "artifact": "yudao-dbswitch-product-doris",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "DORIS_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "DECLARED",
+      "reason": "PINNED_NATIVE_STREAM_LOAD_VISIBLE_RECEIPT_BOUNDED_FULL_ROW"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "DORIS_PINNED_FIXED_UPPER_EXACT_KEY_KEYSET_WITHOUT_SNAPSHOT_IDENTITY_RECHECKED"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "DORIS_UNIQUE_KEY_MERGE_ON_WRITE_FULL_ROW_REPLACE_RECEIPT_ACKNOWLEDGED"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "DORIS",
+    "POSTGRESQL"
+  ]
+}

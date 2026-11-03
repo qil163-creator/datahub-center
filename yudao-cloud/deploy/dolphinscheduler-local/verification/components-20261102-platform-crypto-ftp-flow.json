@@ -1,0 +1,193 @@
+{
+  "provenance": "实际平台任务1003正式保存请求的原始flowJson，未删除配置参数",
+  "taskId": 1003,
+  "flow": {
+    "nodes": [
+      {
+        "id": "read",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "read",
+          "toolCode": "read-ftp",
+          "toolType": 1,
+          "nodeJson": {
+            "resourceBindingId": "componentFtp",
+            "credentialRef": "ftpAccess",
+            "path": "input.csv",
+            "fileType": "csv",
+            "fieldDelimiter": ",",
+            "encoding": "UTF-8",
+            "ftpConfig": {
+              "hasHeader": true
+            },
+            "columns": [
+              {
+                "name": "id",
+                "key": "id",
+                "type": "LONG",
+                "comment": "",
+                "index": 0
+              },
+              {
+                "name": "label",
+                "key": "label",
+                "type": "STRING",
+                "comment": "",
+                "index": 1
+              },
+              {
+                "name": "amount",
+                "key": "amount",
+                "type": "DECIMAL",
+                "length": 38,
+                "precision": 18,
+                "comment": "",
+                "index": 2
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "encrypt",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "encrypt",
+          "toolCode": "data-encrypt",
+          "toolType": 2,
+          "nodeJson": {
+            "encryptFields": [
+              {
+                "fieldName": "label",
+                "algorithm": "AES",
+                "secretKeyRef": "cryptoAccess",
+                "outputFieldName": "cipher",
+                "keepOriginal": true
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "decrypt",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "decrypt",
+          "toolCode": "data-decrypt",
+          "toolType": 2,
+          "nodeJson": {
+            "decryptFields": [
+              {
+                "fieldName": "cipher",
+                "algorithm": "AES",
+                "secretKeyRef": "cryptoAccess",
+                "outputFieldName": "restored",
+                "keepOriginal": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "write",
+        "type": "etl-node",
+        "x": 100,
+        "y": 100,
+        "properties": {
+          "name": "write",
+          "toolCode": "write-ftp",
+          "toolType": 3,
+          "nodeJson": {
+            "resourceBindingId": "componentFtp",
+            "credentialRef": "ftpAccess",
+            "path": "crypto",
+            "fileType": "csv",
+            "fieldDelimiter": ",",
+            "encoding": "UTF-8",
+            "compression": "",
+            "ftpConfig": {
+              "includeHeader": true
+            },
+            "fileName": "result",
+            "writeModeType": 2,
+            "columns": [
+              {
+                "name": "id",
+                "key": "id",
+                "type": "LONG",
+                "comment": ""
+              },
+              {
+                "name": "标签",
+                "key": "label",
+                "type": "STRING",
+                "comment": ""
+              },
+              {
+                "name": "amount",
+                "key": "amount",
+                "type": "DECIMAL",
+                "length": 38,
+                "precision": 18,
+                "comment": ""
+              },
+              {
+                "name": "restored",
+                "key": "restored",
+                "type": "STRING",
+                "comment": ""
+              }
+            ],
+            "maxRows": 1000,
+            "maxBytes": 8388608,
+            "fieldMappings": [
+              {
+                "source": "id",
+                "target": "id",
+                "enabled": true
+              },
+              {
+                "source": "label",
+                "target": "标签",
+                "enabled": true
+              },
+              {
+                "source": "amount",
+                "target": "amount",
+                "enabled": true
+              },
+              {
+                "source": "restored",
+                "target": "restored",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "read-encrypt",
+        "sourceNodeId": "read",
+        "targetNodeId": "encrypt"
+      },
+      {
+        "id": "encrypt-decrypt",
+        "sourceNodeId": "encrypt",
+        "targetNodeId": "decrypt"
+      },
+      {
+        "id": "decrypt-write",
+        "sourceNodeId": "decrypt",
+        "targetNodeId": "write"
+      }
+    ]
+  }
+}

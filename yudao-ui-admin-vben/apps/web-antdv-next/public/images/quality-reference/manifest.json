@@ -1,0 +1,382 @@
+{
+  "referenceCanvas": {
+    "width": 3618,
+    "height": 2052
+  },
+  "assets": {
+    "accuracy": {
+      "file": "accuracy.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-6f14f3a6-225e-4ceb-864e-aa39c8846238.png",
+      "sourceBox": [
+        869,
+        495,
+        970,
+        611
+      ],
+      "role": "decorative"
+    },
+    "normalization": {
+      "file": "normalization.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-6f14f3a6-225e-4ceb-864e-aa39c8846238.png",
+      "sourceBox": [
+        1412,
+        495,
+        1512,
+        611
+      ],
+      "role": "decorative"
+    },
+    "timeliness": {
+      "file": "timeliness.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-6f14f3a6-225e-4ceb-864e-aa39c8846238.png",
+      "sourceBox": [
+        1952,
+        495,
+        2053,
+        611
+      ],
+      "role": "decorative"
+    },
+    "consistency": {
+      "file": "consistency.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-6f14f3a6-225e-4ceb-864e-aa39c8846238.png",
+      "sourceBox": [
+        2493,
+        495,
+        2593,
+        611
+      ],
+      "role": "decorative"
+    },
+    "completeness": {
+      "file": "completeness.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-6f14f3a6-225e-4ceb-864e-aa39c8846238.png",
+      "sourceBox": [
+        3035,
+        495,
+        3136,
+        611
+      ],
+      "role": "decorative"
+    },
+    "empty": {
+      "file": "empty.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c790fc6e-d0ea-44f5-9816-f2f4ed73729e.png",
+      "sourceBox": [
+        1662,
+        751,
+        1961,
+        929
+      ],
+      "role": "decorative"
+    },
+    "rule-character": {
+      "file": "rule-character.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1487,
+        534,
+        1546,
+        594
+      ],
+      "role": "decorative"
+    },
+    "rule-numeric-range": {
+      "file": "rule-numeric-range.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        631,
+        1546,
+        691
+      ],
+      "role": "decorative"
+    },
+    "rule-multi-unique": {
+      "file": "rule-multi-unique.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        631,
+        1938,
+        691
+      ],
+      "role": "decorative"
+    },
+    "rule-group-completeness": {
+      "file": "rule-group-completeness.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        631,
+        2332,
+        691
+      ],
+      "role": "decorative"
+    },
+    "rule-time-order": {
+      "file": "rule-time-order.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        1192,
+        1546,
+        1253
+      ],
+      "role": "decorative"
+    },
+    "rule-mutex": {
+      "file": "rule-mutex.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        1192,
+        1938,
+        1253
+      ],
+      "role": "decorative"
+    },
+    "rule-length": {
+      "file": "rule-length.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        1192,
+        2332,
+        1253
+      ],
+      "role": "decorative"
+    },
+    "rule-precision": {
+      "file": "rule-precision.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        1351,
+        1546,
+        1412
+      ],
+      "role": "decorative"
+    },
+    "rule-enum": {
+      "file": "rule-enum.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        1351,
+        1938,
+        1412
+      ],
+      "role": "decorative"
+    },
+    "rule-master-reference": {
+      "file": "rule-master-reference.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        1351,
+        2332,
+        1412
+      ],
+      "role": "decorative"
+    },
+    "rule-required": {
+      "file": "rule-required.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1880,
+        533,
+        1938,
+        593
+      ],
+      "role": "decorative"
+    },
+    "rule-placeholder": {
+      "file": "rule-placeholder.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        2274,
+        533,
+        2332,
+        593
+      ],
+      "role": "decorative"
+    },
+    "rule-missing-record": {
+      "file": "rule-missing-record.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1487,
+        694,
+        1546,
+        754
+      ],
+      "role": "decorative"
+    },
+    "rule-conditional-completeness": {
+      "file": "rule-conditional-completeness.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1880,
+        694,
+        1938,
+        754
+      ],
+      "role": "decorative"
+    },
+    "rule-cross-table": {
+      "file": "rule-cross-table.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1487,
+        938,
+        1546,
+        998
+      ],
+      "role": "decorative"
+    },
+    "rule-foreign-key": {
+      "file": "rule-foreign-key.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1880,
+        938,
+        1938,
+        998
+      ],
+      "role": "decorative"
+    },
+    "rule-state-consistency": {
+      "file": "rule-state-consistency.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        2274,
+        938,
+        2332,
+        998
+      ],
+      "role": "decorative"
+    },
+    "rule-time-precedence": {
+      "file": "rule-time-precedence.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-7bebddfd-1111-464d-b889-2d2ecafdc3f0.png",
+      "sourceBox": [
+        1487,
+        1180,
+        1546,
+        1240
+      ],
+      "role": "decorative"
+    },
+    "rule-numeric-logic": {
+      "file": "rule-numeric-logic.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        791,
+        1546,
+        851
+      ],
+      "role": "decorative"
+    },
+    "rule-outlier": {
+      "file": "rule-outlier.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        791,
+        1938,
+        851
+      ],
+      "role": "decorative"
+    },
+    "rule-dirty-data": {
+      "file": "rule-dirty-data.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        791,
+        2332,
+        851
+      ],
+      "role": "decorative"
+    },
+    "rule-single-unique": {
+      "file": "rule-single-unique.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        950,
+        1546,
+        1010
+      ],
+      "role": "decorative"
+    },
+    "rule-model-consistency": {
+      "file": "rule-model-consistency.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        1512,
+        1546,
+        1572
+      ],
+      "role": "decorative"
+    },
+    "rule-metadata-completeness": {
+      "file": "rule-metadata-completeness.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        1512,
+        1938,
+        1572
+      ],
+      "role": "decorative"
+    },
+    "rule-numeric-relation": {
+      "file": "rule-numeric-relation.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        1512,
+        2332,
+        1572
+      ],
+      "role": "decorative"
+    },
+    "rule-state-required": {
+      "file": "rule-state-required.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1487,
+        1672,
+        1546,
+        1732
+      ],
+      "role": "decorative"
+    },
+    "rule-masking": {
+      "file": "rule-masking.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        1880,
+        1672,
+        1938,
+        1732
+      ],
+      "role": "decorative"
+    },
+    "rule-date-format": {
+      "file": "rule-date-format.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-f38ff99b-13b7-40cf-b4e8-e969b030ab1a.png",
+      "sourceBox": [
+        2274,
+        1672,
+        2332,
+        1732
+      ],
+      "role": "decorative"
+    }
+  }
+}

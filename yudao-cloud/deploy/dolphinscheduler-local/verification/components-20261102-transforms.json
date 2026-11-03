@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-11-02T05:22:18.315936+00:00",
+  "runId": "d2585bc6e8a8",
+  "jarSha256": "95c4320d950c4be1f8d98f831acb672a4d7dece8c9ee9b464e96d42558d1c03e",
+  "checks": [
+    {
+      "engine": "spark",
+      "case": "stateless",
+      "exitCode": 0,
+      "sqlSha256": "5b55f4cff0585b3771982b4fccf99063ef0517dacaa612228dbf365a4976fd3a",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-spark-stateless.log",
+      "rows": [
+        {
+          "r_ADD": "8",
+          "r_SUB": "4",
+          "r_MUL": "12",
+          "r_DIV": "3",
+          "r_ADD3": "9.25",
+          "r_MIN": "2",
+          "r_MAX": "6",
+          "r_ABS": "6",
+          "r_ROUND": "6",
+          "r_CEIL": "6",
+          "r_FLOOR": "6",
+          "r_MOD": "0",
+          "r_POWER": "36",
+          "r_SQRT": "2.449489742783178",
+          "r_ADD_DAYS": "2026-01-04 03:04:05",
+          "r_DIFF_DAYS": "0",
+          "r_YEAR": "2026",
+          "r_MONTH": "1",
+          "r_DAY": "2",
+          "r_STR_LEN": "8",
+          "r_UPPER": "  A😀B  ",
+          "r_LOWER": "  a😀b  ",
+          "r_INIT_CAP": "  a😀b  ",
+          "r_TRIM": "a😀b",
+          "d_CONCAT": "[  a😀b  |6.0000]",
+          "d_SUBSTRING": "a",
+          "d_HASH": "a4237106bd2fbdb8f84d68d754f76f6b7fb247f7d89fc513cdaebd94d8adad1b",
+          "d_REGEX_EXTRACT": "a",
+          "d_REPLACE": "  aa😀b  ",
+          "d_EXPRESSION": "16",
+          "d_CONSTANT": "O'Reilly\\$1",
+          "s_LEFT": "xyxyx  a😀b  ",
+          "s_RIGHT": "  a😀b  xyxyx",
+          "s_BOTH": "xy  a😀b  xyx",
+          "s_replacement": "  $1tail😀b  ",
+          "s_word": "  W😀b  ",
+          "s_word_alt": "ab W á _a_",
+          "s_named": "  aa😀b  ",
+          "c_date": "2026-01-02 03:04:05",
+          "part_int": "12",
+          "part_decimal": "34.00",
+          "part_empty": "",
+          "part_date": "2026-01-02 03:04:05"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "engine": "spark",
+      "case": "ordered",
+      "exitCode": 0,
+      "sqlSha256": "626a8fb54d5590248e65dc997aac4b9203ef52df05ecb8b794ef30277870ca74",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-spark-ordered.log",
+      "rows": [
+        {
+          "gid": "g1",
+          "a": "2.2000",
+          "b": "3.3000",
+          "sequence_id": 9007199254740993
+        },
+        {
+          "gid": "g2",
+          "sequence_id": 9007199254741000
+        }
+      ],
+      "passed": true
+    },
+    {
+      "engine": "spark",
+      "case": "ordered-duplicate",
+      "exitCode": 1,
+      "sqlSha256": "ad5ab9c8c70324502dcb812db89158bfe6b782e6f9131aebf5019faab88eb0a3",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-spark-ordered-duplicate.log",
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "stateless",
+      "exitCode": 0,
+      "sqlSha256": "1e61952ad1e20a88c1ba3ca59fc1703783658a0b27702b3e815aabc8afffcce3",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-flink-stateless.log",
+      "rows": [
+        {
+          "r_ADD": "8",
+          "r_SUB": "4",
+          "r_MUL": "12",
+          "r_DIV": "3",
+          "r_ADD3": "9.25",
+          "r_MIN": "2",
+          "r_MAX": "6",
+          "r_ABS": "6",
+          "r_ROUND": "6",
+          "r_CEIL": "6",
+          "r_FLOOR": "6",
+          "r_MOD": "0",
+          "r_POWER": "36",
+          "r_SQRT": "2.449489742783178",
+          "r_ADD_DAYS": "2026-01-04 03:04:05",
+          "r_DIFF_DAYS": "0",
+          "r_YEAR": "2026",
+          "r_MONTH": "1",
+          "r_DAY": "2",
+          "r_STR_LEN": "8",
+          "r_UPPER": "  A😀B  ",
+          "r_LOWER": "  a😀b  ",
+          "r_INIT_CAP": "  a😀b  ",
+          "r_TRIM": "a😀b",
+          "d_CONCAT": "[  a😀b  |6.0000]",
+          "d_SUBSTRING": "a",
+          "d_HASH": "a4237106bd2fbdb8f84d68d754f76f6b7fb247f7d89fc513cdaebd94d8adad1b",
+          "d_REGEX_EXTRACT": "a",
+          "d_REPLACE": "  aa😀b  ",
+          "d_EXPRESSION": "16",
+          "d_CONSTANT": "O'Reilly\\$1",
+          "s_LEFT": "xyxyx  a😀b  ",
+          "s_RIGHT": "  a😀b  xyxyx",
+          "s_BOTH": "xy  a😀b  xyx",
+          "s_replacement": "  $1tail😀b  ",
+          "s_word": "  W😀b  ",
+          "s_word_alt": "ab W á _a_",
+          "s_named": "  aa😀b  ",
+          "s_null": null,
+          "c_date": "2026-01-02 03:04:05",
+          "part_int": "12",
+          "part_decimal": "34.00",
+          "part_empty": "",
+          "part_missing": null,
+          "part_date": "2026-01-02 03:04:05.000"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "ordered",
+      "exitCode": 0,
+      "sqlSha256": "aa10c74014befe6ebd9946dc5ecc22a5f0f9d329269994d6b6641a6a31c60bcf",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-flink-ordered.log",
+      "rows": [
+        {
+          "gid": "g1",
+          "a": "2.2",
+          "b": "3.3",
+          "sequence_id": 9007199254740993
+        },
+        {
+          "gid": "g2",
+          "a": null,
+          "b": null,
+          "sequence_id": 9007199254741000
+        }
+      ],
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "ordered-duplicate",
+      "exitCode": 1,
+      "sqlSha256": "315609521d85cd1ee5b86b9081bab84149b09a39a4bd65f756c7972c52e873d1",
+      "log": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/verification/components-20261102-transforms-flink-ordered-duplicate.log",
+      "passed": true
+    }
+  ],
+  "scope": "本轮45列有界原生SQL样例；Spark默认省略2个SQL NULL键（43键），Flink输出45键。包含24计算、七种派生、Unicode/命名分组/整词替换、NULL、正则拆分/包裹符/类型/格式及确定排序行转列与无损Long序列；不是平台任务或持续源验收。",
+  "verification": {
+    "focusedTests": {
+      "run": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/datahub-native-stateless-after.log"
+    },
+    "fullComponentTests": {
+      "run": 369,
+      "failures": 0,
+      "errors": 12,
+      "skipped": 14,
+      "log": "/tmp/datahub-etl-component-tests-realpath.log",
+      "command": "mvn -pl :yudao-spring-boot-starter-biz-etl test -DargLine=-Djava.io.tmpdir=/private/tmp/datahub-etl-tests-20261102",
+      "remainingErrors": "12项均为现有EtlDockerWorkerLedgerTest初始化持久账本路径/归属验证错误；未证明本次变更引入，不能宣称全组件全绿。"
+    },
+    "dependencyReactor": {
+      "run": 489,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 11,
+      "log": "/tmp/datahub-etl-module-tests.log",
+      "remainingError": "QueryFilterSqlTest GBASE8C精确表定位UnsupportedOperationException，未改相关实现。"
+    },
+    "effectiveDependencies": {
+      "java": 25,
+      "springBoot": "4.1.1",
+      "hutool": "5.8.47",
+      "bcprov": "1.84",
+      "workerClassRelease": 17
+    }
+  }
+}

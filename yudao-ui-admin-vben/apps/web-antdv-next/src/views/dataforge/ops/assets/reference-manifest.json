@@ -1,0 +1,15 @@
+{
+  "sourceReference": "/tmp/qdata-job-ops-reference/ops-job-expanded-clean.png",
+  "assets": {
+    "expand-arrow": {
+      "file": "expand-arrow.png",
+      "sourceBox": [
+        405,
+        362,
+        419,
+        376
+      ],
+      "role": "decorative"
+    }
+  }
+}

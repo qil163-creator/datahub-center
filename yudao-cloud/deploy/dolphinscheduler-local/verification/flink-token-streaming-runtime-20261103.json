@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "engine": "FLINK 1.20.3 Java17",
+  "scope": "Actual task-bound QDATA_TOKEN Docker worker (network=none), trusted mTLS initializer, then JDBC finite source -> JDBC table sink; no REST API component",
+  "cleanup": [
+    {
+      "fixtureContainerRemoved": true,
+      "workerNetworkDetached": true,
+      "isolatedNetworkRemoved": true
+    }
+  ],
+  "cases": [
+    {
+      "case": "token",
+      "phase": "run",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "elapsedSeconds": 5.879
+    },
+    {
+      "case": "token-unauthorized",
+      "phase": "run",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "elapsedSeconds": 1.345
+    }
+  ],
+  "launcherSha256": "c1448baa0686a6c56575f50cc4d958cfbdfee7f4e4e8066c30c9ffd24a124a9e",
+  "exactTargetRows": [
+    {
+      "id": "9007199254740993",
+      "label": "河道 O'Reilly😀",
+      "amount": "12345678901234567890.12345678"
+    },
+    {
+      "id": "9007199254740994",
+      "label": null,
+      "amount": null
+    }
+  ],
+  "runtimeMode": "STREAMING",
+  "fixtureSourceBounded": true,
+  "brokerSessions": [
+    {
+      "sequence": 1,
+      "closed": true,
+      "hasOpaqueContext": true,
+      "case": "token"
+    }
+  ],
+  "activeWorkersAfterStop": 0,
+  "rawTokenInLogsOrProgram": false,
+  "actualSerializationScans": [
+    {
+      "artifact": "token-unauthorized.args",
+      "bytes": 1413,
+      "decodedProgramBytes": 1058,
+      "sha256": "0d077a7d3ce477b82e3ecadd9b74299afc463e120eadab653479ff316cbdad61",
+      "retainedArtifact": "flink-token-jdbc-artifacts/0d077a7d3ce477b82e3ecadd.args",
+      "privateMaterialMatches": 0
+    },
+    {
+      "artifact": "token.args",
+      "bytes": 1417,
+      "decodedProgramBytes": 1060,
+      "sha256": "73c3c95ff902e05b541faa54e619b7ef585640a35d34672b6a46ac671f88f59a",
+      "retainedArtifact": "flink-token-jdbc-artifacts/73c3c95ff902e05b541faa54.args",
+      "privateMaterialMatches": 0
+    }
+  ],
+  "negativeIdentityDidNotWrite": true,
+  "limitations": [
+    "Technical runtime acceptance with a dedicated fixture identity, not a management-API published task.",
+    "Token is a startup initializer; it is not implicitly substituted into JDBC or MQ credentials.",
+    "No realtime token refresh or exactly-once external sink guarantee."
+  ]
+}

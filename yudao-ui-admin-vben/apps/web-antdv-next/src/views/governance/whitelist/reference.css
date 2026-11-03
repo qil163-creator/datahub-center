@@ -1,0 +1,53 @@
+.whitelist-account-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.whitelist-account-row .ant-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.whitelist-reference-dialog .ant-picker {
+  width: 100%;
+}
+
+.whitelist-reference-dialog textarea.ant-input {
+  min-height: 96px;
+}
+
+.whitelist-reference-dialog .category-detail-form {
+  padding-bottom: 20px;
+}
+
+.whitelist-reference-dialog .category-detail-form textarea.ant-input {
+  height: 84px;
+  min-height: 84px;
+}
+
+.whitelist-user-content {
+  display: block;
+  padding: 20px;
+}
+
+.whitelist-user-content .category-filters {
+  flex-wrap: nowrap;
+  padding: 0 0 20px;
+}
+
+.whitelist-user-content .category-pagination {
+  padding-right: 0;
+}
+
+.safety-whitelist-workbench .ant-table-body {
+  min-height: var(--safety-table-body-height, 0);
+}
+
+.whitelist-user-id {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

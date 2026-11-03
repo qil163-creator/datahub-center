@@ -1,0 +1,22 @@
+{
+  "xxlActiveBefore": 0,
+  "parentDsInstanceId": 50,
+  "reposted": false,
+  "observations": [
+    {
+      "parentState": "RUNNING_EXECUTION",
+      "sqlChildState": "SERIAL_WAIT"
+    },
+    {
+      "parentState": "RUNNING_EXECUTION",
+      "sqlChildState": "SUCCESS"
+    },
+    {
+      "parentState": "SUCCESS",
+      "sqlChildState": "SUCCESS"
+    }
+  ],
+  "adminTemporarilyStopped": true,
+  "terminalState": "SUCCESS",
+  "adminRestoreRequested": true
+}

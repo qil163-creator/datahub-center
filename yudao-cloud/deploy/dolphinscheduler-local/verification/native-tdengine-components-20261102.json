@@ -1,0 +1,94 @@
+{
+  "timestamp": "2026-11-02T14:17:34+0800",
+  "engine": "Flink 1.20.3 native SQL TMQ",
+  "tdengine": "3.3.8.8",
+  "binding": {
+    "connector": "com.taosdata.flink:flink-connector-tdengine:2.1.4",
+    "jdbc": "3.7.3",
+    "javaRelease": 17,
+    "providedFlinkVersion": "1.20.3",
+    "sourceSha256": "098cd4a3b090f21e0e288d8eb0767bb251ac904bcc00f903f4914c777e4d8133",
+    "jarSha256": "5bf42ef198bbf2f52a7e61884a696e1f2037543e898800c4006e582a3045c986",
+    "artifact": "/private/tmp/managed-tdengine-native-5bf42ef198bbf2f5.jar",
+    "workerJarPath": "/opt/flink/lib/datahub-managed-tdengine.jar",
+    "installed": true,
+    "factory": "datahub-tdengine-tmq",
+    "wireActionsVerified": [
+      "commit",
+      "commit_offset",
+      "committed",
+      "subscribe",
+      "unsubscribe",
+      "poll",
+      "seek"
+    ],
+    "credentialEnvironment": [
+      "DATAHUB_ETL_SECRET_DIR",
+      "DATAHUB_ETL_SECRET_REFS"
+    ],
+    "isolation": "厂商 connector/JDBC/第三方包重定位，Flink API由目标引擎提供；凭据仅在reader/enumerator运行端按引用读取。"
+  },
+  "sqlSha256": "b80092bc9f26383a9d7ebdd02317f21d4f8f009e763788c3cc7b8435ccdd0919",
+  "jobIds": [
+    "34619484084aac56f5ca1aa56ba22b19",
+    "a5d72fbcc117c8d13904734d15953946"
+  ],
+  "initialAndLiveMessagesExact": true,
+  "actualRows": [
+    {
+      "ts": "2026-11-02 08:00:02.123",
+      "reading": 3.75,
+      "station": "after_checkpoint_restore"
+    },
+    {
+      "ts": "2026-11-02 08:00:00.123",
+      "reading": 1.25,
+      "station": "汉字🙂"
+    },
+    {
+      "ts": "2026-11-02 08:00:01.123",
+      "reading": 2.5,
+      "station": "live_after_start"
+    }
+  ],
+  "checkpointRestored": true,
+  "credentialRotatedBeforeRestore": true,
+  "defaultEmptySecretGrantDenied": true,
+  "probe": {
+    "serializedBytes": {
+      "source.bin": 1554,
+      "jobgraph.bin": 26566,
+      "enumerator-checkpoint.bin": 49,
+      "split-checkpoint.bin": 82
+    },
+    "passwordSentinelMatches": 0,
+    "officialSerializerRestore": true,
+    "foreignGroupDenied": true,
+    "nanosecondTimestampExact": true,
+    "actualTopicSchemaChecked": true,
+    "deferredCheckpointAndBoundedPendingState": true,
+    "wireActionsVerified": true,
+    "timestampZone": "Asia/Shanghai"
+  },
+  "actualCheckpointAndLogsSentinelScan": {
+    "files": 18,
+    "sentinelMatches": 0
+  },
+  "controlledStopExitCodes": [
+    124,
+    124
+  ],
+  "restoreLogEvidence": [
+    "2026-11-02 14:17:29,347 INFO  org.apache.flink.runtime.checkpoint.CheckpointCoordinator    [] - Starting job a5d72fbcc117c8d13904734d15953946 from savepoint file:///tmp/datahub-tdengine-32fddde93e444eae9e23cde4b85f5ea3/checkpoints/34619484084aac56f5ca1aa56ba22b19/chk-4/_metadata ()",
+    "2026-11-02 14:17:29,356 INFO  org.apache.flink.runtime.checkpoint.CheckpointCoordinator    [] - Restoring job a5d72fbcc117c8d13904734d15953946 from Savepoint 4 @ 0 for a5d72fbcc117c8d13904734d15953946 located at file:/tmp/datahub-tdengine-32fddde93e444eae9e23cde4b85f5ea3/checkpoints/34619484084aac56f5ca1aa56ba22b19/chk-4.",
+    "2026-11-02 14:17:29,364 INFO  org.apache.flink.runtime.source.coordinator.SourceCoordinator [] - Restoring SplitEnumerator of source Source: dh_native_tdengine_cb5bb280ebecbe4772873e67_raw[1] from checkpoint."
+  ],
+  "checkpointPath": "/tmp/datahub-tdengine-32fddde93e444eae9e23cde4b85f5ea3/checkpoints/34619484084aac56f5ca1aa56ba22b19/chk-4/_metadata",
+  "limits": [
+    "仅 Flink TMQ 持续输入；Spark、TDengine 输出、任意主题投影和未验证原生类型仍明确拒绝",
+    "TIMESTAMP无时区按官方SDK和工作节点JVM时区解释；本次明确记录实际ZoneId验证",
+    "本次由原生 SQL 执行真实端到端样例，不等于重启后管理端完整触发验收",
+    "测试环境 WebSocket 明确不启用 TLS；生产绑定缺省要求 TLS"
+  ],
+  "stableCheckpointHandling": true
+}

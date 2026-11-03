@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.dataforge.dal.mysql.database.DatabaseMonitorMapper">
+    <!-- 仅使用执行时的冻结绑定；旧记录无绑定证明时不按当前任务配置猜测。 -->
+    <sql id="logs">
+        SELECT 'ACCESS:' || id AS id, id AS record_id, task_name,
+            '同步任务执行记录'::text AS description,
+            'ACCESS'::text AS source_module,
+            CASE WHEN config_json->>'sourceDatabaseId'=CAST(#{databaseId} AS text) THEN data_count::text END AS output_rows,
+            CASE WHEN config_json->>'targetDatabaseId'=CAST(#{databaseId} AS text) THEN data_count::text END AS input_rows,
+            CASE run_status WHEN 1 THEN 'WAITING' WHEN 2 THEN 'RUNNING' WHEN 3 THEN 'SUCCESS'
+                WHEN 4 THEN 'FAILED' WHEN 6 THEN 'STOPPED' ELSE 'UNKNOWN' END AS status,
+            create_time, start_time, end_time,
+            CASE WHEN end_time >= start_time THEN (extract(epoch FROM end_time-start_time)*1000)::bigint END AS duration_ms
+        FROM dh_dataforge_access_task
+        WHERE deleted=0
+            AND (config_json->>'sourceDatabaseId'=CAST(#{databaseId} AS text)
+                OR config_json->>'targetDatabaseId'=CAST(#{databaseId} AS text))
+        UNION ALL
+        SELECT 'DEV:' || id AS id, id AS record_id, task_name,
+            'SQL 执行记录（未统计输入输出量）'::text,
+            'DEV'::text, NULL::text, NULL::text,
+            CASE WHEN status IN ('WAITING','RUNNING','SUCCESS','FAILED','STOPPED') THEN status
+                WHEN status IN ('SUBMITTING','CANCEL_REQUESTED') THEN 'RUNNING' ELSE 'UNKNOWN' END,
+            create_time, start_time, end_time, duration_ms
+        FROM dh_dataforge_dev_record
+        WHERE deleted=0 AND database_id=#{databaseId}
+    </sql>
+    <select id="logs" resultType="cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO$ReadWriteLog">
+        SELECT * FROM (<include refid="logs"/>) l ORDER BY create_time DESC, id DESC LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="logCount" resultType="long">
+        SELECT count(*) FROM (<include refid="logs"/>) l
+    </select>
+    <select id="summary" resultType="cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO$Overview">
+        SELECT coalesce(sum(output_rows::numeric) FILTER (WHERE end_time >= #{today}),0)::text AS today_output_rows,
+            coalesce(sum(input_rows::numeric) FILTER (WHERE end_time >= #{today}),0)::text AS today_input_rows,
+            (coalesce(sum(output_rows::numeric),0)+coalesce(sum(input_rows::numeric),0))::text AS total_transfer_rows,
+            (sum(output_rows::numeric) FILTER (WHERE duration_ms>0) * 1000 /
+              nullif(sum(duration_ms) FILTER (WHERE output_rows IS NOT NULL AND duration_ms>0),0))::float8 AS read_speed,
+            (sum(input_rows::numeric) FILTER (WHERE duration_ms>0) * 1000 /
+              nullif(sum(duration_ms) FILTER (WHERE input_rows IS NOT NULL AND duration_ms>0),0))::float8 AS write_speed
+        FROM (<include refid="logs"/>) l WHERE status='SUCCESS'
+    </select>
+    <select id="logTrend" resultType="cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO$TrendPoint">
+        SELECT end_time::date::text AS date, coalesce(sum(output_rows::numeric),0)::text AS output_rows,
+            coalesce(sum(input_rows::numeric),0)::text AS input_rows,
+            (sum(output_rows::numeric) FILTER (WHERE duration_ms>0) * 1000 /
+              nullif(sum(duration_ms) FILTER (WHERE output_rows IS NOT NULL AND duration_ms>0),0))::float8 AS read_speed,
+            (sum(input_rows::numeric) FILTER (WHERE duration_ms>0) * 1000 /
+              nullif(sum(duration_ms) FILTER (WHERE input_rows IS NOT NULL AND duration_ms>0),0))::float8 AS write_speed
+        FROM (<include refid="logs"/>) l WHERE status='SUCCESS' AND end_time >= #{since}
+        GROUP BY end_time::date
+    </select>
+    <select id="sampleTrend" resultType="cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO$TrendPoint">
+        SELECT collected_time::date::text AS date, avg(response_time_ms)::float8 AS response_time_ms,
+            avg(CASE connection_status WHEN 1 THEN 100.0 WHEN 2 THEN 0.0 END)::float8 AS online_rate
+        FROM dh_dataforge_database_sample
+        WHERE database_id=#{databaseId} AND deleted=0 AND state='COMPLETE'
+            AND collected_time >= #{since}
+        GROUP BY collected_time::date
+    </select>
+</mapper>

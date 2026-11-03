@@ -1,0 +1,23 @@
+{
+  "status": "ENVIRONMENT_BLOCKED",
+  "scope": "Actual isolated DS SPARK plugin, Spark3.5.6 V2 -> RabbitMQ4.1.4 bounded exclusive non-ack browse -> transform -> confirmed output",
+  "checks": {},
+  "cleanup": [
+    {
+      "fixtureContainerRemoved": true,
+      "workerNetworkDetached": true,
+      "isolatedNetworkRemoved": true,
+      "workerSecretRemoved": false
+    }
+  ],
+  "reason": "Official RabbitMQ4.1.4 failed before AMQP startup: Error when reading /var/lib/rabbitmq/.erlang.cookie: eacces. No Spark/AMQP read-write acceptance was run.",
+  "sparkJobSubmitted": false,
+  "attemptedFixtureControls": [
+    "official pinned image",
+    "bounded Erlang schedulers",
+    "fixed hostname",
+    "root entrypoint for fresh volume ownership"
+  ],
+  "runtimeAcceptance": false,
+  "hostFixtureSecretFilesRemoved": 8
+}

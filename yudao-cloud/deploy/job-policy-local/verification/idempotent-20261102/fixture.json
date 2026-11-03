@@ -1,0 +1,14 @@
+{
+  "suffix": "20261102_122553",
+  "database": "codex_job_e2e_20261102_080442_28e9",
+  "sourceTable": "codex_job_e2e_idem_src_20261102_122553",
+  "targets": {
+    "worker": "codex_job_e2e_idem_worker_20261102_122553",
+    "host": "codex_job_e2e_idem_host_20261102_122553"
+  },
+  "rowCount": 3007,
+  "uniqueKeys": [
+    "id"
+  ],
+  "oldFixturesPreserved": true
+}

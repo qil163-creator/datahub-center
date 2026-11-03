@@ -1,0 +1,112 @@
+{
+  "runId": "20261102_1793605115",
+  "schema": "fill-center",
+  "tables": {
+    "src": "codex_sqlhooks_src_20261102_1793605115",
+    "target": "codex_sqlhooks_target_20261102_1793605115",
+    "audit": "codex_sqlhooks_audit_20261102_1793605115",
+    "control": "codex_sqlhooks_control_20261102_1793605115"
+  },
+  "platformDatabaseId": "1",
+  "dsDatasourceId": 1,
+  "projectCode": "188590885122016",
+  "normalDsPort": 12345,
+  "additionalServices": 0,
+  "schedulesCreated": 0,
+  "runs": [
+    {
+      "label": "01-normal-success",
+      "workflowCode": "188594909463520",
+      "instanceId": 11,
+      "operation": "START_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        18
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "d407827ae3528cd9bd0cedc3258873029419bb34e1e55742924fe557ab3dc2a2",
+        "preCount": 1,
+        "postCount": 1,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:38:40.262 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:38:41.368 INFO  -  -> 2026-11-02 15:38:41.368 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f stage=_datahub_upsert_stage_a75f12a6ac01405d802d7c0a72cc4b42",
+        "2026-11-02 15:38:43.176 INFO  -  -> 2026-11-02 15:38:43.176 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:38:43.344 INFO  -  -> 2026-11-02 15:38:43.344 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:38:43.510 INFO  -  -> 2026-11-02 15:38:43.509 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:38:53.012 INFO  -  -> 2026-11-02 15:38:53.011 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f count=3",
+        "2026-11-02 15:38:53.100 INFO  -  -> 2026-11-02 15:38:53.100 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f",
+        "2026-11-02 15:38:53.131 INFO  -  -> 2026-11-02 15:38:53.131 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f changed=37",
+        "2026-11-02 15:38:53.131 INFO  -  -> 2026-11-02 15:38:53.131 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f count=3",
+        "2026-11-02 15:38:53.219 INFO  -  -> 2026-11-02 15:38:53.219 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f",
+        "2026-11-02 15:38:53.279 INFO  -  -> 2026-11-02 15:38:53.278 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=28d4d843bf9e2647dce03cdc633eab7ca91192f82f2e9ef777ca85d369870e3f dataHash=59ab05286e1ac7b959af0b76f21e93071dab6db75460e0eb75ec35a22e056ed9"
+      ]
+    }
+  ],
+  "status": "ENV_FAILURE",
+  "installedArtifactSha256": "ae0c37ce1da07427ee0cef7581f9532f2026a534011ff8bff9f858d4bced988d",
+  "ledgerBefore": [
+    {
+      "executionKey": "043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "55411bb3972305f93e30fa447bd337756ae5593a02d1cd970eab6651d4ad64e9",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_55a3553fef024db99fd370bfc8c4d101"
+    },
+    {
+      "executionKey": "42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "59ab05286e1ac7b959af0b76f21e93071dab6db75460e0eb75ec35a22e056ed9",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_842795900dd3403ea4773137d982bafe"
+    },
+    {
+      "executionKey": "7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "6855a48ecd79903c79daad7f7fa165c9e9f3c75f18312a6f4d445930572a4e10",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_7e7e9531a54448098bcec0006ab82a9a"
+    },
+    {
+      "executionKey": "a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "20baa351edc8095861c15b53a288181809c27266547a031dcc2a4e73f0f8edcd",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_8286433cb18e4152a339b38eb85413ab"
+    },
+    {
+      "executionKey": "f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "a5bed217c85d2122ee8ee576aa30137ce62158eefe942122905c7dee3d59d06a",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_c7edd2a95318452fa8d491791cd2a6ca"
+    }
+  ],
+  "definitions": [
+    {
+      "code": 188594909463520,
+      "name": "datahub_sql_hooks_20261102_1793605115_normal",
+      "taskCode": 188594909405152,
+      "taskName": "SQL-hooks-normal",
+      "label": "normal",
+      "finalReleaseState": "OFFLINE",
+      "schedulesFound": 0
+    }
+  ],
+  "instanceIds": [
+    11
+  ],
+  "error": "等待 SQL hooks 实例终态超时：02-committed-replay",
+  "finalInstanceStates": {
+    "11": "STOP"
+  },
+  "cleanupErrors": [],
+  "testSchedulesClosed": true,
+  "environmentCause": "正常 DS Master 因 JDBC registry 旧通知/持久化清理问题停止，导致第二次重放留在 SERIAL_WAIT；首个 SQL hooks 执行成功，未发生钩子运行失败。"
+}

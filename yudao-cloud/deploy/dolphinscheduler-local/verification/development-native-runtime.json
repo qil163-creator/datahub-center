@@ -1,0 +1,781 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-01T16:38:05.588237+00:00",
+  "result": "PASS_WITH_DOCUMENTED_LIMITS",
+  "scope": "This task only: DataForge offline/realtime development pages and local native SQL execution. No claim about unrelated chat work or global process state.",
+  "deployment": {
+    "dsVersion": "3.4.2",
+    "projectName": "datahub-development-native-local",
+    "projectCode": "188535890473952",
+    "workerGroup": "datahub-development",
+    "executionUser": "datahub",
+    "javaVersion": "17",
+    "profiles": [
+      {
+        "code": "flink-local-sql",
+        "engine": "FLINK",
+        "version": "1.20.3",
+        "deployMode": "LOCAL"
+      },
+      {
+        "code": "spark-local-sql",
+        "engine": "SPARK",
+        "version": "3.5.6",
+        "deployMode": "LOCAL",
+        "master": "local[1]"
+      }
+    ],
+    "budget": {
+      "parallelismOrCores": 1,
+      "instances": 1,
+      "allowedMemoryMb": [
+        512,
+        768,
+        1024
+      ],
+      "concurrentManagedEngines": 1,
+      "concurrencyScope": "One live observer process; this is not a distributed or restart-resilient quota."
+    },
+    "admissionControlEvidence": {
+      "source": "deploy/dolphinscheduler-local/native-runtime/local_runtime_observer.py",
+      "lockDeclarationLine": 269,
+      "launchLockLine": 293,
+      "activeSupervisorCheckLines": [
+        294,
+        296
+      ],
+      "registerSupervisorLines": [
+        326,
+        327
+      ],
+      "behavior": "Launch holds the same lock while rejecting another live supervisor, creating a new supervisor and registering it. Supervisor remains alive until all descendants are reaped."
+    }
+  },
+  "platformCases": [
+    {
+      "taskId": 7,
+      "recordId": 2,
+      "idempotencyVerified": true,
+      "states": [
+        "WAITING",
+        "RUNNING",
+        "SUCCESS"
+      ],
+      "stopRequested": false,
+      "status": "SUCCESS",
+      "dsInstanceId": 43,
+      "logReadLines": 98,
+      "logCursor": 98,
+      "maskedLogSha256": "cb9e13010215fb0eafd561eb46120780ea63862bea9bce81817b8a496ec25ec5",
+      "latestRecordVerified": true,
+      "downloadedLogBytes": 4812,
+      "downloadedLogSha256": "1e33d51d596797e1f33c131ea9c9f69c823a2ab2f5a91ed53f1e25c0d625f6ed",
+      "nativeBodyMasked": true,
+      "case": "flink-batch",
+      "observation": [
+        {
+          "name": "dh_native_2",
+          "user": "datahub",
+          "engine": "FLINK",
+          "state": "SUCCEEDED",
+          "exitCode": 0,
+          "started": true,
+          "finished": true,
+          "processTreeAlive": false
+        }
+      ],
+      "workerOutput": {
+        "strictExpectedOutput": true,
+        "sha256": "840b50cd625f9e5cf07924cd9d0a93c90fdca9fdefbbba285991c95dd8f4a5bc"
+      }
+    },
+    {
+      "taskId": 8,
+      "recordId": 4,
+      "idempotencyVerified": true,
+      "states": [
+        "RUNNING",
+        "SUCCESS"
+      ],
+      "stopRequested": false,
+      "status": "SUCCESS",
+      "dsInstanceId": 45,
+      "logReadLines": 69,
+      "logCursor": 69,
+      "maskedLogSha256": "1dbd2d1cc54045b88ccedf3199a2b1f2b16b803da3122a41c90f14748da55d20",
+      "latestRecordVerified": true,
+      "downloadedLogBytes": 3468,
+      "downloadedLogSha256": "93bf684ce5319ab415bd0712055e4cb71e73982cf77d50dc29acc21669fec1b3",
+      "nativeBodyMasked": true,
+      "case": "spark-batch",
+      "observation": [
+        {
+          "name": "dh_native_4",
+          "user": "datahub",
+          "engine": "SPARK",
+          "state": "SUCCEEDED",
+          "exitCode": 0,
+          "started": true,
+          "finished": true,
+          "processTreeAlive": false
+        }
+      ],
+      "workerOutput": {
+        "strictExpectedOutput": true,
+        "sha256": "47294fd84da2617ec03be4dc5b3d427616ee1015aaed7107fafc314d695c41b8"
+      }
+    },
+    {
+      "taskId": 9,
+      "recordId": 5,
+      "idempotencyVerified": true,
+      "states": [
+        "SUBMITTING",
+        "RUNNING",
+        "CANCEL_REQUESTED",
+        "STOPPED"
+      ],
+      "stopRequested": true,
+      "status": "STOPPED",
+      "dsInstanceId": 46,
+      "logReadLines": 106,
+      "logCursor": 106,
+      "maskedLogSha256": "2d7bc4f121f87f3553e3988db655a1b7df378fa617ef7470c0813bbc166e2881",
+      "latestRecordVerified": true,
+      "downloadedLogBytes": 5256,
+      "downloadedLogSha256": "2958b23e4062dba02fb0b39cd9b45bef8f5b29048ad63496d6b9d8a7743a2b8a",
+      "nativeBodyMasked": true,
+      "case": "flink-stop",
+      "observation": [
+        {
+          "name": "dh_native_5",
+          "user": "datahub",
+          "engine": "FLINK",
+          "state": "CANCELLED",
+          "exitCode": -15,
+          "started": true,
+          "finished": true,
+          "processTreeAlive": false
+        }
+      ],
+      "actualOutputBeforeStop": true
+    },
+    {
+      "taskId": 8,
+      "recordId": 6,
+      "idempotencyVerified": true,
+      "states": [
+        "SUBMITTING",
+        "RUNNING",
+        "CANCEL_REQUESTED",
+        "STOPPED"
+      ],
+      "stopRequested": true,
+      "status": "STOPPED",
+      "dsInstanceId": 47,
+      "logReadLines": 76,
+      "logCursor": 76,
+      "maskedLogSha256": "5fa7af3e56605d0cf41cf56242a204b40e523b3142fcbc698cd9c0a2b2644489",
+      "latestRecordVerified": true,
+      "downloadedLogBytes": 3935,
+      "downloadedLogSha256": "615f8a41f716bb460eae325b7c4130f359c88ae5441183602bc447ccad6f5462",
+      "nativeBodyMasked": true,
+      "case": "spark-stop",
+      "observation": [
+        {
+          "name": "dh_native_6",
+          "user": "datahub",
+          "engine": "SPARK",
+          "state": "CANCELLED",
+          "exitCode": 143,
+          "started": true,
+          "finished": true,
+          "processTreeAlive": false
+        }
+      ],
+      "actualOutputBeforeStop": true
+    },
+    {
+      "taskId": 10,
+      "recordId": 7,
+      "idempotencyVerified": true,
+      "states": [
+        "WAITING",
+        "SUBMITTING",
+        "RUNNING",
+        "FAILED"
+      ],
+      "stopRequested": false,
+      "status": "FAILED",
+      "dsInstanceId": 48,
+      "logReadLines": 95,
+      "logCursor": 95,
+      "maskedLogSha256": "24e02fa61423573e8646702d76c4ffe2326d32f9f3871584297256ea7ace31e6",
+      "latestRecordVerified": true,
+      "downloadedLogBytes": 4575,
+      "downloadedLogSha256": "5f3dedb4deee47acc5709cc241bede70dbafe69f5b32ff4a0786a88c534fb95c",
+      "nativeBodyMasked": true,
+      "case": "flink-failure",
+      "observation": [
+        {
+          "name": "dh_native_7",
+          "user": "datahub",
+          "engine": "FLINK",
+          "state": "FAILED",
+          "exitCode": 1,
+          "started": true,
+          "finished": true,
+          "processTreeAlive": false
+        }
+      ]
+    }
+  ],
+  "browserRunStop": {
+    "evidenceId": "ev_5fddb7f92caf9e9b669f12016967db37e59c47d6a9dd9880270ac7da73668d65",
+    "durationMs": 281840,
+    "taskId": 11,
+    "recordId": 11,
+    "dsInstanceId": 55,
+    "cancelRequested": true,
+    "status": "STOPPED",
+    "workerOutputBeforeStop": true,
+    "stepCount": 16,
+    "allStepsCompleted": true,
+    "pageErrorCount": 0,
+    "steps": [
+      {
+        "step_id": "scenario_start",
+        "status": "completed",
+        "elapsed_ms": 480
+      },
+      {
+        "step_id": "login-ready",
+        "status": "completed",
+        "elapsed_ms": 967
+      },
+      {
+        "step_id": "theme",
+        "status": "completed",
+        "elapsed_ms": 141
+      },
+      {
+        "step_id": "login",
+        "status": "completed",
+        "elapsed_ms": 115
+      },
+      {
+        "step_id": "data-ready",
+        "status": "completed",
+        "elapsed_ms": 1990
+      },
+      {
+        "step_id": "settled",
+        "status": "completed",
+        "elapsed_ms": 4568
+      },
+      {
+        "step_id": "open-stream-editor",
+        "status": "completed",
+        "elapsed_ms": 135
+      },
+      {
+        "step_id": "run-ready",
+        "status": "completed",
+        "elapsed_ms": 208
+      },
+      {
+        "step_id": "run-in-browser",
+        "status": "completed",
+        "elapsed_ms": 102
+      },
+      {
+        "step_id": "actual-running",
+        "status": "completed",
+        "elapsed_ms": 192617
+      },
+      {
+        "step_id": "sustain-over-one-minute",
+        "status": "completed",
+        "elapsed_ms": 75073
+      },
+      {
+        "step_id": "still-running-after-75s",
+        "status": "completed",
+        "elapsed_ms": 61
+      },
+      {
+        "step_id": "stop-in-browser",
+        "status": "completed",
+        "elapsed_ms": 117
+      },
+      {
+        "step_id": "stop-confirmation",
+        "status": "completed",
+        "elapsed_ms": 66
+      },
+      {
+        "step_id": "confirm-stop",
+        "status": "completed",
+        "elapsed_ms": 103
+      },
+      {
+        "step_id": "stopped-in-browser",
+        "status": "completed",
+        "elapsed_ms": 4875
+      }
+    ],
+    "observation": [
+      {
+        "name": "dh_native_11",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "CANCELLED",
+        "exitCode": -15,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false
+      }
+    ]
+  },
+  "workerEvidence": {
+    "observedAt": "2026-11-01T16:35:00.499645+00:00",
+    "workflowInstance": {
+      "id": 55,
+      "state": "STOP",
+      "startTime": "2026-11-02 00:23:39",
+      "endTime": "2026-11-02 00:28:08"
+    },
+    "workflowDefinitionCode": "188538672894944",
+    "workflowTimeoutMinutes": 0,
+    "nodeDefinitions": [
+      {
+        "code": "188538672879584",
+        "taskType": "FLINK",
+        "timeoutFlag": "CLOSE",
+        "timeout": 0,
+        "timeoutNotifyStrategy": "FAILED"
+      }
+    ],
+    "workerTask": {
+      "id": 56,
+      "taskType": "FLINK",
+      "state": "KILL",
+      "startTime": "2026-11-02 00:26:45",
+      "endTime": "2026-11-02 00:28:07"
+    },
+    "workerActualRuntimeSeconds": 82.0,
+    "workerExceeded60Seconds": true,
+    "scopedNames": [
+      "dh_native_2",
+      "dh_native_4",
+      "dh_native_5",
+      "dh_native_6",
+      "dh_native_7",
+      "dh_native_10",
+      "dh_native_11"
+    ],
+    "noActiveEnginesInRequestedScope": true,
+    "passed": true,
+    "executions": [
+      {
+        "name": "dh_native_2",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "SUCCEEDED",
+        "exitCode": 0,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T15:48:33.354343+00:00",
+        "terminalStateWrittenAt": "2026-11-01T15:48:37.875268+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 4.521,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "840b50cd625f9e5cf07924cd9d0a93c90fdca9fdefbbba285991c95dd8f4a5bc",
+        "stdoutBytes": 1062,
+        "stdoutHasFlinkInsertedRow": false
+      },
+      {
+        "name": "dh_native_4",
+        "user": "datahub",
+        "engine": "SPARK",
+        "state": "SUCCEEDED",
+        "exitCode": 0,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T15:54:19.661416+00:00",
+        "terminalStateWrittenAt": "2026-11-01T15:54:24.376944+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 4.716,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "47294fd84da2617ec03be4dc5b3d427616ee1015aaed7107fafc314d695c41b8",
+        "stdoutBytes": 1068,
+        "stdoutHasFlinkInsertedRow": false
+      },
+      {
+        "name": "dh_native_5",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "CANCELLED",
+        "exitCode": -15,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T15:56:59.847939+00:00",
+        "terminalStateWrittenAt": "2026-11-01T15:57:06.545780+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 6.698,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "78b9b5bb4bcefd61103682b928aaf56c7d9c08bb23393822b956707ea135f8f1",
+        "stdoutBytes": 1164,
+        "stdoutHasFlinkInsertedRow": true
+      },
+      {
+        "name": "dh_native_6",
+        "user": "datahub",
+        "engine": "SPARK",
+        "state": "CANCELLED",
+        "exitCode": 143,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T15:58:26.935943+00:00",
+        "terminalStateWrittenAt": "2026-11-01T15:58:32.516975+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 5.581,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "4fe0e34651cbf57268412d7d994f87a97ac698111e68a36a580dc21ec0693388",
+        "stdoutBytes": 994,
+        "stdoutHasFlinkInsertedRow": false
+      },
+      {
+        "name": "dh_native_7",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "FAILED",
+        "exitCode": 1,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T15:59:17.913631+00:00",
+        "terminalStateWrittenAt": "2026-11-01T15:59:19.759576+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 1.846,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "b0c7cd45bd7c27235af38df6afc25edf10aabcdfb17a7577ab2653571b223c5e",
+        "stdoutBytes": 1050,
+        "stdoutHasFlinkInsertedRow": false
+      },
+      {
+        "name": "dh_native_10",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "CANCELLED",
+        "exitCode": -15,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T16:04:24.451369+00:00",
+        "terminalStateWrittenAt": "2026-11-01T16:05:24.672999+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 60.222,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "abab0823ec0a4acf403000753e0b1a9ae6e05997725a5d6f6ca5d955c6222a76",
+        "stdoutBytes": 3875,
+        "stdoutHasFlinkInsertedRow": true
+      },
+      {
+        "name": "dh_native_11",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "CANCELLED",
+        "exitCode": -15,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false,
+        "manifestWrittenAt": "2026-11-01T16:26:45.721022+00:00",
+        "terminalStateWrittenAt": "2026-11-01T16:28:07.618316+00:00",
+        "ledgerDurationSecondsFromManifestToTerminalWrite": 81.897,
+        "manifestIdentityMatches": true,
+        "rootOwnedLedgerAndOutput": true,
+        "ledgerAndOutputMode600": true,
+        "stdoutSha256": "ba934f2602f3dc17a24e658ad4dfe5e508d66aa91fe2b9a3a4e19acbf9d7cc95",
+        "stdoutBytes": 4938,
+        "stdoutHasFlinkInsertedRow": true
+      }
+    ],
+    "ledgerDurationMeaning": "Manifest creation to final state write; DS Worker start/end supply the separate actual runtime."
+  },
+  "classificationSamples": {
+    "sqlTaskId": 13,
+    "sparkTaskId": 14
+  },
+  "classificationContract": {
+    "pageMode": "executionConfig.workloadMode, then legacy programConfig.workloadMode, then BATCH",
+    "engineMode": "programConfig.workloadMode",
+    "ordinarySql": "Existing finite JDBC SQL; realtime page membership requires a positive timeout and is not a continuous stream. No new ordinary SQL execution engine was added in this round.",
+    "sparkSql": "May belong to the realtime page but actually executes BATCH with a positive timeout.",
+    "queryResults": "Native record APIs expose status/logs, not a rows result set; the query results panel stays empty rather than fabricating rows."
+  },
+  "historicalFailures": [
+    {
+      "recordId": 1,
+      "finalPlatformState": "FAILED",
+      "cause": "Flink noninteractive SQL Client was missing managed TABLEAU result mode.",
+      "resolution": "Managed init script now sets TABLEAU; later real Flink batch and streaming cases passed.",
+      "countedAsSuccessfulCase": false
+    },
+    {
+      "recordId": 3,
+      "finalPlatformState": "FAILED",
+      "cause": "Prepatch observer rejected the bounded Spark resource --conf arguments emitted by DS before engine launch.",
+      "manualResolution": true,
+      "auditPresent": true,
+      "auditSha256": "bdeadab94e4813f6a56719ea00a60a5f644ba7e6fe8452948c87fbf285f1859d",
+      "wrapperPidAlive": false,
+      "executionLedgerPresent": false,
+      "resolution": "Resolved UNKNOWN to FAILED through the existing manual verification API using DS exit127 and a clearly marked argument-policy replay audit. No engine terminal observation was manufactured.",
+      "countedAsSuccessfulCase": false
+    },
+    {
+      "recordId": 10,
+      "cause": "Unbounded timeoutSeconds=0 was serialized to CLOSE plus timeout=1; DS3.4.2 schedules timeout by numeric minutes despite CLOSE.",
+      "observerState": "CANCELLED",
+      "resolution": "Serializer now sends CLOSE plus timeout=0; final browser record11 ran 82 seconds and was stopped explicitly.",
+      "countedAsSuccessfulCase": false
+    }
+  ],
+  "verification": {
+    "frontendFullQuality": {
+      "testFilesPassed": 418,
+      "testsPassed": 3664,
+      "productionBuild": "PASSED",
+      "sourceLog": "/tmp/dev-local-native-runtime/frontend-final-quality.log",
+      "timing": "Passed before the final minor width/style change; this was not rerun in full after that change."
+    },
+    "backendQuality": {
+      "architecture": "PASSED",
+      "migrations": "PASSED",
+      "errorCodes": "PASSED",
+      "moduleBoundaries": "PASSED",
+      "sourceLog": "/tmp/dev-local-native-runtime/backend-quality.log"
+    },
+    "latestFocusedBackendRuns": [
+      {
+        "scope": "domain",
+        "testsPassed": 46
+      },
+      {
+        "scope": "framework",
+        "testsPassed": 30
+      },
+      {
+        "scope": "contract",
+        "testsPassed": 36
+      }
+    ],
+    "backendCountMeaning": "Separate focused runs may overlap; do not sum them into a unique test total. Counts supplied by the final validation owner.",
+    "pythonObserverContract": {
+      "hostPassed": 5,
+      "hostLinuxOwnershipSkipped": 1,
+      "actualLinuxWorkerPassed": 6,
+      "actualLinuxWorkerSkipped": 0
+    },
+    "pythonPreparation": {
+      "passed": 6,
+      "idempotentLivePreparations": 2
+    },
+    "realCliSmoke": "Completed earlier on the actual Linux Worker; see native-runtime-observer.json.",
+    "afterFinalWidthStyleChange": {
+      "focusedTestsPassed": 19,
+      "lint": "PASSED",
+      "fullTypecheck": "PASSED",
+      "applicationBuild": "PASSED",
+      "scopeNote": "Final targeted checks after the width/style change; the earlier 418-file/3664-test full quality result is recorded separately."
+    }
+  },
+  "operations": {
+    "privateApplicationConfig": "deploy/dolphinscheduler-local/runtime/dev-native/application-native.yaml",
+    "privateDsInput": "deploy/dolphinscheduler-local/runtime/dev-native/ds-private.json",
+    "privateConfigurationMode": "0600 and Git ignored; credentials and PEM key contents are not included here.",
+    "rootLedgerPattern": "/var/lib/datahub-native-runtime/dh_native_<recordId>/{manifest.json,state.json,output.log}",
+    "rawOutputAccess": "Container root only, 0600. Platform logs and downloads are sanitized; original SQL/output bodies remain masked.",
+    "observerTransport": "Loopback HTTPS with mTLS; query returns identity and lifecycle only, never raw logs.",
+    "formalMaintenance": "XXL-Job handler devTaskJob maintains DS bindings/imports and processes pending submissions, stops and recovery. Business cron is run by DS.",
+    "acceptanceMaintenance": "The temporary DataForge service on 48087 used a task allowlist maintainer for isolated verification; it is not the formal scheduler deployment.",
+    "queueing": "The local Docker VM crossed the DS Master 80% system-memory guard, delaying command consumption roughly 2–3 minutes. Accepted or queued is not RUNNING; keep load protection enabled."
+  },
+  "sourceDigests": [
+    {
+      "file": "flink-batch.json",
+      "sha256": "2b966a89d539029987a86f793822d843e0dd64b0e3599bbb6f7777a2e76e4fa8"
+    },
+    {
+      "file": "spark-batch.json",
+      "sha256": "9e837c001d1874bb5ca12c6fe359760ba19d6b98868d1816810287762ec2b5a2"
+    },
+    {
+      "file": "flink-stop.json",
+      "sha256": "dccab33bbdf0f7dc36fa1ab10bcf9185a67b605164bb8b676fe4f4023832bfdd"
+    },
+    {
+      "file": "spark-stop.json",
+      "sha256": "ad9e52abc885d88c4bc995f8c33508a737890e93e22e42dd7f52cdf0f443404c"
+    },
+    {
+      "file": "flink-failure.json",
+      "sha256": "994cff33d613783a1bb2783ec373b2675affde9e8f7ddfb9b839652bbc42e18a"
+    },
+    {
+      "file": "ui-run-stop.json",
+      "sha256": "a35eb9235b9e76775fb20a573623af611debe9ab495f9ab714ee33778d20568f"
+    },
+    {
+      "file": "ui-worker-evidence.json",
+      "sha256": "09f25524f9a4d4cbdc9a94df5ac175b6a28cdeaba5ca8025db16e25c570a36cb"
+    },
+    {
+      "file": "classification-samples.json",
+      "sha256": "0c3c6a3b790b954224e1aba578ff52c5f8299d55f67ab3d87f5c5042b13a15fe"
+    },
+    {
+      "file": "spark-prepatch-resolution.json",
+      "sha256": "fc1c2faee63e62ec9a6e967dde88e13f87ada4f4d87bfa167d0505474b135356"
+    },
+    {
+      "file": "layout-metrics.log",
+      "sha256": "e4c2eced88ce154a76788a059902f1daef997b48b4f2c0490a929235cfd9bf16"
+    },
+    {
+      "file": "layout-metrics-final.png",
+      "sha256": "a219d435a1a05b941a954b90196de437860f4d2fa239d9beb42ba67cbe3bf0a8"
+    }
+  ],
+  "visualEvidence": {
+    "layoutGeometry": {
+      "sourceLog": "/tmp/dev-local-native-runtime/layout-metrics.log",
+      "screenshot": "/tmp/dev-local-native-runtime/layout-metrics-final.png",
+      "stages": [
+        {
+          "stage": "before",
+          "businessAreaRight": 1808,
+          "businessAreaWidth": 1568,
+          "rightRail": {
+            "x": 1753,
+            "width": 54,
+            "right": 1807,
+            "client": 53,
+            "scroll": 53
+          },
+          "allMeasuredBoxesScrollEqualsClient": true,
+          "rightRailInsideBusinessArea": true
+        },
+        {
+          "stage": "history",
+          "businessAreaRight": 1808,
+          "businessAreaWidth": 1568,
+          "rightRail": {
+            "x": 1753,
+            "width": 54,
+            "right": 1807,
+            "client": 53,
+            "scroll": 53
+          },
+          "allMeasuredBoxesScrollEqualsClient": true,
+          "rightRailInsideBusinessArea": true
+        },
+        {
+          "stage": "log",
+          "businessAreaRight": 1808,
+          "businessAreaWidth": 1568,
+          "rightRail": {
+            "x": 1753,
+            "width": 54,
+            "right": 1807,
+            "client": 53,
+            "scroll": 53
+          },
+          "allMeasuredBoxesScrollEqualsClient": true,
+          "rightRailInsideBusinessArea": true
+        }
+      ],
+      "finalBehavior": "Splitter sizing is passed through component props to the actual root; the workspace reserves the 54px right auxiliary rail. History/log panels do not expand the business root or push the rail out of view."
+    },
+    "wideInteractionReview": {
+      "reportedByTaskOwner": true,
+      "allStepsCompleted": true,
+      "pageErrorCount": 0,
+      "checked": [
+        "properties",
+        "resource collapse",
+        "minimap",
+        "history",
+        "lineage",
+        "query"
+      ],
+      "evidenceId": null
+    },
+    "narrowInteractionReview": {
+      "reportedByTaskOwner": true,
+      "viewportWidths": [
+        1200,
+        768
+      ],
+      "allStepsCompleted": true,
+      "limitation": "At 768px, the properties panel narrows the SQL editor and can be collapsed. Mobile layout support is not claimed."
+    },
+    "finalOfflineHistoryLogPropertiesResourceReview": {
+      "status": "PASSED",
+      "evidenceId": "ev_32e543a6b5dd1249ab30df54e2f41b0a9ebe0083f65f48204b6c62a883d2d473",
+      "stepCount": 14,
+      "allStepsCompleted": true,
+      "pageErrorCount": 0,
+      "checked": [
+        "execution history",
+        "successful execution log",
+        "right properties",
+        "resource collapse"
+      ],
+      "finalScreenshotVisible": [
+        "three auxiliary rails",
+        "return to list",
+        "properties",
+        "log",
+        "footer"
+      ],
+      "artifactNote": "The task owner will add the separate wide-screen visual artifact."
+    }
+  },
+  "finalVisualArtifact": {
+    "path": "deploy/dolphinscheduler-local/verification/development-native-runtime-offline.png",
+    "sha256": "ad0ee8b26402459fe7274cbdeee7f8bbe724d2f73cc1a816523c7d4de7797c13",
+    "sourceEvidenceId": "ev_32e543a6b5dd1249ab30df54e2f41b0a9ebe0083f65f48204b6c62a883d2d473",
+    "viewport": {
+      "width": 1824,
+      "height": 1000
+    },
+    "pageErrors": 0,
+    "states": [
+      "history",
+      "success log",
+      "properties",
+      "resource directory collapsed"
+    ],
+    "wideEvidenceId": "ev_94323860cfa4c9dfc24c2cfdbad508978c8e15a4c212655c043f97a8c03a7b86",
+    "narrowEvidenceIds": {
+      "1200": "ev_c895c95b7bc5e2138b1d755de36a8d53715fb91c454fa535f1dc57b78da8dd0a",
+      "768": "ev_5f485c6d3cb8e0fa2b68e8aafb7e8ed8419c92966c484463e8b01a248a7cb839"
+    }
+  },
+  "uiCapabilityLimits": [
+    "查询结果暂无rows接口，保留真实空态。",
+    "血缘保存真实数据库和表关系；自动SQL血缘重解析尚未接入，按钮明确提示手动维护。"
+  ]
+}

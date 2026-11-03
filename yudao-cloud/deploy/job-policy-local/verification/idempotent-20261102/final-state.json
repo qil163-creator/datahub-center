@@ -1,0 +1,304 @@
+{
+  "checkedAt": "2026-11-02T12:36:22.963972",
+  "jobs": [
+    {
+      "id": 4,
+      "name": "codex_job_e2e_cron_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 5,
+      "name": "codex_job_e2e_wait_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 6,
+      "name": "codex_job_e2e_discard_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 7,
+      "name": "codex_job_e2e_priority_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 8,
+      "name": "codex_job_e2e_parallel_混合策略验收_20261102_080442_28e9",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 9,
+      "name": "codex_job_e2e_worker_混合策略验收_20261102_122553",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    },
+    {
+      "id": 10,
+      "name": "codex_job_e2e_host_混合策略验收_20261102_122553",
+      "scheduleStatus": 0,
+      "nextRunTime": null,
+      "hasActiveRuns": false,
+      "activeRunCount": 0,
+      "queuedRunCount": 0
+    }
+  ],
+  "targets": {
+    "worker": {
+      "count": 3007,
+      "distinctKeys": 3007,
+      "symmetricExceptAllCount": 0,
+      "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+      "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+      "totals": {
+        "count": 3007,
+        "sum": 31657696
+      }
+    },
+    "host": {
+      "count": 3007,
+      "distinctKeys": 3007,
+      "symmetricExceptAllCount": 0,
+      "sourceChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+      "targetChecksum": "164f666ade98dbecdd9a4a04abf3038b",
+      "totals": {
+        "count": 3007,
+        "sum": 31657696
+      }
+    }
+  },
+  "oldTargetsPreserved": {
+    "cron": {
+      "count": 6,
+      "sum": 62
+    },
+    "wait": {
+      "count": 15,
+      "sum": 155
+    },
+    "discard": {
+      "count": 6,
+      "sum": 62
+    },
+    "priority": {
+      "count": 12,
+      "sum": 124
+    },
+    "parallel": {
+      "count": 6,
+      "sum": 62
+    }
+  },
+  "records": [
+    {
+      "id": 59,
+      "status": "FAILURE",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：FAILURE",
+      "queuedTime": "2026-11-02 12:28:43",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583246094976,
+      "dsInstanceId": 80,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:28:47",
+      "endTime": "2026-11-02 12:29:08",
+      "children": [
+        {
+          "id": 180829751976978,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "FAILURE",
+          "taskId": 1006
+        },
+        {
+          "id": 51,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "taskId": 11
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "status": "FAILURE",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：FAILURE",
+      "queuedTime": "2026-11-02 12:29:59",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583324600960,
+      "dsInstanceId": 82,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:30:04",
+      "endTime": "2026-11-02 12:30:25",
+      "children": [
+        {
+          "id": 180829751976979,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "FAILURE",
+          "taskId": 1006
+        },
+        {
+          "id": 52,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "taskId": 11
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "status": "SUCCESS",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：SUCCESS",
+      "queuedTime": "2026-11-02 12:31:12",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583398828672,
+      "dsInstanceId": 84,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:31:16",
+      "endTime": "2026-11-02 12:31:57",
+      "children": [
+        {
+          "id": 180829751976980,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS",
+          "taskId": 1006
+        },
+        {
+          "id": 53,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS",
+          "taskId": 11
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "status": "SUCCESS",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：SUCCESS",
+      "queuedTime": "2026-11-02 12:32:36",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583485516416,
+      "dsInstanceId": 87,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:32:41",
+      "endTime": "2026-11-02 12:33:42",
+      "children": [
+        {
+          "id": 180829751976981,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS",
+          "taskId": 1007
+        },
+        {
+          "id": 54,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS",
+          "taskId": 12
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "status": "SUCCESS",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：SUCCESS",
+      "queuedTime": "2026-11-02 12:34:14",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583585268352,
+      "dsInstanceId": 90,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:34:18",
+      "endTime": "2026-11-02 12:34:49",
+      "children": [
+        {
+          "id": 180829751976982,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS",
+          "taskId": 1006
+        },
+        {
+          "id": 55,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS",
+          "taskId": 11
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "status": "SUCCESS",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：SUCCESS",
+      "queuedTime": "2026-11-02 12:34:44",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188583616159360,
+      "dsInstanceId": 93,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 12:34:48",
+      "endTime": "2026-11-02 12:35:19",
+      "children": [
+        {
+          "id": 180829751976983,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS",
+          "taskId": 1007
+        },
+        {
+          "id": 56,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS",
+          "taskId": 12
+        }
+      ]
+    }
+  ],
+  "allTestCyclesClosed": true,
+  "allTestRunsTerminal": true
+}

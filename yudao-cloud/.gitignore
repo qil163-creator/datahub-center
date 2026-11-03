@@ -1,0 +1,92 @@
+######################################################################
+# 构建工具
+
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+.flattened-pom.xml
+
+######################################################################
+# 集成开发环境
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+nbproject/private/
+build/*
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+######################################################################
+# 其他文件
+*.log
+*.xml.versionsBackup
+*.swp
+
+!*/build/*.java
+!*/build/*.html
+!*/build/*.xml
+
+### JRebel ###
+rebel.xml
+
+application-my.yaml
+
+/yudao-ui-app/unpackage/
+.DS_Store
+**/.DS_Store
+.worktrees/
+/.superpowers/
+/.skill-staging/
+/.agents/
+/.workflow/
+/docs/
+/script/
+/sql/
+/tools/
+
+# 编号 PostgreSQL 迁移必须进入版本控制，其余临时 SQL 仍保持忽略。
+!/sql/
+/sql/*
+!/sql/postgresql/
+/sql/postgresql/*
+!/sql/postgresql/migrations/
+/sql/postgresql/migrations/*
+!/sql/postgresql/migrations/[0-9][0-9][0-9][0-9]_*.sql
+
+# 迁移的真实 PostgreSQL 验证器随迁移交付。
+!/tools/
+/tools/*
+!/tools/quality/
+/tools/quality/*
+# 质量门禁的回归测试随检查器交付，临时运行产物仍保持忽略。
+!/tools/quality/tests/
+/tools/quality/tests/*
+!/tools/quality/tests/*.py
+!/tools/quality/verify_single_tenant_migration.py
+!/tools/quality/verify_legacy_invoke_menu_migration.py
+!/tools/quality/verify_standard_naming_removal.py
+!/tools/quality/verify_government_datameta_categories.py
+!/tools/quality/verify_unused_asset_persistence.py
+!/tools/quality/verify_biz_category_domains.py
+!/tools/quality/verify_modeling_domain_workbench.py
+!/tools/quality/verify_modeling_direct_save_migration.py
+!/tools/quality/verify_log_message_removal.py

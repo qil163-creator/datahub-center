@@ -1,0 +1,50 @@
+{
+  "referenceCanvas": {
+    "width": 3618,
+    "height": 2052
+  },
+  "targetViewport": {
+    "width": 2412
+  },
+  "scale": 1.5,
+  "scaleReason": "与浏览器中的控件32px高度对照，按原图物理像素/CSS像素1.5估算。",
+  "route": "/develop/integrate/datafile",
+  "scope": "保留项目导航，只复刻文件管理业务区域",
+  "sections": [
+    {
+      "name": "guide",
+      "height": 64
+    },
+    {
+      "name": "filter",
+      "height": 64
+    },
+    {
+      "name": "connection-stats",
+      "height": 108
+    },
+    {
+      "name": "tree-list",
+      "minHeight": 530
+    }
+  ],
+  "layout": {
+    "outerGap": 15,
+    "treeWidth": 280,
+    "treeListGap": 15,
+    "tableHeaderHeight": 36,
+    "tableRowHeight": 42,
+    "inputHeight": 32,
+    "buttonHeight": 28,
+    "connectionDialogWidth": 1200,
+    "renameDialogWidth": 500
+  },
+  "colors": {
+    "page": "#f0f2f5",
+    "surface": "#ffffff",
+    "tableHeader": "#f1f1f5",
+    "primary": "#4965ff",
+    "text": "#535965",
+    "muted": "#90939b"
+  }
+}

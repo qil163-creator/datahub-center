@@ -1,0 +1,47 @@
+/* ETL 节点编辑器公共表单样式（各编辑器 import 使用） */
+.etl-editor .form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.etl-editor .form-item__label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.etl-editor .form-item__label--required::before {
+  margin-right: 4px;
+  color: hsl(var(--destructive));
+  content: '*';
+}
+
+.etl-editor .form-item__tip {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.etl-editor .editor-section {
+  padding-left: 8px;
+  margin: 10px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-left: 3px solid hsl(var(--primary));
+}
+
+.etl-editor .editor-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.etl-editor .editor-row__remove {
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+
+.etl-editor .editor-row__remove:hover {
+  color: hsl(var(--destructive));
+}

@@ -1,0 +1,15 @@
+{
+  "sourceReference": "/tmp/qdata-fullsync-evidence/mapping-empty-full.png",
+  "assets": {
+    "mapping-empty": {
+      "file": "/assets/qdata-fullsync/mapping-empty.png",
+      "sourceBox": [
+        923,
+        745,
+        1113,
+        852
+      ],
+      "role": "decorative"
+    }
+  }
+}

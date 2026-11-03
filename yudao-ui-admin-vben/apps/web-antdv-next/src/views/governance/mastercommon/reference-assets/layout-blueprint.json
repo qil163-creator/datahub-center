@@ -1,0 +1,63 @@
+{
+  "referenceCanvas": {
+    "width": 3618,
+    "height": 2052
+  },
+  "cssScale": 0.6666666666666666,
+  "navigation": "preserve existing project navigation; reference business region only",
+  "regions": {
+    "listBusiness": {
+      "x": 336,
+      "y": 345,
+      "w": 3260,
+      "h": 1612
+    },
+    "categoryTree": {
+      "x": 337,
+      "y": 346,
+      "w": 420,
+      "h": 1612
+    },
+    "maintenanceFilter": {
+      "x": 780,
+      "y": 346,
+      "w": 2814,
+      "h": 94
+    },
+    "listToolbar": {
+      "y": 460,
+      "h": 88
+    },
+    "tableHeader": {
+      "y": 550,
+      "h": 56
+    },
+    "listRow": {
+      "h": 116
+    },
+    "pushModal": {
+      "x": 907,
+      "y": 295,
+      "w": 1800,
+      "h": 1655
+    },
+    "rowModal": {
+      "x": 1207,
+      "y": 295,
+      "w": 1200,
+      "h": 1424
+    }
+  },
+  "assets": {
+    "empty-records.png": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-64f94c9c-0f17-44e3-aa8f-00c01140bb15.png",
+      "sourceBox": [
+        1825,
+        950,
+        2125,
+        1140
+      ],
+      "role": "decorative"
+    }
+  }
+}

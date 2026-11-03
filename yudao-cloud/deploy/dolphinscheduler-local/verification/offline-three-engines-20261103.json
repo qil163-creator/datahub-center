@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "isolated DolphinScheduler native plugins; basic actual engine execution, not 49-component acceptance",
+  "projectCode": "188595135256544",
+  "checks": {
+    "DATAX": {
+      "taskType": "DATAX",
+      "workflowCode": "188629400091136",
+      "workflowInstanceId": 8,
+      "taskInstanceId": 8,
+      "state": "SUCCESS",
+      "markerInLog": true
+    },
+    "SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188629412632064",
+      "workflowInstanceId": 9,
+      "taskInstanceId": 9,
+      "state": "SUCCESS",
+      "markerInLog": true
+    },
+    "FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188629423033856",
+      "workflowInstanceId": 10,
+      "taskInstanceId": 10,
+      "state": "SUCCESS",
+      "markerInLog": true
+    }
+  },
+  "ownedEnvironmentCodes": {
+    "DATAX": "188629399923200",
+    "SPARK": "188629399953920",
+    "FLINK": "188629399974400"
+  },
+  "cleanup": [
+    {
+      "workflowCode": "188629400091136",
+      "state": "OFFLINE"
+    },
+    {
+      "workflowCode": "188629412632064",
+      "state": "OFFLINE"
+    },
+    {
+      "workflowCode": "188629423033856",
+      "state": "OFFLINE"
+    }
+  ]
+}

@@ -1,0 +1,423 @@
+﻿
+## 数据建模 (id=6126, path=/model)
+  - [目录] 数仓规划 (id=6027) path=warehouse-plan
+    - [菜单] 数仓分层 (id=6028) path=dwlayer | component=modeling/dwlayer/index
+      - [按钮] 数仓分层查询 (id=6029) perm=modeling:dwlayer:query
+      - [按钮] 数仓分层创建 (id=6030) perm=modeling:dwlayer:create
+      - [按钮] 数仓分层更新 (id=6031) perm=modeling:dwlayer:update
+      - [按钮] 数仓分层删除 (id=6032) perm=modeling:dwlayer:delete
+      - [按钮] 数仓分层导出 (id=6033) perm=modeling:dwlayer:export
+    - [菜单] 数仓分层 (id=5999) path=warehouse
+    - [菜单] 数据域 (id=6700) path=data-domain | component=modeling/datadomain/index | perm=modeling:data-domain:query
+      - [按钮] 数据分域新增 (id=6703) perm=modeling:data-domain:create
+      - [按钮] 数据分域修改 (id=6704) perm=modeling:data-domain:update
+      - [按钮] 数据分域删除 (id=6705) perm=modeling:data-domain:delete
+    - [菜单] 业务分类 (id=6701) path=biz-category | component=modeling/bizcategory/index | perm=modeling:biz-category:query
+      - [按钮] 业务分类新增 (id=6706) perm=modeling:biz-category:create
+      - [按钮] 业务分类修改 (id=6707) perm=modeling:biz-category:update
+      - [按钮] 业务分类删除 (id=6708) perm=modeling:biz-category:delete
+    - [菜单] 业务过程 (id=6416) path=business-process | component=modeling/businessprocess/index | perm=modeling:business-process:query
+      - [按钮] 业务过程新增 (id=6417) perm=modeling:business-process:create
+      - [按钮] 业务过程修改 (id=6418) perm=modeling:business-process:update
+      - [按钮] 业务过程删除 (id=6419) perm=modeling:business-process:delete
+    - [菜单] 主题域 (id=6702) path=subject-domain | component=modeling/subjectdomain/index | perm=modeling:subject-domain:query
+      - [按钮] 主题域新增 (id=6709) perm=modeling:subject-domain:create
+      - [按钮] 主题域修改 (id=6710) perm=modeling:subject-domain:update
+      - [按钮] 主题域删除 (id=6711) perm=modeling:subject-domain:delete
+  - [目录] 模型管理 (id=6216) path=models
+    - [菜单] 模型目录 (id=6720) path=biz-theme | component=modeling/biztheme/index | perm=modeling:model:query
+    - [菜单] 概念模型 (id=6721) path=concept-model | component=modeling/conceptmodel/index | perm=modeling:model:query
+    - [菜单] 逻辑模型 (id=6722) path=logic-model | component=modeling/logicmodel/index | perm=modeling:model:query
+      - [按钮] 模型保存 (id=6726) perm=modeling:model:save
+      - [按钮] 模型删除 (id=6727) perm=modeling:model:delete
+      - [按钮] 模型发布 (id=6728) perm=modeling:model:publish
+    - [菜单] 物理模型 (id=6723) path=physical-model | component=modeling/physicalmodel/index | perm=modeling:model:query
+    - [菜单] 模型检测 (id=6724) path=model-check | component=modeling/modelcheck/index | perm=modeling:model:query
+    - [菜单] 检测结果 (id=6725) path=check-result | component=modeling/checkresult/index | perm=modeling:model:query
+  - [目录] 类目管理 (id=6222) path=category
+  - [菜单] 数据概览 (id=6127) path=home | component=governance/model-home/index
+
+## 数据研发 (id=5992, path=/develop)
+  - [目录] 数据源 (id=5998) path=databases
+    - [菜单] 数据库信息 (id=6176) path=database | component=dataforge/database/index
+      - [按钮] 数据库信息查询 (id=6177) perm=dataforge:database:query
+      - [按钮] 数据库信息创建 (id=6178) perm=dataforge:database:create
+      - [按钮] 数据库信息更新 (id=6179) perm=dataforge:database:update
+      - [按钮] 数据库信息删除 (id=6180) perm=dataforge:database:delete
+      - [按钮] 数据库信息导出 (id=6181) perm=dataforge:database:export
+    - [菜单] 数据库类型 (id=6140) path=database-type | component=dataforge/databasetype/index
+      - [按钮] 数据库类型查询 (id=6141) perm=dataforge:database-type:query
+      - [按钮] 数据库类型创建 (id=6142) perm=dataforge:database-type:create
+      - [按钮] 数据库类型更新 (id=6143) perm=dataforge:database-type:update
+      - [按钮] 数据库类型删除 (id=6144) perm=dataforge:database-type:delete
+      - [按钮] 数据库类型导出 (id=6145) perm=dataforge:database-type:export
+    - [菜单] 数据源驱动 (id=6020) path=datasource-driver | component=dataforge/driver/index
+      - [按钮] 数据源驱动查询 (id=6021) perm=dataforge:datasource-driver:query
+      - [按钮] 数据源驱动创建 (id=6022) perm=dataforge:datasource-driver:create
+      - [按钮] 数据源驱动更新 (id=6023) perm=dataforge:datasource-driver:update
+      - [按钮] 数据源驱动删除 (id=6024) perm=dataforge:datasource-driver:delete
+      - [按钮] 数据源驱动导出 (id=6025) perm=dataforge:datasource-driver:export
+    - [菜单] API 管理 (id=6430) path=dataapi | component=dataforge/dataapi/index | perm=dataforge:data-api:query
+      - [按钮] API 创建 (id=6431) perm=dataforge:data-api:create
+      - [按钮] API 更新 (id=6432) perm=dataforge:data-api:update
+      - [按钮] API 删除 (id=6433) perm=dataforge:data-api:delete
+  - [目录] 可视化 ETL (id=6440) path=etl
+    - [菜单] 工具箱 (id=6441) path=toolbox | component=dataforge/etl/toolbox/index | perm=dataforge:etl:query
+    - [菜单] 生产流程 (id=6442) path=pipeline | component=dataforge/etl/pipeline/index | perm=dataforge:etl:query
+      - [按钮] 流程保存 (id=6444) perm=dataforge:etl:save
+      - [按钮] 流程删除 (id=6445) perm=dataforge:etl:delete
+      - [按钮] 流程发布 (id=6446) perm=dataforge:etl:release
+      - [按钮] 流程执行 (id=6447) perm=dataforge:etl:run
+    - [菜单] 流程日志 (id=6443) path=record | component=dataforge/etl/record/index | perm=dataforge:etl:query
+  - [目录] 数据开发 (id=6820) path=dev
+    - [菜单] 开发工作台 (id=6821) path=workbench | component=dataforge/dev/index | perm=dataforge:dev-task:query
+      - [按钮] 开发保存 (id=6823) perm=dataforge:dev-task:save
+      - [按钮] 开发删除 (id=6824) perm=dataforge:dev-task:delete
+      - [按钮] 开发执行 (id=6825) perm=dataforge:dev-task:run
+    - [菜单] 任务实例 (id=6822) path=instance | component=dataforge/dev/instance/index | perm=dataforge:dev-task:query
+  - [目录] 数据集成 (id=5987) path=integrate
+    - [目录] 数据同步 (id=6183) path=datasync
+    - [目录] 接口采集 (id=6184) path=api | component=dataforge/apiaccess/index | perm=dataforge:access:query
+    - [目录] 消息集成 (id=6185) path=message
+      - [菜单] 集成任务 (id=6272) path=job | component=dataforge/message/job/index | perm=dataforge:message-job:query
+        - [按钮] 消息任务新增 (id=6273) perm=dataforge:message-job:create
+        - [按钮] 消息任务修改 (id=6274) perm=dataforge:message-job:update
+        - [按钮] 消息任务删除 (id=6275) perm=dataforge:message-job:delete
+        - [按钮] 消息任务发布启停 (id=6276) perm=dataforge:message-job:release
+      - [菜单] 运行监控 (id=6277) path=run | component=dataforge/message/run/index | perm=dataforge:message-run:query
+        - [按钮] 消息运行记录删除 (id=6278) perm=dataforge:message-run:delete
+    - [目录] 文件采集 (id=6186) path=file
+    - [目录] 数据填报 (id=6187) path=filling
+      - [菜单] 我的填报 (id=6600) path=fill-my | component=dataforge/fill/my/index | perm=dataforge:fill-work-item:my
+        - [按钮] 草稿编辑 (id=6615) perm=dataforge:fill-work-item:edit
+        - [按钮] 数据提交 (id=6616) perm=dataforge:fill-work-item:submit
+        - [按钮] 填报转派 (id=6617) perm=dataforge:fill-work-item:transfer
+        - [按钮] Excel导入 (id=6618) perm=dataforge:fill-work-item:import
+        - [按钮] Excel导出 (id=6619) perm=dataforge:fill-work-item:export
+        - [按钮] 提交撤回 (id=6620) perm=dataforge:fill-work-item:withdraw
+      - [菜单] 部门填报查看 (id=6601) path=fill-dept-view | component=dataforge/fill/dept-view/index | perm=dataforge:fill-work-item:dept-view
+      - [菜单] 填报表 (id=6410) path=filltable | component=dataforge/filltable/index | perm=dataforge:fill-table:query
+        - [按钮] 填报表创建 (id=6412) perm=dataforge:fill-table:create
+        - [按钮] 填报表更新 (id=6413) perm=dataforge:fill-table:update
+        - [按钮] 填报表删除 (id=6414) perm=dataforge:fill-table:delete
+        - [按钮] 填报表发布 (id=6415) perm=dataforge:fill-table:release
+      - [菜单] 录入查询 (id=6411) path=filldata | component=dataforge/filldata/index | perm=dataforge:fill-table:data
+      - [菜单] 采集计划 (id=6602) path=fill-plan | component=dataforge/fill/plan/index | perm=dataforge:fill-plan:query
+        - [按钮] 计划新增 (id=6605) perm=dataforge:fill-plan:create
+        - [按钮] 计划修改 (id=6606) perm=dataforge:fill-plan:update
+        - [按钮] 计划删除 (id=6607) perm=dataforge:fill-plan:delete
+        - [按钮] 计划发布停用 (id=6608) perm=dataforge:fill-plan:publish
+      - [菜单] 采集任务 (id=6603) path=fill-task | component=dataforge/fill/task/index | perm=dataforge:fill-task:query
+        - [按钮] 任务补生成 (id=6609) perm=dataforge:fill-task:create
+        - [按钮] 任务取消 (id=6610) perm=dataforge:fill-task:cancel
+        - [按钮] 任务催办 (id=6611) perm=dataforge:fill-task:urge
+        - [按钮] 任务延期 (id=6612) perm=dataforge:fill-task:extend
+        - [按钮] 调整填报人 (id=6613) perm=dataforge:fill-work-item:assignee
+        - [按钮] 汇总数据导出 (id=6614) perm=dataforge:fill-task:export
+        - [按钮] 提交快照预览 (id=6623) perm=dataforge:fill-submission:preview
+      - [菜单] 合并记录 (id=6604) path=fill-merge | component=dataforge/fill/merge/index | perm=dataforge:fill-merge:query
+        - [按钮] 合并重试 (id=6621) perm=dataforge:fill-merge:retry
+        - [按钮] 创建数据更正 (id=6622) perm=dataforge:fill-correction:create
+    - [目录] 日志采集 (id=6188) path=logs
+      - [菜单] 采集任务 (id=6279) path=job | component=dataforge/logcollect/job/index | perm=dataforge:log-job:query
+        - [按钮] 日志任务新增 (id=6280) perm=dataforge:log-job:create
+        - [按钮] 日志任务修改 (id=6281) perm=dataforge:log-job:update
+        - [按钮] 日志任务删除 (id=6282) perm=dataforge:log-job:delete
+        - [按钮] 日志任务发布 (id=6283) perm=dataforge:log-job:release
+        - [按钮] 日志任务执行停止 (id=6284) perm=dataforge:log-job:run
+      - [菜单] 运行监控 (id=6285) path=run | component=dataforge/logcollect/run/index | perm=dataforge:log-run:query
+        - [按钮] 日志运行记录删除 (id=6286) perm=dataforge:log-run:delete
+    - [目录] 类目管理 (id=6221) path=category
+    - [菜单] 接入概览 (id=6182) path=overview | component=dataforge/overview/index
+    - [菜单] 数据同步 (id=6401) path=access | component=dataforge/access/index | perm=dataforge:access:query
+      - [按钮] 数据同步创建 (id=6403) perm=dataforge:access:create
+      - [按钮] 数据同步更新 (id=6404) perm=dataforge:access:update
+      - [按钮] 数据同步删除 (id=6405) perm=dataforge:access:delete
+      - [按钮] 数据同步发布 (id=6406) perm=dataforge:access:release
+      - [按钮] 数据同步执行 (id=6407) perm=dataforge:access:run
+    - [菜单] 文件采集 (id=6420) path=datafile | component=dataforge/datafile/index | perm=dataforge:data-file:query
+      - [按钮] 文件上传 (id=6421) perm=dataforge:data-file:create
+      - [按钮] 文件更新 (id=6422) perm=dataforge:data-file:update
+      - [按钮] 文件删除 (id=6423) perm=dataforge:data-file:delete
+  - [目录] 数据开发 (id=6224) path=develop
+  - [目录] 类目管理 (id=6220) path=category
+  - [菜单] 项目管理 (id=6013) path=projects | component=dataforge/projects/index
+    - [按钮] 项目管理查询 (id=6014) perm=dataforge:projects:query
+    - [按钮] 项目管理创建 (id=6015) perm=dataforge:projects:create
+    - [按钮] 项目管理更新 (id=6016) perm=dataforge:projects:update
+    - [按钮] 项目管理删除 (id=6017) perm=dataforge:projects:delete
+    - [按钮] 项目管理导出 (id=6018) perm=dataforge:projects:export
+  - [菜单] 来源系统 (id=6072) path=system-source | component=dataforge/systemsource/index
+    - [按钮] 来源系统查询 (id=6073) perm=dataforge:system-source:query
+    - [按钮] 来源系统创建 (id=6074) perm=dataforge:system-source:create
+    - [按钮] 来源系统更新 (id=6075) perm=dataforge:system-source:update
+    - [按钮] 来源系统删除 (id=6076) perm=dataforge:system-source:delete
+    - [按钮] 来源系统导出 (id=6077) perm=dataforge:system-source:export
+
+## 数据治理 (id=5993, path=/govern)
+  - [目录] 元数据管理 (id=5988) path=metadata
+    - [菜单] 元数据概览 (id=6237) path=metaoverview | component=governance/metaoverview/index | perm=governance:meta-object:query
+    - [菜单] 采集任务 (id=6225) path=metacollecttask | component=governance/metacollecttask/index | perm=governance:meta-collect-task:query
+      - [按钮] 采集任务新增 (id=6226) perm=governance:meta-collect-task:create
+      - [按钮] 采集任务修改 (id=6227) perm=governance:meta-collect-task:update
+      - [按钮] 采集任务删除 (id=6228) perm=governance:meta-collect-task:delete
+      - [按钮] 采集任务执行 (id=6229) perm=governance:meta-collect-task:run
+    - [菜单] 采集实例 (id=6230) path=metacollectinstance | component=governance/metacollectinstance/index | perm=governance:meta-collect-instance:query
+    - [菜单] 最新元数据 (id=6231) path=metaobject | component=governance/metaobject/index | perm=governance:meta-object:query
+      - [按钮] 表元数据查询 (id=6232) perm=governance:meta-table:query
+      - [按钮] 表元数据维护 (id=6233) perm=governance:meta-table:update
+      - [按钮] 元数据发布定版 (id=6234) perm=governance:meta-table:publish
+      - [按钮] 库对象维护 (id=6235) perm=governance:meta-object:update
+    - [菜单] 定版元数据 (id=6236) path=metapublished | component=governance/metapublished/index | perm=governance:meta-table:query
+    - [菜单] 元数据检索 (id=6238) path=metasearch | component=governance/metasearch/index | perm=governance:meta-table:query
+    - [菜单] 元数据标签 (id=6239) path=metatag | component=governance/metatag/index | perm=governance:meta-tag:query
+      - [按钮] 标签新增 (id=6240) perm=governance:meta-tag:create
+      - [按钮] 标签修改 (id=6241) perm=governance:meta-tag:update
+      - [按钮] 标签删除 (id=6242) perm=governance:meta-tag:delete
+  - [目录] 数据标准 (id=5994) path=standard
+    - [菜单] 标准文件登记 (id=6131) path=doc | component=governance/doc/index
+      - [按钮] 标准文件登记查询 (id=6132) perm=governance:doc:query
+      - [按钮] 标准文件登记创建 (id=6133) perm=governance:doc:create
+      - [按钮] 标准文件登记更新 (id=6134) perm=governance:doc:update
+      - [按钮] 标准文件登记删除 (id=6135) perm=governance:doc:delete
+      - [按钮] 标准文件登记导出 (id=6136) perm=governance:doc:export
+    - [菜单] 数据字典 (id=6203) path=standard-code-set | component=governance/standardcodeset/index
+      - [按钮] 数据字典查询 (id=6204) perm=governance:standard-code-set:query
+      - [按钮] 数据字典创建 (id=6205) perm=governance:standard-code-set:create
+      - [按钮] 数据字典更新 (id=6206) perm=governance:standard-code-set:update
+      - [按钮] 数据字典删除 (id=6207) perm=governance:standard-code-set:delete
+      - [按钮] 数据字典导出 (id=6208) perm=governance:standard-code-set:export
+      - [按钮] 码表码值导入 (id=6399) perm=governance:standard-code-set:import
+    - [菜单] 标准数据元管理 (id=6209) path=standard-element | component=governance/standardelement/index
+      - [按钮] 标准数据元查询 (id=6210) perm=governance:standard-element:query
+      - [按钮] 标准数据元创建 (id=6211) perm=governance:standard-element:create
+      - [按钮] 标准数据元更新 (id=6212) perm=governance:standard-element:update
+      - [按钮] 标准数据元删除 (id=6213) perm=governance:standard-element:delete
+      - [按钮] 标准数据元导出 (id=6214) perm=governance:standard-element:export
+      - [按钮] 标准数据元导入 (id=6367) perm=governance:standard-element:import
+      - [按钮] 标准数据元审批 (id=6368) perm=governance:standard-element:approve
+    - [菜单] 业务术语管理 (id=6370) path=standard-term | component=governance/standardterm/index
+      - [按钮] 业务术语查询 (id=6371) perm=governance:standard-term:query
+      - [按钮] 业务术语创建 (id=6372) perm=governance:standard-term:create
+      - [按钮] 业务术语更新 (id=6373) perm=governance:standard-term:update
+      - [按钮] 业务术语删除 (id=6374) perm=governance:standard-term:delete
+    - [菜单] 数据血缘 (id=6730) path=lineage | component=governance/lineage/index | perm=governance:lineage:query
+  - [目录] 数据质量 (id=5995) path=quality
+    - [目录] 规则管理 (id=6026) path=rulegroup
+    - [菜单] 数据质量监控 (id=6139) path=monitor | component=governance/quality-monitor/index
+    - [菜单] 质量概览 (id=6320) path=overview | component=governance/quality/overview/index | perm=governance:quality-audit-log:query
+    - [菜单] 质量规则 (id=6321) path=rule | component=governance/quality/rule/index | perm=governance:quality-rule:query
+      - [按钮] 质量规则新增 (id=6322) perm=governance:quality-rule:create
+      - [按钮] 质量规则修改 (id=6323) perm=governance:quality-rule:update
+      - [按钮] 质量规则删除 (id=6324) perm=governance:quality-rule:delete
+    - [菜单] 规则集 (id=6325) path=rule-set | component=governance/quality/rule-set/index | perm=governance:quality-rule-set:query
+      - [按钮] 规则集新增 (id=6326) perm=governance:quality-rule-set:create
+      - [按钮] 规则集修改 (id=6327) perm=governance:quality-rule-set:update
+      - [按钮] 规则集删除 (id=6328) perm=governance:quality-rule-set:delete
+    - [菜单] 检查对象 (id=6329) path=check-object | component=governance/quality/check-object/index | perm=governance:quality-check-object:query
+      - [按钮] 检查对象新增 (id=6330) perm=governance:quality-check-object:create
+      - [按钮] 检查对象修改 (id=6331) perm=governance:quality-check-object:update
+      - [按钮] 检查对象删除 (id=6332) perm=governance:quality-check-object:delete
+    - [菜单] 质量任务 (id=6333) path=task | component=governance/quality/task/index | perm=governance:quality-task:query
+      - [按钮] 质量任务新增 (id=6334) perm=governance:quality-task:create
+      - [按钮] 质量任务修改 (id=6335) perm=governance:quality-task:update
+      - [按钮] 质量任务删除 (id=6336) perm=governance:quality-task:delete
+      - [按钮] 质量任务执行 (id=6337) perm=governance:quality-task:execute
+    - [菜单] 任务模板 (id=6338) path=task-template | component=governance/quality/task-template/index | perm=governance:quality-task-template:query
+      - [按钮] 任务模板新增 (id=6339) perm=governance:quality-task-template:create
+      - [按钮] 任务模板修改 (id=6340) perm=governance:quality-task-template:update
+      - [按钮] 任务模板删除 (id=6341) perm=governance:quality-task-template:delete
+    - [菜单] 任务实例监控 (id=6342) path=task-instance | component=governance/quality/task-instance/index | perm=governance:quality-task-instance:query
+    - [菜单] 质量报告 (id=6343) path=report | component=governance/quality/report/index | perm=governance:quality-audit-log:query
+    - [菜单] 问题数据 (id=6344) path=issue-data | component=governance/quality/issue-data/index | perm=governance:quality-issue-data:query
+      - [按钮] 问题数据处理 (id=6345) perm=governance:quality-issue-data:update
+      - [按钮] 问题数据删除 (id=6346) perm=governance:quality-issue-data:delete
+    - [菜单] 修复工单 (id=6347) path=repair-order | component=governance/quality/repair-order/index | perm=governance:quality-repair-order:query
+      - [按钮] 修复工单新增 (id=6348) perm=governance:quality-repair-order:create
+      - [按钮] 修复工单修改 (id=6349) perm=governance:quality-repair-order:update
+      - [按钮] 修复工单删除 (id=6350) perm=governance:quality-repair-order:delete
+      - [按钮] 修复工单审批 (id=6351) perm=governance:quality-repair-order:approve
+      - [按钮] 修复工单执行 (id=6352) perm=governance:quality-repair-order:execute
+    - [菜单] 问题工单 (id=6353) path=work-order | component=governance/quality/work-order/index | perm=governance:quality-work-order:query
+      - [按钮] 问题工单创建 (id=6354) perm=governance:quality-work-order:create
+      - [按钮] 问题工单修改 (id=6355) perm=governance:quality-work-order:update
+      - [按钮] 问题工单删除 (id=6356) perm=governance:quality-work-order:delete
+      - [按钮] 问题工单处理 (id=6357) perm=governance:quality-work-order:process
+    - [菜单] 质量评分 (id=6358) path=org-score | component=governance/quality/org-score/index | perm=governance:quality-org-score:query
+      - [按钮] 评分计算 (id=6359) perm=governance:quality-org-score:create
+    - [菜单] 告警记录 (id=6360) path=alert | component=governance/quality/alert/index | perm=governance:quality-alert:query
+      - [按钮] 告警处理 (id=6361) perm=governance:quality-alert:update
+      - [按钮] 告警删除 (id=6362) perm=governance:quality-alert:delete
+    - [菜单] 质检简报 (id=6363) path=brief | component=governance/quality/brief/index | perm=governance:quality-brief:query
+      - [按钮] 简报生成 (id=6364) perm=governance:quality-brief:create
+      - [按钮] 简报发布/模板维护 (id=6365) perm=governance:quality-brief:update
+      - [按钮] 简报删除 (id=6366) perm=governance:quality-brief:delete
+  - [目录] 数据血缘 (id=5996) path=lineage
+  - [目录] 数据安全 (id=5989) path=safety
+    - [菜单] 数据分级 (id=6084) path=level | component=governance/level/index
+      - [按钮] 数据分级信息查询 (id=6085) perm=governance:level:query
+      - [按钮] 数据分级信息创建 (id=6086) perm=governance:level:create
+      - [按钮] 数据分级信息更新 (id=6087) perm=governance:level:update
+      - [按钮] 数据分级信息删除 (id=6088) perm=governance:level:delete
+      - [按钮] 数据分级信息导出 (id=6089) perm=governance:level:export
+    - [菜单] 数据安全--数据分类信息管理 (id=6090) path=category | component=safety/safetycategory/index
+    - [菜单] 数据安全--脱敏白名单管理 (id=6102) path=whitelist | component=safety/whitelist/index
+      - [按钮] 数据安全--脱敏白名单查询 (id=6103) perm=safety:whitelist:query
+      - [按钮] 数据安全--脱敏白名单创建 (id=6104) perm=safety:whitelist:create
+      - [按钮] 数据安全--脱敏白名单更新 (id=6105) perm=safety:whitelist:update
+      - [按钮] 数据安全--脱敏白名单删除 (id=6106) perm=safety:whitelist:delete
+      - [按钮] 数据安全--脱敏白名单导出 (id=6107) perm=safety:whitelist:export
+    - [菜单] 安全大盘 (id=6381) path=security-dashboard | component=governance/security/dashboard/index
+      - [按钮] 安全大盘查询 (id=6382) perm=governance:safety-dashboard:query
+    - [菜单] 数据分类 (id=6091) path=category | component=governance/category/index
+      - [按钮] 数据分类信息查询 (id=6092) perm=governance:category:query
+      - [按钮] 数据分类信息创建 (id=6093) perm=governance:category:create
+      - [按钮] 数据分类信息更新 (id=6094) perm=governance:category:update
+      - [按钮] 数据分类信息删除 (id=6095) perm=governance:category:delete
+      - [按钮] 数据分类信息导出 (id=6096) perm=governance:category:export
+    - [菜单] 脱敏规则库 (id=6120) path=rule | component=governance/rule/index
+      - [按钮] 脱敏规则查询 (id=6121) perm=governance:rule:query
+      - [按钮] 脱敏规则创建 (id=6122) perm=governance:rule:create
+      - [按钮] 脱敏规则更新 (id=6123) perm=governance:rule:update
+      - [按钮] 脱敏规则删除 (id=6124) perm=governance:rule:delete
+      - [按钮] 脱敏规则导出 (id=6125) perm=governance:rule:export
+    - [菜单] 脱敏白名单 (id=6108) path=whitelist | component=governance/whitelist/index
+      - [按钮] 脱敏白名单查询 (id=6109) perm=governance:whitelist:query
+      - [按钮] 脱敏白名单创建 (id=6110) perm=governance:whitelist:create
+      - [按钮] 脱敏白名单更新 (id=6111) perm=governance:whitelist:update
+      - [按钮] 脱敏白名单删除 (id=6112) perm=governance:whitelist:delete
+      - [按钮] 脱敏白名单导出 (id=6113) perm=governance:whitelist:export
+      - [按钮] 白名单审批 (id=6393) perm=governance:whitelist:approve
+    - [菜单] 脱敏白名单生效主体 (id=6114) path=whitelist-subject | component=safety/whitelistsubject/index
+      - [按钮] 脱敏白名单生效主体查询 (id=6115) perm=safety:whitelist-subject:query
+      - [按钮] 脱敏白名单生效主体创建 (id=6116) perm=safety:whitelist-subject:create
+      - [按钮] 脱敏白名单生效主体更新 (id=6117) perm=safety:whitelist-subject:update
+      - [按钮] 脱敏白名单生效主体删除 (id=6118) perm=safety:whitelist-subject:delete
+      - [按钮] 脱敏白名单生效主体导出 (id=6119) perm=safety:whitelist-subject:export
+    - [菜单] 静态脱敏 (id=6375) path=static-task | component=governance/statictask/index
+      - [按钮] 静态脱敏查询 (id=6376) perm=governance:safety-static-task:query
+      - [按钮] 静态脱敏创建 (id=6377) perm=governance:safety-static-task:create
+      - [按钮] 静态脱敏更新 (id=6378) perm=governance:safety-static-task:update
+      - [按钮] 静态脱敏删除 (id=6379) perm=governance:safety-static-task:delete
+      - [按钮] 静态脱敏执行 (id=6380) perm=governance:safety-static-task:execute
+    - [菜单] 敏感识别规则 (id=6383) path=identify-rule | component=governance/identify/rule/index
+      - [按钮] 识别规则查询 (id=6384) perm=governance:safety-identify:query
+      - [按钮] 识别规则创建 (id=6385) perm=governance:safety-identify:create
+      - [按钮] 识别规则更新 (id=6386) perm=governance:safety-identify:update
+      - [按钮] 识别规则删除 (id=6387) perm=governance:safety-identify:delete
+    - [菜单] 敏感字段打标 (id=6388) path=field-tag | component=governance/identify/tag/index
+      - [按钮] 敏感扫描执行 (id=6389) perm=governance:safety-identify:scan
+      - [按钮] 打标确认驳回 (id=6390) perm=governance:safety-identify:confirm
+    - [菜单] 访问审计 (id=6391) path=access-log | component=governance/security/accesslog/index
+      - [按钮] 访问审计查询 (id=6392) perm=governance:safety-access-log:query
+  - [目录] 类目管理 (id=6219) path=category
+    - [菜单] 质量类目管理 (id=6170) path=category-data-quality | component=governance/categorydataquality/index
+      - [按钮] 数据质量类目管理查询 (id=6171) perm=governance:category-data-quality:query
+      - [按钮] 数据质量类目管理创建 (id=6172) perm=governance:category-data-quality:create
+      - [按钮] 数据质量类目管理更新 (id=6173) perm=governance:category-data-quality:update
+      - [按钮] 数据质量类目管理删除 (id=6174) perm=governance:category-data-quality:delete
+      - [按钮] 数据质量类目管理导出 (id=6175) perm=governance:category-data-quality:export
+    - [菜单] 标准数据元类目 (id=6158) path=category-datameta | component=governance/categorydatameta/index
+      - [按钮] 标准数据元类目管理查询 (id=6159) perm=governance:category-datameta:query
+      - [按钮] 标准数据元类目管理创建 (id=6160) perm=governance:category-datameta:create
+      - [按钮] 标准数据元类目管理更新 (id=6161) perm=governance:category-datameta:update
+      - [按钮] 标准数据元类目管理删除 (id=6162) perm=governance:category-datameta:delete
+      - [按钮] 标准数据元类目管理导出 (id=6163) perm=governance:category-datameta:export
+    - [菜单] 数据分类类目管理 (id=6146) path=category-data | component=governance/categorydata/index
+      - [按钮] 数据分类 类目管理查询 (id=6147) perm=governance:category-data:query
+      - [按钮] 数据分类 类目管理创建 (id=6148) perm=governance:category-data:create
+      - [按钮] 数据分类 类目管理更新 (id=6149) perm=governance:category-data:update
+      - [按钮] 数据分类 类目管理删除 (id=6150) perm=governance:category-data:delete
+      - [按钮] 数据分类 类目管理导出 (id=6151) perm=governance:category-data:export
+    - [菜单] 清洗规则类目管理 (id=6152) path=category-clean-rule | component=governance/categorycleanrule/index
+      - [按钮] 清洗规则 类目管理查询 (id=6153) perm=governance:category-clean-rule:query
+      - [按钮] 清洗规则 类目管理创建 (id=6154) perm=governance:category-clean-rule:create
+      - [按钮] 清洗规则 类目管理更新 (id=6155) perm=governance:category-clean-rule:update
+      - [按钮] 清洗规则 类目管理删除 (id=6156) perm=governance:category-clean-rule:delete
+      - [按钮] 清洗规则 类目管理导出 (id=6157) perm=governance:category-clean-rule:export
+  - [目录] 主数据管理 (id=6500) path=master
+    - [菜单] 主数据模型 (id=6501) path=masterdata | component=governance/masterdata/index | perm=governance:master-model:query
+      - [按钮] 目录新增 (id=6502) perm=governance:master-catalog:create
+      - [按钮] 目录修改 (id=6503) perm=governance:master-catalog:update
+      - [按钮] 目录删除 (id=6504) perm=governance:master-catalog:delete
+      - [按钮] 模型新增 (id=6505) perm=governance:master-model:create
+      - [按钮] 模型修改 (id=6506) perm=governance:master-model:update
+      - [按钮] 模型删除 (id=6507) perm=governance:master-model:delete
+      - [按钮] 模型发布 (id=6508) perm=governance:master-model:release
+      - [按钮] 数据查询 (id=6509) perm=governance:master-data:query
+      - [按钮] 数据新增 (id=6510) perm=governance:master-data:create
+      - [按钮] 数据修改 (id=6511) perm=governance:master-data:update
+      - [按钮] 数据删除 (id=6512) perm=governance:master-data:delete
+    - [菜单] 主数据派发 (id=6520) path=masterdistribute | component=governance/masterdistribute/index | perm=governance:master-distribute:query
+      - [按钮] 派发新增 (id=6521) perm=governance:master-distribute:create
+      - [按钮] 派发修改 (id=6522) perm=governance:master-distribute:update
+      - [按钮] 派发删除 (id=6523) perm=governance:master-distribute:delete
+      - [按钮] 派发发布 (id=6524) perm=governance:master-distribute:release
+      - [按钮] 派发执行 (id=6525) perm=governance:master-distribute:run
+  - [菜单] 治理总览 (id=6215) path=overview | component=governance/overview/index
+
+## 数据资产 (id=5991, path=/asset)
+  - [目录] 数据资产监控 (id=6128) path=monitor
+    - [菜单] 数据资产统计 (id=6129) path=statistics | component=asset/monitor/statistics/index | perm=asset:monitor:query
+    - [菜单] 资产使用情况 (id=6130) path=usage | component=asset/monitor/usage/index | perm=asset:monitor:query
+  - [目录] 类目管理 (id=6218) path=category
+  - [菜单] 资产管理 (id=6243) path=dataasset | component=asset/dataasset/index | perm=asset:data-asset:query
+    - [按钮] 资产编目注册 (id=6244) perm=asset:data-asset:create
+    - [按钮] 资产类目创建 (id=6193) perm=asset:category-data-asset:create
+    - [按钮] 资产维护 (id=6245) perm=asset:data-asset:update
+    - [按钮] 资产类目更新 (id=6194) perm=asset:category-data-asset:update
+    - [按钮] 资产发布/撤销 (id=6246) perm=asset:data-asset:publish
+    - [按钮] 资产类目删除 (id=6195) perm=asset:category-data-asset:delete
+    - [按钮] 资产删除 (id=6247) perm=asset:data-asset:delete
+    - [按钮] 资产类目导出 (id=6196) perm=asset:category-data-asset:export
+    - [按钮] 资产数据预览 (id=6248) perm=asset:data-asset:preview
+    - [按钮] 资产血缘查看 (id=6249) perm=asset:data-asset:lineage
+    - [按钮] 资产打标 (id=6250) perm=asset:data-asset:tag
+    - [按钮] 字段绑定术语 (id=6251) perm=asset:data-asset:term
+    - [按钮] 质量任务管理 (id=6252) perm=asset:quality-task:manage
+    - [按钮] 类目查询 (id=6191) perm=asset:category-data-asset:query
+      - [按钮] 资产类目查询 (id=6192) perm=asset:category-data-asset:query
+  - [菜单] 资产注册 (id=6253) path=assetmap | component=asset/assetmap/index | perm=asset:data-asset:create
+  - [菜单] 数据查询 (id=6270) path=dataquery | component=asset/dataquery/index | perm=asset:data-query:query
+    - [按钮] 执行查询 (id=6271) perm=asset:data-query:execute
+  - [菜单] 资产标签 (id=6254) path=tag | component=asset/tag/index | perm=asset:tag:query
+    - [按钮] 标签新增 (id=6255) perm=asset:tag:create
+    - [按钮] 标签修改 (id=6256) perm=asset:tag:update
+    - [按钮] 标签删除 (id=6257) perm=asset:tag:delete
+    - [按钮] 标签类目查询 (id=6262) perm=asset:category-tag:query
+    - [按钮] 标签类目新增 (id=6263) perm=asset:category-tag:create
+    - [按钮] 标签类目修改 (id=6264) perm=asset:category-tag:update
+    - [按钮] 标签类目删除 (id=6265) perm=asset:category-tag:delete
+  - [菜单] 术语管理 (id=6258) path=term | component=asset/term/index | perm=asset:term:query
+    - [按钮] 术语新增 (id=6259) perm=asset:term:create
+    - [按钮] 术语修改 (id=6260) perm=asset:term:update
+    - [按钮] 术语删除 (id=6261) perm=asset:term:delete
+    - [按钮] 术语类目查询 (id=6266) perm=asset:category-term:query
+    - [按钮] 术语类目新增 (id=6267) perm=asset:category-term:create
+    - [按钮] 术语类目修改 (id=6268) perm=asset:category-term:update
+    - [按钮] 术语类目删除 (id=6269) perm=asset:category-term:delete
+
+## 数据服务 (id=5990, path=/supply)
+  - [目录] 类目管理 (id=6217) path=category
+    - [菜单] 数据服务类目 (id=6197) path=category-data-supply | component=supply/categorydatasupply/index
+      - [按钮] 数据服务类目查询 (id=6198) perm=supply:category-data-supply:query
+      - [按钮] 数据服务类目创建 (id=6199) perm=supply:category-data-supply:create
+      - [按钮] 数据服务类目更新 (id=6200) perm=supply:category-data-supply:update
+      - [按钮] 数据服务类目删除 (id=6201) perm=supply:category-data-supply:delete
+      - [按钮] 数据服务类目导出 (id=6202) perm=supply:category-data-supply:export
+  - [菜单] 数据概览 (id=6190) path=overview | component=supply/overview/index
+  - [菜单] API 管理 (id=6302) path=data-api | component=supply/dataapi/index | perm=supply:data-api:query
+    - [按钮] API新增 (id=6310) perm=supply:data-api:create
+    - [按钮] API修改 (id=6311) perm=supply:data-api:update
+    - [按钮] API删除 (id=6312) perm=supply:data-api:delete
+    - [按钮] 类目查询 (id=6306) perm=supply:api-category:query
+    - [按钮] 类目新增 (id=6317) perm=supply:api-category:create
+    - [按钮] 类目修改 (id=6318) perm=supply:api-category:update
+    - [按钮] 类目删除 (id=6319) perm=supply:api-category:delete
+  - [菜单] 调用记录 (id=6303) path=api-log | component=supply/apilog/index | perm=supply:api-log:query
+    - [按钮] 调用记录删除 (id=6313) perm=supply:api-log:delete
+  - [菜单] 接口测试 (id=6304) path=api-test | component=supply/apitest/index | perm=supply:data-api:query
+  - [菜单] 应用管理 (id=6305) path=app | component=supply/app/index | perm=supply:app:query
+    - [按钮] 应用新增 (id=6314) perm=supply:app:create
+    - [按钮] 应用修改 (id=6315) perm=supply:app:update
+    - [按钮] 应用删除 (id=6316) perm=supply:app:delete

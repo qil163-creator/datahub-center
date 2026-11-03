@@ -1,0 +1,15 @@
+services:
+  mongo-native:
+    image: mongo:7.0.43@sha256:1f995ad6fdb93244a1addab1b58f934a0bc2f5643c38e02f5e9d7f0c7d227a7b
+    restart: unless-stopped
+    command: ["mongod", "--bind_ip_all", "--port", "27017"]
+    volumes:
+      - mongo-native-state:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ping:1}).ok"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+volumes:
+  mongo-native-state:

@@ -1,0 +1,225 @@
+{
+  "verifiedAt": "2026-11-02T13:20:19.342421+08:00",
+  "engine": "Apache Spark 3.5.6 / Java17 / Apache POI 4.1.2",
+  "execution": "Direct official spark-sql in the existing local DS worker, local[1], 512m. No DS scheduled instance or full datasource sync acceptance is claimed.",
+  "compiler": "EtlNativeFileCompiler read-excel, using the same full EtlBoundedExcelReader as the existing TabularFileReader API.",
+  "positive": {
+    "exitCode": 0,
+    "expectedRows": [
+      "9007199254740993\t12345678901234567890.1234\t2026-11-02\t=1+2\ttrue\t0",
+      "3",
+      "9007199254740993\t12345678901234567890.1234\t2026-11-02\t3"
+    ],
+    "passed": true,
+    "coverage": [
+      "XLSX selected sheet and 1-based row/column range",
+      "XLS full input",
+      "Exact unsafe-JavaScript-range integer and DECIMAL(30,4)",
+      "Actual Excel date cell",
+      "Formula LITERAL and CACHED; no recalculation",
+      "BLANK null remains distinct from STRING empty"
+    ]
+  },
+  "negative": [
+    {
+      "case": "excel-bad-type",
+      "exitCode": 1,
+      "failure": [
+        "java.lang.RuntimeException: Excel 字段类型转换失败"
+      ]
+    },
+    {
+      "case": "excel-missing-sheet",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：Excel 工作表不存在"
+      ]
+    },
+    {
+      "case": "excel-symlink",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：Excel 文件不是普通文件、为空或超过字节预算"
+      ]
+    },
+    {
+      "case": "excel-symlink-dir",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：文件读取、路径授权或内容校验失败"
+      ]
+    },
+    {
+      "case": "excel-oversized",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：Excel 文件不是普通文件、为空或超过字节预算"
+      ]
+    },
+    {
+      "case": "excel-expanded-budget",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：文件读取、路径授权或内容校验失败"
+      ]
+    },
+    {
+      "case": "excel-empty-roots",
+      "exitCode": 1,
+      "failure": [
+        "org.apache.hadoop.hive.ql.metadata.HiveException: 受管 Excel 读取失败：工作节点未授权任何 Excel 文件根目录"
+      ]
+    },
+    {
+      "case": "excel-fraction-final",
+      "exitCode": 1,
+      "failure": "Excel 字段类型转换失败: tiny fractional input cannot silently become integer zero"
+    }
+  ],
+  "runtimeArtifacts": {
+    "finalJarSha256": "02ccede411f71018d813920866fb1707aa327f17a89ba099b6d549bc1c4d259b",
+    "finalSourceSha256": "9b47cc6c4140bf9978d8d664986fe2158710c0c7bafd997cf05c894e428605ba",
+    "finalJarPath": "/opt/datahub-etl-excel/excel-02ccede411f71018.jar",
+    "initialNegativeJarPath": "/opt/datahub-etl-excel/excel-e66836ef8ca1b14f.jar",
+    "notes": "Seven filesystem/content/budget negatives used the initial artifact; final positive and tiny-fraction rejection used the final artifact. The POI budget and secure filesystem reader source was unchanged between artifacts. The final artifact adds strict Boolean argument validation."
+  },
+  "dependencies": [
+    {
+      "name": "commons-lang3-3.20.0.jar",
+      "sha256": "69e5c9fa35da7a51a5fd2099dfe56a2d8d32cf233e2f6d770e796146440263f4",
+      "path": "/opt/datahub-etl-excel/dependency-69e5c9fa35da7a51a5fd2099dfe56a2d8d32cf233e2f6d770e796146440263f4.jar"
+    },
+    {
+      "name": "poi-4.1.2.jar",
+      "sha256": "ab1612406541968434044b2defad58aa8b657cad073baa22a04faaf9d7fb9d1c",
+      "path": "/opt/datahub-etl-excel/dependency-ab1612406541968434044b2defad58aa8b657cad073baa22a04faaf9d7fb9d1c.jar"
+    },
+    {
+      "name": "commons-codec-1.21.0.jar",
+      "sha256": "4da851cb6abfb98bfe9eb77c5e5fc47f5414fa28b94e21b7fd9a646705dc167f",
+      "path": "/opt/datahub-etl-excel/dependency-4da851cb6abfb98bfe9eb77c5e5fc47f5414fa28b94e21b7fd9a646705dc167f.jar"
+    },
+    {
+      "name": "commons-collections4-4.5.0.jar",
+      "sha256": "00f93263c267be201b8ae521b44a7137271b16688435340bf629db1bac0a5845",
+      "path": "/opt/datahub-etl-excel/dependency-00f93263c267be201b8ae521b44a7137271b16688435340bf629db1bac0a5845.jar"
+    },
+    {
+      "name": "commons-math3-3.6.1.jar",
+      "sha256": "1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308",
+      "path": "/opt/datahub-etl-excel/dependency-1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308.jar"
+    },
+    {
+      "name": "SparseBitSet-1.2.jar",
+      "sha256": "91e6b318c901a0f2dd1f6ce781d62474435ae627d22fbac9b21bbc39ffd804b6",
+      "path": "/opt/datahub-etl-excel/dependency-91e6b318c901a0f2dd1f6ce781d62474435ae627d22fbac9b21bbc39ffd804b6.jar"
+    },
+    {
+      "name": "poi-ooxml-4.1.2.jar",
+      "sha256": "0aaaeeee3f5831b036b7053f8048b0f83aa9fa8897771ffd871ddfc84653eba1",
+      "path": "/opt/datahub-etl-excel/dependency-0aaaeeee3f5831b036b7053f8048b0f83aa9fa8897771ffd871ddfc84653eba1.jar"
+    },
+    {
+      "name": "poi-ooxml-schemas-4.1.2.jar",
+      "sha256": "b4c579f34c377008ec16a5a784539b73776a1dcedf15196f88a80f1b208d9bb2",
+      "path": "/opt/datahub-etl-excel/dependency-b4c579f34c377008ec16a5a784539b73776a1dcedf15196f88a80f1b208d9bb2.jar"
+    },
+    {
+      "name": "xmlbeans-3.1.0.jar",
+      "sha256": "a19ea1ec835a101165f7aa3c55427e81b5f2b187bfe7689a19277c51402620b0",
+      "path": "/opt/datahub-etl-excel/dependency-a19ea1ec835a101165f7aa3c55427e81b5f2b187bfe7689a19277c51402620b0.jar"
+    },
+    {
+      "name": "commons-compress-1.28.0.jar",
+      "sha256": "e1522945218456f3649a39bc4afd70ce4bd466221519dba7d378f2141a4642ca",
+      "path": "/opt/datahub-etl-excel/dependency-e1522945218456f3649a39bc4afd70ce4bd466221519dba7d378f2141a4642ca.jar"
+    },
+    {
+      "name": "commons-io-2.20.0.jar",
+      "sha256": "df90bba0fe3cb586b7f164e78fe8f8f4da3f2dd5c27fa645f888100ccc25dd72",
+      "path": "/opt/datahub-etl-excel/dependency-df90bba0fe3cb586b7f164e78fe8f8f4da3f2dd5c27fa645f888100ccc25dd72.jar"
+    },
+    {
+      "name": "curvesapi-1.06.jar",
+      "sha256": "38bb45c99e6153260c19b97b99b6a7370a067de63344de6d1ea11922acaed86b",
+      "path": "/opt/datahub-etl-excel/dependency-38bb45c99e6153260c19b97b99b6a7370a067de63344de6d1ea11922acaed86b.jar"
+    }
+  ],
+  "unitTests": [
+    {
+      "class": "EtlNativeFileCompilerTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "EtlManagedExcelInputTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "EtlExcelValuesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "TabularFileReaderTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "FileSchemaReaderTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "EtlExcelTemporaryResourceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "Successful explicit Maven invocation with JVM startup argLine below; its XML was subsequently overwritten by a parallel default-tempdir run."
+    }
+  ],
+  "unitTestTotal": 46,
+  "temporaryOutputTestCommand": "mvn -q -pl :yudao-spring-boot-starter-biz-etl -am -DargLine=-Djava.io.tmpdir=/private/tmp/datahub-etl-test -Dtest=EtlExcelTemporaryResourceTest -Dsurefire.failIfNoSpecifiedTests=false test",
+  "temporaryOutputEnvironment": "On macOS /var and /tmp are symlinks. An initial default-tempdir run failed the existing EtlFileStore security check. A JVM-startup argLine selecting the real /private/tmp directory passes all 12 tests without changing security checks.",
+  "authorization": [
+    "Integration consumer resolves task-authorized resourceBindingId and connector code before compile.",
+    "Worker root allowlist is separately deployed by administrator; empty denies all reads.",
+    "SecureDirectoryStream NOFOLLOW handles reject symlink files and parent directories.",
+    "Upload fileId and arbitrary URL never authorize worker file reads."
+  ],
+  "limits": {
+    "maxFileBytes": 20971520,
+    "maxExpandedBytes": 83886080,
+    "maxRows": 100000,
+    "maxColumns": 256,
+    "maxCellChars": 1048576
+  },
+  "remainingBoundaries": [
+    "SPARK bounded batch only.",
+    "POI dependencies and DH_READ_EXCEL must be registered in the worker session, and managedFunctions must declare DH_READ_EXCEL.",
+    "LITERAL and saved CACHED formulas are supported; formulas and external workbook links are never recalculated.",
+    "Unsupported field length/type conversions are rejected; BigNumber length/precision explicitly maps to DECIMAL(p,s)."
+  ],
+  "sessionRegistration": {
+    "syntax": "CREATE TEMPORARY FUNCTION DH_READ_EXCEL AS class USING JAR function.jar, JAR dependency.jar ...",
+    "sparkExitCode": 0,
+    "exactUnsafeIntegerDecimalDateFormulaReadPassed": true,
+    "evidence": "Official Spark3.5.6 CLI output /tmp/datahub-native-excel-using-jar.log; formal payload validator tested separately by IntegrationNativeConnectorCompilationTest",
+    "unsupportedStatementsRemoved": [
+      "ADD JAR",
+      "SET"
+    ]
+  }
+}

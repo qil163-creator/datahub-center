@@ -1,0 +1,1432 @@
+# Run: promtool test rules script/monitoring/dataforge-run.test.yml
+rule_files:
+  -
+    "dataforge-run.rules.yml"
+evaluation_interval: "30s"
+tests:
+  -
+    name: "cluster snapshots are max, not sum"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "7x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"b\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "7x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      -
+        expr: "dataforge:run_queued{domain=\"ETL\"}"
+        eval_time: "5m"
+        exp_samples:
+          -
+            labels: "dataforge:run_queued{cluster=\"test\",job=\"dataforge-run\",domain=\"ETL\"}"
+            value: 7
+    alert_rule_test:
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunTargetDown"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunMetricsMissing"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunSampleUnavailable"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunCapacityConfigMismatch"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunQueueDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunUnknownUnresolved"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunReviewRequired"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunStopDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunLeaseRecoveryDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunScheduleDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunScanFailures"
+        exp_alerts:
+          []
+  -
+    name: "stale node excluded without erasing healthy node"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "4x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"b\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "99x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      -
+        expr: "dataforge:run_queued{domain=\"ETL\"}"
+        eval_time: "5m"
+        exp_samples:
+          -
+            labels: "dataforge:run_queued{cluster=\"test\",job=\"dataforge-run\",domain=\"ETL\"}"
+            value: 4
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunSampleUnavailable"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              instance: "b"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge database observation is unavailable or stale"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+  -
+    name: "old successful sample is not live data"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "120x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      -
+        expr: "dataforge:run_queued{domain=\"ETL\"}"
+        eval_time: "5m"
+        exp_samples:
+          []
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunSampleUnavailable"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              instance: "a"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge database observation is unavailable or stale"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunQueueDelayed"
+        exp_alerts:
+          []
+  -
+    name: "reachable old node without metrics is not healthy"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"old-node\"}"
+        values: "1x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunMetricsMissing"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              instance: "old-node"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge run metrics are missing or the node version is inconsistent"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+  -
+    name: "missing a capacity scope is detected"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunMetricsMissing"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              instance: "a"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge run metrics are missing or the node version is inconsistent"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+  -
+    name: "down target is separate from sample failure"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"b\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunTargetDown"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              instance: "b"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge metrics target is unreachable"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunSampleUnavailable"
+        exp_alerts:
+          []
+  -
+    name: "shared limits must agree across nodes"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"b\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"tenant\"}"
+        values: "64x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "2m"
+        alertname: "DataForgeRunCapacityConfigMismatch"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              scope: "tenant"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge nodes disagree on shared capacity limits"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+  -
+    name: "independent clusters are not compared"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "up{cluster=\"other\",job=\"dataforge-run\",instance=\"b\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",scope=\"tenant\"}"
+        values: "64x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"other\",job=\"dataforge-run\",instance=\"b\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunCapacityConfigMismatch"
+        exp_alerts:
+          []
+  -
+    name: "sustained problems fire and recovered values clear"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "12x15 0x5"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "600x15 0x5"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x15 0x5"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x15 0x5"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x15 0x5"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "180x15 0x5"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x15 0x5"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "200x15 0x5"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunQueueDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunQueueDelayed"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge accepted runs have waited beyond the queue budget"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunQueueDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunUnknownUnresolved"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunUnknownUnresolved"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge has unresolved UNKNOWN runs; do not blindly replay them"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunUnknownUnresolved"
+        exp_alerts:
+          []
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunReviewRequired"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunReviewRequired"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge run evidence requires operator review"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunReviewRequired"
+        exp_alerts:
+          []
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunStopDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunStopDelayed"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge cancellation has no confirmed physical exit"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunStopDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunLeaseRecoveryDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunLeaseRecoveryDelayed"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "critical"
+            exp_annotations:
+              summary: "DataForge expired execution leases are not recovering"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunLeaseRecoveryDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "1m"
+        alertname: "DataForgeRunScheduleDelayed"
+        exp_alerts:
+          []
+      -
+        eval_time: "15m"
+        alertname: "DataForgeRunScheduleDelayed"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge schedules remain overdue"
+              runbook: "docs/operations/dataforge-run-capacity.md"
+      -
+        eval_time: "20m"
+        alertname: "DataForgeRunScheduleDelayed"
+        exp_alerts:
+          []
+  -
+    name: "scan failure counter detects repeated failures"
+    interval: "1m"
+    input_series:
+      -
+        series: "up{cluster=\"test\",job=\"dataforge-run\",instance=\"a\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"tenant\"}"
+        values: "32x20"
+      -
+        series: "dataforge_run_capacity_limit{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",scope=\"datasource\"}"
+        values: "8x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_metrics_available{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "1x20"
+      -
+        series: "dataforge_run_metrics_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "10x20"
+      -
+        series: "dataforge_run_queued{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_queue_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_unknown{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_review_required{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_pending{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_stop_oldest_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_lease_expired{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_schedule_overdue_age_seconds{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ACCESS\"}"
+        values: "0x20"
+      -
+        series: "dataforge_run_scan_failures_total{cluster=\"test\",job=\"dataforge-run\",instance=\"a\",domain=\"ETL\",phase=\"DISPATCH\"}"
+        values: "0+1x20"
+    promql_expr_test:
+      []
+    alert_rule_test:
+      -
+        eval_time: "5m"
+        alertname: "DataForgeRunScanFailures"
+        exp_alerts:
+          -
+            exp_labels:
+              cluster: "test"
+              job: "dataforge-run"
+              domain: "ETL"
+              phase: "DISPATCH"
+              severity: "warning"
+            exp_annotations:
+              summary: "DataForge coordinator scans are repeatedly failing"
+              runbook: "docs/operations/dataforge-run-capacity.md"

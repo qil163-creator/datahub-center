@@ -1,0 +1,45 @@
+{
+  "platformDatabaseId": "1",
+  "sourceTable": "codex_job_normal_source_20261102",
+  "targetTable": "codex_job_normal_target_20261102",
+  "schema": "fill-center",
+  "normalDsPort": 12345,
+  "additionalServices": 0,
+  "schedulesCreated": 0,
+  "runs": [
+    {
+      "attempt": 1,
+      "instanceId": 1,
+      "taskInstanceId": 1,
+      "state": "SUCCESS",
+      "count": 37,
+      "uniqueIds": 37,
+      "rowDifferences": 0,
+      "taskPriority": "HIGHEST"
+    },
+    {
+      "attempt": 2,
+      "instanceId": 2,
+      "taskInstanceId": 2,
+      "state": "SUCCESS",
+      "count": 37,
+      "uniqueIds": 37,
+      "rowDifferences": 0,
+      "taskPriority": "HIGHEST"
+    },
+    {
+      "attempt": 3,
+      "instanceId": 3,
+      "taskInstanceId": 3,
+      "state": "SUCCESS",
+      "count": 40,
+      "uniqueIds": 40,
+      "rowDifferences": 0,
+      "taskPriority": "HIGHEST"
+    }
+  ],
+  "projectCode": "188590885122016",
+  "workflowCode": "188591115569120",
+  "dsDatasourceId": 1,
+  "status": "PASS"
+}

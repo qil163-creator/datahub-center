@@ -1,0 +1,253 @@
+{
+  "sourceReference": "/tmp/qdata-dev-editor-reference.png",
+  "referenceCanvas": {
+    "width": 3646,
+    "height": 2080
+  },
+  "scale": 0.5,
+  "regions": {
+    "businessArea": [
+      450,
+      460,
+      3604,
+      2050
+    ],
+    "rail": [
+      450,
+      460,
+      560,
+      1996
+    ],
+    "directory": [
+      560,
+      460,
+      1012,
+      1996
+    ],
+    "tabs": [
+      1012,
+      460,
+      3604,
+      526
+    ],
+    "toolbar": [
+      1012,
+      526,
+      3604,
+      590
+    ],
+    "status": [
+      450,
+      1996,
+      3604,
+      2050
+    ]
+  },
+  "assets": {
+    "save": {
+      "file": "editor-save.png",
+      "sourceBox": [
+        1034,
+        542,
+        1066,
+        574
+      ]
+    },
+    "run": {
+      "file": "editor-run.png",
+      "sourceBox": [
+        1191,
+        542,
+        1223,
+        574
+      ]
+    },
+    "debug": {
+      "file": "editor-debug.png",
+      "sourceBox": [
+        1351,
+        542,
+        1383,
+        574
+      ]
+    },
+    "stop": {
+      "file": "editor-stop.png",
+      "sourceBox": [
+        1510,
+        542,
+        1542,
+        574
+      ]
+    },
+    "format": {
+      "file": "editor-format.png",
+      "sourceBox": [
+        1667,
+        542,
+        1699,
+        574
+      ]
+    },
+    "config": {
+      "file": "editor-config.png",
+      "sourceBox": [
+        1848,
+        542,
+        1880,
+        574
+      ]
+    },
+    "schedule": {
+      "file": "editor-schedule.png",
+      "sourceBox": [
+        2006,
+        542,
+        2038,
+        574
+      ]
+    },
+    "ai": {
+      "file": "editor-ai.png",
+      "sourceBox": [
+        2220,
+        542,
+        2252,
+        574
+      ]
+    },
+    "rail-grid": {
+      "file": "editor-rail-grid.png",
+      "sourceBox": [
+        476,
+        480,
+        532,
+        536
+      ]
+    },
+    "rail-code": {
+      "file": "editor-rail-code.png",
+      "sourceBox": [
+        476,
+        560,
+        532,
+        616
+      ]
+    },
+    "rail-link": {
+      "file": "editor-rail-link.png",
+      "sourceBox": [
+        476,
+        640,
+        532,
+        696
+      ]
+    },
+    "rail-eye": {
+      "file": "editor-rail-eye.png",
+      "sourceBox": [
+        476,
+        720,
+        532,
+        776
+      ]
+    },
+    "rail-console": {
+      "file": "editor-rail-console.png",
+      "sourceBox": [
+        476,
+        1830,
+        532,
+        1886
+      ]
+    },
+    "rail-history": {
+      "file": "editor-rail-history.png",
+      "sourceBox": [
+        476,
+        1910,
+        532,
+        1966
+      ]
+    },
+    "rail-props": {
+      "file": "editor-rail-props.png",
+      "sourceBox": [
+        3538,
+        610,
+        3598,
+        670
+      ]
+    },
+    "right-props": {
+      "file": "editor-right-props.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-93291b21-a384-40a9-b154-e7cf1fc5f908.png",
+      "sourceBox": [
+        3538,
+        610,
+        3598,
+        670
+      ]
+    },
+    "right-lineage": {
+      "file": "editor-right-lineage.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-93291b21-a384-40a9-b154-e7cf1fc5f908.png",
+      "sourceBox": [
+        3538,
+        700,
+        3598,
+        760
+      ]
+    },
+    "right-minimap": {
+      "file": "editor-right-minimap.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-93291b21-a384-40a9-b154-e7cf1fc5f908.png",
+      "sourceBox": [
+        3538,
+        790,
+        3598,
+        850
+      ]
+    },
+    "right-props-active": {
+      "file": "editor-right-props-active.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-25943681-15d4-4579-8392-f11e2c6c1b1e.png",
+      "sourceBox": [
+        3538,
+        610,
+        3598,
+        670
+      ]
+    },
+    "right-lineage-active": {
+      "file": "editor-right-lineage-active.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-2c080f00-73ab-4bf4-87ab-364ec416cdd3.png",
+      "sourceBox": [
+        3538,
+        700,
+        3598,
+        760
+      ]
+    },
+    "right-minimap-active": {
+      "file": "editor-right-minimap-active.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-faf7ccb0-7e1d-447d-ae78-a19de3b2be80.png",
+      "sourceBox": [
+        3538,
+        790,
+        3598,
+        850
+      ]
+    },
+    "rail-results": {
+      "file": "editor-rail-results.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-bd096405-9bdf-43ef-bf53-d8d3e95476c9.png",
+      "sourceBox": [
+        476,
+        1830,
+        532,
+        1886
+      ]
+    }
+  }
+}

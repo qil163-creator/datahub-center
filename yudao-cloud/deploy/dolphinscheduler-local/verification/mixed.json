@@ -1,0 +1,31 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "mixed",
+  "checks": {
+    "UNPIVOT_UUID_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188511656764384",
+      "workflowInstanceId": 34,
+      "taskInstanceId": 34,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expandedRows": 6,
+      "exactRowsMatched": true,
+      "validUuidFormat": true,
+      "distinctUuidCount": 6
+    },
+    "UNPIVOT_UUID_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188511662965728",
+      "workflowInstanceId": 35,
+      "taskInstanceId": 35,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expandedRows": 6,
+      "exactRowsMatched": true,
+      "validUuidFormat": true,
+      "distinctUuidCount": 6
+    }
+  },
+  "status": "PASS"
+}

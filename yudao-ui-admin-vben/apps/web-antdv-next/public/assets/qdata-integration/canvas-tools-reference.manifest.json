@@ -1,0 +1,107 @@
+{
+  "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-11c5798a-76d0-4453-b2bd-65bf89fbb686.png",
+  "referenceCanvas": [
+    3646,
+    2080
+  ],
+  "deviceScale": 2,
+  "scope": "集成设计器画布工具栏五个图标，保留真实按钮与现有事件。",
+  "colorSpace": "sRGB",
+  "toolbarCss": {
+    "buttonSize": [
+      32,
+      32
+    ],
+    "gap": 8,
+    "radius": 4,
+    "background": "#fefcfd",
+    "border": "#e4e7ed"
+  },
+  "assets": {
+    "icon-canvas-zoom-out-ref.png": {
+      "sourceBox": [
+        1080,
+        634,
+        1120,
+        674
+      ],
+      "size": [
+        40,
+        40
+      ],
+      "displaySize": [
+        20,
+        20
+      ],
+      "role": "decorative"
+    },
+    "icon-canvas-zoom-in-ref.png": {
+      "sourceBox": [
+        1160,
+        634,
+        1200,
+        674
+      ],
+      "size": [
+        40,
+        40
+      ],
+      "displaySize": [
+        20,
+        20
+      ],
+      "role": "decorative"
+    },
+    "icon-canvas-center-ref.png": {
+      "sourceBox": [
+        1240,
+        634,
+        1280,
+        674
+      ],
+      "size": [
+        40,
+        40
+      ],
+      "displaySize": [
+        20,
+        20
+      ],
+      "role": "decorative"
+    },
+    "icon-canvas-export-ref.png": {
+      "sourceBox": [
+        1320,
+        634,
+        1360,
+        674
+      ],
+      "size": [
+        40,
+        40
+      ],
+      "displaySize": [
+        20,
+        20
+      ],
+      "role": "decorative"
+    },
+    "icon-canvas-reset-ref.png": {
+      "sourceBox": [
+        1400,
+        634,
+        1440,
+        674
+      ],
+      "size": [
+        40,
+        40
+      ],
+      "displaySize": [
+        20,
+        20
+      ],
+      "role": "decorative"
+    }
+  }
+}

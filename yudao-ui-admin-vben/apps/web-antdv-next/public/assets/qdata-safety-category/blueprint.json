@@ -1,0 +1,53 @@
+{
+  "referenceCanvas": {
+    "width": 3558,
+    "height": 1870
+  },
+  "scale": 1.5,
+  "businessAreas": {
+    "sidebar": {
+      "sourceBox": [
+        338,
+        165,
+        758,
+        1785
+      ],
+      "cssWidth": 280
+    },
+    "filters": {
+      "sourceBox": [
+        780,
+        165,
+        3537,
+        259
+      ],
+      "cssHeight": 62.67
+    },
+    "list": {
+      "sourceBox": [
+        780,
+        280,
+        3537,
+        1785
+      ]
+    },
+    "detailModal": {
+      "cssWidth": 800,
+      "top": "6vh"
+    },
+    "editModal": {
+      "cssWidth": 800,
+      "top": "6vh"
+    },
+    "maskModal": {
+      "cssWidth": 920,
+      "top": "6vh"
+    }
+  },
+  "font": {
+    "family": "Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Arial,sans-serif",
+    "size": 14,
+    "text": "#606266",
+    "primary": "#4266f4"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-11-02T16:00:10.986854+08:00",
+  "nodes": [
+    {
+      "port": 5678,
+      "serverStatus": "NORMAL",
+      "cpuUsage": 0.01507537688442211,
+      "memoryUsage": 0.8078630619876164,
+      "threadPoolUsage": null
+    },
+    {
+      "port": 1234,
+      "serverStatus": "NORMAL",
+      "cpuUsage": 0.017308766052484645,
+      "memoryUsage": 0.8078083978837605,
+      "threadPoolUsage": 0.0
+    }
+  ],
+  "memoryThreshold": 0.9,
+  "workerTaskExecutorThreads": 2,
+  "protectionEnabled": true,
+  "additionalServices": 0,
+  "portsUnchanged": [
+    12345,
+    50024,
+    5999
+  ]
+}

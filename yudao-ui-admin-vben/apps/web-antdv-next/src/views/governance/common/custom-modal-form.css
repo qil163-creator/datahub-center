@@ -1,0 +1,53 @@
+/* 自定义治理弹窗：与数据建模水平标签、labelWidth 130 对齐 */
+.governance-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 16px 8px;
+}
+
+.governance-form-item-horizontal .form-item {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.governance-form-item-horizontal .form-item__label {
+  flex: 0 0 130px;
+  width: 130px;
+  padding-top: 5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  color: hsl(var(--foreground));
+  text-align: right;
+}
+
+.governance-form-item-horizontal .form-item__label--required::before {
+  margin-right: 4px;
+  color: hsl(var(--destructive));
+  content: '*';
+}
+
+.governance-form-item-horizontal
+  .form-item
+  > :not(.form-item__label):not(.form-item__tip) {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.governance-form-item-horizontal .form-item__tip {
+  flex: 1 0 100%;
+  padding-left: 138px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.governance-form-item-horizontal .form-item__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 16px;
+}

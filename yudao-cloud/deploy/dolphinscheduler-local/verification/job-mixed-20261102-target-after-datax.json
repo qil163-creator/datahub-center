@@ -1,0 +1,23 @@
+{
+  "stage": "DataX success before SQL child started",
+  "rows": [
+    [
+      1,
+      "  alice  ",
+      7
+    ],
+    [
+      2,
+      "Bob",
+      11
+    ],
+    [
+      3,
+      "q'Data",
+      13
+    ]
+  ],
+  "count": 3,
+  "sum": 31,
+  "exactRows": true
+}

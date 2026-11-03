@@ -1,0 +1,23 @@
+{
+  "env": {
+    "job.mode": "BATCH",
+    "job.name": "native-user-json-name",
+    "parallelism": 1
+  },
+  "source": [{
+    "plugin_name": "FakeSource",
+    "plugin_output": "source_rows",
+    "row.num": 3,
+    "schema": {"fields": {"id": "int"}}
+  }],
+  "transform": [{
+    "plugin_name": "Sql",
+    "plugin_input": "source_rows",
+    "plugin_output": "transformed_rows",
+    "query": "select id, 'native-json-transform' as marker from source_rows"
+  }],
+  "sink": [{
+    "plugin_name": "Console",
+    "plugin_input": "transformed_rows"
+  }]
+}

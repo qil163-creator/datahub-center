@@ -1,0 +1,37 @@
+{
+  "reference": {
+    "source": "用户截图与授权 qData 页面实测",
+    "canvas": { "width": 3646, "height": 2080 },
+    "pixelRatio": 2,
+    "viewport": { "width": 1823, "height": 920 },
+    "preserveProjectNavigation": true
+  },
+  "list": {
+    "businessGutter": 15,
+    "searchHeight": 62,
+    "panelGap": 15,
+    "panelPadding": 15,
+    "toolbarHeight": 32,
+    "toolbarBottomGap": 16,
+    "tableHeaderHeight": 36,
+    "tableRowHeight": 79,
+    "actionsFixed": "right"
+  },
+  "wizard": {
+    "steps": ["配置基础信息", "选择来源表", "配置多表映射", "配置属性"],
+    "stepStripHeight": 100,
+    "stepItemHeight": 40,
+    "formColumns": 2,
+    "transferColumns": 2
+  },
+  "detail": {
+    "headerPadding": 15,
+    "descriptionRowHeight": 40,
+    "tabs": ["多表映射", "追加字段", "基本信息"]
+  },
+  "scope": "仅配置草稿管理，不调用发布、执行或同步提交接口",
+  "reaEvidence": [
+    "ev_fed5ce142629fd66187e0552d0a0bd1c8d06520e2bc8eee610e5abb2c7e41a4f",
+    "ev_fc3dfabd77bd88de10dc06c4cc8f42f882069d577359dfa1f8335d58f1d797b4"
+  ]
+}

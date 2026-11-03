@@ -1,0 +1,19 @@
+name: datahub-ds-local
+
+services:
+  standalone:
+    image: datahub/dolphinscheduler-local:3.4.2
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:${DS_LOCAL_PORT:-12345}:12345
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms128m -Xmx768m -Xmn256m -Duser.timezone=Asia/Shanghai -XX:+ExitOnOutOfMemoryError
+    command: ["/bin/bash", "/opt/dolphinscheduler/start-local.sh"]
+    volumes:
+      - ds-logs:/opt/dolphinscheduler/logs
+
+volumes:
+  ds-logs:

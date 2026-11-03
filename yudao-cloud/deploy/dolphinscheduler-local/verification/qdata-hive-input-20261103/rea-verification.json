@@ -1,0 +1,352 @@
+[
+  {
+    "scenario": "full",
+    "evidenceId": "ev_d2f67f398d2efef0ec795f0d1c751453f3a3ab4118a530cac425bbafd49a281b",
+    "screenshot": "full.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "id",
+    "evidenceId": "ev_a3041c113d80d01fa84841a67b13d74f896a50fabfa452d79cdd432af901e79c",
+    "screenshot": "id.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "time-empty",
+    "evidenceId": "ev_19cce6b1d8073f9ccb4fa601484767d57472bb5ae47883d04647a0ece0417579",
+    "screenshot": "time-empty.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "time-format",
+    "evidenceId": "ev_40a9df86f95482363d503cf17f1893a3935b2243f0bc61eb0cfca937534e9d4a",
+    "screenshot": "time-format.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "open-control",
+        "status": "completed"
+      },
+      {
+        "stepId": "control-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "fixed-modal",
+    "evidenceId": "ev_76b6d11575c269bec8039f9d754a7a3afd493f430101992caf74bbff00b16826",
+    "screenshot": "fixed-modal.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "open-control",
+        "status": "completed"
+      },
+      {
+        "stepId": "control-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "range-modal",
+    "evidenceId": "ev_811e3f782ecbd8e5616d6de7db0524ea2897138d2f1cf32e595c890d76defac1",
+    "screenshot": "range-modal.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "open-control",
+        "status": "completed"
+      },
+      {
+        "stepId": "control-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "sql-baseline-modal",
+    "evidenceId": "ev_43ee92e10f9b8ed2a05e5aec3291c68d4d12329402c32877bdda0b5ae441df6c",
+    "screenshot": "sql-baseline-modal.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "sql-baseline",
+        "status": "completed"
+      },
+      {
+        "stepId": "editor-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "sql-time-format",
+    "evidenceId": "ev_409db975d0eb8fe98adb9cda2e84f0ae85a28eb59adb69e7e0b43bed73037972",
+    "screenshot": "sql-time-format.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "open-control",
+        "status": "completed"
+      },
+      {
+        "stepId": "control-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "full-mobile",
+    "evidenceId": "ev_a420344d99173092e969016bf206f5353fadc6176e817db4b65a49ecc26d39b7",
+    "screenshot": "full-mobile.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":390,\"docWidth\":390,\"modalWidth\":374}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  },
+  {
+    "scenario": "sql-time",
+    "evidenceId": "ev_77de600f99eea7892d4242dbaa441593bea24116c422779feb44937098c0df48",
+    "screenshot": "sql-time.png",
+    "completeness": {
+      "status": "complete",
+      "equality_eligible": true,
+      "missing_sections": [],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "RELATION_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200,\"formatWidth\":240,\"conditionHeight\":310}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Controlled static fixture on existing port 5999; importmap intercepts request-client API imports.",
+      "Not backend end-to-end validation or real Hive execution."
+    ]
+  }
+]

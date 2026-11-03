@@ -1,0 +1,68 @@
+name: datahub-job-policy
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    restart: unless-stopped
+    command: ["postgres", "-p", "55427", "-c", "max_connections=100"]
+    env_file:
+      - ${JOB_POLICY_PG_ENV:?请指定源码外0600私密PG环境文件}
+    environment:
+      POSTGRES_DB: postgres
+      TZ: Asia/Shanghai
+    ports:
+      - 127.0.0.1:55427:55427
+      - 127.0.0.1:12347:12345
+    volumes:
+      - policy-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 55427 -U postgres -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  scheduler:
+    image: datahub/job-policy-ds:3.4.2
+    restart: unless-stopped
+    network_mode: service:postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ${JOB_POLICY_DS_ENV:?请指定源码外0600私密DS环境文件}
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms128m -Xmx768m -Xmn128m -Duser.timezone=Asia/Shanghai -XX:+ExitOnOutOfMemoryError
+      SPRING_PROFILES_ACTIVE: postgresql
+      SPRING_SQL_INIT_MODE: never
+      DATAX_HOME: /opt/datax
+      DATAX_LAUNCHER: /opt/datax/bin/datax.py
+      PYTHON_LAUNCHER: /usr/bin/python3
+    volumes:
+      - policy-ds-logs:/opt/dolphinscheduler/logs
+
+  upsert-worker:
+    image: datahub/job-policy-ds:3.4.2
+    profiles: [upsert]
+    restart: unless-stopped
+    network_mode: service:postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ${JOB_POLICY_DS_ENV:?请指定源码外0600私密DS环境文件}
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: postgresql
+      SPRING_SQL_INIT_MODE: never
+      WORKER_GROUP: idempotent
+      WORKER_LISTEN_PORT: 1235
+      SERVER_PORT: 12346
+      WORKER_SERVER_LOAD_PROTECTION_ENABLED: 'false'
+    command: [/bin/bash, /opt/dolphinscheduler/start-upsert-worker.sh]
+    volumes:
+      - policy-ds-logs:/opt/dolphinscheduler/logs
+
+volumes:
+  policy-pg-data:
+  policy-ds-logs:

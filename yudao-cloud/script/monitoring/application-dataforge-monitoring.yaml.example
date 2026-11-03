@@ -1,0 +1,19 @@
+# 按需启用的部署补充配置，不会由 Spring Boot 自动加载。
+# 默认仅绑定回环地址，使用本地采集器或受保护的代理；跨主机采集需要
+# 显式选择私有绑定地址，并配置经过身份认证的网络访问控制。
+management:
+  server:
+    address: 127.0.0.1
+    port: 19095
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+  prometheus:
+    metrics:
+      export:
+        enabled: true

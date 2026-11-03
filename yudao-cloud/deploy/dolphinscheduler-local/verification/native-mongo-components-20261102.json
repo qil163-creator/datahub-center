@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-11-02T13:15:32+0800",
+  "engine": "Spark 3.5.6 native SQL",
+  "mongo": "MongoDB 7.0.43",
+  "connector": "MongoDB Spark 10.7.0 + Java Driver 5.1.4",
+  "database": "datahub_components",
+  "sourceCollection": "native_input_42e8cd69afb4",
+  "targetCollection": "native_output_42e8cd69afb4",
+  "insert": {
+    "exitCode": 0,
+    "actualRows": [
+      {
+        "id": "101",
+        "label": "O'REILLY",
+        "origin": "mongo-native"
+      },
+      {
+        "id": "102",
+        "label": "BETA",
+        "origin": "mongo-native"
+      }
+    ]
+  },
+  "update": {
+    "exitCode": 0,
+    "actualRows": [
+      {
+        "id": "101",
+        "label": "O'REILLY",
+        "origin": "mongo-native"
+      },
+      {
+        "id": "102",
+        "label": "GAMMA",
+        "origin": "mongo-native"
+      }
+    ],
+    "documentCountRemainsTwo": true
+  },
+  "badType": {
+    "exitCode": 1,
+    "rejected": true
+  },
+  "sqlSha256": {
+    "insert": "eda54756b27f5911b14a956c26adda031209d103fafcb82c9765f9c0537ba651",
+    "update": "c08a9d840e645b58601dffb25b357d9ff10f985af662f97d6fa27660416f1bdb",
+    "badType": "6e155f6ea229e4bc1c15629acaf34861a29370b4b280a03712bc11535b40f218"
+  },
+  "limits": [
+    "原生引擎与外部MongoDB端到端；未声明本次管理端触发验收",
+    "显式匿名受管环境；认证秘密引用尚未适配",
+    "Spark批次写入不是全作业事务，失败可能已有批次提交，不声明自动回滚或恰好一次"
+  ]
+}

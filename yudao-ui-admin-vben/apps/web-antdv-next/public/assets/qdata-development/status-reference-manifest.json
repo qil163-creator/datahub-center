@@ -1,0 +1,158 @@
+{
+  "coordinateConvention": "[left,top,right,bottom), source pixels; only footer y>=2011 was sampled.",
+  "sourceScale": 2,
+  "resized": false,
+  "backgroundRgb": [
+    249,
+    249,
+    249
+  ],
+  "alphaTreatment": "Remove sampled near-white footer matte; unmatte antialiased source pixel colors. No redraw, resampling or enlargement.",
+  "assets": {
+    "document": {
+      "file": "status-document.png",
+      "staticUrl": "/assets/qdata-development/status-document.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-c2c38a52-bae6-4a22-b845-1bcc903a796d.png",
+      "sourceSha256": "95abd3802125dde1775efab974a9e3e20c484621dd88ed4d3f1659dd40372c5f",
+      "referenceCanvas": [
+        3646,
+        2080
+      ],
+      "sourceBox": [
+        471,
+        2011,
+        493,
+        2035
+      ],
+      "intrinsicSize": [
+        22,
+        24
+      ],
+      "naturalCssSizeAtHalfScale": [
+        11.0,
+        12.0
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "reconstructionMaxChannelErrorOnSourceBackground": 0,
+      "sha256": "59c0164d36ca97aebb48078daef63db99c4cba60bcf0b9abe39ade7662c2d7c5"
+    },
+    "locked": {
+      "file": "status-locked.png",
+      "staticUrl": "/assets/qdata-development/status-locked.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-c2c38a52-bae6-4a22-b845-1bcc903a796d.png",
+      "sourceSha256": "95abd3802125dde1775efab974a9e3e20c484621dd88ed4d3f1659dd40372c5f",
+      "referenceCanvas": [
+        3646,
+        2080
+      ],
+      "sourceBox": [
+        2397,
+        2011,
+        2416,
+        2035
+      ],
+      "intrinsicSize": [
+        19,
+        24
+      ],
+      "naturalCssSizeAtHalfScale": [
+        9.5,
+        12.0
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "reconstructionMaxChannelErrorOnSourceBackground": 0,
+      "sha256": "62ca0ee452c80ae08e7a33d9ce8f30081f2467b5052efb2aae66cdc053548266"
+    },
+    "unlocked": {
+      "file": "status-unlocked.png",
+      "staticUrl": "/assets/qdata-development/status-unlocked.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-b5beda96-fdea-479b-a314-0f0c3fa14fa2.png",
+      "sourceSha256": "08a32bf7debb96d0721b470ec6d502e9ccd5029e4e8007e0046b78980a3f5c65",
+      "referenceCanvas": [
+        3646,
+        2080
+      ],
+      "sourceBox": [
+        2448,
+        2011,
+        2467,
+        2035
+      ],
+      "intrinsicSize": [
+        19,
+        24
+      ],
+      "naturalCssSizeAtHalfScale": [
+        9.5,
+        12.0
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "reconstructionMaxChannelErrorOnSourceBackground": 0,
+      "sha256": "36098c1072aae5d3e5dae4f1b12016bc53a5edfa32dd442beb208984ba85a729"
+    },
+    "valid": {
+      "file": "status-valid.png",
+      "staticUrl": "/assets/qdata-development/status-valid.png",
+      "sourceReference": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-c2c38a52-bae6-4a22-b845-1bcc903a796d.png",
+      "sourceSha256": "95abd3802125dde1775efab974a9e3e20c484621dd88ed4d3f1659dd40372c5f",
+      "referenceCanvas": [
+        3646,
+        2080
+      ],
+      "sourceBox": [
+        3403,
+        2015,
+        3431,
+        2031
+      ],
+      "intrinsicSize": [
+        28,
+        16
+      ],
+      "naturalCssSizeAtHalfScale": [
+        14.0,
+        8.0
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "reconstructionMaxChannelErrorOnSourceBackground": 0,
+      "sha256": "5a98b88fe3e5d5eaac7092b5d4ee1fc1f3dfa19e00fdf51cd4245901fc8cb3be"
+    }
+  },
+  "footerLayout": {
+    "heightCss": 28,
+    "fontSizeCss": 12,
+    "background": "#f9f9f9",
+    "foreground": "#606266",
+    "separator": {
+      "heightCss": 16,
+      "color": "#e0e5ee"
+    },
+    "itemPaddingInlineCss": 14,
+    "lockedGroupPaddingInlineCss": 10,
+    "engineGroupPaddingInlineCss": 15,
+    "diagnosticMinWidthCss": 122,
+    "referenceGroupWidthsCss": [
+      136,
+      88,
+      85,
+      66.5,
+      63,
+      59.5,
+      52.5,
+      86,
+      122
+    ]
+  }
+}

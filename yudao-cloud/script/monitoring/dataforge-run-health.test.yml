@@ -1,0 +1,57 @@
+# Negative health cases missing from the initial alert fixtures.
+rule_files:
+  - dataforge-run.rules.yml
+evaluation_interval: 30s
+tests:
+  - name: missing age gauge must not silently remove the node from fresh snapshots
+    interval: 30s
+    input_series:
+      - series: 'up{cluster="test",job="dataforge-run",instance="a"}'
+        values: '1x8'
+      - series: 'dataforge_run_capacity_limit{cluster="test",job="dataforge-run",instance="a",scope="tenant"}'
+        values: '32x8'
+      - series: 'dataforge_run_capacity_limit{cluster="test",job="dataforge-run",instance="a",scope="datasource"}'
+        values: '8x8'
+      - series: 'dataforge_run_metrics_available{cluster="test",job="dataforge-run",instance="a",domain="ETL"}'
+        values: '1x8'
+      - series: 'dataforge_run_metrics_available{cluster="test",job="dataforge-run",instance="a",domain="ACCESS"}'
+        values: '1x8'
+      - series: 'dataforge_run_metrics_age_seconds{cluster="test",job="dataforge-run",instance="a",domain="ACCESS"}'
+        values: '10x8'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DataForgeRunMetricsMissing
+        exp_alerts:
+          - exp_labels: {cluster: test, job: dataforge-run, instance: a, severity: critical}
+            exp_annotations:
+              summary: DataForge run metrics are missing or the node version is inconsistent
+              runbook: docs/operations/dataforge-run-capacity.md
+  - name: invalid age is unavailable and cannot create a fresh snapshot
+    interval: 30s
+    input_series:
+      - series: 'up{cluster="test",job="dataforge-run",instance="a"}'
+        values: '1x8'
+      - series: 'dataforge_run_metrics_available{cluster="test",job="dataforge-run",instance="a",domain="ETL"}'
+        values: '1x8'
+      - series: 'dataforge_run_metrics_age_seconds{cluster="test",job="dataforge-run",instance="a",domain="ETL"}'
+        values: 'NaN NaN NaN NaN NaN NaN NaN NaN NaN'
+      - series: 'dataforge_run_metrics_available{cluster="test",job="dataforge-run",instance="a",domain="ACCESS"}'
+        values: '1x8'
+      - series: 'dataforge_run_metrics_age_seconds{cluster="test",job="dataforge-run",instance="a",domain="ACCESS"}'
+        values: '-1x8'
+    promql_expr_test:
+      - expr: 'dataforge:run_sample:fresh'
+        eval_time: 2m
+        exp_samples: []
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DataForgeRunSampleUnavailable
+        exp_alerts:
+          - exp_labels: {cluster: test, job: dataforge-run, instance: a, domain: ETL, severity: warning}
+            exp_annotations:
+              summary: DataForge database observation is unavailable or stale
+              runbook: docs/operations/dataforge-run-capacity.md
+          - exp_labels: {cluster: test, job: dataforge-run, instance: a, domain: ACCESS, severity: warning}
+            exp_annotations:
+              summary: DataForge database observation is unavailable or stale
+              runbook: docs/operations/dataforge-run-capacity.md

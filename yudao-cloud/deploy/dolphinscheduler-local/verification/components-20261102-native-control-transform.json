@@ -1,0 +1,295 @@
+{
+  "timestamp": "2026-11-02T16:12:03+0800",
+  "submission": "ISOLATED_NATIVE_CLI_NOT_DS_INSTANCE",
+  "javaRelease": 17,
+  "workerImage": "datahub/dolphinscheduler-local:3.4.2",
+  "cases": [
+    {
+      "engine": "spark",
+      "case": "all",
+      "exitCode": 0,
+      "sqlSha256": "0029f434a1785e922144403c213e242bbde89b691604758c41467bcee3bd62af",
+      "compilerSqlSha256": "5abda27468025ef74b4bc80e8077e9109d3b45c2c46396d2edac4e0167b61610",
+      "sqlFile": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-spark-all.sql",
+      "log": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-spark-all.log",
+      "workerImageId": "sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966",
+      "passed": true,
+      "rows": {
+        "a_out": [
+          {
+            "id": 2,
+            "amount": "0.0100",
+            "名称": "O'Reilly",
+            "bucket": "small",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": "O'Reilly"
+          },
+          {
+            "id": 2,
+            "amount": "0.0100",
+            "名称": "O'Reilly",
+            "bucket": "small",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": "O'Reilly"
+          },
+          {
+            "id": 9007199254740993,
+            "amount": "12.3400",
+            "名称": "水🌊",
+            "bucket": "big",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": "江河"
+          },
+          {
+            "id": 9007199254740993,
+            "amount": "12.3400",
+            "名称": "水🌊",
+            "bucket": "big",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": "水🌊"
+          },
+          {
+            "id": null,
+            "amount": null,
+            "名称": null,
+            "bucket": "missing",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": null
+          },
+          {
+            "id": null,
+            "amount": null,
+            "名称": null,
+            "bucket": "missing",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": null
+          }
+        ],
+        "c_out": [
+          {
+            "group": "MiXeD",
+            "id": 1,
+            "payload": "first"
+          },
+          {
+            "group": null,
+            "id": 3,
+            "payload": "null-first"
+          },
+          {
+            "group": "H",
+            "id": 5,
+            "payload": null
+          }
+        ],
+        "d_out": [
+          {
+            "id": "Ab",
+            "n": 1
+          },
+          {
+            "id": "Other",
+            "n": 3
+          },
+          {
+            "id": null,
+            "n": 2
+          }
+        ]
+      },
+      "exactDuplicatesAndNullGroups": true,
+      "asciiIgnoreCasePreservesFirstOriginal": true
+    },
+    {
+      "engine": "spark",
+      "case": "dedup-duplicate",
+      "exitCode": 1,
+      "sqlSha256": "6cb84fc3012b9dc197503a637ef858b8fbcbd7901a58d575b6971b39a28da310",
+      "compilerSqlSha256": "770e51fb0cc56eaa1d5a7f7fa9e0cd0c307808d21a1a517b2655fdc8b07c151b",
+      "sqlFile": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-spark-dedup-duplicate.sql",
+      "log": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-spark-dedup-duplicate.log",
+      "workerImageId": "sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966",
+      "passed": true,
+      "engineRejected": true,
+      "expectedFailure": "唯一排序字段存在重复值",
+      "runtimeFailureEvidence": "RuntimeException: 唯一排序字段存在重复值",
+      "dedicatedRuntimeCauseVerified": true
+    },
+    {
+      "engine": "flink",
+      "case": "all",
+      "exitCode": 0,
+      "sqlSha256": "e5b7c8b715d17682e436f6b5b88061aa2e72350708b747d9b386ace1570f36d3",
+      "compilerSqlSha256": "b7e3d687622898eaa4bcf54b09229d6dd36029935825b90a9f9d88ff57893a97",
+      "sqlFile": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-flink-all.sql",
+      "log": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-flink-all.log",
+      "workerImageId": "sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966",
+      "passed": true,
+      "rows": {
+        "a_out": [
+          {
+            "id": 2,
+            "amount": "0.01",
+            "名称": "O'Reilly",
+            "bucket": "small",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": "O'Reilly"
+          },
+          {
+            "id": 2,
+            "amount": "0.01",
+            "名称": "O'Reilly",
+            "bucket": "small",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": "O'Reilly"
+          },
+          {
+            "id": 9007199254740993,
+            "amount": "12.34",
+            "名称": "水🌊",
+            "bucket": "big",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": "江河"
+          },
+          {
+            "id": 9007199254740993,
+            "amount": "12.34",
+            "名称": "水🌊",
+            "bucket": "big",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": "水🌊"
+          },
+          {
+            "id": null,
+            "amount": null,
+            "名称": null,
+            "bucket": "missing",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "copied",
+            "value": null
+          },
+          {
+            "id": null,
+            "amount": null,
+            "名称": null,
+            "bucket": "missing",
+            "marker": "O'Reilly\\$1😀",
+            "trace": "子流程'O\\$😀",
+            "which": "mapped",
+            "value": null
+          }
+        ],
+        "c_out": [
+          {
+            "group": "MiXeD",
+            "id": 1,
+            "payload": "first"
+          },
+          {
+            "group": null,
+            "id": 3,
+            "payload": "null-first"
+          },
+          {
+            "group": "H",
+            "id": 5,
+            "payload": null
+          }
+        ],
+        "d_out": [
+          {
+            "id": "Ab",
+            "n": 1
+          },
+          {
+            "id": "Other",
+            "n": 3
+          },
+          {
+            "id": null,
+            "n": 2
+          }
+        ]
+      },
+      "exactDuplicatesAndNullGroups": true,
+      "asciiIgnoreCasePreservesFirstOriginal": true
+    },
+    {
+      "engine": "flink",
+      "case": "dedup-duplicate",
+      "exitCode": 1,
+      "sqlSha256": "ef76afd65e62984b32033b1975ace4cce1660c9192274e731a7d25ad100ab2d3",
+      "compilerSqlSha256": "b95e94b1428c1922cb3ab86a26a5068ad60a94661bb28eeb2a4a6b01de9c35de",
+      "sqlFile": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-flink-dedup-duplicate.sql",
+      "log": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-flink-dedup-duplicate.log",
+      "workerImageId": "sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966",
+      "serviceLog": "deploy/dolphinscheduler-local/verification/components-20261102-native-control-transform-flink-dedup-duplicate-service.log",
+      "passed": true,
+      "engineRejected": true,
+      "expectedFailure": "唯一排序字段存在重复值",
+      "dedicatedRuntimeCauseVerified": true,
+      "runtimeFailureEvidence": "NumberFormatException: For input string: '唯一排序字段存在重复值: 2'. Invalid character found."
+    }
+  ],
+  "source": "EtlNativeControlTransformFixtureTest -> EtlSubflowExpander -> EtlNativeSqlCompiler",
+  "reusedEvidence": [
+    {
+      "path": "verification/graphs.json",
+      "components": [
+        "multi-join",
+        "data-condition"
+      ],
+      "scope": "graph_smoke.py读取真实Compiler SQL，DS两引擎LEFT/NULL与IF/ELSE精确值",
+      "sha256": "8404a654ec59a966f1dcc92d1df2588f070be6ec729d907bdbc4670dc4b0cdae"
+    },
+    {
+      "path": "verification/join-budget.json",
+      "components": [
+        "multi-join"
+      ],
+      "scope": "两引擎Join maxOutputRows真实失败",
+      "sha256": "de38b8e41651e17ba3fa058fed6b09017eb8618c4b9f1d286e751818ac9cc2b2"
+    },
+    {
+      "path": "verification/components-20261102-transforms.json",
+      "components": [
+        "calculator",
+        "field-derive",
+        "string-operation",
+        "string-replace",
+        "field-split",
+        "row-to-column",
+        "id-generator"
+      ],
+      "scope": "既有6个真实有界CLI场景，本轮不重复",
+      "sha256": "a266e24f6dbdff8e4d52204e48ea80ff107402b14c7abe16ef1487146362e8ef"
+    }
+  ],
+  "limits": [
+    "只声明有界Spark/Flink原生CLI与固定子流程解析夹具，不声明本报告通过平台或DS触发",
+    "去重的排序与唯一字段由用户明确指定；完全重复先消除，不同payload的重复排序键明确失败",
+    "按键与忽略大小写保留首条完整原行，NULL分组与ASCII大小写已覆盖；实时状态/窗口不在本次范围"
+  ],
+  "updatedAt": "2026-11-02T16:26:36+0800"
+}

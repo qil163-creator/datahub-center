@@ -1,0 +1,228 @@
+.qdata-tag {
+  font-size: 14px;
+  color: hsl(var(--foreground));
+}
+
+.qdata-tag-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.qdata-tag .ref-icon {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-right: 3px;
+  vertical-align: -2px;
+  background: currentcolor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.qdata-tag .muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.tag-query-icon,
+.tag-reset-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 3px;
+  background: currentcolor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.tag-query-icon {
+  mask-image: url('/assets/qdata-project-category/query.png');
+}
+
+.tag-reset-icon {
+  mask-image: url('/assets/qdata-project-category/reset.png');
+}
+
+.tag-layout {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tag-sidebar {
+  position: relative;
+  flex: none;
+  min-height: 0;
+  padding: 10px;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.tag-sidebar > .ant-input-affix-wrapper {
+  margin-bottom: 16px;
+}
+
+.tag-sidebar .ant-tree {
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+}
+
+.tag-sidebar .ant-tree-treenode {
+  padding: 0;
+}
+
+.tag-sidebar .ant-tree-node-content-wrapper {
+  height: 26px;
+  padding: 0;
+  line-height: 26px;
+}
+
+.tag-sidebar .ant-tree-switcher {
+  width: 16px;
+  line-height: 26px;
+  color: hsl(var(--muted-foreground));
+}
+
+.tag-tree-label {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 26px;
+}
+
+.tag-tree-label img {
+  width: 16px;
+  height: 16px;
+}
+
+.tag-sidebar__collapse,
+.tag-sidebar__expand {
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  width: 12px;
+  height: 38px;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  background: hsl(var(--border));
+  border: 0;
+}
+
+.tag-sidebar__expand {
+  position: static;
+  align-self: center;
+}
+
+.tag-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tag-results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 15px;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.tag-toolbar {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.tag-toolbar > div {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-toolbar .ref-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.tag-column-picker {
+  max-width: 220px;
+  padding: 14px;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px #00000020;
+}
+
+.tag-column-picker .ant-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tag-table {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.qdata-tag .tag-name {
+  max-width: 100%;
+  padding: 0;
+  color: hsl(var(--primary));
+  overflow-wrap: anywhere;
+  white-space: normal;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.tag-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.tag-row-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.tag-pagination {
+  display: flex;
+  flex: none;
+  margin-top: auto;
+}
+
+.qdata-tag-confirm {
+  font-size: 14px;
+}
+
+@media (width <= 1400px) {
+  .tag-sidebar {
+    max-width: 240px;
+  }
+}
+
+.tag-toolbar > div:first-of-type {
+  margin-left: auto;
+}

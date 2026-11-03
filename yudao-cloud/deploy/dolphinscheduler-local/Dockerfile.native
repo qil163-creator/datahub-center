@@ -1,0 +1,11 @@
+FROM datahub/dolphinscheduler-local:3.4.2
+
+USER root
+COPY native-runtime/local_runtime_observer.py native-runtime/local_runtime_cli.py /opt/datahub-native-runtime/
+COPY --chmod=755 native-runtime/start.sh /opt/datahub-native-runtime/start.sh
+RUN mv /opt/flink/bin/sql-client.sh /opt/flink/bin/sql-client-managed-original.sh \
+    && mv /opt/spark/bin/spark-sql /opt/spark/bin/spark-sql-managed-original \
+    && printf '%s\n' '#!/usr/bin/env bash' 'exec /usr/bin/python3 /opt/datahub-native-runtime/local_runtime_cli.py FLINK "$@"' > /opt/flink/bin/sql-client.sh \
+    && printf '%s\n' '#!/usr/bin/env bash' 'exec /usr/bin/python3 /opt/datahub-native-runtime/local_runtime_cli.py SPARK "$@"' > /opt/spark/bin/spark-sql \
+    && chmod 0755 /opt/flink/bin/sql-client.sh /opt/spark/bin/spark-sql \
+    && chmod 0644 /opt/datahub-native-runtime/*.py

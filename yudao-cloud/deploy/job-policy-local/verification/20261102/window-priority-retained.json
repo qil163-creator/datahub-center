@@ -1,0 +1,138 @@
+{
+  "policy": "priority",
+  "jobId": 7,
+  "recordIds": [
+    52,
+    53,
+    54
+  ],
+  "records": [
+    {
+      "id": 52,
+      "status": "STOPPED",
+      "queueState": "DONE",
+      "queueReason": "真实父子终态已确认：STOPPED",
+      "queuedTime": "2026-11-02 11:50:09",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188580877429632,
+      "dsInstanceId": 69,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 11:50:14",
+      "endTime": "2026-11-02 11:50:35",
+      "children": [
+        {
+          "id": 180829751976974,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "STOPPED",
+          "taskId": 1004
+        },
+        {
+          "id": 46,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "STOPPED",
+          "taskId": 9
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "status": "STOPPED",
+      "queueState": "SUPERSEDED",
+      "queueReason": "已被更新的串行优先请求取代；未执行",
+      "queuedTime": "2026-11-02 11:50:24",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": null,
+      "dsInstanceId": null,
+      "submissionStage": "QUEUED",
+      "startTime": null,
+      "endTime": "2026-11-02 11:50:34",
+      "children": []
+    },
+    {
+      "id": 54,
+      "status": "RUNNING",
+      "queueState": "ACTIVE",
+      "queueReason": "真实父工作流已确认，等待所有子执行终态",
+      "queuedTime": "2026-11-02 11:50:34",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188580912424832,
+      "dsInstanceId": 71,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 11:50:48",
+      "endTime": null,
+      "children": [
+        {
+          "id": 180829751976975,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "RUNNING",
+          "taskId": 1004
+        },
+        {
+          "id": 47,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "taskId": 9
+        }
+      ]
+    }
+  ],
+  "oldWriterPids": [
+    1417
+  ],
+  "oldWriterBackendsGoneBeforeUnlock": true,
+  "targetBeforeUnlock": {
+    "count": 9,
+    "sum": 93
+  },
+  "latestBlocked": {
+    "record": {
+      "id": 54,
+      "status": "RUNNING",
+      "queueState": "ACTIVE",
+      "queueReason": "真实父工作流已确认，等待所有子执行终态",
+      "queuedTime": "2026-11-02 11:50:34",
+      "scheduledTime": null,
+      "executionType": "START",
+      "dsProjectCode": 188566818730880,
+      "dsDefinitionCode": 188580912424832,
+      "dsInstanceId": 71,
+      "submissionStage": "BOUND",
+      "startTime": "2026-11-02 11:50:48",
+      "endTime": null,
+      "children": [
+        {
+          "id": 180829751976975,
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "RUNNING",
+          "taskId": 1004
+        },
+        {
+          "id": 47,
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "WAITING",
+          "taskId": 9
+        }
+      ]
+    },
+    "writerWaiters": [
+      {
+        "pid": 1629,
+        "waitEventType": "Lock",
+        "waitEvent": "relation",
+        "state": "active"
+      }
+    ]
+  }
+}

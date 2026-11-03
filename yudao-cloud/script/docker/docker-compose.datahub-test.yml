@@ -1,0 +1,855 @@
+# DataHub 集成测试环境（仅用于开发和测试，禁止用于生产）。
+#
+# 每次执行 Compose 命令前都必须设置测试密码：
+#   PowerShell: $env:DATAHUB_DEV_PASSWORD = 'ChangeMe9x!'
+#   Bash:       export DATAHUB_DEV_PASSWORD='ChangeMe9x!'
+# 请使用包含大小写字母、数字和特殊字符的非生产密码。
+# 本文件不会保存密码。
+#
+# 公共数据根目录参数（只需设置一次，各服务子目录会自动创建）：
+#   PowerShell: $env:DATAHUB_DATA_ROOT = 'E:/Docker/datahub-data'
+#   Bash:       export DATAHUB_DATA_ROOT='/srv/docker/datahub-data'
+# 未设置 DATAHUB_DATA_ROOT 时，默认使用 D:/Environment/Docker/datahub-data。
+#
+# 建议只启动当前测试需要的组件：
+#   docker compose -f script/docker/docker-compose.datahub-test.yml --profile mysql --profile redis up -d --wait --wait-timeout 600
+# 组合 profile：bigdata = Hive + RustFS + HDFS；domestic-db = HighGo + DM8
+# + Kingbase8 + Oscar + GBase8a + openGauss + OceanBase；commercial-db =
+# Oracle + SQL Server。日常测试仍建议使用单个组件的 profile。
+# 启动完整环境（资源占用非常高）：
+#   仅 PowerShell；请先阅读并接受 SQL Server Developer EULA：
+#   $env:MSSQL_ACCEPT_EULA = 'Y'
+#   docker compose -f script/docker/docker-compose.datahub-test.yml --profile all up -d --wait --wait-timeout 900
+# 停止容器但保留数据：
+#   docker compose -f script/docker/docker-compose.datahub-test.yml --profile all down
+# bind 挂载的数据不会被 "down" 或 "down -v" 删除。注意："down -v" 仍会删除
+# MongoDB 的命名卷；删除宿主机数据子目录前务必先备份。
+# MongoDB 是 Windows 环境中的唯一例外：其运行数据 /data/db 使用命名卷，
+# 因为 MongoDB 不支持把 Linux 内存映射数据文件放在 NTFS bind 挂载中。
+# DATAHUB_DATA_ROOT/mongodb 仅挂载到容器的 /backup 目录。
+#
+# Docker Desktop 必须使用 Linux 容器，并允许访问 DATAHUB_DATA_ROOT 所在盘符
+# （默认是 D:）。NTFS bind 挂载仅适合本地测试，性能可能低于 Docker 命名卷。
+#
+# 端口默认只绑定到 127.0.0.1。所有宿主机端口使用独立的 26001-26041 测试区间，
+# 每个端口都可以通过对应的 *_HOST_PORT 环境变量覆盖。
+# 宿主机上的客户端使用发布端口；容器之间使用服务名和容器端口。
+# RocketMQ Broker 与 HDFS DataNode 会向客户端宣告端口，因此它们的容器侧端口
+# 会有意与宿主机发布端口保持一致。
+# 不要在不可信网络中把 DATAHUB_BIND_ADDRESS 设置为 0.0.0.0：
+# 多个组件使用的都是仅适合开发测试的安全配置。
+# all profile 只是完整组件目录，不建议日常全部启动；它可能占用超过 64 GiB
+# 内存和 150 GiB 磁盘。每次测试优先只启用一个或少数组件。
+# Doris、StarRocks 和 Elasticsearch 还可能要求 vm.max_map_count=2000000。
+# 从宿主机执行 Doris/StarRocks Stream Load 时，客户端还必须能访问对应的
+# BE HTTP 发布端口；普通 JDBC 查询不受 FE 到 BE 重定向影响。
+#
+# 部分国产数据库使用第三方或社区镜像，可能仅支持 x86，或包含试用期限。
+# 这些镜像只用于本地兼容性测试。进入政府或隔离网络前，必须核对许可证、
+# 扫描镜像、固定 digest，并同步到内部镜像仓库。
+# 每个镜像都可以通过对应的 *_IMAGE 环境变量替换，无需修改本文件。
+# 未显式设置 MSSQL_ACCEPT_EULA=Y 时，SQL Server 不会启动。
+# Oscar/GBase 社区镜像没有可验证的安全密码初始化契约，请保持回环地址绑定，
+# 并按照镜像说明获取或重置测试账号。
+# Hive 使用内嵌 Derby。Oscar 会在空的宿主机 bind 目录中初始化程序和 OSRDB；
+# GBase8a 会先把镜像内置的 userdata 复制到宿主机目录。首次初始化可能较慢。
+# 数据库容器启动成功不代表 Java 应用已经安装其专有 JDBC 驱动；
+# 项目缺少驱动时，请另行提供来源合法的驱动文件。
+# 应用直接运行在宿主机时，请把 HDFS_DATANODE_ADVERTISED_HOST 设置为 localhost；
+# 客户端位于本 Compose 网络内时，保留默认值 hdfs-datanode。
+
+name: datahub-test
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks:
+    - datahub-test
+  logging:
+    driver: json-file
+    options:
+      max-size: "20m"
+      max-file: "3"
+
+x-data-bind: &data-bind
+  type: bind
+  bind:
+    # 首次 create/up 时，在 DATAHUB_DATA_ROOT 下自动创建各组件子目录。
+    create_host_path: true
+
+x-hdfs-environment: &hdfs-environment
+  CORE-SITE.XML_fs.defaultFS: "hdfs://hdfs-namenode:8020"
+  HDFS-SITE.XML_dfs.namenode.rpc-address: "hdfs-namenode:8020"
+  HDFS-SITE.XML_dfs.namenode.rpc-bind-host: "0.0.0.0"
+  HDFS-SITE.XML_dfs.namenode.http-address: "0.0.0.0:9870"
+  HDFS-SITE.XML_dfs.namenode.name.dir: "file:///data/hdfs/name"
+  HDFS-SITE.XML_dfs.datanode.data.dir: "file:///data/hdfs/data"
+  HDFS-SITE.XML_dfs.replication: "1"
+  HDFS-SITE.XML_dfs.permissions.enabled: "false"
+  HDFS-SITE.XML_dfs.webhdfs.enabled: "true"
+  HDFS-SITE.XML_dfs.datanode.address: "0.0.0.0:${HDFS_DATANODE_TRANSFER_HOST_PORT:-26040}"
+  HDFS-SITE.XML_dfs.datanode.http.address: "0.0.0.0:${HDFS_DATANODE_HTTP_HOST_PORT:-26041}"
+  HDFS-SITE.XML_dfs.datanode.ipc.address: "0.0.0.0:9867"
+  HDFS-SITE.XML_dfs.datanode.hostname: "${HDFS_DATANODE_ADVERTISED_HOST:-hdfs-datanode}"
+  HDFS-SITE.XML_dfs.client.use.datanode.hostname: "true"
+
+services:
+  mysql:
+    <<: *service-defaults
+    image: ${MYSQL_IMAGE:-mysql:8.4.11}
+    profiles: [mysql, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_ROOT_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-datahub_test}
+      MYSQL_USER: ${MYSQL_USER:-datahub}
+      MYSQL_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      MYSQL_INITDB_SKIP_TZINFO: "1"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --lower-case-table-names=1
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${MYSQL_HOST_PORT:-26001}:3306"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/mysql"
+        target: /var/lib/mysql
+    healthcheck:
+      test: [CMD-SHELL, 'mysqladmin ping -h 127.0.0.1 -uroot -p"$${MYSQL_ROOT_PASSWORD}" --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    <<: *service-defaults
+    image: ${REDIS_IMAGE:-redis:8.2.9-bookworm}
+    profiles: [redis, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      REDIS_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+    command: [sh, -c, 'exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"']
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${REDIS_HOST_PORT:-26002}:6379"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/redis"
+        target: /data
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$${REDIS_PASSWORD}" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  kafka:
+    <<: *service-defaults
+    image: ${KAFKA_IMAGE:-apache/kafka:4.1.2}
+    hostname: kafka
+    profiles: [kafka, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-4L6g3nShT-eMCtK--X86sw}
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT_HOST://${KAFKA_ADVERTISED_HOST:-localhost}:${KAFKA_HOST_PORT:-26003},PLAINTEXT://kafka:19092"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: "1"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: "3"
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${KAFKA_HOST_PORT:-26003}:9092"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/kafka"
+        target: /var/lib/kafka/data
+    healthcheck:
+      test: [CMD-SHELL, '/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server 127.0.0.1:9092 >/dev/null 2>&1']
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+
+  rocketmq-namesrv:
+    <<: *service-defaults
+    image: ${ROCKETMQ_IMAGE:-apache/rocketmq:5.3.2}
+    profiles: [rocketmq, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      JAVA_OPT_EXT: -Xms256m -Xmx256m -Xmn128m
+    command: sh mqnamesrv
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_NAMESRV_HOST_PORT:-26004}:9876"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/rocketmq/namesrv-logs"
+        target: /home/rocketmq/logs
+    healthcheck:
+      test: [CMD-SHELL, "bash -c '</dev/tcp/127.0.0.1/9876'"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+  rocketmq-broker:
+    <<: *service-defaults
+    image: ${ROCKETMQ_IMAGE:-apache/rocketmq:5.3.2}
+    profiles: [rocketmq, all]
+    depends_on:
+      rocketmq-namesrv:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      NAMESRV_ADDR: rocketmq-namesrv:9876
+      JAVA_OPT_EXT: -Xms768m -Xmx768m -Xmn384m -XX:MaxDirectMemorySize=512m
+    command: sh mqbroker --enable-proxy -c /home/rocketmq/rocketmq-5.3.2/conf/broker.conf
+    configs:
+      - source: rocketmq-broker-config
+        target: /home/rocketmq/rocketmq-5.3.2/conf/broker.conf
+    ports:
+      # 覆盖端口时必须保持 FAST = BROKER - 2、HA = BROKER + 1。
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_FAST_HOST_PORT:-26006}:${ROCKETMQ_FAST_HOST_PORT:-26006}"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_BROKER_HOST_PORT:-26008}:${ROCKETMQ_BROKER_HOST_PORT:-26008}"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_HA_HOST_PORT:-26009}:${ROCKETMQ_HA_HOST_PORT:-26009}"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_PROXY_GRPC_HOST_PORT:-26005}:8080"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ROCKETMQ_PROXY_REMOTING_HOST_PORT:-26007}:8081"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/rocketmq/broker-logs"
+        target: /home/rocketmq/logs
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/rocketmq/store"
+        target: /home/rocketmq/store
+    healthcheck:
+      test: [CMD-SHELL, 'sh mqadmin clusterList -n rocketmq-namesrv:9876 | grep -q DefaultCluster']
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 45s
+
+  rabbitmq:
+    <<: *service-defaults
+    image: ${RABBITMQ_IMAGE:-rabbitmq:4.1.8-management-alpine}
+    hostname: rabbitmq
+    profiles: [rabbitmq, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-datahub}
+      RABBITMQ_DEFAULT_PASS: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_HOST_PORT:-26010}:5672"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_HOST_PORT:-26011}:15672"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/rabbitmq"
+        target: /var/lib/rabbitmq
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  elasticsearch:
+    <<: *service-defaults
+    image: ${ELASTICSEARCH_IMAGE:-docker.elastic.co/elasticsearch/elasticsearch:8.19.21}
+    profiles: [es, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      xpack.license.self_generated.type: basic
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ELASTICSEARCH_HTTP_HOST_PORT:-26012}:9200"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/elasticsearch"
+        target: /usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 1g
+    healthcheck:
+      test: [CMD-SHELL, 'curl -fsS "http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=5s" >/dev/null']
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 45s
+
+  doris:
+    <<: *service-defaults
+    image: ${DORIS_IMAGE:-apache/doris:all-in-one-4.1.3}
+    profiles: [doris, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${DORIS_MYSQL_HOST_PORT:-26013}:9030"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${DORIS_FE_HTTP_HOST_PORT:-26014}:8030"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${DORIS_BE_HTTP_HOST_PORT:-26015}:8040"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/doris/fe"
+        target: /opt/apache-doris/fe/doris-meta
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/doris/be"
+        target: /opt/apache-doris/be/storage
+    stop_grace_period: 1m
+
+  oracle:
+    <<: *service-defaults
+    image: ${ORACLE_IMAGE:-container-registry.oracle.com/database/free:23.9.0.0-lite}
+    profiles: [oracle, commercial-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      ORACLE_PWD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${ORACLE_HOST_PORT:-26016}:1521"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/oracle"
+        target: /opt/oracle/oradata
+    shm_size: 1g
+    stop_grace_period: 2m
+
+  highgo:
+    <<: *service-defaults
+    # 社区重新打包镜像；有授权的内部镜像时，请通过 HIGHGO_IMAGE 替换。
+    image: ${HIGHGO_IMAGE:-qiuchenjun/hgdb-ee:6.0.4.2_3.1.0}
+    platform: linux/amd64
+    profiles: [highgo, domestic-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      LANG: C.UTF-8
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      POSTGRES_INITDB_ARGS: -E UTF8
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HIGHGO_HOST_PORT:-26017}:5866"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/highgo"
+        target: /home/highgo/hgdb
+    shm_size: 1g
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -q -h 127.0.0.1 -p 5866 -U highgo"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    stop_grace_period: 1m
+
+  dameng:
+    <<: *service-defaults
+    # 支持密码初始化的第三方测试镜像；使用前请核对其内置达梦许可。
+    image: ${DM8_IMAGE:-yhl452493373/dm8:dm8_20260710_x86_rh7_64}
+    platform: linux/amd64
+    privileged: true
+    profiles: [dameng, domestic-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      PAGE_SIZE: ${DM8_PAGE_SIZE:-16}
+      CHARSET: ${DM8_CHARSET:-1}
+      CASE_SENSITIVE: ${DM8_CASE_SENSITIVE:-1}
+      LENGTH_IN_CHAR: ${DM8_LENGTH_IN_CHAR:-1}
+      DB_NAME: ${DM8_DATABASE:-datahub_test}
+      INSTANCE_NAME: ${DM8_INSTANCE_NAME:-dm8_test}
+      PORT_NUM: "5236"
+      SYSDBA_PWD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      SYSAUDITOR_PWD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${DM8_HOST_PORT:-26018}:5236"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/dm8"
+        target: /opt/dmdbms/data
+    shm_size: 1g
+    healthcheck:
+      test: [CMD-SHELL, "bash -ec ': </dev/tcp/127.0.0.1/5236'"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+    stop_grace_period: 1m
+
+  sqlserver:
+    <<: *service-defaults
+    image: ${SQLSERVER_IMAGE:-mcr.microsoft.com/mssql/server:2022-CU26-ubuntu-22.04}
+    platform: linux/amd64
+    profiles: [sqlserver, commercial-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      ACCEPT_EULA: "${MSSQL_ACCEPT_EULA:-N}"
+      MSSQL_SA_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      MSSQL_PID: Developer
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${SQLSERVER_HOST_PORT:-26019}:1433"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/sqlserver"
+        target: /var/opt/mssql
+    shm_size: 1g
+    mem_limit: 4g
+    healthcheck:
+      test: [CMD-SHELL, '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" -b -o /dev/null']
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+    stop_grace_period: 1m
+
+  kingbase8:
+    <<: *service-defaults
+    # 社区转存的厂商镜像；仅支持 x86，且可能包含试用许可。
+    image: ${KINGBASE8_IMAGE:-huas/kingbase:v008r006c009b0014_single_x86_v1}
+    platform: linux/amd64
+    privileged: true
+    command: /usr/sbin/init
+    profiles: [kingbase8, domestic-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      NEED_START: "yes"
+      DB_USER: ${KINGBASE8_USER:-system}
+      DB_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      DB_MODE: ${KINGBASE8_MODE:-oracle}
+      ENCODING: utf8
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${KINGBASE8_HOST_PORT:-26020}:54321"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/kingbase8"
+        target: /home/kingbase/userdata
+    shm_size: 1g
+    healthcheck:
+      test: [CMD-SHELL, 'sys_isready -q -h 127.0.0.1 -p 54321 -d test -U "$${DB_USER:-system}"']
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
+    stop_grace_period: 1m
+
+  oscar:
+    <<: *service-defaults
+    # 此社区镜像没有已验证的密码初始化变量；启动后请重置测试账号。
+    image: ${OSCAR_IMAGE:-shentongdata/shentongdb:251217-825.2-linux64}
+    platform: linux/amd64
+    profiles: [oscar, domestic-db, all]
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${OSCAR_HOST_PORT:-26021}:2003"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${OSCAR_MANAGER_HOST_PORT:-26022}:7712"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/oscar"
+        target: /opt/ShenTong
+    shm_size: 1g
+    healthcheck:
+      test: [CMD-SHELL, "bash -ec ': </dev/tcp/127.0.0.1/2003'"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    stop_grace_period: 1m
+
+  gbase8a-seed:
+    <<: *service-defaults
+    # 此旧版镜像无法自行初始化空的 userdata 目录。
+    image: ${GBASE8A_IMAGE:-shihd/gbase8a:1.0}
+    platform: linux/amd64
+    profiles: [gbase8a, domestic-db, all]
+    user: "0:0"
+    restart: "no"
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        if [ ! -f /datahub-gbase8a/.datahub-seeded ]; then
+          echo "Seeding the bundled GBase8a instance into the host directory"
+          cp -R /home/gbase/GBase/userdata/. /datahub-gbase8a/
+          touch /datahub-gbase8a/.datahub-seeded
+        fi
+        test -d /datahub-gbase8a/gbase8a
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/gbase8a"
+        target: /datahub-gbase8a
+
+  gbase8a:
+    <<: *service-defaults
+    # 旧版单节点 NoLicense 社区镜像，仅用于基础 GBase 8a 兼容性测试。
+    image: ${GBASE8A_IMAGE:-shihd/gbase8a:1.0}
+    platform: linux/amd64
+    privileged: true
+    profiles: [gbase8a, domestic-db, all]
+    depends_on:
+      gbase8a-seed:
+        condition: service_completed_successfully
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${GBASE8A_HOST_PORT:-26023}:5258"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/gbase8a"
+        target: /home/gbase/GBase/userdata
+    healthcheck:
+      test: [CMD-SHELL, "bash -ec ': </dev/tcp/127.0.0.1/5258'"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    stop_grace_period: 1m
+
+  opengauss:
+    <<: *service-defaults
+    image: ${OPENGAUSS_IMAGE:-opengauss/opengauss-server:7.0.0-RC3.B025-openEuler22.03}
+    privileged: true
+    profiles: [opengauss, domestic-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      GS_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      GS_NODENAME: gaussdb
+      GS_USERNAME: ${OPENGAUSS_USER:-datahub}
+      GS_USER_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      GS_DB: ${OPENGAUSS_DATABASE:-datahub_test}
+      GS_PORT: "5432"
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${OPENGAUSS_HOST_PORT:-26024}:5432"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/opengauss"
+        target: /var/lib/opengauss
+    shm_size: 1g
+    mem_limit: 4g
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - su - omm -c "gsql -d postgres -p 5432 -tAc 'SELECT 1'" | grep -q 1
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+    stop_grace_period: 1m
+
+  oceanbase:
+    <<: *service-defaults
+    # 官方 CE 单节点 mini 模式，仅用于集成测试，不是生产拓扑。
+    image: ${OCEANBASE_IMAGE:-ghcr.io/oceanbase/oceanbase-ce:4.4.2.1-101000022026050611}
+    profiles: [oceanbase, domestic-db, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MODE: mini
+      OB_CLUSTER_NAME: obcluster
+      OB_TENANT_NAME: ${OCEANBASE_TENANT:-test}
+      OB_DATABASE: ${OCEANBASE_DATABASE:-datahub_test}
+      OB_SYS_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      OB_TENANT_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      OB_MEMORY_LIMIT: ${OCEANBASE_MEMORY_LIMIT:-6G}
+      OB_SYSTEM_MEMORY: ${OCEANBASE_SYSTEM_MEMORY:-1G}
+      OB_DATAFILE_SIZE: ${OCEANBASE_DATAFILE_SIZE:-5G}
+      OB_LOG_DISK_SIZE: ${OCEANBASE_LOG_DISK_SIZE:-5G}
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${OCEANBASE_SQL_HOST_PORT:-26025}:2881"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${OCEANBASE_RPC_HOST_PORT:-26026}:2882"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/oceanbase/data"
+        target: /root/ob
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/oceanbase/obd"
+        target: /root/.obd/cluster
+    shm_size: 1g
+    mem_limit: 8g
+    healthcheck:
+      test: [CMD-SHELL, 'obclient -h127.0.0.1 -P2881 -uroot@"$${OB_TENANT_NAME}" -p"$${OB_TENANT_PASSWORD}" -A -e "SELECT 1" >/dev/null 2>&1']
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+    stop_grace_period: 2m
+
+  starrocks:
+    <<: *service-defaults
+    # 官方一体化镜像；宿主机端口与 Doris 不同，因此两个 profile 可以同时启动。
+    image: ${STARROCKS_IMAGE:-starrocks/allin1-ubuntu:4.0.14}
+    profiles: [starrocks, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${STARROCKS_MYSQL_HOST_PORT:-26027}:9030"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${STARROCKS_FE_HTTP_HOST_PORT:-26028}:8030"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${STARROCKS_BE_HTTP_HOST_PORT:-26029}:8040"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/starrocks/fe"
+        target: /data/deploy/starrocks/fe/meta
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/starrocks/be"
+        target: /data/deploy/starrocks/be/storage
+    shm_size: 1g
+    mem_limit: 8g
+    healthcheck:
+      test: [CMD, /data/deploy/health_check.sh]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+    stop_grace_period: 1m
+
+  clickhouse:
+    <<: *service-defaults
+    image: ${CLICKHOUSE_IMAGE:-clickhouse:26.8.2.7-jammy}
+    profiles: [clickhouse, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-datahub_test}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-datahub}
+      CLICKHOUSE_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${CLICKHOUSE_HTTP_HOST_PORT:-26030}:8123"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${CLICKHOUSE_NATIVE_HOST_PORT:-26031}:9000"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/clickhouse/data"
+        target: /var/lib/clickhouse
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/clickhouse/logs"
+        target: /var/log/clickhouse-server
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    mem_limit: 4g
+    healthcheck:
+      test: [CMD-SHELL, 'clickhouse-client --host 127.0.0.1 --user "$${CLICKHOUSE_USER}" --password "$${CLICKHOUSE_PASSWORD}" --query "SELECT 1" >/dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 1m
+
+  greenplum:
+    <<: *service-defaults
+    # 社区单容器演示集群，不是生产级 Greenplum 拓扑。
+    image: ${GREENPLUM_IMAGE:-woblerr/greenplum:7.1.0-v0.11}
+    profiles: [greenplum, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      GREENPLUM_USER: ${GREENPLUM_USER:-gpadmin}
+      GREENPLUM_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      GREENPLUM_DATABASE_NAME: ${GREENPLUM_DATABASE:-datahub_test}
+      GREENPLUM_DEPLOYMENT: singlenode
+      GREENPLUM_DATA_DIRECTORY: /data
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${GREENPLUM_HOST_PORT:-26032}:5432"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/greenplum"
+        target: /data
+    shm_size: 1g
+    mem_limit: 4g
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -q -h 127.0.0.1 -p 5432 -U "$${GREENPLUM_USER:-gpadmin}" -d "$${GREENPLUM_DATABASE_NAME:-datahub_test}"']
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
+    stop_grace_period: 1m
+
+  hive:
+    <<: *service-defaults
+    # 使用内嵌 Derby 的独立 HiveServer2，仅作为单进程 JDBC 冒烟测试环境。
+    image: ${HIVE_IMAGE:-apache/hive:4.0.1}
+    profiles: [hive, bigdata, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SERVICE_NAME: hiveserver2
+      DB_DRIVER: derby
+      SERVICE_OPTS: -Xmx1G
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HIVE_THRIFT_HOST_PORT:-26033}:10000"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HIVE_WEB_HOST_PORT:-26034}:10002"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/hive/warehouse"
+        target: /opt/hive/data/warehouse
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/hive/metastore"
+        target: /opt/hive/metastore_db
+    mem_limit: 3g
+    healthcheck:
+      test: [CMD-SHELL, "bash -ec ': </dev/tcp/127.0.0.1/10000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    stop_grace_period: 1m
+
+  mongodb:
+    <<: *service-defaults
+    # /data/db 不能使用 Windows NTFS bind；/backup 仍直接映射到公共数据根目录。
+    image: ${MONGODB_IMAGE:-mongo:8.0.30-noble}
+    profiles: [mongodb, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:-datahub}
+      MONGO_INITDB_ROOT_PASSWORD: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-datahub_test}
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${MONGODB_HOST_PORT:-26035}:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/mongodb"
+        target: /backup
+    mem_limit: 4g
+    healthcheck:
+      test: [CMD-SHELL, 'mongosh --quiet --host 127.0.0.1 --port 27017 -u "$${MONGO_INITDB_ROOT_USERNAME}" -p "$${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "quit(db.adminCommand({ping: 1}).ok ? 0 : 2)"']
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 1m
+
+  rustfs:
+    <<: *service-defaults
+    # RustFS 当前仍是 RC 版本，仅作为兼容 S3 的集成测试目标。
+    image: ${RUSTFS_IMAGE:-rustfs/rustfs:1.0.0-rc.6}
+    profiles: [rustfs, object-storage, bigdata, all]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-datahubadmin}
+      RUSTFS_SECRET_KEY: "${DATAHUB_DEV_PASSWORD:?Set DATAHUB_DEV_PASSWORD before running Compose}"
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${RUSTFS_API_HOST_PORT:-26036}:9000"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${RUSTFS_CONSOLE_HOST_PORT:-26037}:9001"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/rustfs"
+        target: /data
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD-SHELL, "curl -fsS http://127.0.0.1:9000/health >/dev/null && curl -fsS http://127.0.0.1:9001/rustfs/console/health >/dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    stop_grace_period: 1m
+
+  hdfs-namenode:
+    <<: *service-defaults
+    image: ${HADOOP_IMAGE:-apache/hadoop:3.5.0}
+    hostname: hdfs-namenode
+    profiles: [hdfs, bigdata, all]
+    environment:
+      <<: *hdfs-environment
+      TZ: ${TZ:-Asia/Shanghai}
+      HADOOP_HEAPSIZE_MAX: "${HDFS_NAMENODE_HEAP_MB:-512}"
+    command:
+      - /bin/bash
+      - -ec
+      - |
+        sudo chown hadoop:users /data/hdfs/name 2>/dev/null || true
+        test -w /data/hdfs/name || { echo "HDFS NameNode bind directory is not writable" >&2; exit 1; }
+        if [ ! -f /data/hdfs/name/current/VERSION ]; then
+          hdfs namenode -format -nonInteractive
+        fi
+        exec hdfs namenode
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HDFS_RPC_HOST_PORT:-26038}:8020"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HDFS_NAMENODE_HTTP_HOST_PORT:-26039}:9870"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/hdfs/namenode"
+        target: /data/hdfs/name
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD-SHELL, "hdfs dfsadmin -fs hdfs://localhost:8020 -safemode get >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 45s
+    stop_grace_period: 1m
+
+  hdfs-datanode:
+    <<: *service-defaults
+    image: ${HADOOP_IMAGE:-apache/hadoop:3.5.0}
+    hostname: hdfs-datanode
+    profiles: [hdfs, bigdata, all]
+    depends_on:
+      hdfs-namenode:
+        condition: service_healthy
+    environment:
+      <<: *hdfs-environment
+      TZ: ${TZ:-Asia/Shanghai}
+      HADOOP_HEAPSIZE_MAX: "${HDFS_DATANODE_HEAP_MB:-512}"
+    command:
+      - /bin/bash
+      - -ec
+      - |
+        sudo chown hadoop:users /data/hdfs/data 2>/dev/null || true
+        test -w /data/hdfs/data || { echo "HDFS DataNode bind directory is not writable" >&2; exit 1; }
+        exec hdfs datanode
+    ports:
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HDFS_DATANODE_TRANSFER_HOST_PORT:-26040}:${HDFS_DATANODE_TRANSFER_HOST_PORT:-26040}"
+      - "${DATAHUB_BIND_ADDRESS:-127.0.0.1}:${HDFS_DATANODE_HTTP_HOST_PORT:-26041}:${HDFS_DATANODE_HTTP_HOST_PORT:-26041}"
+    expose:
+      - "9867"
+    volumes:
+      - <<: *data-bind
+        source: "${DATAHUB_DATA_ROOT:-D:/Environment/Docker/datahub-data}/hdfs/datanode"
+        target: /data/hdfs/data
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD-SHELL, "hdfs dfsadmin -fs hdfs://hdfs-namenode:8020 -report 2>/dev/null | grep -q 'Live datanodes (1)'"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 45s
+    stop_grace_period: 1m
+
+configs:
+  rocketmq-broker-config:
+    content: |
+      brokerClusterName=DefaultCluster
+      brokerName=broker-a
+      brokerId=0
+      deleteWhen=04
+      fileReservedTime=48
+      brokerRole=ASYNC_MASTER
+      flushDiskType=ASYNC_FLUSH
+      namesrvAddr=rocketmq-namesrv:9876
+      brokerIP1=${ROCKETMQ_BROKER_IP:-127.0.0.1}
+      listenPort=${ROCKETMQ_BROKER_HOST_PORT:-26008}
+      haListenPort=${ROCKETMQ_HA_HOST_PORT:-26009}
+      autoCreateTopicEnable=true
+
+networks:
+  datahub-test:
+    driver: bridge
+
+volumes:
+  mongodb-data:

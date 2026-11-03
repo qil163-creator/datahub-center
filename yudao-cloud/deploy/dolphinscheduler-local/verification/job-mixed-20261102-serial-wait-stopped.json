@@ -1,0 +1,39 @@
+{
+  "jobId": 11,
+  "platformRecordId": 4,
+  "dsInstanceId": 49,
+  "dsDefinitionCode": "188537195403232",
+  "platformStatus": "STOPPED",
+  "dsStatus": "STOP",
+  "children": [
+    {
+      "categoryId": null,
+      "children": null,
+      "createTime": null,
+      "creatorName": null,
+      "description": "",
+      "dsDefinitionCode": null,
+      "dsInstanceId": null,
+      "dsProjectCode": null,
+      "duration": null,
+      "endTime": "1970-01-01 08:00:00",
+      "executionType": null,
+      "flowJson": "{\"nodes\":[],\"edges\":[]}",
+      "id": 8,
+      "instanceName": "codex_job_e2e_开发只读核验_20261101_233720-8",
+      "kind": "DEVELOPMENT",
+      "origin": "PLATFORM",
+      "ownerName": null,
+      "runCount": null,
+      "startTime": null,
+      "status": "STOPPED",
+      "submissionStage": null,
+      "taskId": 12,
+      "taskName": "codex_job_e2e_开发只读核验_20261101_233720",
+      "taskType": null,
+      "updateTime": null
+    }
+  ],
+  "stopVerified": true,
+  "purpose": "Original SERIAL_WAIT first attempt safely stopped before a new PARALLEL request"
+}

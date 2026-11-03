@@ -1,0 +1,236 @@
+{
+  "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-19dcbd45-8019-48a3-a1ea-f4f277a70f78.png",
+  "sourceSize": [
+    3618,
+    2052
+  ],
+  "assets": {
+    "guide-info": {
+      "file": "guide-info.png",
+      "sourceBox": [
+        348,
+        357,
+        428,
+        436
+      ],
+      "role": "decorative",
+      "sha256": "66919688948918367fb19767e63323226798cd6bbcf5396b19bdd02eaed73c28",
+      "qa": {
+        "size": [
+          80,
+          79
+        ],
+        "alpha_bbox": [
+          5,
+          4,
+          71,
+          71
+        ],
+        "opaque_edge_pixel_count": 0,
+        "opaque_edge_pixel_ratio": 0.0
+      }
+    },
+    "guide-gold": {
+      "file": "guide-gold.png",
+      "sourceBox": [
+        2933,
+        350,
+        3362,
+        438
+      ],
+      "role": "decorative",
+      "sha256": "7d10497d7db5a25c4a4f00ed7510854d11b519e99879ae227e8ddd8c99044a85",
+      "qa": {
+        "size": [
+          429,
+          88
+        ],
+        "alpha_bbox": [
+          0,
+          0,
+          429,
+          88
+        ],
+        "opaque_edge_pixel_count": 1034,
+        "opaque_edge_pixel_ratio": 1.0
+      }
+    },
+    "empty-folder": {
+      "file": "empty-folder.png",
+      "sourceBox": [
+        2046,
+        1032,
+        2350,
+        1217
+      ],
+      "role": "decorative",
+      "sha256": "e72f685585a5178d805f9d534237ca1d7ab7e7e029c9fcfe31db0a8094771bf3",
+      "qa": {
+        "size": [
+          304,
+          185
+        ],
+        "alpha_bbox": [
+          10,
+          9,
+          285,
+          162
+        ],
+        "opaque_edge_pixel_count": 0,
+        "opaque_edge_pixel_ratio": 0.0
+      }
+    },
+    "stat-files": {
+      "file": "stat-files.png",
+      "sourceBox": [
+        988,
+        625,
+        1063,
+        701
+      ],
+      "role": "decorative",
+      "sha256": "a29c746158a9d4e34bd79a7158da85b261f2663ca51bc2c60e39fa94ed5e3781",
+      "qa": {
+        "size": [
+          75,
+          76
+        ],
+        "alpha_bbox": [
+          0,
+          0,
+          75,
+          76
+        ],
+        "opaque_edge_pixel_count": 302,
+        "opaque_edge_pixel_ratio": 1.0
+      }
+    },
+    "stat-upload": {
+      "file": "stat-upload.png",
+      "sourceBox": [
+        1601,
+        625,
+        1677,
+        701
+      ],
+      "role": "decorative",
+      "sha256": "3bde656aaf39e55f659063f1cf7e531d0fe8a8f6bf3f2833f363f9e88633278e",
+      "qa": {
+        "size": [
+          76,
+          76
+        ],
+        "alpha_bbox": [
+          0,
+          0,
+          76,
+          76
+        ],
+        "opaque_edge_pixel_count": 304,
+        "opaque_edge_pixel_ratio": 1.0
+      }
+    },
+    "stat-folders": {
+      "file": "stat-folders.png",
+      "sourceBox": [
+        2214,
+        625,
+        2290,
+        701
+      ],
+      "role": "decorative",
+      "sha256": "b59fffdbb39e15c794b39efe498e4220490de359e1516be760206fd96f046b3b",
+      "qa": {
+        "size": [
+          76,
+          76
+        ],
+        "alpha_bbox": [
+          0,
+          0,
+          76,
+          76
+        ],
+        "opaque_edge_pixel_count": 304,
+        "opaque_edge_pixel_ratio": 1.0
+      }
+    },
+    "stat-storage": {
+      "file": "stat-storage.png",
+      "sourceBox": [
+        2823,
+        625,
+        2899,
+        701
+      ],
+      "role": "decorative",
+      "sha256": "a092188710c055917982c5e5f3e487e62827829b3fcc519fad66d187d64147d2",
+      "qa": {
+        "size": [
+          76,
+          76
+        ],
+        "alpha_bbox": [
+          0,
+          0,
+          76,
+          76
+        ],
+        "opaque_edge_pixel_count": 304,
+        "opaque_edge_pixel_ratio": 1.0
+      }
+    },
+    "folder-open": {
+      "file": "folder-open.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-1b8d12d9-6c39-4587-9723-776e78760874.png",
+      "sourceBox": [
+        380,
+        857,
+        410,
+        885
+      ],
+      "role": "decorative",
+      "sha256": "29bfd1ca05b9fc4946392cdf245759856ea93c98dff9d735b327d8e94c9f2e4f",
+      "qa": {
+        "size": [
+          30,
+          28
+        ],
+        "alpha_bbox": [
+          1,
+          2,
+          25,
+          23
+        ],
+        "opaque_edge_pixel_count": 0,
+        "opaque_edge_pixel_ratio": 0.0
+      }
+    },
+    "folder": {
+      "file": "folder.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-1b8d12d9-6c39-4587-9723-776e78760874.png",
+      "sourceBox": [
+        406,
+        892,
+        435,
+        922
+      ],
+      "role": "decorative",
+      "sha256": "0f10ec5ffbb38bfab06eb6f641fd60d237d751cf2f47322cfa2a7a9933df0501",
+      "qa": {
+        "size": [
+          29,
+          30
+        ],
+        "alpha_bbox": [
+          2,
+          6,
+          25,
+          27
+        ],
+        "opaque_edge_pixel_count": 0,
+        "opaque_edge_pixel_ratio": 0.0
+      }
+    }
+  }
+}

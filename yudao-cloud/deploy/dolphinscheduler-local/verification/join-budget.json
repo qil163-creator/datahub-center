@@ -1,0 +1,57 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "budget",
+  "checks": {
+    "JOIN_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188512737163232",
+      "workflowInstanceId": 38,
+      "taskInstanceId": 38,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_JOIN_TARGET|1| a|b |match",
+        "RESULT_JOIN_TARGET|2|c|NULL",
+        "RESULT_JOIN_TARGET|NULL|null-right|null-match"
+      ],
+      "exactRowsMatched": true
+    },
+    "JOIN_LIMIT_SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188512745581536",
+      "workflowInstanceId": 39,
+      "taskInstanceId": 39,
+      "state": "FAILURE",
+      "markerInLog": true,
+      "fixtureRows": 3,
+      "maxOutputRows": 2,
+      "expectedErrorExitPropagated": true
+    },
+    "JOIN_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188512755903456",
+      "workflowInstanceId": 40,
+      "taskInstanceId": 40,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedRows": [
+        "RESULT_JOIN_TARGET> +I[1,  a|b , match]",
+        "RESULT_JOIN_TARGET> +I[2, c, null]",
+        "RESULT_JOIN_TARGET> +I[null, null-right, null-match]"
+      ],
+      "exactRowsMatched": true
+    },
+    "JOIN_LIMIT_FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188512766213088",
+      "workflowInstanceId": 41,
+      "taskInstanceId": 41,
+      "state": "FAILURE",
+      "markerInLog": true,
+      "fixtureRows": 3,
+      "maxOutputRows": 2,
+      "expectedErrorExitPropagated": true
+    }
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,43 @@
+{
+  "status": "FAIL",
+  "runId": "20261102_153935_7420",
+  "scope": "DataForge API -> normal DolphinScheduler -> PostgreSQL hooks V2",
+  "platformDatabaseId": "1",
+  "projectCode": "188590885122016",
+  "normalDsPort": 12345,
+  "additionalServices": 0,
+  "schedulesEnabled": 0,
+  "schema": "fill-center",
+  "tables": {
+    "src": "codex_phooks_src_20261102_153935_7420",
+    "target": "codex_phooks_target_20261102_153935_7420",
+    "audit": "codex_phooks_audit_20261102_153935_7420"
+  },
+  "runs": [
+    {
+      "attempt": 1,
+      "recordId": "180829751977011",
+      "observedRunning": true,
+      "status": "RUNNING",
+      "dsInstanceId": 12,
+      "dsProjectCode": "188590885122016"
+    }
+  ],
+  "cleanup": {
+    "status": 0,
+    "scheduleStatus": 0,
+    "activeRunning": false,
+    "dataAndLogsRetained": true
+  },
+  "sourceRows": 5,
+  "categoryId": "1003",
+  "taskId": "1005",
+  "flowSha256": "dc239d45b4189d44b801b829334a47538eb9b7f18437c6166d1d1608aa53318e",
+  "flowCheck": {
+    "errors": [],
+    "valid": true
+  },
+  "definitionCode": "188594975982560",
+  "error": "{\"path\": \"/records\", \"code\": 500, \"message\": \"系统异常\"}",
+  "cleanupError": "{\"path\": \"/get\", \"code\": 500, \"message\": \"系统异常\"}"
+}

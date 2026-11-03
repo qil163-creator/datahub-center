@@ -1,0 +1,29 @@
+services:
+  hive-native-server:
+    image: apache/hive:4.1.0@sha256:b957bb0e698e560d24e162b7549d79f191d58703e92899a886618c317f6e8f30
+    hostname: hive-native-server
+    # 容器重启后的 PID 1 会复用编号，清理上次进程的本机验收 PID 文件。
+    entrypoint: [/bin/bash, -c, "rm -f /opt/hive/conf/hiveserver2.pid; exec /entrypoint.sh"]
+    environment:
+      SERVICE_NAME: hiveserver2
+      DB_DRIVER: derby
+      HADOOP_USER_NAME: datahub
+      HADOOP_CONF_DIR: /opt/hive/conf
+      TEZ_CONF_DIR: /opt/hive/conf
+    volumes:
+      # 4.1.0 官方镜像入口依赖的 find 不存在，直接挂载两份配置避免静默忽略。
+      - ./hive-native-conf/core-site.xml:/opt/hive/conf/core-site.xml:ro
+      - ./hive-native-conf/hive-site.xml:/opt/hive/conf/hive-site.xml:ro
+    networks:
+      - native_components
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD-SHELL, "beeline -u jdbc:hive2://localhost:10000/default -n hive --silent=true --showHeader=false --outputformat=tsv2 -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 15s
+      retries: 16
+    # 仅用于本机无凭据验收，同 Docker 网络内访问，不发布宿主机端口。
+networks:
+  native_components:
+    external: true
+    name: datahub-ds-local_default

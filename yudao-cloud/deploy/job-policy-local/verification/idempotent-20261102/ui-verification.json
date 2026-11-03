@@ -1,0 +1,33 @@
+{
+  "pageErrors": [],
+  "httpErrors": [],
+  "businessErrors": [],
+  "mutations": [],
+  "checks": [
+    {
+      "policy": "worker",
+      "recordId": "61",
+      "status": "SUCCESS",
+      "file": "ui-worker-recovered.log",
+      "bytes": 19527,
+      "sha256": "ace6c7c0fb6d955ec2a5b4a4fd18b27d8a00be8b99b6625ba2ddd43330771c36"
+    },
+    {
+      "policy": "host",
+      "recordId": "62",
+      "status": "SUCCESS",
+      "file": "ui-host-recovered.log",
+      "bytes": 19634,
+      "sha256": "4eee866ca8e7adcfd6c1ed9655cf507d57a1f148734001528a64c300f6b556ac"
+    }
+  ],
+  "screenshots": [
+    "ui-worker-instances.png",
+    "ui-worker-log.png",
+    "ui-host-instances.png",
+    "ui-host-log.png"
+  ],
+  "passed": false,
+  "failure": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('combobox', { name: '目标唯一键', exact: true }) to be visible\u001b[22m\n\u001b[2m    - waiting for \"http://127.0.0.1:6006/dataforge/integration/designer/1006\" navigation to finish...\u001b[22m\n\u001b[2m    - navigated to \"http://127.0.0.1:6006/dataforge/integration/designer/1006\"\u001b[22m\n",
+  "authStatePersisted": false
+}

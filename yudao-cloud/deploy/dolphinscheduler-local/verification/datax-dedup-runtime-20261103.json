@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "taskPlugin": "DATAX",
+  "scope": "Actual PostgreSQL reader -> new DB Switch dedup SELECT -> PostgreSQL writer; no platform/business database",
+  "checks": {
+    "dedup-all": {
+      "taskType": "DATAX",
+      "workflowCode": "188630063018496",
+      "workflowInstanceId": 12,
+      "taskInstanceId": 12,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "querySha256": "69abb24da56120f76d0bfad5b2576a0f9dcab697821743e2816935e5e73235c3",
+      "exactRows": [
+        {
+          "id": "9007199254740993",
+          "name": "A",
+          "amount": "12345678901234567890.12345678"
+        },
+        {
+          "id": "9007199254740994",
+          "name": "a",
+          "amount": "2.00000000"
+        },
+        {
+          "id": "9007199254740995",
+          "name": null,
+          "amount": "3.00000000"
+        },
+        {
+          "id": "9007199254740996",
+          "name": null,
+          "amount": "4.00000000"
+        }
+      ],
+      "databaseCompared": true
+    },
+    "dedup-keys": {
+      "taskType": "DATAX",
+      "workflowCode": "188630075685376",
+      "workflowInstanceId": 13,
+      "taskInstanceId": 13,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "querySha256": "bebaea433a0eb290ced3103a8f891b95c219b61c06edf1f0f6e73982fcd029a1",
+      "exactRows": [
+        {
+          "id": "9007199254740993",
+          "name": "A",
+          "amount": "12345678901234567890.12345678"
+        },
+        {
+          "id": "9007199254740995",
+          "name": null,
+          "amount": "3.00000000"
+        }
+      ],
+      "databaseCompared": true
+    },
+    "dedup-duplicate": {
+      "taskType": "DATAX",
+      "workflowCode": "188630088210944",
+      "workflowInstanceId": 14,
+      "taskInstanceId": 14,
+      "state": "FAILURE",
+      "markerInLog": true,
+      "querySha256": "bebaea433a0eb290ced3103a8f891b95c219b61c06edf1f0f6e73982fcd029a1",
+      "exactRows": [],
+      "databaseCompared": true
+    }
+  },
+  "cleanup": [
+    {
+      "workflowCode": "188630063018496",
+      "state": "OFFLINE"
+    },
+    {
+      "workflowCode": "188630075685376",
+      "state": "OFFLINE"
+    },
+    {
+      "workflowCode": "188630088210944",
+      "state": "OFFLINE"
+    },
+    {
+      "fixtureContainerRemoved": true,
+      "workerNetworkDetached": true,
+      "isolatedNetworkRemoved": true
+    }
+  ]
+}

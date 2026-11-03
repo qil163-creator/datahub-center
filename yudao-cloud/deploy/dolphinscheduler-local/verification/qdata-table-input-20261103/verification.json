@@ -1,0 +1,509 @@
+{
+  "date": "2026-11-03",
+  "scope": "fixture",
+  "framework": "当前正式Vue组件与Antdv Next真实控件",
+  "fixture": "apps/web-antdv-next/.temp/table-input-reference",
+  "url": "http://127.0.0.1:6008/.temp/table-input-reference/index.html",
+  "network": "#/api/request替换为静态夹具；所有写入方法明确抛错；没有真实后端请求、任务保存或数据同步",
+  "browser": "REA launch Chromium 156.0.8078.76，独立headless进程，每次场景由provider清理；未接管9336",
+  "scenarios": [
+    {
+      "name": "full-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_2d8ff70ef4ab00cc6169a9e5da3ceaa925bf951a7fee74f6b9c8773968fae41c",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "full-1823.png",
+        "bytes": 114697,
+        "sha256": "184352257c0505ea264654f493c1fe64f101df9e6f759a283f74c8de1bb2561d"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "full-1200",
+      "scope": "fixture",
+      "evidenceId": "ev_620e59fb9fc8ca9a98dec897c71b96c14454850610bcd85bccac63743cc87de8",
+      "viewport": {
+        "width": 1200,
+        "height": 900,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "full-1200.png",
+        "bytes": 93435,
+        "sha256": "ee03ae7f38cfe1e725ec0aea45c389ae923c01dc662a6861df3f18690617998c"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1200,
+          "documentWidth": 1200,
+          "modalWidth": 1168,
+          "modalScrollWidth": 1168,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "full-768",
+      "scope": "fixture",
+      "evidenceId": "ev_9d95ef85583159ebe3ac2d74e00f1bb3f6e31d089d831ec56e5393634db6d3d5",
+      "viewport": {
+        "width": 768,
+        "height": 1024,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "full-768.png",
+        "bytes": 83890,
+        "sha256": "19071a231ddbbc1f2220b7cbf8ae52832120898a3be80fd4050ceab56df87287"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "modalWidth": 752,
+          "modalScrollWidth": 752,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "full-390",
+      "scope": "fixture",
+      "evidenceId": "ev_02942e3f814b5d0d6dbaa7f8f720bfa532e1fafd87ad04ae5c5b88127e64a9f2",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "full-390.png",
+        "bytes": 61213,
+        "sha256": "90891204e1843a736b594f5bc7a9108c5c2a33e040ab44157e7de3187c50dde1"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "modalWidth": 374,
+          "modalScrollWidth": 374,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "id-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_7aae9cee4309a9d2cdcf4ce264f5979d48d1d7fe55d8c537bf51ccf169ed4035",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "id-1823.png",
+        "bytes": 119031,
+        "sha256": "96aff8a611ac0bd67dfab6a88ff44ccdf8c18cecd8aff5828de3e7b554b13e42"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "time-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_851f45b218029f9433e0446b2a715ae357a94249ce4d43441d95edcd6066b614",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "time-1823.png",
+        "bytes": 100121,
+        "sha256": "2f2c9a31184ffff0b343e6537d7889626dfd24767a954f55422e02ba2455f7c3"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "batch-id-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_e4b9fd09760f7101c665de458747f5cd762307a467229101e380bef706748a68",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "batch-id-1823.png",
+        "bytes": 122742,
+        "sha256": "bf7700435efc76756a055b77178e2681257e8ac07b635ac38f4617a06022eddf"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "batch-time-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_e43dd69dfebe4271f67e3c2814d1c808d221b1d68a65d99ed24ee586a6503045",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "batch-time-1823.png",
+        "bytes": 125353,
+        "sha256": "7ab5536c7bc7fbbd8c2c88f84c5510dc971d30ad21ef5074093f0eca69b3eee2"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "condition-modal-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_bde804a77d605239fa82c0a7eb9409a1c68493ab0e4b2b53e0bf3f21ac81feab",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "condition-modal-1823.png",
+        "bytes": 108856,
+        "sha256": "151a43478eb5070b611d7ab5f251f3e06b274e98f53e1133611d3cc3e3669903"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "open-condition",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        },
+        {
+          "width": 1823,
+          "documentWidth": 1823,
+          "modalWidth": 1200,
+          "modalScrollWidth": 1200,
+          "formOverflow": 0
+        }
+      ],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    },
+    {
+      "name": "picker-1823",
+      "scope": "fixture",
+      "evidenceId": "ev_17b82099902c8522d6cd99ada492b19e6b022092fba9a36a1a13848b9e8ec0ad",
+      "viewport": {
+        "width": 1823,
+        "height": 1040,
+        "device_scale_factor": 1
+      },
+      "screenshot": {
+        "file": "picker-1823.png",
+        "bytes": 118387,
+        "sha256": "a6954369f15c928c8964d2a1cc83d79594a0655b96f9bb83a6afbb7592ba84d7"
+      },
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "picker",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "layoutMeasurements": [],
+      "visualReview": "已查看对应截图；表单、弹层未见横向遮挡或截断。"
+    }
+  ],
+  "additionalScenarios": [
+    {
+      "name": "baseline-menu",
+      "scope": "fixture",
+      "evidenceId": "ev_3b620615cb7bc7f49aa6882ebfce0069001468f180bb20802336186585a8cc1f",
+      "steps": [
+        {
+          "id": "scenario_start",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "load",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "condition",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "baseline",
+          "status": "completed",
+          "error": null
+        },
+        {
+          "id": "settle",
+          "status": "completed",
+          "error": null
+        }
+      ],
+      "observed": [
+        "新增条件弹窗真实打开",
+        "基准类型下拉真实打开",
+        "固定值、时间范围、SQL表达式均显示"
+      ],
+      "pageErrors": []
+    }
+  ],
+  "limitations": [
+    "这是静态元数据组件夹具验证，不等于5999正式页面或后端端到端验收。",
+    "三种基准分支的完整日期选择、SQL编辑保存未完成；补测期间fixture进程被SIGTERM终止，未将空白页面或导航失败场景视为通过。",
+    "初次FULL截图缺描述；现full-1823已替换为含描述的有效结果，像素字节与记录哈希匹配。",
+    "Antdv Next Modal未将data-component-code属性转发至dialog DOM，所以基于该属性的top13px选择器未命中；已交根任务改为显式class并由正式页面复验。",
+    "picker-1823拍摄时尚未加入布局测量日志，仅有截图目视检查，不能把它的layoutMeasurements空数组解释为自动检查0溢出。",
+    "额外重启后遇到Outdated Optimize Dep，已给fixture配置独立cacheDir；该失败尝试未纳入有效场景。"
+  ],
+  "cleanup": "6008夹具服务已停止；未更改5999或9336进程。"
+}

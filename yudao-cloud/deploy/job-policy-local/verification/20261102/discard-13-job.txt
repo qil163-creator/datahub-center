@@ -1,0 +1,264 @@
+平台作业审计（不代表 Worker 输出）
+触发方式：START；业务周期槽：null
+队列状态：DONE；运行状态：SUCCESS
+当前决策：真实父子终态已确认：SUCCESS
+控制摘要：真实父实例 24；DS 状态 SUCCESS；平台状态 SUCCESS；节点日志通过各自真实记录身份读取
+
+========== INTEGRATION 节点 integration ==========
+
+--- 表输入组件 → 表输出组件 ---
+2026-11-02 08:46:24.383 INFO  - 🐬 Initialize Task Context
+2026-11-02 08:46:24.386 INFO  - TenantCode: datahub check successfully
+2026-11-02 08:46:24.387 INFO  - TaskInstance working directory: /tmp/dolphinscheduler/exec/process/30 create successfully
+2026-11-02 08:46:24.388 INFO  - Download resources successfully: ResourceContext(resourceItemMap={})
+2026-11-02 08:46:24.389 INFO  - 🐬 Load Task Instance Plugin
+2026-11-02 08:46:24.389 INFO  - Initialized physicalTask: DATAX successfully
+2026-11-02 08:46:24.389 INFO  - Initialize datax task params {
+  "localParams" : [ ],
+  "varPool" : [ ],
+  "customConfig" : 0,
+  "json" : null,
+  "dsType" : "POSTGRESQL",
+  "dataSource" : 1,
+  "dtType" : "POSTGRESQL",
+  "dataTarget" : 2,
+  "sql" : "SELECT \"id\" AS \"id\", \"name\" AS \"name\", \"amount\" AS \"amount\"\nFROM \"public\".\"codex_job_e2e_20261102_080442_28e9_source\"",
+  "targetTable" : "\"public\".\"codex_job_e2e_20261102_080442_28e9_discard\"",
+  "preStatements" : [ ],
+  "postStatements" : [ ],
+  "jobSpeedByte" : 0,
+  "jobSpeedRecord" : 0,
+  "jobChannel" : 1,
+  "xms" : 1,
+  "xmx" : 1,
+  "batchSize" : 1000,
+  "resourceList" : [ ]
+}
+2026-11-02 08:46:24.390 INFO  - Set taskVarPool: null successfully
+2026-11-02 08:46:24.390 INFO  - 🐬 Execute Task Instance
+2026-11-02 08:46:24.392 INFO  - Final Script Content:
+====================
+#!/bin/bash
+[连接身份与敏感参数已脱敏]
+cd $BASEDIR
+export JAVA_HOME=/opt/java/openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+export DATAX_HOME=/opt/datax
+export DATAX_LAUNCHER=/opt/datax/bin/datax.py
+export PYTHON_LAUNCHER=/usr/bin/python3
+
+${PYTHON_LAUNCHER} ${DATAX_LAUNCHER} --jvm="-Xms1G -Xmx1G" -p "-Dsystem.task.definition.name='表输入组件 → 表输出组件' -Dsystem.project.name='datahub-job-policy-local' -Dsystem.project.code='188566818730880' -Dsystem.workflow.instance.id='25' -Dsystem.biz.curdate='20261102' -Dsystem.biz.date='20261101' -Ddatahub_job_request='cjp_20261102_080442_28e9_discard_initial_A' -Dsystem.task.instance.id='30' -Dsystem.workflow.definition.name='dh_integration_1003_v1_21c94ea272ea' -Dsystem.task.definition.code='188567586273152' -Dsystem.workflow.definition.code='188567586277248' -Dsystem.datetime='20261102084624'" /tmp/dolphinscheduler/exec/process/30/30_job.json
+====================
+2026-11-02 08:46:24.393 INFO  - Executing shell command : sudo -u datahub -i /tmp/dolphinscheduler/exec/process/30/30.sh
+2026-11-02 08:46:24.399 INFO  - process start, process id is: 922
+2026-11-02 08:46:24.434 INFO  -  -> 
+2026-11-02 08:46:24.437 INFO  -  -> DataX (DATAX-OPENSOURCE-3.0), From Alibaba !
+2026-11-02 08:46:24.437 INFO  -  -> Copyright (C) 2010-2017, Alibaba Group. All Rights Reserved.
+2026-11-02 08:46:24.437 INFO  -  -> 
+2026-11-02 08:46:24.437 INFO  -  -> 
+2026-11-02 08:46:24.885 INFO  -  -> 2026-11-02 08:46:24.883 [main] INFO  MessageSource - JVM TimeZone: GMT+08:00, Locale: zh_CN
+2026-11-02 08:46:24.886 INFO  -  -> 2026-11-02 08:46:24.886 [main] INFO  MessageSource - use Locale: zh_CN timeZone: sun.util.calendar.ZoneInfo[id="GMT+08:00",offset=28800000,dstSavings=0,useDaylight=false,transitions=0,lastRule=null]
+2026-11-02 08:46:24.916 INFO  -  -> 2026-11-02 08:46:24.914 [main] INFO  VMInfo - VMInfo# operatingSystem class => sun.management.OperatingSystemImpl
+2026-11-02 08:46:24.919 INFO  -  -> 2026-11-02 08:46:24.919 [main] INFO  Engine - the machine info  => 
+2026-11-02 08:46:24.919 INFO  -  -> 
+2026-11-02 08:46:24.919 INFO  -  -> 	osInfo:	Linux aarch64 6.8.0-117-generic
+2026-11-02 08:46:24.919 INFO  -  -> 	jvmInfo:	Temurin 1.8 25.492-b09
+2026-11-02 08:46:24.919 INFO  -  -> 	cpu num:	2
+2026-11-02 08:46:24.919 INFO  -  -> 
+2026-11-02 08:46:24.919 INFO  -  -> 	totalPhysicalMemory:	-0.00G
+2026-11-02 08:46:24.919 INFO  -  -> 	freePhysicalMemory:	-0.00G
+2026-11-02 08:46:24.919 INFO  -  -> 	maxFileDescriptorCount:	-1
+2026-11-02 08:46:24.920 INFO  -  -> 	currentOpenFileDescriptorCount:	-1
+2026-11-02 08:46:24.920 INFO  -  -> 
+2026-11-02 08:46:24.920 INFO  -  -> 	GC Names	[PS MarkSweep, PS Scavenge]
+2026-11-02 08:46:24.920 INFO  -  -> 
+2026-11-02 08:46:24.920 INFO  -  -> 	MEMORY_NAME                    | allocation_size                | init_size                      
+2026-11-02 08:46:24.920 INFO  -  -> 	PS Eden Space                  | 256.00MB                       | 256.00MB                       
+2026-11-02 08:46:24.920 INFO  -  -> 	Code Cache                     | 128.00MB                       | 2.44MB                         
+2026-11-02 08:46:24.920 INFO  -  -> 	Compressed Class Space         | 1,024.00MB                     | 0.00MB                         
+2026-11-02 08:46:24.920 INFO  -  -> 	PS Survivor Space              | 42.50MB                        | 42.50MB                        
+2026-11-02 08:46:24.920 INFO  -  -> 	PS Old Gen                     | 683.00MB                       | 683.00MB                       
+2026-11-02 08:46:24.920 INFO  -  -> 	Metaspace                      | -0.00MB                        | 0.00MB                         
+2026-11-02 08:46:24.920 INFO  -  -> 
+2026-11-02 08:46:24.920 INFO  -  -> 
+2026-11-02 08:46:24.927 INFO  -  -> 2026-11-02 08:46:24.927 [main] INFO  Engine - 
+2026-11-02 08:46:24.930 INFO  -  -> {
+2026-11-02 08:46:24.930 INFO  -  -> 	"content":[
+2026-11-02 08:46:24.930 INFO  -  -> 		{
+2026-11-02 08:46:24.930 INFO  -  -> 			"reader":{
+2026-11-02 08:46:24.930 INFO  -  -> 				"name":"postgresqlreader",
+2026-11-02 08:46:24.930 INFO  -  -> 				"parameter":{
+[连接身份与敏感参数已脱敏]
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:24.930 INFO  -  -> 					"connection":[
+2026-11-02 08:46:24.930 INFO  -  -> 						{
+2026-11-02 08:46:24.930 INFO  -  -> 							"querySql":[
+2026-11-02 08:46:24.930 INFO  -  -> 								"SELECT \"id\" AS \"id\", \"name\" AS \"name\", \"amount\" AS \"amount\"\nFROM \"public\".\"codex_job_e2e_20261102_080442_28e9_source\""
+2026-11-02 08:46:24.930 INFO  -  -> 							],
+2026-11-02 08:46:24.930 INFO  -  -> 							"jdbcUrl":[
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:24.930 INFO  -  -> 							]
+2026-11-02 08:46:24.930 INFO  -  -> 						}
+2026-11-02 08:46:24.930 INFO  -  -> 					]
+2026-11-02 08:46:24.930 INFO  -  -> 				}
+2026-11-02 08:46:24.930 INFO  -  -> 			},
+2026-11-02 08:46:24.930 INFO  -  -> 			"writer":{
+2026-11-02 08:46:24.930 INFO  -  -> 				"name":"postgresqlwriter",
+2026-11-02 08:46:24.930 INFO  -  -> 				"parameter":{
+[连接身份与敏感参数已脱敏]
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:24.930 INFO  -  -> 					"column":[
+2026-11-02 08:46:24.930 INFO  -  -> 						"\"id\"",
+2026-11-02 08:46:24.930 INFO  -  -> 						"\"name\"",
+2026-11-02 08:46:24.930 INFO  -  -> 						"\"amount\""
+2026-11-02 08:46:24.930 INFO  -  -> 					],
+2026-11-02 08:46:24.930 INFO  -  -> 					"connection":[
+2026-11-02 08:46:24.930 INFO  -  -> 						{
+2026-11-02 08:46:24.930 INFO  -  -> 							"table":[
+2026-11-02 08:46:24.930 INFO  -  -> 								"\"public\".\"codex_job_e2e_20261102_080442_28e9_discard\""
+2026-11-02 08:46:24.930 INFO  -  -> 							],
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:24.930 INFO  -  -> 						}
+2026-11-02 08:46:24.931 INFO  -  -> 					],
+2026-11-02 08:46:24.931 INFO  -  -> 					"batchSize":1000
+2026-11-02 08:46:24.931 INFO  -  -> 				}
+2026-11-02 08:46:24.931 INFO  -  -> 			}
+2026-11-02 08:46:24.931 INFO  -  -> 		}
+2026-11-02 08:46:24.931 INFO  -  -> 	],
+2026-11-02 08:46:24.931 INFO  -  -> 	"setting":{
+2026-11-02 08:46:24.931 INFO  -  -> 		"speed":{
+2026-11-02 08:46:24.931 INFO  -  -> 			"channel":1
+2026-11-02 08:46:24.931 INFO  -  -> 		},
+2026-11-02 08:46:24.931 INFO  -  -> 		"errorLimit":{
+2026-11-02 08:46:24.931 INFO  -  -> 			"record":0,
+2026-11-02 08:46:24.931 INFO  -  -> 			"percentage":0
+2026-11-02 08:46:24.931 INFO  -  -> 		}
+2026-11-02 08:46:24.931 INFO  -  -> 	}
+2026-11-02 08:46:24.931 INFO  -  -> }
+2026-11-02 08:46:24.931 INFO  -  -> 
+2026-11-02 08:46:24.954 INFO  -  -> 2026-11-02 08:46:24.954 [main] INFO  PerfTrace - PerfTrace traceId=job_-1, isEnable=false
+2026-11-02 08:46:24.955 INFO  -  -> 2026-11-02 08:46:24.954 [main] INFO  JobContainer - DataX jobContainer starts job.
+2026-11-02 08:46:24.955 INFO  -  -> 2026-11-02 08:46:24.954 [main] INFO  JobContainer - Set jobId = 0
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:25.376 INFO  -  -> 2026-11-02 08:46:25.375 [job-0] INFO  OriginalConfPretreatmentUtil - table:["public"."codex_job_e2e_20261102_080442_28e9_discard"] all columns:[
+2026-11-02 08:46:25.376 INFO  -  -> id,name,amount
+2026-11-02 08:46:25.376 INFO  -  -> ].
+2026-11-02 08:46:25.397 INFO  -  -> 2026-11-02 08:46:25.397 [job-0] INFO  OriginalConfPretreatmentUtil - Write data [
+2026-11-02 08:46:25.397 INFO  -  -> INSERT INTO %s ("id","name","amount") VALUES(?,?,?)
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:25.398 INFO  -  -> 2026-11-02 08:46:25.397 [job-0] INFO  JobContainer - jobContainer starts to do prepare ...
+2026-11-02 08:46:25.398 INFO  -  -> 2026-11-02 08:46:25.397 [job-0] INFO  JobContainer - DataX Reader.Job [postgresqlreader] do prepare work .
+2026-11-02 08:46:25.398 INFO  -  -> 2026-11-02 08:46:25.397 [job-0] INFO  JobContainer - DataX Writer.Job [postgresqlwriter] do prepare work .
+2026-11-02 08:46:25.398 INFO  -  -> 2026-11-02 08:46:25.397 [job-0] INFO  JobContainer - jobContainer starts to do split ...
+2026-11-02 08:46:25.398 INFO  -  -> 2026-11-02 08:46:25.398 [job-0] INFO  JobContainer - Job set Channel-Number to 1 channels.
+2026-11-02 08:46:25.401 INFO  -  -> 2026-11-02 08:46:25.399 [job-0] INFO  JobContainer - DataX Reader.Job [postgresqlreader] splits to [1] tasks.
+2026-11-02 08:46:25.401 INFO  -  -> 2026-11-02 08:46:25.399 [job-0] INFO  JobContainer - DataX Writer.Job [postgresqlwriter] splits to [1] tasks.
+2026-11-02 08:46:25.413 INFO  -  -> 2026-11-02 08:46:25.413 [job-0] INFO  JobContainer - jobContainer starts to do schedule ...
+2026-11-02 08:46:25.416 INFO  -  -> 2026-11-02 08:46:25.414 [job-0] INFO  JobContainer - Scheduler starts [1] taskGroups.
+2026-11-02 08:46:25.417 INFO  -  -> 2026-11-02 08:46:25.416 [job-0] INFO  JobContainer - Running by standalone Mode.
+2026-11-02 08:46:25.427 INFO  -  -> 2026-11-02 08:46:25.425 [taskGroup-0] INFO  TaskGroupContainer - taskGroupId=[0] start [1] channels for [1] tasks.
+2026-11-02 08:46:25.430 INFO  -  -> 2026-11-02 08:46:25.430 [taskGroup-0] INFO  Channel - Channel set byte_speed_limit to -1, No bps activated.
+2026-11-02 08:46:25.431 INFO  -  -> 2026-11-02 08:46:25.430 [taskGroup-0] INFO  Channel - Channel set record_speed_limit to -1, No tps activated.
+2026-11-02 08:46:25.441 INFO  -  -> 2026-11-02 08:46:25.441 [taskGroup-0] INFO  TaskGroupContainer - taskGroup[0] taskId[0] attemptCount[1] is started
+2026-11-02 08:46:25.446 INFO  -  -> 2026-11-02 08:46:25.445 [0-0-0-reader] INFO  CommonRdbmsReader$Task - Begin to read record by Sql: [SELECT "id" AS "id", "name" AS "name", "amount" AS "amount"
+2026-11-02 08:46:25.446 INFO  -  -> FROM "public"."codex_job_e2e_20261102_080442_28e9_source"
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:25.474 INFO  -  -> 2026-11-02 08:46:25.472 [0-0-0-reader] INFO  CommonRdbmsReader$Task - Finished read record by Sql: [SELECT "id" AS "id", "name" AS "name", "amount" AS "amount"
+2026-11-02 08:46:25.475 INFO  -  -> FROM "public"."codex_job_e2e_20261102_080442_28e9_source"
+[连接身份与敏感参数已脱敏]
+2026-11-02 08:46:35.441 INFO  -  -> 2026-11-02 08:46:35.441 [job-0] INFO  StandAloneJobContainerCommunicator - Total 0 records, 0 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:46:45.449 INFO  -  -> 2026-11-02 08:46:45.449 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 2B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:46:55.458 INFO  -  -> 2026-11-02 08:46:55.457 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:47:05.462 INFO  -  -> 2026-11-02 08:47:05.462 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:47:15.465 INFO  -  -> 2026-11-02 08:47:15.464 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:47:25.467 INFO  -  -> 2026-11-02 08:47:25.467 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 0.00%
+2026-11-02 08:47:30.948 INFO  -  -> 2026-11-02 08:47:30.948 [taskGroup-0] INFO  TaskGroupContainer - taskGroup[0] taskId[0] is successed, used[65510]ms
+2026-11-02 08:47:30.949 INFO  -  -> 2026-11-02 08:47:30.949 [taskGroup-0] INFO  TaskGroupContainer - taskGroup[0] completed it's tasks.
+2026-11-02 08:47:35.472 INFO  -  -> 2026-11-02 08:47:35.468 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 100.00%
+2026-11-02 08:47:35.472 INFO  -  -> 2026-11-02 08:47:35.469 [job-0] INFO  AbstractScheduler - Scheduler accomplished all tasks.
+2026-11-02 08:47:35.472 INFO  -  -> 2026-11-02 08:47:35.470 [job-0] INFO  JobContainer - DataX Writer.Job [postgresqlwriter] do post work.
+2026-11-02 08:47:35.472 INFO  -  -> 2026-11-02 08:47:35.470 [job-0] INFO  JobContainer - DataX Reader.Job [postgresqlreader] do post work.
+2026-11-02 08:47:35.472 INFO  -  -> 2026-11-02 08:47:35.470 [job-0] INFO  JobContainer - DataX jobId [0] completed successfully.
+2026-11-02 08:47:35.473 INFO  -  -> 2026-11-02 08:47:35.473 [job-0] INFO  HookInvoker - No hook invoked, because base dir not exists or is a file: /opt/datax/hook
+2026-11-02 08:47:35.474 INFO  -  -> 2026-11-02 08:47:35.474 [job-0] INFO  JobContainer - 
+2026-11-02 08:47:35.474 INFO  -  -> 	 [total cpu info] => 
+2026-11-02 08:47:35.474 INFO  -  -> 		averageCpu                     | maxDeltaCpu                    | minDeltaCpu                    
+2026-11-02 08:47:35.474 INFO  -  -> 		-1.00%                         | -1.00%                         | -1.00%
+2026-11-02 08:47:35.500 INFO  -  ->                         
+2026-11-02 08:47:35.500 INFO  -  -> 
+2026-11-02 08:47:35.500 INFO  -  -> 	 [total gc info] => 
+2026-11-02 08:47:35.500 INFO  -  -> 		 NAME                 | totalGCCount       | maxDeltaGCCount    | minDeltaGCCount    | totalGCTime        | maxDeltaGCTime     | minDeltaGCTime     
+2026-11-02 08:47:35.501 INFO  -  -> 		 PS MarkSweep         | 0                  | 0                  | 0                  | 0.000s             | 0.000s             | 0.000s             
+2026-11-02 08:47:35.501 INFO  -  -> 		 PS Scavenge          | 0                  | 0                  | 0                  | 0.000s             | 0.000s             | 0.000s             
+2026-11-02 08:47:35.502 INFO  -  -> 
+2026-11-02 08:47:35.502 INFO  -  -> 2026-11-02 08:47:35.474 [job-0] INFO  JobContainer - PerfTrace not enable!
+2026-11-02 08:47:35.502 INFO  -  -> 2026-11-02 08:47:35.474 [job-0] INFO  StandAloneJobContainerCommunicator - Total 3 records, 26 bytes | Speed 0B/s, 0 records/s | Error 0 records, 0 bytes |  All Task WaitWriterTime 0.000s |  All Task WaitReaderTime 0.000s | Percentage 100.00%
+2026-11-02 08:47:35.505 INFO  -  -> 2026-11-02 08:47:35.478 [job-0] INFO  JobContainer - 
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    : 2026-11-02 08:46:24
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    : 2026-11-02 08:47:35
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    :                 70s
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    :                0B/s
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    :              0rec/s
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    :                   3
+2026-11-02 08:47:35.505 INFO  -  -> ������������������                    :                   0
+2026-11-02 08:47:35.505 INFO  -  -> 
+2026-11-02 08:47:35.515 INFO  - process has exited. execute path:/tmp/dolphinscheduler/exec/process/30, processId:922 ,exitStatusCode:0 ,processWaitForStatus:true ,processExitValue:0
+2026-11-02 08:47:35.654 INFO  - 🐬 Finalize Task Instance
+2026-11-02 08:47:35.654 INFO  - FINALIZE_SESSION
+2026-11-02 08:47:35.656 INFO  - Deleted task exec directory: /tmp/dolphinscheduler/exec/process/30
+
+========== DEVELOPMENT 节点 development ==========
+2026-11-02 08:47:44.506 INFO  - 🐬 Initialize Task Context
+2026-11-02 08:47:44.509 INFO  - TenantCode: datahub check successfully
+2026-11-02 08:47:44.509 INFO  - TaskInstance working directory: /tmp/dolphinscheduler/exec/process/32 create successfully
+2026-11-02 08:47:44.509 INFO  - Download resources successfully: ResourceContext(resourceItemMap={})
+2026-11-02 08:47:44.510 INFO  - 🐬 Load Task Instance Plugin
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.511 INFO  - Initialized physicalTask: SQL successfully
+2026-11-02 08:47:44.511 INFO  - Set taskVarPool: null successfully
+2026-11-02 08:47:44.511 INFO  - 🐬 Execute Task Instance
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.511 INFO  - sql type : POSTGRESQL, datasource : 4, sql : SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.511 INFO  - after replace sql , preparing : SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.518 INFO  - main statement execute query, for sql: SELECT pg_catalog.COUNT(*) AS execution_row_count FROM (
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.519 INFO  - display sql result 1 rows as follows:
+*** [日志续行已隐藏]
+2026-11-02 08:47:44.756 INFO  - 🐬 Finalize Task Instance
+2026-11-02 08:47:44.757 INFO  - FINALIZE_SESSION
+2026-11-02 08:47:44.757 INFO  - Deleted task exec directory: /tmp/dolphinscheduler/exec/process/32
+

@@ -1,0 +1,2033 @@
+.qi-workbench-shell {
+  --qi-business-gutter: 15px;
+
+  height: 100%;
+  min-height: 0;
+}
+
+.qi-workbench,
+.qi-modal,
+.qi-node-modal {
+  --background: 0 0% 100%;
+  --muted: 220 14% 96%;
+  --foreground: 0 0% 20%;
+  --muted-foreground: 220 6% 60%;
+}
+
+.qi-workbench {
+  --qi-muted: #999ca3;
+  --qi-primary: #2f62ff;
+  --qi-border: #e2e5ed;
+  --radius: 2px;
+
+  box-sizing: border-box;
+  min-height: calc(100vh - 100px);
+  padding: 12px;
+  font-size: 14px;
+  color: #333;
+  background: hsl(var(--background));
+}
+
+.qi-workbench *,
+.qi-modal * {
+  box-sizing: border-box;
+}
+
+.qi-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-right: 3px;
+  vertical-align: -2px;
+  object-fit: contain;
+}
+
+.qi-workbench button,
+.qi-modal button {
+  font: inherit;
+}
+
+.qi-workbench button:not(:disabled) {
+  cursor: pointer;
+}
+
+.qi-modal .ant-btn {
+  height: 28px;
+  font-size: 14px;
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: none;
+}
+
+.qi-modal .ant-input,
+.qi-modal .ant-select,
+.qi-modal .ant-input-number {
+  font-size: 14px;
+}
+
+.qi-modal .ant-input,
+.qi-modal .ant-input-affix-wrapper,
+.qi-modal .ant-input-number,
+.qi-modal .ant-select-selector {
+  border-color: #e1e5ee;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.qi-modal .ant-input::placeholder {
+  color: #aeb4bd;
+}
+
+.qi-main-layout {
+  --qi-sidebar-width: 280px;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--qi-sidebar-width) 15px minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100vh - 190px);
+}
+
+.qi-main-layout.is-category-collapsed {
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+
+.qi-category-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  overflow: hidden;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.qi-category-tools {
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.qi-category-tools > .ant-input-affix-wrapper {
+  height: 32px;
+  padding: 2px 8px;
+}
+
+.qi-category-panel > .ant-alert {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.qi-category-tree {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+}
+
+.qi-category-panel .ant-tree {
+  font-size: 14px;
+  color: #333;
+}
+
+.qi-category-panel .ant-tree .ant-tree-treenode {
+  width: 100%;
+  padding-bottom: 0;
+}
+
+.qi-category-panel .ant-tree .ant-tree-indent-unit {
+  width: 16px;
+}
+
+.qi-category-panel .ant-tree .ant-tree-switcher {
+  width: 16px;
+}
+
+.qi-category-panel .ant-tree .ant-tree-node-content-wrapper {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+.qi-category-panel .ant-tree .ant-tree-iconEle {
+  flex-shrink: 0;
+  width: 18px;
+}
+
+.qi-category-panel .ant-tree-title {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+.qi-category-panel .ant-tree-node-selected {
+  color: #4866ff;
+  background: #f1f6ff !important;
+}
+
+.qi-category-panel .ant-tree-switcher-icon {
+  color: #aaaeb7;
+}
+
+.qi-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.qi-statistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.qi-statistics > button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 140px;
+  padding: 0 20px 0 0;
+  padding-right: 15px;
+  color: #999;
+  text-align: left;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+}
+
+.qi-statistics > button + button {
+  padding-left: 18px;
+  border-color: #dfe4ed;
+  border-left: 1px solid #e8eaf0;
+}
+
+.qi-statistics b {
+  margin-left: 4px;
+  font-weight: 400;
+  color: #555;
+}
+
+.qi-stat-dot {
+  width: 12px;
+  height: 12px;
+  margin-right: 9px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.qi-stat-dot.running {
+  background-image: url('/assets/qdata-integration/icon-stat-running.png');
+}
+
+.qi-stat-dot.warning {
+  background-image: url('/assets/qdata-integration/icon-stat-failed.png');
+}
+
+.qi-stat-dot.executed {
+  background-image: url('/assets/qdata-integration/icon-stat-today.png');
+}
+
+.qi-stat-dot.success {
+  background-image: url('/assets/qdata-integration/icon-stat-success.png');
+}
+
+.qi-statistics > p {
+  margin: 0 0 0 auto;
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.qi-statistics > p button {
+  padding: 0;
+  margin-left: 7px;
+  background: none;
+  border: 0;
+}
+
+.qi-filters {
+  padding: 15px;
+  container-type: inline-size;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.qi-filters form {
+  display: grid;
+  flex-wrap: wrap;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  column-gap: 15px;
+  align-items: center;
+}
+
+.qi-filter-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+.qi-filter-item label {
+  flex: 0 0 88px;
+  flex-basis: auto;
+  color: #333;
+  white-space: nowrap;
+}
+
+.qi-filter-item > .ant-input-affix-wrapper,
+.qi-filter-item > .ant-select {
+  width: 180px;
+}
+
+.qi-filters .ant-select-selector,
+.qi-filters .ant-input-affix-wrapper {
+  min-height: 32px;
+}
+
+.qi-query-buttons {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 12px;
+  justify-content: flex-end;
+  order: 1;
+  padding-left: 0;
+}
+
+@container (min-width: 1050px) {
+  .qi-filters form {
+    grid-template-columns: repeat(3, minmax(200px, 1fr)) auto;
+  }
+
+  .qi-filters .qi-query-buttons {
+    grid-row: 1;
+    grid-column: 4;
+    padding-left: 0;
+  }
+}
+
+.qi-table-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 15px 15px 8px;
+  overflow: hidden;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+}
+
+.qi-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.qi-table-toolbar .qi-table-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.qi-table-scroll {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.qi-table {
+  width: 100%;
+  min-width: 1490px;
+  font-size: 14px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.qi-col-id {
+  width: 60px;
+}
+
+.qi-col-info {
+  width: 390px;
+}
+
+.qi-col-category {
+  width: 190px;
+}
+
+.qi-col-last {
+  width: 180px;
+}
+
+.qi-col-control {
+  width: 130px;
+}
+
+.qi-col-strategy {
+  width: 190px;
+}
+
+.qi-col-owner {
+  width: 110px;
+}
+
+.qi-col-actions {
+  width: 240px;
+}
+
+.qi-realtime-table {
+  min-width: 1300px;
+}
+
+.qi-table thead {
+  color: hsl(var(--foreground));
+  text-align: left;
+  background: hsl(var(--accent));
+}
+
+.qi-table th {
+  height: 36px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.qi-table th:not(:last-child)::after {
+  position: absolute;
+  top: 25%;
+  right: 0;
+  height: 50%;
+  content: '';
+  border-right: 1px solid hsl(var(--border));
+}
+
+.qi-table td {
+  height: 80px;
+  padding: 10px;
+  font-size: 12px;
+  vertical-align: middle;
+  color: #62666c;
+  border-color: #e2e5ed;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.qi-table tbody tr:hover {
+  background: #eaf0ff;
+}
+
+.qi-workbench.is-list .qi-action-cell {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  text-align: center;
+  background: white;
+  box-shadow: -8px 0 10px -8px hsl(var(--foreground) / 12%);
+}
+
+.qi-workbench.is-list thead .qi-action-cell {
+  z-index: 3;
+  background: hsl(var(--accent));
+}
+
+.qi-workbench.is-list tbody tr:hover .qi-action-cell {
+  background: #eaf0ff;
+}
+
+.qi-table p {
+  margin: 0;
+}
+
+.qi-table .qi-id-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.qi-sort-button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+
+.qi-sort-button span {
+  margin-left: 5px;
+  font-size: 8px;
+  color: #a9adb5;
+}
+
+.qi-task-name {
+  display: -webkit-box;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  color: #2f62ff;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  background: none;
+  border: 0;
+  -webkit-box-orient: vertical;
+}
+
+.qi-task-name img {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 4px;
+  vertical-align: -3px;
+  object-fit: contain;
+}
+
+.qi-table .qi-description {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #999;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.qi-category-tag {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 9px;
+  color: #2f62ff;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  background: #eef6ff;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.qi-info-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-left: 2px;
+  font-size: 9px;
+  line-height: 11px;
+  color: white;
+  text-align: center;
+  background: #777a7f;
+  border-radius: 50%;
+}
+
+.qi-run-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.qi-run-badge > span {
+  margin-right: 2px;
+}
+
+.qi-run-badge.running {
+  color: #718dff;
+  background: #f0f6ff;
+}
+
+.qi-run-badge.success {
+  color: #00a818;
+  background: #e9f5e8;
+}
+
+.qi-run-badge.failure {
+  color: #f15a5a;
+  background: #fff0ee;
+}
+
+.qi-run-badge.idle {
+  color: #a12be8;
+  background: #f3e8ff;
+}
+
+.qi-table .qi-last-time {
+  display: flex;
+  gap: 7px;
+  margin-top: 3px;
+  color: #39475d;
+  white-space: nowrap;
+}
+
+.qi-switch-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  color: #333;
+  white-space: nowrap;
+}
+
+.qi-switch-row + .qi-switch-row {
+  margin-top: 12px;
+}
+
+.qi-cron-summary {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  margin-top: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #777d86;
+  text-align: left;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+}
+
+.qi-cron-summary .qi-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.qi-phone {
+  margin-top: 7px !important;
+}
+
+.qi-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.qi-actions .ant-btn {
+  padding-inline: 0;
+}
+
+.qi-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  color: #5271ff;
+  background: none;
+  border: 0;
+}
+
+.qi-link:disabled {
+  color: #b9c4ff;
+  cursor: not-allowed;
+}
+
+.qi-link .qi-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.qi-more-menu {
+  padding: 7px 5px !important;
+  font-size: 12px;
+}
+
+.qi-more-menu .ant-dropdown-menu-item {
+  min-height: 25px;
+  font-size: 12px;
+  color: #5271ff;
+}
+
+.qi-more-menu .ant-dropdown-menu-item-danger {
+  color: #ef7c7a;
+}
+
+.qi-more-menu .ant-dropdown-menu-item-disabled {
+  opacity: 0.45;
+}
+
+.qi-column-menu {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  color: #515761;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px #0000001a;
+}
+
+.qi-column-menu label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.qi-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.qi-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-height: calc(100vh - 125px);
+}
+
+.qi-detail-header {
+  padding: 14px 13px;
+  background: white;
+  border-radius: var(--radius);
+}
+
+.qi-detail-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+.qi-detail-title > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.qi-detail-title b {
+  display: inline-block;
+  min-width: 18px;
+  padding: 2px 3px;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  background: #4866ff;
+}
+
+.qi-detail-title strong {
+  font-size: 16px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.qi-detail-title .ant-btn {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.qi-info-table {
+  width: 100%;
+  font-size: 14px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.qi-info-table th,
+.qi-info-table td {
+  height: 36px;
+  padding: 7px 10px;
+  font-weight: 400;
+  text-align: left;
+  overflow-wrap: anywhere;
+  border: 1px solid #f0f2f6;
+}
+
+.qi-info-table th {
+  width: 10%;
+  color: #515b6d;
+  background: #f5f7fa;
+}
+
+.qi-summary-table th {
+  width: 7.5%;
+  color: #9aa1ab;
+  background: #fafafa;
+}
+
+.qi-summary-table td {
+  width: 26%;
+}
+
+.qi-detail-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 550px;
+  padding: 12px 13px;
+  background: white;
+  border-radius: var(--radius);
+}
+
+.qi-tabs {
+  display: flex;
+  gap: 35px;
+  align-items: stretch;
+  height: 34px;
+  margin-bottom: 13px;
+  border-bottom: 1px solid #dadfe8;
+}
+
+.qi-tabs button {
+  padding: 0 0 10px;
+  background: none;
+  border: 0;
+}
+
+.qi-tabs button.active {
+  color: hsl(var(--primary));
+  border-bottom: 2px solid hsl(var(--primary));
+}
+
+.qi-detail-table th {
+  width: 10%;
+}
+
+.qi-detail-table td {
+  width: 40%;
+}
+
+.qi-info-table .qi-empty-cell {
+  background: white;
+  border-right: 0;
+  border-left: 0;
+}
+
+.qi-flow-view {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 480px;
+}
+
+.qi-flow-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 5px;
+}
+
+.qi-flow-toolbar .ant-btn {
+  width: 28px;
+  padding: 0;
+  background: #f6f6f6;
+  border-color: #ededed;
+}
+
+.qi-flow-toolbar .qi-icon {
+  width: 17px;
+  height: 17px;
+  margin-right: 0;
+}
+
+.qi-flow-center {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 420px;
+  overflow: auto;
+}
+
+.qi-flow-graph {
+  position: relative;
+  max-width: 100%;
+}
+
+.qi-flow-node {
+  position: absolute;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  width: 80px;
+  font-size: 11px;
+  color: #41444a;
+  white-space: nowrap;
+}
+
+.qi-flow-node img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1) opacity(0.8);
+}
+
+.qi-node-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: url('/assets/qdata-integration/node-background.svg') center /
+    contain no-repeat;
+}
+
+.qi-modal .ant-modal {
+  padding-bottom: 20px;
+}
+
+.qi-modal .ant-modal-content,
+.qi-modal .ant-modal-container {
+  padding: 0;
+  overflow: hidden;
+  background: white;
+  border-radius: var(--radius);
+}
+
+.qi-modal .ant-modal-header {
+  padding: 11px 16px;
+  margin-bottom: 0;
+  background: #fafafa;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.qi-modal .ant-modal-title {
+  font-size: 14px;
+  color: #454545;
+}
+
+.qi-modal .ant-modal-close {
+  top: 8px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  color: #8f939a;
+}
+
+.qi-modal .ant-modal-body {
+  padding: 22px 28px;
+  font-size: 14px;
+  color: #41444a;
+}
+
+.qi-modal .ant-modal-footer {
+  padding: 12px 17px;
+  margin-top: 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.qi-task-modal .ant-modal {
+  top: 6vh;
+}
+
+.qi-task-modal .ant-modal-body {
+  max-height: calc(88vh - 93px);
+  padding: 0 40px;
+  overflow-y: auto;
+}
+
+.qi-task-form {
+  padding: 25px 0 9px;
+  padding-top: 32px;
+}
+
+.qi-form-section {
+  margin-bottom: 28px;
+}
+
+.qi-form-section h3 {
+  position: relative;
+  padding-left: 14px;
+  margin: 0 0 22px;
+  margin-bottom: 26px;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.qi-form-section h3::before {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 6px;
+  content: '';
+  background: #2f62ff;
+  border-radius: 4px;
+}
+
+.qi-form-section h3 > span {
+  margin-left: 20px;
+  font-size: 12px;
+  color: #999;
+}
+
+.qi-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 20px;
+}
+
+.qi-form-field {
+  display: grid;
+  grid-template-columns: 146px minmax(0, 1fr);
+  align-items: start;
+}
+
+.qi-form-field > label {
+  padding: 5px 10px 0 0;
+  padding-right: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.qi-form-field em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #ef7472;
+}
+
+.qi-form-field .ant-select,
+.qi-form-field .ant-input-number,
+.qi-form-field .ant-tree-select {
+  width: 100%;
+}
+
+.qi-form-field .ant-input,
+.qi-form-field .ant-input-number {
+  min-height: 32px;
+}
+
+.qi-form-field .ant-input-number-input {
+  height: 30px;
+  padding: 0 10px;
+  text-align: center;
+}
+
+.qi-form-field small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #999;
+}
+
+.qi-form-field small.qi-error {
+  color: #ef7472;
+}
+
+.qi-form-field .ant-input-textarea-show-count::after {
+  font-size: 12px;
+  color: #999;
+}
+
+.qi-field-full {
+  grid-column: 1 / -1;
+}
+
+.qi-field-full .ant-radio-group {
+  padding-top: 4px;
+}
+
+.qi-modal .ant-radio-wrapper {
+  font-size: 14px;
+}
+
+.qi-engine-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.qi-engine-card {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 86px;
+  padding: 13px 16px;
+  color: #333;
+  text-align: left;
+  background: white;
+  border: 1px solid #e2e5ec;
+  border-color: #d7dce5;
+  border-radius: var(--radius);
+}
+
+.qi-engine-card img {
+  flex-shrink: 0;
+  width: 34px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.qi-engine-card span {
+  padding: 2px 4px;
+  margin-left: 7px;
+  font-size: 9px;
+  color: #2f62ff;
+  white-space: nowrap;
+  background: #f1f6ff;
+}
+
+.qi-engine-card p {
+  display: -webkit-box;
+  margin: 5px 0 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 16px;
+  -webkit-box-orient: vertical;
+}
+
+.qi-engine-card.selected {
+  background: linear-gradient(#fff, #f6f7ff);
+  border-color: #99a9ff;
+}
+
+.qi-engine-card i {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 14px;
+  height: 14px;
+  border: 4px solid #4866ff;
+  border-color: #2f62ff;
+  border-radius: 50%;
+}
+
+.qi-engine-card:disabled {
+  color: #c8cbd2;
+  cursor: not-allowed;
+  background: #fafafa;
+  border-color: #eff0f3;
+}
+
+.qi-engine-card:disabled img {
+  opacity: 0.65;
+}
+
+.qi-engine-fields {
+  margin-top: 14px;
+}
+
+.qi-scheduler-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.qi-unit-input {
+  display: flex;
+  align-items: stretch;
+}
+
+.qi-unit-input > .ant-input,
+.qi-unit-input > .ant-input-number {
+  flex: 1;
+  min-width: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.qi-unit-input > span {
+  display: grid;
+  place-items: center;
+  min-width: 50px;
+  height: 32px;
+  padding: 0 10px;
+  color: #9199a6;
+  background: #f5f7fa;
+  border: 1px solid #e1e5ee;
+  border-left: 0;
+}
+
+.qi-schedule-content {
+  padding: 4px 0 15px;
+}
+
+.qi-schedule-name {
+  margin: 0 0 22px;
+  color: #626b7d;
+  overflow-wrap: anywhere;
+}
+
+.qi-schedule-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  align-items: center;
+  margin-top: 20px;
+}
+
+.qi-schedule-row > label {
+  padding-right: 15px;
+  text-align: right;
+}
+
+.qi-instances-modal .ant-pagination {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.qi-instance-table {
+  min-width: 950px;
+}
+
+.qi-instance-table td {
+  height: 45px;
+}
+
+.qi-record-message {
+  min-height: 100px;
+  padding: 14px;
+  margin-top: 20px;
+  color: #546075;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  background: #f5f7fa;
+}
+
+.qi-confirm-hint {
+  margin-top: 8px;
+  color: #999;
+}
+
+.qi-category-panel .qi-tree-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+}
+
+.qi-tree-title > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qi-category-more {
+  flex-shrink: 0;
+  padding: 0 4px;
+  color: #a2a8b5;
+  background: none;
+  border: 0;
+  opacity: 0;
+}
+
+.qi-tree-title:hover .qi-category-more,
+.qi-tree-title:focus-within .qi-category-more,
+.qi-category-more:focus-visible {
+  opacity: 1;
+}
+
+.qi-category-form {
+  display: grid;
+  gap: 18px;
+}
+
+.qi-category-form .qi-form-field {
+  grid-template-columns: 150px minmax(0, 1fr);
+}
+
+.qi-engine-card.selected:disabled {
+  color: #535760;
+  background: linear-gradient(#fff, #f6f7ff);
+  border-color: #99a9ff;
+}
+
+@media (min-width: 1900px) {
+  .qi-main-layout {
+    --qi-sidebar-width: 280px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .qi-main-layout {
+    --qi-sidebar-width: 240px;
+  }
+
+  .qi-statistics {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding: 12px;
+  }
+
+  .qi-statistics > p {
+    width: 100%;
+    text-align: right;
+  }
+
+  .qi-statistics > button {
+    min-width: 120px;
+  }
+
+  .qi-statistics > button + button {
+    padding-left: 10px;
+  }
+
+  .qi-filter-item > .ant-input-affix-wrapper,
+  .qi-filter-item > .ant-select {
+    width: 160px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .qi-main-layout {
+    --qi-sidebar-width: 220px;
+  }
+
+  .qi-form-grid {
+    column-gap: 18px;
+  }
+
+  .qi-form-field {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+
+  .qi-engine-card {
+    gap: 7px;
+    padding: 11px 9px;
+  }
+
+  .qi-engine-card img {
+    width: 25px;
+  }
+
+  .qi-engine-card p {
+    font-size: 12px;
+  }
+
+  .qi-engine-card i {
+    top: 5px;
+    right: 5px;
+    width: 11px;
+    height: 11px;
+    border-width: 3px;
+  }
+}
+
+@media (max-width: 768px) {
+  .qi-workbench {
+    padding: 8px;
+  }
+
+  .qi-main-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-category-panel {
+    height: 230px;
+  }
+
+  .qi-category-panel > .ant-input-affix-wrapper {
+    max-width: 380px;
+  }
+
+  .qi-statistics > button {
+    min-width: 45%;
+    padding: 0 4px !important;
+    border: 0 !important;
+  }
+
+  .qi-statistics > p {
+    font-size: 12px;
+  }
+
+  .qi-filter-item > .ant-input-affix-wrapper,
+  .qi-filter-item > .ant-select {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .qi-table-panel {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .qi-pagination {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .qi-detail-title > div {
+    flex-wrap: wrap;
+  }
+
+  .qi-detail-title strong {
+    font-size: 13px;
+  }
+
+  .qi-info-table {
+    font-size: 14px;
+  }
+
+  .qi-info-table th,
+  .qi-info-table td {
+    padding: 7px 5px;
+  }
+
+  .qi-summary-table th {
+    width: 13%;
+  }
+
+  .qi-summary-table td {
+    width: 20%;
+  }
+
+  .qi-detail-table th {
+    width: 20%;
+  }
+
+  .qi-detail-table td {
+    width: 30%;
+  }
+
+  .qi-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .qi-task-modal .ant-modal {
+    top: 16px;
+  }
+
+  .qi-task-modal .ant-modal-body {
+    max-height: calc(100dvh - 150px);
+    padding: 0 14px;
+  }
+
+  .qi-form-section h3 {
+    margin-bottom: 16px;
+  }
+
+  .qi-form-section h3 > span {
+    display: block;
+    margin: 6px 0 0;
+  }
+
+  .qi-form-field {
+    grid-template-columns: 106px minmax(0, 1fr);
+  }
+
+  .qi-form-field > label {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .qi-form-section h3::before {
+    bottom: auto;
+    height: 16px;
+  }
+
+  .qi-engine-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-engine-card {
+    min-height: 70px;
+  }
+
+  .qi-engine-card img {
+    width: 30px;
+  }
+
+  .qi-engine-card p {
+    font-size: 12px;
+  }
+
+  .qi-modal .ant-modal-body {
+    padding: 20px 14px;
+  }
+
+  .qi-flow-center {
+    min-height: 350px;
+  }
+}
+
+.qi-instance-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.qi-instance-summary p {
+  margin: 0;
+}
+
+.qi-instance-summary strong {
+  font-weight: 400;
+}
+
+.qi-instance-summary .running {
+  color: #4866ff;
+}
+
+.qi-instance-summary .success {
+  color: #71a653;
+}
+
+.qi-instance-summary .failure {
+  color: #ed7774;
+}
+
+.qi-instance-summary > span {
+  font-size: 12px;
+  color: #999;
+}
+
+.qi-instance-summary button {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+.qi-instance-scroll {
+  height: 525px;
+}
+
+.qi-instance-actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qi-workbench *,
+  .qi-modal * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .qi-category-form .qi-form-field {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+
+  .qi-instance-summary {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+.qi-task-modal .ant-modal-body,
+.qi-task-modal .ant-input,
+.qi-task-modal .ant-select,
+.qi-task-modal .ant-input-number,
+.qi-task-modal .ant-radio-wrapper {
+  font-size: 14px;
+}
+
+.qi-task-modal .qi-engine-card p,
+.qi-task-modal .qi-form-field small,
+.qi-task-modal .qi-form-section h3 > span {
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .qi-task-modal .ant-modal {
+    width: calc(100vw - 32px) !important;
+  }
+}
+
+.qi-status-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 3px;
+  vertical-align: -2px;
+}
+
+.qi-filter-item > .ant-select,
+.qi-filter-item > .ant-input-affix-wrapper,
+.qi-filter-item > .ant-picker {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.qi-table-toolbar .native-list-title {
+  flex: 1;
+  margin: 0;
+  font-weight: 600;
+}
+
+.qi-query-buttons > .ant-btn:first-child {
+  order: 1;
+}
+
+.qi-query-buttons > .ant-btn:nth-child(2) {
+  order: 0;
+}
+
+.qi-workbench.is-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qi-business-gutter);
+  height: 100%;
+  min-height: 0;
+  padding: var(--qi-business-gutter);
+  overflow: hidden;
+  background: #f0f2f5;
+}
+
+.qi-workbench.is-list .qi-main-layout {
+  flex: 1;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.qi-statistics,
+.qi-filters,
+.qi-table-toolbar {
+  flex-shrink: 0;
+}
+
+.qi-table-loading,
+.qi-table-loading > .ant-spin-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.qi-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: hsl(var(--muted));
+}
+
+@media (max-width: 768px) {
+  .qi-workbench.is-list .qi-main-layout {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .qi-workbench.is-list .qi-category-panel {
+    flex-shrink: 0;
+  }
+
+  .qi-workbench.is-list .qi-list-panel {
+    flex: none;
+  }
+
+  .qi-workbench.is-list .qi-table-panel {
+    flex: none;
+    height: 65dvh;
+    min-height: 420px;
+  }
+
+  .qi-workbench.is-list .qi-table-toolbar .native-list-title {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .qi-main-layout.is-category-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .qi-main-layout > .sidebar-collapse {
+    flex: 0 0 12px;
+    width: 100%;
+    min-width: 0;
+    height: 12px;
+  }
+
+  .qi-main-layout > .sidebar-collapse svg {
+    transform: rotate(90deg);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .qi-main-layout > .sidebar-collapse .sidebar-collapse__button,
+  .qi-main-layout > .sidebar-collapse.is-collapsed .sidebar-collapse__button {
+    top: -8px;
+    right: 4px;
+    left: auto;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.qi-guide {
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 9px 20px 9px 10px;
+  background: #fffcf6 url('/assets/qdata-integration/help-banner.png') right
+    center / auto 100% no-repeat;
+  border: 1px solid #ffe0a3;
+  border-radius: 2px;
+}
+
+.qi-guide-icon {
+  flex: none;
+  width: 44px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.qi-guide-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.qi-guide-text h2,
+.qi-guide-text p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.qi-guide-text p {
+  color: #828282;
+}
+
+.qi-guide-actions {
+  display: flex;
+  flex: none;
+  gap: 12px;
+}
+
+.qi-guide-actions .ant-btn {
+  height: 25px;
+  padding-inline: 12px;
+  font-size: 12px;
+  color: #e9a035;
+  background: #fffaf1;
+  border-color: #f2ce96;
+}
+
+.qi-guide-actions .ant-btn-primary {
+  color: white;
+  background: #eaa234;
+  border-color: #eaa234;
+}
+
+.qi-category-panel,
+.qi-statistics,
+.qi-filters,
+.qi-table-panel {
+  background: white;
+}
+
+.qi-category-panel .ant-tree-treenode {
+  min-height: 26px;
+}
+
+.qi-category-panel .qi-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.qi-tree-tools {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+
+.qi-tree-tools button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+.qi-tree-tools .qi-icon {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.qi-filter-date {
+  grid-column: span 2;
+}
+
+.qi-query-buttons > .ant-btn:first-child,
+.qi-query-buttons > .ant-btn:nth-child(2) {
+  order: 0;
+}
+
+.qi-reference-button.ant-btn {
+  color: #2f62ff;
+  background: #eef6ff;
+  border-color: #a6bdff;
+  box-shadow: none;
+}
+
+.qi-reference-button.ant-btn:hover {
+  color: #1f52ec;
+  background: #e5f0ff;
+  border-color: #2f62ff;
+}
+
+.qi-workbench .ant-btn {
+  box-shadow: none;
+}
+
+.qi-workbench .ant-btn-link {
+  color: #2f62ff;
+}
+
+.qi-workbench .ant-btn-link:disabled {
+  color: #adc1ff;
+}
+
+.qi-table-tools > .ant-btn,
+.qi-table-tools .ant-dropdown-trigger {
+  width: 32px;
+  padding: 0;
+}
+
+.qi-table-tools .qi-icon {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.qi-table-tools > .ant-btn:first-child .qi-icon,
+.qi-table-tools > .ant-btn:nth-child(2) .qi-icon {
+  filter: grayscale(1) brightness(0.4);
+}
+
+.qi-workbench.is-list thead .qi-action-cell,
+.qi-table thead th {
+  background: hsl(var(--accent));
+}
+
+.qi-sort-arrows {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 15px;
+}
+
+.qi-sort-arrows::before,
+.qi-sort-arrows::after {
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  content: '';
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+}
+
+.qi-sort-arrows::before {
+  top: 1px;
+  border-bottom: 5px solid #a9adb5;
+}
+
+.qi-sort-arrows::after {
+  bottom: 1px;
+  border-top: 5px solid #a9adb5;
+}
+
+.qi-sort-arrows.asc::before {
+  border-bottom-color: #2f62ff;
+}
+
+.qi-sort-arrows.desc::after {
+  border-top-color: #2f62ff;
+}
+
+.qi-switch-row .ant-switch {
+  min-width: 40px;
+  height: 20px;
+  line-height: 20px;
+  background: #e3e5eb;
+}
+
+.qi-switch-row .ant-switch-checked {
+  background: #2f62ff;
+}
+
+.qi-switch-row .ant-switch .ant-switch-handle {
+  top: 2px;
+  width: 16px;
+  height: 16px;
+}
+
+.qi-switch-row .ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 18px);
+}
+
+.qi-actions .qi-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.qi-task-modal {
+  --radius: 2px;
+
+  color: #333;
+}
+
+.qi-task-modal .ant-modal-header {
+  padding: 12px 20px;
+  background: #fafafa;
+}
+
+.qi-task-modal .ant-modal-title {
+  font-size: 16px;
+}
+
+.qi-task-modal .ant-modal-footer {
+  padding: 15px 20px;
+}
+
+.qi-task-modal .ant-modal-footer .ant-btn {
+  height: 32px;
+  padding-inline: 15px;
+  font-size: 14px;
+}
+
+.qi-engine-card.selected,
+.qi-engine-card.selected:disabled {
+  border-color: #2f62ff;
+}
+
+@media (min-width: 1900px) {
+  .qi-statistics {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 1400px) {
+  .qi-main-layout {
+    --qi-sidebar-width: 260px;
+  }
+
+  .qi-statistics {
+    gap: 10px 0;
+  }
+
+  .qi-statistics > button {
+    min-width: 120px;
+  }
+
+  .qi-statistics > p {
+    width: 100%;
+  }
+
+  .qi-task-modal .qi-form-field {
+    grid-template-columns: 122px minmax(0, 1fr);
+  }
+
+  .qi-task-modal .ant-modal-body {
+    padding: 0 28px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .qi-main-layout {
+    --qi-sidebar-width: 220px;
+  }
+
+  .qi-guide {
+    flex-wrap: wrap;
+  }
+
+  .qi-guide-actions {
+    margin-left: auto;
+  }
+
+  .qi-guide-text {
+    min-width: calc(100% - 65px);
+  }
+
+  .qi-task-modal .ant-modal-body {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .qi-workbench-shell {
+    --qi-business-gutter: 8px;
+  }
+
+  .qi-main-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-guide {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .qi-guide-text h2 {
+    font-size: 13px;
+  }
+
+  .qi-guide-text p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+  }
+
+  .qi-statistics > button {
+    min-width: 45%;
+  }
+
+  .qi-filter-date {
+    grid-column: auto;
+  }
+
+  .qi-filters form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-query-buttons {
+    justify-content: flex-start;
+  }
+
+  .qi-task-modal .qi-form-field {
+    grid-template-columns: 106px minmax(0, 1fr);
+  }
+
+  .qi-task-modal .ant-modal-body {
+    padding: 0 14px;
+  }
+
+  .qi-task-form {
+    padding-top: 22px;
+  }
+
+  .qi-form-section h3 > span {
+    display: block;
+    margin-left: 0;
+  }
+
+  .qi-engine-cards,
+  .qi-scheduler-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

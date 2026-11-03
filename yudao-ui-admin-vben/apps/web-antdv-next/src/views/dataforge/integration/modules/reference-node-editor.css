@@ -1,0 +1,180 @@
+.qi-reference-editor {
+  display: grid;
+  gap: 18px;
+}
+
+.qi-reference-notice {
+  margin: 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: #909399;
+}
+
+.qi-reference-form-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.qi-reference-form-row > label {
+  padding-top: 5px;
+  text-align: right;
+}
+
+.qi-reference-file-actions,
+.qi-reference-section-header,
+.qi-reference-section-header > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.qi-reference-file-actions > span {
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+
+.qi-reference-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.qi-reference-form-grid label {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  text-align: right;
+}
+
+.qi-reference-section-header {
+  justify-content: space-between;
+}
+
+.qi-reference-section-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.qi-reference-tabs {
+  display: flex;
+  gap: 20px;
+}
+
+.qi-reference-tabs button {
+  padding: 8px 0;
+  color: #606266;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+}
+
+.qi-reference-tabs .active {
+  color: #2f62ff;
+  border-bottom-color: #2f62ff;
+}
+
+.qi-reference-fields-scroll {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.qi-reference-fields-table {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.qi-reference-field-details {
+  min-width: 1000px;
+}
+
+.qi-reference-fields-table th {
+  height: 36px;
+  padding: 7px 10px;
+  font-weight: 400;
+  color: #606266;
+  text-align: left;
+  white-space: nowrap;
+  background: #f1f1f5;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-reference-fields-table td {
+  height: 42px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-reference-fields-table th:first-child {
+  width: 55px;
+}
+
+.qi-reference-fields-table th:last-child {
+  width: 180px;
+}
+
+.qi-reference-fields-table td:last-child {
+  white-space: nowrap;
+}
+
+.qi-reference-fields-table .ant-input,
+.qi-reference-fields-table .ant-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.qi-reference-fields-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.qi-reference-fields-table tbody tr:hover {
+  background: #eaf0ff;
+}
+
+.qi-reference-fields-table .qi-reference-empty {
+  height: 100px;
+  color: #909399;
+  text-align: center;
+}
+
+.qi-reference-field-modal .qi-reference-field-edit-grid {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 15px 12px;
+  align-items: center;
+  padding: 20px 10px;
+}
+
+.qi-reference-field-edit-grid > label {
+  text-align: right;
+}
+
+.qi-reference-field-edit-grid .ant-select,
+.qi-reference-field-edit-grid .ant-input-number {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .qi-reference-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-reference-form-row,
+  .qi-reference-form-grid label {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+.qi-reference-fields-table thead th,
+.qi-reference-fields-table tbody td {
+  font-size: 12px;
+}

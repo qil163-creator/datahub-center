@@ -1,0 +1,333 @@
+.standard-rule-modal {
+  width: 1200px;
+  max-height: calc(100dvh - 110px);
+}
+
+.standard-rule-modal .q-rule-body {
+  max-height: min(690px, calc(100dvh - 235px));
+  padding: 26px 40px 32px;
+}
+
+.standard-rule-modal .q-section {
+  margin-bottom: 8px;
+}
+
+.standard-rule-modal .q-field {
+  grid-template-columns: 120px minmax(0, 1fr);
+}
+
+.standard-rule-modal .q-base-grid {
+  gap: 18px 24px;
+}
+
+.standard-rule-modal .q-descriptions {
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.standard-rule-modal .q-descriptions textarea {
+  min-height: 98px;
+}
+
+.standard-rule-modal .q-form-grid {
+  row-gap: 22px;
+}
+
+.standard-rule-modal .q-rule-config {
+  margin-bottom: 26px;
+}
+
+.standard-rule-modal .q-rule-config.q-enum-config {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.standard-rule-modal .q-rule-config.q-reference-config {
+  grid-template-columns: 330px 200px;
+  column-gap: 10px;
+}
+
+.standard-rule-modal .q-reference-config .q-field:nth-child(even) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.standard-rule-modal .q-reference-config .q-field:nth-child(even) > span {
+  display: none;
+}
+
+.standard-rule-modal .q-rule-config .q-enum-table-select {
+  grid-column: 1 / -1;
+  width: 38%;
+}
+
+.standard-rule-modal .q-rule-body .q-empty {
+  min-height: 210px;
+}
+
+.standard-rule-picker {
+  display: flex;
+  height: min(935px, calc(100dvh - 230px));
+  padding: 20px 40px;
+}
+
+.standard-rule-picker nav {
+  flex: 0 0 310px;
+  padding: 22px 20px 12px 8px;
+  border: 1px solid #f5f5f7;
+  border-right-color: #e7e9f0;
+}
+
+.standard-rule-picker nav button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 4px 12px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.standard-rule-picker nav button:not(:first-child) {
+  padding-left: 28px;
+}
+
+.standard-rule-picker nav img {
+  width: 16px;
+}
+
+.standard-rule-picker nav span {
+  margin-left: auto;
+  color: #999;
+}
+
+.standard-rule-picker nav .active {
+  color: hsl(var(--primary));
+  background: hsl(var(--accent));
+}
+
+.standard-rule-cards {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 22px 20px;
+  overflow: auto;
+  border: 1px solid #f5f5f7;
+  border-left: 0;
+}
+
+.standard-rule-search {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+}
+
+.standard-rule-cards h3 {
+  margin: 4px 0 24px;
+  font-weight: 500;
+}
+
+.standard-rule-cards section + section {
+  margin-top: 30px;
+}
+
+.standard-rule-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.standard-rule-card-grid button {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-height: 86px;
+  padding: 14px 16px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #f0f0f4;
+  border-radius: var(--radius);
+}
+
+.standard-rule-card-grid button:disabled {
+  color: #999;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+
+.standard-rule-card-grid button:disabled img {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.standard-rule-card-grid button:not(:disabled) .standard-rule-icon-muted {
+  filter: invert(11%) sepia(93%) saturate(9980%) hue-rotate(244deg)
+    brightness(200%) contrast(94%);
+}
+
+.standard-rule-card-grid button:not(:disabled):hover {
+  border-color: hsl(var(--primary));
+}
+
+.standard-rule-card-grid img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.standard-rule-card-grid div {
+  min-width: 0;
+}
+
+.standard-rule-card-grid strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.standard-rule-card-grid p {
+  display: -webkit-box;
+  margin: 4px 0 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 18px;
+  color: #888;
+  -webkit-box-orient: vertical;
+}
+
+.standard-rule-sample {
+  display: flex;
+  gap: 44px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.standard-rule-sample .q-field {
+  flex: 0 0 50%;
+}
+
+.standard-mapping-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.standard-clean-config .ant-select,
+.standard-clean-config .ant-input-number {
+  width: 100%;
+}
+
+.standard-clean-config .q-table th:last-child {
+  width: 120px;
+}
+
+.standard-code-import {
+  width: 1200px;
+}
+
+.standard-import-layout {
+  display: flex;
+  gap: 20px;
+  min-height: min(900px, calc(100dvh - 230px));
+  padding: 20px 40px;
+}
+
+.standard-import-layout aside {
+  flex-basis: 270px;
+  width: 270px;
+  border-right: 1px solid #e1e4ef;
+}
+
+.standard-import-layout main {
+  flex: 1;
+  min-width: 0;
+  padding-top: 50px;
+}
+
+@media (width <= 1000px) {
+  .standard-rule-picker nav {
+    flex-basis: 200px;
+  }
+
+  .standard-rule-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .standard-rule-search {
+    position: static;
+    width: 100%;
+    margin-bottom: 18px;
+  }
+}
+
+@media (width <= 640px) {
+  .standard-rule-modal .q-rule-config.q-reference-config {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-rule-modal .q-rule-config.q-enum-config {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-rule-modal .q-rule-config .q-enum-table-select {
+    width: 100%;
+  }
+
+  .standard-rule-modal .q-table {
+    min-width: 0;
+  }
+
+  .standard-rule-sample {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .standard-rule-sample .q-field {
+    flex-basis: 100%;
+  }
+
+  .standard-rule-sample > .ant-btn {
+    margin-left: 110px;
+  }
+
+  .standard-rule-picker {
+    padding: 12px;
+  }
+
+  .standard-rule-picker nav {
+    flex-basis: 130px;
+    padding: 4px;
+  }
+
+  .standard-rule-cards {
+    padding: 10px;
+  }
+
+  .standard-rule-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-rule-modal .q-rule-body {
+    padding: 20px;
+  }
+
+  .standard-rule-modal .q-field {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .standard-import-layout {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .standard-import-layout aside {
+    flex-basis: auto;
+    width: 100%;
+    max-height: 220px;
+    overflow: auto;
+  }
+}

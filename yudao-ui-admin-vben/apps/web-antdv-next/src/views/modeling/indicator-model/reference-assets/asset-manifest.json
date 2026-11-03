@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "sourcePolicy": "素材只来自用户附件，未下载外部图像，未生成替代图；交互区域仍由真实组件实现。",
+  "assets": [
+    {
+      "id": "banner-info",
+      "file": "banner-info.png",
+      "sourceReference": "atomic-list",
+      "sourceFile": "codex-clipboard-0b707866-f717-4d81-a417-a76cb81fa6cb.png",
+      "sourceBox": [348, 88, 426, 165],
+      "dimensions": [78, 77],
+      "aspectRatio": 1.012987,
+      "role": "decorative",
+      "usage": "说明横幅左侧提示图标；建议宽高约 48px，保持原始比例。",
+      "alphaRange": [0, 255],
+      "alphaBounds": [2, 3, 70, 72],
+      "sha256": "a5c9521b1217d3026c4f76acfbbdd15d060fdfa6f98a74afc621e5629f2ae11e",
+      "provenance": "用户提供的 QData 页面截图；仅本地裁切与边缘透明处理。"
+    },
+    {
+      "id": "banner-gold",
+      "file": "banner-gold.png",
+      "sourceReference": "atomic-list",
+      "sourceFile": "codex-clipboard-0b707866-f717-4d81-a417-a76cb81fa6cb.png",
+      "sourceBox": [2880, 78, 3348, 171],
+      "dimensions": [468, 93],
+      "aspectRatio": 5.032258,
+      "role": "decorative",
+      "usage": "说明横幅右侧淡金装饰；原图内未包含按钮或正文；以 contain 定位于关闭按钮区域左侧，背景色 #fefcf5。",
+      "alphaRange": [255, 255],
+      "alphaBounds": [0, 0, 468, 93],
+      "sha256": "f307ec3ac7e5acc89ca1ebefab50273a13bc91759755d9d89adcf630d33c26da",
+      "provenance": "用户提供的 QData 页面截图；仅本地裁切与边缘透明处理。"
+    },
+    {
+      "id": "construction",
+      "file": "construction.png",
+      "sourceReference": "derived",
+      "sourceFile": "codex-clipboard-d165eaa3-b032-4f7c-bddf-7fc7298967c2.png",
+      "sourceBox": [1620, 840, 2370, 1300],
+      "dimensions": [750, 460],
+      "aspectRatio": 1.630435,
+      "role": "decorative",
+      "usage": "仅建设中插画，不含下方标题和说明；下方文本由真实 DOM 渲染，插画中原有建设中标牌属于画面。",
+      "alphaRange": [0, 255],
+      "alphaBounds": [11, 43, 709, 437],
+      "sha256": "86f3f23538d49cd9b34dcb4896ab3dd402dfa6705bfaea0601621da1c2283f96",
+      "provenance": "用户提供的 QData 页面截图；仅本地裁切与边缘透明处理。"
+    },
+    {
+      "id": "condition-format",
+      "file": "condition-format.png",
+      "sourceReference": "condition-definition-latest",
+      "sourceFile": "codex-clipboard-a45b7ab5-ecf1-429a-bebe-493d86ce9705.png",
+      "sourceDimensions": [3558, 1882],
+      "sourceBox": [639, 622, 659, 642],
+      "dimensions": [20, 20],
+      "aspectRatio": 1.0,
+      "role": "decorative",
+      "usage": "格式化真实按钮内图标，建议12px×12px，object-fit: contain；按钮文字与事件保留真实DOM。",
+      "alphaRange": [0, 255],
+      "alphaBounds": [1, 1, 19, 19],
+      "opaqueEdgePixelCount": 0,
+      "sha256": "baff5fcaec65cf55984b2bb25d9fc550b9f2f3a8b9904e329c5a09fedd12d09f",
+      "sourceSha256": "13cbfe66d0cd04cac348f08ddf6b1efaea9c53a4f730bb623a189a3b7623d876",
+      "processing": {
+        "backgroundRgb": [241, 241, 245],
+        "foregroundRgb": [117, 117, 119],
+        "method": "按原图前景与背景解混恢复抗锯齿alpha；仅裁切并去底，不缩放、不重绘。",
+        "recompositeMaxChannelError": 0
+      },
+      "provenance": "用户提供的第3张QData业务限定定义参考图；只提取图标，不包含文字。"
+    },
+    {
+      "id": "condition-validate",
+      "file": "condition-validate.png",
+      "sourceReference": "condition-definition-latest",
+      "sourceFile": "codex-clipboard-a45b7ab5-ecf1-429a-bebe-493d86ce9705.png",
+      "sourceDimensions": [3558, 1882],
+      "sourceBox": [781, 621, 803, 643],
+      "dimensions": [22, 22],
+      "aspectRatio": 1.0,
+      "role": "decorative",
+      "usage": "规范性校验真实按钮内图标，建议13px×13px，object-fit: contain；按钮文字与事件保留真实DOM。",
+      "alphaRange": [0, 255],
+      "alphaBounds": [1, 1, 21, 21],
+      "opaqueEdgePixelCount": 0,
+      "sha256": "199eeea0db1aa5916e76024b47ca1f3bfdaa4b496e4e3a399fb07f278abce2b0",
+      "sourceSha256": "13cbfe66d0cd04cac348f08ddf6b1efaea9c53a4f730bb623a189a3b7623d876",
+      "processing": {
+        "backgroundRgb": [241, 241, 245],
+        "foregroundRgb": [117, 117, 119],
+        "method": "按原图前景与背景解混恢复抗锯齿alpha；仅裁切并去底，不缩放、不重绘。",
+        "recompositeMaxChannelError": 0
+      },
+      "provenance": "用户提供的第3张QData业务限定定义参考图；只提取图标，不包含文字。"
+    },
+    {
+      "id": "condition-insert",
+      "file": "condition-insert.png",
+      "sourceReference": "condition-definition-latest",
+      "sourceFile": "codex-clipboard-a45b7ab5-ecf1-429a-bebe-493d86ce9705.png",
+      "sourceDimensions": [3558, 1882],
+      "sourceBox": [3368, 743, 3389, 764],
+      "dimensions": [21, 21],
+      "aspectRatio": 1.0,
+      "role": "decorative",
+      "usage": "字段插入真实按钮内图标，建议12px×12px，object-fit: contain；按钮文字与事件保留真实DOM。",
+      "alphaRange": [0, 255],
+      "alphaBounds": [1, 1, 20, 20],
+      "opaqueEdgePixelCount": 0,
+      "sha256": "f8ebe47293870b787bd6c70af31c7828c49f0b6bb51299945f3e7f9a625115bc",
+      "sourceSha256": "13cbfe66d0cd04cac348f08ddf6b1efaea9c53a4f730bb623a189a3b7623d876",
+      "processing": {
+        "backgroundRgb": [255, 255, 255],
+        "foregroundRgb": [66, 102, 244],
+        "method": "按原图前景与背景解混恢复抗锯齿alpha；仅裁切并去底，不缩放、不重绘。",
+        "recompositeMaxChannelError": 0
+      },
+      "provenance": "用户提供的第3张QData业务限定定义参考图；只提取图标，不包含文字。"
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "scope": "DataForge全部integration service/controller测试及DolphinScheduler原生参数/官方插件合同",
+  "status": "PASS",
+  "selectedClasses": 25,
+  "reportedClasses": 25,
+  "counts": {
+    "tests": 155,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "classes": [
+    {
+      "class": "IntegrationComponentCapabilitiesServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationDataxBindingsPropertiesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationDataxFixtureTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationDsRuntimeTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationFileSchemaControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationFileSchemaServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationFlowCompilerTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationHiveStorageSupportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationManagedConnectorCompilationTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationNativeConnectorCompilationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationNativeScriptBindingSupportTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationOdpsCompilationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationPostgreSqlContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3
+    },
+    {
+      "class": "IntegrationRabbitBindingSupportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationRedisBindingSupportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationRocketBindingSupportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationSchemaServiceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationScriptPublicationCompilationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationSubflowCompilationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationTaskControllerContextTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationTaskServiceTest",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationTdengineBindingSupportTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "IntegrationUiConnectorDefaultsCompilationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "NativePluginContractTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "NativeTaskParametersTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "command": "python3 run_maven_locked.py -q -pl yudao-module-dataforge/yudao-module-dataforge-server -am test -Dtest=<all 23 Integration* test classes>,NativeTaskParametersTest,NativePluginContractTest -Dsurefire.failIfNoSpecifiedTests=false -DargLine=-Djava.io.tmpdir=/private/tmp/datahub-etl-tests-20261102",
+  "logSha256": "0ee4e4f382968af1bb8b3e04f6fbd4c1142a4cc8d0908055ef4e46656d6064aa",
+  "note": "3项PostgreSQL依赖测试在本轮未提供URL，独立Docker PostgreSQL复核记录单独列出。",
+  "postgreSqlSupplement": {
+    "file": "components-20261102-postgresql-contracts.json",
+    "status": "PASS",
+    "note": "原ETL6+DataForge3个skipped槽经真实Docker PG16启用；参数化展开后实际7+3=10全部执行无跳过。保留本文件原suite历史计数。"
+  }
+}

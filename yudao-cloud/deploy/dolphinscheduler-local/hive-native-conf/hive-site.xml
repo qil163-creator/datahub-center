@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<configuration>
+  <!-- 此无认证配置仅用于不发布宿主机端口的本机组件验收。 -->
+  <property><name>hive.server2.authentication</name><value>NONE</value></property>
+  <property><name>hive.server2.enable.doAs</name><value>false</value></property>
+  <property><name>hive.metastore.warehouse.dir</name><value>hdfs://hdfs-native-namenode:8020/datahub_components/hive_warehouse</value></property>
+  <property><name>hive.metastore.warehouse.external.dir</name><value>hdfs://hdfs-native-namenode:8020/datahub_components/hive_external</value></property>
+  <property><name>hive.exec.scratchdir</name><value>/datahub_components/hive_scratch</value></property>
+  <property><name>hive.exec.local.scratchdir</name><value>/tmp/hive-native-local</value></property>
+  <property><name>hive.fetch.task.conversion</name><value>more</value></property>
+  <property><name>hive.query.results.cache.directory</name><value>hdfs://hdfs-native-namenode:8020/datahub_components/hive_query_results</value></property>
+  <property><name>hive.security.authorization.enabled</name><value>false</value></property>
+  <property><name>hive.support.concurrency</name><value>false</value></property>
+  <property><name>hive.txn.manager</name><value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value></property>
+</configuration>

@@ -1,0 +1,190 @@
+<script setup lang="ts">
+import type { ConnectorField } from './connector-schema';
+
+import { Input, InputNumber, RadioGroup, Select, TextArea } from 'antdv-next';
+
+import { connectorJsonFeedback } from './connector-schema';
+
+const props = defineProps<{
+  config: Record<string, any>;
+  disabled?: boolean;
+  fields: ConnectorField[];
+  issues?: { field: string; message: string }[];
+  tableOptions?: { label: string; value: string }[];
+  tablesLoading?: boolean;
+}>();
+const emit = defineEmits<{ change: [key: string, value: unknown] }>();
+const error = (key: string) =>
+  props.issues?.find((issue) => issue.field === key)?.message;
+function text(field: ConnectorField) {
+  const value: unknown = props.config[field.key];
+  return value && typeof value === 'object'
+    ? JSON.stringify(value, null, 2)
+    : typeof value === 'string'
+      ? value
+      : '';
+}
+function feedback(field: ConnectorField) {
+  return connectorJsonFeedback(
+    props.config[field.key],
+    field.label,
+    field.key === 'headerSecretRefs',
+  );
+}
+function change(field: ConnectorField, value: unknown) {
+  if (!props.disabled) emit('change', field.key, value);
+}
+</script>
+
+<template>
+  <div class="qi-connector-reference-grid">
+    <div
+      v-for="field in fields"
+      :key="field.key"
+      class="qi-connector-reference-field"
+      :class="{
+        'is-full':
+          field.full || field.kind === 'json' || field.kind === 'textarea',
+      }"
+    >
+      <label><em v-if="field.required">*</em>{{ field.label }}</label>
+      <div>
+        <Select
+          v-if="field.key === 'tableName' && tableOptions"
+          :value="config[field.key]"
+          :options="tableOptions"
+          :loading="tablesLoading"
+          :disabled="disabled || !config.databaseId"
+          :status="error(field.key) ? 'error' : undefined"
+          :aria-label="field.label"
+          show-search
+          option-filter-prop="label"
+          allow-clear
+          placeholder="请选择表"
+          @update:value="(value) => change(field, value)"
+        />
+        <RadioGroup
+          v-else-if="['ifSql', 'readMode', 'writeModeType', 'syncMode', 'syncDelete'].includes(field.key)"
+          :value="config[field.key]"
+          :options="field.options"
+          :disabled="disabled"
+          :aria-label="field.label"
+          @update:value="(value) => change(field, value)"
+        />
+        <Select
+          v-else-if="field.kind === 'select'"
+          :value="config[field.key]"
+          :options="field.options"
+          :disabled="disabled"
+          :show-search="field.key === 'dataType'"
+          option-filter-prop="label"
+          :status="error(field.key) ? 'error' : undefined"
+          :aria-label="field.label"
+          @update:value="(value) => change(field, value)"
+        />
+        <InputNumber
+          v-else-if="field.kind === 'number'"
+          :value="
+            typeof config[field.key] === 'number'
+              ? config[field.key]
+              : undefined
+          "
+          :min="field.min ?? 0"
+          :max="field.max"
+          :precision="0"
+          :disabled="disabled"
+          :status="error(field.key) ? 'error' : undefined"
+          :aria-label="field.label"
+          :placeholder="`请输入${field.label}`"
+          @update:value="(value) => change(field, value)"
+        />
+        <TextArea
+          v-else-if="field.kind === 'json' || field.kind === 'textarea'"
+          :value="text(field)"
+          :rows="field.kind === 'json' ? 4 : 3"
+          :disabled="disabled"
+          :status="
+            error(field.key) ||
+            (field.kind === 'json' && !feedback(field).valid)
+              ? 'error'
+              : undefined
+          "
+          :aria-label="field.label"
+          :placeholder="
+            field.kind === 'json' ? '例如 {}' : `请输入${field.label}`
+          "
+          @update:value="(value) => change(field, value)"
+        />
+        <Input
+          v-else
+          :value="text(field)"
+          :disabled="disabled"
+          :status="error(field.key) ? 'error' : undefined"
+          :aria-label="field.label"
+          :placeholder="`请输入${field.label}`"
+          @update:value="(value) => change(field, value)"
+        />
+        <small v-if="error(field.key)" role="alert">{{
+          error(field.key)
+        }}</small>
+        <small
+          v-else-if="field.kind === 'json'"
+          :class="{ 'is-valid': feedback(field).valid }"
+          role="status"
+          >{{ feedback(field).message }}</small>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.qi-connector-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+}
+
+.qi-connector-reference-field {
+  display: grid;
+  grid-template-columns: var(--qi-connector-label-width, 110px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.is-full {
+  grid-column: 1 / -1;
+}
+
+label {
+  padding: 5px 12px 0 0;
+  color: #606266;
+  text-align: right;
+}
+
+em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+.is-valid {
+  color: #909399;
+}
+
+small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #f56c6c;
+}
+
+:deep(.ant-select),
+:deep(.ant-input-number) {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .qi-connector-reference-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>

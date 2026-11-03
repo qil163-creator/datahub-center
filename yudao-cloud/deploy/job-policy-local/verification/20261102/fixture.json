@@ -1,0 +1,35 @@
+{
+  "suffix": "20261102_080442_28e9",
+  "database": "codex_job_e2e_20261102_080442_28e9",
+  "sourceTable": "codex_job_e2e_20261102_080442_28e9_source",
+  "targets": {
+    "cron": "codex_job_e2e_20261102_080442_28e9_cron",
+    "wait": "codex_job_e2e_20261102_080442_28e9_wait",
+    "discard": "codex_job_e2e_20261102_080442_28e9_discard",
+    "priority": "codex_job_e2e_20261102_080442_28e9_priority",
+    "parallel": "codex_job_e2e_20261102_080442_28e9_parallel"
+  },
+  "expectedRowsPerRun": [
+    [
+      1,
+      "  alice  ",
+      7
+    ],
+    [
+      2,
+      "Bob",
+      11
+    ],
+    [
+      3,
+      "q'Data",
+      13
+    ]
+  ],
+  "expectedCountPerRun": 3,
+  "expectedSumPerRun": 31,
+  "pgContainer": "datahub-job-policy-postgres-1",
+  "dockerContext": "colima-job-policy",
+  "postgresPort": 55427,
+  "phase": "DATABASE_PREPARED"
+}

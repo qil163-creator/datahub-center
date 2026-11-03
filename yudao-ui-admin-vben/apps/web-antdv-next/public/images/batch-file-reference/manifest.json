@@ -1,0 +1,21 @@
+{
+  "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-c57a6077-e551-4a25-8798-86dc765033eb.png",
+  "geometricIcons": {
+    "implementation": "src/views/dataforge/batchfile/modules/reference-icon.vue + batch-file.css",
+    "reference": "用户批量文件入库列表、向导、详情截图中的放大镜、刷新、网格、编辑方框、眼睛、圆形播放、返回箭头、圆形勾选和字段图标",
+    "method": "使用 CSS 边框、圆形、直线与三角形重建可辨识的简单几何图标；按钮、文字和交互均保留真实 DOM"
+  },
+  "assets": {
+    "empty": {
+      "file": "/images/batch-file-reference/empty.png",
+      "sourceBox": [
+        1825,
+        780,
+        2118,
+        948
+      ],
+      "role": "decorative",
+      "background": "参考截图中的白色底"
+    }
+  }
+}

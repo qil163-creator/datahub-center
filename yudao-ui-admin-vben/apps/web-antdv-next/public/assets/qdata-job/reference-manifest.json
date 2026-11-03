@@ -1,0 +1,37 @@
+{
+  "source": "https://pro-demo.qdata.tech/dpp/job",
+  "capture": "2026-11-01",
+  "assets": {
+    "help-info": {
+      "file": "help-info.png",
+      "sourceCapture": "/tmp/qdata-job-ops-reference/job-list.png",
+      "sourceBox": [
+        473,
+        239,
+        563,
+        329
+      ],
+      "role": "decorative"
+    },
+    "node-status": {
+      "file": "node-status.png",
+      "sourceCapture": "/tmp/qdata-job-ops-reference/job-config.png",
+      "sourceBox": [
+        1292,
+        971,
+        1313,
+        992
+      ],
+      "role": "decorative"
+    }
+  },
+  "sharedIcons": "../qdata-integration/reference-manifest.json",
+  "evidence": "/tmp/qdata-job-ops-reference/rea-evidence.json",
+  "referenceViews": [
+    "/dpp/job",
+    "/dpp/job/edit?id=44",
+    "/dpp/job/detail?id=44",
+    "/dpp/instance/job",
+    "/dpp/instance/synchronize"
+  ]
+}

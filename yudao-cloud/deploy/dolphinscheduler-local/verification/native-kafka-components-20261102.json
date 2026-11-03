@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-11-02T13:21:14+0800",
+  "engine": "Flink 1.20.3 native SQL",
+  "broker": "Apache Kafka 3.9.1",
+  "connector": "flink-sql-connector-kafka 3.3.0-1.20",
+  "batch": {
+    "exitCode": 0,
+    "bounded": true,
+    "actualRows": [
+      {
+        "id": 1793596839070,
+        "label": "ALPHA",
+        "origin": "kafka-native"
+      },
+      {
+        "id": 1793596839071,
+        "labelCharacters": 4400,
+        "labelUtf8Bytes": 13200,
+        "labelSha256": "fb6726b4c48ae14e8db9ed9719cc2caf1e73a3fa8e3845e14d317f54a63eeae6",
+        "origin": "kafka-native"
+      }
+    ],
+    "longUnicodePayloadExactMatch": true
+  },
+  "stream": {
+    "observedInitialMessages": true,
+    "messageProducedAfterJobStarted": {
+      "id": 1793596839072,
+      "label": "LIVE_AFTER_START",
+      "origin": "kafka-native"
+    },
+    "observedLiveMessage": true,
+    "stopped": true,
+    "exitCodeAfterSignal": 124
+  },
+  "sqlSha256": {
+    "batch": "205a3a56a8c638d1c9de6063e9f99c4577c4eac4ebf340daeda53deb27ebcb7a",
+    "stream": "f178e9c4944fa313956960a81698002119061273d25e31351bed1500f31e2c58"
+  },
+  "jobIds": [],
+  "limits": [
+    "仅原生引擎与Kafka端到端验证，不包含本次重启平台服务后的管理端触发",
+    "显式无凭据受管测试环境；SASL/TLS秘密引用尚未适配"
+  ]
+}

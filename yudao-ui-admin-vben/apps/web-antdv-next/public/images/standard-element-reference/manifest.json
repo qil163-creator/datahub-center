@@ -1,0 +1,1097 @@
+{
+  "sourceUrl": "https://pro-demo.qdata.tech/dm/dataElem/column/detail?id=228",
+  "reaEvidenceId": "ev_f91cbdeccd7d3fcbe7a6f57198cbbf082197856d3eec8cdbcd83b9e826b0f26d",
+  "sourceViewport": {
+    "width": 2360,
+    "height": 1278,
+    "dpr": 1.5
+  },
+  "recommendedDisplaySizeCss": [
+    36,
+    36
+  ],
+  "assets": {
+    "001": {
+      "file": "/images/standard-element-reference/clean-rule-001.png",
+      "ruleName": "数值边界调整",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        356,
+        1505,
+        411
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        237.5104217529297,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "002": {
+      "file": "/images/standard-element-reference/clean-rule-002.png",
+      "ruleName": "字段值替换",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        356,
+        1898,
+        411
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        237.5104217529297,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "003": {
+      "file": "/images/standard-element-reference/clean-rule-003.png",
+      "ruleName": "字符串转数值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        833,
+        1505,
+        888
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        555.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "004": {
+      "file": "/images/standard-element-reference/clean-rule-004.png",
+      "ruleName": "字符串转日期",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        833,
+        1898,
+        888
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        555.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "005": {
+      "file": "/images/standard-element-reference/clean-rule-005.png",
+      "ruleName": "任意类型转布尔值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        833,
+        2291,
+        888
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        555.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "006": {
+      "file": "/images/standard-element-reference/clean-rule-006.png",
+      "ruleName": "手机号格式统一",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        356,
+        2291,
+        411
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        237.5104217529297,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "007": {
+      "file": "/images/standard-element-reference/clean-rule-007.png",
+      "ruleName": "日期格式统一",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        515,
+        1505,
+        570
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        343.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "008": {
+      "file": "/images/standard-element-reference/clean-rule-008.png",
+      "ruleName": "小数位统一",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        515,
+        1898,
+        570
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        343.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "009": {
+      "file": "/images/standard-element-reference/clean-rule-009.png",
+      "ruleName": "去除字段空格",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        515,
+        2291,
+        570
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        343.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "010": {
+      "file": "/images/standard-element-reference/clean-rule-010.png",
+      "ruleName": "字段前缀/后缀统一",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        674,
+        1505,
+        729
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        449.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "011": {
+      "file": "/images/standard-element-reference/clean-rule-011.png",
+      "ruleName": "正则表达式替换",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        674,
+        1898,
+        729
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        449.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "012": {
+      "file": "/images/standard-element-reference/clean-rule-012.png",
+      "ruleName": "超长字段截断",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        674,
+        2291,
+        729
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        449.51043701171875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "013": {
+      "file": "/images/standard-element-reference/clean-rule-013.png",
+      "ruleName": "字段补零",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        992,
+        1505,
+        1047
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        661.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "014": {
+      "file": "/images/standard-element-reference/clean-rule-014.png",
+      "ruleName": "数值空值填充",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        1235,
+        2291,
+        1290
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        823.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "015": {
+      "file": "/images/standard-element-reference/clean-rule-015.png",
+      "ruleName": "字符串空值填充",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        1394,
+        1505,
+        1449
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        929.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "016": {
+      "file": "/images/standard-element-reference/clean-rule-016.png",
+      "ruleName": "布尔空值填充",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        1394,
+        1898,
+        1449
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        929.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "017": {
+      "file": "/images/standard-element-reference/clean-rule-017.png",
+      "ruleName": "日期空值填充",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1450,
+        1235,
+        1505,
+        1290
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        823.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "018": {
+      "file": "/images/standard-element-reference/clean-rule-018.png",
+      "ruleName": "全字段为空删除",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        2236,
+        1394,
+        2291,
+        1449
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        929.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "019": {
+      "file": "/images/standard-element-reference/clean-rule-019.png",
+      "ruleName": "组合字段为空删除",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-01.png",
+      "sourceSha256": "09b3baeadaefa2aa1adb8516cfa07ff922aefebf70370859c45129c7c867f3a2",
+      "sourceBox": [
+        1843,
+        1235,
+        1898,
+        1290
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        823.5104370117188,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "020": {
+      "file": "/images/standard-element-reference/clean-rule-020.png",
+      "ruleName": "单位标准化类",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1450,
+        901,
+        1505,
+        956
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        600.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "021": {
+      "file": "/images/standard-element-reference/clean-rule-021.png",
+      "ruleName": "字段值转大写",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-02.png",
+      "sourceSha256": "4394b0104f84a2ab8d4fac78f1ec4a67033e1259cb2551635e0e32d93279d784",
+      "sourceBox": [
+        1450,
+        1556,
+        1505,
+        1611
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        1037.510498046875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "022": {
+      "file": "/images/standard-element-reference/clean-rule-022.png",
+      "ruleName": "字段值转小写",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-02.png",
+      "sourceSha256": "4394b0104f84a2ab8d4fac78f1ec4a67033e1259cb2551635e0e32d93279d784",
+      "sourceBox": [
+        1843,
+        1556,
+        1898,
+        1611
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        1037.510498046875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "023": {
+      "file": "/images/standard-element-reference/clean-rule-023.png",
+      "ruleName": "字段值首字母大写",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1843,
+        901,
+        1898,
+        956
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        600.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "024": {
+      "file": "/images/standard-element-reference/clean-rule-024.png",
+      "ruleName": "枚举值映射标准化",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-02.png",
+      "sourceSha256": "4394b0104f84a2ab8d4fac78f1ec4a67033e1259cb2551635e0e32d93279d784",
+      "sourceBox": [
+        2236,
+        1556,
+        2291,
+        1611
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        1037.510498046875,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "025": {
+      "file": "/images/standard-element-reference/clean-rule-025.png",
+      "ruleName": "按主键去重（保留首条）",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1450,
+        1144,
+        1505,
+        1199
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        762.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": false,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "026": {
+      "file": "/images/standard-element-reference/clean-rule-026.png",
+      "ruleName": "按主键去重（按时间字段保留最新）",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1843,
+        1144,
+        1898,
+        1199
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        762.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "027": {
+      "file": "/images/standard-element-reference/clean-rule-027.png",
+      "ruleName": "按优先级字段保留记录",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        2236,
+        1144,
+        2291,
+        1199
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        762.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "028": {
+      "file": "/images/standard-element-reference/clean-rule-028.png",
+      "ruleName": "按非空字段优先保留记录",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1450,
+        1303,
+        1505,
+        1358
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        868.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "029": {
+      "file": "/images/standard-element-reference/clean-rule-029.png",
+      "ruleName": "按组合字段去重（保留最新或首条）",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1843,
+        1303,
+        1898,
+        1358
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        868.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "030": {
+      "file": "/images/standard-element-reference/clean-rule-030.png",
+      "ruleName": "替换无效数值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1450,
+        1546,
+        1505,
+        1601
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        1030.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "031": {
+      "file": "/images/standard-element-reference/clean-rule-031.png",
+      "ruleName": "替换非法枚举值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        1843,
+        1546,
+        1898,
+        1601
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        1030.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "032": {
+      "file": "/images/standard-element-reference/clean-rule-032.png",
+      "ruleName": "替换无效时间格式",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-03.png",
+      "sourceSha256": "5b0823df30ec243473f59bcc5ccb01e83ad3a7d078ee870a6bb9e9fd20ea55c5",
+      "sourceBox": [
+        2236,
+        1546,
+        2291,
+        1601
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        1030.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "033": {
+      "file": "/images/standard-element-reference/clean-rule-033.png",
+      "ruleName": "替换非法布尔值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1450,
+        1123,
+        1505,
+        1178
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        748.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "034": {
+      "file": "/images/standard-element-reference/clean-rule-034.png",
+      "ruleName": "关键词脱敏",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1843,
+        1123,
+        1898,
+        1178
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        748.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "035": {
+      "file": "/images/standard-element-reference/clean-rule-035.png",
+      "ruleName": "敏感词替换",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        2236,
+        1123,
+        2291,
+        1178
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        748.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "036": {
+      "file": "/images/standard-element-reference/clean-rule-036.png",
+      "ruleName": "修正未来时间值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1450,
+        1366,
+        1505,
+        1421
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        910.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "037": {
+      "file": "/images/standard-element-reference/clean-rule-037.png",
+      "ruleName": "校正超前时间差值",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1843,
+        1366,
+        1898,
+        1421
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        910.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "038": {
+      "file": "/images/standard-element-reference/clean-rule-038.png",
+      "ruleName": "填补空时间为当前时间",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        2236,
+        1366,
+        2291,
+        1421
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1491,
+        910.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "039": {
+      "file": "/images/standard-element-reference/clean-rule-039.png",
+      "ruleName": "清理过期记录",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1450,
+        1525,
+        1505,
+        1580
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        967,
+        1016.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    },
+    "040": {
+      "file": "/images/standard-element-reference/clean-rule-040.png",
+      "ruleName": "修正历史时间边界",
+      "role": "semantic",
+      "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\standard-elements\\source-clean-picker-icons-04.png",
+      "sourceSha256": "014665425fdd1f51e5efd4430b48bfd6b2da9e7ae5548fc0bee17c9e37b8f7a2",
+      "sourceBox": [
+        1843,
+        1525,
+        1898,
+        1580
+      ],
+      "sourceBoxUnits": "physical pixels [left, top, right, bottom]",
+      "sourceCssBox": [
+        1229,
+        1016.84375,
+        36,
+        36
+      ],
+      "sourceDisabled": true,
+      "size": [
+        55,
+        55
+      ],
+      "processing": "Exact screenshot crop only; original background and disabled appearance preserved; no scaling, external downloads or redrawing."
+    }
+  },
+  "codeToIcon": {
+    "001": "/images/standard-element-reference/clean-rule-001.png",
+    "002": "/images/standard-element-reference/clean-rule-002.png",
+    "003": "/images/standard-element-reference/clean-rule-003.png",
+    "004": "/images/standard-element-reference/clean-rule-004.png",
+    "005": "/images/standard-element-reference/clean-rule-005.png",
+    "006": "/images/standard-element-reference/clean-rule-006.png",
+    "007": "/images/standard-element-reference/clean-rule-007.png",
+    "008": "/images/standard-element-reference/clean-rule-008.png",
+    "009": "/images/standard-element-reference/clean-rule-009.png",
+    "010": "/images/standard-element-reference/clean-rule-010.png",
+    "011": "/images/standard-element-reference/clean-rule-011.png",
+    "012": "/images/standard-element-reference/clean-rule-012.png",
+    "013": "/images/standard-element-reference/clean-rule-013.png",
+    "014": "/images/standard-element-reference/clean-rule-014.png",
+    "015": "/images/standard-element-reference/clean-rule-015.png",
+    "016": "/images/standard-element-reference/clean-rule-016.png",
+    "017": "/images/standard-element-reference/clean-rule-017.png",
+    "018": "/images/standard-element-reference/clean-rule-018.png",
+    "019": "/images/standard-element-reference/clean-rule-019.png",
+    "020": "/images/standard-element-reference/clean-rule-020.png",
+    "021": "/images/standard-element-reference/clean-rule-021.png",
+    "022": "/images/standard-element-reference/clean-rule-022.png",
+    "023": "/images/standard-element-reference/clean-rule-023.png",
+    "024": "/images/standard-element-reference/clean-rule-024.png",
+    "025": "/images/standard-element-reference/clean-rule-025.png",
+    "026": "/images/standard-element-reference/clean-rule-026.png",
+    "027": "/images/standard-element-reference/clean-rule-027.png",
+    "028": "/images/standard-element-reference/clean-rule-028.png",
+    "029": "/images/standard-element-reference/clean-rule-029.png",
+    "030": "/images/standard-element-reference/clean-rule-030.png",
+    "031": "/images/standard-element-reference/clean-rule-031.png",
+    "032": "/images/standard-element-reference/clean-rule-032.png",
+    "033": "/images/standard-element-reference/clean-rule-033.png",
+    "034": "/images/standard-element-reference/clean-rule-034.png",
+    "035": "/images/standard-element-reference/clean-rule-035.png",
+    "036": "/images/standard-element-reference/clean-rule-036.png",
+    "037": "/images/standard-element-reference/clean-rule-037.png",
+    "038": "/images/standard-element-reference/clean-rule-038.png",
+    "039": "/images/standard-element-reference/clean-rule-039.png",
+    "040": "/images/standard-element-reference/clean-rule-040.png"
+  }
+}

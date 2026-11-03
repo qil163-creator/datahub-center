@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "scope": "DataForge API -> DolphinScheduler native task -> real Spark3.5.6 -> loopback FTP fixture",
+  "checks": {
+    "hutool-token-ftp": {
+      "taskId": 1004,
+      "recordId": 180829751977018,
+      "definitionCode": 188597147259392,
+      "flowSha256": "aed9f2b20814365c617134102ed3a218e2fae987126b7e7a824058f8429342b7",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 6,
+      "passed": true,
+      "actualFiles": [
+        "result-6727c0ad-e3ed-4a72-9b06-a05eecb640f1-0-4.csv.x5qghes4",
+        "result-76eaf70c-b935-4100-b4ca-b59b97bf65a6-0-4.csv.6c1giard"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ],
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ]
+      ]
+    }
+  }
+}

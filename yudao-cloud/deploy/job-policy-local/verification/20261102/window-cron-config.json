@@ -1,0 +1,12 @@
+{
+  "id": 4,
+  "name": "codex_job_e2e_cron_混合策略验收_20261102_080442_28e9",
+  "revision": 7,
+  "scheduleStatus": 1,
+  "scheduleGeneration": 3,
+  "nextRunTime": "2026-11-02 23:00:00",
+  "cronExpression": "0 0 23 * * ?",
+  "hasActiveRuns": false,
+  "activeRunCount": 0,
+  "queuedRunCount": 0
+}

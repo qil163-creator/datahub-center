@@ -1,0 +1,35 @@
+{
+  "sourceReference": "C:/Users/LZQ/AppData/Local/Temp/codex-clipboard-11f3a9d6-301b-4a1c-a9bf-f6628445143a.png",
+  "referenceImageSize": [3558, 1870],
+  "scope": "保留现有顶栏和导航，仅复刻审批工单业务区域",
+  "imageRegions": {
+    "guide": [338, 162, 3526, 258],
+    "filter": [338, 280, 3526, 372],
+    "tableShell": [338, 395, 3526, 1870],
+    "header": [360, 485, 3504, 541]
+  },
+  "liveCssMeasurements": {
+    "source": "主代理通过已授权 qData REA 读取的真实 DOM",
+    "fontSize": 14,
+    "headerHeight": 36,
+    "rowHeight": 42,
+    "wrappedApplicantRowHeight": 61,
+    "reviewDialogWidth": 800
+  },
+  "spacing": {
+    "outer": 14,
+    "sectionGap": 14,
+    "guideHeight": 64,
+    "filterHeight": 62,
+    "toolbarHeight": 60
+  },
+  "colors": {
+    "page": "#eff1f4",
+    "surface": "#ffffff",
+    "guide": "#fffdf6",
+    "header": "#f1f1f5",
+    "stripe": "#fafafb",
+    "primary": "#526fff"
+  },
+  "assetManifest": "manifest.json"
+}

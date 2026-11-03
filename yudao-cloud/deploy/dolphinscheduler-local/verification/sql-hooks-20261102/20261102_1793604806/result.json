@@ -1,0 +1,517 @@
+{
+  "runId": "20261102_1793604806",
+  "schema": "fill-center",
+  "tables": {
+    "src": "codex_sqlhooks_src_20261102_1793604806",
+    "target": "codex_sqlhooks_target_20261102_1793604806",
+    "audit": "codex_sqlhooks_audit_20261102_1793604806",
+    "control": "codex_sqlhooks_control_20261102_1793604806"
+  },
+  "platformDatabaseId": "1",
+  "dsDatasourceId": 1,
+  "projectCode": "188590885122016",
+  "normalDsPort": 12345,
+  "additionalServices": 0,
+  "schedulesCreated": 0,
+  "runs": [
+    {
+      "label": "01-normal-success",
+      "workflowCode": "188594593562784",
+      "instanceId": 6,
+      "operation": "START_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        6
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "d407827ae3528cd9bd0cedc3258873029419bb34e1e55742924fe557ab3dc2a2",
+        "preCount": 1,
+        "postCount": 1,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:33:31.725 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:33:32.882 INFO  -  -> 2026-11-02 15:33:32.882 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 stage=_datahub_upsert_stage_842795900dd3403ea4773137d982bafe",
+        "2026-11-02 15:33:34.657 INFO  -  -> 2026-11-02 15:33:34.657 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:33:34.822 INFO  -  -> 2026-11-02 15:33:34.821 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:33:34.995 INFO  -  -> 2026-11-02 15:33:34.995 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:33:44.530 INFO  -  -> 2026-11-02 15:33:44.530 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 count=3",
+        "2026-11-02 15:33:44.615 INFO  -  -> 2026-11-02 15:33:44.615 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286",
+        "2026-11-02 15:33:44.644 INFO  -  -> 2026-11-02 15:33:44.644 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 changed=37",
+        "2026-11-02 15:33:44.644 INFO  -  -> 2026-11-02 15:33:44.644 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 count=3",
+        "2026-11-02 15:33:44.729 INFO  -  -> 2026-11-02 15:33:44.729 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286",
+        "2026-11-02 15:33:44.788 INFO  -  -> 2026-11-02 15:33:44.788 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 dataHash=59ab05286e1ac7b959af0b76f21e93071dab6db75460e0eb75ec35a22e056ed9"
+      ]
+    },
+    {
+      "label": "02-committed-replay",
+      "workflowCode": "188594593562784",
+      "instanceId": 6,
+      "operation": "REPEAT_RUNNING",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        7
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "d407827ae3528cd9bd0cedc3258873029419bb34e1e55742924fe557ab3dc2a2",
+        "preCount": 1,
+        "postCount": 1,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:33:51.477 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:33:52.568 INFO  -  -> 2026-11-02 15:33:52.568 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286 stage=_datahub_upsert_stage_3eb62f4176034155a62f91db4564b5b7",
+        "2026-11-02 15:33:54.450 INFO  -  -> 2026-11-02 15:33:54.449 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:33:54.669 INFO  -  -> 2026-11-02 15:33:54.669 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:33:54.874 INFO  -  -> 2026-11-02 15:33:54.873 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:34:03.695 INFO  -  -> 2026-11-02 15:34:03.695 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 replay-skipped execution=42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286"
+      ]
+    },
+    {
+      "label": "03-pre-failure",
+      "workflowCode": "188594631324832",
+      "instanceId": 7,
+      "operation": "START_PROCESS",
+      "state": "FAILURE",
+      "taskInstanceIds": [
+        8
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "d407827ae3528cd9bd0cedc3258873029419bb34e1e55742924fe557ab3dc2a2",
+        "preCount": 1,
+        "postCount": 1,
+        "rowDifferencesAfterPostHook": 2,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:06.596 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:07.829 INFO  -  -> 2026-11-02 15:34:07.829 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 stage=_datahub_upsert_stage_d3349b8a261647d5b51daa22faa52b96",
+        "2026-11-02 15:34:09.754 INFO  -  -> 2026-11-02 15:34:09.753 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:09.945 INFO  -  -> 2026-11-02 15:34:09.945 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:10.131 INFO  -  -> 2026-11-02 15:34:10.131 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:34:19.679 INFO  -  -> 2026-11-02 15:34:19.679 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 count=3",
+        "2026-11-02 15:34:19.828 INFO  -  -> 2026-11-02 15:34:19.828 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-rollback execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 phase=pre"
+      ]
+    },
+    {
+      "label": "04-pre-recovered",
+      "workflowCode": "188594631324832",
+      "instanceId": 7,
+      "operation": "START_FAILURE_TASK_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        9
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "36e873104b635ca23ce0bd5106af0f31b1421c0e0d7f23c1be9aff7b59c70f22",
+        "preCount": 2,
+        "postCount": 2,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:26.544 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:27.823 INFO  -  -> 2026-11-02 15:34:27.822 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 stage=_datahub_upsert_stage_55a3553fef024db99fd370bfc8c4d101",
+        "2026-11-02 15:34:29.628 INFO  -  -> 2026-11-02 15:34:29.628 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:29.797 INFO  -  -> 2026-11-02 15:34:29.797 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:29.965 INFO  -  -> 2026-11-02 15:34:29.964 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:34:39.345 INFO  -  -> 2026-11-02 15:34:39.345 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 count=3",
+        "2026-11-02 15:34:39.419 INFO  -  -> 2026-11-02 15:34:39.419 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69",
+        "2026-11-02 15:34:39.444 INFO  -  -> 2026-11-02 15:34:39.444 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 changed=3",
+        "2026-11-02 15:34:39.444 INFO  -  -> 2026-11-02 15:34:39.444 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 count=3",
+        "2026-11-02 15:34:39.518 INFO  -  -> 2026-11-02 15:34:39.517 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69",
+        "2026-11-02 15:34:39.566 INFO  -  -> 2026-11-02 15:34:39.566 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69 dataHash=55411bb3972305f93e30fa447bd337756ae5593a02d1cd970eab6651d4ad64e9"
+      ]
+    },
+    {
+      "label": "05-post-failure",
+      "workflowCode": "188594669034656",
+      "instanceId": 8,
+      "operation": "START_PROCESS",
+      "state": "FAILURE",
+      "taskInstanceIds": [
+        10
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "36e873104b635ca23ce0bd5106af0f31b1421c0e0d7f23c1be9aff7b59c70f22",
+        "preCount": 2,
+        "postCount": 2,
+        "rowDifferencesAfterPostHook": 2,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:46.628 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:34:47.745 INFO  -  -> 2026-11-02 15:34:47.745 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 stage=_datahub_upsert_stage_c7b5f63e09f3444396c96f60e021156e",
+        "2026-11-02 15:34:49.498 INFO  -  -> 2026-11-02 15:34:49.497 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:49.680 INFO  -  -> 2026-11-02 15:34:49.680 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:34:49.854 INFO  -  -> 2026-11-02 15:34:49.854 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:34:59.292 INFO  -  -> 2026-11-02 15:34:59.292 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 count=3",
+        "2026-11-02 15:34:59.374 INFO  -  -> 2026-11-02 15:34:59.374 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09",
+        "2026-11-02 15:34:59.402 INFO  -  -> 2026-11-02 15:34:59.402 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 changed=3",
+        "2026-11-02 15:34:59.403 INFO  -  -> 2026-11-02 15:34:59.402 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 count=3",
+        "2026-11-02 15:34:59.511 INFO  -  -> 2026-11-02 15:34:59.510 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-rollback execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 phase=post"
+      ]
+    },
+    {
+      "label": "06-post-recovered",
+      "workflowCode": "188594669034656",
+      "instanceId": 8,
+      "operation": "START_FAILURE_TASK_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        11
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "0e4ab82c21a191fe16d83eefa55509d1c5e8c962ee74be5137868fc96ff8e1b1",
+        "preCount": 3,
+        "postCount": 3,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:01.641 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:02.778 INFO  -  -> 2026-11-02 15:35:02.778 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 stage=_datahub_upsert_stage_c7edd2a95318452fa8d491791cd2a6ca",
+        "2026-11-02 15:35:04.557 INFO  -  -> 2026-11-02 15:35:04.557 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:04.721 INFO  -  -> 2026-11-02 15:35:04.721 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:04.884 INFO  -  -> 2026-11-02 15:35:04.883 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:35:14.322 INFO  -  -> 2026-11-02 15:35:14.322 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 count=3",
+        "2026-11-02 15:35:14.402 INFO  -  -> 2026-11-02 15:35:14.401 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09",
+        "2026-11-02 15:35:14.430 INFO  -  -> 2026-11-02 15:35:14.429 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 changed=3",
+        "2026-11-02 15:35:14.430 INFO  -  -> 2026-11-02 15:35:14.430 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 count=3",
+        "2026-11-02 15:35:14.509 INFO  -  -> 2026-11-02 15:35:14.508 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09",
+        "2026-11-02 15:35:14.562 INFO  -  -> 2026-11-02 15:35:14.562 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 dataHash=a5bed217c85d2122ee8ee576aa30137ce62158eefe942122905c7dee3d59d06a"
+      ]
+    },
+    {
+      "label": "07-recovered-replay",
+      "workflowCode": "188594669034656",
+      "instanceId": 8,
+      "operation": "REPEAT_RUNNING",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        12
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "0e4ab82c21a191fe16d83eefa55509d1c5e8c962ee74be5137868fc96ff8e1b1",
+        "preCount": 3,
+        "postCount": 3,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:21.593 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:22.730 INFO  -  -> 2026-11-02 15:35:22.730 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09 stage=_datahub_upsert_stage_ac3173c81bbe4f1089c4818318737469",
+        "2026-11-02 15:35:24.432 INFO  -  -> 2026-11-02 15:35:24.432 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:24.613 INFO  -  -> 2026-11-02 15:35:24.612 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:24.802 INFO  -  -> 2026-11-02 15:35:24.802 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:35:33.826 INFO  -  -> 2026-11-02 15:35:33.826 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 replay-skipped execution=f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09"
+      ]
+    },
+    {
+      "label": "08-data-failure",
+      "workflowCode": "188594723304608",
+      "instanceId": 9,
+      "operation": "START_PROCESS",
+      "state": "FAILURE",
+      "taskInstanceIds": [
+        13
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "0e4ab82c21a191fe16d83eefa55509d1c5e8c962ee74be5137868fc96ff8e1b1",
+        "preCount": 3,
+        "postCount": 3,
+        "rowDifferencesAfterPostHook": 4,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:36.585 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:37.730 INFO  -  -> 2026-11-02 15:35:37.730 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e stage=_datahub_upsert_stage_3a901461e93b487ab05038e54383f46b",
+        "2026-11-02 15:35:39.478 INFO  -  -> 2026-11-02 15:35:39.478 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:39.638 INFO  -  -> 2026-11-02 15:35:39.637 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:39.798 INFO  -  -> 2026-11-02 15:35:39.798 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:35:49.274 INFO  -  -> 2026-11-02 15:35:49.274 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e count=3",
+        "2026-11-02 15:35:49.352 INFO  -  -> 2026-11-02 15:35:49.351 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+        "2026-11-02 15:35:49.408 INFO  -  -> 2026-11-02 15:35:49.408 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-rollback execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e phase=merge"
+      ]
+    },
+    {
+      "label": "09-data-recovered",
+      "workflowCode": "188594723304608",
+      "instanceId": 9,
+      "operation": "START_FAILURE_TASK_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        14
+      ],
+      "snapshot": {
+        "rows": 37,
+        "uniqueIds": 37,
+        "targetDigest": "06ff2b5ff0081801231aa8fb2fff189ca8c331df805e4829144927bfbe2d5375",
+        "preCount": 4,
+        "postCount": 4,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "测试中文-1",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:51.610 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:35:52.884 INFO  -  -> 2026-11-02 15:35:52.883 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e stage=_datahub_upsert_stage_8286433cb18e4152a339b38eb85413ab",
+        "2026-11-02 15:35:54.689 INFO  -  -> 2026-11-02 15:35:54.688 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:54.864 INFO  -  -> 2026-11-02 15:35:54.864 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:35:55.035 INFO  -  -> 2026-11-02 15:35:55.034 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=11",
+        "2026-11-02 15:36:04.506 INFO  -  -> 2026-11-02 15:36:04.505 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e count=3",
+        "2026-11-02 15:36:04.593 INFO  -  -> 2026-11-02 15:36:04.593 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+        "2026-11-02 15:36:04.625 INFO  -  -> 2026-11-02 15:36:04.625 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e changed=3",
+        "2026-11-02 15:36:04.625 INFO  -  -> 2026-11-02 15:36:04.625 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e count=3",
+        "2026-11-02 15:36:04.711 INFO  -  -> 2026-11-02 15:36:04.711 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+        "2026-11-02 15:36:04.769 INFO  -  -> 2026-11-02 15:36:04.769 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e dataHash=20baa351edc8095861c15b53a288181809c27266547a031dcc2a4e73f0f8edcd"
+      ]
+    },
+    {
+      "label": "10-new-logical-run",
+      "workflowCode": "188594593562784",
+      "instanceId": 10,
+      "operation": "START_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        15
+      ],
+      "snapshot": {
+        "rows": 40,
+        "uniqueIds": 40,
+        "targetDigest": "1ad914147d5acd9e534731a83aa9d1f311d796f3ad31622c5e7c7bd16a8da98b",
+        "preCount": 5,
+        "postCount": 5,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "new-logical-run",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:06.645 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:07.759 INFO  -  -> 2026-11-02 15:36:07.759 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 stage=_datahub_upsert_stage_7e7e9531a54448098bcec0006ab82a9a",
+        "2026-11-02 15:36:09.538 INFO  -  -> 2026-11-02 15:36:09.537 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:09.709 INFO  -  -> 2026-11-02 15:36:09.709 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:09.877 INFO  -  -> 2026-11-02 15:36:09.877 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:10.049 INFO  -  -> 2026-11-02 15:36:10.049 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=1",
+        "2026-11-02 15:36:19.419 INFO  -  -> 2026-11-02 15:36:19.419 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-start execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 count=3",
+        "2026-11-02 15:36:19.505 INFO  -  -> 2026-11-02 15:36:19.505 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 pre-complete execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8",
+        "2026-11-02 15:36:19.536 INFO  -  -> 2026-11-02 15:36:19.536 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 merge-complete execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 changed=5",
+        "2026-11-02 15:36:19.537 INFO  -  -> 2026-11-02 15:36:19.536 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-start execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 count=3",
+        "2026-11-02 15:36:19.622 INFO  -  -> 2026-11-02 15:36:19.622 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 post-complete execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8",
+        "2026-11-02 15:36:19.681 INFO  -  -> 2026-11-02 15:36:19.681 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-committed execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 dataHash=6855a48ecd79903c79daad7f7fa165c9e9f3c75f18312a6f4d445930572a4e10"
+      ]
+    },
+    {
+      "label": "11-changed-source-rejected",
+      "workflowCode": "188594593562784",
+      "instanceId": 10,
+      "operation": "REPEAT_RUNNING",
+      "state": "FAILURE",
+      "taskInstanceIds": [
+        16
+      ],
+      "snapshot": {
+        "rows": 40,
+        "uniqueIds": 40,
+        "targetDigest": "1ad914147d5acd9e534731a83aa9d1f311d796f3ad31622c5e7c7bd16a8da98b",
+        "preCount": 5,
+        "postCount": 5,
+        "rowDifferencesAfterPostHook": 2,
+        "firstRowName": "new-logical-run",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:26.663 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:27.768 INFO  -  -> 2026-11-02 15:36:27.768 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 stage=_datahub_upsert_stage_385291bb952b426b884f5ebda4fcfd26",
+        "2026-11-02 15:36:29.505 INFO  -  -> 2026-11-02 15:36:29.504 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:29.679 INFO  -  -> 2026-11-02 15:36:29.679 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:29.854 INFO  -  -> 2026-11-02 15:36:29.853 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:30.028 INFO  -  -> 2026-11-02 15:36:30.027 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=1",
+        "2026-11-02 15:36:38.885 INFO  -  -> 2026-11-02 15:36:38.885 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 publish-rollback execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 phase=verify"
+      ]
+    },
+    {
+      "label": "12-original-source-recovered",
+      "workflowCode": "188594593562784",
+      "instanceId": 10,
+      "operation": "START_FAILURE_TASK_PROCESS",
+      "state": "SUCCESS",
+      "taskInstanceIds": [
+        17
+      ],
+      "snapshot": {
+        "rows": 40,
+        "uniqueIds": 40,
+        "targetDigest": "1ad914147d5acd9e534731a83aa9d1f311d796f3ad31622c5e7c7bd16a8da98b",
+        "preCount": 5,
+        "postCount": 5,
+        "rowDifferencesAfterPostHook": 0,
+        "firstRowName": "new-logical-run",
+        "postHookRowName": "post-after-copy"
+      },
+      "hooksMarkers": [
+        "\"writeContract\" : \"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:41.636 INFO  -  -> \t\t\t\t\t\"writeContract\":\"POSTGRESQL_UPSERT_HOOKS_V2\",",
+        "2026-11-02 15:36:42.654 INFO  -  -> 2026-11-02 15:36:42.654 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 stage-ready execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8 stage=_datahub_upsert_stage_dea0d3e5489140f38fc50570473895a3",
+        "2026-11-02 15:36:44.362 INFO  -  -> 2026-11-02 15:36:44.362 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:44.522 INFO  -  -> 2026-11-02 15:36:44.522 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:44.681 INFO  -  -> 2026-11-02 15:36:44.681 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=13",
+        "2026-11-02 15:36:44.837 INFO  -  -> 2026-11-02 15:36:44.837 [0-0-0-writer] INFO  CommonRdbmsWriter$Task - UPSERT_HOOKS_V2 stage-batch 暂存批次已提交，业务目标尚未发布，输入行数=1",
+        "2026-11-02 15:36:53.745 INFO  -  -> 2026-11-02 15:36:53.745 [job-0] INFO  DatahubPostgresqlWriter - UPSERT_HOOKS_V2 replay-skipped execution=7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8"
+      ]
+    }
+  ],
+  "status": "PASS",
+  "ledgerBefore": [],
+  "definitions": [
+    {
+      "code": 188594593562784,
+      "name": "datahub_sql_hooks_20261102_1793604806_normal",
+      "taskCode": 188594593496224,
+      "taskName": "SQL-hooks-normal",
+      "label": "normal",
+      "finalReleaseState": "OFFLINE",
+      "schedulesFound": 0
+    },
+    {
+      "code": 188594631324832,
+      "name": "datahub_sql_hooks_20261102_1793604806_pre_failure",
+      "taskCode": 188594631317664,
+      "taskName": "SQL-hooks-pre_failure",
+      "label": "pre_failure",
+      "finalReleaseState": "OFFLINE",
+      "schedulesFound": 0
+    },
+    {
+      "code": 188594669034656,
+      "name": "datahub_sql_hooks_20261102_1793604806_post_failure",
+      "taskCode": 188594669027488,
+      "taskName": "SQL-hooks-post_failure",
+      "label": "post_failure",
+      "finalReleaseState": "OFFLINE",
+      "schedulesFound": 0
+    },
+    {
+      "code": 188594723304608,
+      "name": "datahub_sql_hooks_20261102_1793604806_data_failure",
+      "taskCode": 188594723300512,
+      "taskName": "SQL-hooks-data_failure",
+      "label": "data_failure",
+      "finalReleaseState": "OFFLINE",
+      "schedulesFound": 0
+    }
+  ],
+  "instanceIds": [
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "ledgerAfter": [
+    {
+      "executionKey": "043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "55411bb3972305f93e30fa447bd337756ae5593a02d1cd970eab6651d4ad64e9",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_55a3553fef024db99fd370bfc8c4d101"
+    },
+    {
+      "executionKey": "42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "59ab05286e1ac7b959af0b76f21e93071dab6db75460e0eb75ec35a22e056ed9",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_842795900dd3403ea4773137d982bafe"
+    },
+    {
+      "executionKey": "7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "6855a48ecd79903c79daad7f7fa165c9e9f3c75f18312a6f4d445930572a4e10",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_7e7e9531a54448098bcec0006ab82a9a"
+    },
+    {
+      "executionKey": "a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "20baa351edc8095861c15b53a288181809c27266547a031dcc2a4e73f0f8edcd",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_8286433cb18e4152a339b38eb85413ab"
+    },
+    {
+      "executionKey": "f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09",
+      "configHash": "ab103948e556deafeac46e62459d07d4da8c16feb105dea7c48fe1b4d68388ac",
+      "dataHash": "a5bed217c85d2122ee8ee576aa30137ce62158eefe942122905c7dee3d59d06a",
+      "state": "COMPLETED",
+      "stageName": "_datahub_upsert_stage_c7edd2a95318452fa8d491791cd2a6ca"
+    }
+  ],
+  "ownedExecutionKeys": [
+    "043c8e75e098261c93ab59ad0d5a2fabc3db0a5428ff9499c1f66e98eb8b9e69",
+    "42cfb9d21c9aac1867f93ca34c889bdddfb7e3cff8bcdeb05f11431a68788286",
+    "7051768298bb6ef7d27ec4c4ec391a2949fbe17837b9a5a50f409f44a4c7b4b8",
+    "a02944e2d6f4db736793a674d4d5ba939bc98d5c5bfd278eeb7633e9f7c6f51e",
+    "f3d054c2fc79bc8db58a551c37ab35d0e2aa8c96fbb7108701acd2ef96797a09"
+  ],
+  "newCompletedLedgerEntries": 5,
+  "retainedStageTables": [
+    "_datahub_upsert_stage_385291bb952b426b884f5ebda4fcfd26",
+    "_datahub_upsert_stage_3a901461e93b487ab05038e54383f46b",
+    "_datahub_upsert_stage_3eb62f4176034155a62f91db4564b5b7",
+    "_datahub_upsert_stage_55a3553fef024db99fd370bfc8c4d101",
+    "_datahub_upsert_stage_7e7e9531a54448098bcec0006ab82a9a",
+    "_datahub_upsert_stage_8286433cb18e4152a339b38eb85413ab",
+    "_datahub_upsert_stage_842795900dd3403ea4773137d982bafe",
+    "_datahub_upsert_stage_ac3173c81bbe4f1089c4818318737469",
+    "_datahub_upsert_stage_c7b5f63e09f3444396c96f60e021156e",
+    "_datahub_upsert_stage_c7edd2a95318452fa8d491791cd2a6ca",
+    "_datahub_upsert_stage_d3349b8a261647d5b51daa22faa52b96",
+    "_datahub_upsert_stage_dea0d3e5489140f38fc50570473895a3"
+  ],
+  "finalInstanceStates": {
+    "6": "SUCCESS",
+    "7": "SUCCESS",
+    "8": "SUCCESS",
+    "9": "SUCCESS",
+    "10": "SUCCESS"
+  },
+  "cleanupErrors": [],
+  "testSchedulesClosed": true,
+  "installedArtifactSha256": "bf9d604a7f570ca23c2ce197a03f1075db122563647941e9fd5bc77c6e218f1b"
+}

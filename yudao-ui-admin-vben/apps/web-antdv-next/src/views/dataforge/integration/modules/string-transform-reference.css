@@ -1,0 +1,107 @@
+.qi-rule-reference.qi-transform-config .qi-reference-table-heading {
+  gap: 18px;
+  margin-bottom: -3px;
+}
+
+.qi-rule-reference.qi-transform-config .qi-transform-table {
+  min-width: 0;
+  min-height: 310px;
+  max-height: 360px;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table {
+  min-width: 600px;
+}
+
+.qi-rule-reference.qi-transform-config[data-tool-code='string-operation'] .qi-reference-fields-table {
+  min-width: 1100px;
+}
+
+.qi-rule-reference.qi-transform-config[data-tool-code='string-replace'] .qi-reference-fields-table {
+  min-width: 1550px;
+}
+
+.qi-rule-reference.qi-transform-config .qi-transform-table .qi-reference-fields-table th,
+.qi-rule-reference.qi-transform-config .qi-transform-table .qi-reference-fields-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table th {
+  font-weight: 600;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table th:last-child {
+  width: 120px;
+}
+
+.qi-rule-reference.qi-transform-config .qi-transform-table .qi-reference-fields-table th:last-child,
+.qi-rule-reference.qi-transform-config .qi-transform-table .qi-reference-fields-table td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  text-align: center;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table td:last-child:not([colspan]) {
+  background: #fff;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table tbody tr:nth-child(even) td:last-child {
+  background: #fafafa;
+}
+
+.qi-rule-reference.qi-transform-config .qi-reference-fields-table tbody tr:hover td:last-child {
+  background: #eaf0ff;
+}
+
+.qi-rule-reference.qi-transform-config .qi-transform-table .qi-reference-fields-table .qi-reference-empty {
+  height: 274px;
+  text-align: center;
+}
+
+.qi-string-sequence {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.qi-string-sequence .qi-icon {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: grab;
+}
+
+.qi-string-select-arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.qi-string-help {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.qi-string-help .qi-icon {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+
+.qi-rule-reference.qi-transform-config .qi-transform-advanced {
+  padding: 0;
+  border: 0;
+}

@@ -1,0 +1,31 @@
+-- 仅隔离测试：补齐真实旧入口 BaseMapper 使用的列；不是平台迁移。
+ALTER TABLE dh_supply_app ADD COLUMN name varchar(100), ADD COLUMN app_type varchar(32),
+ ADD COLUMN icon text, ADD COLUMN app_key varchar(100), ADD COLUMN secret text,
+ ADD COLUMN public_flag int, ADD COLUMN description text, ADD COLUMN remark text,
+ ADD COLUMN sign_protocol varchar(16), ADD COLUMN owning_dept_id bigint,
+ ADD COLUMN system_code varchar(100), ADD COLUMN owner_user_id bigint, ADD COLUMN purpose text,
+ ADD COLUMN environment varchar(100), ADD COLUMN credential_revision int, ADD COLUMN row_version int,
+ ADD COLUMN create_time timestamp, ADD COLUMN update_time timestamp,
+ ADD COLUMN creator varchar(64), ADD COLUMN updater varchar(64);
+ALTER TABLE dh_supply_app_api ADD COLUMN start_date date, ADD COLUMN end_date date,
+ ADD COLUMN description text, ADD COLUMN permission_user_id bigint, ADD COLUMN remark text,
+ ADD COLUMN source_id varchar(256), ADD COLUMN purpose text, ADD COLUMN valid_from timestamp,
+ ADD COLUMN valid_to timestamp, ADD COLUMN approved_contract_hash varchar(128), ADD COLUMN api_version varchar(128),
+ ADD COLUMN create_time timestamp, ADD COLUMN creator varchar(64), ADD COLUMN updater varchar(64);
+ALTER TABLE dh_supply_grant_op ADD COLUMN source_decision_id varchar(256), ADD COLUMN grant_revision int,
+ ADD COLUMN retry_count int DEFAULT 0, ADD COLUMN next_retry_time timestamp, ADD COLUMN lease_until timestamp,
+ ADD COLUMN create_time timestamp, ADD COLUMN update_time timestamp,
+ ADD COLUMN creator varchar(64), ADD COLUMN updater varchar(64);
+ALTER TABLE dh_supply_api ADD COLUMN category_id bigint, ADD COLUMN name varchar(100),
+ ADD COLUMN path text, ADD COLUMN method varchar(32), ADD COLUMN result_format varchar(32),
+ ADD COLUMN description text, ADD COLUMN ip_whitelist text, ADD COLUMN ip_rule_type varchar(32),
+ ADD COLUMN limit_enabled int, ADD COLUMN limit_seconds int, ADD COLUMN limit_count int,
+ ADD COLUMN auth_type varchar(32), ADD COLUMN cache_enabled int, ADD COLUMN cache_seconds int,
+ ADD COLUMN breaker_enabled int, ADD COLUMN breaker_error_count int, ADD COLUMN breaker_window_seconds int,
+ ADD COLUMN breaker_open_seconds int, ADD COLUMN alarm_enabled int, ADD COLUMN sql_text text,
+ ADD COLUMN forward_url text, ADD COLUMN forward_method varchar(32), ADD COLUMN request_params text,
+ ADD COLUMN response_fields text, ADD COLUMN remark text, ADD COLUMN provider_dept_id bigint,
+ ADD COLUMN resource_ref text, ADD COLUMN owner_user_id bigint, ADD COLUMN draft_revision int,
+ ADD COLUMN draft_json text, ADD COLUMN row_version int DEFAULT 1,
+ ADD COLUMN create_time timestamp, ADD COLUMN update_time timestamp,
+ ADD COLUMN creator varchar(64), ADD COLUMN updater varchar(64);

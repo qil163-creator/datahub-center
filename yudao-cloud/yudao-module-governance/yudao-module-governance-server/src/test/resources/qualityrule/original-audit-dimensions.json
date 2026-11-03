@@ -1,0 +1,237 @@
+{
+  "dimensions": [
+    {
+      "code": "D01",
+      "name": "一致性",
+      "sort": 3,
+      "status": 0,
+      "remark": null
+    },
+    {
+      "code": "D02",
+      "name": "完整性",
+      "sort": 4,
+      "status": 0,
+      "remark": null
+    },
+    {
+      "code": "D03",
+      "name": "规范性",
+      "sort": 1,
+      "status": 0,
+      "remark": null
+    },
+    {
+      "code": "D04",
+      "name": "时效性",
+      "sort": 2,
+      "status": 0,
+      "remark": null
+    },
+    {
+      "code": "D05",
+      "name": "准确性",
+      "sort": 0,
+      "status": 0,
+      "remark": null
+    }
+  ],
+  "rules": [
+    {
+      "code": "107",
+      "name": "字段字符类型校验",
+      "strategyKey": "CHARACTER_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D05"
+    },
+    {
+      "code": "108",
+      "name": "字段长度范围校验",
+      "strategyKey": "LENGTH_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "109",
+      "name": "日期时间格式校验",
+      "strategyKey": "DATE_FORMAT_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "110",
+      "name": "数值字段精度校验",
+      "strategyKey": "DECIMAL_PRECISION_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "111",
+      "name": "枚举值校验",
+      "strategyKey": "ENUM_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "112",
+      "name": "主数据引用一致性校验",
+      "strategyKey": "FOREIGN_KEY_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "113",
+      "name": "逻辑模型一致性校验",
+      "strategyKey": "MODEL_STRUCTURE_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "114",
+      "name": "字段元信息完整性校验",
+      "strategyKey": "COLUMN_METADATA_COMPLETENESS",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "115",
+      "name": "时间字段顺序逻辑校验",
+      "strategyKey": "TIME_ORDER_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "116",
+      "name": "数值字段逻辑关系校验",
+      "strategyKey": "NUMERIC_RELATION_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "117",
+      "name": "状态字段依赖项校验",
+      "strategyKey": "CONDITIONAL_REQUIRED_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "118",
+      "name": "互斥字段冲突校验",
+      "strategyKey": "MUTUAL_EXCLUSION_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "119",
+      "name": "敏感字段脱敏校验",
+      "strategyKey": "SENSITIVE_MASK_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D02"
+    },
+    {
+      "code": "203",
+      "name": "必填字段非空校验",
+      "strategyKey": "NOT_NULL_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D05"
+    },
+    {
+      "code": "204",
+      "name": "非法占位值识别",
+      "strategyKey": "PLACEHOLDER_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D05"
+    },
+    {
+      "code": "205",
+      "name": "字段组完整性校验",
+      "strategyKey": "GROUP_FIELD_COMPLETENESS",
+      "ruleLevel": 2,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "206",
+      "name": "整记录缺失检查校验",
+      "strategyKey": "RECORD_COMPLETENESS_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D05"
+    },
+    {
+      "code": "207",
+      "name": "条件字段完整性校验",
+      "strategyKey": "CONDITIONAL_REQUIRED_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D05"
+    },
+    {
+      "code": "306",
+      "name": "数值字段范围校验",
+      "strategyKey": "NUMERIC_RANGE_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "307",
+      "name": "数值字段逻辑值合法校验",
+      "strategyKey": "NUMERIC_RANGE_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "308",
+      "name": "数值字段异常值识别",
+      "strategyKey": "NUMERIC_OUTLIER_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "309",
+      "name": "脏数据识别",
+      "strategyKey": "PLACEHOLDER_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "310",
+      "name": "单字段唯一性校验",
+      "strategyKey": "UNIQUE_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "311",
+      "name": "多字段组合唯一性校验",
+      "strategyKey": "COMPOSITE_UNIQUENESS_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D01"
+    },
+    {
+      "code": "403",
+      "name": "跨表字段值一致性校验",
+      "strategyKey": "CROSS_TABLE_CONSISTENCY",
+      "ruleLevel": 2,
+      "dimensionCode": "D03"
+    },
+    {
+      "code": "404",
+      "name": "外键有效性校验",
+      "strategyKey": "FOREIGN_KEY_VALIDATION",
+      "ruleLevel": 1,
+      "dimensionCode": "D03"
+    },
+    {
+      "code": "405",
+      "name": "状态字段一致性校验",
+      "strategyKey": "STATE_CONSISTENCY_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D03"
+    },
+    {
+      "code": "504",
+      "name": "时间字段先后顺序校验",
+      "strategyKey": "TIME_ORDER_VALIDATION",
+      "ruleLevel": 2,
+      "dimensionCode": "D04"
+    }
+  ]
+}

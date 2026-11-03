@@ -1,0 +1,15 @@
+{
+  "enabledWindow": "window-cron-config.json",
+  "uiProofFile": "final-ui.json",
+  "configWindowCreatedNoExecution": true,
+  "recordsBefore": 3,
+  "recordsAfter": 3,
+  "scheduleStatus": 0,
+  "nextRunTime": null,
+  "restoredCronExpression": "0/30 * * * * ?",
+  "crossedNextThirtySecondBoundary": true,
+  "target": {
+    "count": 6,
+    "sum": 62
+  }
+}

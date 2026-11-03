@@ -1,0 +1,130 @@
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-table-heading {
+  gap: 18px;
+  margin-bottom: -3px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-scroll {
+  min-height: 310px;
+  max-height: 360px;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table {
+  min-width: 600px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th,
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th {
+  font-weight: 600;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th:nth-child(1) {
+  width: 80px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th:nth-child(2) {
+  width: 445px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th:nth-child(3) {
+  width: 445px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th:nth-child(4) {
+  width: 150px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table th:last-child,
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  text-align: center;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table td:last-child:not([colspan]) {
+  background: #fff;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-fields-table tbody tr:hover td:last-child {
+  background: #eaf0ff;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-button.ant-btn {
+  height: 28px;
+  padding: 0 12px;
+  color: #2f62ff;
+  background: #ecf5ff;
+  border-color: #9bb5ff;
+  box-shadow: none;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-form-grid {
+  gap: 15px 20px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-form-row {
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 0;
+  align-items: center;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-form-row > label {
+  display: block;
+  padding: 0 12px 0 0;
+  font-size: 14px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-value-map-default {
+  width: calc((100% - 20px) / 2);
+}
+
+.qi-value-map-help {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.qi-value-map-help .qi-icon {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+
+.qi-value-map-chevron {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-transform-advanced {
+  order: 1;
+  padding: 0;
+  border: 0;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] .qi-reference-empty {
+  height: 274px;
+}
+
+@media (max-width: 768px) {
+  .qi-transform-reference[data-tool-code='value-map'] .qi-reference-form-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .qi-transform-reference[data-tool-code='value-map'] .qi-reference-form-row > label {
+    text-align: left;
+  }
+
+  .qi-transform-reference[data-tool-code='value-map'] .qi-value-map-default {
+    width: 100%;
+  }
+}

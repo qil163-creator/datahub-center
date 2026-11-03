@@ -1,0 +1,51 @@
+{
+  "sourceReference": "codex-clipboard-f3855494-004d-475e-9d29-697f8e676ab8.png",
+  "sourceDimensions": [
+    3594,
+    1787
+  ],
+  "assets": [
+    {
+      "file": "banner-info.png",
+      "sourceBox": [
+        349,
+        174,
+        425,
+        251
+      ],
+      "role": "decorative",
+      "dimensions": [
+        76,
+        77
+      ]
+    },
+    {
+      "file": "banner-gold.png",
+      "sourceBox": [
+        2927,
+        167,
+        3324,
+        260
+      ],
+      "role": "decorative",
+      "dimensions": [
+        397,
+        93
+      ]
+    },
+    {
+      "file": "domain-icon.png",
+      "sourceBox": [
+        645,
+        558,
+        669,
+        582
+      ],
+      "role": "decorative",
+      "dimensions": [
+        24,
+        24
+      ]
+    }
+  ]
+}

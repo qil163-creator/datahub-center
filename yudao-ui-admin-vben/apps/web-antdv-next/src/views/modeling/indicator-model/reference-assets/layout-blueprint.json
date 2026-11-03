@@ -1,0 +1,1352 @@
+{
+  "schemaVersion": 1,
+  "scope": "仅复刻指标模型业务区域；保留现有项目顶部导航、左侧菜单与页签。",
+  "measurement": {
+    "source": "8 张用户原始 PNG；色块边界通过像素扫描，区域与文本通过人工复核。",
+    "sourcePixelsPerEstimatedCssPixel": 1.5,
+    "scaleConfidence": "推断：顶部导航 90px、表单控件 48px、字号约 21px，与常见 CSS 的 60/32/14px 一致。最终 CSS 应以 REA 的运行时 computedStyle 为准。",
+    "positionToleranceSourcePixels": 3,
+    "textMeasurement": "字号、行高与字重为截图估算，不代表浏览器已确认的 computedStyle。"
+  },
+  "sources": [
+    {
+      "id": "atomic-list",
+      "file": "codex-clipboard-0b707866-f717-4d81-a417-a76cb81fa6cb.png",
+      "sha256": "da549cbf208f08dd9bd2d8629f0298bfd84212c04a8494ec5cefc1a1b3b00668",
+      "canvas": [
+        3619,
+        1776
+      ],
+      "businessRegion": [
+        335,
+        77,
+        3584,
+        1776
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "atomic-detail",
+      "file": "codex-clipboard-a92d7dc5-5762-47b1-96c7-64fbde7e189a.png",
+      "sha256": "8c79afbae68962c3ffe171352d9ba658cb041ed6adbb324471591d3c6b9fbcbd",
+      "canvas": [
+        3616,
+        1866
+      ],
+      "businessRegion": [
+        336,
+        161,
+        3594,
+        1846
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "atomic-more",
+      "file": "codex-clipboard-541aad13-c6fa-4c6f-8a29-b6059866fd5d.png",
+      "sha256": "6da19e2b6768f4b8fb164630e267a3f1caa9a46e39e1a0b1b3d8e14c34d8ede9",
+      "canvas": [
+        3618,
+        2052
+      ],
+      "businessRegion": [
+        337,
+        346,
+        3586,
+        2051
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "condition-list",
+      "file": "codex-clipboard-00144113-b19d-46f0-92c8-ef5d601f6d18.png",
+      "sha256": "25d918da30e2ce551fd565a03c4f967c1d9e5da0de3ea06f86953c3ff8b82819",
+      "canvas": [
+        3622,
+        1872
+      ],
+      "businessRegion": [
+        341,
+        166,
+        3590,
+        1871
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "condition-detail",
+      "file": "codex-clipboard-d8c9c4df-c4fe-4953-adef-93fe2b02bbd4.png",
+      "sha256": "4086c9bb02e5f5307c71153de6697cb94934b6a4ebc2219900516825eda6b762",
+      "canvas": [
+        3618,
+        2052
+      ],
+      "businessRegion": [
+        337,
+        346,
+        3586,
+        2051
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "condition-versions",
+      "file": "codex-clipboard-f16622bb-aa3a-4fe0-8548-418bae98e79c.png",
+      "sha256": "ede3232330d56d2cccd97287104cd831b98fe2e496530ef431a95c18ca4e79be",
+      "canvas": [
+        3618,
+        2052
+      ],
+      "businessRegion": [
+        337,
+        346,
+        3586,
+        2051
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "condition-related",
+      "file": "codex-clipboard-9a82a99a-79c0-4b50-87b6-f323564d82e8.png",
+      "sha256": "28280cf34e49e7825dd155f19c78fca3c13d042d102b042643d6cd186d9340bd",
+      "canvas": [
+        3618,
+        2052
+      ],
+      "businessRegion": [
+        337,
+        346,
+        3586,
+        2051
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    },
+    {
+      "id": "derived",
+      "file": "codex-clipboard-d165eaa3-b032-4f7c-bddf-7fc7298967c2.png",
+      "sha256": "d55a39166ba3bce39b53a8dac431bfa24e3be1576560e90737d2fadc5df693a5",
+      "canvas": [
+        3618,
+        2052
+      ],
+      "businessRegion": [
+        337,
+        346,
+        3595,
+        2029
+      ],
+      "excluded": "Chrome、产品顶部导航、左侧全局菜单与多页签导航；实现时保留本项目现有导航。"
+    }
+  ],
+  "pages": {
+    "atomic-list": {
+      "banner": {
+        "sourcePixels": {
+          "x": 335,
+          "y": 77,
+          "width": 3249,
+          "height": 96
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 96
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 64.0
+        }
+      },
+      "categoryTree": {
+        "sourcePixels": {
+          "x": 335,
+          "y": 195,
+          "width": 420,
+          "height": 1581
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 118,
+          "width": 420,
+          "height": 1581
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 78.667,
+          "width": 280.0,
+          "height": 1054.0
+        }
+      },
+      "filter": {
+        "sourcePixels": {
+          "x": 777,
+          "y": 195,
+          "width": 2807,
+          "height": 93
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 118,
+          "width": 2807,
+          "height": 93
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 78.667,
+          "width": 1871.333,
+          "height": 62.0
+        }
+      },
+      "listCard": {
+        "sourcePixels": {
+          "x": 777,
+          "y": 311,
+          "width": 2807,
+          "height": 1465
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 234,
+          "width": 2807,
+          "height": 1465
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 156.0,
+          "width": 1871.333,
+          "height": 976.667
+        }
+      },
+      "toolbar": {
+        "sourcePixels": {
+          "x": 800,
+          "y": 333,
+          "width": 2761,
+          "height": 42
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 256,
+          "width": 2761,
+          "height": 42
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 170.667,
+          "width": 1840.667,
+          "height": 28.0
+        }
+      },
+      "tableHeader": {
+        "sourcePixels": {
+          "x": 800,
+          "y": 401,
+          "width": 2761,
+          "height": 54
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 324,
+          "width": 2761,
+          "height": 54
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 216.0,
+          "width": 1840.667,
+          "height": 36.0
+        }
+      },
+      "firstRow": {
+        "sourcePixels": {
+          "x": 800,
+          "y": 455,
+          "width": 2761,
+          "height": 97
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 378,
+          "width": 2761,
+          "height": 97
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 252.0,
+          "width": 1840.667,
+          "height": 64.667
+        }
+      },
+      "pagination": {
+        "sourcePixels": {
+          "x": 2862,
+          "y": 1473,
+          "width": 699,
+          "height": 48
+        },
+        "businessRelativePixels": {
+          "x": 2527,
+          "y": 1396,
+          "width": 699,
+          "height": 48
+        },
+        "estimatedCssPixels": {
+          "x": 1684.667,
+          "y": 930.667,
+          "width": 466.0,
+          "height": 32.0
+        }
+      }
+    },
+    "atomic-more": {
+      "banner": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 346,
+          "width": 3249,
+          "height": 96
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 96
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 64.0
+        }
+      },
+      "categoryTree": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 464,
+          "width": 420,
+          "height": 1587
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 118,
+          "width": 420,
+          "height": 1587
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 78.667,
+          "width": 280.0,
+          "height": 1058.0
+        }
+      },
+      "filter": {
+        "sourcePixels": {
+          "x": 779,
+          "y": 464,
+          "width": 2807,
+          "height": 93
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 118,
+          "width": 2807,
+          "height": 93
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 78.667,
+          "width": 1871.333,
+          "height": 62.0
+        }
+      },
+      "listCard": {
+        "sourcePixels": {
+          "x": 779,
+          "y": 580,
+          "width": 2807,
+          "height": 1471
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 234,
+          "width": 2807,
+          "height": 1471
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 156.0,
+          "width": 1871.333,
+          "height": 980.667
+        }
+      },
+      "toolbar": {
+        "sourcePixels": {
+          "x": 802,
+          "y": 602,
+          "width": 2761,
+          "height": 42
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 256,
+          "width": 2761,
+          "height": 42
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 170.667,
+          "width": 1840.667,
+          "height": 28.0
+        }
+      },
+      "tableHeader": {
+        "sourcePixels": {
+          "x": 802,
+          "y": 670,
+          "width": 2761,
+          "height": 54
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 324,
+          "width": 2761,
+          "height": 54
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 216.0,
+          "width": 1840.667,
+          "height": 36.0
+        }
+      },
+      "firstRow": {
+        "sourcePixels": {
+          "x": 802,
+          "y": 724,
+          "width": 2761,
+          "height": 97
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 378,
+          "width": 2761,
+          "height": 97
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 252.0,
+          "width": 1840.667,
+          "height": 64.667
+        }
+      },
+      "moreMenu": {
+        "sourcePixels": {
+          "x": 3330,
+          "y": 1194,
+          "width": 223,
+          "height": 119
+        },
+        "businessRelativePixels": {
+          "x": 2993,
+          "y": 848,
+          "width": 223,
+          "height": 119
+        },
+        "estimatedCssPixels": {
+          "x": 1995.333,
+          "y": 565.333,
+          "width": 148.667,
+          "height": 79.333
+        }
+      }
+    },
+    "condition-list": {
+      "banner": {
+        "sourcePixels": {
+          "x": 341,
+          "y": 166,
+          "width": 3249,
+          "height": 96
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 96
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 64.0
+        }
+      },
+      "categoryTree": {
+        "sourcePixels": {
+          "x": 341,
+          "y": 284,
+          "width": 420,
+          "height": 1587
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 118,
+          "width": 420,
+          "height": 1587
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 78.667,
+          "width": 280.0,
+          "height": 1058.0
+        }
+      },
+      "filter": {
+        "sourcePixels": {
+          "x": 783,
+          "y": 284,
+          "width": 2807,
+          "height": 93
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 118,
+          "width": 2807,
+          "height": 93
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 78.667,
+          "width": 1871.333,
+          "height": 62.0
+        }
+      },
+      "listCard": {
+        "sourcePixels": {
+          "x": 783,
+          "y": 400,
+          "width": 2807,
+          "height": 1471
+        },
+        "businessRelativePixels": {
+          "x": 442,
+          "y": 234,
+          "width": 2807,
+          "height": 1471
+        },
+        "estimatedCssPixels": {
+          "x": 294.667,
+          "y": 156.0,
+          "width": 1871.333,
+          "height": 980.667
+        }
+      },
+      "toolbar": {
+        "sourcePixels": {
+          "x": 806,
+          "y": 422,
+          "width": 2761,
+          "height": 42
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 256,
+          "width": 2761,
+          "height": 42
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 170.667,
+          "width": 1840.667,
+          "height": 28.0
+        }
+      },
+      "tableHeader": {
+        "sourcePixels": {
+          "x": 806,
+          "y": 490,
+          "width": 2761,
+          "height": 54
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 324,
+          "width": 2761,
+          "height": 54
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 216.0,
+          "width": 1840.667,
+          "height": 36.0
+        }
+      },
+      "firstRow": {
+        "sourcePixels": {
+          "x": 806,
+          "y": 544,
+          "width": 2761,
+          "height": 97
+        },
+        "businessRelativePixels": {
+          "x": 465,
+          "y": 378,
+          "width": 2761,
+          "height": 97
+        },
+        "estimatedCssPixels": {
+          "x": 310.0,
+          "y": 252.0,
+          "width": 1840.667,
+          "height": 64.667
+        }
+      },
+      "pagination": {
+        "sourcePixels": {
+          "x": 2850,
+          "y": 1546,
+          "width": 717,
+          "height": 48
+        },
+        "businessRelativePixels": {
+          "x": 2509,
+          "y": 1380,
+          "width": 717,
+          "height": 48
+        },
+        "estimatedCssPixels": {
+          "x": 1672.667,
+          "y": 920.0,
+          "width": 478.0,
+          "height": 32.0
+        }
+      }
+    },
+    "atomic-detail": {
+      "summaryCard": {
+        "sourcePixels": {
+          "x": 336,
+          "y": 161,
+          "width": 3258,
+          "height": 301
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3258,
+          "height": 301
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2172.0,
+          "height": 200.667
+        }
+      },
+      "heading": {
+        "sourcePixels": {
+          "x": 359,
+          "y": 183,
+          "width": 3212,
+          "height": 42
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 22,
+          "width": 3212,
+          "height": 42
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 14.667,
+          "width": 2141.333,
+          "height": 28.0
+        }
+      },
+      "summaryTable": {
+        "sourcePixels": {
+          "x": 359,
+          "y": 248,
+          "width": 3212,
+          "height": 192
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 87,
+          "width": 3212,
+          "height": 192
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 58.0,
+          "width": 2141.333,
+          "height": 128.0
+        }
+      },
+      "contentCard": {
+        "sourcePixels": {
+          "x": 336,
+          "y": 485,
+          "width": 3258,
+          "height": 1361
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 324,
+          "width": 3258,
+          "height": 1361
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 216.0,
+          "width": 2172.0,
+          "height": 907.333
+        }
+      },
+      "tabs": {
+        "sourcePixels": {
+          "x": 359,
+          "y": 508,
+          "width": 3212,
+          "height": 59
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 347,
+          "width": 3212,
+          "height": 59
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 231.333,
+          "width": 2141.333,
+          "height": 39.333
+        }
+      },
+      "baseInfoTable": {
+        "sourcePixels": {
+          "x": 359,
+          "y": 588,
+          "width": 3212,
+          "height": 182
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 427,
+          "width": 3212,
+          "height": 182
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 284.667,
+          "width": 2141.333,
+          "height": 121.333
+        }
+      }
+    },
+    "condition-detail": {
+      "summaryCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 346,
+          "width": 3249,
+          "height": 301
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 301
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 200.667
+        }
+      },
+      "heading": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 368,
+          "width": 3203,
+          "height": 42
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 22,
+          "width": 3203,
+          "height": 42
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 14.667,
+          "width": 2135.333,
+          "height": 28.0
+        }
+      },
+      "summaryTable": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 433,
+          "width": 3203,
+          "height": 192
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 87,
+          "width": 3203,
+          "height": 192
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 58.0,
+          "width": 2135.333,
+          "height": 128.0
+        }
+      },
+      "contentCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 670,
+          "width": 3249,
+          "height": 1381
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 324,
+          "width": 3249,
+          "height": 1381
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 216.0,
+          "width": 2166.0,
+          "height": 920.667
+        }
+      },
+      "tabs": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 693,
+          "width": 3203,
+          "height": 56
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 347,
+          "width": 3203,
+          "height": 56
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 231.333,
+          "width": 2135.333,
+          "height": 37.333
+        }
+      },
+      "baseInfoTable": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 770,
+          "width": 3203,
+          "height": 301
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 424,
+          "width": 3203,
+          "height": 301
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 282.667,
+          "width": 2135.333,
+          "height": 200.667
+        }
+      }
+    },
+    "condition-versions": {
+      "summaryCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 346,
+          "width": 3249,
+          "height": 301
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 301
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 200.667
+        }
+      },
+      "contentCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 670,
+          "width": 3249,
+          "height": 1381
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 324,
+          "width": 3249,
+          "height": 1381
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 216.0,
+          "width": 2166.0,
+          "height": 920.667
+        }
+      },
+      "tabs": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 693,
+          "width": 3203,
+          "height": 56
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 347,
+          "width": 3203,
+          "height": 56
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 231.333,
+          "width": 2135.333,
+          "height": 37.333
+        }
+      },
+      "constructionIllustration": {
+        "sourcePixels": {
+          "x": 1705,
+          "y": 930,
+          "width": 562,
+          "height": 345
+        },
+        "businessRelativePixels": {
+          "x": 1368,
+          "y": 584,
+          "width": 562,
+          "height": 345
+        },
+        "estimatedCssPixels": {
+          "x": 912.0,
+          "y": 389.333,
+          "width": 374.667,
+          "height": 230.0
+        }
+      },
+      "constructionCopy": {
+        "sourcePixels": {
+          "x": 1833,
+          "y": 1295,
+          "width": 258,
+          "height": 116
+        },
+        "businessRelativePixels": {
+          "x": 1496,
+          "y": 949,
+          "width": 258,
+          "height": 116
+        },
+        "estimatedCssPixels": {
+          "x": 997.333,
+          "y": 632.667,
+          "width": 172.0,
+          "height": 77.333
+        }
+      }
+    },
+    "condition-related": {
+      "summaryCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 346,
+          "width": 3249,
+          "height": 301
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3249,
+          "height": 301
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2166.0,
+          "height": 200.667
+        }
+      },
+      "contentCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 670,
+          "width": 3249,
+          "height": 1381
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 324,
+          "width": 3249,
+          "height": 1381
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 216.0,
+          "width": 2166.0,
+          "height": 920.667
+        }
+      },
+      "tabs": {
+        "sourcePixels": {
+          "x": 360,
+          "y": 693,
+          "width": 3203,
+          "height": 56
+        },
+        "businessRelativePixels": {
+          "x": 23,
+          "y": 347,
+          "width": 3203,
+          "height": 56
+        },
+        "estimatedCssPixels": {
+          "x": 15.333,
+          "y": 231.333,
+          "width": 2135.333,
+          "height": 37.333
+        }
+      },
+      "constructionIllustration": {
+        "sourcePixels": {
+          "x": 1705,
+          "y": 930,
+          "width": 562,
+          "height": 345
+        },
+        "businessRelativePixels": {
+          "x": 1368,
+          "y": 584,
+          "width": 562,
+          "height": 345
+        },
+        "estimatedCssPixels": {
+          "x": 912.0,
+          "y": 389.333,
+          "width": 374.667,
+          "height": 230.0
+        }
+      },
+      "constructionCopy": {
+        "sourcePixels": {
+          "x": 1833,
+          "y": 1295,
+          "width": 258,
+          "height": 116
+        },
+        "businessRelativePixels": {
+          "x": 1496,
+          "y": 949,
+          "width": 258,
+          "height": 116
+        },
+        "estimatedCssPixels": {
+          "x": 997.333,
+          "y": 632.667,
+          "width": 172.0,
+          "height": 77.333
+        }
+      }
+    },
+    "derived": {
+      "contentCard": {
+        "sourcePixels": {
+          "x": 337,
+          "y": 346,
+          "width": 3258,
+          "height": 1683
+        },
+        "businessRelativePixels": {
+          "x": 0,
+          "y": 0,
+          "width": 3258,
+          "height": 1683
+        },
+        "estimatedCssPixels": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 2172.0,
+          "height": 1122.0
+        }
+      },
+      "constructionIllustration": {
+        "sourcePixels": {
+          "x": 1620,
+          "y": 840,
+          "width": 750,
+          "height": 460
+        },
+        "businessRelativePixels": {
+          "x": 1283,
+          "y": 494,
+          "width": 750,
+          "height": 460
+        },
+        "estimatedCssPixels": {
+          "x": 855.333,
+          "y": 329.333,
+          "width": 500.0,
+          "height": 306.667
+        }
+      },
+      "constructionCopy": {
+        "sourcePixels": {
+          "x": 1817,
+          "y": 1309,
+          "width": 303,
+          "height": 144
+        },
+        "businessRelativePixels": {
+          "x": 1480,
+          "y": 963,
+          "width": 303,
+          "height": 144
+        },
+        "estimatedCssPixels": {
+          "x": 986.667,
+          "y": 642.0,
+          "width": 202.0,
+          "height": 96.0
+        }
+      }
+    }
+  },
+  "sharedMetrics": {
+    "pageGutterSource": 23,
+    "pageGutterCssEstimate": 15,
+    "sectionGapSource": 22,
+    "sectionGapCssEstimate": 15,
+    "treeWidthSource": 420,
+    "treeWidthCssEstimate": 280,
+    "treeRowHeightSource": 39,
+    "treeRowHeightCssEstimate": 26,
+    "bannerHeightSource": 96,
+    "bannerHeightCssEstimate": 64,
+    "filterHeightSource": 93,
+    "filterHeightCssEstimate": 62,
+    "inputHeightSource": 48,
+    "inputHeightCssEstimate": 32,
+    "buttonHeightSource": 42,
+    "buttonHeightCssEstimate": 28,
+    "tableHeaderHeightSource": 54,
+    "tableHeaderHeightCssEstimate": 36,
+    "tableRowHeightSource": 97,
+    "tableRowHeightCssEstimate": 64.667,
+    "tableTallRowHeightSource": 115,
+    "tableTallRowHeightCssEstimate": 76.667,
+    "detailRowHeightSource": 61,
+    "detailRowHeightCssEstimate": 40.667,
+    "detailLabelWidthSource": 300,
+    "detailLabelWidthCssEstimate": 200,
+    "summaryLabelWidthSource": 227,
+    "summaryLabelWidthCssEstimate": 151.333,
+    "detailTabsHeightSource": 58,
+    "detailTabsHeightCssEstimate": 38.667,
+    "toolbarToTableSource": 26,
+    "toolbarToTableCssEstimate": 17.333,
+    "cellHorizontalPaddingCssEstimate": 10
+  },
+  "typographyCssEstimates": {
+    "family": "Arial / Microsoft YaHei / sans-serif（截图估算）",
+    "body": {
+      "fontSize": 14,
+      "lineHeight": 22,
+      "fontWeight": 400
+    },
+    "tableHeader": {
+      "fontSize": 14,
+      "lineHeight": 22,
+      "fontWeight": 600
+    },
+    "description": {
+      "fontSize": 12,
+      "lineHeight": 20,
+      "fontWeight": 400
+    },
+    "button": {
+      "fontSize": 12,
+      "lineHeight": 20,
+      "fontWeight": 400
+    },
+    "detailTitle": {
+      "fontSize": 18,
+      "lineHeight": 28,
+      "fontWeight": 600
+    },
+    "bannerTitle": {
+      "fontSize": 14,
+      "lineHeight": 22,
+      "fontWeight": 600
+    },
+    "bannerDescription": {
+      "fontSize": 14,
+      "lineHeight": 22,
+      "fontWeight": 400
+    }
+  },
+  "sampledColors": {
+    "pageBackground": "#f0f2f5",
+    "surface": "#ffffff",
+    "tableHeader": "#f1f1f5",
+    "alternateRow": "#fafafa",
+    "hoverRow": "#ebf0fe",
+    "border": "#eceef4",
+    "text": "#333333",
+    "tableHeaderText": "#666666",
+    "descriptionText": "#a1a1a1",
+    "primary": "#4266f4",
+    "iconPrimary": "#375af4",
+    "primaryTint": "#ebeffd",
+    "primaryTintBorder": "#aabafa",
+    "treeActive": "#f4f6fe",
+    "success": "#4e9b34",
+    "successTint": "#edf5ea",
+    "successAlternateRowTint": "#e9f1e6",
+    "switchOff": "#dddfe5",
+    "detailLabel": "#f5f7fa",
+    "bannerBackground": "#fefcf5",
+    "bannerBorder": "#fae8bb",
+    "bannerGold": "#d8a44b",
+    "bannerDescription": "#7a7977",
+    "disabledDangerTint": "#fbefed"
+  },
+  "tableColumnsSourcePixels": {
+    "atomic": [
+      {
+        "key": "selection",
+        "width": 76
+      },
+      {
+        "key": "number",
+        "width": 120
+      },
+      {
+        "key": "indicatorInfo",
+        "width": 344
+      },
+      {
+        "key": "ownership",
+        "width": 420
+      },
+      {
+        "key": "typeAndUnit",
+        "width": 245
+      },
+      {
+        "key": "freshness",
+        "width": 178
+      },
+      {
+        "key": "expression",
+        "width": 390
+      },
+      {
+        "key": "derivedCount",
+        "width": 220
+      },
+      {
+        "key": "status",
+        "width": 145
+      },
+      {
+        "key": "creator",
+        "width": 180
+      },
+      {
+        "key": "createTime",
+        "width": 245
+      },
+      {
+        "key": "actions",
+        "width": 420,
+        "fixed": "right"
+      }
+    ],
+    "condition": [
+      {
+        "key": "selection",
+        "width": 76
+      },
+      {
+        "key": "number",
+        "width": 120
+      },
+      {
+        "key": "conditionInfo",
+        "width": 490
+      },
+      {
+        "key": "ownership",
+        "width": 330
+      },
+      {
+        "key": "configurationType",
+        "width": 160
+      },
+      {
+        "key": "freshness",
+        "width": 163
+      },
+      {
+        "key": "definition",
+        "width": 400
+      },
+      {
+        "key": "status",
+        "width": 110
+      },
+      {
+        "key": "creator",
+        "width": 220
+      },
+      {
+        "key": "createTime",
+        "width": 300
+      },
+      {
+        "key": "actions",
+        "width": 390,
+        "fixed": "right"
+      }
+    ],
+    "note": "无垂直分隔线，列宽按相邻内容起点估算；原子指标操作列固定于右侧，会覆盖横向滚动的创建时间列。"
+  },
+  "construction": {
+    "standaloneIllustrationCssEstimate": {
+      "width": 500,
+      "height": 306.667
+    },
+    "embeddedIllustrationCssEstimate": {
+      "width": 375,
+      "height": 230
+    },
+    "fit": "contain",
+    "preserveExistingBehavior": true,
+    "note": "QData 派生指标、业务限定详情的派生指标及版本与变更页签为建设中画面；本项目已有业务能力须继续保留。"
+  }
+}

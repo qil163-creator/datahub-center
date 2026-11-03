@@ -1,0 +1,376 @@
+{
+  "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+  "referenceCanvas": {
+    "width": 3558,
+    "height": 1882
+  },
+  "deviceScaleFactorInference": 1.5,
+  "scaleNote": "原截图的 90px 顶栏、24px 图标与常见 60px/16px CSS 尺寸对应，最终应以运行时 DOM 度量复核。",
+  "assets": {
+    "stat-total": {
+      "file": "/assets/qdata-market/stat-total.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        878,
+        518,
+        965,
+        583
+      ],
+      "pixelSize": [
+        87,
+        65
+      ],
+      "suggestedCssSize": [
+        58.0,
+        43.33
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "stat-authorized": {
+      "file": "/assets/qdata-market/stat-authorized.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        1478,
+        518,
+        1541,
+        584
+      ],
+      "pixelSize": [
+        63,
+        66
+      ],
+      "suggestedCssSize": [
+        42.0,
+        44.0
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "stat-favorite": {
+      "file": "/assets/qdata-market/stat-favorite.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        2072,
+        518,
+        2134,
+        582
+      ],
+      "pixelSize": [
+        62,
+        64
+      ],
+      "suggestedCssSize": [
+        41.33,
+        42.67
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "stat-applying": {
+      "file": "/assets/qdata-market/stat-applying.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        2661,
+        519,
+        2723,
+        584
+      ],
+      "pixelSize": [
+        62,
+        65
+      ],
+      "suggestedCssSize": [
+        41.33,
+        43.33
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "feature-rich": {
+      "file": "/assets/qdata-market/feature-rich.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        383,
+        355,
+        447,
+        419
+      ],
+      "pixelSize": [
+        64,
+        64
+      ],
+      "suggestedCssSize": [
+        42.67,
+        42.67
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "feature-compliant": {
+      "file": "/assets/qdata-market/feature-compliant.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        700,
+        355,
+        764,
+        419
+      ],
+      "pixelSize": [
+        64,
+        64
+      ],
+      "suggestedCssSize": [
+        42.67,
+        42.67
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "feature-open": {
+      "file": "/assets/qdata-market/feature-open.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        1018,
+        355,
+        1082,
+        419
+      ],
+      "pixelSize": [
+        64,
+        64
+      ],
+      "suggestedCssSize": [
+        42.67,
+        42.67
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "empty-permission": {
+      "file": "/assets/qdata-market/empty-permission.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-ba43392f-a966-478b-b79f-8d57e13d354b.png",
+      "sourceBox": [
+        1797,
+        674,
+        2048,
+        917
+      ],
+      "pixelSize": [
+        251,
+        243
+      ],
+      "suggestedCssSize": [
+        167.33,
+        162.0
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-asset": {
+      "file": "/assets/qdata-market/icon-asset.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        864,
+        671,
+        888,
+        694
+      ],
+      "pixelSize": [
+        24,
+        23
+      ],
+      "suggestedCssSize": [
+        16.0,
+        15.33
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-score": {
+      "file": "/assets/qdata-market/icon-score.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        3328,
+        670,
+        3345,
+        696
+      ],
+      "pixelSize": [
+        17,
+        26
+      ],
+      "suggestedCssSize": [
+        11.33,
+        17.33
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-star": {
+      "file": "/assets/qdata-market/icon-star.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        3420,
+        668,
+        3445,
+        696
+      ],
+      "pixelSize": [
+        25,
+        28
+      ],
+      "suggestedCssSize": [
+        16.67,
+        18.67
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-folder": {
+      "file": "/assets/qdata-market/icon-folder.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        410,
+        1493,
+        437,
+        1520
+      ],
+      "pixelSize": [
+        27,
+        27
+      ],
+      "suggestedCssSize": [
+        18.0,
+        18.0
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-document": {
+      "file": "/assets/qdata-market/icon-document.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        438,
+        1531,
+        463,
+        1558
+      ],
+      "pixelSize": [
+        25,
+        27
+      ],
+      "suggestedCssSize": [
+        16.67,
+        18.0
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-send": {
+      "file": "/assets/qdata-market/icon-send.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        3378,
+        829,
+        3398,
+        852
+      ],
+      "pixelSize": [
+        20,
+        23
+      ],
+      "suggestedCssSize": [
+        13.33,
+        15.33
+      ],
+      "role": "decorative",
+      "hasAlpha": true
+    },
+    "icon-eye": {
+      "file": "/assets/qdata-market/icon-eye.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        3245,
+        830,
+        3267,
+        850
+      ],
+      "pixelSize": [
+        22,
+        20
+      ],
+      "suggestedCssSize": [
+        14.67,
+        13.33
+      ],
+      "role": "decorative",
+      "hasAlpha": false
+    },
+    "icon-return": {
+      "file": "/assets/qdata-market/icon-return.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-ba43392f-a966-478b-b79f-8d57e13d354b.png",
+      "sourceBox": [
+        3423,
+        197,
+        3446,
+        219
+      ],
+      "pixelSize": [
+        23,
+        22
+      ],
+      "suggestedCssSize": [
+        15.33,
+        14.67
+      ],
+      "role": "decorative",
+      "hasAlpha": false
+    },
+    "banner-wave": {
+      "file": "/assets/qdata-market/banner-wave.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        1730,
+        165,
+        2490,
+        466
+      ],
+      "pixelSize": [
+        760,
+        301
+      ],
+      "suggestedCssSize": [
+        506.67,
+        200.67
+      ],
+      "role": "decorative",
+      "hasAlpha": false
+    },
+    "banner-right": {
+      "file": "/assets/qdata-market/banner-right.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-31ef8c82-58ec-4347-8321-f71d600dc473.png",
+      "sourceBox": [
+        3182,
+        165,
+        3526,
+        466
+      ],
+      "pixelSize": [
+        344,
+        301
+      ],
+      "suggestedCssSize": [
+        229.33,
+        200.67
+      ],
+      "role": "decorative",
+      "hasAlpha": false
+    }
+  },
+  "limitations": [
+    "完整 banner 背景被真实文字与搜索控件覆盖；banner-wave 和 banner-right 只包含无文字的源图片段。",
+    "feature 图标保留源截图颜色；仅在盾牌轮廓外添加透明遮罩。",
+    "icon-eye 保留源按钮蓝色背景，适合相同颜色的详情按钮。"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "referenceCanvas": {
+    "width": 3594,
+    "height": 1871
+  },
+  "targetViewport": {
+    "width": 2048,
+    "height": 1066
+  },
+  "scale": 1.7548828125,
+  "sections": [
+    {
+      "name": "summary",
+      "y": 94,
+      "height": 171
+    },
+    {
+      "name": "tabs-content",
+      "y": 279,
+      "height": 778
+    }
+  ],
+  "modalWidths": {
+    "entity": 684,
+    "rules": 838
+  },
+  "assets": {
+    "entity-object": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-318ce100-1d0b-4971-9c32-fd625f2a6ba3.png",
+      "sourceBox": [444, 1051, 470, 1085],
+      "displayBox": [253, 599, 268, 618],
+      "role": "semantic"
+    },
+    "entity-hierarchy": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-318ce100-1d0b-4971-9c32-fd625f2a6ba3.png",
+      "sourceBox": [444, 1302, 470, 1330],
+      "displayBox": [253, 742, 268, 758],
+      "role": "semantic"
+    },
+    "entity-event": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-318ce100-1d0b-4971-9c32-fd625f2a6ba3.png",
+      "sourceBox": [444, 883, 470, 914],
+      "displayBox": [253, 503, 268, 521],
+      "role": "semantic"
+    },
+    "entity-process": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-318ce100-1d0b-4971-9c32-fd625f2a6ba3.png",
+      "sourceBox": [444, 795, 470, 828],
+      "displayBox": [253, 453, 268, 472],
+      "role": "semantic"
+    },
+    "entity-object-card": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-3f192162-c37a-4e52-8775-9162c4a2988b.png",
+      "sourceBox": [1446, 728, 1506, 790],
+      "displayBox": [824, 415, 858, 450],
+      "role": "semantic"
+    },
+    "entity-activity-card": {
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-3f192162-c37a-4e52-8775-9162c4a2988b.png",
+      "sourceBox": [1913, 727, 1972, 791],
+      "displayBox": [1090, 414, 1124, 451],
+      "role": "semantic"
+    }
+  }
+}

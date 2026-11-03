@@ -1,0 +1,9 @@
+{
+  "workerTaskInstanceId": 55,
+  "count": 3,
+  "rawWorkerLogSha256": "c99e569ad8501ed3b7dce0f3af353f1e16a774d5baac01c1a948be2e867130c8",
+  "rawWorkerLogBytes": 3281,
+  "secretLeakDetected": false,
+  "rawLogSaved": false,
+  "verified": true
+}

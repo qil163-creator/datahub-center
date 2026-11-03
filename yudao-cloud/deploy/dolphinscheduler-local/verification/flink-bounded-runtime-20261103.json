@@ -1,0 +1,27 @@
+{
+  "jarSha256": "ebba828f24995df396a999f6a665c2d4181b45e45173c586fc6f3cf29ec9ba5c",
+  "sourceSha256": "1bdb72f76fca38eb4a53a834f28cfb204e86441d761339991d8fbdeb7a4117f9",
+  "cases": [
+    {
+      "case": "roundtrip",
+      "exitCode": 0,
+      "expectedFailure": false
+    },
+    {
+      "case": "row-budget",
+      "exitCode": 0,
+      "expectedFailure": true
+    },
+    {
+      "case": "unbound-root",
+      "exitCode": 0,
+      "expectedFailure": true
+    },
+    {
+      "case": "ftp-path-kind",
+      "exitCode": 0,
+      "expectedFailure": true
+    }
+  ],
+  "evidenceDirectory": "/private/tmp/qdata-flink-bounded-final/evidence-four-scenes"
+}

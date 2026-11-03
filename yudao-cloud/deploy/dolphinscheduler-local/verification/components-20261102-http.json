@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "scope": "compiler-generated SQL + real Spark3.5.6 + HTTP fixture; not management API or scheduler acceptance",
+  "checks": {
+    "authenticated": {
+      "passed": true,
+      "exitCode": 0,
+      "actualRows": [
+        [
+          "9007199254740993",
+          "河道😀"
+        ],
+        [
+          "9007199254740994",
+          "O'Reilly水情"
+        ]
+      ],
+      "sqlSha256": "e136a3a306858d3e6495c7984c1aed7eec113fd9610ad7e0afe5e7362781a0af",
+      "outputSha256": "98996ebd3a5425b48a902229b264d62237c42730c0afed75545f744a6f5e9637"
+    },
+    "unauthorized_address": {
+      "passed": true,
+      "exitCode": 1,
+      "actualRows": [],
+      "sqlSha256": "e136a3a306858d3e6495c7984c1aed7eec113fd9610ad7e0afe5e7362781a0af",
+      "outputSha256": "304f068471861307cb1bbb52a33abdeb93cfe89e11f0f60816b27b32f67ca219"
+    },
+    "unauthorized_secret": {
+      "passed": true,
+      "exitCode": 1,
+      "actualRows": [],
+      "sqlSha256": "e136a3a306858d3e6495c7984c1aed7eec113fd9610ad7e0afe5e7362781a0af",
+      "outputSha256": "cf957eff0fc28ed5a0a371cb1d64c70e750a2b17972c0106afa2a5db7021d51a"
+    },
+    "missing_authentication": {
+      "passed": true,
+      "exitCode": 1,
+      "actualRows": [],
+      "sqlSha256": "cb471f51572b377066e3952519de539d9211291c063ede3c2286b9a0ea3cec12",
+      "outputSha256": "806ccf3de79109730d6ab4f7b699cfc387d5c12cd9093071f61939abfebc2eb1"
+    }
+  }
+}

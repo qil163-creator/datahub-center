@@ -1,0 +1,28 @@
+# 独立开发实例；从环境注入密码，与 qData 的历史 data/auth/logs 完全分离。
+name: datahub-neo4j
+services:
+  neo4j:
+    image: ${NEO4J_IMAGE:-neo4j:5.26-community}
+    environment:
+      NEO4J_AUTH: neo4j/${DATAHUB_NEO4J_PASSWORD:?请先设置独立的 Neo4j 密码}
+    ports:
+      - "127.0.0.1:${NEO4J_BOLT_PORT:-27687}:7687"
+      - "127.0.0.1:${NEO4J_HTTP_PORT:-27474}:7474"
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "NEO4J_USERNAME=neo4j NEO4J_PASSWORD=$${NEO4J_AUTH#neo4j/} cypher-shell -a bolt://localhost:7687 -d neo4j 'RETURN 1;' > /dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  neo4j-data:
+  neo4j-logs:

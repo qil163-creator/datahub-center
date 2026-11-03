@@ -1,0 +1,23 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "compiled",
+  "checks": {
+    "SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188511297614816",
+      "workflowInstanceId": 31,
+      "taskInstanceId": 31,
+      "state": "SUCCESS",
+      "markerInLog": true
+    },
+    "FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188511305874400",
+      "workflowInstanceId": 32,
+      "taskInstanceId": 32,
+      "state": "SUCCESS",
+      "markerInLog": true
+    }
+  },
+  "status": "PASS"
+}

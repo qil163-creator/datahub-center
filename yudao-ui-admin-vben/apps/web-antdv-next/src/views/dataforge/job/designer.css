@@ -1,0 +1,585 @@
+.qj-designer {
+  --qj-primary: #2663ff;
+  --qj-border: #dfe3ed;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 15px;
+  font-size: 14px;
+  color: #333;
+  background: #eff1f4;
+}
+
+.qj-designer .qi-icon,
+.qj-node-detail .qi-icon,
+.qj-context .qi-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.qj-designer-spin,
+.qj-designer-spin > .ant-spin-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 0;
+  min-height: 0;
+}
+
+.qj-design-header {
+  display: flex;
+  flex-shrink: 0;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 50px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  background: #fff;
+}
+
+.qj-design-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  font-size: 16px;
+  color: #111;
+  overflow-wrap: anywhere;
+}
+
+.qj-design-title > span {
+  flex-shrink: 0;
+  width: 6px;
+  height: 16px;
+  background: #2663ff;
+  border-radius: 3px;
+}
+
+.qj-design-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.qj-design-actions .ant-btn {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  height: 29px;
+  padding-inline: 10px;
+  color: #2663ff;
+  background: #f0f8ff;
+  border-color: #9ab6ff;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.qj-design-actions .ant-btn-primary {
+  color: #fff;
+  background: #2663ff;
+  border-color: #2663ff;
+}
+
+.qj-design-actions .ant-btn-primary .qi-icon {
+  filter: brightness(0) invert(1);
+}
+
+.qj-design-actions .ant-btn:disabled {
+  opacity: 0.5;
+}
+
+.qj-design-layout {
+  display: flex;
+  flex: 1;
+  gap: 15px;
+  min-height: 0;
+}
+
+.qj-design-palette {
+  display: flex;
+  flex: 0 0 300px;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  background: #fff;
+}
+
+.qj-design-palette > .ant-input-affix-wrapper {
+  flex-shrink: 0;
+  height: 32px;
+  border-color: #d8dce5;
+  border-radius: 2px;
+}
+
+.qj-palette-tree {
+  min-width: 0;
+  min-height: 0;
+  padding-top: 14px;
+  overflow: auto;
+}
+
+.qj-palette-group,
+.qj-palette-task {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  min-height: 26px;
+  padding: 2px 0;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qj-palette-group > span:not(.qj-chevron, .qj-palette-count),
+.qj-palette-task > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qj-palette-group > .qi-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.qj-palette-count {
+  margin-left: auto;
+}
+
+.qj-chevron {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 12px;
+  font-size: 17px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.qj-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.qj-palette-category {
+  padding-left: 18px;
+}
+
+.qj-palette-task {
+  padding-left: 23px;
+}
+
+.qj-palette-task[draggable='true'] {
+  cursor: grab;
+}
+
+.qj-palette-task > img {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.qj-palette-task:hover,
+.qj-palette-group:hover {
+  background: #f0f7ff;
+}
+
+.qj-design-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: #fff;
+}
+
+.qj-flow,
+.qj-flow-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.qj-flow-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 1;
+  display: flex;
+  gap: 5px;
+}
+
+.qj-flow-toolbar .ant-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 32px;
+  padding: 0;
+  background: #f7f7f7;
+  border-color: #efefef;
+  box-shadow: none;
+}
+
+.qj-flow-toolbar .qi-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.qj-context {
+  position: fixed;
+  z-index: 1050;
+  width: 140px;
+  padding: 4px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #e4e7ee;
+  border-radius: 2px;
+  box-shadow: 0 4px 12px #0002;
+}
+
+.qj-context > button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 7px;
+  text-align: left;
+  cursor: pointer;
+  background: #fff;
+  border: 0;
+}
+
+.qj-context > button:hover {
+  background: #f0f7ff;
+}
+
+.qj-check-panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  max-height: 180px;
+  padding: 10px 15px;
+  overflow: auto;
+  font-size: 13px;
+  background: #fff;
+  border-top: 1px solid #e2e5ed;
+}
+
+.qj-check-panel > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.qj-check-panel button {
+  padding: 0 4px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qj-check-panel p {
+  margin: 8px 0;
+}
+
+.qj-node-detail > label {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin: 20px 20px 16px;
+}
+
+.qj-node-detail > label > span {
+  text-align: right;
+}
+
+.qj-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 15px;
+  margin-top: 24px;
+  border-top: 1px solid #eee;
+}
+
+.qj-empty {
+  padding: 40px 12px;
+  color: #999;
+  text-align: center;
+}
+
+.qj-task-editor-modal {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 20%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 6% 60%;
+  --border: 224 23% 91%;
+
+  color-scheme: light;
+}
+
+.qj-task-editor-modal .ant-modal-body {
+  max-height: calc(100vh - 210px);
+  padding: 10px 15px;
+  overflow: auto;
+}
+
+.qj-linked-task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 30px;
+  margin-bottom: 24px;
+}
+
+.qj-linked-task-grid > label {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.qj-linked-task-grid > label > span {
+  padding-top: 6px;
+  text-align: right;
+}
+
+.qj-linked-task-section {
+  padding: 0 0 10px 8px;
+  margin: 20px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  border-left: 3px solid #2663ff;
+}
+
+.qj-detail-header {
+  flex-shrink: 0;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #fff;
+}
+
+.qj-detail-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.qj-detail-id {
+  padding: 0 2px;
+  color: #fff;
+  background: #2663ff;
+}
+
+.qj-detail-heading strong {
+  min-width: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.qj-detail-status {
+  padding: 2px 8px;
+  font-size: 13px;
+  color: #2663ff;
+  background: #edf7ff;
+}
+
+.qj-detail-heading .ant-btn {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #2663ff;
+  background: #f0f7ff;
+  border-color: #b6caff;
+}
+
+.qj-detail-heading .qi-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.qj-info-grid {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr) 150px minmax(
+      0,
+      1fr
+    );
+  gap: 2px;
+  font-size: 14px;
+}
+
+.qj-info-grid > span,
+.qj-extra-grid > span {
+  min-width: 0;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  border: 1px solid #edf0f7;
+}
+
+.qj-info-label {
+  color: #a8adb5;
+  background: #fafafa;
+}
+
+.qj-info-wide {
+  grid-column: span 5;
+}
+
+.qj-detail-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 15px;
+  background: #fff;
+}
+
+.qj-detail-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 40px;
+  min-height: 38px;
+  border-bottom: 2px solid #edf0f7;
+}
+
+.qj-detail-tabs button {
+  position: relative;
+  padding: 6px 0 10px;
+  color: #888;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qj-detail-tabs button.active {
+  color: #2663ff;
+}
+
+.qj-detail-tabs button.active::after {
+  position: absolute;
+  right: 0;
+  bottom: -2px;
+  left: 0;
+  height: 2px;
+  content: '';
+  background: #2663ff;
+}
+
+.qj-detail-flow {
+  flex: 1;
+  min-height: 400px;
+  margin-top: 15px;
+}
+
+.qj-detail-flow .qj-flow-toolbar {
+  left: 0;
+}
+
+.qj-extra-grid {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr);
+  gap: 2px;
+  margin-top: 15px;
+}
+
+@media (width <= 1200px) {
+  .qj-design-palette {
+    flex-basis: 260px;
+  }
+
+  .qj-design-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .qj-info-grid {
+    grid-template-columns: 100px minmax(0, 1fr) 100px minmax(
+        0,
+        1fr
+      ) 100px minmax(0, 1fr);
+  }
+}
+
+@media (width <= 768px) {
+  .qj-designer {
+    padding: 10px;
+  }
+
+  .qj-design-layout {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .qj-design-palette {
+    flex: 0 0 200px;
+    width: 100%;
+    min-height: 160px;
+  }
+
+  .qj-design-main {
+    flex: 0 0 460px;
+    min-height: 460px;
+  }
+
+  .qj-design-actions {
+    gap: 8px;
+  }
+
+  .qj-node-detail > label {
+    grid-template-columns: 75px minmax(0, 1fr);
+    margin-inline: 0;
+  }
+
+  .qj-detail {
+    overflow: auto;
+  }
+
+  .qj-detail .qj-designer-spin,
+  .qj-detail .qj-designer-spin > .ant-spin-container {
+    flex: none;
+    height: auto;
+  }
+
+  .qj-info-grid,
+  .qj-extra-grid {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+
+  .qj-info-wide {
+    grid-column: auto;
+  }
+
+  .qj-detail-heading {
+    flex-wrap: wrap;
+  }
+
+  .qj-linked-task-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qj-linked-task-grid > label {
+    grid-template-columns: 85px minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "preserveHostNavigation": true,
+  "content": {
+    "padding": 15,
+    "gap": 15,
+    "categoryWidth": 280,
+    "surface": "#ffffff",
+    "background": "#f0f2f5"
+  },
+  "list": {
+    "bannerHeight": 64,
+    "statisticsHeight": 44,
+    "filterControlHeight": 32,
+    "rowHeight": 80,
+    "operationFixed": "right"
+  },
+  "jobForm": {
+    "width": 800,
+    "top": 60,
+    "labelWidth": 108,
+    "rowGap": 16,
+    "fontSize": 14,
+    "height": 601.75,
+    "headerHeight": 42,
+    "bodyPadding": [
+      20,
+      40
+    ],
+    "footerHeight": 63
+  },
+  "designer": {
+    "paletteWidth": 300,
+    "nodeWidth": 320,
+    "nodeHeight": 122,
+    "integrationColor": "#686bff",
+    "developmentColor": "#10b870",
+    "headerHeight": 50,
+    "stripeWidth": 26.25,
+    "toolbarWidth": 34,
+    "toolbarHeight": 32,
+    "toolbarGap": 5
+  }
+}

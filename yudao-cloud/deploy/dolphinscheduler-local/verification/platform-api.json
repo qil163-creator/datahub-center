@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-01",
+  "api": "http://127.0.0.1:50025/admin-api/dataforge/integration",
+  "database": "isolated PostgreSQL 16; existing business DB and port 50024 unchanged",
+  "engines": {
+    "DATAX": {
+      "taskId": 1001,
+      "recordId": 180829751976929,
+      "dsInstanceId": 9,
+      "definitionCode": 188508872100832,
+      "status": "SUCCESS",
+      "strictTargetRows": [
+        "1\t  alice  \t",
+        "2\tBob\t",
+        "3\tq'Data\t"
+      ],
+      "statistics": {
+        "failed": 0,
+        "running": 0,
+        "statisticTime": 1793521648068,
+        "success": 1
+      }
+    },
+    "SPARK": {
+      "taskId": 1002,
+      "id": 180829751976930,
+      "recordId": 180829751976930,
+      "dsInstanceId": 24,
+      "definitionCode": 188510579800032,
+      "status": "SUCCESS",
+      "observedRunning": true,
+      "strictTargetRows": [
+        "1\t  alice  \tq'Data",
+        "2\tBob\tq'Data",
+        "3\tq'Data\tq'Data"
+      ]
+    },
+    "FLINK": {
+      "taskId": 1004,
+      "id": 180829751976932,
+      "recordId": 180829751976932,
+      "dsInstanceId": 30,
+      "definitionCode": 188511286260704,
+      "status": "SUCCESS",
+      "observedRunning": true,
+      "strictTargetRows": [
+        "1\t  alice  \tq'Data",
+        "2\tBob\tq'Data",
+        "3\tq'Data\tq'Data"
+      ]
+    }
+  },
+  "cron": {
+    "taskId": 1001,
+    "dsDefinitionCode": 188511400356832,
+    "onlineScheduleId": 3,
+    "remoteOnline": "ONLINE",
+    "offlineGate": {
+      "path": "/status",
+      "code": 1500090004,
+      "message": "任务状态不允许操作，请先关闭调度并下线任务"
+    },
+    "remoteOffline": "OFFLINE",
+    "finalRevision": 9
+  },
+  "realtime": {
+    "taskId": 1007,
+    "recordId": 180829751976935,
+    "definition": 188512667286496,
+    "dsInstanceId": 37,
+    "dsTaskId": 37,
+    "strictNewRows": 3,
+    "emitted": true,
+    "editGate": {
+      "path": "/flow",
+      "code": 1500090001,
+      "message": "数据集成配置不合法：请先停止并确认 DS 实例退出，再修改任务"
+    },
+    "status": "IDLE",
+    "commandType": "STOP_REQUESTED",
+    "message": "已请求停止；DolphinScheduler 状态：FAILURE；实例：37",
+    "processTreeExited": true
+  },
+  "guards": {
+    "unboundSqlScript": {
+      "errors": [
+        "集成流程不接受独立 SQL 脚本，请使用具有受管数据源绑定的业务组件"
+      ],
+      "valid": false
+    },
+    "dataxOutputWhere": {
+      "errors": [
+        "表输出不支持 WHERE 条件，请将条件配置在输入或过滤组件"
+      ],
+      "valid": false
+    },
+    "boundedJdbcIsNotRealtime": {
+      "errors": [
+        "节点【read】：实时输入尚未绑定持续产出的 Catalog 源；有界 JDBC 全量表不能声明为持续采集"
+      ],
+      "valid": false
+    }
+  },
+  "migration": {
+    "freshBaseline": "PASS",
+    "upgrade0252": "PASS",
+    "replay0252": "PASS",
+    "freshUpgradeSchemaEquivalent": "PASS",
+    "scheduleConstraintAndDsInstanceUniqueness": "PASS"
+  }
+}

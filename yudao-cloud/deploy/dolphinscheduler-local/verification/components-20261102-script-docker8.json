@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "tests": 8,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "classes": {
+    "EtlScriptDockerIntegrationTest": 6,
+    "EtlScriptDockerRecoveryIntegrationTest": 2
+  },
+  "image": "eclipse-temurin:25-jdk@sha256:e12d89b0c1719dd0377172597b141c27cc548fd3b2096442cd5f747ce158ca7d",
+  "logSha256": "67371788fcec6e55bcd0f42d6b769c451cfd932b24d8859ec29b8558a216ed1d",
+  "initialRun": {
+    "status": "FAIL",
+    "failure": "sysfs placeholder device names were incorrectly equated with active namespace interfaces",
+    "logSha256": "210e1059415627546d69642baa5c1c0ed7898b0afeb54c7f860d11c7b457def0"
+  },
+  "fixtureCorrection": "Keep sysfs names diagnostic; require Java active interfaces only lo, no IPv4 namespace routes, failed TEST-NET-1 connection, and Docker NetworkMode none",
+  "productionPolicyChanged": false,
+  "verified": [
+    "non-root uid65532, no capabilities, no-new-privileges, read-only root",
+    "actual memory/pids/cpu cgroup limits",
+    "script uid cannot suspend supervisor",
+    "real Java/JS numeric and batch contracts",
+    "confirmed cleanup after timeout, cancel and System.exit",
+    "independent orphan lifetime bound",
+    "real host crash ACK and LOST_ACK recovery",
+    "strict swap admission matches actual daemon capability"
+  ]
+}

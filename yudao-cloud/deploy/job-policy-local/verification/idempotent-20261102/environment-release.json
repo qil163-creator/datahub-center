@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-02T12:43:53.941446",
+  "ownedTestPortListeners": {
+    "5999": false,
+    "6000": false,
+    "6003": false,
+    "6006": false,
+    "50027": false,
+    "48082": false,
+    "12347": false,
+    "55427": false
+  },
+  "isolatedVmStopped": true,
+  "isolatedCoordinator": {
+    "group": 3,
+    "job": 4,
+    "enabled": false,
+    "actualTriggerStatus": 0,
+    "checkedAt": "2026-11-02T12:44:28.194714"
+  },
+  "dockerContext": "desktop-linux",
+  "normalDolphinschedulerContainers": [],
+  "dataAndLogVolumesDeleted": false,
+  "noAutomaticRestart": true
+}

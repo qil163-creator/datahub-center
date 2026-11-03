@@ -1,0 +1,25 @@
+{
+  "referenceCanvas": {
+    "width": 3558,
+    "height": 1882
+  },
+  "sourceReference": "codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+  "businessRegion": {
+    "x": 336,
+    "y": 164,
+    "width": 3190,
+    "height": 1718
+  },
+  "layoutCss": {
+    "outerPadding": 12,
+    "categoryWidth": 242,
+    "columnGap": 12,
+    "statisticsHeight": 39,
+    "sectionGap": 13,
+    "tableRowHeight": 52,
+    "tableHeaderHeight": 32,
+    "modalWidth": 1040,
+    "modalLogHeight": 368
+  },
+  "preserved": "保留项目现有导航，仅复刻业务区域"
+}

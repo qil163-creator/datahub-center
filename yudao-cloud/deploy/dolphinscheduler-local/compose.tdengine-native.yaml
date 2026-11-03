@@ -1,0 +1,25 @@
+services:
+  tdengine-native:
+    image: tdengine/tsdb:3.3.8.8@sha256:f71ec0fdbe00f3583b117249f550d355eb099e6ef2aed9e201d064cb8a0ff1c5
+    hostname: datahub-native-tdengine
+    networks:
+      default:
+        aliases: [datahub-native-tdengine]
+    mem_limit: 768m
+    cpus: 1.0
+    environment:
+      TAOS_FQDN: datahub-native-tdengine
+      TAOS_ROOT_PASSWORD_FILE: /run/secrets/root-password
+      TAOS_DISABLE_KEEPER: '1'
+      TAOS_DISABLE_EXPLORER: '1'
+      TAOS_DISABLE_TAOSX: '1'
+    ports:
+      - 127.0.0.1:16641:6041
+    volumes:
+      - ${DATAHUB_TDENGINE_FIXTURE_ROOT:?}/root-password:/run/secrets/root-password:ro
+      - ${DATAHUB_TDENGINE_FIXTURE_ROOT:?}/taos.cfg:/etc/taos/taos.cfg:ro
+      - tdengine-native-data:/var/lib/taos
+      - tdengine-native-log:/var/log/taos
+volumes:
+  tdengine-native-data:
+  tdengine-native-log:

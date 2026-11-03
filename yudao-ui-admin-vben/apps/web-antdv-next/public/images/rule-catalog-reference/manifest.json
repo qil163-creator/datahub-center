@@ -1,0 +1,49 @@
+{
+  "sourceReference": "C:\\Users\\LZQ\\.codex\\visualizations\\2026\\10\\16\\01a14287-5e91-7f01-950b-d1e829df93ba\\rule-catalogs\\audit.png",
+  "sourceSize": [
+    3540,
+    1917
+  ],
+  "assets": [
+    {
+      "file": "banner-info.png",
+      "sourceBox": [
+        350,
+        174,
+        423,
+        250
+      ],
+      "role": "decorative"
+    },
+    {
+      "file": "banner-decoration.png",
+      "sourceBox": [
+        2880,
+        165,
+        3272,
+        259
+      ],
+      "role": "decorative"
+    },
+    {
+      "file": "tree-folder.png",
+      "sourceBox": [
+        379,
+        374,
+        407,
+        402
+      ],
+      "role": "decorative"
+    },
+    {
+      "file": "tree-leaf.png",
+      "sourceBox": [
+        407,
+        414,
+        436,
+        442
+      ],
+      "role": "decorative"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "referenceViewport": [2360, 1278],
+  "referenceImageSize": [3558, 1882],
+  "scope": "保留项目顶栏/侧栏；业务区按参考CSS像素还原",
+  "referenceBusinessBounds": [338, 164, 3527, 1882],
+  "spacing": {
+    "outer": 14,
+    "sectionGap": 14,
+    "guideHeight": 54,
+    "filterHeight": 54,
+    "toolbarHeight": 48,
+    "tableHeaderHeight": 36,
+    "listRowHeight": 81,
+    "treeWidth": 280
+  },
+  "colors": {
+    "page": "#eff1f4",
+    "panel": "#ffffff",
+    "primary": "#526fff",
+    "header": "#f1f1f5",
+    "stripe": "#fafafb"
+  },
+  "pages": {
+    "task": "264db2b6-52e3-4aac-af4c-ade213c839fb",
+    "instance": "bb8cc5dc-40e4-4657-bf05-3cea4cb3651d",
+    "file": "7c9fbf73-98df-4004-865d-3ae181e56886",
+    "fileDetail": "c525059c-7694-4885-abb3-fd9239bf624b",
+    "table": "55712bc1-13a8-46da-85f5-5078ee158813",
+    "published": "972ac31a-77b9-4c53-ab8b-09a619dc32b0"
+  },
+  "liveDomVerification": {
+    "source": "qData /dg/meta/task，由主代理通过 REA 读取计算样式",
+    "viewport": [2360, 1278],
+    "devicePixelRatio": 1.5,
+    "tableFontSize": 14,
+    "tableHeaderFontSize": 13,
+    "taskRowHeight": 80.67,
+    "modalWidth": 1200,
+    "modalHeaderHeight": 42,
+    "modalHeaderBackground": "#f8f8f8",
+    "modalBodyPadding": [20, 40],
+    "modalFooterHeight": 63,
+    "formFontSize": 14,
+    "inputHeight": 32
+  },
+  "currentReference": "codex-clipboard-e296342e-fc30-447d-86ee-32b46f7cfefc.png",
+  "iconManifest": "icon-manifest.json"
+}

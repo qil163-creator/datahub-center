@@ -1,0 +1,1162 @@
+{
+  "status": "PASS_WITH_DECLARED_LIMITS",
+  "verifiedAt": "2026-11-02T17:08:00+0800",
+  "scope": "Read-only delivery documentation, source capability declaration, evidence linkage and public-artifact secret audit; no new engine run.",
+  "componentCount": 49,
+  "catalogAndCapabilityCodesOrderedExact": true,
+  "capabilityMatrixBasis": "Current source declarations and compiler supportedCodes, manually mirrored and asserted; not a live restarted API probe.",
+  "matrix": [
+    {
+      "code": "read-db",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-odps",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-excel",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-csv",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-json",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-kafka",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-hive",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-hdfs",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "rest-api",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-mongodb",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-redis",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-rabbitmq",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-tdengine",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-rocketmq",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-ftp",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "read-webservice",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "java-script",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "custom-token",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "data-clean",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "multi-join",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "sort-records",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "field-split",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "field-derive",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "dedup-records",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "row-to-column",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "column-to-row",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "data-encrypt",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "data-decrypt",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "id-generator",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "calculator",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "value-map",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "add-constant",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "number-range",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "string-operation",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "string-replace",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "column-map",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "set-field-value",
+      "SPARK_OFFLINE": "SUPPORTED",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "SUPPORTED",
+      "FLINK_REALTIME": "SUPPORTED",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "data-condition",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "sub-pipeline",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "insert-db",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-odps",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-hive",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-hdfs",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-mongodb",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "PARTIAL",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-redis",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-rabbitmq",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-kafka",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "PARTIAL",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-rocketmq",
+      "SPARK_OFFLINE": "UNAVAILABLE",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "PARTIAL",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    },
+    {
+      "code": "write-ftp",
+      "SPARK_OFFLINE": "PARTIAL",
+      "SPARK_REALTIME": "UNAVAILABLE",
+      "FLINK_OFFLINE": "UNAVAILABLE",
+      "FLINK_REALTIME": "UNAVAILABLE",
+      "DATAX_OFFLINE": "UNAVAILABLE",
+      "DATAX_REALTIME": "UNAVAILABLE"
+    }
+  ],
+  "capabilityApiEvidenceCompared": {
+    "file": "components-20261102-capability-matrix.json",
+    "contexts": 6,
+    "statusCellsMatched": 294,
+    "mismatches": [],
+    "status": "PASS"
+  },
+  "links": [
+    {
+      "target": "verification/components-20261102-reference.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-capability-matrix.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-platform-script-final-version.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-native-script-flink.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-platform-script-hutool-token.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-native-control-transform.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-platform-script-token.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-platform-http-crypto-ftp.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-transforms.json",
+      "exists": true
+    },
+    {
+      "target": "verification/graphs.json",
+      "exists": true
+    },
+    {
+      "target": "verification/join-budget.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-files.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-excel.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-kafka-components-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-mongo-components-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-hdfs-components-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-hive.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-redis-components-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-rabbitmq.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-rocketmq.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-tdengine-components-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-http.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-webservice.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-ftp.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-ftp-gzip.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-crypto.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-odps-wire-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-ui-default-payloads.json",
+      "exists": true
+    },
+    {
+      "target": "verification/native-connector-ui-jsonb-20261102.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-frontend-quality.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-etl-tests.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-script-docker8.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-consumer-tests.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-postgresql-contracts.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-backend-quality.json",
+      "exists": true
+    },
+    {
+      "target": "verification/components-20261102-delivery-audit.json",
+      "exists": true
+    },
+    {
+      "target": "../../sql/postgresql/migrations/0252_dataforge_integration-ds-runtime.sql",
+      "exists": true
+    }
+  ],
+  "secretAudit": {
+    "publicFiles": 94,
+    "publicBytes": 1591150,
+    "ownedWorkerSecretFilesCompared": 6,
+    "workerSecretContentsExported": false,
+    "knownPrivateValues": 31,
+    "encodingSentinels": 100,
+    "knownPrivateMaterialMatches": [],
+    "patternMatches": [],
+    "invalidJsonFiles": [],
+    "redactedJsonFieldTriage": [
+      {
+        "file": "components-20261102-files.json",
+        "field": "authorization",
+        "classification": "explanatory authorization contract, not credential"
+      },
+      {
+        "file": "components-20261102-platform-http-ftp-flow.json",
+        "field": "headerSecretRefs.Authorization",
+        "classification": "managed reference name, not header secret"
+      }
+    ],
+    "limits": [
+      "No unknown original-site password was requested or reloaded; scanned references/headers/key/token signatures plus current task private credentials and key material.",
+      "Pattern and exact-material scans are evidence for inspected artifacts, not a guarantee for arbitrary unknown unlabeled strings."
+    ]
+  },
+  "verificationLevels": {
+    "reference": "REA UI resources only; no original-site save/run claim",
+    "native": "Real official engine/component fixture execution; no management API/DS claim unless separate platform evidence exists",
+    "platform": [
+      "Task1002/1003 native Spark HTTP/crypto/FTP",
+      "Task1004 stableDS instances4/6/7 Java/token/Hutool/API/FTP"
+    ],
+    "odpsCloud": "OPEN",
+    "flinkToken": "UNAVAILABLE",
+    "frontend": "Existing Node24.16 final429files3751tests/build evidence reused; not rerun"
+  },
+  "containers": {
+    "runningOwnedFixtureContainers": [],
+    "broker18448Listening": false,
+    "stableDSLeftRunningForParent": true,
+    "originalDSObservedRunning": true,
+    "auditContainerLifecycleActions": []
+  },
+  "findings": [],
+  "resolvedFindings": [
+    {
+      "code": "KAFKA_AUTH_LIMIT",
+      "resolution": "Root clarified both table rows and current backend capability reason: explicit no-credential binding only; SASL/TLS remain unadapted. Confirmed in current owning source/document."
+    },
+    {
+      "code": "MONGO_AUTH_LIMIT",
+      "resolution": "Both rows now declare explicit anonymous binding; credential references remain unadapted."
+    },
+    {
+      "code": "HDFS_AUTH_AND_COMMIT_SCOPE",
+      "resolution": "Both rows declare NONE-only without Kerberos; output describes staged per-file publication with no overwrite, without claiming whole-job atomicity."
+    }
+  ],
+  "finalVersionEvidence": {
+    "file": "components-20261102-platform-script-final-version.json",
+    "status": "PASS"
+  },
+  "unifiedScriptEvidence": {
+    "file": "components-20261102-native-script.json",
+    "status": "PASS",
+    "artifactLists": [
+      {
+        "field": "artifacts",
+        "count": 14
+      }
+    ]
+  },
+  "credentialPatternCandidateCount": 0,
+  "credentialPatternCandidates": [],
+  "sourceDigests": {
+    "deploy/dolphinscheduler-local/COMPONENT_EXECUTION_20261102.md": "d0aeb0be89adadfc727f0bbb1ac47e631ab4b747230397c62d4ed1bafa26d5df",
+    "yudao-module-dataforge/yudao-module-dataforge-server/src/main/java/cn/iocoder/yudao/module/dataforge/service/integration/IntegrationComponentCapabilitiesService.java": "9411fd130292dca8e1577ad7c5aa59d51857dfc395811ed5930bf80f9ba01eba",
+    "yudao-framework/yudao-spring-boot-starter-biz-etl/src/main/java/cn/iocoder/yudao/framework/etl/core/compile/EtlNativeSqlCapabilities.java": "7bd920db6179aad4d1e23c9721da5d10949dd688c8da68d0a3947efbaa7e558a",
+    "frontend/component-catalog.ts": "8af7f8198b73c1665a9193db00734dc2991a52dfd48dcb869ac82f5fe4ac3c8b"
+  },
+  "scannedArtifacts": [
+    {
+      "path": "components-20261102-backend-quality.json",
+      "bytes": 911,
+      "sha256": "f438ccc67f37cd0f40eb22c81b3306b606658af370a00dc47e30707613d8350b"
+    },
+    {
+      "path": "components-20261102-capability-matrix.json",
+      "bytes": 56193,
+      "sha256": "6c0ff2e786a26477ae4e3821899925a5ea9ffbd456e67cb6908b666c32c42c95"
+    },
+    {
+      "path": "components-20261102-consumer-tests.json",
+      "bytes": 4666,
+      "sha256": "6e4d796a4548f545bd7a5324e4a45b64700394ce13fda4078672c0ec3d9c8dad"
+    },
+    {
+      "path": "components-20261102-crypto.json",
+      "bytes": 849,
+      "sha256": "26f18b766c48ac7072324773c32b4cfd9fe10d11e3a6a2224c8e3cb575f96255"
+    },
+    {
+      "path": "components-20261102-dedup-ui-payloads.json",
+      "bytes": 904,
+      "sha256": "2ef5f1fbb843738256dc75a71b16505b49b683e4db2607878dd3568fc5aea882"
+    },
+    {
+      "path": "components-20261102-etl-tests.json",
+      "bytes": 9209,
+      "sha256": "a23ca590ebcb73775add700a7a71852c6a4490c7b9126d09f2836f08af4d28c7"
+    },
+    {
+      "path": "components-20261102-excel.json",
+      "bytes": 9452,
+      "sha256": "01ff1e8b0203786a97da0ac5648f93c67307f594b578a301483c73910b3e8128"
+    },
+    {
+      "path": "components-20261102-files.json",
+      "bytes": 3126,
+      "sha256": "ed8e1530fca4f3d6baa5592987fd3506e2730e1630cd51bbe6753d95b17de414"
+    },
+    {
+      "path": "components-20261102-frontend-quality.json",
+      "bytes": 787,
+      "sha256": "ac9ec4e6bea49d23cfedba8420c5ee48d5666b2ae40b275267b7d5b50991bca6"
+    },
+    {
+      "path": "components-20261102-ftp-gzip.json",
+      "bytes": 981,
+      "sha256": "8262b35c9962fb4d79dfa36fe236bed1b58a5a3d0911c0d1a4bf6456487ceb1c"
+    },
+    {
+      "path": "components-20261102-ftp.json",
+      "bytes": 2040,
+      "sha256": "51d615ea492710dd3a836d1fabec66ee7c010d73d3be002a01f42848be5be892"
+    },
+    {
+      "path": "components-20261102-hive.json",
+      "bytes": 1751,
+      "sha256": "6d75c489a8ca29eae0352c85d0718bada2e4cad60e88ec064c64aa48ac873e08"
+    },
+    {
+      "path": "components-20261102-http.json",
+      "bytes": 1427,
+      "sha256": "9998a1356ff3c45c3043195a9cd6744523d2825048e237450c646e1e335bad88"
+    },
+    {
+      "path": "components-20261102-native-control-transform-flink-all.log",
+      "bytes": 7259,
+      "sha256": "227098717787285a7c5519dae37e947ff553b24dcbd7549a2e1dae33707ce84d"
+    },
+    {
+      "path": "components-20261102-native-control-transform-flink-all.sql",
+      "bytes": 6182,
+      "sha256": "e5b7c8b715d17682e436f6b5b88061aa2e72350708b747d9b386ace1570f36d3"
+    },
+    {
+      "path": "components-20261102-native-control-transform-flink-dedup-duplicate-service.log",
+      "bytes": 151903,
+      "sha256": "aa06a66a3d4e6b95934a50c5767ef36113f78a7d647050f430525817694e775b"
+    },
+    {
+      "path": "components-20261102-native-control-transform-flink-dedup-duplicate.log",
+      "bytes": 3802,
+      "sha256": "1d37abe173f67df8128c770fbf37516bcb46728ad02a31d688fb53ea015774fc"
+    },
+    {
+      "path": "components-20261102-native-control-transform-flink-dedup-duplicate.sql",
+      "bytes": 2562,
+      "sha256": "ef76afd65e62984b32033b1975ace4cce1660c9192274e731a7d25ad100ab2d3"
+    },
+    {
+      "path": "components-20261102-native-control-transform-spark-all.log",
+      "bytes": 3464,
+      "sha256": "884e19a632a615145a9d4679d65b7933224298cbfc73cb9335a441e9f4a03bfb"
+    },
+    {
+      "path": "components-20261102-native-control-transform-spark-all.sql",
+      "bytes": 6006,
+      "sha256": "0029f434a1785e922144403c213e242bbde89b691604758c41467bcee3bd62af"
+    },
+    {
+      "path": "components-20261102-native-control-transform-spark-dedup-duplicate.log",
+      "bytes": 19453,
+      "sha256": "943d93540e03eb22e55daed3add762dca83558ef2b240d6b42dad0a5f1e46fbb"
+    },
+    {
+      "path": "components-20261102-native-control-transform-spark-dedup-duplicate.sql",
+      "bytes": 2396,
+      "sha256": "6cb84fc3012b9dc197503a637ef858b8fbcbd7901a58d575b6971b39a28da310"
+    },
+    {
+      "path": "components-20261102-native-control-transform.json",
+      "bytes": 9913,
+      "sha256": "18efc54fc222970c9fff1a862d1403df9a7a65526342b12ad787765cfe8446a8"
+    },
+    {
+      "path": "components-20261102-native-script-flink.json",
+      "bytes": 15001,
+      "sha256": "fae2804c743fef49ce89ade24cf5218cec0eaf7c506efcc3d3ec5bc9d26136ec"
+    },
+    {
+      "path": "components-20261102-native-script.json",
+      "bytes": 11941,
+      "sha256": "4e5d91233ac432554a24ff2dff12888e3cd5449324f43f5a627cc79dc1b3daf5"
+    },
+    {
+      "path": "components-20261102-platform-crypto-ftp-flow.json",
+      "bytes": 4907,
+      "sha256": "05b5a5b80f9c984b5225e2c13a17958f897dccaea01e9bc3859a767d13b9a8ff"
+    },
+    {
+      "path": "components-20261102-platform-http-crypto-ftp.json",
+      "bytes": 2832,
+      "sha256": "a8fb736cc477b5e4b6c9519b9a1762f85ee15ad32cbb74d32c9a448281c6f7fd"
+    },
+    {
+      "path": "components-20261102-platform-http-ftp-flow.json",
+      "bytes": 3367,
+      "sha256": "ad315880c93ad65acefbd2debfedbf95368bd5a827b3f76572f5139100d771d2"
+    },
+    {
+      "path": "components-20261102-platform-script-final-version.json",
+      "bytes": 1578,
+      "sha256": "db0b5c11205b867b27178dad3375a3045e73dfc1a0d357ece3c977b7c9fcdd6f"
+    },
+    {
+      "path": "components-20261102-platform-script-hutool-token.json",
+      "bytes": 1224,
+      "sha256": "0c536e8b102679ffe7dfde1538b57c0ce093ae217e663c81f1ade1095caa2666"
+    },
+    {
+      "path": "components-20261102-platform-script-token.json",
+      "bytes": 869,
+      "sha256": "e35ab29730460e21d3bbaa465b9239bac1152ffb6d1506fa2fe2957262f5c423"
+    },
+    {
+      "path": "components-20261102-postgresql-contracts.json",
+      "bytes": 3104,
+      "sha256": "1776654f2d8cbe9c529756599db78288d63773813b2b538c2a617c6d9190bfdd"
+    },
+    {
+      "path": "components-20261102-rabbitmq.json",
+      "bytes": 2228,
+      "sha256": "8595ba289b1f656e14b450dff32ca195f4c1a5404e64101853311732da0cf128"
+    },
+    {
+      "path": "components-20261102-reference.json",
+      "bytes": 14355,
+      "sha256": "56e3cb94f70be9ef01a0d05f65c57221a6e29b72579956a6c46d97aa9776dfff"
+    },
+    {
+      "path": "components-20261102-rocketmq.json",
+      "bytes": 2315,
+      "sha256": "83bda51eae5b969b6c5df07607d265de8353beb93011af313faa30a587d0407c"
+    },
+    {
+      "path": "components-20261102-script-docker8.json",
+      "bytes": 1285,
+      "sha256": "cdc693f4573105ce5e4ffd8c0391c8aab4e3f7b33a59cd77a0c7964c93d9790e"
+    },
+    {
+      "path": "components-20261102-transform-functions-binding.json",
+      "bytes": 6353,
+      "sha256": "d59800f3250dd975a4ba88ad0569c466199db8e743b14d0fe41b48e55d68645b"
+    },
+    {
+      "path": "components-20261102-transforms-flink-ordered-duplicate.log",
+      "bytes": 3994,
+      "sha256": "ee97d778feda2f25da1ff348320e1c9659150032684a386cda5c8706f69f43ac"
+    },
+    {
+      "path": "components-20261102-transforms-flink-ordered.log",
+      "bytes": 3827,
+      "sha256": "45138129a25233538c37d594a42be8f328fc2937ae8bc112e5382da1e0c43605"
+    },
+    {
+      "path": "components-20261102-transforms-flink-stateless.log",
+      "bytes": 28158,
+      "sha256": "0f8f52ef296f71be6485d30d0d77967d3113711557b8414e2738022f999a9fa0"
+    },
+    {
+      "path": "components-20261102-transforms-spark-ordered-duplicate.log",
+      "bytes": 16063,
+      "sha256": "724238df59a3a65dcd8302f9d62ae9d2b04fbea95cdb16117874a84352712e7e"
+    },
+    {
+      "path": "components-20261102-transforms-spark-ordered.log",
+      "bytes": 7133,
+      "sha256": "01f47fb780fc45bf5395e0fb0afe51a2ce4248d7edc18a5481e46f1f5d1e49f9"
+    },
+    {
+      "path": "components-20261102-transforms-spark-stateless.log",
+      "bytes": 5504,
+      "sha256": "3d1b62590727a89617fbbffa6e67813f930f7ecc8eee4b95b1cfd2ac73634414"
+    },
+    {
+      "path": "components-20261102-transforms.json",
+      "bytes": 7551,
+      "sha256": "a266e24f6dbdff8e4d52204e48ea80ff107402b14c7abe16ef1487146362e8ef"
+    },
+    {
+      "path": "components-20261102-ui-default-payloads.json",
+      "bytes": 7215,
+      "sha256": "8836428a167d1397cf7308b520a6ed7493f74c74309378f453013846d94fe858"
+    },
+    {
+      "path": "components-20261102-webservice.json",
+      "bytes": 1992,
+      "sha256": "6abdbe63025224526a221114e502086e335930b8006820046dee912493bf3472"
+    },
+    {
+      "path": "native-connector-ui-jsonb-20261102.json",
+      "bytes": 2341,
+      "sha256": "7206b5df1aff5a1c53642e6f99c846bbc0d4da14ca6a849677111606d4eda1a4"
+    },
+    {
+      "path": "native-hdfs-components-20261102.json",
+      "bytes": 2823,
+      "sha256": "88bf23e96e44e6ede43d89e34f1a26c77c7526667310f053679ce812839b3e91"
+    },
+    {
+      "path": "native-kafka-components-20261102.json",
+      "bytes": 1318,
+      "sha256": "3aaa084da7329286097352f639b456ed681fdca78934ff53651d7dbfac63fb2c"
+    },
+    {
+      "path": "native-mongo-components-20261102.json",
+      "bytes": 1480,
+      "sha256": "3d29fa45da762c8ceea425ce2b1ebf33bb3aec974f38b8005399009a6b07dd9b"
+    },
+    {
+      "path": "native-odps-wire-20261102.json",
+      "bytes": 3015,
+      "sha256": "0a1aa2ba81dd65b8bfe9e95890a42323c1973c3318cea661a9aacb7a961ac800"
+    },
+    {
+      "path": "native-redis-components-20261102.json",
+      "bytes": 2028,
+      "sha256": "59f9ea7bf147848f998c5f4353edfff9169e7ef69d02399995b136fe555c97c3"
+    },
+    {
+      "path": "native-script-artifacts/broker-negative.json",
+      "bytes": 339,
+      "sha256": "c0b147e3bc95957a9fad519b3e7e4505490386cee3270a9c46b42503b1ee2fac"
+    },
+    {
+      "path": "native-script-artifacts/components-flow-hutool-token-final-ftp.json",
+      "bytes": 5177,
+      "sha256": "5bf0b641e0d1c85b5ff531ed0307c2c2b4ea2ab88e5e15309bb962bbde745860"
+    },
+    {
+      "path": "native-script-artifacts/components-flow-hutool-token-ftp.json",
+      "bytes": 5160,
+      "sha256": "6997727c1c0a4674e0fb5d1077b0ad6802c9e63f68d075fba79b216e8c1256cd"
+    },
+    {
+      "path": "native-script-artifacts/components-flow-token-ftp.json",
+      "bytes": 4972,
+      "sha256": "053ff5ae1efbdc71c909303dd739fa7f3c8bb1a5ef6d0135f9953ea675adae2e"
+    },
+    {
+      "path": "native-script-artifacts/finalVersion-ds-definition.json",
+      "bytes": 13252,
+      "sha256": "fba39e43100701c7f76cc0df767d4bc6448bd2526d12e1bb61bb583d134a598c"
+    },
+    {
+      "path": "native-script-artifacts/finalVersion-native-task.log",
+      "bytes": 69749,
+      "sha256": "0d1272e2934bbbac83fae3997bb4115e06ca3033bf7775eb90ee018636fc667e"
+    },
+    {
+      "path": "native-script-artifacts/hutool-ds-definition.json",
+      "bytes": 13253,
+      "sha256": "1e08450a32ddf7c7b774cf2c0ee626de3c86211bb956fae04a69ac2e6394ed43"
+    },
+    {
+      "path": "native-script-artifacts/hutool-native-task.log",
+      "bytes": 69579,
+      "sha256": "809fdceddbae6b83dd9a8d80a42778a3c41f1b359be755155f06aa5d9963a356"
+    },
+    {
+      "path": "native-script-artifacts/launcher.jar",
+      "bytes": 73783,
+      "sha256": "a9e61b2aa608cd08763d48a130bbf6bc93e59d91a74b9d0169a1c633ac0a1e51"
+    },
+    {
+      "path": "native-script-artifacts/nonce-ds-definition.json",
+      "bytes": 13212,
+      "sha256": "727fcaa8818a20a0abacae68c640b42018b1fa729bf6f4133c76f97b025be470"
+    },
+    {
+      "path": "native-script-artifacts/nonce-native-task.log",
+      "bytes": 68992,
+      "sha256": "893ee52ed85589706c5a7b6fa55c02e59da838ffd477db7350fcd9d6f702d30a"
+    },
+    {
+      "path": "native-script-artifacts/platform-runtime.log",
+      "bytes": 44702,
+      "sha256": "02732d29ce34b700383650ced084fe426e9a3c0856af9b4eb4d0f394bdde67f1"
+    },
+    {
+      "path": "native-script-artifacts/sandbox-isolation.json",
+      "bytes": 289,
+      "sha256": "5d5e2ef85b2e567f309d2d4e8c56a05d96dfe81ab14653d4cd3a987ae0975b89"
+    },
+    {
+      "path": "native-script-artifacts/worker.jar",
+      "bytes": 91134,
+      "sha256": "e41b969c7660066c94254524d4a0bdfb8766a5da98fad1d4d28f80c9c3ee9f50"
+    },
+    {
+      "path": "native-script-flink-artifacts/00c6d71a57dfdd006c9e584e.args",
+      "bytes": 2070,
+      "sha256": "00c6d71a57dfdd006c9e584e255ba2dd15b77653b8f224ce067ae2709b854fc5"
+    },
+    {
+      "path": "native-script-flink-artifacts/057199370bcfd6f53886e28a.bin",
+      "bytes": 1900,
+      "sha256": "057199370bcfd6f53886e28a511f02cc94f2b06a9509256024e844a607d639dc"
+    },
+    {
+      "path": "native-script-flink-artifacts/05d5c1eb5ddfa7767c0d635e.bin",
+      "bytes": 48052,
+      "sha256": "05d5c1eb5ddfa7767c0d635e7c297f1a5de240ea008b540f2ef98cf85dda7fbf"
+    },
+    {
+      "path": "native-script-flink-artifacts/29cfd0682286a240470763e9.args",
+      "bytes": 2070,
+      "sha256": "29cfd0682286a240470763e9b95bc8b60de0dcb07d11835ecdb1033a6af61876"
+    },
+    {
+      "path": "native-script-flink-artifacts/44f3595ce830e73f82aa6f8b.args",
+      "bytes": 2070,
+      "sha256": "44f3595ce830e73f82aa6f8b013010db19a54520f5f9d0c5ad19f3c7cf051431"
+    },
+    {
+      "path": "native-script-flink-artifacts/49853beeed82f192fcca9d9b.bin",
+      "bytes": 48052,
+      "sha256": "49853beeed82f192fcca9d9bc5609e4cba3d169131bd487328144955d7a005d4"
+    },
+    {
+      "path": "native-script-flink-artifacts/4d78fd7e57b13d03c6856d91.bin",
+      "bytes": 48324,
+      "sha256": "4d78fd7e57b13d03c6856d91cf426a5575a7fb023333929292864e6d6068c9c8"
+    },
+    {
+      "path": "native-script-flink-artifacts/5b68461142ce074fd6230a5e.bin",
+      "bytes": 48324,
+      "sha256": "5b68461142ce074fd6230a5e3e6036656f955b22ae84db09567d16d28141fd25"
+    },
+    {
+      "path": "native-script-flink-artifacts/6b4fd0c9733b1bd93e7b0e58.bin",
+      "bytes": 48324,
+      "sha256": "6b4fd0c9733b1bd93e7b0e58f75f634abbcec71413820beb88fc57c8e422d21e"
+    },
+    {
+      "path": "native-script-flink-artifacts/6bf310fd2a1ac0a224c49c5f.args",
+      "bytes": 2074,
+      "sha256": "6bf310fd2a1ac0a224c49c5f35bc10497f487018469496813bb7943beaf4c7c3"
+    },
+    {
+      "path": "native-script-flink-artifacts/954d52d13e9b546f6beab444.bin",
+      "bytes": 48052,
+      "sha256": "954d52d13e9b546f6beab444475694dd9a9178014b8b9ffaef84c7ef2fa37483"
+    },
+    {
+      "path": "native-script-flink-artifacts/9d742b73adc81c1a8f707b04.args",
+      "bytes": 2070,
+      "sha256": "9d742b73adc81c1a8f707b04d1055d0f0cdf67080e534be6bf4757fb8958473c"
+    },
+    {
+      "path": "native-script-flink-artifacts/b87bce9aaac61fe110b5c27b.bin",
+      "bytes": 1724,
+      "sha256": "b87bce9aaac61fe110b5c27b53ad2c692df3b1f4da5c4c22c13b5d4650fa7e07"
+    },
+    {
+      "path": "native-script-flink-artifacts/baf474a5e17e6ccadccb3e15.args",
+      "bytes": 2074,
+      "sha256": "baf474a5e17e6ccadccb3e1546fcae84de0c88a2cf04f8220102770cdfadfc30"
+    },
+    {
+      "path": "native-script-flink-artifacts/bc68b4316002bdb2e8680042.args",
+      "bytes": 2070,
+      "sha256": "bc68b4316002bdb2e868004274f78c33232d60966d0578e399957d636f05cdad"
+    },
+    {
+      "path": "native-script-flink-artifacts/c20c1f4d587d0081b4837464.bin",
+      "bytes": 1687,
+      "sha256": "c20c1f4d587d0081b483746440f7faf48bd48a02bb4ee886679a626efb9c3ea8"
+    },
+    {
+      "path": "native-script-flink-artifacts/c3d39314d53bb9ace6260b01.bin",
+      "bytes": 48042,
+      "sha256": "c3d39314d53bb9ace6260b013c66d7d0486c37312a0cbeb7f520b3d6b7a261c7"
+    },
+    {
+      "path": "native-script-flink-artifacts/d603a8052dbb4dec2b057fec.args",
+      "bytes": 2086,
+      "sha256": "d603a8052dbb4dec2b057fecae7d5df6fd764a2de6de2e0b378b7dce66720c6b"
+    },
+    {
+      "path": "native-script-flink-artifacts/e8955194d78624e4bdd6dcdb.bin",
+      "bytes": 48234,
+      "sha256": "e8955194d78624e4bdd6dcdb79caf6ac11484733014437e335843ba69d12d6b9"
+    },
+    {
+      "path": "native-script-flink-artifacts/f31b8fb3636298652b9b0364.args",
+      "bytes": 2078,
+      "sha256": "f31b8fb3636298652b9b036480fe14e283e42efbef10c60c3f4579dcffd907fa"
+    },
+    {
+      "path": "native-script-flink-artifacts/f37fb61aebeb845a7989c0ec.bin",
+      "bytes": 48042,
+      "sha256": "f37fb61aebeb845a7989c0ec929ed72772524b9891c4089887649308c18ed190"
+    },
+    {
+      "path": "native-script-flink-artifacts/fda792ebda13aa8c2b51a72a.bin",
+      "bytes": 49847,
+      "sha256": "fda792ebda13aa8c2b51a72ad94579f0843deea697e35c6eef75a127ecf58eb5"
+    },
+    {
+      "path": "native-script-flink-artifacts/fe95309daa6b1ad0633a9ee2.args",
+      "bytes": 2070,
+      "sha256": "fe95309daa6b1ad0633a9ee276ecfbfc817e34e71ee08cb6d618dca2a2126f3f"
+    },
+    {
+      "path": "native-tdengine-components-20261102-0.log",
+      "bytes": 2023,
+      "sha256": "a95ddfe35a5b5b4053c2f252e2a31184cc33af89703e12d09aa6eb83fb0f5c2f"
+    },
+    {
+      "path": "native-tdengine-components-20261102-1.log",
+      "bytes": 2082,
+      "sha256": "75dcebde95160d14e6fead22ea88ea2e69b2062f34ce506012b1236fc3f457f5"
+    },
+    {
+      "path": "native-tdengine-components-20261102-runtime-0.log",
+      "bytes": 64426,
+      "sha256": "3a6ceab3cf8f7f0f2f838a804d4d225ea8a4b2da8a54490e4c42abfb89831f4b"
+    },
+    {
+      "path": "native-tdengine-components-20261102-runtime-1.log",
+      "bytes": 64784,
+      "sha256": "6633d4b4dd9cb8bd2f3841ecdb64ed0b3012420f024f3c13cf9c03169bcb5100"
+    },
+    {
+      "path": "native-tdengine-components-20261102.json",
+      "bytes": 3869,
+      "sha256": "0275cef15f8c89ad5752d551178452c356972b9f0ec5816f853ea95d62b2039a"
+    }
+  ]
+}

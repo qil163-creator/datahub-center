@@ -1,0 +1,5 @@
+/* stylelint-disable selector-pseudo-class-no-unknown */
+:deep(.ant-table-thead > tr > th),
+:deep(.ant-table-tbody > tr > td) {
+  font-size: 12px;
+}

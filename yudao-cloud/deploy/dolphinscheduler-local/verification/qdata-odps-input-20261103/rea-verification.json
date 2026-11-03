@@ -1,0 +1,276 @@
+[
+  {
+    "scenario": "FULL",
+    "evidenceId": "ev_139de0d2ef7c5cf80f6d696840b8c4891cc978d1897a9dcd53f59e5f8acf1dd3",
+    "screenshot": "full.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "TIME",
+    "evidenceId": "ev_6f74b082e5e00774ef0f30f249916d1e6364c76f5448d32dc7bae59adbc29557",
+    "screenshot": "time.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "fixed-condition",
+        "status": "completed"
+      },
+      {
+        "stepId": "modal-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "SQL",
+    "evidenceId": "ev_818d26cd8cd20b6077ce7a0a6cd68912fc117f28f1946ea2ca7ea58062147003",
+    "screenshot": "sql.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "FULL_MOBILE",
+    "evidenceId": "ev_8e5514e8b9ee59875ba32fec44b0d75216ee4930bf3f5dfc47ca7b42e9d1fbbb",
+    "screenshot": "full-mobile.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":390,\"docWidth\":390,\"modalWidth\":374}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "id",
+    "evidenceId": "ev_f64c75ed9c38b20fa0dff0c5c05fdfbe70bdf8832841948af9edcb61a6b77bd7",
+    "screenshot": "id.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "range-modal",
+    "evidenceId": "ev_8920869742cbb4bea16c7c15f9062b21bd2b2f4ba3883f9143a59fe22ca8f9f2",
+    "screenshot": "range-modal.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "edit-condition",
+        "status": "completed"
+      },
+      {
+        "stepId": "modal-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "sql-baseline-modal",
+    "evidenceId": "ev_1f580d2814caad7b37dcc44bcb01e9a33158e9e7fc6bb7302181798d9ca20d62",
+    "screenshot": "sql-baseline-modal.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      },
+      {
+        "stepId": "edit-sql-baseline",
+        "status": "completed"
+      },
+      {
+        "stepId": "monaco-loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1823,\"docWidth\":1823,\"modalWidth\":1200}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "full-1200",
+    "evidenceId": "ev_7ac1c5bc1214110219509505348e8b8c0d14c8465149a6a8c1a8d641ff749f2e",
+    "screenshot": "full-1200.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1200,\"docWidth\":1200,\"modalWidth\":1168}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "full-1024",
+    "evidenceId": "ev_f3047ce83e63d4d62b9a6df6a2fd23bc2aeeedf6572dafdf7b9a095ab1c88042",
+    "screenshot": "full-1024.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":1024,\"docWidth\":1024,\"modalWidth\":992}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  },
+  {
+    "scenario": "full-768",
+    "evidenceId": "ev_76ac8f3ce2af8625b37eddf7d3a6de07a9db5fcf42aa3a1c1aaa6f2c03afbbe8",
+    "screenshot": "full-768.png",
+    "steps": [
+      {
+        "stepId": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "stepId": "loaded",
+        "status": "completed"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "layout": [
+      "ODPS_FIXTURE_LAYOUT {\"width\":768,\"docWidth\":768,\"modalWidth\":752}"
+    ],
+    "realApiRequests": 0,
+    "limitations": [
+      "Only static fixture on existing port 5999; request module importmap returns controlled data.",
+      "Not backend end-to-end validation or real ODPS cloud execution."
+    ]
+  }
+]

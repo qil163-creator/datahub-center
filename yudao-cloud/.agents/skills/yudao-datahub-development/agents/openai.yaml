@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Yudao DataHub Development'
+  short_description: 'DataHub 跨端开发、系统调试、组件复用、迁移与验证'
+  default_prompt: "Use $yudao-datahub-development to implement, debug, or review this DataHub change with the repository's architecture, security, migration, and verification constraints."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-11-02T14:29:32+0800",
+  "engine": "Spark3.5.6 native SQL",
+  "redis": "Redis8.2.3",
+  "connector": "redis.clients:jedis:7.4.1",
+  "jarSha256": "6c61fd7d659feab1444171a14168e7d12b5af72f656217f5f5d64e88a3c6173e",
+  "cases": [
+    {
+      "name": "three-models-read-write",
+      "exitCode": 0,
+      "sqlSha256": "56cb0a6c778dde3cdbc477f91fc67b95b3c8ef1e26d1764e96c7a4cfc6137f07"
+    },
+    {
+      "name": "string-exact-row-verification",
+      "rowCount": 2,
+      "exactLargeIntegerDecimalDateUnicodeEmptyNull": true,
+      "longUnicodeCodePoints": 4400,
+      "passed": true
+    },
+    {
+      "name": "hash-exact-row-verification",
+      "rowCount": 2,
+      "exactLargeIntegerDecimalDateUnicodeEmptyNull": true,
+      "longUnicodeCodePoints": 4400,
+      "passed": true
+    },
+    {
+      "name": "list-exact-row-verification",
+      "rowCount": 2,
+      "exactLargeIntegerDecimalDateUnicodeEmptyNull": true,
+      "longUnicodeCodePoints": 4400,
+      "passed": true
+    },
+    {
+      "name": "ungranted-secret-reference",
+      "exitCode": 1,
+      "sqlSha256": "1a1d7fb03da04c25c39910a29be2ea90d2cb8ed70bf2c2ea255e4c55b860f9f5"
+    },
+    {
+      "name": "fractional-integer-rejected",
+      "exitCode": 1,
+      "sqlSha256": "1a1d7fb03da04c25c39910a29be2ea90d2cb8ed70bf2c2ea255e4c55b860f9f5"
+    },
+    {
+      "name": "row-budget-rejected",
+      "exitCode": 1,
+      "sqlSha256": "ec7b6a59b18aefae52d00a1b83d97b690d2c2095610dbf47a60a5fd289d4f556"
+    }
+  ],
+  "credentialPlaintextRecorded": false,
+  "existingUnrelatedKeyUnchanged": true,
+  "limits": [
+    "原生Spark与真实Redis端到端，不声明管理端触发验收",
+    "SCAN批处理不是一致性快照；string为SET替换、hash为显式字段HSET/HDEL、list为RPUSH追加",
+    "批次逐条确认Redis响应，失败可能已写入部分命令；不声明全局回滚或恰好一次，list重试可能重复",
+    "带ACL的独立测试环境，TLS编译和端点绑定已实现但本次使用隔离网络非TLS夹具"
+  ]
+}

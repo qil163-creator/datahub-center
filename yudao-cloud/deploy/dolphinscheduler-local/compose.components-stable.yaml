@@ -1,0 +1,42 @@
+name: components-stable
+services:
+  ds:
+    image: sha256:9ab13e1abd8f42ab5489313c07fb6e3e44bd51b354e104f283c6216b314e6966
+    pull_policy: never
+    container_name: components-stable-ds
+    hostname: components-stable-ds
+    user: '0:0'
+    entrypoint: [/bin/bash, /run/components-stable-start.sh]
+    restart: 'no'
+    ports:
+      - 127.0.0.1:12347:12345
+    env_file: [./runtime/components-stable/ds.env]
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms128m -Xmx512m -Xmn128m -Xss512k -XX:ActiveProcessorCount=2 -XX:MaxDirectMemorySize=128m -Duser.timezone=Asia/Shanghai -XX:+ExitOnOutOfMemoryError
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/var/lib/components-stable/metadata/dolphinscheduler;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=true
+      WORKER_GROUP: datahub-development
+      MASTER_WORKFLOW_EVENT_BUS_FIRE_THREAD_COUNT: '2'
+      MASTER_LOGIC_TASK_CONFIG_TASK_EXECUTOR_THREAD_COUNT: '2'
+      WORKER_PHYSICAL_TASK_CONFIG_TASK_EXECUTOR_THREAD_SIZE: '2'
+      MASTER_SERVER_LOAD_PROTECTION_MAX_SYSTEM_MEMORY_USAGE_PERCENTAGE_THRESHOLDS: '0.95'
+      WORKER_SERVER_LOAD_PROTECTION_MAX_SYSTEM_MEMORY_USAGE_PERCENTAGE_THRESHOLDS: '0.95'
+    volumes:
+      - components_stable_metadata:/var/lib/components-stable/metadata
+      - components_stable_data:/tmp/dolphinscheduler
+      - components_stable_logs:/opt/dolphinscheduler/logs
+      - ./components-stable-start.sh:/run/components-stable-start.sh:ro
+      - ./ComponentsStableMetadata.java:/run/ComponentsStableMetadata.java:ro
+      - ./runtime/components-stable/artifacts:/run/components-stable-artifacts:ro
+    mem_limit: 2304m
+    networks: [components_stable_network]
+volumes:
+  components_stable_metadata:
+    name: components-stable-metadata
+  components_stable_data:
+    name: components-stable-data
+  components_stable_logs:
+    name: components-stable-logs
+networks:
+  components_stable_network:
+    name: components-stable-network

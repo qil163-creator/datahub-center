@@ -1,0 +1,2 @@
+cn.iocoder.yudao.framework.dbswitch.config.YudaoDbSwitchAutoConfiguration
+cn.iocoder.yudao.framework.dbswitch.config.DbSwitchQueryMetricsAutoConfiguration

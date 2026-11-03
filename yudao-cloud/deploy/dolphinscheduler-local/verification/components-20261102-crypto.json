@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "scope": "direct engine CLI with temporary test key, not management API or DolphinScheduler task acceptance",
+  "algorithms": [
+    "AES",
+    "SM4",
+    "AES128",
+    "AES256",
+    "DES",
+    "3DES"
+  ],
+  "nullPropagation": true,
+  "checks": {
+    "SPARK": {
+      "passed": true,
+      "exitCode": 0,
+      "markerObserved": true,
+      "sqlSha256": "eb83b940f3b710c63b7d3fe28f6e3aac2f323e74c9ef2f1841b354600c5c0ae7",
+      "outputSha256": "885c9bc74e5d9067b7fa6592c582e710733b74fffd9d0be9a15f8c7fcc4eb5e6"
+    },
+    "FLINK": {
+      "passed": true,
+      "exitCode": 0,
+      "markerObserved": true,
+      "sqlSha256": "df19960d5ec1011e54a021af07319565c91e16f5272db75f526b57b18e60fd92",
+      "outputSha256": "77c36239d1063a85ed41987f8038fe51ae50bb23772a4f0412cb046b95d881e8"
+    }
+  },
+  "temporaryKeysRemoved": true
+}

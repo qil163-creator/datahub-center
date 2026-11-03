@@ -1,0 +1,84 @@
+{
+  "verifiedAt": "2026-11-02T13:04:19.094006+08:00",
+  "engine": "Apache Spark 3.5.6 / Java 17",
+  "execution": "Existing local DS worker container, direct official spark-sql CLI, local[1], 512m; not a DS scheduled-instance acceptance.",
+  "compiler": "EtlNativeFileCompiler",
+  "unitTests": {
+    "class": "EtlNativeFileCompilerTest",
+    "executed": 5,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": [
+    {
+      "case": "Spark native CSV/JSONL/GBK reads",
+      "exitCode": 0,
+      "expectedRows": [
+        "1\tAlice;水",
+        "2\tB\"ob",
+        "3\tJson水\t12345.6789",
+        "4\tQuoted\"name\t0.1000",
+        "6\t中文"
+      ],
+      "passed": true
+    },
+    {
+      "case": "csv-malformed",
+      "exitCode": 1,
+      "expectedFailure": "MALFORMED_RECORD_IN_PARSING",
+      "passed": true
+    },
+    {
+      "case": "csv-header-mismatch",
+      "exitCode": 1,
+      "expectedFailure": "CSV header does not conform to the schema",
+      "passed": true
+    },
+    {
+      "case": "jsonl-malformed",
+      "exitCode": 1,
+      "expectedFailure": "MALFORMED_RECORD_IN_PARSING",
+      "passed": true
+    }
+  ],
+  "sqlSha256": {
+    "csv-gbk.sql": "e160b480044e3252fac52cc80fefa527e2e41e92709d19def6451afddfcf8597",
+    "csv-header-mismatch.sql": "dd405d186f1579fdbebd4682a5c39fd6de9d51a1a4cb332dd9002afae6b13ecb",
+    "csv-malformed.sql": "08dc910b6b06d01fddd73d94f47972d1f3a92efb6316615c21bed45a7bd3c84b",
+    "csv.sql": "bf2f35f53f79477b8b1b821239c90dab7c12e742c1bb4c2517f51da85ef368d4",
+    "jsonl-malformed.sql": "21eb645d5665ac68e306658616391732e2ab5824a3957818b39ccaffd01172a9",
+    "jsonl.sql": "af2429fb75d34efba3c4388912373c9f21981b629b86e414029bc5a2f0456000",
+    "positive.sql": "b3f996bce64392dd84dfe64ee5052f59486e0da955548bbbe2e051b7c913c599"
+  },
+  "authorization": "Only explicit administrator Binding root and allowed connector code; upload fileId and URLs are rejected. The application consumer must additionally resolve task-authorized resourceBindingId.",
+  "remainingLimitations": [
+    "SPARK batch only; no unbounded file monitoring or Flink file execution.",
+    "CSV full contiguous source schema required; startColumn is projection; startRow is 1 or 2 with header. Arbitrary row skipping is rejected.",
+    "JSONL only top-level scalar fields with explicit types; nested JSON paths rejected.",
+    "Excel needs a separate managed full-file conversion path.",
+    "Field length/scale conversions are rejected; explicitly declared DECIMAL(p,s) is supported.",
+    "Worker mount/symlink isolation remains administrator deployment responsibility."
+  ],
+  "csvNullEmptyDistinction": {
+    "engine": "Spark3.5.6 official spark-sql",
+    "exitCode": 0,
+    "defaultNullValue": "\\N",
+    "customNullValue": "__NULL__",
+    "quotedEmptyText": {
+      "isNull": false,
+      "length": 0
+    },
+    "explicitNull": {
+      "isNull": true
+    },
+    "backslashNWithCustomMarker": {
+      "isNull": false,
+      "length": 2,
+      "hex": "5C4E"
+    },
+    "fixtures": [
+      "EtlNativeFileCompilerTest.csvKeepsQuotedEmptyTextDistinctFromExplicitNullMarkers"
+    ],
+    "passed": true
+  }
+}

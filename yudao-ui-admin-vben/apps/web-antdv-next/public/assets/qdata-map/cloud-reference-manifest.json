@@ -1,0 +1,19 @@
+{
+  "source": "codex-clipboard-e7c309ff-49ad-4ea9-a77a-a8bc43f5eba6.png",
+  "sourceDimensions": [
+    3558,
+    1882
+  ],
+  "file": "icon-asset-cloud-reference.png",
+  "crop": [
+    804,
+    304,
+    842,
+    342
+  ],
+  "cssDimensions": [
+    25.333,
+    25.333
+  ],
+  "notes": "仅裁切来源蓝色云形图标，文字与徽标由DOM渲染。"
+}

@@ -1,0 +1,80 @@
+{
+  "verifiedAt": "2026-11-02T15:13:01+0800",
+  "engine": "Apache Flink1.20.3 / Java17",
+  "sdk": "Official RocketMQ5.3.2 client/ACL SDK, managed DynamicTable adapter",
+  "broker": "Official Apache RocketMQ5.3.2 isolated NameServer/Broker with ACL1, no host ports",
+  "actualRows": [
+    {
+      "id": 9007199254740993,
+      "标签": "河道 O'Reilly"
+    },
+    {
+      "id": 9007199254740995,
+      "标签": "restart_检查点后"
+    },
+    {
+      "id": 9007199254740994,
+      "标签": "live_启动后"
+    }
+  ],
+  "initialAndLiveExact": true,
+  "mappedUnicodeOutput": true,
+  "brokerCheckpointOffsets": [
+    {
+      "queue": 0,
+      "end": 1,
+      "saved": 1
+    },
+    {
+      "queue": 1,
+      "end": 1,
+      "saved": 1
+    }
+  ],
+  "confirmedOffsetRestartExact": true,
+  "stopped": true,
+  "jobIds": [],
+  "runtimeContract": {
+    "sourceBytes": 1885,
+    "sinkBytes": 1398,
+    "jobGraphBytes": 26444,
+    "checkpointBytes": 100,
+    "accessKeyAndSecretSentinelMatches": 0,
+    "officialCheckpointSerializerExact": true,
+    "resourceScopeNegatives": 3
+  },
+  "negative": [
+    {
+      "case": "fractional-integer",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "newOutputRows": 0
+    },
+    {
+      "case": "unapproved-secret-ref",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "newOutputRows": 0
+    },
+    {
+      "case": "credential-address-redirect",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "newOutputRows": 0
+    },
+    {
+      "case": "broker-invalid-authentication",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "newOutputRows": 0
+    }
+  ],
+  "sqlSha256": "48a7c566545194dbd56cee1b4a3b6ea4141bf042cf2374de709365f4aa0c44d6",
+  "runtimeJarSha256": "bd838b0b23d5ed7bf4cb939ab20008aa938f55d33609da6461b76c0443eabae5",
+  "limits": [
+    "Official SDK5.3.2 and observed Flink1.20.3/Java17 only; no claim for arbitrary RocketMQ/Flink versions.",
+    "Independent approved task consumer group; at least once across external output failures; no transactional exactly-once claim.",
+    "Direct Flink CLI acceptance, not a management API or scheduled DS instance.",
+    "Plaintext transport only within this isolated authenticated fixture; TLS trust settings fail closed but TLS handshake not accepted here."
+  ]
+}

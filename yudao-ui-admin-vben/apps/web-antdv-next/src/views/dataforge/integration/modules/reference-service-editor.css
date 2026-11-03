@@ -1,0 +1,193 @@
+.qi-service-editor {
+  display: grid;
+  gap: 20px;
+}
+
+.qi-service-steps {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  min-height: 40px;
+  margin: 0 0 15px;
+  overflow: hidden;
+}
+
+.qi-service-steps button {
+  position: relative;
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 16px;
+  color: #a8abb2;
+  cursor: pointer;
+  outline: none;
+  background: #f6f7f9;
+  border: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 50%,
+    calc(100% - 20px) 100%,
+    0 100%,
+    20px 50%
+  );
+}
+
+.qi-service-steps button:first-child {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 50%,
+    calc(100% - 20px) 100%,
+    0 100%
+  );
+}
+
+.qi-service-steps button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+}
+
+.qi-service-steps button.active {
+  color: #fff;
+  background: #2f62ff;
+}
+
+.qi-service-form {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 22px 0;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.qi-service-form > label {
+  padding-right: 12px;
+  text-align: right;
+}
+
+.qi-service-form > label.required::before {
+  margin-right: 4px;
+  color: #f56c6c;
+  content: '*';
+}
+
+.qi-service-inline {
+  display: flex;
+  gap: 12px;
+}
+
+.qi-service-inline > .ant-input {
+  flex: 1;
+}
+
+.qi-service-inline > .ant-select {
+  width: 100px;
+  min-width: 100px;
+}
+
+.qi-service-step-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.qi-service-tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.qi-service-tabs button {
+  padding: 10px 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+}
+
+.qi-service-tabs button[aria-selected='true'] {
+  color: #2666fb;
+  border-bottom-color: #2666fb;
+}
+
+.qi-service-table-area {
+  overflow-x: auto;
+}
+
+.qi-service-table-area > .ant-btn {
+  margin-top: 16px;
+}
+
+.qi-service-editor .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+.qi-service-editor .qi-reference-fields-table th:last-child {
+  width: 120px;
+}
+
+.qi-service-editor .qi-reference-empty {
+  height: 400px;
+}
+
+.qi-service-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.qi-service-body-switch {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88px;
+  color: #909399;
+}
+
+.qi-service-output-table .qi-reference-fields-table th:first-child {
+  width: 55px;
+}
+
+.qi-service-output-table .qi-reference-empty {
+  height: 500px;
+}
+
+@media (max-width: 768px) {
+  .qi-service-form {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .qi-service-form > label {
+    text-align: left;
+  }
+
+  .qi-service-inline {
+    flex-wrap: wrap;
+  }
+
+  .qi-service-steps button {
+    gap: 6px;
+    padding: 8px 4px;
+    font-size: 13px;
+  }
+}
+
+.qi-service-data-paths {
+  display: grid;
+  gap: 10px;
+}

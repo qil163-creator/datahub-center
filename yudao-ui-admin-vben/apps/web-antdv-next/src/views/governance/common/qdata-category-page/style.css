@@ -1,0 +1,62 @@
+.qpc-icon {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  background-color: currentcolor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.qpc-tree-open,
+.qpc-tree-closed {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: currentcolor;
+  mask-image: url('/assets/qdata-project-category/chevron-right.png');
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.qpc-tree-open { transform: rotate(90deg); }
+
+.qpc-description-cell {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.qpc-row-actions {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.qpc .ant-switch-checked { background: #4a6cf7; }
+
+.qpc .ant-switch-checked:hover:not(.ant-switch-disabled) { background: #4163e8; }
+
+.qpc .vxe-toolbar {
+  min-height: 54px;
+  padding: 8px 14px;
+  background: #fff;
+}
+
+.qpc-toolbar-actions .ant-btn-primary {
+  background: #4a6cf7;
+  border-color: #4a6cf7;
+}
+
+.qpc-toolbar-actions .ant-btn-primary:hover {
+  background: #4163e8;
+  border-color: #4163e8;
+}
+
+.qpc-modal .ant-modal-header { border-bottom: 1px solid #edf0f5; }
+
+.qpc-modal .ant-modal-footer { border-top: 1px solid #edf0f5; }

@@ -1,0 +1,200 @@
+# Yudao DataHub 微服务部署编排。
+#
+# 启动前必须设置：
+#   PowerShell：
+#     $env:NACOS_SERVER_ADDR = 'host.docker.internal:8848'
+#     $env:NACOS_NAMESPACE = '请替换为命名空间ID'
+#   Bash：
+#     export NACOS_SERVER_ADDR='host.docker.internal:8848'
+#     export NACOS_NAMESPACE='请替换为命名空间ID'
+# 如果 Nacos 不运行在当前 Docker 主机上，请改为容器可访问的远程地址。
+# 可选覆盖项：
+#   SPRING_PROFILES_ACTIVE, NACOS_GROUP, NACOS_USERNAME, NACOS_PASSWORD,
+#   YUDAO_LOG_DIR, JAVA_TOOL_OPTIONS, SKYWALKING_AGENT_DIR,
+#   SW_AGENT_COLLECTOR_BACKEND_SERVICES，以及各服务对应的 YUDAO_*_IMAGE 变量。
+#
+# 默认使用的 test 配置环境在仓库中没有对应的 application-test.yaml。
+# 启动前，Nacos 中必须存在每个 <spring.application.name>-test.yaml 配置，
+# 并包含 PostgreSQL、Redis 以及其他已启用集成所需的配置。
+# Nacos、PostgreSQL 和 Redis 是外部前置服务。Nacos 中配置的所有地址都必须
+# 能从容器内访问；若依赖运行在当前 Docker 主机上，请使用
+# host.docker.internal，不能使用 127.0.0.1。XXL-Job、对象存储、MQ、
+# SeaTunnel 和 DolphinScheduler 仅在启用相应功能时需要，并由外部管理。
+# 本 Compose 仅编排预先构建好的应用镜像，不负责构建镜像。
+# 应用镜像必须提供 Java 25 运行时。yudao-server 聚合应用属于另一种部署
+# 形态，不能与以下微服务同时运行。
+
+name: yudao-cloud
+
+x-app-environment: &app-environment
+  TZ: "${TZ:-Asia/Shanghai}"
+  SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-test}"
+  SPRING_CLOUD_NACOS_SERVER_ADDR: "${NACOS_SERVER_ADDR:?NACOS_SERVER_ADDR is required}"
+  SPRING_CLOUD_NACOS_USERNAME: "${NACOS_USERNAME:-}"
+  SPRING_CLOUD_NACOS_PASSWORD: "${NACOS_PASSWORD:-}"
+  SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: "${NACOS_SERVER_ADDR:?NACOS_SERVER_ADDR is required}"
+  SPRING_CLOUD_NACOS_CONFIG_NAMESPACE: "${NACOS_NAMESPACE:?NACOS_NAMESPACE is required}"
+  SPRING_CLOUD_NACOS_CONFIG_GROUP: "${NACOS_GROUP:-DEFAULT_GROUP}"
+  SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: "${NACOS_SERVER_ADDR:?NACOS_SERVER_ADDR is required}"
+  SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE: "${NACOS_NAMESPACE:?NACOS_NAMESPACE is required}"
+  SPRING_CLOUD_NACOS_DISCOVERY_GROUP: "${NACOS_GROUP:-DEFAULT_GROUP}"
+  # 未启用 SkyWalking 时保持为空。启用时，将此选项指向下方挂载的探针，例如：
+  # -javaagent:/data/skywalking/skywalking-agent/skywalking-agent.jar
+  JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-}"
+  SW_AGENT_TRACE_IGNORE_PATH: "${SW_AGENT_TRACE_IGNORE_PATH:-Redisson/PING,/actuator/**,/admin/**}"
+  SW_AGENT_COLLECTOR_BACKEND_SERVICES: "${SW_AGENT_COLLECTOR_BACKEND_SERVICES:-}"
+
+x-app-defaults: &app-defaults
+  restart: unless-stopped
+  init: true
+  stop_grace_period: 60s
+  networks:
+    - backend
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  security_opt:
+    - no-new-privileges:true
+  volumes:
+    - type: bind
+      source: "${YUDAO_LOG_DIR:-/docker/yudao-cloud/logs}"
+      target: /root/logs
+    - type: bind
+      source: "${SKYWALKING_AGENT_DIR:-/data/skywalking/skywalking-agent}"
+      target: /data/skywalking/skywalking-agent
+      read_only: true
+  logging:
+    driver: json-file
+    options:
+      max-size: "20m"
+      max-file: "5"
+
+x-healthcheck-defaults: &healthcheck-defaults
+  test:
+    - CMD-SHELL
+    - >-
+      if command -v curl >/dev/null 2>&1; then
+        curl -fsS --max-time 3
+        http://127.0.0.1:$${SERVER_PORT}/actuator/health >/dev/null;
+      else
+        bash -ec ': </dev/tcp/127.0.0.1/'$${SERVER_PORT};
+      fi
+  interval: 15s
+  timeout: 5s
+  retries: 20
+  start_period: 90s
+
+services:
+  yudao-system:
+    <<: *app-defaults
+    image: "${YUDAO_SYSTEM_IMAGE:-yudao-module-system-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "48081"
+      SW_AGENT_NAME: system-server
+    expose: ["48081"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-infra:
+    <<: *app-defaults
+    image: "${YUDAO_INFRA_IMAGE:-yudao-module-infra-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "49082"
+      SW_AGENT_NAME: infra-server
+    expose: ["49082"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-report:
+    <<: *app-defaults
+    image: "${YUDAO_REPORT_IMAGE:-yudao-module-report-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "48084"
+      SW_AGENT_NAME: report-server
+    expose: ["48084"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-bpm:
+    <<: *app-defaults
+    image: "${YUDAO_BPM_IMAGE:-yudao-module-bpm-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "48183"
+      SW_AGENT_NAME: bpm-server
+    expose: ["48183"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-ai:
+    <<: *app-defaults
+    image: "${YUDAO_AI_IMAGE:-yudao-module-ai-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "48090"
+      SW_AGENT_NAME: ai-server
+    expose: ["48090"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-supply:
+    <<: *app-defaults
+    image: "${YUDAO_SUPPLY_IMAGE:-yudao-module-supply-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "50001"
+      SW_AGENT_NAME: supply-server
+    expose: ["50001"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-asset:
+    <<: *app-defaults
+    image: "${YUDAO_ASSET_IMAGE:-yudao-module-asset-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "50003"
+      SW_AGENT_NAME: asset-server
+    expose: ["50003"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-governance:
+    <<: *app-defaults
+    image: "${YUDAO_GOVERNANCE_IMAGE:-yudao-module-governance-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "50004"
+      SW_AGENT_NAME: governance-server
+    expose: ["50004"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-modeling:
+    <<: *app-defaults
+    image: "${YUDAO_MODELING_IMAGE:-yudao-module-modeling-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "50014"
+      SW_AGENT_NAME: modeling-server
+    expose: ["50014"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-dataforge:
+    <<: *app-defaults
+    image: "${YUDAO_DATAFORGE_IMAGE:-yudao-module-dataforge-server:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "50024"
+      SW_AGENT_NAME: dataforge-server
+    expose: ["50024"]
+    healthcheck: *healthcheck-defaults
+
+  yudao-gateway:
+    <<: *app-defaults
+    image: "${YUDAO_GATEWAY_IMAGE:-yudao-gateway:latest}"
+    environment:
+      <<: *app-environment
+      SERVER_PORT: "48083"
+      SW_AGENT_NAME: gateway-server
+    ports:
+      - "${YUDAO_BIND_ADDRESS:-127.0.0.1}:${YUDAO_GATEWAY_HOST_PORT:-48083}:48083"
+    healthcheck: *healthcheck-defaults
+
+networks:
+  backend:
+    driver: bridge

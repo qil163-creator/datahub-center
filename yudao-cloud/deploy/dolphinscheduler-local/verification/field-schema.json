@@ -1,0 +1,186 @@
+{
+  "taskId": 1002,
+  "normal": {
+    "errors": [],
+    "nodes": {
+      "read": {
+        "complete": true,
+        "inputFields": [],
+        "outputFields": [
+          {
+            "dataType": "int8",
+            "name": "id",
+            "nullable": false,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "read"
+          }
+        ]
+      },
+      "constant": {
+        "complete": true,
+        "inputFields": [
+          {
+            "dataType": "int8",
+            "name": "id",
+            "nullable": false,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "read"
+          }
+        ],
+        "outputFields": [
+          {
+            "dataType": "int8",
+            "name": "id",
+            "nullable": false,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "String",
+            "name": "label",
+            "sourceName": "constant"
+          }
+        ]
+      },
+      "write": {
+        "complete": true,
+        "inputFields": [
+          {
+            "dataType": "int8",
+            "name": "id",
+            "nullable": false,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "read"
+          },
+          {
+            "dataType": "String",
+            "name": "label",
+            "sourceName": "constant"
+          }
+        ],
+        "outputFields": [
+          {
+            "dataType": "int8",
+            "name": "id",
+            "nullable": true,
+            "sourceName": "write"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "write"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "label",
+            "nullable": true,
+            "sourceName": "write"
+          }
+        ]
+      }
+    },
+    "warnings": []
+  },
+  "sql": {
+    "errors": [],
+    "nodes": {
+      "read": {
+        "complete": false,
+        "inputFields": [],
+        "outputFields": [
+          {
+            "dataType": "varchar",
+            "name": "name",
+            "sourceName": "read"
+          }
+        ]
+      },
+      "constant": {
+        "complete": false,
+        "inputFields": [
+          {
+            "dataType": "varchar",
+            "name": "name",
+            "sourceName": "read"
+          }
+        ],
+        "outputFields": [
+          {
+            "dataType": "varchar",
+            "name": "name",
+            "sourceName": "read"
+          },
+          {
+            "dataType": "String",
+            "name": "label",
+            "sourceName": "constant"
+          }
+        ]
+      },
+      "write": {
+        "complete": false,
+        "inputFields": [
+          {
+            "dataType": "varchar",
+            "name": "name",
+            "sourceName": "read"
+          },
+          {
+            "dataType": "String",
+            "name": "label",
+            "sourceName": "constant"
+          }
+        ],
+        "outputFields": [
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "name",
+            "nullable": true,
+            "sourceName": "write"
+          },
+          {
+            "dataType": "varchar",
+            "length": 100,
+            "name": "label",
+            "nullable": true,
+            "sourceName": "write"
+          }
+        ]
+      }
+    },
+    "warnings": [
+      "当前执行通道仅能提供局部字段提示：节点【read】：跨引擎表输入暂不翻译自定义数据库 SQL，请使用表和过滤组件"
+    ]
+  },
+  "unsafeSqlRejected": true,
+  "taskAndRecordRowsUnchanged": true,
+  "sourceDataRowsUnchanged": true
+}

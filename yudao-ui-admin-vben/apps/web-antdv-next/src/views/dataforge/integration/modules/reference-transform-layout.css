@@ -1,0 +1,245 @@
+.qi-transform-reference {
+  --qi-transform-label-width: 110px;
+}
+
+.qi-transform-reference[data-tool-code='field-split'],
+.qi-transform-reference[data-tool-code='field-derive'],
+.qi-transform-reference[data-tool-code='row-column'],
+.qi-transform-reference[data-tool-code='id-generator'],
+.qi-transform-reference[data-tool-code='calculator'],
+.qi-transform-reference[data-tool-code='add-constant'],
+.qi-transform-reference[data-tool-code='number-range'] {
+  --qi-transform-label-width: 140px;
+}
+
+.qi-transform-reference[data-tool-code='custom-token'] {
+  --qi-transform-label-width: 150px;
+}
+
+.qi-transform-reference[data-tool-code='value-map'] {
+  --qi-transform-label-width: 180px;
+}
+
+.qi-transform-reference[data-tool-code='multi-join'] {
+  --qi-transform-label-width: 85px;
+}
+
+.qi-transform-reference[data-tool-code='data-condition'] {
+  --qi-transform-label-width: 100px;
+}
+
+.qi-transform-reference .qi-reference-form-row,
+.qi-transform-reference .qi-reference-form-grid > label {
+  grid-template-columns: var(--qi-transform-label-width) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.qi-transform-reference .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+.qi-transform-reference .qi-reference-fields-table th:last-child {
+  width: 120px;
+}
+
+.qi-transform-reference[data-tool-code='field-derive']
+  .qi-reference-fields-table
+  th:last-child {
+  width: 150px;
+}
+
+.qi-transform-reference .qi-reference-table-heading {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+  justify-content: start;
+  padding: 0;
+  margin: 0 0 15px;
+  border: 0;
+}
+
+.qi-transform-reference .qi-reference-table-heading h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  color: #303133;
+}
+
+.qi-transform-reference .qi-reference-table-heading h3::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2f62ff;
+  border-radius: 4px;
+}
+
+.qi-transform-reference .qi-transform-advanced {
+  padding: 10px 14px;
+  color: #606266;
+  border: 1px solid #e4e7ed;
+  border-radius: 3px;
+}
+
+.qi-transform-advanced > summary {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.qi-transform-advanced[open] > summary {
+  margin-bottom: 14px;
+}
+
+.qi-transform-advanced > .qi-reference-form-grid,
+.qi-transform-advanced > .qi-reference-notice {
+  margin-bottom: 12px;
+}
+
+.qi-script-code {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dcdfe6;
+}
+
+.qi-transform-reference .qi-reference-help {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: #909399;
+}
+
+.qi-reference-radio-options {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.qi-reference-radio-options > label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.qi-reference-radio-options input {
+  accent-color: #409eff;
+}
+
+.qi-transform-cell-options {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #909399;
+}
+
+.qi-transform-cell-options > summary {
+  cursor: pointer;
+}
+
+.qi-transform-reference .qi-reference-steps {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  min-height: 40px;
+  margin: 0 0 15px;
+  overflow: hidden;
+}
+
+.qi-reference-steps button {
+  position: relative;
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 16px;
+  color: #a8abb2;
+  cursor: pointer;
+  background: #f6f7f9;
+  border: 0;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%);
+}
+
+.qi-reference-steps button:first-child {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%);
+}
+
+.qi-reference-steps button[aria-current='step'] {
+  color: #fff;
+  background: #2f62ff;
+}
+
+.qi-reference-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+}
+
+.qi-reference-step-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .qi-transform-reference .qi-reference-form-row,
+  .qi-transform-reference .qi-reference-form-grid > label {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-transform-reference .qi-reference-steps {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+.qi-reference-flow > .ant-btn,
+.qi-reference-flow > template > .ant-btn {
+  justify-self: start;
+}
+
+.qi-reference-flow .qi-reference-form-row {
+  grid-template-columns: var(--qi-node-label-width, var(--qi-transform-label-width)) minmax(0, 1fr);
+}
+
+.qi-reference-long-input {
+  display: flex;
+  min-width: 0;
+}
+
+.qi-reference-long-input .ant-input {
+  text-align: center;
+  border-radius: 0;
+}
+
+.qi-reference-long-input > button {
+  flex: 0 0 32px;
+  height: 32px;
+  color: #606266;
+  cursor: pointer;
+  background: #f5f7fa;
+  border: 1px solid #dcdfe6;
+}
+
+.qi-reference-long-input > button:first-child {
+  border-right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.qi-reference-long-input > button:last-child {
+  border-left: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.qi-reference-long-input > button:disabled {
+  color: #c0c4cc;
+  cursor: default;
+}

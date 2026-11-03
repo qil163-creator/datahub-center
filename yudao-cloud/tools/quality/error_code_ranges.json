@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "description": "Ranges proven by ServiceErrorCodeRange or the owning module's current source contract. DataHub modules that still share legacy namespaces are intentionally not assigned an invented range; uniqueness and package ownership remain enforced until an ADR allocates exclusive ranges.",
+  "ranges": {
+    "infra": [
+      { "start": "1_001_000_000", "end": "1_002_000_000" }
+    ],
+    "system": [
+      { "start": "1_002_000_000", "end": "1_003_000_000" }
+    ],
+    "report": [
+      { "start": "1_003_000_000", "end": "1_004_000_000" }
+    ],
+    "bpm": [
+      { "start": "1_009_000_000", "end": "1_010_000_000" }
+    ],
+    "governance": [
+      { "start": "1_900_000_000", "end": "1_901_000_000" }
+    ],
+    "ai": [
+      { "start": "1_040_000_000", "end": "1_041_000_000" }
+    ]
+  }
+}

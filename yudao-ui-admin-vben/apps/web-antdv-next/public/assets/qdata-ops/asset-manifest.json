@@ -1,0 +1,92 @@
+{
+  "assets": {
+    "download": {
+      "file": "download.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        3345,
+        548,
+        3369,
+        572
+      ],
+      "role": "decorative"
+    },
+    "running": {
+      "file": "running.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        1838,
+        546,
+        1862,
+        570
+      ],
+      "role": "decorative"
+    },
+    "idle": {
+      "file": "idle.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        1838,
+        820,
+        1862,
+        844
+      ],
+      "role": "decorative"
+    },
+    "failure": {
+      "file": "failure.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        1838,
+        1002,
+        1862,
+        1026
+      ],
+      "role": "decorative"
+    },
+    "success": {
+      "file": "success.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        1838,
+        1184,
+        1862,
+        1208
+      ],
+      "role": "decorative"
+    },
+    "sort": {
+      "file": "sort.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-4626f4e0-cb0d-417c-9220-c7a625d9de28.png",
+      "sourceBox": [
+        927,
+        475,
+        945,
+        497
+      ],
+      "role": "decorative"
+    },
+    "pause": {
+      "file": "pause.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-1d5acd69-2eb6-49f6-83de-72d6cdc711e5.png",
+      "sourceBox": [
+        1665,
+        1150,
+        1689,
+        1174
+      ],
+      "role": "decorative"
+    },
+    "stopped": {
+      "file": "stopped.png",
+      "sourceReference": "C:\\Users\\LZQ\\AppData\\Local\\Temp\\codex-clipboard-2b217566-1793-42a3-b505-352b4ec443b0.png",
+      "sourceBox": [
+        1869,
+        731,
+        1893,
+        755
+      ],
+      "role": "decorative"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "projectCode": "188507725745120",
+  "scope": "csv",
+  "checks": {
+    "CSV_READ_WRITE": {
+      "taskType": "DATAX",
+      "workflowCode": "188509831465952",
+      "workflowInstanceId": 12,
+      "taskInstanceId": 12,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "exactRowsMatched": true,
+      "rows": [
+        [
+          "id",
+          "名称"
+        ],
+        [
+          "1",
+          "河道A"
+        ],
+        [
+          "2",
+          "河道,乙"
+        ]
+      ]
+    },
+    "CSV_NO_OVERWRITE": {
+      "taskType": "DATAX",
+      "workflowCode": "188509844210656",
+      "workflowInstanceId": 13,
+      "taskInstanceId": 13,
+      "state": "FAILURE",
+      "markerInLog": true,
+      "outputHashesUnchanged": true,
+      "expectedErrorCode": "TxtFileWriter-02"
+    }
+  },
+  "status": "PASS",
+  "artifact": {
+    "path": "yudao-module-dataforge/yudao-module-dataforge-server/target/datax-connector-csv-native.json",
+    "generator": "IntegrationDataxFixtureTest",
+    "semanticallyEqualToVerifiedTaskParams": true
+  }
+}

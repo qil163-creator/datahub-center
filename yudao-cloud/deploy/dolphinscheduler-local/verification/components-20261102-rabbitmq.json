@@ -1,0 +1,61 @@
+{
+  "verifiedAt": "2026-11-02T15:09:14+0800",
+  "engine": "Apache Flink1.20.3 / Java17",
+  "broker": "RabbitMQ4.1.4 isolated fixture without host ports",
+  "connector": "Official RMQSource/RMQSink 3.0.1-1.17 with managed DynamicTable adapter; observed target-version compatibility only",
+  "actualRows": [
+    {
+      "id": 9007199254740993,
+      "标签": "河道 O'Reilly"
+    },
+    {
+      "id": 9007199254740994,
+      "标签": "live_启动后"
+    }
+  ],
+  "startedThenLiveMessagePassed": true,
+  "mappedUnicodeOutput": true,
+  "stopped": true,
+  "jobIds": [],
+  "runtimeContract": {
+    "serializedSourceContainsPassword": false,
+    "serializedSinkContainsPassword": false,
+    "serializedJobGraphContainsPassword": false,
+    "jobGraphBytes": 31093,
+    "rejectedTypedMessageCases": 7,
+    "redirectedSecretRefRejected": true,
+    "brokerAuthorizationPassed": true
+  },
+  "negative": [
+    {
+      "case": "fractional-integer",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "outputRows": 0
+    },
+    {
+      "case": "unapproved-secret-ref",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "outputRows": 0
+    },
+    {
+      "case": "credential-address-redirect",
+      "exitCode": 1,
+      "runtimeFailureObserved": true,
+      "outputRows": 0
+    }
+  ],
+  "sqlSha256": "d306930597359403c3157e50a3c1e4ef674dc2c88fc6cf1bdf60c3ebe7b1bfd8",
+  "runtimeJarSha256": "a9f3bd711bdf214d1930cf484166ba0ca09c523983c844d0619cf638f5cdad26",
+  "authorization": [
+    "Compile checks task-approved database binding, direction-specific queue ACL and approved credentialRef.",
+    "Worker secret file separately verifies host/port/vhost/queue/SSL before creating connection.",
+    "Queue passive inspection only; source requires checkpointing, sink uses persistent mandatory messages and broker confirms."
+  ],
+  "limits": [
+    "Direct official Flink CLI acceptance; no management API or DS scheduled instance is claimed.",
+    "Flink continuous JSON messages only; top-level fields, ISO dates, exact declared numeric bounds; message budget1MiB.",
+    "Input checkpoint acknowledgements and confirmed output can still duplicate across system recovery; no transactional exactly-once claim."
+  ]
+}

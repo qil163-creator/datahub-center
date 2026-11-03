@@ -1,0 +1,23 @@
+name: datahub-ftp-local
+services:
+  ftp:
+    build: .
+    image: datahub/ftp-local:2.2.0
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      FTP_USER: ${FTP_USER:?请先执行 python3 init.py}
+      FTP_PASSWORD: ${FTP_PASSWORD:?请先执行 python3 init.py}
+    ports:
+      - 127.0.0.1:2121:2121
+      - 127.0.0.1:21000-21009:21000-21009
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: [CMD, python, -c, "import socket; socket.create_connection(('127.0.0.1', 2121), 2).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12

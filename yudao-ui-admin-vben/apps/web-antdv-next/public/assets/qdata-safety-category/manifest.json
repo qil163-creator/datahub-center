@@ -1,0 +1,49 @@
+{
+  "sourceReference": "codex-clipboard-7041a5a3-104a-45e4-8868-509479c93952.png",
+  "sourceCanvas": [
+    3558,
+    1870
+  ],
+  "assets": {
+    "level-shield": {
+      "file": "level-shield.png",
+      "sourceBox": [
+        1846,
+        474,
+        1864,
+        495
+      ],
+      "role": "semantic",
+      "cssSize": [
+        12,
+        14
+      ]
+    }
+  },
+  "sampledLevelColors": {
+    "L1": "#59af88",
+    "L2": "#508ff9",
+    "L3": "#eab038",
+    "L4": "#db3b34"
+  },
+  "reuse": {
+    "icons": "/assets/qdata-tag/",
+    "queryReset": "/assets/qdata-project-category/",
+    "tree": "/assets/qdata-market/"
+  },
+  "assignLevel": {
+    "file": "assign-level.png",
+    "source": "codex-clipboard-20cd3248-f137-4f9a-83a1-d4f7604983e5.png",
+    "sourceBox": [
+      1052,
+      315,
+      1071,
+      335
+    ],
+    "cssSize": [
+      12.67,
+      13.33
+    ],
+    "processing": "source icon alpha extracted against original pale button background; rendered using currentColor mask"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "referenceCanvas": {
+    "width": 3646,
+    "height": 2080
+  },
+  "deviceScale": 2,
+  "referenceViewport": {
+    "width": 1823,
+    "height": 919,
+    "browserChromeHeight": 121
+  },
+  "scope": "仅复刻数据集成业务区域，保留项目导航",
+  "referenceFiles": [
+    "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-09ab92b5-e0b5-4a1f-a0a2-c51db336b38a.png",
+    "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-1dcf5c4e-bf99-42d2-81a1-7957bd2bf382.png",
+    "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/codex-clipboard-1d7fed39-3a63-4d1f-9047-f64074e73a8c.png"
+  ],
+  "businessRegionPhysical": {
+    "x": 450,
+    "y": 460,
+    "width": 3154,
+    "height": 1590
+  },
+  "listLayoutCssPixels": {
+    "gutter": 15,
+    "guideHeight": 64,
+    "categoryWidth": 280,
+    "columnGap": 15,
+    "statisticsHeight": 44,
+    "filterPadding": 15,
+    "tableHeaderHeight": 36,
+    "tableRowHeight": 80,
+    "actionColumnWidth": 240
+  },
+  "taskModalCssPixels": {
+    "width": "60vw",
+    "top": "6vh",
+    "bodyPaddingX": 40,
+    "fieldLabelWidth": 146,
+    "fieldColumnGap": 20,
+    "engineCardHeight": 86,
+    "footerButtonHeight": 32
+  },
+  "assetSource": "本目录已有 qData 参考素材；本次复用原素材恢复图标与说明横幅，未引入外部图片或图标包。",
+  "interactiveUi": "表单、按钮、筛选、表格、弹窗均为真实组件，未以截图覆盖。"
+}

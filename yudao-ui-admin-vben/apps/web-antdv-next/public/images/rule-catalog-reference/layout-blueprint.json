@@ -1,0 +1,44 @@
+{
+  "referenceCanvas": {
+    "width": 3540,
+    "height": 1917
+  },
+  "deviceScaleFactor": 1.5,
+  "referenceCssViewport": {
+    "width": 2360,
+    "height": 1278
+  },
+  "regions": {
+    "banner": {
+      "x": 225,
+      "y": 109,
+      "w": 2115,
+      "h": 64
+    },
+    "tree": {
+      "x": 225,
+      "y": 188,
+      "w": 280
+    },
+    "main": {
+      "x": 520,
+      "y": 188
+    },
+    "query": {
+      "h": 62
+    },
+    "toolbar": {
+      "h": 60
+    },
+    "header": {
+      "h": 36
+    },
+    "auditRow": {
+      "h": 42
+    },
+    "cleanRow": {
+      "h": 60
+    }
+  },
+  "note": "保留本项目导航；业务区按参考原生 CSS 尺寸布局，截图来源为 REA 抓取。"
+}

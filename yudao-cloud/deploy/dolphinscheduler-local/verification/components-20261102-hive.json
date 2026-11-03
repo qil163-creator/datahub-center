@@ -1,0 +1,40 @@
+{
+  "verifiedAt": "2026-11-02T14:01:13.713432+08:00",
+  "schema": "hive_components_80e8991cf2c9",
+  "execution": "Official Hive4.1.0 JDBC native catalog profile + Spark3.5.6 Hive external TEXTFILE on identical HDFS storage. Separate metastores, no host ports.",
+  "metadata": {
+    "serverVersion": "4.1.0 r75e40b7537c91a70ccaa31c397d21823c7528eeb",
+    "metadata": {
+      "source": {
+        "id": "bigint",
+        "name": "string",
+        "amount": "decimal(20,3)"
+      },
+      "target": {
+        "id": "bigint",
+        "name": "string",
+        "amount": "decimal(20,3)"
+      }
+    },
+    "rejectedStorage": {
+      "partitioned": "0A000",
+      "source_view": "0A000"
+    },
+    "compiledSqlSha256": "b83fd2e0878a115756d94d522044115c129bb9318b4203de0aeac50ad78a791d"
+  },
+  "expectedRow": "2\tBETA\t2.200",
+  "preservedRow": "9\tEXISTING\t9.900",
+  "sparkReadAppendMappingPassed": true,
+  "hiveCrossReadPassed": true,
+  "hdfsTargetListing": [
+    "Found 2 items",
+    "-rw-r--r--   1 datahub supergroup         17 2026-11-02 06:00 /datahub_components/hive_components_80e8991cf2c9/target/existing.tsv",
+    "-rwxr-xr-x   3 datahub supergroup         13 2026-11-02 06:01 /datahub_components/hive_components_80e8991cf2c9/target/part-00000-27b91f39-a405-4c65-bdb6-76a841dd9d01-c000"
+  ],
+  "driverSha256": "90e60ef18d46193986cdf9721c977895837b01e84f7751153310820fb6ca0b98",
+  "remainingBoundaries": [
+    "Spark bounded table read/append only; no implicit overwrite, ACID or partition writes.",
+    "Input SQL hooks, cursor increments, output updates and unsupported batch controls are rejected.",
+    "Runtime storage guard reuses HiveNativeCatalog.read to reject unverified versions, views, partitions, ACID and non-TEXTFILE formats."
+  ]
+}

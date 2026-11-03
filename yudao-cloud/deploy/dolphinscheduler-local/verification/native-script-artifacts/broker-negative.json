@@ -1,0 +1,1 @@
+{"realMutualTls":true,"tokenToAuthenticatedApi":true,"exactCachedReplay":true,"mismatchedReplayDenied":true,"inactiveAndReadOnlyDenied":true,"otherTaskCertificateDenied":true,"wrongTaskAndRunDenied":true,"wrongGroupAndEngineDenied":true,"staleEpochDenied":true,"oldVersionNewRunDeniedExistingRunRetained":true,"status":"PASS","apiRows":2}

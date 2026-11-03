@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-11-03T01:05:31+0800",
+  "scope": "ISOLATED_NATIVE_CLI_NOT_PLATFORM_OR_DS",
+  "workerImage": "datahub/dolphinscheduler-local:3.4.2",
+  "compiler": "EtlNativeRowColumnV2Test -> EtlNativeSqlCompiler",
+  "cases": [
+    {
+      "engine": "spark",
+      "case": "unpivot-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "983f104c1e1375794d4634a33b10cd1b81ca9e6054652556c838e2704ef93c9b",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-unpivot-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-unpivot-v2.log",
+      "rows": 21,
+      "expectedRows": 21,
+      "passed": true
+    },
+    {
+      "engine": "spark",
+      "case": "pivot-aggregate-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "901bd07fba9388ba95b6a8e9b3272df5b8eb0665058dc3ae4fedc9edc78c65dd",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-pivot-aggregate-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-pivot-aggregate-v2.log",
+      "rows": 2,
+      "expectedRows": 2,
+      "passed": true
+    },
+    {
+      "engine": "spark",
+      "case": "pivot-last-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "832df4f6401f3e191930979df848d5567c034152661ebbbe804a86e459ceb320",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-pivot-last-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-spark-pivot-last-v2.log",
+      "rows": 2,
+      "expectedRows": 2,
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "unpivot-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "10e65328280d02b617179b5d73ad713dd3c6440eaa5f2d778966c228394d90d7",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-unpivot-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-unpivot-v2.log",
+      "rows": 21,
+      "expectedRows": 21,
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "pivot-aggregate-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "901bd07fba9388ba95b6a8e9b3272df5b8eb0665058dc3ae4fedc9edc78c65dd",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-pivot-aggregate-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-pivot-aggregate-v2.log",
+      "rows": 2,
+      "expectedRows": 2,
+      "passed": true
+    },
+    {
+      "engine": "flink",
+      "case": "pivot-last-v2",
+      "exitCode": 0,
+      "compilerSqlSha256": "5dcf893e27426b382313fd2ac18d8132374ff2497d4d1e220ec60807e0993aaf",
+      "sql": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-pivot-last-v2.sql",
+      "log": "deploy/dolphinscheduler-local/verification/row-column-v2-runtime-20261103-flink-pivot-last-v2.log",
+      "rows": 2,
+      "expectedRows": 2,
+      "passed": true
+    }
+  ],
+  "limits": [
+    "只声明有界批处理真实SQL及精确结果，不声明实时状态或平台任务执行；参考站没有保存任何节点配置。"
+  ]
+}

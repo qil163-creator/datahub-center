@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "product": "SQLSERVER2000",
+  "provider": "cn.iocoder.yudao.framework.dbswitch.product.sqlserver2000.Sqlserver2000ProductProvider",
+  "artifact": "yudao-dbswitch-product-sqlserver2000",
+  "operations": {
+    "CONNECT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "METADATA": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_CREATE": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "DDL_ALTER": {
+      "status": "DECLARED",
+      "reason": "SQLSERVER2000_LIMITED_NULLABLE_ADD_INT_DECIMAL_NVARCHAR_NO_DEFAULT_QUOTED"
+    },
+    "READ": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_INSERT": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "WRITE_COPY": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    },
+    "SYNC_FULL": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_DIFF": {
+      "status": "DECLARED",
+      "reason": "IMPLEMENTATION_REQUIRES_DATABASE_CERTIFICATION"
+    },
+    "SYNC_CURSOR": {
+      "status": "DECLARED",
+      "reason": "SQLSERVER2000_8_00_760_PINNED_GENERATION_LOCKED_NUMERIC_KEYSET"
+    },
+    "WRITE_UPSERT": {
+      "status": "DECLARED",
+      "reason": "SQLSERVER2000_8_00_760_EXCLUSIVE_LOCK_UPDATE_INSERT_ORDERED_PRIMARY_KEY"
+    },
+    "WRITE_ATOMIC_BATCH": {
+      "status": "UNSUPPORTED",
+      "reason": "OPERATION_NOT_IMPLEMENTED"
+    }
+  },
+  "cursorTargets": [
+    "SQLSERVER2000"
+  ]
+}

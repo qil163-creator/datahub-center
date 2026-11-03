@@ -1,0 +1,66 @@
+.qi-crypto-reference {
+  gap: 12px;
+}
+
+.qi-crypto-reference .qi-crypto-field {
+  display: grid;
+  gap: 15px;
+}
+
+.qi-crypto-reference .qi-reference-form-grid {
+  gap: 15px 20px;
+}
+
+.qi-crypto-reference .qi-reference-form-grid > label {
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 0;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.qi-crypto-reference .qi-reference-form-grid > label > span:first-child {
+  padding-right: 12px;
+}
+
+.qi-crypto-required::before {
+  margin-right: 4px;
+  color: #f56c6c;
+  content: '*';
+}
+
+.qi-crypto-help {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.qi-crypto-help .qi-icon {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+
+.qi-crypto-select-arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.qi-crypto-reference .qi-transform-advanced {
+  padding: 0;
+  border: 0;
+}
+
+.qi-crypto-reference .qi-transform-advanced > .qi-reference-notice {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  .qi-crypto-reference .qi-reference-form-grid > label {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    text-align: left;
+  }
+}

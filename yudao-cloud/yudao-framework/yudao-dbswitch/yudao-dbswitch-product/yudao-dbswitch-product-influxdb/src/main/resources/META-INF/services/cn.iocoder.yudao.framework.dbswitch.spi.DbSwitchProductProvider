@@ -1,0 +1,2 @@
+cn.iocoder.yudao.framework.dbswitch.product.influxdb3.Influxdb3ProductProvider
+cn.iocoder.yudao.framework.dbswitch.product.influxdb2.Influxdb2ProductProvider

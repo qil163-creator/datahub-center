@@ -1,0 +1,45 @@
+/* 保留指标业务分栏与内容布局，控件及表格使用项目主题。 */
+.qd-metric-page {
+  --metric-primary: hsl(var(--primary));
+}
+
+.qd-metric-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qd-metric-content .metric-layout {
+  flex: 1;
+  height: auto;
+}
+
+.qd-metric-content .metric-info,
+.qd-metric-content .condition-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qd-metric-content .metric-info__link,
+.qd-metric-content .condition-link,
+.qd-metric-content .metric-count {
+  color: hsl(var(--primary));
+}
+
+.qd-metric-content .metric-muted,
+.qd-metric-content .condition-muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.qd-metric-content .qd-metric-symbol {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+.qd-metric-row-actions {
+  white-space: nowrap;
+}

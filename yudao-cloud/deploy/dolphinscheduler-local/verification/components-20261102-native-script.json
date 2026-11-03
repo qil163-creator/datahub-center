@@ -1,0 +1,355 @@
+{
+  "status": "PASS",
+  "scope": "正式DataForge task1004 -> 独立DS3.4.2 -> 真Spark3.5.6 -> mTLS broker -> Docker隔离qData脚本 -> token私有上下文 -> 真API认证 -> 有序整批增删/跨行Decimal -> FTP精确CSV",
+  "checks": {
+    "nonce": {
+      "taskId": 1004,
+      "recordId": 180829751977016,
+      "definitionCode": 188596196369920,
+      "flowSha256": "00ce430ed98cc71987e14b914492663e5f9b732fa3568afb21b0d8a213e8980b",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 4,
+      "passed": true,
+      "actualFiles": [
+        "result-6727c0ad-e3ed-4a72-9b06-a05eecb640f1-0-4.csv.x5qghes4"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ]
+      ],
+      "actualInitializationJars": [
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60.jar",
+          "sha256": "14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731.jar",
+          "sha256": "64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-functions-35c44f92c2b3d75f.jar",
+          "sha256": "35c44f92c2b3d75f46904f1dc6c18b878521ee65fef732e24dc585c5927fc5ed",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/spark/jars/datahub-etl-ftp.jar",
+          "sha256": "e8220f557ee7fbafde0e8269e6c2604da265b66af00f05eab7e781bbc9cae61f",
+          "readableByExecutionUid10001": true
+        }
+      ]
+    },
+    "hutool": {
+      "taskId": 1004,
+      "recordId": 180829751977018,
+      "definitionCode": 188597147259392,
+      "flowSha256": "aed9f2b20814365c617134102ed3a218e2fae987126b7e7a824058f8429342b7",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 6,
+      "passed": true,
+      "actualFiles": [
+        "result-6727c0ad-e3ed-4a72-9b06-a05eecb640f1-0-4.csv.x5qghes4",
+        "result-76eaf70c-b935-4100-b4ca-b59b97bf65a6-0-4.csv.6c1giard"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ],
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ]
+      ],
+      "actualInitializationJars": [
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60.jar",
+          "sha256": "14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731.jar",
+          "sha256": "64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-functions-464b03670259ea72.jar",
+          "sha256": "464b03670259ea7270731779a57e0a42068b29c0ec29042e1242f6446a78e24d",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/spark/jars/datahub-etl-ftp.jar",
+          "sha256": "e8220f557ee7fbafde0e8269e6c2604da265b66af00f05eab7e781bbc9cae61f",
+          "readableByExecutionUid10001": true
+        }
+      ]
+    },
+    "finalVersion": {
+      "taskId": 1004,
+      "recordId": 180829751977019,
+      "definitionCode": 188599768921600,
+      "flowSha256": "26227188cfe5fe0f8106e3a975e9f3e87fa310dfd6b60c142a8c68255897b471",
+      "observedRunning": true,
+      "status": "SUCCESS",
+      "dsInstanceId": 7,
+      "passed": true,
+      "actualFiles": [
+        "result-2ef1bee8-c3d2-4db4-87af-363141f80f73-0-4.csv.wanux9uk",
+        "result-6727c0ad-e3ed-4a72-9b06-a05eecb640f1-0-4.csv.x5qghes4",
+        "result-76eaf70c-b935-4100-b4ca-b59b97bf65a6-0-4.csv.6c1giard"
+      ],
+      "actualRows": [
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ],
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ],
+        [
+          "id",
+          "标签",
+          "amount"
+        ],
+        [
+          "9007199254740993",
+          "批次汇总😀",
+          "123456.120000000000000001"
+        ],
+        [
+          "9007199254740994",
+          "",
+          "\\N"
+        ]
+      ],
+      "actualInitializationJars": [
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60.jar",
+          "sha256": "14b100a79f482a75cc1c4d37a06f9bdaa9b561f683d2108f02a2f7dbea5b9a60",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-dependency-64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731.jar",
+          "sha256": "64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/flink/usrlib/datahub-etl-functions-464b03670259ea72.jar",
+          "sha256": "464b03670259ea7270731779a57e0a42068b29c0ec29042e1242f6446a78e24d",
+          "readableByExecutionUid10001": true
+        },
+        {
+          "path": "/opt/spark/jars/datahub-etl-ftp.jar",
+          "sha256": "e8220f557ee7fbafde0e8269e6c2604da265b66af00f05eab7e781bbc9cae61f",
+          "readableByExecutionUid10001": true
+        }
+      ]
+    },
+    "broker-negative.json": {
+      "realMutualTls": true,
+      "tokenToAuthenticatedApi": true,
+      "exactCachedReplay": true,
+      "mismatchedReplayDenied": true,
+      "inactiveAndReadOnlyDenied": true,
+      "otherTaskCertificateDenied": true,
+      "wrongTaskAndRunDenied": true,
+      "wrongGroupAndEngineDenied": true,
+      "staleEpochDenied": true,
+      "oldVersionNewRunDeniedExistingRunRetained": true,
+      "status": "PASS",
+      "apiRows": 2
+    },
+    "sandbox-isolation.json": {
+      "fullBatchDeleteAppendAndCrossRowDecimal": true,
+      "tokenStdoutStderrAndRawFdDiscarded": true,
+      "isolation": {
+        "noSecretEnvironment": true,
+        "readOnly": true,
+        "childLogsBytes": 0,
+        "networkNone": true,
+        "onlyApprovedReadOnlyJars": true,
+        "logDriverNone": true
+      },
+      "status": "PASS",
+      "runnerActiveWorkersAfterClose": 0
+    }
+  },
+  "taskId": 1004,
+  "finalPlatformSnapshot": {
+    "pid": 8826,
+    "port": 50026,
+    "sourcePid": 66474,
+    "classpathSnapshot": "/tmp/datahub-components-classpath-e1d532edb71647d9a61a2f5bdb18b53d",
+    "snapshotModuleCount": 68,
+    "logPath": "/Users/lizhiqi/Documents/Workspace/DevSpace/datahub_projects/project-git/yudao-cloud/deploy/dolphinscheduler-local/runtime/components-server.log"
+  },
+  "dsServer": "http://127.0.0.1:12347/dolphinscheduler",
+  "projectCode": "188595135256544",
+  "launcherSha256": "a9e61b2aa608cd08763d48a130bbf6bc93e59d91a74b9d0169a1c633ac0a1e51",
+  "workerSha256": "e41b969c7660066c94254524d4a0bdfb8766a5da98fad1d4d28f80c9c3ee9f50",
+  "functionsSha256": "464b03670259ea7270731779a57e0a42068b29c0ec29042e1242f6446a78e24d",
+  "artifacts": [
+    {
+      "file": "verification/native-script-artifacts/nonce-ds-definition.json",
+      "sha256": "727fcaa8818a20a0abacae68c640b42018b1fa729bf6f4133c76f97b025be470",
+      "bytes": 13212,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/nonce-native-task.log",
+      "sha256": "893ee52ed85589706c5a7b6fa55c02e59da838ffd477db7350fcd9d6f702d30a",
+      "bytes": 68992,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/hutool-ds-definition.json",
+      "sha256": "1e08450a32ddf7c7b774cf2c0ee626de3c86211bb956fae04a69ac2e6394ed43",
+      "bytes": 13253,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/hutool-native-task.log",
+      "sha256": "809fdceddbae6b83dd9a8d80a42778a3c41f1b359be755155f06aa5d9963a356",
+      "bytes": 69579,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/finalVersion-ds-definition.json",
+      "sha256": "fba39e43100701c7f76cc0df767d4bc6448bd2526d12e1bb61bb583d134a598c",
+      "bytes": 13252,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/finalVersion-native-task.log",
+      "sha256": "0d1272e2934bbbac83fae3997bb4115e06ca3033bf7775eb90ee018636fc667e",
+      "bytes": 69749,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/broker-negative.json",
+      "sha256": "c0b147e3bc95957a9fad519b3e7e4505490386cee3270a9c46b42503b1ee2fac",
+      "bytes": 339,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/sandbox-isolation.json",
+      "sha256": "5d5e2ef85b2e567f309d2d4e8c56a05d96dfe81ab14653d4cd3a987ae0975b89",
+      "bytes": 289,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/platform-runtime.log",
+      "sha256": "02732d29ce34b700383650ced084fe426e9a3c0856af9b4eb4d0f394bdde67f1",
+      "bytes": 44702,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/components-flow-token-ftp.json",
+      "sha256": "053ff5ae1efbdc71c909303dd739fa7f3c8bb1a5ef6d0135f9953ea675adae2e",
+      "bytes": 4972,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/components-flow-hutool-token-ftp.json",
+      "sha256": "6997727c1c0a4674e0fb5d1077b0ad6802c9e63f68d075fba79b216e8c1256cd",
+      "bytes": 5160,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/components-flow-hutool-token-final-ftp.json",
+      "sha256": "5bf0b641e0d1c85b5ff531ed0307c2c2b4ea2ab88e5e15309bb962bbde745860",
+      "bytes": 5177,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/launcher.jar",
+      "sha256": "a9e61b2aa608cd08763d48a130bbf6bc93e59d91a74b9d0169a1c633ac0a1e51",
+      "bytes": 73783,
+      "secretHits": 0
+    },
+    {
+      "file": "verification/native-script-artifacts/worker.jar",
+      "sha256": "e41b969c7660066c94254524d4a0bdfb8766a5da98fad1d4d28f80c9c3ee9f50",
+      "bytes": 91134,
+      "secretHits": 0
+    }
+  ],
+  "secretScanEncodings": [
+    "UTF-8",
+    "UTF-16LE",
+    "UTF-16BE",
+    "PKCS8-DER"
+  ],
+  "actualSuccessfulInstances": [
+    4,
+    6,
+    7
+  ],
+  "limitations": [
+    "BATCH每批新worker，Spark完整实际SQL分区，超限整批失败，不隐式切批",
+    "broker重启epoch失效，必须正常保存发布；未知副作用不重试",
+    "Flink另见独立native-script-flink证据；Flink custom-token不开放",
+    "公开nonce登录夹具证明传输和流程，不替代生产认证服务验收"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "status": "PASS",
+  "scope": "compiler SQL + real Spark3.5.6 + WSDL1.1/HTTP fixture; not management API or scheduler acceptance",
+  "checks": {
+    "four_protocols": {
+      "passed": true,
+      "exitCode": 0,
+      "rows": [
+        [
+          "httpGet",
+          "9007199254740993",
+          "河道😀"
+        ],
+        [
+          "httpGet",
+          "9007199254740994",
+          "O'Reilly水情"
+        ],
+        [
+          "httpPost",
+          "9007199254740993",
+          "河道😀"
+        ],
+        [
+          "httpPost",
+          "9007199254740994",
+          "O'Reilly水情"
+        ],
+        [
+          "soap11",
+          "9007199254740993",
+          "河道😀"
+        ],
+        [
+          "soap11",
+          "9007199254740994",
+          "O'Reilly水情"
+        ],
+        [
+          "soap12",
+          "9007199254740993",
+          "河道😀"
+        ],
+        [
+          "soap12",
+          "9007199254740994",
+          "O'Reilly水情"
+        ]
+      ],
+      "sqlSha256": "3e4079bb97c8cb7cbde26759136e5508828c00792b85e7a4c1363a102a592347",
+      "outputSha256": "ee1dde117a0a324f3a2233f4358182b6c6104c34e51fba212a9c2d53e8347712"
+    },
+    "unbound_endpoint": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "fa6f89b08349209c3ad67f98e093f73506b489c1180a1d970803c16240243655",
+      "outputSha256": "5202758af46c4cfff8e9117e4b20b4797dee6a5888ff8c3fe0008e3b448d965e"
+    },
+    "soap_fault": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "fa6f89b08349209c3ad67f98e093f73506b489c1180a1d970803c16240243655",
+      "outputSha256": "cb03cbf4d56414e81cc0f396d775a09269285e89fb53c450af86ea7ea8f0157c"
+    },
+    "xxe": {
+      "passed": true,
+      "exitCode": 1,
+      "rows": [],
+      "sqlSha256": "fa6f89b08349209c3ad67f98e093f73506b489c1180a1d970803c16240243655",
+      "outputSha256": "af2d50fb0d3427ac707fb5de2a02df56dffa17542178f8a25659c99f5dd32533"
+    }
+  }
+}

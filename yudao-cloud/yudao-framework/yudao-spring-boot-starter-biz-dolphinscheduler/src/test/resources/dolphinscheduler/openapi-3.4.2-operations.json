@@ -1,0 +1,1702 @@
+{
+  "version": "3.4.2",
+  "source": "Live deployed DolphinScheduler /v3/api-docs/v1, captured 2026-10-12; operation metadata only.",
+  "operations": [
+    {
+      "operationId": "queryAccessTokenList",
+      "method": "GET",
+      "path": "/access-tokens",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createToken",
+      "method": "POST",
+      "path": "/access-tokens",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "generateToken",
+      "method": "POST",
+      "path": "/access-tokens/generate",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAccessTokenByUser",
+      "method": "GET",
+      "path": "/access-tokens/user/{userId}",
+      "pathParameters": {
+        "userId": "integer"
+      }
+    },
+    {
+      "operationId": "delAccessTokenById",
+      "method": "DELETE",
+      "path": "/access-tokens/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateToken",
+      "method": "PUT",
+      "path": "/access-tokens/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "listPaging_2",
+      "method": "GET",
+      "path": "/alert-groups",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createAlertGroup",
+      "method": "POST",
+      "path": "/alert-groups",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "list",
+      "method": "GET",
+      "path": "/alert-groups/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAlertGroupById",
+      "method": "POST",
+      "path": "/alert-groups/query",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyGroupName_1",
+      "method": "GET",
+      "path": "/alert-groups/verify-name",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteAlertGroupById",
+      "method": "DELETE",
+      "path": "/alert-groups/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateAlertGroupById",
+      "method": "PUT",
+      "path": "/alert-groups/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "listPaging_1",
+      "method": "GET",
+      "path": "/alert-plugin-instances",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createAlertPluginInstance",
+      "method": "POST",
+      "path": "/alert-plugin-instances",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getAlertPluginInstance_1",
+      "method": "GET",
+      "path": "/alert-plugin-instances/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "testSendAlertPluginInstance",
+      "method": "POST",
+      "path": "/alert-plugin-instances/test-send",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyGroupName",
+      "method": "GET",
+      "path": "/alert-plugin-instances/verify-name",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteAlertPluginInstance",
+      "method": "DELETE",
+      "path": "/alert-plugin-instances/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "getAlertPluginInstance",
+      "method": "GET",
+      "path": "/alert-plugin-instances/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateAlertPluginInstanceById",
+      "method": "PUT",
+      "path": "/alert-plugin-instances/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "listDataFactory",
+      "method": "GET",
+      "path": "/cloud/azure/datafactory/factories",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listPipeline",
+      "method": "GET",
+      "path": "/cloud/azure/datafactory/pipelines",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listResourceGroup",
+      "method": "GET",
+      "path": "/cloud/azure/datafactory/resourceGroups",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createCluster",
+      "method": "POST",
+      "path": "/cluster/create",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteCluster",
+      "method": "POST",
+      "path": "/cluster/delete",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryClusterListPaging",
+      "method": "GET",
+      "path": "/cluster/list-paging",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryClusterByCode",
+      "method": "GET",
+      "path": "/cluster/query-by-code",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllClusterList",
+      "method": "GET",
+      "path": "/cluster/query-cluster-list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateCluster",
+      "method": "POST",
+      "path": "/cluster/update",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyCluster",
+      "method": "POST",
+      "path": "/cluster/verify-cluster",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "clearCookieSessionId",
+      "method": "DELETE",
+      "path": "/cookies",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryDataSourceListPaging",
+      "method": "GET",
+      "path": "/datasources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createDataSource",
+      "method": "POST",
+      "path": "/datasources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getAuthorizedDatasourceList",
+      "method": "GET",
+      "path": "/datasources/authed-datasource",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "connectDataSource",
+      "method": "POST",
+      "path": "/datasources/connect",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getDatabases",
+      "method": "GET",
+      "path": "/datasources/databases",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getKerberosStartupState",
+      "method": "GET",
+      "path": "/datasources/kerberos-startup-state",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryDataSourceList",
+      "method": "GET",
+      "path": "/datasources/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getTableColumns",
+      "method": "GET",
+      "path": "/datasources/tableColumns",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getTables",
+      "method": "GET",
+      "path": "/datasources/tables",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getUnauthorizedDatasourceList",
+      "method": "GET",
+      "path": "/datasources/unauth-datasource",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyDataSourceName",
+      "method": "GET",
+      "path": "/datasources/verify-name",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteDataSource",
+      "method": "DELETE",
+      "path": "/datasources/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryDataSource",
+      "method": "GET",
+      "path": "/datasources/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateDataSource",
+      "method": "PUT",
+      "path": "/datasources/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "connectionTest",
+      "method": "GET",
+      "path": "/datasources/{id}/connect-test",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "listDynamicTaskCategories",
+      "method": "GET",
+      "path": "/dynamic/taskCategories",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listDynamicTaskTypes",
+      "method": "GET",
+      "path": "/dynamic/{taskCategory}/taskTypes",
+      "pathParameters": {
+        "taskCategory": "string"
+      }
+    },
+    {
+      "operationId": "createEnvironment",
+      "method": "POST",
+      "path": "/environment/create",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteEnvironment",
+      "method": "POST",
+      "path": "/environment/delete",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryEnvironmentListPaging",
+      "method": "GET",
+      "path": "/environment/list-paging",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryEnvironmentByCode",
+      "method": "GET",
+      "path": "/environment/query-by-code",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllEnvironmentList",
+      "method": "GET",
+      "path": "/environment/query-environment-list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateEnvironment",
+      "method": "POST",
+      "path": "/environment/update",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyEnvironment",
+      "method": "POST",
+      "path": "/environment/verify-environment",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listTaskType",
+      "method": "GET",
+      "path": "/favourite/taskTypes",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteFavTask",
+      "method": "DELETE",
+      "path": "/favourite/{taskType}",
+      "pathParameters": {
+        "taskType": "string"
+      }
+    },
+    {
+      "operationId": "addFavTask",
+      "method": "POST",
+      "path": "/favourite/{taskType}",
+      "pathParameters": {
+        "taskType": "string"
+      }
+    },
+    {
+      "operationId": "queryNamespaceListPaging",
+      "method": "GET",
+      "path": "/k8s-namespace",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createNamespace",
+      "method": "POST",
+      "path": "/k8s-namespace",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuthorizedNamespace",
+      "method": "GET",
+      "path": "/k8s-namespace/authed-namespace",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAvailableNamespaceList",
+      "method": "GET",
+      "path": "/k8s-namespace/available-list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "delNamespaceById",
+      "method": "POST",
+      "path": "/k8s-namespace/delete",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryUnauthorizedNamespace",
+      "method": "GET",
+      "path": "/k8s-namespace/unauth-namespace",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyNamespace",
+      "method": "POST",
+      "path": "/k8s-namespace/verify",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryLog",
+      "method": "GET",
+      "path": "/log/detail",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "downloadTaskLog",
+      "method": "GET",
+      "path": "/log/download-log",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "login",
+      "method": "POST",
+      "path": "/login",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "handleOidcCallback",
+      "method": "GET",
+      "path": "/login/oauth2/code/{providerId}",
+      "pathParameters": {
+        "providerId": "string"
+      }
+    },
+    {
+      "operationId": "ssoLogin",
+      "method": "GET",
+      "path": "/login/sso",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryDatabaseState",
+      "method": "GET",
+      "path": "/monitor/databases",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryWorkflowExecutors",
+      "method": "GET",
+      "path": "/monitor/masters/workflow-executors",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTaskExecutors",
+      "method": "GET",
+      "path": "/monitor/workers/task-executors",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listServer",
+      "method": "GET",
+      "path": "/monitor/{nodeType}",
+      "pathParameters": {
+        "nodeType": "string"
+      }
+    },
+    {
+      "operationId": "oauth2Provider",
+      "method": "GET",
+      "path": "/oauth2-provider",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "redirectToOidc",
+      "method": "GET",
+      "path": "/oauth2/authorization/{providerId}",
+      "pathParameters": {
+        "providerId": "string"
+      }
+    },
+    {
+      "operationId": "oidcProviders",
+      "method": "GET",
+      "path": "/oidc-providers",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryProjectListPaging",
+      "method": "GET",
+      "path": "/projects",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createProject",
+      "method": "POST",
+      "path": "/projects",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "countCommandState",
+      "method": "GET",
+      "path": "/projects/analysis/command-state-count",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "countDefinitionByUser",
+      "method": "GET",
+      "path": "/projects/analysis/define-user-count",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listPaging",
+      "method": "GET",
+      "path": "/projects/analysis/listCommand",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listErrorCommand",
+      "method": "GET",
+      "path": "/projects/analysis/listErrorCommand",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "countQueueState",
+      "method": "GET",
+      "path": "/projects/analysis/queue-count",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getTaskInstanceStateCount",
+      "method": "GET",
+      "path": "/projects/analysis/task-state-count",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getWorkflowInstanceStateCount",
+      "method": "GET",
+      "path": "/projects/analysis/workflow-state-count",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuditLogListPaging",
+      "method": "GET",
+      "path": "/projects/audit/audit-log-list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuditModelTypeList",
+      "method": "GET",
+      "path": "/projects/audit/audit-log-model-type",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuditOperationTypeList",
+      "method": "GET",
+      "path": "/projects/audit/audit-log-operation-type",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuthorizedProject",
+      "method": "GET",
+      "path": "/projects/authed-project",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAuthorizedUser",
+      "method": "GET",
+      "path": "/projects/authed-user",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryProjectCreatedAndAuthorizedByUser",
+      "method": "GET",
+      "path": "/projects/created-and-authed",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllProjectList",
+      "method": "GET",
+      "path": "/projects/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllProjectListForDependent",
+      "method": "GET",
+      "path": "/projects/list-dependent",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryProjectWithAuthorizedLevel",
+      "method": "GET",
+      "path": "/projects/project-with-authorized-level",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryProjectWithAuthorizedLevelListPaging",
+      "method": "GET",
+      "path": "/projects/project-with-authorized-level-list-paging",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryUnauthorizedProject",
+      "method": "GET",
+      "path": "/projects/unauth-project",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteProject",
+      "method": "DELETE",
+      "path": "/projects/{code}",
+      "pathParameters": {
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryProjectByCode",
+      "method": "GET",
+      "path": "/projects/{code}",
+      "pathParameters": {
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "updateProject",
+      "method": "PUT",
+      "path": "/projects/{code}",
+      "pathParameters": {
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "batchControlWorkflowInstance",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/batch-execute",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "batchTriggerWorkflowDefinitions",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/batch-start-workflow-instance",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "controlWorkflowInstance",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/execute",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "executeTask",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/execute-task",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "triggerWorkflowDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/start-workflow-instance",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "startStreamTaskInstance",
+      "method": "POST",
+      "path": "/projects/{projectCode}/executors/task-instance/{code}/start",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkFlowLineage",
+      "method": "GET",
+      "path": "/projects/{projectCode}/lineages/list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkFlowLineageByName",
+      "method": "GET",
+      "path": "/projects/{projectCode}/lineages/query-by-name",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryDependentTasks",
+      "method": "GET",
+      "path": "/projects/{projectCode}/lineages/query-dependent-tasks",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "verifyTaskCanDelete",
+      "method": "POST",
+      "path": "/projects/{projectCode}/lineages/tasks/verify-delete",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkFlowLineageByCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/lineages/{workFlowCode}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "workFlowCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryProjectParameterListPaging",
+      "method": "GET",
+      "path": "/projects/{projectCode}/project-parameter",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "createProjectParameter",
+      "method": "POST",
+      "path": "/projects/{projectCode}/project-parameter",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "batchDeleteProjectParametersByCodes",
+      "method": "POST",
+      "path": "/projects/{projectCode}/project-parameter/batch-delete",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "deleteProjectParametersByCode",
+      "method": "POST",
+      "path": "/projects/{projectCode}/project-parameter/delete",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryProjectParameterByCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/project-parameter/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "updateProjectParameter",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/project-parameter/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryProjectPreferenceByProjectCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/project-preference",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "enableProjectPreference",
+      "method": "POST",
+      "path": "/projects/{projectCode}/project-preference",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "updateProjectPreference",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/project-preference",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryScheduleListPaging",
+      "method": "GET",
+      "path": "/projects/{projectCode}/schedules",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "createSchedule",
+      "method": "POST",
+      "path": "/projects/{projectCode}/schedules",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryScheduleList",
+      "method": "POST",
+      "path": "/projects/{projectCode}/schedules/list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "previewSchedule",
+      "method": "POST",
+      "path": "/projects/{projectCode}/schedules/preview",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateScheduleByWorkflowDefinitionCode",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/schedules/update/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "deleteScheduleById",
+      "method": "DELETE",
+      "path": "/projects/{projectCode}/schedules/{id}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateSchedule",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/schedules/{id}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "offlineSchedule",
+      "method": "POST",
+      "path": "/projects/{projectCode}/schedules/{id}/offline",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "publishScheduleOnline",
+      "method": "POST",
+      "path": "/projects/{projectCode}/schedules/{id}/online",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "genTaskCodeList",
+      "method": "GET",
+      "path": "/projects/{projectCode}/task-definition/gen-task-codes",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTaskDefinitionDetail",
+      "method": "GET",
+      "path": "/projects/{projectCode}/task-definition/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "releaseTaskDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/task-definition/{code}/release",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryTaskDefinitionVersions",
+      "method": "GET",
+      "path": "/projects/{projectCode}/task-definition/{code}/versions",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "deleteTaskDefinitionVersion",
+      "method": "DELETE",
+      "path": "/projects/{projectCode}/task-definition/{code}/versions/{version}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer",
+        "version": "integer"
+      }
+    },
+    {
+      "operationId": "switchTaskDefinitionVersion",
+      "method": "GET",
+      "path": "/projects/{projectCode}/task-definition/{code}/versions/{version}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer",
+        "version": "integer"
+      }
+    },
+    {
+      "operationId": "updateTaskWithUpstream",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/task-definition/{code}/with-upstream",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryTaskListPaging",
+      "method": "GET",
+      "path": "/projects/{projectCode}/task-instances",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "forceTaskSuccess",
+      "method": "POST",
+      "path": "/projects/{projectCode}/task-instances/{id}/force-success",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "taskSavePoint",
+      "method": "POST",
+      "path": "/projects/{projectCode}/task-instances/{id}/savepoint",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "stopTask",
+      "method": "POST",
+      "path": "/projects/{projectCode}/task-instances/{id}/stop",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryAssignedWorkerGroups",
+      "method": "GET",
+      "path": "/projects/{projectCode}/worker-group",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "assignWorkerGroups",
+      "method": "POST",
+      "path": "/projects/{projectCode}/worker-group",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionListPaging",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "createWorkflowDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-definition",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryAllWorkflowDefinitionByProjectCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/all",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "copyWorkflowDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-definition/batch-copy",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "batchDeleteWorkflowDefinitionByCodes",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-definition/batch-delete",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "moveWorkflowDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-definition/batch-move",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "getNodeListMapByDefinitionCodes",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/batch-query-tasks",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionList",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionByName",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/query-by-name",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "getTaskListByWorkflowDefinitionCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/query-task-definition-list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "getWorkflowListByProjectCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/query-workflow-definition-list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionSimpleList",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/simple-list",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "verifyWorkflowDefinitionName",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/verify-name",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "deleteWorkflowDefinitionByCode",
+      "method": "DELETE",
+      "path": "/projects/{projectCode}/workflow-definition/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionByCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "updateWorkflowDefinition",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/workflow-definition/{code}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "releaseWorkflowDefinition",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/release",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "getNodeListByDefinitionCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/tasks",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowDefinitionVersions",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/versions",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "deleteWorkflowDefinitionVersion",
+      "method": "DELETE",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/versions/{version}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer",
+        "version": "integer"
+      }
+    },
+    {
+      "operationId": "switchWorkflowDefinitionVersion",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/versions/{version}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer",
+        "version": "integer"
+      }
+    },
+    {
+      "operationId": "viewTree_1",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/view-tree",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "viewVariables_1",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-definition/{code}/view-variables",
+      "pathParameters": {
+        "projectCode": "integer",
+        "code": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowInstanceList",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "batchDeleteWorkflowInstanceByIds",
+      "method": "POST",
+      "path": "/projects/{projectCode}/workflow-instances/batch-delete",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryDynamicSubWorkflowInstances",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/query-dynamic-sub-workflows",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryParentInstanceBySubId",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/query-parent-by-sub",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "querySubWorkflowInstanceByTaskId",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/query-sub-by-parent",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryTopNLongestRunningWorkflowInstance",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/top-n",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowInstancesByTriggerCode",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/trigger",
+      "pathParameters": {
+        "projectCode": "integer"
+      }
+    },
+    {
+      "operationId": "deleteWorkflowInstanceById",
+      "method": "DELETE",
+      "path": "/projects/{projectCode}/workflow-instances/{id}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryWorkflowInstanceById",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/{id}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateWorkflowInstance",
+      "method": "PUT",
+      "path": "/projects/{projectCode}/workflow-instances/{id}",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryTaskListByWorkflowInstanceId",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/{id}/tasks",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "viewTree",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/{id}/view-gantt",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "viewVariables",
+      "method": "GET",
+      "path": "/projects/{projectCode}/workflow-instances/{id}/view-variables",
+      "pathParameters": {
+        "projectCode": "integer",
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryQueueListPaging",
+      "method": "GET",
+      "path": "/queues",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createQueue",
+      "method": "POST",
+      "path": "/queues",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryList",
+      "method": "GET",
+      "path": "/queues/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyQueue",
+      "method": "POST",
+      "path": "/queues/verify",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteQueueById",
+      "method": "DELETE",
+      "path": "/queues/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateQueue",
+      "method": "PUT",
+      "path": "/queues/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "loginByAuth2",
+      "method": "GET",
+      "path": "/redirect/login/oauth2",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteResource",
+      "method": "DELETE",
+      "path": "/resources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "pagingResourceItemRequest",
+      "method": "GET",
+      "path": "/resources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createFile",
+      "method": "POST",
+      "path": "/resources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateResource",
+      "method": "PUT",
+      "path": "/resources",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryResourceBaseDir",
+      "method": "GET",
+      "path": "/resources/base-dir",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createDirectory",
+      "method": "POST",
+      "path": "/resources/directory",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "downloadResource",
+      "method": "GET",
+      "path": "/resources/download",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryResourceList",
+      "method": "GET",
+      "path": "/resources/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createFileFromContent",
+      "method": "POST",
+      "path": "/resources/online-create",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryResourceFileList",
+      "method": "GET",
+      "path": "/resources/query-by-type",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateFileContent",
+      "method": "PUT",
+      "path": "/resources/update-content",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "viewResource",
+      "method": "GET",
+      "path": "/resources/view",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "signOut",
+      "method": "POST",
+      "path": "/signOut",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "closeTaskGroup",
+      "method": "POST",
+      "path": "/task-group/close-task-group",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createTaskGroup",
+      "method": "POST",
+      "path": "/task-group/create",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "forceStart",
+      "method": "POST",
+      "path": "/task-group/forceStart",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllTaskGroup",
+      "method": "GET",
+      "path": "/task-group/list-paging",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "modifyPriority",
+      "method": "POST",
+      "path": "/task-group/modifyPriority",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTaskGroupQueues",
+      "method": "GET",
+      "path": "/task-group/query-list-by-group-id",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTaskGroupByCode",
+      "method": "GET",
+      "path": "/task-group/query-list-by-projectCode",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTaskGroupByStatus",
+      "method": "GET",
+      "path": "/task-group/query-list-by-status",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "startTaskGroup",
+      "method": "POST",
+      "path": "/task-group/start-task-group",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateTaskGroup",
+      "method": "POST",
+      "path": "/task-group/update",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTenantListPaging",
+      "method": "GET",
+      "path": "/tenants",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createTenant",
+      "method": "POST",
+      "path": "/tenants",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryTenantList",
+      "method": "GET",
+      "path": "/tenants/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyTenantCode",
+      "method": "GET",
+      "path": "/tenants/verify-code",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteTenantById",
+      "method": "DELETE",
+      "path": "/tenants/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "updateTenant",
+      "method": "PUT",
+      "path": "/tenants/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "queryUiPluginsByType",
+      "method": "GET",
+      "path": "/ui-plugins/query-by-type",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryProductInfo",
+      "method": "GET",
+      "path": "/ui-plugins/query-product-info",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryUiPluginDetailById",
+      "method": "GET",
+      "path": "/ui-plugins/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    },
+    {
+      "operationId": "activateUser",
+      "method": "POST",
+      "path": "/users/activate",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "authorizedUser",
+      "method": "GET",
+      "path": "/users/authed-user",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "batchActivateUser",
+      "method": "POST",
+      "path": "/users/batch/activate",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "createUser",
+      "method": "POST",
+      "path": "/users/create",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "delUserById",
+      "method": "POST",
+      "path": "/users/delete",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "getUserInfo",
+      "method": "GET",
+      "path": "/users/get-user-info",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "grantDataSource",
+      "method": "POST",
+      "path": "/users/grant-datasource",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "grantNamespace",
+      "method": "POST",
+      "path": "/users/grant-namespace",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "grantProject",
+      "method": "POST",
+      "path": "/users/grant-project",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "grantProjectByCode",
+      "method": "POST",
+      "path": "/users/grant-project-by-code",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "grantProjectWithReadPerm",
+      "method": "POST",
+      "path": "/users/grant-project-with-read-perm",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listUser",
+      "method": "GET",
+      "path": "/users/list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "listAll",
+      "method": "GET",
+      "path": "/users/list-all",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryUserList",
+      "method": "GET",
+      "path": "/users/list-paging",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "registerUser",
+      "method": "POST",
+      "path": "/users/register",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "revokeProject",
+      "method": "POST",
+      "path": "/users/revoke-project",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "revokeProjectById",
+      "method": "POST",
+      "path": "/users/revoke-project-by-id",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "unauthorizedUser",
+      "method": "GET",
+      "path": "/users/unauth-user",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "updateUser",
+      "method": "POST",
+      "path": "/users/update",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "verifyUserName",
+      "method": "GET",
+      "path": "/users/verify-user-name",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllWorkerGroupsPaging",
+      "method": "GET",
+      "path": "/worker-groups",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "saveWorkerGroup",
+      "method": "POST",
+      "path": "/worker-groups",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryAllWorkerGroups",
+      "method": "GET",
+      "path": "/worker-groups/all",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "queryWorkerAddressList",
+      "method": "GET",
+      "path": "/worker-groups/worker-address-list",
+      "pathParameters": {}
+    },
+    {
+      "operationId": "deleteWorkerGroupById",
+      "method": "DELETE",
+      "path": "/worker-groups/{id}",
+      "pathParameters": {
+        "id": "integer"
+      }
+    }
+  ]
+}

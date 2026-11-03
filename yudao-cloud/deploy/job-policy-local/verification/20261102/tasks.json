@@ -1,0 +1,44 @@
+{
+  "policies": {
+    "cron": {
+      "jobId": 4,
+      "jobName": "codex_job_e2e_cron_混合策略验收_20261102_080442_28e9",
+      "jobRevision": 6,
+      "strategy": "SERIAL_WAIT",
+      "integrationTaskId": "1001",
+      "developmentTaskId": "6"
+    },
+    "wait": {
+      "jobId": 5,
+      "jobName": "codex_job_e2e_wait_混合策略验收_20261102_080442_28e9",
+      "jobRevision": 1,
+      "strategy": "SERIAL_WAIT",
+      "integrationTaskId": "1002",
+      "developmentTaskId": "7"
+    },
+    "discard": {
+      "jobId": 6,
+      "jobName": "codex_job_e2e_discard_混合策略验收_20261102_080442_28e9",
+      "jobRevision": 1,
+      "strategy": "SERIAL_DISCARD",
+      "integrationTaskId": "1003",
+      "developmentTaskId": "8"
+    },
+    "priority": {
+      "jobId": 7,
+      "jobName": "codex_job_e2e_priority_混合策略验收_20261102_080442_28e9",
+      "jobRevision": 1,
+      "strategy": "SERIAL_PRIORITY",
+      "integrationTaskId": "1004",
+      "developmentTaskId": "9"
+    },
+    "parallel": {
+      "jobId": 8,
+      "jobName": "codex_job_e2e_parallel_混合策略验收_20261102_080442_28e9",
+      "jobRevision": 1,
+      "strategy": "PARALLEL",
+      "integrationTaskId": "1005",
+      "developmentTaskId": "10"
+    }
+  }
+}

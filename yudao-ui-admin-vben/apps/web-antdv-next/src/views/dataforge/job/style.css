@@ -1,0 +1,461 @@
+.qj-workbench {
+  min-height: calc(100vh - 100px);
+  padding: 14px;
+  font-size: 14px;
+  color: #606266;
+  background: #f0f2f5;
+}
+
+.qj-workbench * {
+  box-sizing: border-box;
+}
+
+.qj-workbench .qo-icon {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  object-fit: contain;
+}
+
+.qj-workbench button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.qj-banner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  color: #333;
+  background: #fffaf1;
+  border: 1px solid #fbe0ae;
+  border-radius: 2px;
+}
+
+.qj-banner-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.qj-banner > div {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+}
+
+.qj-banner p {
+  margin: 5px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.qj-banner > .ant-btn {
+  color: #e6a23c;
+  border-color: #f3d19e;
+}
+
+.qj-banner > .ant-btn-primary {
+  color: white;
+  background: #e6a23c;
+}
+
+.qj-layout {
+  display: grid;
+  grid-template-columns: 280px 14px minmax(0, 1fr);
+  min-height: calc(100vh - 240px);
+}
+
+.qj-layout.is-category-collapsed {
+  grid-template-columns: 14px minmax(0, 1fr);
+}
+
+.qj-category {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px;
+  background: white;
+}
+
+.qj-category-tools {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+
+.qj-category-tools > .ant-input-affix-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.qj-category .ant-tree {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.qj-category .ant-tree-node-content-wrapper {
+  display: flex;
+  min-width: 0;
+}
+
+.qj-category .ant-tree-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qj-new-category {
+  align-self: flex-start;
+  margin-top: 12px;
+}
+
+.qj-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.qj-statistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  padding: 14px 12px;
+  color: #999;
+  background: white;
+}
+
+.qj-statistics > button {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  padding: 0 12px;
+  border-right: 1px solid #e4e7ed;
+}
+
+.qj-statistics b {
+  font-weight: 500;
+  color: #606266;
+}
+
+.qj-statistics p {
+  flex: 1;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.qj-statistics p button {
+  margin-left: 8px;
+}
+
+.qj-filters {
+  padding: 15px;
+  background: white;
+}
+
+.qj-filters form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 30px;
+  align-items: center;
+}
+
+.qj-filters label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #333;
+  white-space: nowrap;
+}
+
+.qj-filters label > .ant-input-affix-wrapper,
+.qj-filters label > .ant-select {
+  width: 215px;
+}
+
+.qj-query {
+  display: flex;
+  gap: 12px;
+}
+
+.qj-query .ant-btn:first-child,
+.qj-query .ant-btn:last-child,
+.qj-toolbar > .ant-btn:first-child {
+  color: #2f62ff;
+  background: #eff6ff;
+  border-color: #a0b7ff;
+}
+
+.qj-table-panel {
+  flex: 1;
+  min-width: 0;
+  padding: 15px;
+  background: white;
+}
+
+.qj-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.qj-toolbar > span {
+  flex: 1;
+}
+
+.qj-toolbar > .ant-btn {
+  min-width: 32px;
+}
+
+.qj-toolbar .qo-icon {
+  margin-right: 0;
+}
+
+.qj-table-panel .ant-table-container {
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.qj-table-panel .ant-table-thead > tr > th {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+  border-bottom-color: hsl(var(--border));
+}
+
+.qj-table-panel .ant-table-thead > tr > th:not(:last-child)::before {
+  background: hsl(var(--border));
+}
+
+.qj-table-panel .ant-table-tbody > tr > td {
+  padding-block: 10px;
+  font-size: 12px;
+  color: #606266;
+  border-bottom-color: #dfe3eb;
+}
+
+.qj-table-panel small {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #999;
+}
+
+.qj-info button {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #2f62ff;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.qj-info p {
+  display: -webkit-box;
+  margin: 4px 0 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 18px;
+  color: #999;
+  -webkit-box-orient: vertical;
+}
+
+.qj-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qj-controls label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.qj-controls .ant-switch-checked {
+  background: #67c23a;
+}
+
+.qj-strategy {
+  padding: 2px 5px;
+  color: #909399;
+  background: #f4f4f5;
+  border: 1px solid #e9e9eb;
+  border-radius: 2px;
+}
+
+.qj-cron {
+  overflow-wrap: anywhere;
+}
+
+.qj-actions {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.qj-actions button {
+  padding: 0;
+  color: #2f62ff;
+}
+
+.qj-popup {
+  min-width: 120px;
+  padding: 5px 0;
+  color: #606266;
+  background: white;
+  border: 1px solid #ebeef5;
+  border-radius: 3px;
+  box-shadow: 0 2px 12px #0000001a;
+}
+
+.qj-popup > button,
+.qj-popup > label {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qj-popup > button:hover {
+  color: #2f62ff;
+  background: #eef3ff;
+}
+
+.qj-cron-dialog {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 12px;
+  padding: 25px 0;
+}
+
+.qj-category-dialog {
+  padding: 20px 0;
+}
+
+.qj-category-dialog label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.qj-workbench .list-pagination {
+  --vxe-ui-font-color: #606266;
+  --vxe-ui-font-primary-color: #2f62ff;
+  --vxe-ui-base-popup-border-color: #e2e5ed;
+  --vxe-ui-layout-background-color: #fff;
+  --vxe-ui-table-header-background-color: #f1f1f5;
+  --vxe-ui-input-background-color: #fff;
+
+  color: #606266;
+  background: #fff;
+}
+
+@media (width <= 1200px) {
+  .qj-layout {
+    grid-template-columns: 230px 12px minmax(0, 1fr);
+  }
+
+  .qj-statistics p {
+    flex-basis: 100%;
+  }
+}
+
+@media (width <= 768px) {
+  .qj-layout {
+    grid-template-columns: 180px 12px minmax(0, 1fr);
+  }
+
+  .qj-banner {
+    flex-wrap: wrap;
+  }
+
+  .qj-banner p {
+    white-space: normal;
+  }
+
+  .qj-statistics {
+    gap: 10px;
+  }
+
+  .qj-statistics > button {
+    padding: 0;
+    border: 0;
+  }
+}
+
+@media (width <= 500px) {
+  .qj-workbench {
+    padding: 8px;
+  }
+
+  .qj-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .qj-category {
+    max-height: 220px;
+    overflow: auto;
+  }
+
+  .qj-layout > .sidebar-collapse {
+    display: none;
+  }
+
+  .qj-filters label {
+    flex-direction: column;
+    gap: 5px;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .qj-filters label > .ant-input-affix-wrapper,
+  .qj-filters label > .ant-select {
+    width: 100%;
+  }
+
+  .qj-statistics p {
+    font-size: 12px;
+    text-align: left;
+  }
+
+  .qj-banner > div {
+    font-size: 14px;
+  }
+}
+
+
+.qj-run-counts,
+.qj-schedule-hint {
+  font-size: 12px;
+  line-height: 20px;
+  color: #909399;
+}
+
+.qj-schedule-hint {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+}

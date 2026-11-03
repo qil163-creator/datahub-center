@@ -1,0 +1,143 @@
+{
+  "startedAt": "2026-11-01T16:16:47.077Z",
+  "completed": true,
+  "checks": [
+    {
+      "name": "new-job-default-parallel",
+      "defaultStrategy": "并行",
+      "manualParallelHintVisible": true,
+      "saved": false
+    },
+    {
+      "name": "job-management-real-success",
+      "jobId": "11",
+      "recordId": "5",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "job-parent-real-log",
+      "identity": {
+        "id": "5",
+        "kind": "JOB",
+        "origin": "PLATFORM"
+      },
+      "status": "SUCCESS",
+      "available": true,
+      "importedSnapshot": false,
+      "markerFound": true,
+      "searchHighlight": true,
+      "download": {
+        "filename": "codex_job_e2e_真实混合验收_20261101_233720-20261102000228.log",
+        "bytes": 18086,
+        "sha256": "57fac86f88366290b6e019ad8edae611bda772e37dd881e737f2d042cd803eae"
+      }
+    },
+    {
+      "name": "job-operations-real-children",
+      "identity": {
+        "id": "5",
+        "kind": "JOB",
+        "origin": "PLATFORM"
+      },
+      "status": "SUCCESS",
+      "children": [
+        {
+          "id": "180829751977008",
+          "kind": "INTEGRATION",
+          "origin": "MANAGED",
+          "status": "SUCCESS",
+          "taskName": "codex_job_e2e_集成PG搬数_20261101_233720",
+          "startTime": "2026-11-02 00:04:24",
+          "endTime": "2026-11-02 00:11:47"
+        },
+        {
+          "id": "9",
+          "kind": "DEVELOPMENT",
+          "origin": "PLATFORM",
+          "status": "SUCCESS",
+          "taskName": "codex_job_e2e_开发只读核验_20261101_233720",
+          "startTime": "2026-11-02 00:11:56",
+          "endTime": "2026-11-02 00:13:49"
+        }
+      ],
+      "finalRechecked": true
+    },
+    {
+      "name": "job-child-integration-real-log",
+      "identity": {
+        "id": "180829751977008",
+        "kind": "INTEGRATION",
+        "origin": "MANAGED"
+      },
+      "status": "SUCCESS",
+      "available": true,
+      "importedSnapshot": false,
+      "markerFound": true,
+      "searchHighlight": true,
+      "download": {
+        "filename": "dh_integration_1001_v1_a15f59ae18e6-20261102000424452.log",
+        "bytes": 15519,
+        "sha256": "0c4fbe75204d14daa92fca9ed49f30f43ae9533cceb0067d1b5ea6f03e223051"
+      }
+    },
+    {
+      "name": "job-child-development-real-log",
+      "identity": {
+        "id": "9",
+        "kind": "DEVELOPMENT",
+        "origin": "PLATFORM"
+      },
+      "status": "SUCCESS",
+      "available": true,
+      "importedSnapshot": false,
+      "markerFound": true,
+      "searchHighlight": true,
+      "download": {
+        "filename": "codex_job_e2e_开发只读核验_20261101_233720-9.log",
+        "bytes": 2345,
+        "sha256": "bd215641831ede07d30341400ac04ab45cb2ca1f68112d20c7adced2b4f3ab9f"
+      }
+    },
+    {
+      "name": "independent-integration-real-success",
+      "id": "180829751977008",
+      "kind": "INTEGRATION",
+      "origin": "MANAGED",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "scoped-light-pagination",
+      "background": "rgb(255, 255, 255)",
+      "color": "rgb(96, 98, 102)",
+      "documentDark": true,
+      "navigationThemeUnchanged": true
+    },
+    {
+      "name": "independent-development-real-success",
+      "id": "9",
+      "kind": "DEVELOPMENT",
+      "origin": "PLATFORM",
+      "status": "SUCCESS",
+      "searchName": "codex_job_e2e_开发只读核验_20261101_233720-9",
+      "total": 1
+    }
+  ],
+  "pageErrors": [],
+  "httpErrors": [],
+  "screenshots": [
+    "/tmp/qdata-job-mixed-e2e/ui/job-management-real-success.png",
+    "/tmp/qdata-job-mixed-e2e/ui/new-job-default-parallel.png",
+    "/tmp/qdata-job-mixed-e2e/ui/job-parent-log-search.png",
+    "/tmp/qdata-job-mixed-e2e/ui/job-operations-real-children.png",
+    "/tmp/qdata-job-mixed-e2e/ui/job-child-integration-log-search.png",
+    "/tmp/qdata-job-mixed-e2e/ui/job-child-development-log-search.png",
+    "/tmp/qdata-job-mixed-e2e/ui/independent-integration-real-success.png",
+    "/tmp/qdata-job-mixed-e2e/ui/job-operations-real-child-times.png",
+    "/tmp/qdata-job-mixed-e2e/ui/independent-development-real-success.png"
+  ],
+  "finishedAt": "2026-11-01T16:20:29.624Z",
+  "finalVerificationStartedAt": "2026-11-01T16:20:24.392Z",
+  "finalBackendPid": 55859,
+  "authFileRemoved": true,
+  "noNewExecutionTriggered": true
+}

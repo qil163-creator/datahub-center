@@ -1,0 +1,69 @@
+{
+  "checks": {
+    "SPARK_BATCH": {
+      "execution": {
+        "name": "dh_native_9917935476579971",
+        "user": "datahub",
+        "engine": "SPARK",
+        "state": "SUCCEEDED",
+        "exitCode": 0,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false
+      },
+      "wrapperExitCode": 0,
+      "markerInOutput": true,
+      "outputSha256": "178ddf72b2452924e8ccf1e02f7475dc9569c2c5315e52893d23d6ce17a88177"
+    },
+    "FLINK_BATCH": {
+      "execution": {
+        "name": "dh_native_9917935476579972",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "SUCCEEDED",
+        "exitCode": 0,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false
+      },
+      "wrapperExitCode": 0,
+      "markerInOutput": true,
+      "outputSha256": "50c52afffbce3000521fbce3710840acb2a7d87822d4190c3de45eddb7b99d13"
+    },
+    "FLINK_FAILURE": {
+      "execution": {
+        "name": "dh_native_9917935476579973",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "FAILED",
+        "exitCode": 1,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false
+      },
+      "wrapperExitCode": 1,
+      "markerInOutput": true,
+      "outputSha256": "fffb2387bfee1c186e8061c03c64bad4d1fa0ff546465e7dbfdec56118170e18"
+    },
+    "FLINK_STREAM_CANCEL": {
+      "execution": {
+        "name": "dh_native_9917935477269994",
+        "user": "datahub",
+        "engine": "FLINK",
+        "state": "CANCELLED",
+        "exitCode": -15,
+        "started": true,
+        "finished": true,
+        "processTreeAlive": false
+      },
+      "markerInOutput": true,
+      "outputSha256": "78db21f0d58dad493f5ed4b2ea2082b28bc643dc97b140194e35cab454ca3331",
+      "ownerUid": 0,
+      "stateMode": "0o600",
+      "logMode": "0o600"
+    }
+  },
+  "status": "PASS",
+  "scope": "真实CLI输出及root监督账本",
+  "validationNote": "批计算与错误传播由CLI stdout验证；流取消以修复后的精确argv定位向入口发SIGINT，并核对root日志标记、终态与子树退出。"
+}

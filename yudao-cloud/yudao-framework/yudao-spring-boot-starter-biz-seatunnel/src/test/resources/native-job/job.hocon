@@ -1,0 +1,25 @@
+# 原生注释和格式必须原样发送，查询参数独立指定稳定作业名。
+env {
+  job.mode = "BATCH"
+  job.name = "native-user-hocon-name"
+  parallelism = 1
+}
+source {
+  FakeSource {
+    plugin_output = "source_rows"
+    row.num = 3
+    schema { fields { id = int } }
+  }
+}
+transform {
+  Sql {
+    plugin_input = "source_rows"
+    plugin_output = "transformed_rows"
+    query = "select id, 'native-hocon-transform' as marker from source_rows"
+  }
+}
+sink {
+  Console {
+    plugin_input = "transformed_rows"
+  }
+}

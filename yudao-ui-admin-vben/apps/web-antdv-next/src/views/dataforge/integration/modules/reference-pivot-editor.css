@@ -1,0 +1,275 @@
+.qi-pivot-reference {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.qi-pivot-reference .qi-pivot-key-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.qi-pivot-reference .qi-pivot-key-grid .qi-reference-form-row {
+  gap: 0;
+}
+
+.qi-pivot-reference .qi-pivot-key-grid .qi-pivot-key-label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
+.qi-pivot-required {
+  color: #f56c6c;
+}
+
+.qi-pivot-info {
+  display: inline-flex;
+  flex: 0 0 14px;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  cursor: help;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+}
+
+.qi-pivot-info .qi-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.qi-pivot-info:focus-visible {
+  outline: 2px solid #2f62ff;
+  outline-offset: 2px;
+}
+
+.qi-pivot-column-title {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.qi-pivot-reference .qi-reference-table-heading {
+  display: grid;
+  gap: 16px;
+  justify-content: start;
+  margin: 0;
+}
+
+.qi-pivot-reference .qi-reference-table-heading h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.qi-pivot-reference .qi-reference-table-heading h3::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2f62ff;
+  border-radius: 4px;
+}
+
+.qi-pivot-reference[data-unpivot='true'] .qi-pivot-fields-scroll {
+  height: 470px;
+  max-height: none;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-pivot-index-column {
+  width: 80px;
+}
+
+.qi-pivot-action-column {
+  width: 120px;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th:not(:first-child),
+.qi-pivot-reference .qi-reference-fields-table td:last-child:not([colspan]) {
+  text-align: center;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th:last-child,
+.qi-pivot-reference .qi-reference-fields-table td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  width: 120px;
+  background: #fff;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th:last-child {
+  z-index: 2;
+  background: #f1f1f5;
+}
+
+.qi-pivot-reference .qi-reference-fields-table tbody tr:hover td:last-child:not([colspan]) {
+  background: #eaf0ff;
+}
+
+.qi-pivot-reference .qi-reference-fields-table td .ant-btn {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 4px 6px;
+}
+
+.qi-pivot-source-select {
+  position: relative;
+  min-width: 0;
+}
+
+.qi-pivot-source-select::after {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  pointer-events: none;
+  content: '';
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: rotate(45deg);
+}
+
+.qi-pivot-source-select .ant-input {
+  padding-right: 28px;
+}
+
+.qi-pivot-reference .qi-reference-fields-table td.qi-pivot-empty {
+  position: static;
+  width: auto;
+  height: 434px;
+  padding: 70px 10px 120px;
+  vertical-align: middle;
+  text-align: center;
+  background: #fff;
+}
+
+.qi-pivot-reference .qi-reference-fields-table td.qi-pivot-empty::before {
+  content: none;
+}
+
+.qi-pivot-empty img {
+  display: block;
+  width: min(190px, 100%);
+  height: auto;
+  margin: 0 auto 54px;
+  pointer-events: none;
+}
+
+.qi-pivot-empty p {
+  margin: 0;
+  color: #909399;
+}
+
+@media (max-width: 768px) {
+  .qi-pivot-reference .qi-pivot-key-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-pivot-reference[data-unpivot='true'] .qi-reference-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qi-pivot-reference .qi-pivot-key-grid .qi-pivot-key-label {
+    justify-content: flex-start;
+  }
+}
+
+.qi-pivot-reference .qi-pivot-group-scroll {
+  height: 310px;
+  overflow: auto;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-pivot-reference .qi-pivot-group-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.qi-pivot-reference .qi-reference-fields-table td.qi-pivot-group-empty,
+.qi-pivot-reference[data-unpivot='false']
+  .qi-reference-fields-table
+  td.qi-pivot-empty {
+  height: 274px;
+  padding: 40px 10px 10px;
+}
+
+.qi-pivot-reference .qi-pivot-group-empty img,
+.qi-pivot-reference[data-unpivot='false'] .qi-pivot-empty img {
+  margin-bottom: 54px;
+}
+
+.qi-pivot-reference[data-unpivot='false'] .qi-pivot-fields-scroll {
+  min-height: 310px;
+}
+
+.qi-pivot-reference .qi-pivot-mapping-table {
+  min-width: 1590px;
+}
+
+.qi-pivot-reference .qi-reference-merge-button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: #e6a23c;
+  background: #fdf6ec;
+  border-color: #f5dab1;
+}
+
+.qi-pivot-reference .qi-reference-merge-button:hover {
+  color: #e6a23c;
+  background: #faecd8;
+  border-color: #e6a23c;
+}
+
+.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(1) {
+  color: #fff;
+  background: #e6a23c;
+  border-color: #e6a23c;
+}
+
+.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(2) {
+  color: #fff;
+  background: #2f62ff;
+  border-color: #2f62ff;
+}
+
+.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(3) {
+  color: #fff;
+  background: #f56c6c;
+  border-color: #f56c6c;
+}
+
+.qi-pivot-reference .qi-pivot-key-grid .ant-select,
+.qi-pivot-reference .qi-pivot-source-select .ant-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th,
+.qi-pivot-reference .qi-reference-fields-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.qi-pivot-reference .qi-reference-fields-table th {
+  font-weight: 600;
+}

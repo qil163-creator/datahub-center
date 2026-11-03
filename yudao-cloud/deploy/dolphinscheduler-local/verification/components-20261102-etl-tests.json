@@ -1,0 +1,96 @@
+{
+  "scope": "全部ETL组件测试类，经reactor编译直接依赖；未选择无关DBswitch产品测试",
+  "selectedClasses": 92,
+  "reportedClasses": 92,
+  "tests": 458,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 14,
+  "logSha256": "7e187ef26c01a0d0847614de610867a706495fb63bb3f4cb67435bf59d23e273",
+  "jvmTmpDir": "/private/tmp/datahub-etl-tests-20261102",
+  "executed": 444,
+  "skippedCases": [
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest",
+      "test": "killedHostAfterCreateBeforeIdRegistrationRecoversOnlyItsProvenContainer",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker recovery fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.policy(EtlScriptDockerRecoveryIntegrationTest.java:31)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.crashAndRecover(EtlScriptDockerRecoveryIntegrationTest.java:42)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.killedHostAfterCreateBeforeIdRegistrationRecoversOnlyItsProvenContainer(EtlScriptDockerRecoveryIntegrationTest.java:39)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest",
+      "test": "killedHostWithAcknowledgedIdIsRecoveredWhileAnotherHostWorkerRemainsActive",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker recovery fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.policy(EtlScriptDockerRecoveryIntegrationTest.java:31)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.crashAndRecover(EtlScriptDockerRecoveryIntegrationTest.java:42)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerRecoveryIntegrationTest.killedHostWithAcknowledgedIdIsRecoveredWhileAnotherHostWorkerRemainsActive(EtlScriptDockerRecoveryIntegrationTest.java:38)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "cancellationAndSystemExitCannotLeaveBackgroundChildrenOutsideTheContainer",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.cancellationAndSystemExitCannotLeaveBackgroundChildrenOutsideTheContainer(EtlScriptDockerIntegrationTest.java:110)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "independentSupervisorExpiresAnOrphanedInfiniteWorkerWithoutTheParentCleanup",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.independentSupervisorExpiresAnOrphanedInfiniteWorkerWithoutTheParentCleanup(EtlScriptDockerIntegrationTest.java:134)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "timeoutKillsTheActualContainerBeforeReturning",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.timeoutKillsTheActualContainerBeforeReturning(EtlScriptDockerIntegrationTest.java:100)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "strictAdmissionChecksTheActualDaemonSwapCapability",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.strictAdmissionChecksTheActualDaemonSwapCapability(EtlScriptDockerIntegrationTest.java:124)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "realJavaAndJsPreserveTheirBatchContractsAndContainerCleanup",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.realJavaAndJsPreserveTheirBatchContractsAndContainerCleanup(EtlScriptDockerIntegrationTest.java:48)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest",
+      "test": "realWorkerSeesNonRootNoCapabilitiesReadOnlyRootAndActualCgroupLimits",
+      "reason": "org.opentest4j.TestAbortedException: Assumption failed: Explicit trusted Docker integration fixture required\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:340)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:127)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.runner(EtlScriptDockerIntegrationTest.java:23)\n\tat cn.iocoder.yudao.framework.etl.core.script.EtlScriptDockerIntegrationTest.realWorkerSeesNonRootNoCapabilitiesReadOnlyRootAndActualCgroupLimits(EtlScriptDockerIntegrationTest.java:69)\n"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.engine.EtlDatabasePostgreSqlTest",
+      "test": "nativeUpsertKeepsRepeatedKeyAndExistingRowWithoutAnExistenceQuery",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.engine.EtlDatabasePostgreSqlTest",
+      "test": "readDbToInsertDbPreservesPrecisionAndPublishesActualBoundedBatchEvidence(String)",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.engine.EtlDatabasePostgreSqlTest",
+      "test": "truncateIsRejectedForUpsertBeforeExistingDataChanges",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.engine.EtlDatabasePostgreSqlTest",
+      "test": "changedFieldSetFailsBeforePendingBatchCanWriteMissingValuesAsNull",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaPostgreSqlTest",
+      "test": "sqlExpressionsHaveUnknownConstraintsInsteadOfBorrowingTheReferencedTableContract",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    },
+    {
+      "class": "cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaPostgreSqlTest",
+      "test": "nativeDecimalAndNullableFactsPropagateWithoutInventingIntegerOrTimezonePrecision",
+      "reason": "System property [datahub.test.postgres.url] does not exist"
+    }
+  ],
+  "postgreSqlSupplement": {
+    "file": "components-20261102-postgresql-contracts.json",
+    "status": "PASS",
+    "note": "原ETL6+DataForge3个skipped槽经真实Docker PG16启用；参数化展开后实际7+3=10全部执行无跳过。保留本文件原suite历史计数。"
+  },
+  "dockerSupplement": {
+    "file": "components-20261102-script-docker8.json",
+    "status": "PASS",
+    "executed": 8,
+    "skipped": 0,
+    "note": "显式固定镜像和受信Docker endpoint补跑原8个Docker跳过项，原suite历史计数不变。"
+  }
+}

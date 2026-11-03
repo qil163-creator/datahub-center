@@ -1,0 +1,30 @@
+{
+  "sourceReference": "codex-clipboard-fe3d7198-0ba9-4263-9268-61602ce7d5c0.png",
+  "sourceSha256": "49333eab328757e62066accba441dc25273a57b9d94bf90414d31b1b4560bb10",
+  "sourceBox": [
+    1620,
+    1450,
+    420,
+    310
+  ],
+  "cursorCleanup": {
+    "sourceWhiteBox": [
+      0,
+      0,
+      48,
+      52
+    ],
+    "destination": [
+      336,
+      62
+    ]
+  },
+  "asset": "node-empty-reference.png",
+  "sha256": "fa94b1d720a7979a45b17ec05881131982584db7ca3b6ce650f898d87389005e",
+  "size": [
+    420,
+    310
+  ],
+  "role": "decorative",
+  "background": "#ffffff"
+}

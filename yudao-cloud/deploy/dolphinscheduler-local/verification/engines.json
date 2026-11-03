@@ -1,0 +1,36 @@
+{
+  "projectCode": "188507725745120",
+  "checks": {
+    "DATAX": {
+      "taskType": "DATAX",
+      "workflowCode": "188507726089184",
+      "workflowInstanceId": 1,
+      "taskInstanceId": 1,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedOutput": "1\tDATAHUB_DATAX_SMOKE",
+      "expectedOutputInLog": true
+    },
+    "SPARK": {
+      "taskType": "SPARK",
+      "workflowCode": "188507738846176",
+      "workflowInstanceId": 2,
+      "taskInstanceId": 2,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedOutput": "DATAHUB_SPARK_SMOKE\t45",
+      "expectedOutputInLog": true
+    },
+    "FLINK": {
+      "taskType": "FLINK",
+      "workflowCode": "188507745242080",
+      "workflowInstanceId": 3,
+      "taskInstanceId": 3,
+      "state": "SUCCESS",
+      "markerInLog": true,
+      "expectedOutput": "+I[DATAHUB_FLINK_SMOKE]",
+      "expectedOutputInLog": true
+    }
+  },
+  "status": "PASS"
+}

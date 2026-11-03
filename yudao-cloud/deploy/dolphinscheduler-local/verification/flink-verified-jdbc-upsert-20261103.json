@@ -1,0 +1,37 @@
+{
+  "jarSha256": "b5ed4b0fe87232d75325ab3fa474d4ea7723ea04391de47342c5c42e6abd2211",
+  "sourceSha256": "18d8843539e5fdf8a32b2e75e13c31d70372823083da1852de059c5cd17afe13",
+  "flinkVersion": "1.20.3",
+  "jdbcConnector": "3.3.0-1.20",
+  "postgresVersion": "18",
+  "mode": "STREAMING",
+  "cases": [
+    {
+      "case": "upsert",
+      "exitCode": 0,
+      "expectedFailure": false
+    },
+    {
+      "case": "changelog",
+      "exitCode": 0,
+      "expectedFailure": false
+    },
+    {
+      "case": "missing-catalog-pk",
+      "exitCode": 0,
+      "expectedFailure": true
+    },
+    {
+      "case": "wrong-url",
+      "exitCode": 0,
+      "expectedFailure": true
+    },
+    {
+      "case": "null-key",
+      "exitCode": 0,
+      "expectedFailure": true
+    }
+  ],
+  "evidenceDirectory": "/var/folders/rv/jh7r_f8x6wg1119_sdjr5b6r0000gn/T/datahub-upsert-8fe68aee7e00-p9luftu_",
+  "scope": "独立有界测试流；不宣称持续CDC或故障恢复验收"
+}

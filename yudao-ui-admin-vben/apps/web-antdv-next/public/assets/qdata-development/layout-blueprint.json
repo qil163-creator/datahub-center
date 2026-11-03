@@ -1,0 +1,8 @@
+{
+  "referenceCanvas": { "width": 3646, "height": 2080 },
+  "cssScale": 0.5,
+  "reference": "用户提供的离线任务截图及 REA 采集的 qData 新增任务页面",
+  "list": { "directoryWidth": 280, "columnGap": 15, "statisticsHeight": 44, "searchHeight": 62, "toolbarHeight": 60, "rowHeight": 79 },
+  "modal": { "width": "60vw", "bodyPadding": [30, 40], "labelWidth": 146, "columns": 2, "columnGap": 36 },
+  "reusedAssetManifest": "/assets/qdata-integration/reference-manifest.json"
+}

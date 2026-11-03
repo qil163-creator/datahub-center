@@ -1,0 +1,103 @@
+name: datahub-doris-local
+
+services:
+  fe:
+    image: apache/doris:fe-4.0.8@sha256:390413325a93d9121768bda153ccaa3c7a8da4aa0fd2a466406cddc14a6399b2
+    entrypoint: [bash, /usr/local/bin/datahub-start-fe.sh]
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 90s
+    mem_limit: 2g
+    cpus: 2
+    ports:
+      - 127.0.0.1:9030:9030
+      - 127.0.0.1:8030:8030
+      - 127.0.0.1:8040:8040
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_PWD: ${DORIS_ROOT_PASSWORD:?请先执行 python3 init.py --prepare-only}
+      DORIS_ROOT_PASSWORD_HASH: ${DORIS_ROOT_PASSWORD_HASH:?请先执行 python3 init.py --prepare-only}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - fe-meta:/opt/apache-doris/fe/doris-meta
+      - fe-logs:/opt/apache-doris/fe/log
+      - type: bind
+        source: ./start-fe.sh
+        target: /usr/local/bin/datahub-start-fe.sh
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./health.sh
+        target: /usr/local/bin/datahub-health.sh
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: [CMD, bash, /usr/local/bin/datahub-health.sh, fe]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+  be:
+    image: apache/doris:be-4.0.8@sha256:d911ae3826491598be4e383cba83011a266091b8fdc6c34c036280220cc4fea9
+    entrypoint: [bash, /usr/local/bin/datahub-start-be.sh]
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 90s
+    mem_limit: 4g
+    cpus: 4
+    network_mode: service:fe
+    depends_on:
+      fe:
+        condition: service_healthy
+        restart: true
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_PWD: ${DORIS_ROOT_PASSWORD:?请先执行 python3 init.py --prepare-only}
+      SKIP_CHECK_ULIMIT: "true"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - be-storage:/opt/apache-doris/be/storage
+      - be-logs:/opt/apache-doris/be/log
+      - type: bind
+        source: ./start-be.sh
+        target: /usr/local/bin/datahub-start-be.sh
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./health.sh
+        target: /usr/local/bin/datahub-health.sh
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: [CMD, bash, /usr/local/bin/datahub-health.sh, be]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+volumes:
+  fe-meta:
+  be-storage:
+  fe-logs:
+  be-logs:

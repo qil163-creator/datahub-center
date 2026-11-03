@@ -1,0 +1,66 @@
+{
+  "platform": {
+    "id": 59,
+    "status": "FAILURE",
+    "queueState": "DONE",
+    "queueReason": "真实父子终态已确认：FAILURE",
+    "queuedTime": "2026-11-02 12:28:43",
+    "scheduledTime": null,
+    "executionType": "START",
+    "dsProjectCode": 188566818730880,
+    "dsDefinitionCode": 188583246094976,
+    "dsInstanceId": 80,
+    "submissionStage": "BOUND",
+    "startTime": "2026-11-02 12:28:47",
+    "endTime": "2026-11-02 12:29:08",
+    "children": [
+      {
+        "id": 180829751976978,
+        "kind": "INTEGRATION",
+        "origin": "MANAGED",
+        "status": "FAILURE",
+        "taskId": 1006
+      },
+      {
+        "id": 51,
+        "kind": "DEVELOPMENT",
+        "origin": "PLATFORM",
+        "status": "STOPPED",
+        "taskId": 11
+      }
+    ]
+  },
+  "children": [
+    {
+      "parentTaskId": 94,
+      "instanceId": 81,
+      "state": "FAILURE",
+      "definitionCode": "188583071166080",
+      "startTime": "2026-11-02 12:28:48",
+      "endTime": "2026-11-02 12:29:00",
+      "workers": [
+        {
+          "id": 95,
+          "taskType": "DATAX_UPSERT",
+          "state": "FAILURE",
+          "flag": "YES",
+          "host": "172.18.0.2:1235",
+          "startTime": "2026-11-02 12:28:49",
+          "endTime": "2026-11-02 12:29:00",
+          "processId": null,
+          "retryTimes": 0,
+          "logPath": "/opt/dolphinscheduler/logs/20261102/188583071166080/1/81/95.log"
+        }
+      ]
+    }
+  ],
+  "parent": {
+    "id": 80,
+    "state": "FAILURE",
+    "startTime": "2026-11-02 12:28:47",
+    "endTime": "2026-11-02 12:29:08",
+    "workflowDefinitionCode": 188583246094976,
+    "projectCode": 188566818730880,
+    "host": "172.18.0.2:5678"
+  }
+}
