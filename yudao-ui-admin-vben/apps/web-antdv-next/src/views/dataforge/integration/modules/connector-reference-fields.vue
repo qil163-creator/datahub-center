@@ -18,11 +18,8 @@ const error = (key: string) =>
   props.issues?.find((issue) => issue.field === key)?.message;
 function text(field: ConnectorField) {
   const value: unknown = props.config[field.key];
-  return value && typeof value === 'object'
-    ? JSON.stringify(value, null, 2)
-    : typeof value === 'string'
-      ? value
-      : '';
+  if (value && typeof value === 'object') return JSON.stringify(value, null, 2);
+  return typeof value === 'string' ? value : '';
 }
 function feedback(field: ConnectorField) {
   return connectorJsonFeedback(

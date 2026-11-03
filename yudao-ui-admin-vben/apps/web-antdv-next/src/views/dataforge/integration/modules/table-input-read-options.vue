@@ -828,6 +828,16 @@ defineExpose({ validate });
   border-bottom: 1px solid #ebeef5;
 }
 
+/* Sort icon sits right after the column title, as in the reference table. */
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-column-sorters) {
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-column-title) {
+  flex: none;
+}
+
 /* Reference condition dialog: wider label column and flush right edge. */
 .qi-table-condition-modal-reference .qi-table-condition-editor {
   padding: 0 0 10px;

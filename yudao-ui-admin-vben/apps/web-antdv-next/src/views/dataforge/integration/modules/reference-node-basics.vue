@@ -6,9 +6,9 @@ const props = defineProps<{
   descriptionOnly?: boolean;
   /** Optional description placeholder; defaults to "请输入描述". */
   descriptionPlaceholder?: string;
+  disabled?: boolean;
   /** Optional section heading rendered above the basic fields. */
   heading?: string;
-  disabled?: boolean;
   hideType?: boolean;
   name: string;
   showDescription?: boolean;

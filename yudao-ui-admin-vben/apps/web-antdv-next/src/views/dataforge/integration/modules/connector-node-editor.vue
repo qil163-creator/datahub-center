@@ -34,8 +34,6 @@ import {
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import ConnectorReferenceFields from './connector-reference-fields.vue';
-import DatabaseConnectionPicker from './database-connection-picker.vue';
-import KafkaInputFieldModal from './kafka-input-field-modal.vue';
 import {
   connectorDefaults,
   connectorFieldVisible,
@@ -44,6 +42,8 @@ import {
   validateConnectorColumn,
   validateConnectorConfig,
 } from './connector-schema';
+import DatabaseConnectionPicker from './database-connection-picker.vue';
+import KafkaInputFieldModal from './kafka-input-field-modal.vue';
 import ReferenceFieldEditModal from './reference-field-edit-modal.vue';
 import ReferenceIcon from './reference-icon.vue';
 import {

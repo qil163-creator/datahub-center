@@ -77,6 +77,14 @@ const realtime = computed(
 const isTdengine = computed(() => props.toolCode === 'read-tdengine');
 const isHive = computed(() => props.toolCode === 'read-hive');
 const isOdps = computed(() => props.toolCode === 'read-odps');
+// ODPS and Hive follow the qData reference dialog layout.
+const referenceRelation = computed(() => isOdps.value || isHive.value);
+const tablePlaceholder = computed(() => {
+  if (isOdps.value) return '请选择表';
+  return isHive.value ? '请选择' : '请选择表或视图';
+});
+const sortDirection = (key: 'length' | 'scale') =>
+  fieldSort.value?.key === key ? fieldSort.value.direction : 0;
 const sqlMode = computed(() => props.config.ifSql === 1);
 const sqlAllowed = computed(
   () => !realtime.value && props.toolCode !== 'read-mongodb',
@@ -563,7 +571,7 @@ defineExpose({ validate });
           :options="[
             { label: '数据连接', value: 0 },
             ...(sqlAllowed || sqlMode
-              ? [{ label: isOdps ? 'sql' : 'SQL', value: 1 }]
+              ? [{ label: referenceRelation ? 'sql' : 'SQL', value: 1 }]
               : []),
           ]"
           aria-label="连接方式"
@@ -583,8 +591,8 @@ defineExpose({ validate });
       </div>
       <div class="qi-relation-field">
         <label>数据连接类型</label><Input
-          :value="database?.databaseTypeName || database?.productId || (isHive || isOdps ? undefined : '-')"
-          :placeholder="isHive || isOdps ? '请输入数据连接类型' : undefined"
+          :value="database?.databaseTypeName || database?.productId || (referenceRelation ? undefined : '-')"
+          :placeholder="referenceRelation ? '请输入数据连接类型' : undefined"
           disabled
         />
       </div>
@@ -593,6 +601,9 @@ defineExpose({ validate });
       </div>
       <div v-if="sqlMode && isHive" class="qi-relation-sql-toolbar">
         <Button
+          type="primary"
+          class="qi-relation-parse-button"
+          :auto-insert-space="false"
           :disabled="disabled || !config.databaseId || !config.sql?.trim()"
           :loading="fieldsLoading"
           @click="parseSql"
@@ -601,17 +612,17 @@ SQL解析
 </Button>
       </div>
       <div v-if="!sqlMode && !realtime" class="qi-relation-field">
-        <label><em>*</em>{{ toolCode === 'read-odps' || isHive ? '选择表' : '选择表/视图' }}</label>
+        <label><em>*</em>{{ referenceRelation ? '选择表' : '选择表/视图' }}</label>
         <Select
           :value="config.tableName"
           :options="tableOptions"
           :loading="tablesLoading"
-          :disabled="disabled || (!config.databaseId && !isOdps)"
-          :suffix-icon="isOdps ? null : undefined"
+          :disabled="disabled || (!config.databaseId && !referenceRelation)"
+          :suffix-icon="referenceRelation ? null : undefined"
           allow-clear
           show-search
           option-filter-prop="label"
-          :placeholder="toolCode === 'read-odps' ? '请选择表' : isHive ? '请选择' : '请选择表或视图'"
+          :placeholder="tablePlaceholder"
           aria-label="选择表/视图"
           @update:value="selectTable"
         />
@@ -632,6 +643,9 @@ SQL解析
             :model-value="config.sql"
             :readonly="disabled"
             :height="toolCode === 'read-odps' || isHive ? '140px' : '190px'"
+            :folding="!referenceRelation"
+            :render-validation-decorations="referenceRelation ? 'off' : undefined"
+            :class="{ 'qi-relation-reference-sql': referenceRelation }"
             aria-label="SQL语句"
             @update:model-value="setSql"
           />
@@ -669,10 +683,10 @@ SQL解析
       :fields="readFields"
       :disabled="disabled"
       :batch-enabled="false"
-      :reference-layout="isOdps"
-      :condition-modal-width="toolCode === 'read-odps' || isHive ? 912 : 600"
-      :condition-table-height="toolCode === 'read-odps' || isHive ? 310 : undefined"
-      :fixed-baseline-width="toolCode === 'read-odps' || isHive ? 220 : undefined"
+      :reference-layout="referenceRelation"
+      :condition-modal-width="referenceRelation ? 912 : 600"
+      :condition-table-height="referenceRelation ? 310 : undefined"
+      :fixed-baseline-width="referenceRelation ? 220 : undefined"
       :show-read-mode="!sqlMode"
       :show-where="!sqlMode"
       :show-start-required="!isHive"
@@ -717,7 +731,7 @@ SQL解析
         />
       </div>
     </div>
-    <section v-if="(!isHive && toolCode !== 'read-odps') || (toolCode === 'read-odps' && sqlMode) || (config.readMode ?? 'FULL') === 'FULL'" class="qi-relation-properties">
+    <section v-if="!referenceRelation || (isOdps && sqlMode) || (config.readMode ?? 'FULL') === 'FULL'" class="qi-relation-properties">
       <h3>属性字段</h3>
       <Spin :spinning="fieldsLoading">
         <div class="qi-relation-table-scroll">
@@ -732,12 +746,26 @@ SQL解析
 <th>是否主键</th>
                   <th :aria-sort="sortState('length')">
                     <button type="button" @click="sortFields('length')">
-                      字段长度 ↕
+                      字段长度
+                      <span
+                        v-if="referenceRelation"
+                        class="qi-sort-caret"
+                        :data-sort="sortDirection('length')"
+                        aria-hidden="true"
+                      ></span>
+                      <template v-else>↕</template>
                     </button>
                   </th>
                   <th :aria-sort="sortState('scale')">
                     <button type="button" @click="sortFields('scale')">
-                      小数精度 ↕
+                      小数精度
+                      <span
+                        v-if="referenceRelation"
+                        class="qi-sort-caret"
+                        :data-sort="sortDirection('scale')"
+                        aria-hidden="true"
+                      ></span>
+                      <template v-else>↕</template>
                     </button>
                   </th>
 </template>
@@ -775,7 +803,7 @@ SQL解析
         </div>
       </Spin>
     </section>
-    <details v-if="!isOdps" class="qi-relation-advanced">
+    <details v-if="!referenceRelation" class="qi-relation-advanced">
       <summary>高级字段配置</summary>
       <Button v-if="!sqlMode && !realtime" :disabled="disabled || !config.tableName" :loading="fieldsLoading" @click="loadMetadata(true)">解析属性字段</Button>
       <Button :disabled="disabled" @click="openField()">+ 新增字段</Button>
@@ -841,7 +869,7 @@ SQL解析
         </table>
       </div>
     </details>
-    <details v-if="!isOdps" class="qi-relation-advanced">
+    <details v-if="!referenceRelation" class="qi-relation-advanced">
       <summary>执行配置</summary>
       <div
         v-if="
@@ -1013,6 +1041,9 @@ SQL解析
 }
 
 .qi-relation-table th button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
   padding: 0;
   font: inherit;
   color: inherit;
@@ -1064,41 +1095,63 @@ SQL解析
 }
 
 /* ODPS reference layout: read options share the connection grid columns. */
-.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-grid) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-grid) {
   gap: 16px 28px;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-field) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-field) {
   grid-template-columns: 110px minmax(0, 1fr);
   gap: 0;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-field > label) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-field > label) {
   padding-right: 12px;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-field > label {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-field > label {
   padding-top: 5px;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-mode {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-mode {
   align-items: center;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-mode > label {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-mode > label {
   padding-top: 0;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table {
   table-layout: fixed;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table th {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table th {
   padding: 7px 10px;
+  font-weight: 600;
 }
 
-.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table td {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table td {
   padding: 10px;
+}
+
+.qi-relation-parse-button.ant-btn {
+  height: 25px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+/* Reference SQL editor: grey line-number gutter and filled current line. */
+.qi-relation-reference-sql :deep(.qi-sql-editor-surface) {
+  border: 0;
+}
+
+.qi-relation-reference-sql :deep(.monaco-editor .margin) {
+  background-color: #f5f5f7;
+}
+
+.qi-relation-reference-sql :deep(.monaco-editor .view-overlays .current-line) {
+  background: #e8f1ff;
+  border: 0;
 }
 
 @media (max-width: 768px) {
