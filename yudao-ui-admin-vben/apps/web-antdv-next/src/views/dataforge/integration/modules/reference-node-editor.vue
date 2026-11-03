@@ -25,6 +25,7 @@ import {
   MenuItem,
   message,
   Modal,
+  Popover,
   Select,
   TextArea,
   Upload,
@@ -35,6 +36,7 @@ import { getIntegrationFileSchema } from '#/api/dataforge/integration';
 import { uploadFileWithInfo } from '#/api/infra/file';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
+import DatabaseConnectionPicker from './database-connection-picker.vue';
 import FileInputFieldModal from './file-input-field-modal.vue';
 import {
   safeFileDownloadUrl,
@@ -168,6 +170,21 @@ const parseDescription = computed(() => {
     return '自动解析上传的CSV文件并生成属性字段，可修改字段类型、日期格式；默认分隔符为逗号，其他分隔符请提前确认文件格式。';
   return '自动解析上传的Excel文件并生成属性字段，解析完成后请确认字段类型、日期格式。';
 });
+// Hover help shown next to the Excel/CSV parse button, line by line as in the reference dialog.
+const parseHelpLines = computed(() =>
+  props.toolCode === 'read-csv'
+    ? [
+        '自动解析上传的CSV文件，识别其字段、类型、分隔符等信息，并生成“属性字段”列表。',
+        '解析完成后，可在下方查看字段映射',
+        '支持手动修改字段类型、日期格式等',
+        '默认分隔符为逗号 ,，若需其他分隔符（如分号 ;），请提前确认文件格式',
+      ]
+    : [
+        '自动解析上传的Excel文件，识别其表头、字段类型、日期格式等信息，并生成“属性字段”列表。',
+        '解析完成后，可在下方查看字段映射',
+        '支持手动修改字段类型、日期格式等',
+      ],
+);
 const mergeOpen = ref(false);
 function requestReferenceFields() {
   if (props.disabled) return;
@@ -195,6 +212,18 @@ const fileExtensions = computed(() => {
 const isKafka = computed(() => props.toolCode.endsWith('kafka'));
 const isOutput = computed(() => props.toolCode === 'write-kafka');
 const isMapping = computed(() => props.toolCode === 'column-map');
+// Must equal the rendered header cells so the empty-state colspan does not add phantom columns.
+const fieldColumnCount = computed(
+  () =>
+    4 +
+    (isMapping.value ? 1 : 0) +
+    (props.toolCode === 'read-json' ? 2 : 0) +
+    (isKafka.value && !isOutput.value ? 1 : 0) +
+    (isMapping.value || props.toolCode === 'read-json' || managedFile.value
+      ? 2
+      : 0) +
+    (props.toolCode === 'read-excel' || props.toolCode === 'read-csv' ? 1 : 0),
+);
 const legacyFile = computed(
   () => isFile.value && !!props.config.fileUrl && !props.config.fileFormat,
 );
@@ -271,6 +300,15 @@ const kafkaConnectionMismatch = computed(
     connectionProduct(selectedConnection.value) &&
     !/kafka/iu.test(connectionProduct(selectedConnection.value)),
 );
+// Kafka input uses the categorized picker limited to Kafka connections.
+const kafkaPickerConnections = computed(() =>
+  connections.value.filter(
+    (item) =>
+      !connectionProduct(item) ||
+      /kafka/iu.test(connectionProduct(item)) ||
+      String(item.id) === String(props.config.databaseId),
+  ),
+);
 const connectionOptions = computed(() => {
   const options = connections.value
     .filter(
@@ -296,10 +334,18 @@ const connectionOptions = computed(() => {
   return options;
 });
 const parameters = computed({
-  get: () =>
-    typeof props.config.configParameters === 'string'
-      ? props.config.configParameters
-      : JSON.stringify(props.config.configParameters ?? {}, null, 2),
+  get: () => {
+    const value: unknown = props.config.configParameters;
+    if (typeof value === 'string') return value;
+    // Absent or empty parameters show the placeholder instead of "{}".
+    if (
+      value === undefined ||
+      value === null ||
+      (typeof value === 'object' && Object.keys(value).length === 0)
+    )
+      return '';
+    return JSON.stringify(value, null, 2);
+  },
   set: (value: string) => {
     if (props.disabled) return;
     props.config.configParameters = value;
@@ -916,10 +962,21 @@ defineExpose({ validate });
               >
                 <Button
                   class="qi-reference-button"
+                  :class="{ 'qi-file-select-button': tabularUpload || toolCode === 'read-json' }"
                   :loading="uploading"
                   :disabled="disabled || parsing || legacyFile"
                 >
-                  <ReferenceIcon name="plus" />选择文件
+                  <svg
+                    v-if="tabularUpload || toolCode === 'read-json'"
+                    class="qi-file-select-icon"
+                    viewBox="0 0 1024 1024"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64zm384-578.304V704h-64V247.296L237.248 490.048 192 444.8 512 128l320 316.8-45.248 45.248z"
+                    />
+                  </svg><ReferenceIcon v-else name="plus" />选择文件
                 </Button>
               </Upload>
             </div>
@@ -935,11 +992,8 @@ defineExpose({ validate });
               </p>
             </template>
             <p v-else class="qi-reference-file-tip">
-              仅支持上传
-              <strong>{{
-                fileExtensions.map((extension) => `.${extension}`).join(' / ')
-              }}</strong>
-              格式的单个文件，大小不超过<strong>50MB</strong>
+              仅支持上传 <strong>{{ fileExtensions.join(', ') }}</strong>
+              格式的文件，大小不超过 <strong>50MB</strong>
             </p>
             <div v-if="config.fileId" class="qi-reference-attachment">
               <ReferenceIcon name="file" />
@@ -963,7 +1017,16 @@ defineExpose({ validate });
                 :disabled="!canDownloadAttachment"
                 @click="downloadAttachment"
               >
-                ↓
+                <svg
+                  class="qi-attachment-download-icon"
+                  viewBox="0 0 1024 1024"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64zm384-253.696 236.288-236.352 45.248 45.248L512 704 192 387.2l45.248-45.248L480 584.704V128h64z"
+                  />
+                </svg>
               </Button>
               <Button
                 type="link"
@@ -972,7 +1035,18 @@ defineExpose({ validate });
                 :disabled="disabled"
                 @click="detachFile"
               >
-                <ReferenceIcon name="delete" />
+                <svg
+                  v-if="tabularUpload"
+                  class="qi-attachment-delete-icon"
+                  viewBox="0 0 1024 1024"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32 32H192a32 32 0 0 1-32-32zm448-64v-64H416v64zM224 896h576V256H224zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32m192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32"
+                  />
+                </svg>
+                <ReferenceIcon v-else name="delete" />
               </Button>
             </div>
           </div>
@@ -981,6 +1055,7 @@ defineExpose({ validate });
           <div class="qi-reference-form-row">
             <label title="从1开始计数，输入2表示跳过第一行标题"><em>*</em>起始行</label>
             <InputNumber
+              class="qi-file-number"
               :value="config.startRow"
               :disabled="disabled || parsing"
               :min="1"
@@ -993,6 +1068,7 @@ defineExpose({ validate });
           <div class="qi-reference-form-row">
             <label title="从1开始计数，输入2表示跳过第一列"><em>*</em>起始列</label>
             <InputNumber
+              class="qi-file-number"
               :value="config.startColumn"
               :disabled="disabled || parsing"
               :min="1"
@@ -1003,7 +1079,53 @@ defineExpose({ validate });
           </div>
         </template>
         <div class="qi-reference-file-parse">
+          <Popover
+            v-if="tabularUpload"
+            placement="rightTop"
+            :arrow="false"
+            root-class="qi-file-parse-help"
+          >
+            <template #content>
+              <p v-for="line in parseHelpLines" :key="line">{{ line }}</p>
+            </template>
+            <Button
+              class="qi-reference-button qi-file-parse-button"
+              :loading="parsing"
+              :auto-insert-space="false"
+              :disabled="
+                disabled ||
+                !config.fileId ||
+                uploading ||
+                legacyFile ||
+                invalidExcelStart
+              "
+              @click="parseFile"
+            >
+              {{ toolCode === 'read-csv' ? '解析csv' : '解析Excel' }}
+            </Button>
+          </Popover>
+          <Popover
+            v-else-if="toolCode === 'read-json'"
+            placement="left"
+            :arrow="false"
+            root-class="qi-file-parse-help qi-file-parse-help-left"
+          >
+            <template #content>
+              <p>解析上传的JSONL文件，并生成属性字段</p>
+            </template>
+            <Button
+              class="qi-jsonl-parse-button"
+              type="primary"
+              :loading="parsing"
+              :auto-insert-space="false"
+              :disabled="disabled || !config.fileId || uploading || legacyFile"
+              @click="parseFile"
+            >
+              解析JSONL
+            </Button>
+          </Popover>
           <Button
+            v-else
             :class="
               toolCode === 'read-json'
                 ? 'qi-jsonl-parse-button'
@@ -1072,7 +1194,15 @@ defineExpose({ validate });
     </section>
     <div v-if="isKafka" class="qi-reference-kafka-grid">
       <div class="qi-reference-form-row">
-        <label><em>*</em>{{ isOutput ? '目标数据连接' : '数据源连接' }}</label><Select
+        <label><em>*</em>{{ isOutput ? '目标数据连接' : '数据源连接' }}</label><DatabaseConnectionPicker
+          v-if="!isOutput"
+          :value="config.databaseId ?? undefined"
+          :databases="kafkaPickerConnections"
+          :loading="connectionsLoading"
+          :disabled="disabled"
+          @change="(value) => setConfig('databaseId', value)"
+        /><Select
+          v-else
           :value="
             config.databaseId == null ? undefined : String(config.databaseId)
           "
@@ -1099,7 +1229,7 @@ defineExpose({ validate });
           v-model:value="parameters"
           :disabled="disabled"
           :rows="4"
-          placeholder="例如 {&quot;group.id&quot;:&quot;demo_test&quot;}"
+          placeholder="例如: {&quot;group.id&quot;:&quot;demo_test&quot;}"
           :maxlength="256"
           :show-count="isOutput ? true : { formatter: referenceCount }"
         />
@@ -1135,13 +1265,11 @@ defineExpose({ validate });
                 aria-label="按字段长度排序"
                 @click="sortMetadata('length')"
               >
-                字段长度<span aria-hidden="true">{{
-                  metadataSort?.key === 'length'
-                    ? metadataSort.direction === 1
-                      ? ' ▴'
-                      : ' ▾'
-                    : ' ↕'
-                }}</span>
+                字段长度<span
+                  class="qi-sort-caret"
+                  :data-sort="metadataSort?.key === 'length' ? metadataSort.direction : 0"
+                  aria-hidden="true"
+                ></span>
               </button>
             </th>
             <th :aria-sort="metadataSortState('precision')">
@@ -1150,13 +1278,11 @@ defineExpose({ validate });
                 aria-label="按小数精度排序"
                 @click="sortMetadata('precision')"
               >
-                小数精度<span aria-hidden="true">{{
-                  metadataSort?.key === 'precision'
-                    ? metadataSort.direction === 1
-                      ? ' ▴'
-                      : ' ▾'
-                    : ' ↕'
-                }}</span>
+                小数精度<span
+                  class="qi-sort-caret"
+                  :data-sort="metadataSort?.key === 'precision' ? metadataSort.direction : 0"
+                  aria-hidden="true"
+                ></span>
               </button>
             </th>
           </tr>
@@ -1188,7 +1314,14 @@ defineExpose({ validate });
       </summary>
       <div class="qi-reference-section-header">
         <h3 v-if="isMapping">需要选择与修改的字段</h3>
-        <h3 v-else>{{ isOutput ? '字段映射' : '属性字段' }}</h3>
+        <h3
+          v-else
+          :class="{
+            'qi-file-fields-heading': tabularUpload || (isKafka && !isOutput),
+          }"
+        >
+          {{ isOutput ? '字段映射' : '属性字段' }}
+        </h3>
         <div>
           <Button
             v-if="isMapping"
@@ -1220,6 +1353,15 @@ defineExpose({ validate });
             </template>
           </Dropdown>
           <Button
+            v-if="tabularUpload || (isKafka && !isOutput)"
+            class="qi-reference-button qi-file-add-button"
+            :disabled="disabled"
+            @click="addRow"
+          >
+            + 新增
+          </Button>
+          <Button
+            v-else
             class="qi-reference-button"
             :disabled="disabled"
             @click="addRow"
@@ -1363,7 +1505,7 @@ defineExpose({ validate });
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td :colspan="10" class="qi-reference-empty">
+              <td :colspan="fieldColumnCount" class="qi-reference-empty">
                 <template v-if="tabularUpload || (isKafka && !isOutput)">
                   <img
                     src="/assets/qdata-integration/node-empty-reference.png"
@@ -1381,27 +1523,6 @@ defineExpose({ validate });
         </table>
       </div>
     </component>
-    <details
-      v-if="tabularUpload && rows.length"
-      class="qi-reference-execution-options"
-    >
-      <summary>高级字段维护</summary>
-      <div
-        v-for="(field, index) in rows"
-        :key="index"
-        class="qi-reference-file-actions"
-      >
-        <span>{{ field.name || `第${index + 1}行` }}</span>
-        <Button
-          type="link"
-          danger
-          :disabled="disabled"
-          @click="removeField(index)"
-        >
-          删除
-        </Button>
-      </div>
-    </details>
     <section v-if="isMapping" class="qi-reference-removed-section">
       <div class="qi-reference-section-header">
         <h3>需要移除的字段</h3>
@@ -2016,6 +2137,318 @@ defineExpose({ validate });
 
 .qi-tabular-file-reference .qi-reference-empty p {
   margin: 0;
+}
+
+/* Excel/CSV reference layout: labels share the 110px node label column. */
+.qi-tabular-file-reference :deep(.qi-reference-form-row) {
+  gap: 0;
+}
+
+.qi-tabular-file-reference .qi-reference-form-row > label {
+  padding-right: 12px;
+}
+
+.qi-tabular-file-reference .qi-reference-form-row em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+.qi-tabular-file-reference .qi-reference-file-tip {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #606266;
+}
+
+/* Light primary buttons: solid primary on hover, pale when disabled. */
+.qi-tabular-file-reference .qi-reference-button.ant-btn:not(:disabled):hover {
+  color: #fff;
+  background: #2d63ff;
+  border-color: #2d63ff;
+}
+
+.qi-tabular-file-reference .qi-reference-button.ant-btn:disabled {
+  color: #a9c1ff;
+  background: #f2f6ff;
+  border-color: #dbe5ff;
+}
+
+.qi-tabular-file-reference .qi-file-select-button.ant-btn {
+  gap: 4px;
+  height: 25px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-file-select-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.qi-attachment-download-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.qi-tabular-file-reference .qi-reference-attachment {
+  font-size: 13px;
+}
+
+.qi-tabular-file-reference .qi-reference-attachment :deep(.ant-btn-link) {
+  color: #606266;
+}
+
+.qi-tabular-file-reference .qi-reference-attachment .qi-reference-attachment-name.ant-btn-link {
+  color: #2d63ff;
+}
+
+/* Icon-only download/delete buttons must fit their 24px grid cells. */
+.qi-tabular-file-reference .qi-reference-attachment :deep(.ant-btn-link:not(.qi-reference-attachment-name)) {
+  width: 24px;
+  min-width: 24px;
+  padding: 0;
+}
+
+.qi-tabular-file-reference .qi-reference-attachment :deep(.ant-btn-link > :is(svg, img)) {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Start row/column: centered value with always-visible right-hand steppers. */
+.qi-tabular-file-reference .qi-file-number {
+  width: 100%;
+}
+
+.qi-tabular-file-reference .qi-file-number :deep(input) {
+  text-align: center;
+}
+
+.qi-tabular-file-reference .qi-file-number :deep(.ant-input-number-actions) {
+  width: 32px;
+  opacity: 1;
+}
+
+.qi-tabular-file-reference .qi-reference-file-parse {
+  display: flex;
+  padding-left: 60px;
+}
+
+.qi-tabular-file-reference .qi-file-parse-button.ant-btn {
+  height: 32px;
+  padding: 0 15px;
+  border-radius: 2px;
+}
+
+.qi-tabular-file-reference .qi-reference-file-grid {
+  row-gap: 10px;
+}
+
+.qi-tabular-file-reference .qi-reference-section-header {
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.qi-file-reference-editor .qi-reference-section-header h3.qi-file-fields-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+.qi-file-reference-editor .qi-reference-section-header h3.qi-file-fields-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+.qi-tabular-file-reference .qi-file-add-button.ant-btn {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+/* Field table: five columns spanning the full dialog width. */
+.qi-tabular-file-reference .qi-reference-fields-table {
+  min-width: 0;
+}
+
+.qi-tabular-file-reference .qi-reference-fields-table thead th,
+.qi-tabular-file-reference .qi-reference-fields-table tbody td {
+  font-size: 14px;
+}
+
+.qi-tabular-file-reference .qi-reference-fields-table th {
+  height: 35px;
+  font-weight: 600;
+}
+
+.qi-tabular-file-reference .qi-reference-fields-table th:last-child {
+  width: 236px;
+}
+
+.qi-tabular-file-reference .qi-reference-fields-table th:last-child,
+.qi-tabular-file-reference .qi-reference-fields-table td:last-child {
+  text-align: center;
+}
+
+.qi-tabular-file-reference .qi-reference-fields-table .qi-reference-empty::before {
+  display: none;
+}
+
+/* Kafka input reference layout. */
+[data-tool-code='read-kafka'] :deep(.qi-reference-form-row) {
+  gap: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-form-row > label {
+  padding-right: 12px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-form-row em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-section-header {
+  margin-bottom: 16px;
+}
+
+[data-tool-code='read-kafka'] .qi-file-add-button.ant-btn {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table {
+  min-width: 0;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table thead th,
+[data-tool-code='read-kafka'] .qi-reference-fields-table tbody td {
+  font-size: 14px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th {
+  height: 35px;
+  font-weight: 600;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:first-child {
+  width: 80px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:last-child {
+  width: 236px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table th:last-child,
+[data-tool-code='read-kafka'] .qi-reference-fields-table td:last-child {
+  text-align: center;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty {
+  height: 274px;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty::before {
+  display: none;
+}
+
+/* JSONL reference layout. */
+[data-tool-code='read-json'].qi-file-reference-editor .qi-reference-io-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+[data-tool-code='read-json'].qi-file-reference-editor .qi-reference-io-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+[data-tool-code='read-json'] :deep(.qi-reference-form-row) {
+  gap: 0;
+}
+
+[data-tool-code='read-json'] .qi-reference-form-row > label {
+  padding-right: 12px;
+}
+
+[data-tool-code='read-json'] .qi-reference-form-row em {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
+[data-tool-code='read-json'] .qi-file-select-button.ant-btn {
+  gap: 4px;
+  height: 25px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-json'] .qi-reference-file-tip strong {
+  font-weight: 400;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-parse-button.ant-btn {
+  height: 32px;
+  padding: 0 15px;
+  border-radius: 2px;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-parse-button.ant-btn:disabled {
+  color: #fff;
+  background: #a9c1ff;
+  border-color: #a9c1ff;
+}
+
+[data-tool-code='read-json'] .qi-reference-json-samples p {
+  font-size: 11px;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-reference-fields th {
+  font-weight: 600;
+}
+
+[data-tool-code='read-json'] .qi-jsonl-reference-fields th button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
 }
 </style>
 

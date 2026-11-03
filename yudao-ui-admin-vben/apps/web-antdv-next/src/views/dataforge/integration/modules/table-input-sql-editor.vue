@@ -14,13 +14,15 @@ import { Button, TextArea } from 'antdv-next';
 const props = withDefaults(
   defineProps<{
     ariaLabel?: string;
+    folding?: boolean;
     height?: string;
     language?: string;
     modelValue?: string;
+    placeholder?: string;
     readonly?: boolean;
     renderValidationDecorations?: 'off' | 'on';
   }>(),
-  { ariaLabel: 'SQL文本编辑器', height: '190px', language: 'mysql', modelValue: '', readonly: false, renderValidationDecorations: undefined },
+  { ariaLabel: 'SQL文本编辑器', folding: true, height: '190px', language: 'mysql', modelValue: '', placeholder: '请输入SQL', readonly: false, renderValidationDecorations: undefined },
 );
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const editor = shallowRef<Component>();
@@ -69,6 +71,8 @@ void load();
         :readonly="readonly"
         :render-validation-decorations="renderValidationDecorations"
         :aria-label="ariaLabel"
+        :folding="folding"
+        :placeholder="placeholder"
         :minimap="false"
         :line-numbers-min-chars="3"
         @update:model-value="update"
@@ -79,7 +83,7 @@ void load();
         :readonly="readonly"
         class="qi-sql-editor-fallback"
         :aria-label="ariaLabel"
-        placeholder="请输入SQL"
+        :placeholder="placeholder"
         :spellcheck="false"
         @update:value="update"
       />

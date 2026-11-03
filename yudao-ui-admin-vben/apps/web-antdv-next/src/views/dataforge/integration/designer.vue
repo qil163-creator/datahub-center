@@ -1353,6 +1353,7 @@ function toggleGroup(key: string) {
           :title="currentComponent?.name ?? '节点配置'"
           :width="1200"
           :mask-closable="false"
+          :closable="false"
           class="qi-node-modal qi-node-modal-reference"
           :class="{
             'qi-node-modal-table-input': editingCode === 'read-db',
@@ -1378,6 +1379,12 @@ function toggleGroup(key: string) {
             :type-name="currentComponent?.name"
             :disabled="!editable"
             :show-description="!editorDescription && !advancedDescription"
+            :heading="editingCode === 'read-json' ? '属性字段' : undefined"
+            :description-placeholder="
+              editingCode === 'read-json'
+                ? '请输入描述（可选），如：从JSONL文件读取结构化数据，要求每行一个JSON对象且结构一致'
+                : undefined
+            "
             :hide-type="editingCode === 'sub-pipeline'"
             :stacked="editingCode === 'sub-pipeline'"
           />
@@ -1463,7 +1470,7 @@ function toggleGroup(key: string) {
             >
               获取字段
             </Button>
-            <Button @click="nodeOpen = false">关闭</Button><Button :disabled="!editable" type="primary" @click="commitNode">
+            <Button :auto-insert-space="false" @click="nodeOpen = false">关闭</Button><Button :auto-insert-space="false" :disabled="!editable" type="primary" @click="commitNode">
               保存
             </Button>
             <Button

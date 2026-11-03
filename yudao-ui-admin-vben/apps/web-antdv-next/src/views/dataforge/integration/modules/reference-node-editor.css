@@ -178,3 +178,25 @@
 .qi-reference-fields-table tbody td {
   font-size: 12px;
 }
+
+/* Excel/CSV parse-button help popover (teleported, so it cannot be scoped). */
+.qi-file-parse-help .ant-popover-container {
+  padding: 8px 12px;
+  margin-left: 10px;
+  border: 1px solid #e4e7ed;
+  border-radius: 2px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 10%);
+}
+
+.qi-file-parse-help .ant-popover-content p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 22px;
+  color: #303133;
+  white-space: nowrap;
+}
+
+.qi-file-parse-help-left .ant-popover-container {
+  margin-right: 10px;
+  margin-left: 0;
+}

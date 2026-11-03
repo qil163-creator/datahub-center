@@ -11,6 +11,16 @@ export interface ConnectorField {
   options?: { disabled?: boolean; label: string; value: number | string }[];
   when?: { key: string; value: number | string };
   full?: boolean;
+  /** Overrides the generated placeholder text. */
+  placeholder?: string;
+  /** Character limit with an in-box counter for text areas. */
+  maxLength?: number;
+  /** Helper text rendered under the control. */
+  hint?: string;
+  /** Hides the JSON validity message unless the value is invalid. */
+  quiet?: boolean;
+  /** Renders a select without its dropdown arrow, like a plain input. */
+  plain?: boolean;
 }
 export interface ConnectorSchema {
   name: string;
@@ -198,10 +208,12 @@ function schema(
 }
 function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
   return [
-    encoding,
+    // File inputs follow the qData reference: required encoding shown as a plain box.
+    output ? encoding : { ...encoding, required: true, plain: true },
     ...(kind === 'ftp' && !output ? [
       { key: 'syncMode', label: '同步方式', kind: 'select', defaultValue: 'SINGLE_FILE', options: [{label: '单文件', value: 'SINGLE_FILE'}, {label: '指定目录', value: 'DIRECTORY'}] } as ConnectorField,
-      { key: 'syncDelete', label: '同步删除', kind: 'select', defaultValue: 0, options: [{label: '否', value: 0}, {label: '是', value: 1, disabled: true}] } as ConnectorField,
+      // Deleting source files is not supported by the FTP compiler, so "是" stays disabled.
+      { key: 'syncDelete', label: '同步删除', kind: 'select', defaultValue: 0, hint: '同步删除来源数据。', options: [{label: '否', value: 0}, {label: '是', value: 1, disabled: true}] } as ConnectorField,
     ] : []),
     {
       key: 'path',
@@ -214,6 +226,7 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
       key: 'fileType',
       label: '文件类型',
       kind: 'select',
+      required: !output,
       defaultValue: 'csv',
       options: choices('csv', 'text'),
     },
@@ -263,13 +276,27 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
           } as ConnectorField,
         ]
       : []),
-    {
-      key: kind === 'ftp' ? 'ftpConfig' : 'hadoopConfig',
-      label: '配置参数',
-      kind: 'json',
-      defaultValue: '{}',
-      full: true,
-    },
+    output
+      ? {
+          key: kind === 'ftp' ? 'ftpConfig' : 'hadoopConfig',
+          label: '配置参数',
+          kind: 'json',
+          defaultValue: '{}',
+          full: true,
+        }
+      : {
+          // Optional on input: both compilers treat a missing object as empty.
+          key: kind === 'ftp' ? 'ftpConfig' : 'hadoopConfig',
+          label: '配置参数',
+          kind: 'json',
+          full: true,
+          maxLength: 256,
+          quiet: true,
+          placeholder:
+            kind === 'ftp'
+              ? '例如: {"passiveMode":true,"connectTimeout":10000}'
+              : '例如: {"kerberosKeytabFilePath":"/path/to/keytab/file"}',
+        },
     ...(output
       ? [
           {

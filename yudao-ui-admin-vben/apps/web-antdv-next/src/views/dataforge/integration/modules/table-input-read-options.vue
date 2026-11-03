@@ -45,6 +45,8 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   fields: FoundationDatabaseApi.DatabaseTableColumn[];
   fixedBaselineWidth?: number;
+  /** Matches the qData reference dialog: plain "+ 新增" button, even condition columns, no support hint. */
+  referenceLayout?: boolean;
   showReadMode?: boolean;
   showStartRequired?: boolean;
   showWhere?: boolean;
@@ -56,6 +58,7 @@ const props = withDefaults(defineProps<{
   conditionModalWidth: 600,
   conditionTableHeight: undefined,
   fixedBaselineWidth: undefined,
+  referenceLayout: false,
   showReadMode: true,
   showStartRequired: true,
   showWhere: true,
@@ -98,32 +101,45 @@ const numberFields = computed(() =>
 const batchFields = computed(() =>
   batch.value.mode === 'TIME' ? timeFields.value : numberFields.value,
 );
-const conditionColumns = [
-  { title: '字段名称', key: 'field', dataIndex: 'field', width: 150 },
-  { title: '运算符', key: 'operator', dataIndex: 'operator', width: 100 },
-  {
-    title: '基准类型',
-    key: 'baselineType',
-    dataIndex: 'baselineType',
-    width: 130,
-  },
-  {
-    title: '基准值',
-    key: 'baselineValue',
-    dataIndex: 'baselineValue',
-    width: 200,
-    ellipsis: true,
-  },
-  {
-    title: '游标时间',
-    key: 'cursorTime',
-    dataIndex: 'cursorTime',
-    width: 180,
-    sorter: (a: TableInputTimeCondition, b: TableInputTimeCondition) =>
-      (a.cursorTime ?? '').localeCompare(b.cursorTime ?? ''),
-  },
-  { title: '操作', key: 'actions', fixed: 'right' as const, width: 126 },
-];
+// The reference layout uses five equal data columns and a wider action column.
+const conditionWidths = computed(() =>
+  props.referenceLayout
+    ? [176, 176, 176, 176, 176, 240]
+    : [150, 100, 130, 200, 180, 126],
+);
+const conditionScrollWidth = computed(() =>
+  conditionWidths.value.reduce((total, width) => total + width, 0),
+);
+const conditionColumns = computed(() => {
+  const [field, operator, baselineType, baselineValue, cursorTime, actions] =
+    conditionWidths.value;
+  return [
+    { title: '字段名称', key: 'field', dataIndex: 'field', width: field },
+    { title: '运算符', key: 'operator', dataIndex: 'operator', width: operator },
+    {
+      title: '基准类型',
+      key: 'baselineType',
+      dataIndex: 'baselineType',
+      width: baselineType,
+    },
+    {
+      title: '基准值',
+      key: 'baselineValue',
+      dataIndex: 'baselineValue',
+      width: baselineValue,
+      ellipsis: true,
+    },
+    {
+      title: '游标时间',
+      key: 'cursorTime',
+      dataIndex: 'cursorTime',
+      width: cursorTime,
+      sorter: (a: TableInputTimeCondition, b: TableInputTimeCondition) =>
+        (a.cursorTime ?? '').localeCompare(b.cursorTime ?? ''),
+    },
+    { title: '操作', key: 'actions', fixed: 'right' as const, width: actions },
+  ];
+});
 const conditionRows = computed(() =>
   conditions.value.map((condition, index) => ({
     ...condition,
@@ -218,7 +234,10 @@ defineExpose({ validate });
 </script>
 
 <template>
-  <div class="qi-table-input-options">
+  <div
+    class="qi-table-input-options"
+    :class="{ 'qi-table-input-reference': referenceLayout }"
+  >
     <Alert
       v-if="errors.length"
       :message="errors.join('；')"
@@ -283,7 +302,7 @@ defineExpose({ validate });
           :columns="conditionColumns"
           :data-source="conditionRows"
           :pagination="false"
-          :scroll="{ x: 886, ...(conditionTableHeight ? { y: conditionTableHeight - 36 } : {}) }"
+          :scroll="{ x: conditionScrollWidth, ...(conditionTableHeight ? { y: conditionTableHeight - 36 } : {}) }"
           row-key="rowKey"
           size="small"
           aria-label="时间增量条件"
@@ -498,7 +517,10 @@ defineExpose({ validate });
       </div>
     </section>
     <p
-      v-if="readMode !== 'FULL' || (batchEnabled !== false && batch.enabled)"
+      v-if="
+        !referenceLayout &&
+        (readMode !== 'FULL' || (batchEnabled !== false && batch.enabled))
+      "
       class="qi-table-input-support"
     >
       {{ batchEnabled === false ? '增量配置可保存；当前执行通道尚未接入持久游标，任务检查会提示。' : '增量与分批配置可保存；当前执行通道尚未接入持久游标和受管分批执行，任务检查会提示。' }}
@@ -507,10 +529,12 @@ defineExpose({ validate });
       v-model:open="conditionOpen"
       title="属性字段编辑"
       class="qi-node-modal qi-node-modal-reference qi-table-input-condition-modal"
+      :wrap-class-name="referenceLayout ? 'qi-table-condition-modal-reference' : undefined"
       :width="conditionModalWidth ?? 600"
       :mask-closable="false"
       :destroy-on-hidden="true"
-      :ok-button-props="{ disabled }"
+      :ok-button-props="{ disabled, autoInsertSpace: false }"
+      :cancel-button-props="{ autoInsertSpace: false }"
       ok-text="保存"
       cancel-text="关闭"
       @ok="saveCondition"
@@ -572,10 +596,12 @@ defineExpose({ validate });
               @update:value="(value) => { if (!disabled) draft.cursorTime = value == null ? undefined : String(value); }"
           /></label>
         </template>
-        <label v-else-if="draft.baselineType === 'SQL'"><span><em>*</em>基准值</span><TableInputSqlEditor
+        <label v-else-if="draft.baselineType === 'SQL'" class="qi-table-condition-sql"><span><em>*</em>基准值</span><TableInputSqlEditor
             v-model="draft.baselineValue"
             height="290px"
             render-validation-decorations="off"
+            :folding="!referenceLayout"
+            :placeholder="referenceLayout ? '请输入sql' : undefined"
             :readonly="disabled"
             aria-label="SQL基准表达式"
         /></label>
@@ -760,6 +786,83 @@ defineExpose({ validate });
 .qi-table-condition-editor > label > span {
   padding-top: 6px;
   text-align: right;
+}
+
+/* Reference layout: light primary "+ 新增" button. */
+.qi-table-input-reference .qi-table-condition-toolbar :deep(.ant-btn) {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  color: #2d63ff;
+  background: #ecf2ff;
+  border-color: #a9c1ff;
+  border-radius: 2px;
+}
+
+.qi-table-input-reference .qi-table-condition-toolbar :deep(.ant-btn:not(:disabled):hover) {
+  color: #fff;
+  background: #2d63ff;
+  border-color: #2d63ff;
+}
+
+/* Reference layout: flat header without separators or rounded corners. */
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table),
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-container),
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-header),
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-thead > tr > th) {
+  border-radius: 0 !important;
+}
+
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-thead > tr > th) {
+  padding: 7px 10px;
+  font-weight: 600;
+  color: #606266;
+  background: #f1f1f5;
+}
+
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-thead > tr > th::before) {
+  display: none;
+}
+
+.qi-table-input-reference .qi-table-condition-table {
+  border-bottom: 1px solid #ebeef5;
+}
+
+/* Sort icon sits right after the column title, as in the reference table. */
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-column-sorters) {
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.qi-table-input-reference .qi-table-condition-table :deep(.ant-table-column-title) {
+  flex: none;
+}
+
+/* Reference condition dialog: wider label column and flush right edge. */
+.qi-table-condition-modal-reference .qi-table-condition-editor {
+  padding: 0 0 10px;
+}
+
+.qi-table-condition-modal-reference .qi-table-condition-editor > label {
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+
+.qi-table-condition-modal-reference .qi-table-condition-sql :deep(.qi-sql-editor-surface) {
+  border: 0;
+}
+
+/* Reference SQL editor: grey line-number gutter, filled current line, readable placeholder. */
+.qi-table-condition-modal-reference .qi-table-condition-sql :deep(.monaco-editor .margin) {
+  background-color: #f5f5f7;
+}
+
+.qi-table-condition-modal-reference .qi-table-condition-sql :deep(.monaco-editor .view-overlays .current-line) {
+  background: #e8f1ff;
+  border: 0;
+}
+
+.qi-table-condition-modal-reference .qi-table-condition-sql :deep(.monaco-editor .editorPlaceholder) {
+  color: #606266;
 }
 
 @media (max-width: 767px) {

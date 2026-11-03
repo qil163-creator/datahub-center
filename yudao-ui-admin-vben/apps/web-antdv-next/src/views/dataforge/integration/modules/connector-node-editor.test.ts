@@ -18,6 +18,22 @@ vi.mock('#/api/dataforge/database', () => ({
   getDatabaseTableList: vi.fn(async () => []),
   getDatabaseTableMeta: vi.fn(async () => ({ columns: [] })),
 }));
+// The categorized picker is covered separately; here it only needs to emit the chosen id.
+vi.mock('./database-connection-picker.vue', () => ({
+  default: defineComponent({
+    props: { value: [String, Number] },
+    emits: ['change'],
+    setup:
+      (props, { emit }) =>
+      () =>
+        h('input', {
+          'aria-label': '连接器数据连接',
+          value: props.value,
+          onInput: (event: Event) =>
+            emit('change', (event.target as HTMLInputElement).value),
+        }),
+  }),
+}));
 vi.mock('antdv-next', () => {
   const Box = defineComponent({
     setup:
@@ -86,6 +102,8 @@ vi.mock('antdv-next', () => {
     Menu: Box,
     Dropdown: Box,
     Empty: Box,
+    Form: Box,
+    FormItem: Box,
     Alert: defineComponent({
       props: { message: String },
       setup:
@@ -465,13 +483,17 @@ describe('连接器属性字段编辑与即时反馈', () => {
         ? { name: 'id', type: 'LONG', key: '@key' }
         : { name: 'id', type: 'LONG', index: 0 };
       const state = mount(toolCode, { columns: [original] });
-      await click('新增');
+      // FTP/HDFS follow the reference dialog: "+ 新增" and an explicit index.
+      const fileInput = ['read-ftp', 'read-hdfs'].includes(toolCode);
+      const add = fileInput ? '+ 新增' : '新增';
+      await click(add);
       expect(state.config.columns).toEqual([original]);
       await input('属性字段编辑名称', 'draft');
       await click('关闭属性');
       expect(state.config.columns).toEqual([original]);
-      await click('新增');
+      await click(add);
       await input('属性字段编辑名称', 'newField');
+      if (fileInput) await input('属性字段编辑索引', '1');
       if (toolCode.endsWith('redis')) await input('属性字段编辑取值', '@key');
       await click('保存属性');
       expect(state.config.columns).toHaveLength(2);

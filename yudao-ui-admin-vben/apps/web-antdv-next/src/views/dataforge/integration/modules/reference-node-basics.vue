@@ -4,7 +4,11 @@ import { Input, TextArea } from 'antdv-next';
 const props = defineProps<{
   description: string;
   descriptionOnly?: boolean;
+  /** Optional description placeholder; defaults to "请输入描述". */
+  descriptionPlaceholder?: string;
   disabled?: boolean;
+  /** Optional section heading rendered above the basic fields. */
+  heading?: string;
   hideType?: boolean;
   name: string;
   showDescription?: boolean;
@@ -27,6 +31,9 @@ const count = ({ count, maxLength }: { count: number; maxLength?: number }) =>
 
 <template>
   <div class="qi-node-basics" :class="{ 'qi-node-basics-stacked': stacked }">
+    <h3 v-if="heading && !descriptionOnly" class="qi-node-basics-heading">
+      {{ heading }}
+    </h3>
     <template v-if="!descriptionOnly">
       <label class="qi-node-name"><span><i aria-hidden="true">*</i>节点名称</span><Input
           :value="name"
@@ -43,7 +50,7 @@ const count = ({ count, maxLength }: { count: number; maxLength?: number }) =>
         :disabled="disabled"
         :maxlength="256"
         :rows="4"
-        placeholder="请输入描述"
+        :placeholder="descriptionPlaceholder ?? '请输入描述'"
         :show-count="{ formatter: count }"
         @update:value="updateDescription"
     /></label>
