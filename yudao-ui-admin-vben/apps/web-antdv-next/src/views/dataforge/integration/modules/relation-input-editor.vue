@@ -76,6 +76,7 @@ const realtime = computed(
 );
 const isTdengine = computed(() => props.toolCode === 'read-tdengine');
 const isHive = computed(() => props.toolCode === 'read-hive');
+const isOdps = computed(() => props.toolCode === 'read-odps');
 const sqlMode = computed(() => props.config.ifSql === 1);
 const sqlAllowed = computed(
   () => !realtime.value && props.toolCode !== 'read-mongodb',
@@ -554,14 +555,16 @@ defineExpose({ validate });
       show-icon
     />
     <div class="qi-relation-grid">
-      <div class="qi-relation-field qi-relation-full">
+      <div class="qi-relation-field qi-relation-full qi-relation-mode">
         <label>连接方式</label>
         <RadioGroup
           :value="sqlMode ? 1 : 0"
           :disabled="disabled"
           :options="[
             { label: '数据连接', value: 0 },
-            ...(sqlAllowed || sqlMode ? [{ label: 'SQL', value: 1 }] : []),
+            ...(sqlAllowed || sqlMode
+              ? [{ label: isOdps ? 'sql' : 'SQL', value: 1 }]
+              : []),
           ]"
           aria-label="连接方式"
           @update:value="changeSqlMode"
@@ -580,8 +583,8 @@ defineExpose({ validate });
       </div>
       <div class="qi-relation-field">
         <label>数据连接类型</label><Input
-          :value="database?.databaseTypeName || database?.productId || (isHive ? undefined : '-')"
-          :placeholder="isHive ? '请输入数据连接类型' : undefined"
+          :value="database?.databaseTypeName || database?.productId || (isHive || isOdps ? undefined : '-')"
+          :placeholder="isHive || isOdps ? '请输入数据连接类型' : undefined"
           disabled
         />
       </div>
@@ -603,7 +606,8 @@ SQL解析
           :value="config.tableName"
           :options="tableOptions"
           :loading="tablesLoading"
-          :disabled="disabled || !config.databaseId"
+          :disabled="disabled || (!config.databaseId && !isOdps)"
+          :suffix-icon="isOdps ? null : undefined"
           allow-clear
           show-search
           option-filter-prop="label"
@@ -665,6 +669,7 @@ SQL解析
       :fields="readFields"
       :disabled="disabled"
       :batch-enabled="false"
+      :reference-layout="isOdps"
       :condition-modal-width="toolCode === 'read-odps' || isHive ? 912 : 600"
       :condition-table-height="toolCode === 'read-odps' || isHive ? 310 : undefined"
       :fixed-baseline-width="toolCode === 'read-odps' || isHive ? 220 : undefined"
@@ -770,7 +775,7 @@ SQL解析
         </div>
       </Spin>
     </section>
-    <details class="qi-relation-advanced">
+    <details v-if="!isOdps" class="qi-relation-advanced">
       <summary>高级字段配置</summary>
       <Button v-if="!sqlMode && !realtime" :disabled="disabled || !config.tableName" :loading="fieldsLoading" @click="loadMetadata(true)">解析属性字段</Button>
       <Button :disabled="disabled" @click="openField()">+ 新增字段</Button>
@@ -836,7 +841,7 @@ SQL解析
         </table>
       </div>
     </details>
-    <details class="qi-relation-advanced">
+    <details v-if="!isOdps" class="qi-relation-advanced">
       <summary>执行配置</summary>
       <div
         v-if="
@@ -1056,6 +1061,44 @@ SQL解析
 .qi-relation-advanced p {
   margin: 8px 0 0;
   color: #909399;
+}
+
+/* ODPS reference layout: read options share the connection grid columns. */
+.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-grid) {
+  gap: 16px 28px;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-field) {
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 0;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] :deep(.qi-table-input-field > label) {
+  padding-right: 12px;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-field > label {
+  padding-top: 5px;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-mode {
+  align-items: center;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-mode > label {
+  padding-top: 0;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table {
+  table-layout: fixed;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table th {
+  padding: 7px 10px;
+}
+
+.qi-relation-input[data-tool-code='read-odps'] .qi-relation-properties .qi-relation-table td {
+  padding: 10px;
 }
 
 @media (max-width: 768px) {

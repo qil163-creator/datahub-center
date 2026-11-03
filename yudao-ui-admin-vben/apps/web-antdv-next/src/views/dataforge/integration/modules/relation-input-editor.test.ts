@@ -71,6 +71,7 @@ vi.mock('./table-input-read-options.vue', () => ({
       conditionModalWidth: Number,
       conditionTableHeight: Number,
       fixedBaselineWidth: Number,
+      referenceLayout: Boolean,
       showReadMode: Boolean,
       showStartRequired: Boolean,
       showWhere: Boolean,
@@ -304,7 +305,9 @@ describe('关系输入ODPS交互', () => {
     await flush();
     expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeNull();
     expect(state.config.columns).toHaveLength(2);
-    expect(host.querySelector('table[aria-label="高级属性字段"]')).toBeTruthy();
+    // ODPS follows the qData reference dialog: no advanced field or execution sections.
+    expect(host.querySelector('table[aria-label="高级属性字段"]')).toBeNull();
+    expect(readOptionsProps.current?.referenceLayout).toBe(true);
   });
   it('数据连接与SQL之间切换仅提交当前分支，回切恢复表草稿，SQL解析使用真实返回结果', async () => {
     const resolveFields = vi.fn(async () => [

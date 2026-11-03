@@ -18,6 +18,8 @@ const props = withDefaults(
     lineNumbersMinChars?: number;
     minimap?: boolean;
     modelValue?: string;
+    /** Placeholder text shown while the editor is empty. */
+    placeholder?: string;
     readonly?: boolean;
     renderValidationDecorations?: 'off' | 'on';
     tabSize?: number;
@@ -31,6 +33,7 @@ const props = withDefaults(
     lineNumbersMinChars: 5,
     modelValue: '',
     minimap: true,
+    placeholder: undefined,
     readonly: false,
     tabSize: 2,
     renderValidationDecorations: undefined,
@@ -77,6 +80,7 @@ onMounted(() => {
     language: props.language,
     theme: 'sql-light',
     readOnly: props.readonly,
+    placeholder: props.placeholder,
     renderValidationDecorations: props.renderValidationDecorations,
     automaticLayout: true,
     // 代码地图：类似 IDEA CodeGlance，整个文件缩放显示，视口滑块常驻，可点击/拖拽跳转
@@ -164,6 +168,11 @@ watch(
 watch(
   () => props.readonly,
   (readonly) => editor?.updateOptions({ readOnly: readonly }),
+);
+
+watch(
+  () => props.placeholder,
+  (placeholder) => editor?.updateOptions({ placeholder }),
 );
 
 watch(

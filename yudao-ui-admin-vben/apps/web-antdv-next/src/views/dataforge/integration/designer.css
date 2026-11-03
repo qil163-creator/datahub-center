@@ -522,6 +522,16 @@
   min-height: 98px;
 }
 
+/* Reference dialogs render the character counter inside the textarea, bottom right. */
+.qi-node-modal-reference .ant-input-textarea-show-count .ant-input-data-count {
+  inset-inline-end: 14px;
+  bottom: 5px;
+  font-size: 12px;
+  line-height: 1;
+  color: #909399;
+  pointer-events: none;
+}
+
 .qi-node-modal-reference .qi-reference-advanced {
   padding: 12px 16px;
   margin-top: 20px;
