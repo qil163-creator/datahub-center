@@ -31,6 +31,8 @@ function feedback(field: ConnectorField) {
     field.key === 'headerSecretRefs',
   );
 }
+const count = ({ count, maxLength }: { count: number; maxLength?: number }) =>
+  `${count} / ${maxLength ?? 256}个字符`;
 function change(field: ConnectorField, value: unknown) {
   if (!props.disabled) emit('change', field.key, value);
 }
@@ -75,6 +77,7 @@ function change(field: ConnectorField, value: unknown) {
           v-else-if="field.kind === 'select'"
           :value="config[field.key]"
           :options="field.options"
+          :suffix-icon="field.plain ? null : undefined"
           :disabled="disabled"
           :show-search="field.key === 'dataType'"
           option-filter-prop="label"
@@ -102,16 +105,21 @@ function change(field: ConnectorField, value: unknown) {
           v-else-if="field.kind === 'json' || field.kind === 'textarea'"
           :value="text(field)"
           :rows="field.kind === 'json' ? 4 : 3"
+          :maxlength="field.maxLength"
+          :show-count="field.maxLength ? { formatter: count } : false"
           :disabled="disabled"
           :status="
             error(field.key) ||
-            (field.kind === 'json' && !feedback(field).valid)
+            (field.kind === 'json' &&
+              !(field.quiet && !text(field)) &&
+              !feedback(field).valid)
               ? 'error'
               : undefined
           "
           :aria-label="field.label"
           :placeholder="
-            field.kind === 'json' ? '例如 {}' : `请输入${field.label}`
+            field.placeholder ??
+            (field.kind === 'json' ? '例如 {}' : `请输入${field.label}`)
           "
           @update:value="(value) => change(field, value)"
         />
@@ -128,10 +136,14 @@ function change(field: ConnectorField, value: unknown) {
           error(field.key)
         }}</small>
         <small
-          v-else-if="field.kind === 'json'"
+          v-else-if="
+            field.kind === 'json' &&
+            !(field.quiet && (!text(field) || feedback(field).valid))
+          "
           :class="{ 'is-valid': feedback(field).valid }"
           role="status"
           >{{ feedback(field).message }}</small>
+        <p v-if="field.hint" class="qi-connector-field-hint">{{ field.hint }}</p>
       </div>
     </div>
   </div>
@@ -167,6 +179,13 @@ em {
 }
 
 .is-valid {
+  color: #909399;
+}
+
+.qi-connector-field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 18px;
   color: #909399;
 }
 

@@ -34,6 +34,8 @@ import {
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import ConnectorReferenceFields from './connector-reference-fields.vue';
+import DatabaseConnectionPicker from './database-connection-picker.vue';
+import KafkaInputFieldModal from './kafka-input-field-modal.vue';
 import {
   connectorDefaults,
   connectorFieldVisible,
@@ -95,6 +97,10 @@ const tdengineRealtime = computed(() => props.toolCode === 'read-tdengine' && pr
 const relationFieldsView = computed(() => ['read-hive', 'read-mongodb', 'read-odps', 'read-tdengine'].includes(props.toolCode));
 const extendedRelationFields = computed(() => relationFieldsView.value && props.toolCode !== 'read-odps');
 const mainProperties = computed(() => descriptor.value?.direction === 'input' || selectionOutput.value || ['write-ftp', 'write-hdfs'].includes(props.toolCode));
+// FTP/HDFS inputs follow the qData reference dialog layout.
+const fileInput = computed(() =>
+  ['read-ftp', 'read-hdfs'].includes(props.toolCode),
+);
 const showPlatformConnection = computed(
   () => descriptor.value?.connection || props.toolCode === 'read-ftp',
 );
@@ -129,7 +135,10 @@ const outputKeys = new Set([
   'primaryKeys',
   'writeModeType',
 ]);
-const isAdvancedField = (key: string) => advancedKeys.has(key) && !(tdengineRealtime.value && ['groupId', 'offsetReset'].includes(key));
+const isAdvancedField = (key: string) =>
+  (advancedKeys.has(key) ||
+    (fileInput.value && key === 'compression')) &&
+  !(tdengineRealtime.value && ['groupId', 'offsetReset'].includes(key));
 const advancedFields = computed(() =>
   fields.value.filter((field) => isAdvancedField(field.key)),
 );
@@ -153,10 +162,19 @@ const leadingFields = computed(() => {
     : field.key === inputKey).slice(0, 1);
 });
 const remainingFields = computed(() =>
-  basicFields.value.filter(
-    (field) =>
-      !modeFields.value.includes(field) && !leadingFields.value.includes(field) && !(tdengineRealtime.value && field.key === 'topic'),
-  ),
+  basicFields.value
+    .filter(
+      (field) =>
+        !modeFields.value.includes(field) && !leadingFields.value.includes(field) && !(tdengineRealtime.value && field.key === 'topic'),
+    )
+    // A directory sync reads every file under the path.
+    .map((field) =>
+      fileInput.value &&
+      field.key === 'path' &&
+      props.config.syncMode === 'DIRECTORY'
+        ? { ...field, label: '目录路径' }
+        : field,
+    ),
 );
 const showConnectionDetails = computed(
   () =>
@@ -291,7 +309,8 @@ function addReferenceColumn() {
   editedColumn = undefined;
   editedConfig = props.config;
   addingColumn.value = true;
-  columnDraft.value = { name: '', type: 'STRING', ...(descriptor.value?.columnMode === 'index' ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
+  // File inputs start with an empty index, as the reference dialog asks for it explicitly.
+  columnDraft.value = { name: '', type: 'STRING', ...(descriptor.value?.columnMode === 'index' && !fileInput.value ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
   columnEditorErrors.value = [];
   columnEditorOpen.value = true;
 }
@@ -318,6 +337,14 @@ const database = computed(() =>
     (item) => String(item.id) === String(props.config.databaseId),
   ),
 );
+// Connections of the matching product, for the categorized connection picker.
+const pickerDatabases = computed(() => {
+  const product = props.toolCode.replace(/^(?:read|write)-/u, '').toLowerCase();
+  return databases.value.filter((item) => {
+    const type = `${item.productId ?? ''} ${item.databaseTypeName ?? ''}`.toLowerCase().replaceAll(/[^a-z0-9]/gu, '');
+    return !type || type.includes(product) || String(item.id) === String(props.config.databaseId);
+  });
+});
 const options = computed(() => {
   const product = props.toolCode.replace(/^(?:read|write)-/u, '').toLowerCase();
   const typedInputs = new Set(['ftp', 'hdfs', 'rabbitmq', 'redis', 'rocketmq']);
@@ -339,6 +366,31 @@ const columns = computed<ConnectorColumn[]>(() =>
 const issues = computed(() =>
   validateConnectorConfig(props.toolCode, props.config, props.mode),
 );
+// Reference type list for file inputs; BOOL saves as BOOLEAN and BYTES has no compiler mapping.
+const fileInputTypes = [
+  { label: 'STRING', value: 'STRING' },
+  { label: 'BOOL', value: 'BOOLEAN' },
+  { label: 'BYTES', value: 'BYTES', disabled: true },
+  { label: 'DATE', value: 'DATE' },
+  { label: 'DOUBLE', value: 'DOUBLE' },
+  { label: 'LONG', value: 'LONG' },
+];
+const indexSort = ref<-1 | 1>();
+// Rows keep their storage position so edit/delete still target the right column.
+const displayedColumns = computed(() => {
+  const rows = columns.value.map((column, position) => ({ column, position }));
+  const direction = indexSort.value;
+  if (!fileInput.value || !direction) return rows;
+  return rows.toSorted(
+    (left, right) =>
+      ((left.column.index ?? 0) - (right.column.index ?? 0)) * direction,
+  );
+});
+function toggleIndexSort() {
+  if (indexSort.value === undefined) indexSort.value = 1;
+  else if (indexSort.value === 1) indexSort.value = -1;
+  else indexSort.value = undefined;
+}
 const dataTypes = [
   'STRING',
   'INTEGER',
@@ -629,7 +681,7 @@ defineExpose({ validate });
     </Alert>
     <Alert
       v-if="
-        ['read-ftp', 'write-ftp'].includes(toolCode) &&
+        toolCode === 'write-ftp' &&
         config.databaseId !== undefined &&
         config.databaseId !== null
       "
@@ -663,11 +715,20 @@ defineExpose({ validate });
       />
       <div class="qi-connector-grid">
         <div v-if="showPlatformConnection" class="qi-connector-field">
-          <label><em v-if="descriptor.connection">*</em>{{
+          <label><em v-if="descriptor.connection || fileInput">*</em>{{
               tdengineRealtime ? '源数据库连接' : descriptor.direction === 'input' ? '数据源连接' : '目标数据连接'
             }}</label>
           <div>
+            <DatabaseConnectionPicker
+              v-if="fileInput"
+              :value="config.databaseId ?? undefined"
+              :databases="pickerDatabases"
+              :loading="loading"
+              :disabled="disabled"
+              @change="selectDatabase"
+            />
             <Select
+              v-else
               :value="
                 config.databaseId === undefined || config.databaseId === null
                   ? undefined
@@ -734,9 +795,17 @@ defineExpose({ validate });
     </div>
     <section v-if="mainProperties" class="qi-connector-reference-properties">
       <div class="qi-connector-section-header">
-        <h3>属性字段</h3>
+        <h3 :class="{ 'qi-file-fields-heading': fileInput }">属性字段</h3>
         <Button
-          v-if="!selectionOutput && !relationFieldsView"
+          v-if="fileInput"
+          class="qi-reference-button qi-file-add-button"
+          :disabled="disabled"
+          @click="addReferenceColumn"
+        >
+          + 新增
+        </Button>
+        <Button
+          v-else-if="!selectionOutput && !relationFieldsView"
           class="qi-reference-button"
           :disabled="disabled"
           @click="addReferenceColumn"
@@ -751,7 +820,11 @@ defineExpose({ validate });
         :disabled="disabled"
       />
       <div v-else class="qi-connector-reference-scroll">
-        <table class="qi-connector-reference-table" aria-label="属性字段">
+        <table
+          class="qi-connector-reference-table"
+          :class="{ 'qi-file-fields-table': fileInput }"
+          aria-label="属性字段"
+        >
           <colgroup>
             <col style="width: 80px" />
             <col />
@@ -775,7 +848,31 @@ defineExpose({ validate });
               <th v-if="showKey && !relationFieldsView">
                 {{ descriptor.columnMode === 'redis' ? '解析值' : 'JSON解析取值' }}
               </th>
-              <th v-if="descriptor.columnMode === 'index'">索引</th>
+              <th
+                v-if="descriptor.columnMode === 'index'"
+                :aria-sort="
+                  fileInput && indexSort
+                    ? indexSort === 1
+                      ? 'ascending'
+                      : 'descending'
+                    : undefined
+                "
+              >
+                <button
+                  v-if="fileInput"
+                  type="button"
+                  class="qi-sort-header"
+                  aria-label="按索引排序"
+                  @click="toggleIndexSort"
+                >
+                  索引<span
+                    class="qi-sort-caret"
+                    :data-sort="indexSort ?? 0"
+                    aria-hidden="true"
+                  ></span>
+                </button>
+                <template v-else>索引</template>
+              </th>
               <template v-if="extendedRelationFields">
 <th>是否主键</th>
                 <th>字段长度</th>
@@ -785,8 +882,11 @@ defineExpose({ validate });
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(column, index) in columns" :key="index">
-              <td>{{ index + 1 }}</td>
+            <tr
+              v-for="({ column, position: index }, row) in displayedColumns"
+              :key="index"
+            >
+              <td>{{ row + 1 }}</td>
               <td>{{ column.name || '-' }}</td>
               <td v-if="relationFieldsView">{{ column.comment || '-' }}</td>
               <td>{{ column.type || '-' }}</td>
@@ -828,7 +928,16 @@ defineExpose({ validate });
             </tr>
           </tbody>
         </table>
-        <div v-if="!columns.length" class="qi-reference-empty">暂无记录</div>
+        <div v-if="!columns.length" class="qi-reference-empty">
+          <template v-if="fileInput">
+            <img
+              src="/assets/qdata-integration/node-empty-reference.png"
+              alt=""
+              aria-hidden="true"
+            /><p>暂无记录</p>
+          </template>
+          <template v-else>暂无记录</template>
+        </div>
       </div>
     </section>
     <section v-if="mappingOutput" class="qi-connector-reference-properties">
@@ -1063,7 +1172,20 @@ defineExpose({ validate });
         @change="changeField"
       />
     </details>
+    <KafkaInputFieldModal
+      v-if="fileInput"
+      key-mode="index"
+      :open="columnEditorOpen"
+      :field="columnDraft"
+      :disabled="disabled"
+      :errors="columnEditorErrors"
+      :type-options="fileInputTypes"
+      @update:field="updateColumnDraft"
+      @save="saveColumnEditor"
+      @cancel="closeColumnEditor"
+    />
     <ReferenceFieldEditModal
+      v-else
       :open="columnEditorOpen"
       :field="columnDraft"
       :disabled="disabled"
@@ -1331,5 +1453,145 @@ defineExpose({ validate });
   padding-left: 10px;
   color: #303133;
   border-left: 4px solid #2f62ff;
+}
+</style>
+
+<style scoped>
+/* FTP/HDFS inputs: qData reference layout. */
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-connector-reference-main {
+  row-gap: 15px;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  :deep(.ant-radio-group) {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  :deep(.qi-connector-reference-field > label),
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-connector-field > label {
+  padding-top: 6px;
+  color: #303133;
+}
+
+.qi-connector-reference .qi-connector-section-header h3.qi-file-fields-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  font-size: 16px;
+  border-left: 0;
+}
+
+.qi-connector-reference .qi-connector-section-header h3.qi-file-fields-heading::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+.qi-connector-reference .qi-file-add-button.ant-btn {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+.qi-connector-reference .qi-file-add-button.ant-btn:not(:disabled):hover {
+  color: #fff;
+  background: #2d63ff;
+  border-color: #2d63ff;
+}
+
+.qi-file-fields-table th {
+  height: 35px;
+  padding: 7px 10px;
+  font-weight: 600;
+}
+
+.qi-file-fields-table th:first-child {
+  width: 80px;
+}
+
+.qi-file-fields-table th:last-child,
+.qi-file-fields-table td:last-child {
+  text-align: center;
+}
+
+.qi-sort-header {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+/* Stacked up/down carets; the active direction turns primary blue. */
+.qi-sort-caret {
+  position: relative;
+  width: 8px;
+  height: 12px;
+}
+
+.qi-sort-caret::before,
+.qi-sort-caret::after {
+  position: absolute;
+  left: 0;
+  content: '';
+  border: 4px solid transparent;
+}
+
+.qi-sort-caret::before {
+  top: -3px;
+  border-bottom-color: #a8abb2;
+}
+
+.qi-sort-caret::after {
+  bottom: -3px;
+  border-top-color: #a8abb2;
+}
+
+.qi-sort-caret[data-sort='1']::before {
+  border-bottom-color: #2d63ff;
+}
+
+.qi-sort-caret[data-sort='-1']::after {
+  border-top-color: #2d63ff;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-reference-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 274px;
+  color: #909399;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-reference-empty::before {
+  display: none;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-reference-empty img {
+  width: min(190px, 100%);
+  margin-bottom: 18px;
+}
+
+.qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
+  .qi-reference-empty p {
+  margin: 0;
 }
 </style>
