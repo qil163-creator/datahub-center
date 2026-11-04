@@ -22,13 +22,18 @@ const props = withDefaults(
     field: ReferenceField;
     /** "json" edits the JSON parse path (Kafka); "index" edits the column index (FTP/HDFS). */
     keyMode?: 'index' | 'json';
+    /** Overrides the parse-value label/placeholder (e.g. Redis "解析值"). */
+    keyLabel?: string;
+    keyPlaceholder?: string;
     open: boolean;
     typeOptions?: { disabled?: boolean; label: string; value: string }[];
   }>(),
   {
     disabled: false,
     errors: () => [],
+    keyLabel: undefined,
     keyMode: 'json',
+    keyPlaceholder: undefined,
     typeOptions: () => kafkaInputFieldTypes,
   },
 );
@@ -46,12 +51,13 @@ const types = computed(() => {
     result.unshift({ label: props.field.type, value: props.field.type });
   return result;
 });
-const keyLabel = computed(() =>
-  props.keyMode === 'index' ? '索引' : 'JSON解析值',
+const resolvedKeyLabel = computed(
+  () =>
+    props.keyLabel ?? (props.keyMode === 'index' ? '索引' : 'JSON解析值'),
 );
 const rawIssue = (key: 'key' | 'name' | 'type') =>
   props.errors.find((item) =>
-    item.includes({ key: keyLabel.value, name: '名称', type: '类型' }[key]),
+    item.includes({ key: resolvedKeyLabel.value, name: '名称', type: '类型' }[key]),
   );
 // Like the reference form, only the first invalid control shows its message.
 const firstIssueKey = computed(() =>
@@ -112,7 +118,7 @@ function save() {
       v-if="
         errors.some(
           (issue) =>
-            !['名称', '类型', keyLabel].some((key) => issue.includes(key)),
+            !['名称', '类型', resolvedKeyLabel].some((key) => issue.includes(key)),
         )
       "
       type="error"
@@ -175,7 +181,7 @@ function save() {
       <FormItem
         v-else
         class="qi-kafka-input-key"
-        label="JSON解析值"
+        :label="resolvedKeyLabel"
         required
         :validate-status="fieldIssue('key') ? 'error' : undefined"
         :help="fieldIssue('key')"
@@ -184,7 +190,7 @@ function save() {
           :value="field.key"
           :disabled="disabled"
           aria-label="属性字段编辑取值"
-          placeholder="例如:info.aga"
+          :placeholder="keyPlaceholder ?? '例如:info.aga'"
           :rows="4"
           :maxlength="256"
           :show-count="{ formatter: count }"

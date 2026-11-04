@@ -760,3 +760,16 @@
 .qi-reference-field-modal .ant-select-open .ant-select-suffix .anticon {
   transform: rotate(180deg);
 }
+
+/* Scoped connection picker: the notch points at the middle of the select. */
+.qi-connection-picker-popover .ant-popover-arrow {
+  inset-inline-start: 212px !important;
+}
+
+.qi-flip-arrow .ant-select-suffix .anticon {
+  transition: transform 0.2s;
+}
+
+.qi-flip-arrow.ant-select-open .ant-select-suffix .anticon {
+  transform: rotate(180deg);
+}

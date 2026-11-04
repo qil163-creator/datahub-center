@@ -77,11 +77,16 @@ const realtime = computed(
 const isTdengine = computed(() => props.toolCode === 'read-tdengine');
 const isHive = computed(() => props.toolCode === 'read-hive');
 const isOdps = computed(() => props.toolCode === 'read-odps');
-// ODPS and Hive follow the qData reference dialog layout.
-const referenceRelation = computed(() => isOdps.value || isHive.value);
+const isMongo = computed(() => props.toolCode === 'read-mongodb');
+// ODPS, Hive, MongoDB and TDengine follow the qData reference dialog layout.
+const referenceRelation = computed(
+  () => isOdps.value || isHive.value || isMongo.value || isTdengine.value,
+);
+// Hive and TDengine share the SQL toolbar above the editor.
+const sqlToolbar = computed(() => isHive.value || isTdengine.value);
 const tablePlaceholder = computed(() => {
-  if (isOdps.value) return '请选择表';
-  return isHive.value ? '请选择' : '请选择表或视图';
+  if (isOdps.value || isTdengine.value) return '请选择表';
+  return isHive.value || isMongo.value ? '请选择' : '请选择表或视图';
 });
 const sortDirection = (key: 'length' | 'scale') =>
   fieldSort.value?.key === key ? fieldSort.value.direction : 0;
@@ -90,10 +95,23 @@ const sqlAllowed = computed(
   () => !realtime.value && props.toolCode !== 'read-mongodb',
 );
 const readConfig = computed(() => createRelationReadConfig(props.config));
+// Reference layouts have no manual field or resource editing; keep those
+// sections reachable only for saved configs that already use them.
+const legacyAdvanced = computed(
+  () =>
+    (isMongo.value || isTdengine.value) &&
+    ((props.config.resourceBindingId !== undefined &&
+      props.config.resourceBindingId !== '') ||
+      (Array.isArray(props.config.columns) &&
+        props.config.columns.some(
+          (column: RelationInputColumn) =>
+            typeof column.key === 'string' && column.key.trim() !== '',
+        ))),
+);
 const wherePlaceholder = computed(() => {
   if (props.toolCode === 'read-odps') return '例如 id > 10，请不要以分号;结尾';
-  if (isHive.value) return '例如 id > 10 and id < 1000，请不要以分号;结尾';
-  if (props.toolCode === 'read-mongodb') return '例如 {"status": "active"}，请输入只读JSON查询条件';
+  if (isHive.value || isMongo.value || isTdengine.value)
+    return '例如 id > 10 and id < 1000，请不要以分号;结尾';
   return undefined;
 });
 const columns = computed<RelationInputColumn[]>(() =>
@@ -586,6 +604,9 @@ defineExpose({ validate });
           :loading="connectionsLoading"
           :disabled="disabled"
           :placeholder="toolCode === 'read-odps' ? '请选择ODPS数据源' : '请选择源数据库连接'"
+          :type-codes="
+            isMongo ? ['MONGODB'] : isTdengine ? ['TDENGINE'] : undefined
+          "
           @change="changeDatabase"
         />
       </div>
@@ -597,9 +618,9 @@ defineExpose({ validate });
         />
       </div>
       <div class="qi-relation-field">
-        <label>数据连接实例</label><Input :value="database?.databaseSchema || undefined" :placeholder="toolCode === 'read-odps' ? '自动回显项目名' : isHive ? '请输入数据连接实例' : '自动回显实例'" disabled />
+        <label>数据连接实例</label><Input :value="database?.databaseSchema || undefined" :placeholder="toolCode === 'read-odps' ? '自动回显项目名' : isHive || isMongo || isTdengine ? '请输入数据连接实例' : '自动回显实例'" disabled />
       </div>
-      <div v-if="sqlMode && isHive" class="qi-relation-sql-toolbar">
+      <div v-if="sqlMode && sqlToolbar" class="qi-relation-sql-toolbar">
         <Button
           type="primary"
           class="qi-relation-parse-button"
@@ -642,14 +663,15 @@ SQL解析
           <TableInputSqlEditor
             :model-value="config.sql"
             :readonly="disabled"
-            :height="toolCode === 'read-odps' || isHive ? '140px' : '190px'"
+            :height="toolCode === 'read-odps' || sqlToolbar ? '140px' : '190px'"
             :folding="!referenceRelation"
+            :placeholder="isTdengine ? 'select * FROM log_table where id>${id}' : undefined"
             :render-validation-decorations="referenceRelation ? 'off' : undefined"
             :class="{ 'qi-relation-reference-sql': referenceRelation }"
             aria-label="SQL语句"
             @update:model-value="setSql"
           />
-          <div v-if="!isHive" class="qi-relation-sql-actions">
+          <div v-if="!sqlToolbar" class="qi-relation-sql-actions">
             <Button
               :disabled="disabled || !config.databaseId || !config.sql?.trim()"
               :loading="fieldsLoading"
@@ -689,8 +711,8 @@ SQL解析
       :fixed-baseline-width="referenceRelation ? 220 : undefined"
       :show-read-mode="!sqlMode"
       :show-where="!sqlMode"
-      :show-start-required="!isHive"
-      :time-format-width="isHive ? 240 : undefined"
+      :show-start-required="!isHive && !isMongo"
+      :time-format-width="isHive || isMongo ? 240 : undefined"
       time-increment-label="时间范围增"
       :where-placeholder="wherePlaceholder"
     />
@@ -703,9 +725,12 @@ SQL解析
         :disabled="disabled"
         :rows="4"
         :maxlength="256"
-        show-count
+        :show-count="{
+          formatter: ({ count, maxLength }) =>
+            `${count} / ${maxLength ?? 256}个字符`,
+        }"
         aria-label="where条件"
-        placeholder="请输入查询条件，当前固定表执行能力由任务检查确认"
+        :placeholder="wherePlaceholder"
         @update:value="(value) => set('whereCondition', value)"
       />
     </div>
@@ -746,7 +771,7 @@ SQL解析
 <th>是否主键</th>
                   <th :aria-sort="sortState('length')">
                     <button type="button" @click="sortFields('length')">
-                      字段长度
+                      {{ isMongo ? '长度' : '字段长度' }}
                       <span
                         v-if="referenceRelation"
                         class="qi-sort-caret"
@@ -803,7 +828,7 @@ SQL解析
         </div>
       </Spin>
     </section>
-    <details v-if="!referenceRelation" class="qi-relation-advanced">
+    <details v-if="!referenceRelation || legacyAdvanced" class="qi-relation-advanced">
       <summary>高级字段配置</summary>
       <Button v-if="!sqlMode && !realtime" :disabled="disabled || !config.tableName" :loading="fieldsLoading" @click="loadMetadata(true)">解析属性字段</Button>
       <Button :disabled="disabled" @click="openField()">+ 新增字段</Button>
@@ -869,7 +894,7 @@ SQL解析
         </table>
       </div>
     </details>
-    <details v-if="!referenceRelation" class="qi-relation-advanced">
+    <details v-if="!referenceRelation || legacyAdvanced" class="qi-relation-advanced">
       <summary>执行配置</summary>
       <div
         v-if="
@@ -1095,42 +1120,84 @@ SQL解析
 }
 
 /* ODPS reference layout: read options share the connection grid columns. */
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-grid) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-grid) {
   gap: 16px 28px;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-field) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-field) {
   grid-template-columns: 110px minmax(0, 1fr);
   gap: 0;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) :deep(.qi-table-input-field > label) {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-field > label) {
   padding-right: 12px;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-field > label {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-field > label {
   padding-top: 5px;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-mode {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-mode {
   align-items: center;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-mode > label {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-mode > label {
   padding-top: 0;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-properties .qi-relation-table {
   table-layout: fixed;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table th {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-properties .qi-relation-table th {
   padding: 7px 10px;
   font-weight: 600;
 }
 
-.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive']) .qi-relation-properties .qi-relation-table td {
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-properties .qi-relation-table td {
   padding: 10px;
+}
+
+/* Checked radio labels use the primary colour in the reference. */
+.qi-relation-input:is([data-tool-code='read-odps'], [data-tool-code='read-hive'], [data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.ant-radio-wrapper-checked) {
+  color: #2f62ff;
+}
+
+/* MongoDB spacing measured against the reference screenshot. */
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-mode {
+  margin-bottom: 4px;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-grid > .qi-table-input-field:first-child) {
+  margin-bottom: 3px;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-properties h3 {
+  margin: -1px 0 14px;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-condition-table .ant-table-thead > tr > th:last-child),
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-condition-table .ant-table-tbody > tr > td:last-child) {
+  text-align: center;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-condition-actions) {
+  justify-content: center;
+}
+
+/* The reference empty state is the illustration only, without a caption. */
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-empty {
+  justify-content: flex-start;
+  padding-top: 83px;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) .qi-relation-empty span,
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-empty span) {
+  display: none;
+}
+
+.qi-relation-input:is([data-tool-code='read-mongodb'], [data-tool-code='read-tdengine']) :deep(.qi-table-input-empty) {
+  padding-top: 49px;
 }
 
 .qi-relation-parse-button.ant-btn {
