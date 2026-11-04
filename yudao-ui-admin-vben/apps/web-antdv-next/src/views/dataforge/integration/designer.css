@@ -488,6 +488,12 @@
   padding-right: 12px;
 }
 
+.qi-node-modal-reference .qi-node-basics label i {
+  margin-right: 4px;
+  font-style: normal;
+  color: #f56c6c;
+}
+
 .qi-node-modal-reference .qi-node-name i {
   margin-right: 4px;
   font-style: normal;

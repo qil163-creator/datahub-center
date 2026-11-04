@@ -90,6 +90,20 @@ class EtlNativeSqlGraphCompilerTest {
         assertThrows(IllegalArgumentException.class, () -> compile(EtlNativeSqlCompiler.Engine.FLINK, true, nodes, edges));
     }
 
+    @Test void nativeJoinSupportsRightJoinAndRejectsUnknownKinds() throws Exception {
+        var edges = List.of(edge("left", "join", "main"), edge("right", "join", "main"), edge("join", "sink", "main"));
+        for (String kind : List.of("RIGHT", "FULL")) {
+            var nodes = List.of(read("left", "source"), read("right", "right_source"), node("join", "multi-join", Map.of(
+                    "joinType", kind, "joinConditions", List.of(Map.of("leftField", "id", "rightField", "id")))), write("sink", "join_target"));
+            if ("RIGHT".equals(kind)) {
+                for (var engine : EtlNativeSqlCompiler.Engine.values())
+                    assertTrue(compile(engine, false, nodes, edges).contains(" RIGHT JOIN "));
+            } else {
+                assertThrows(IllegalArgumentException.class, () -> compile(EtlNativeSqlCompiler.Engine.SPARK, false, nodes, edges));
+            }
+        }
+    }
+
     @Test void stringNumericLiteralsRemainTextAndSplitMissingValuesRemainNull() throws Exception {
         var nodes = List.of(read("source", "source"), node("split", "field-split", Map.of("sourceField", "name", "delimiter", "|",
                 "outputs", List.of(Map.of("name", "first", "trimType", "BOTH"), Map.of("name", "second")), "keepSource", false)),

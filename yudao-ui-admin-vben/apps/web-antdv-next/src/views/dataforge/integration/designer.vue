@@ -1415,7 +1415,7 @@ function toggleGroup(key: string) {
                     v-model:name="editingName"
                     v-model:description="editingDescription"
                     :type-name="currentComponent?.name"
-                    :type-required="editingCode === 'read-webservice'"
+                    :type-required="['read-webservice', 'multi-join'].includes(editingCode)"
                     :name-hint="
                       editingCode === 'rest-api'
                         ? '任何有意义且能描述本节点的说明(选择API后自动填充为API的名称)'
