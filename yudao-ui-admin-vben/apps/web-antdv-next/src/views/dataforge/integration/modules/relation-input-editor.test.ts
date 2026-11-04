@@ -88,9 +88,6 @@ vi.mock('./table-input-read-options.vue', () => ({
     },
   }),
 }));
-vi.mock('./reference-field-edit-modal.vue', () => ({
-  default: defineComponent({ setup: () => () => null }),
-}));
 vi.mock('antdv-next', () => {
   const Input = defineComponent({
     props: { value: [String, Number], disabled: Boolean },
@@ -498,28 +495,47 @@ describe('关系输入ODPS交互', () => {
     await flush();
     expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeNull();
   });
-  it('按参考布局显示MongoDB：仅数据连接、参考占位文案、限定MongoDB连接且不显示高级配置', async () => {
+  it('mongodb保留数据连接、读取配置和属性字段，不再显示高级配置', async () => {
     const state = await mount({ databaseId: '9007199254740993', tableName: 'events', readMode: 'FULL', columns: [{ name: 'id', type: 'STRING' }] }, 'read-mongodb');
-    // Only the data-connection mode exists; there is no SQL option.
+    // 保留 MongoDB 数据连接模式，不新增 SQL 查询入口。
     expect(host.querySelector('[aria-label="连接方式"]')).toBeTruthy();
     expect(host.querySelector('table[aria-label="关系输入属性字段"]')?.querySelectorAll('th')).toHaveLength(7);
     expect(host.querySelector('table[aria-label="关系输入属性字段"]')?.textContent).toContain('长度');
-    expect(readOptionsProps.current).toMatchObject({ referenceLayout: true, showStartRequired: false, timeFormatWidth: 240 });
-    expect(readOptionsProps.current?.wherePlaceholder).toBe('例如 id > 10 and id < 1000，请不要以分号;结尾');
-    // Fresh nodes show neither advanced field nor execution sections.
+    expect(readOptionsProps.current).toMatchObject({ referenceLayout: false, showStartRequired: true, timeFormatWidth: undefined });
+    expect(readOptionsProps.current?.wherePlaceholder).toBe('例如 {"status": "active"}，请输入只读JSON查询条件');
+    // 删除附加面板后仍保留主要字段表与读取配置。
     expect(host.querySelector('.qi-relation-advanced')).toBeNull();
     state.config.readMode = 'ID_INCREMENT';
     await flush();
-    expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeNull();
+    expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeTruthy();
   });
-  it('已保存的MongoDB执行资源或字段取值路径仍可访问，不因参考布局丢失', async () => {
-    await mount({ databaseId: '1', tableName: 'events', resourceBindingId: 'mongo.exec', columns: [{ name: 'id', type: 'STRING' }] }, 'read-mongodb');
-    expect(host.querySelector('.qi-relation-advanced')).toBeTruthy();
-    expect(host.querySelector<HTMLInputElement>('input[aria-label="执行资源编号"]')?.value).toBe('mongo.exec');
-    host.remove();
-    app?.unmount();
-    await mount({ databaseId: '1', tableName: 'events', columns: [{ name: 'id', type: 'STRING', key: 'a.b' }] }, 'read-mongodb');
-    expect(host.querySelector('.qi-relation-advanced')).toBeTruthy();
+  it('mongodb删除高级面板后主配置可保存，历史执行资源和字段路径不被改写', async () => {
+    vi.mocked(databaseApi.getDatabaseSimpleList).mockResolvedValue([{ id: '1', productId: 'MONGODB', name: '集合连接' }]);
+    const state = await mount({
+      databaseId: '1', tableName: 'events', resourceBindingId: 'mongo.exec',
+      columns: [{ name: 'id', type: 'STRING', key: 'a.b', custom: 42 }],
+      whereCondition: '{"status":"active"}', unknown: '保留',
+    }, 'read-mongodb');
+    expect(host.querySelector('.qi-relation-advanced')).toBeNull();
+    expect(host.querySelector('[aria-label="执行资源编号"]')).toBeNull();
+    expect(host.querySelector('[aria-label="高级属性字段"]')).toBeNull();
+    expect(host.textContent).not.toContain('高级字段配置');
+    expect(host.textContent).not.toContain('执行配置');
+    expect(host.querySelector('[aria-label="关系输入属性字段"]')?.textContent).toContain('id');
+    expect(editor.value?.validate()).toBe(true);
+    expect(state.config).toMatchObject({
+      databaseId: '1', tableName: 'events', resourceBindingId: 'mongo.exec',
+      columns: [{ name: 'id', type: 'STRING', key: 'a.b', custom: 42 }],
+      whereCondition: '{"status":"active"}', unknown: '保留',
+    });
+    readOptionsProps.current!.config.whereCondition = '{';
+    expect(editor.value?.validate()).toBe(false);
+    readOptionsProps.current!.config.whereCondition = '{"status":"ready"}';
+    expect(editor.value?.validate()).toBe(true);
+    state.config.password = 'fixture-secret';
+    expect(editor.value?.validate()).toBe(false);
+    await flush();
+    expect(host.textContent).toContain('节点配置不可保存凭据');
   });
   it('按参考布局显示TDengine：连接方式存在且新节点不显示高级配置', async () => {
     await mount({ columns: [] }, 'read-tdengine');

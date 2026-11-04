@@ -1,6 +1,6 @@
 import type { App } from 'vue';
 
-import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
+import { createApp, defineComponent, h, nextTick, reactive, ref } from 'vue';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,11 +19,12 @@ vi.mock('antdv-next', () => {
   };
 });
 let app:App|undefined; let host:HTMLDivElement;
+const editor = ref<{ validate: () => boolean }>();
 afterEach(() => {app?.unmount(); host?.remove();});
 function mount(toolCode:string,config:Record<string,any>,disabled=false) {
   host=document.createElement('div'); document.body.append(host);
   const state=reactive({config,disabled});
-  app=createApp({render:() => h(ReferenceFlowEditor,{...state,toolCode,inputFields:[{name:'id',dataType:'BIGINT'},{name:'name',dataType:'STRING'}],upstreamNodes:[{nodeNo:'a',name:'上游A',fields:[{name:'id',dataType:'BIGINT'}]},{nodeNo:'b',name:'上游B',fields:[{name:'other',dataType:'BIGINT'}]}],downstreamNodes:[{targetId:'sink',targetName:'输出'}]})});
+  app=createApp({render:() => h(ReferenceFlowEditor,{ref:editor,...state,toolCode,inputFields:[{name:'id',dataType:'BIGINT'},{name:'name',dataType:'STRING'}],upstreamNodes:[{nodeNo:'a',name:'上游A',fields:[{name:'id',dataType:'BIGINT'}]},{nodeNo:'b',name:'上游B',fields:[{name:'other',dataType:'BIGINT'}]}],downstreamNodes:[{targetId:'sink',targetName:'输出'}]})});
   app.mount(host); return state;
 }
 async function click(text:string) { const button=[...host.querySelectorAll('button')].find((item) => item.textContent?.trim().endsWith(text)); expect(button).toBeTruthy(); button!.click(); await nextTick(); }
@@ -48,14 +49,28 @@ describe('集成流程的分步配置和真实兼容契约',() => {
     const state=mount('data-condition',{branches:[{id:'a',type:'IF',fieldName:'id',operator:'EQ',value:'1',targetNodeNo:'sink',vendor:7},{id:'b',type:'ELSE',targetNodeNo:'other'},{id:'legacy',type:'IF',fieldName:'name',operator:'EQ',value:'keep',targetNodeNo:'third'}],unmatchedPolicy:'ERROR'});
     expect(host.textContent).not.toContain('分支兼容配置');
     expect(host.querySelector('details')).toBeNull();
+    expect(host.textContent).not.toContain('添加条件分支');
+    expect(host.textContent).not.toContain('删除分支');
+    expect(host.querySelector('[placeholder="请选择True组件"]')).not.toBeNull();
+    expect(host.querySelector('[placeholder="请选择False组件"]')).not.toBeNull();
+    const legacy = JSON.stringify(state.config.branches[2]);
     const before=JSON.stringify(state.config);
-    await click('分发条件配置'); expect(JSON.stringify(state.config)).toBe(before);
+    await click('下一步'); expect(JSON.stringify(state.config)).toBe(before);
+    expect(host.textContent).toContain('条件说明');
     await click('添加条件'); expect(state.config.branches[0].conditions).toEqual([{fieldName:'id',operator:'EQ',value:'1'},{fieldName:'',operator:'EQ',value:''}]);
     expect(state.config.branches[0].vendor).toBe(7); expect(state.config.branches[2].id).toBe('legacy');
     await click('True组件字段配置');
     const checkbox=host.querySelector<HTMLInputElement>('input[aria-label="输出字段name"]')!; checkbox.checked=false; checkbox.dispatchEvent(new Event('change')); await nextTick();
     expect(state.config.branches[0].fields).toEqual(['id']); expect(state.config.branches[1].fields).toBeUndefined();
+    await click('False组件字段配置');
+    expect(host.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect(JSON.stringify(state.config.branches[2])).toBe(legacy);
     expect(state.config.unmatchedPolicy).toBe('ERROR');
+    expect(editor.value!.validate()).toBe(true);
+    state.config.branches[2].targetNodeNo = '';
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick();
+    expect(host.textContent).toContain('请选择分支下游组件');
   });
   it('只读浏览切换步骤或伪造输入均不改写节点',async() => {
     const state=mount('multi-join',{joinConditions:[{leftField:'id',rightField:'other'}],vendor:9},true);

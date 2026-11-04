@@ -107,13 +107,19 @@ describe('原生脚本编辑器', () => {
     '%s 删除执行资源与批次面板后可保存主要配置，不注入运行参数',
     async (toolCode) => {
       const config = { code: 'existing code', unknown: '保留', ...(toolCode === 'custom-token' ? { tokenKey: 'api.token' } : {}) };
+      const original = structuredClone(config);
       const editor = mount(config, toolCode);
       await nextTick();
       expect(host.textContent).not.toContain('执行资源与批次配置');
       expect(host.querySelector('[aria-label="脚本资源编号"]')).toBeNull();
       expect(host.querySelector('[aria-label="脚本最大批次行数"]')).toBeNull();
+      await vi.dynamicImportSettled();
+      await nextTick();
+      await input('Java代码编辑器', 'updated code');
+      await click('编译');
+      expect(editor.requested).toHaveBeenCalledOnce();
       expect(editor.valid()).toBe(true);
-      expect(editor.state.config).toEqual(config);
+      expect(editor.state.config).toEqual({ ...original, code: 'updated code' });
       expect(editor.state.config.resourceBindingId).toBeUndefined();
       expect(editor.state.config.workerState).toBeUndefined();
       expect(editor.state.config.maximumRows).toBeUndefined();
