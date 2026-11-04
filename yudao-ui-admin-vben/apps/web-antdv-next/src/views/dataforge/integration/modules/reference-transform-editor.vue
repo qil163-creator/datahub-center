@@ -62,6 +62,7 @@ type Column = {
   minArity?: number;
   options?: { label: string; value: string }[];
   placeholder?: string;
+  sortIcon?: boolean;
   source?: boolean;
 };
 const errors = ref<string[]>([]);
@@ -78,7 +79,7 @@ const sectionTitle = computed(
       calculator: '字段',
       'value-map': '字段值',
       'add-constant': '常量字段',
-      'number-range': '范围(最小 <= 值 < 最大)',
+      'number-range': '范围',
       'java-script': '声明输出字段',
     })[props.toolCode] ?? '字段配置',
 );
@@ -189,10 +190,10 @@ const sourceOptions = computed(() =>
 const choices = (...values: string[]) =>
   values.map((value) => ({ value, label: value }));
 const trims = [
-  { value: 'NONE', label: '不去空格' },
   { value: 'LEFT', label: '去除左空格' },
   { value: 'RIGHT', label: '去除右空格' },
   { value: 'BOTH', label: '去除两边空格' },
+  { value: 'NONE', label: '不去空格' },
 ];
 const columns = computed<Column[]>(() => {
   switch (props.toolCode) {
@@ -245,8 +246,8 @@ const columns = computed<Column[]>(() => {
       return [
         { key: 'name', label: '字段名称', placeholder: '请输入字段' },
         { key: 'type', label: '字段类型', options: referenceFieldTypes },
-        { key: 'length', label: '字段长度', placeholder: '请输入字段长度' },
-        { key: 'precision', label: '字段精度', placeholder: '请输入字段精度' },
+        { key: 'length', label: '字段长度', placeholder: '请输入字段长度', sortIcon: true },
+        { key: 'precision', label: '字段精度', placeholder: '请输入字段精度', sortIcon: true },
         { key: 'format', label: '格式', placeholder: '请输入格式' },
         { key: 'trimType', label: '去除空格类型', options: trims, placeholder: '请选择' },
       ];
@@ -274,9 +275,9 @@ const columns = computed<Column[]>(() => {
     }
     case 'number-range': {
       return [
-        { key: 'min', label: '下限' },
-        { key: 'max', label: '上界' },
-        { key: 'value', label: '值' },
+        { key: 'min', label: '下限', placeholder: '请输入', sortIcon: true },
+        { key: 'max', label: '上界', placeholder: '请输入', sortIcon: true },
+        { key: 'value', label: '值', help: '命中该范围（下限 <= 值 < 上界）时写入输出字段的值' },
       ];
     }
     case 'sort-records': {
@@ -398,7 +399,8 @@ function add() {
     return;
   }
   if (rows.value.length > 0 && rowErrors().length > 0) {
-    errors.value = rowErrors();
+    if (props.toolCode === 'value-map') message.warning('新增失败，请先填写字段值');
+    else errors.value = rowErrors();
     return;
   }
   const defaults: Record<string, Row> = {
@@ -409,7 +411,7 @@ function add() {
       setEmpty: false,
     },
     'sort-records': { field: '', order: 'ASC' },
-    'field-split': { name: '', type: 'String', trimType: 'NONE' },
+    'field-split': { name: '', type: 'String' },
     'value-map': { from: '', to: '' },
     'number-range': { min: '', max: '', value: '' },
     calculator: {
@@ -693,17 +695,17 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
       >
         <div class="qi-reference-form-grid">
         <div class="qi-reference-form-row">
-          <label :class="{ 'qi-field-split-required': toolCode === 'field-split' }">{{
+          <label :class="{ 'qi-field-split-required': toolCode === 'field-split' }"><span :class="{ 'qi-id-required': toolCode !== 'field-split' }">{{
             toolCode === 'field-split'
               ? '需要拆分的字段'
               : toolCode === 'value-map'
                 ? '使用字段'
                 : '输入字段'
-          }}</label><AutoComplete
+          }}</span></label><AutoComplete
             :value="config.sourceField"
             :disabled="disabled"
             :options="sourceOptions"
-            :placeholder="toolCode === 'field-split' ? '请输入拆分的字段' : toolCode === 'value-map' ? '请选择字段名称' : undefined"
+            :placeholder="toolCode === 'field-split' ? '请输入拆分的字段' : toolCode === 'value-map' ? '请选择字段名称' : toolCode === 'number-range' ? '请选择输入字段' : undefined"
             :aria-label="toolCode === 'field-split' ? '需要拆分的字段' : toolCode === 'value-map' ? '使用字段' : '输入字段'"
             :aria-required="toolCode === 'field-split' ? true : undefined"
             @update:value="(value) => setConfig('sourceField', value)"
@@ -757,6 +759,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         <div v-if="toolCode === 'number-range'" class="qi-reference-form-row">
           <label>缺省值</label><Input
             :value="config.defaultValue"
+            placeholder="请输入缺省值"
             :disabled="disabled"
             @update:value="(value) => setConfig('defaultValue', value)"
           />
@@ -800,7 +803,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         v-if="showRows"
         class="qi-reference-section-header qi-reference-table-heading"
       >
-        <h3>{{ sectionTitle }}</h3>
+        <h3>{{ sectionTitle }}<small v-if="toolCode === 'number-range'" class="qi-range-hint">(最小 &lt;= 值 &lt; 最大)</small></h3>
         <div>
           <Button
             :disabled="disabled"
@@ -816,7 +819,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           <thead>
             <tr>
               <th>序号<Tooltip v-if="toolCode === 'sort-records'" title="拖动序号可调整排序优先级，序号越小优先级越高"><span class="qi-transform-column-help" tabindex="0" aria-label="序号说明"><ReferenceIcon name="info" /></span></Tooltip></th>
-              <th v-for="column in primaryColumns" :key="column.key">
+              <th v-for="column in primaryColumns" :key="column.key" :class="{ 'qi-th-sort': column.sortIcon }">
                 {{ column.label }}
                 <Tooltip v-if="column.help" :title="column.help"><span class="qi-transform-column-help" tabindex="0" :aria-label="`${column.label}说明`"><ReferenceIcon name="info" /></span></Tooltip>
               </th>
@@ -862,6 +865,14 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
                   :aria-label="`${column.label} ${index + 1}`"
                   allow-clear
                   @update:value="(value) => setField(row, column.key, value)"
+                /><InputNumber
+                  v-else-if="toolCode === 'number-range' && (column.key === 'min' || column.key === 'max')"
+                  :value="row[column.key] === '' ? undefined : row[column.key]"
+                  :placeholder="column.placeholder"
+                  :aria-label="`${column.label} ${index + 1}`"
+                  :disabled="disabled"
+                  string-mode
+                  @update:value="(value) => setField(row, column.key, value ?? '')"
                 /><AutoComplete
                   v-else-if="column.source"
                   v-show="cellVisible(row, column)"

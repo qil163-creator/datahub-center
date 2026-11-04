@@ -221,6 +221,17 @@
   min-width: 1590px;
 }
 
+.qi-pivot-reference .qi-reference-merge-button.ant-btn {
+  height: 27px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-pivot-reference .qi-reference-merge-button .qi-icon {
+  margin-right: 2px;
+}
+
 .qi-pivot-reference .qi-reference-merge-button {
   display: inline-flex;
   gap: 5px;
