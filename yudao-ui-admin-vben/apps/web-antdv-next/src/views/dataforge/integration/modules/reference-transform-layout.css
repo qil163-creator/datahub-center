@@ -328,7 +328,7 @@
 .qi-transform-reference .qi-reference-table-heading .qi-reference-button.ant-btn,
 .qi-transform-config .qi-reference-table-heading .qi-reference-button.ant-btn {
   height: 27px;
-  padding: 0 10px;
+  padding: 0 9px;
   font-size: 12px;
   border-radius: 2px;
 }

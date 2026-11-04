@@ -190,10 +190,10 @@ const sourceOptions = computed(() =>
 const choices = (...values: string[]) =>
   values.map((value) => ({ value, label: value }));
 const trims = [
-  { value: 'NONE', label: '不去空格' },
   { value: 'LEFT', label: '去除左空格' },
   { value: 'RIGHT', label: '去除右空格' },
   { value: 'BOTH', label: '去除两边空格' },
+  { value: 'NONE', label: '不去空格' },
 ];
 const columns = computed<Column[]>(() => {
   switch (props.toolCode) {
@@ -246,8 +246,8 @@ const columns = computed<Column[]>(() => {
       return [
         { key: 'name', label: '字段名称', placeholder: '请输入字段' },
         { key: 'type', label: '字段类型', options: referenceFieldTypes },
-        { key: 'length', label: '字段长度', placeholder: '请输入字段长度' },
-        { key: 'precision', label: '字段精度', placeholder: '请输入字段精度' },
+        { key: 'length', label: '字段长度', placeholder: '请输入字段长度', sortIcon: true },
+        { key: 'precision', label: '字段精度', placeholder: '请输入字段精度', sortIcon: true },
         { key: 'format', label: '格式', placeholder: '请输入格式' },
         { key: 'trimType', label: '去除空格类型', options: trims, placeholder: '请选择' },
       ];
@@ -411,7 +411,7 @@ function add() {
       setEmpty: false,
     },
     'sort-records': { field: '', order: 'ASC' },
-    'field-split': { name: '', type: 'String', trimType: 'NONE' },
+    'field-split': { name: '', type: 'String' },
     'value-map': { from: '', to: '' },
     'number-range': { min: '', max: '', value: '' },
     calculator: {
