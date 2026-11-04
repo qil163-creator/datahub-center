@@ -36,6 +36,8 @@ import {
   setGovernanceCleanSelectionFields,
 } from '../../etl/pipeline/node-editors/data-clean-governance';
 
+import ReferenceCleanRuleDialog from './reference-clean-rule-dialog.vue';
+
 import '../../etl/pipeline/node-editors/editor-style.css';
 
 defineOptions({ name: 'IntegrationReferenceClean' });
@@ -58,6 +60,9 @@ const initialOwner = owner();
 const currentOwner = computed(() => owner() === initialOwner);
 const canQuery = computed(() =>
   hasAccessByCodes(['governance:clean-rule:query']),
+);
+const canCreateRule = computed(() =>
+  hasAccessByCodes(['governance:clean-rule:create']),
 );
 const canLoadRules = computed(() => !props.disabled && currentOwner.value && canQuery.value);
 const MAX_RULE_PAGES = 20;
@@ -86,6 +91,7 @@ const cleanRuleTruncated = ref(false);
 const ruleSearch = ref('');
 const selectedGovernanceRule = ref<string>();
 const pickerOpen = ref(false);
+const instanceRule = ref<GovernanceCleanRuleApi.CleanRule>();
 const category = ref('');
 const categories = computed(() => [...new Set(cleanRules.value.map((rule) => rule.categoryName || '未分类'))]);
 const pickerRules = computed(() => cleanRules.value.filter((rule) => !category.value || (rule.categoryName || '未分类')===category.value));
@@ -243,6 +249,29 @@ async function loadGovernanceRules() {
 
 
 
+function chooseRule(rule: GovernanceCleanRuleApi.CleanRule) {
+  if (props.disabled) return;
+  // 有新增权限时按参考流程在节点内创建带参数的清洗规则；否则直接引用已有规则。
+  if (!canCreateRule.value) {
+    addGovernanceRule(String(rule.id));
+    return;
+  }
+  instanceRule.value = rule;
+  pickerOpen.value = false;
+}
+function closeInstance(reopenPicker = false) {
+  instanceRule.value = undefined;
+  if (reopenPicker) pickerOpen.value = true;
+}
+async function confirmInstance(selection: { field?: string; fields?: string[]; ruleId: string }) {
+  if (props.disabled || !active) return;
+  props.config.executionMode = 'GOVERNANCE';
+  instanceRule.value = undefined;
+  // 重新读取规则库，使新建规则的名称、参数和字段绑定能力立即可见。
+  await loadGovernanceRules();
+  if (!(props.config.governanceRules as any[]).some((item) => String(item.ruleId) === selection.ruleId))
+    props.config.governanceRules.push(selection);
+}
 function addGovernanceRule(ruleId?: string) {
   if (!ruleId || !active || !canLoadRules.value || cleanRuleLoading.value)
     return;
@@ -454,8 +483,16 @@ defineExpose({openRulePicker:openPicker});
 </fieldset>
 </details>
     <Modal v-model:open="pickerOpen" title="清洗规则" :width="1200" :footer="null">
-      <div class="qi-clean-rule-picker"><aside><button type="button" :class="{'is-active':!category}" @click="category = ''">全部规则（{{ cleanRules.length }}）</button><button v-for="name in categories" :key="name" type="button" :class="{'is-active':category === name}" @click="category = name">{{ name }}</button></aside><main><div class="qi-reference-file-actions"><Input v-model:value="ruleSearch" :disabled="!canLoadRules" placeholder="请输入清洗规则名称" @press-enter="loadGovernanceRules" /><Button :disabled="!canLoadRules" :loading="cleanRuleLoading" @click="loadGovernanceRules">查询</Button></div><p v-if="cleanRuleTruncated" class="qi-reference-notice">仅加载当前条件下前2000条启用规则，请缩小搜索范围。</p><div class="qi-clean-rule-cards"><button v-for="rule in pickerRules" :key="String(rule.id)" type="button" :disabled="disabled || config.governanceRules?.some((item: any) => String(item.ruleId) === String(rule.id))" @click="addGovernanceRule(String(rule.id))"><strong>{{ rule.name || rule.code }}</strong><p>{{ rule.description || rule.useCase || rule.strategyKey }}</p><small>{{ rule.categoryName }}</small></button></div><p v-if="!cleanRuleLoading && !pickerRules.length" class="qi-reference-empty">暂无记录</p></main></div>
+      <div class="qi-clean-rule-picker"><aside><button type="button" :class="{'is-active':!category}" @click="category = ''">全部规则（{{ cleanRules.length }}）</button><button v-for="name in categories" :key="name" type="button" :class="{'is-active':category === name}" @click="category = name">{{ name }}</button></aside><main><div class="qi-reference-file-actions"><Input v-model:value="ruleSearch" :disabled="!canLoadRules" placeholder="请输入清洗规则名称" @press-enter="loadGovernanceRules" /><Button :disabled="!canLoadRules" :loading="cleanRuleLoading" @click="loadGovernanceRules">查询</Button></div><p v-if="cleanRuleTruncated" class="qi-reference-notice">仅加载当前条件下前2000条启用规则，请缩小搜索范围。</p><div class="qi-clean-rule-cards"><button v-for="rule in pickerRules" :key="String(rule.id)" type="button" :disabled="disabled || config.governanceRules?.some((item: any) => String(item.ruleId) === String(rule.id))" @click="chooseRule(rule)"><strong>{{ rule.name || rule.code }}</strong><p>{{ rule.description || rule.useCase || rule.strategyKey }}</p><small>{{ rule.categoryName }}</small></button></div><p v-if="!cleanRuleLoading && !pickerRules.length" class="qi-reference-empty">暂无记录</p></main></div>
     </Modal>
+    <ReferenceCleanRuleDialog
+      :open="Boolean(instanceRule)"
+      :rule="instanceRule"
+      :input-fields="inputFields"
+      @back="closeInstance(true)"
+      @close="closeInstance()"
+      @confirm="confirmInstance"
+    />
   </div>
 </template>
 <style scoped>
