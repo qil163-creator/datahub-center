@@ -1972,6 +1972,8 @@ defineExpose({ validate });
 }
 
 [data-tool-code='read-kafka'] .qi-reference-section-header {
+  row-gap: 9px;
+  margin-top: -7px;
   margin-bottom: 16px;
 }
 
@@ -1992,7 +1994,7 @@ defineExpose({ validate });
 }
 
 [data-tool-code='read-kafka'] .qi-reference-fields-table th {
-  height: 35px;
+  height: 33px;
   font-weight: 600;
 }
 
@@ -2009,8 +2011,24 @@ defineExpose({ validate });
   text-align: center;
 }
 
+/* The reference empty state is just the illustration, no caption. */
 [data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty {
-  height: 274px;
+  height: 204px;
+  padding: 64px 0 0;
+  vertical-align: top;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty img {
+  margin: 0 auto;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-empty p {
+  display: none;
+}
+
+[data-tool-code='read-kafka'] .qi-reference-kafka-grid {
+  gap: 16px 20px;
+  margin-top: -5px;
 }
 
 [data-tool-code='read-kafka']

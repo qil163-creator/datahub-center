@@ -115,6 +115,7 @@ const nodeEditor = ref<{
   canMergeFields?: boolean;
   openFieldMerge?: () => void;
   openRulePicker?: () => void;
+  stepNav?: { last: number; next: () => void; prev: () => void; step: number };
   validate?: () => boolean;
 }>();
 const nodeChecking = ref(false);
@@ -232,6 +233,8 @@ const editable = computed(
 );
 const currentComponent = computed(() => componentOf(editingCode.value));
 const nodeHelp = computed(() => ({
+  'sort-records': '按选定字段和排序规则对记录排序，序号越小优先级越高。',
+  'field-derive': '基于来源字段按操作类型生成新字段，结果将作为新列追加到数据中。',
   'field-split': '将一个字段按分隔符或正则表达式拆分，按顺序写入拆分字段。',
   'dedup-records': '按选定字段识别重复记录，可逐字段设置是否忽略大小写。',
   'row-to-column': '将多列数据拆分成多行，每行保存字段对应的键和值。',
@@ -1411,6 +1414,12 @@ function toggleGroup(key: string) {
                     v-model:name="editingName"
                     v-model:description="editingDescription"
                     :type-name="currentComponent?.name"
+                    :type-required="['read-webservice', 'multi-join'].includes(editingCode)"
+                    :name-hint="
+                      editingCode === 'rest-api'
+                        ? '任何有意义且能描述本节点的说明(选择API后自动填充为API的名称)'
+                        : undefined
+                    "
                     :disabled="!editable"
                     :stacked="
                       ['multi-join', 'read-webservice'].includes(editingCode)
@@ -1458,6 +1467,22 @@ function toggleGroup(key: string) {
               @click="nodeEditor?.openFieldMerge?.()"
             >
               获取字段
+            </Button>
+            <Button
+              v-if="nodeEditor?.stepNav && nodeEditor.stepNav.step > 0"
+              :auto-insert-space="false"
+              type="primary"
+              @click="nodeEditor.stepNav.prev()"
+            >
+              上一步
+            </Button>
+            <Button
+              v-if="nodeEditor?.stepNav && nodeEditor.stepNav.step < nodeEditor.stepNav.last"
+              :auto-insert-space="false"
+              type="primary"
+              @click="nodeEditor.stepNav.next()"
+            >
+              下一步
             </Button>
             <Button :auto-insert-space="false" @click="nodeOpen = false">关闭</Button><Button :auto-insert-space="false" :disabled="!editable" type="primary" @click="commitNode">
               保存

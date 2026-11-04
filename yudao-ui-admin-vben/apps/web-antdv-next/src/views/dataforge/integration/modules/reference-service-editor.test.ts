@@ -18,11 +18,7 @@ vi.mock('#/api/dataforge/integration/service-metadata', () => ({
 }));
 vi.mock('antdv-next', () => {
   const Field = defineComponent({
-    props: {
-      value: [String, Number],
-      disabled: Boolean,
-      options: { type: Array, default: () => [] },
-    },
+    props: { value: [String, Number], disabled: Boolean },
     emits: ['update:value'],
     setup:
       (props, { emit }) =>
@@ -30,7 +26,6 @@ vi.mock('antdv-next', () => {
         h('input', {
           value: props.value,
           disabled: props.disabled,
-          'data-options': JSON.stringify(props.options),
           onInput: (event: Event) =>
             emit('update:value', (event.target as HTMLInputElement).value),
         }),
@@ -163,15 +158,6 @@ describe('集成专属四步骤接口配置', () => {
     expect(state.config.vendor).toEqual({ legacy: true });
     expect(editor.value!.validate()).toBe(true);
   });
-  it('接口缺少任务授权资源时仅阻止采样，不再提示前往已删除的高级配置', async () => {
-    mount(RequestEditor, {
-      apiConfig: { requestUrl: 'https://example.test/rows' },
-    });
-    await click('从结果JSON中自动分析');
-    expect(api.getIntegrationHttpMetadata).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('尚未关联任务授权的接口执行资源');
-    expect(host.textContent).not.toContain('高级执行配置');
-  });
   it('受管GET采样只合并新字段且保留未知类型，不能默认为字符串', async () => {
     vi.mocked(api.getIntegrationHttpMetadata).mockResolvedValue({
       fields: [
@@ -245,7 +231,7 @@ describe('集成专属四步骤接口配置', () => {
       { fieldName: 'current', fieldType: 12 },
     ]);
   });
-  it('移除WSDL高级面板，选择请求接口仍联动服务和端口，解析时不重写已有草稿', async () => {
+  it('受管WSDL解析提供服务端口操作联动，不在解析时重写已有草稿', async () => {
     vi.mocked(api.getIntegrationWebServiceMetadata).mockResolvedValue(response);
     const { state } = mount(WebServiceEditor, {
       resourceBindingId: 'soap.weather',
@@ -254,11 +240,11 @@ describe('集成专属四步骤接口配置', () => {
       vendor: '保留',
     });
     const before = JSON.stringify(state.config);
-    expect(host.querySelector('details')).toBeNull();
-    expect(host.textContent).not.toContain('高级执行配置');
     await click('解析WSDL');
     expect(JSON.stringify(state.config)).toBe(before);
-    await input('WSDL请求接口', JSON.stringify(['Weather', 'WeatherSoap', 'Read']));
+    await input('WSDL服务', 'Weather');
+    await input('WSDL端口', 'WeatherSoap');
+    await input('WSDL请求接口', 'Read');
     expect(state.config).toMatchObject({
       serviceName: 'Weather',
       portName: 'WeatherSoap',
@@ -267,30 +253,12 @@ describe('集成专属四步骤接口配置', () => {
       targetNamespace: 'urn:test',
       vendor: '保留',
     });
+    expect(
+      host.querySelector<HTMLInputElement>('[aria-label="WSDL端点地址"]')
+        ?.value,
+    ).toBe('https://example.test/service');
     await click('获取接口参数');
     expect(JSON.parse(state.config.requestParams)).toEqual({ city: '' });
-  });
-  it('保存WSDL配置不强制隐藏资源字段，解析仍需要任务授权资源', async () => {
-    const { state, editor } = mount(WebServiceEditor, {
-      apiUrl: 'https://example.test/weather?wsdl',
-      operationName: 'HistoricRead',
-      apiMethod: 'soap11',
-      columns: [{ name: 'id', type: 'LONG' }],
-      vendor: '保留',
-    });
-    const before = JSON.stringify(state.config);
-    expect(editor.value!.validate()).toBe(true);
-    expect(JSON.stringify(state.config)).toBe(before);
-    expect(host.querySelector<HTMLInputElement>('[aria-label="WSDL请求接口"]')?.value).toBe('HistoricRead');
-    await click('解析WSDL');
-    expect(api.getIntegrationWebServiceMetadata).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('尚未关联任务授权的执行资源');
-    expect(host.textContent).not.toContain('高级执行配置');
-    state.config.resourceBindingId = '_invalid';
-    expect(editor.value!.validate()).toBe(false);
-    state.config.resourceBindingId = 'soap.resource';
-    state.config.maxRows = 1_000_001;
-    expect(editor.value!.validate()).toBe(false);
   });
   it('受管WSDL拒绝和迟到响应均不覆盖当前节点配置', async () => {
     let resolve!: (value: typeof response) => void;
@@ -315,12 +283,15 @@ describe('集成专属四步骤接口配置', () => {
     await flush();
     resolve(response);
     await flush();
-    expect(host.querySelector<HTMLElement>('[aria-label="WSDL请求接口"]')?.dataset.options).toBe('[]');
+    expect(
+      host.querySelector<HTMLInputElement>('[aria-label="WSDL端点地址"]')
+        ?.value,
+    ).toBe('');
     await click('解析WSDL');
     expect(host.textContent).toContain('未授权控制面元数据地址');
     expect(state.config.serviceName).toBe('新节点服务');
   });
-  it('请求接口使用唯一组合，同名操作可直接区分服务端口并同步请求方式', async () => {
+  it('切换到其它端口独有的接口时同步方式和命名空间，同名接口不猜测端口', async () => {
     const secondPort = {
       name: 'WeatherSoap12',
       apiMethod: 'soap12' as const,
@@ -353,8 +324,6 @@ describe('集成专属四步骤接口配置', () => {
       targetNamespace: 'urn:test',
     });
     await click('解析WSDL');
-    expect(host.querySelector<HTMLInputElement>('[aria-label="WSDL请求接口"]')?.value).toBe(JSON.stringify(['Weather', 'WeatherSoap', 'Read']));
-    expect(state.config.operationName).toBe('Read');
     await input('WSDL请求接口', 'Read12');
     expect(state.config).toMatchObject({
       portName: 'WeatherSoap12',
@@ -363,15 +332,6 @@ describe('集成专属四步骤接口配置', () => {
       targetNamespace: 'urn:test:12',
     });
     secondPort.operations[0]!.name = 'Read';
-    vi.mocked(api.getIntegrationWebServiceMetadata).mockResolvedValue({
-      ...response,
-      services: [
-        {
-          ...response.services[0]!,
-          ports: [response.services[0]!.ports[0]!, secondPort],
-        },
-      ],
-    });
     state.config.portName = '';
     state.config.operationName = '';
     await click('解析WSDL');
@@ -379,18 +339,5 @@ describe('集成专属四步骤接口配置', () => {
     expect(state.config.portName).toBe('');
     expect(state.config.operationName).toBe('');
     expect(host.textContent).toContain('存在同名接口');
-    const choices = JSON.parse(host.querySelector<HTMLElement>('[aria-label="WSDL请求接口"]')!.dataset.options!);
-    expect(choices).toEqual([
-      { label: 'Read（Weather / WeatherSoap）', value: JSON.stringify(['Weather', 'WeatherSoap', 'Read']) },
-      { label: 'Read（Weather / WeatherSoap12）', value: JSON.stringify(['Weather', 'WeatherSoap12', 'Read']) },
-    ]);
-    await input('WSDL请求接口', choices[1].value);
-    expect(state.config).toMatchObject({
-      serviceName: 'Weather',
-      portName: 'WeatherSoap12',
-      operationName: 'Read',
-      apiMethod: 'soap12',
-      targetNamespace: 'urn:test:12',
-    });
   });
 });

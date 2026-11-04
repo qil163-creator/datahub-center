@@ -22,13 +22,17 @@ vi.mock('#/api/dataforge/database', () => ({
 // The categorized picker is covered separately; here it only needs to emit the chosen id.
 vi.mock('./database-connection-picker.vue', () => ({
   default: defineComponent({
-    props: { value: [String, Number] },
+    props: { databases: Array, typeCodes: Array, value: [String, Number] },
     emits: ['change'],
     setup:
       (props, { emit }) =>
       () =>
         h('input', {
           'aria-label': '连接器数据连接',
+          'data-databases': JSON.stringify(
+            (props.databases as { id: string }[] | undefined)?.map((item) => item.id),
+          ),
+          'data-type-codes': JSON.stringify(props.typeCodes),
           value: props.value,
           onInput: (event: Event) =>
             emit('change', (event.target as HTMLInputElement).value),
@@ -104,7 +108,13 @@ vi.mock('antdv-next', () => {
     Dropdown: Box,
     Empty: Box,
     Form: Box,
-    FormItem: Box,
+    FormItem: defineComponent({
+      props: { help: String },
+      setup:
+        (props, { slots }) =>
+        () =>
+          h('div', [slots.default?.(), props.help ? h('small', props.help) : null]),
+    }),
     Alert: defineComponent({
       props: { message: String },
       setup:
@@ -353,14 +363,19 @@ describe('连接器属性字段编辑与即时反馈', () => {
       config: '{}',
       columns: [{ name: 'id', type: 'LONG' }],
     });
-    expect(host.textContent).toContain('JSON对象格式有效');
+    // A valid 配置参数 stays quiet in the reference layout.
+    expect(host.textContent).not.toContain('配置参数必须为有效的JSON对象');
     await input('配置参数', '{');
     expect(host.textContent).toContain('配置参数必须为有效的JSON对象');
     await input('配置参数', '{"nested":{"token":"placeholder"}}');
     expect(host.textContent).toContain('配置参数不可保存凭据');
     await input('配置参数', '{"queue":"events"}');
-    expect(host.textContent).toContain('JSON对象格式有效');
+    expect(host.textContent).not.toContain('配置参数必须为有效的JSON对象');
+    expect(host.textContent).not.toContain('配置参数不可保存凭据');
     expect(state.config.config).toBe('{"queue":"events"}');
+    // Clearing it leaves the key unset; an empty string is not a JSON object for the compiler.
+    await input('配置参数', '');
+    expect(state.config.config).toBeUndefined();
   });
   it('历史订阅节点仅在明确操作后清理表读取参数，保留订阅和未知配置', async () => {
     const state = mount('read-tdengine', {
@@ -459,9 +474,9 @@ describe('连接器属性字段编辑与即时反馈', () => {
         ? { name: 'id', type: 'LONG', key: '@key' }
         : { name: 'id', type: 'LONG', index: 0 };
       const state = mount(toolCode, { columns: [original] });
-      // FTP/HDFS follow the reference dialog: "+ 新增" and an explicit index.
+      // File and message inputs follow the reference dialog: "+ 新增" and an explicit type.
       const fileInput = ['read-ftp', 'read-hdfs'].includes(toolCode);
-      const add = fileInput ? '+ 新增' : '新增';
+      const add = '+ 新增';
       await click(add);
       expect(state.config.columns).toEqual([original]);
       await input('属性字段编辑名称', 'draft');
@@ -469,6 +484,8 @@ describe('连接器属性字段编辑与即时反馈', () => {
       expect(state.config.columns).toEqual([original]);
       await click(add);
       await input('属性字段编辑名称', 'newField');
+      // The reference dialog starts with an empty type that must be chosen.
+      if (!fileInput) await input('属性字段编辑类型', 'STRING');
       if (fileInput) await input('属性字段编辑索引', '1');
       if (toolCode.endsWith('redis')) await input('属性字段编辑取值', '@key');
       await click('保存属性');
@@ -498,7 +515,9 @@ describe('连接器属性字段编辑与即时反馈', () => {
     await nextTick();
     expect(host.textContent).toContain('数据连接加载失败');
     let select = host.querySelector<HTMLInputElement>('[aria-label="连接器数据连接"]')!;
-    expect(JSON.parse(select.dataset.options!)).toContainEqual({ label: '已选连接（9007199254740993）', value: '9007199254740993' });
+    // The categorized picker is limited to Redis types and keeps the saved selection.
+    expect(JSON.parse(select.dataset.typeCodes!)).toEqual(['REDIS']);
+    expect(select.value).toBe('9007199254740993');
     vi.mocked(databaseApi.getDatabaseSimpleList).mockResolvedValueOnce([
       { id: '2', name: '缓存', productId: 'REDIS' },
       { id: '3', name: '消息', databaseTypeName: 'RabbitMQ' },
@@ -507,10 +526,8 @@ describe('连接器属性字段编辑与即时反馈', () => {
     await nextTick();
     expect(host.textContent).not.toContain('数据连接加载失败');
     select = host.querySelector('[aria-label="连接器数据连接"]')!;
-    expect(JSON.parse(select.dataset.options!)).toEqual([
-      { label: '已选连接（9007199254740993）', value: '9007199254740993' },
-      { label: '缓存', value: '2' },
-    ]);
+    // RabbitMQ connections are filtered out of the Redis picker.
+    expect(JSON.parse(select.dataset.databases!)).toEqual(['2']);
     state.disabled = true;
     await nextTick();
     expect(select.disabled).toBe(true);

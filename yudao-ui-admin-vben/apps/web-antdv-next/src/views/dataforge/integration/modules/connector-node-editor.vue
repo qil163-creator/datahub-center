@@ -86,6 +86,15 @@ const mainProperties = computed(() => descriptor.value?.direction === 'input' ||
 const fileInput = computed(() =>
   ['read-ftp', 'read-hdfs'].includes(props.toolCode),
 );
+// Redis/RabbitMQ/RocketMQ inputs share the reference layout with a typed connection picker.
+const mqInput = computed(() =>
+  ['read-redis', 'read-rabbitmq', 'read-rocketmq'].includes(props.toolCode),
+);
+const referenceInput = computed(() => fileInput.value || mqInput.value);
+const mqTypeCodes = computed(() => {
+  const code = props.toolCode.replace(/^read-/u, '').toUpperCase();
+  return mqInput.value ? [code] : undefined;
+});
 const showPlatformConnection = computed(
   () => descriptor.value?.connection || props.toolCode === 'read-ftp',
 );
@@ -292,7 +301,7 @@ function addReferenceColumn() {
   editedConfig = props.config;
   addingColumn.value = true;
   // File inputs start with an empty index, as the reference dialog asks for it explicitly.
-  columnDraft.value = { name: '', type: 'STRING', ...(descriptor.value?.columnMode === 'index' && !fileInput.value ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
+  columnDraft.value = { name: '', type: mqInput.value ? '' : 'STRING', ...(descriptor.value?.columnMode === 'index' && !fileInput.value ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
   columnEditorErrors.value = [];
   columnEditorOpen.value = true;
 }
@@ -414,7 +423,9 @@ function validate() {
 }
 function changeField(key: string, value: unknown) {
   if (props.disabled) return;
-  props.config[key] = value;
+  // An empty config string is not a valid JSON object; leave it unset instead.
+  props.config[key] =
+    mqInput.value && key === 'config' && value === '' ? undefined : value;
 }
 function setColumns(value: ConnectorColumn[]) {
   if (props.disabled) return;
@@ -658,14 +669,15 @@ defineExpose({ validate });
       />
       <div class="qi-connector-grid">
         <div v-if="showPlatformConnection" class="qi-connector-field">
-          <label><em v-if="descriptor.connection || fileInput">*</em>{{
+          <label><em v-if="descriptor.connection || referenceInput">*</em>{{
               tdengineRealtime ? '源数据库连接' : descriptor.direction === 'input' ? '数据源连接' : '目标数据连接'
             }}</label>
           <div>
             <DatabaseConnectionPicker
-              v-if="fileInput"
+              v-if="referenceInput"
               :value="config.databaseId ?? undefined"
               :databases="pickerDatabases"
+              :type-codes="mqTypeCodes"
               :loading="loading"
               :disabled="disabled"
               @change="selectDatabase"
@@ -738,9 +750,9 @@ defineExpose({ validate });
     </div>
     <section v-if="mainProperties" class="qi-connector-reference-properties">
       <div class="qi-connector-section-header">
-        <h3 :class="{ 'qi-file-fields-heading': fileInput }">属性字段</h3>
+        <h3 :class="{ 'qi-file-fields-heading': referenceInput }">属性字段</h3>
         <Button
-          v-if="fileInput"
+          v-if="referenceInput"
           class="qi-reference-button qi-file-add-button"
           :disabled="disabled"
           @click="addReferenceColumn"
@@ -765,7 +777,7 @@ defineExpose({ validate });
       <div v-else class="qi-connector-reference-scroll">
         <table
           class="qi-connector-reference-table"
-          :class="{ 'qi-file-fields-table': fileInput }"
+          :class="{ 'qi-file-fields-table': referenceInput }"
           aria-label="属性字段"
         >
           <colgroup>
@@ -872,7 +884,7 @@ defineExpose({ validate });
           </tbody>
         </table>
         <div v-if="!columns.length" class="qi-reference-empty">
-          <template v-if="fileInput">
+          <template v-if="referenceInput">
             <img
               src="/assets/qdata-integration/node-empty-reference.png"
               alt=""
@@ -906,8 +918,10 @@ defineExpose({ validate });
       />
     </section>
     <KafkaInputFieldModal
-      v-if="fileInput"
-      key-mode="index"
+      v-if="referenceInput"
+      :key-mode="fileInput ? 'index' : 'json'"
+      :key-label="descriptor.columnMode === 'redis' ? '解析值' : undefined"
+      :key-placeholder="descriptor.columnMode === 'redis' ? '请输入解析值' : undefined"
       :open="columnEditorOpen"
       :field="columnDraft"
       :disabled="disabled"
@@ -1228,5 +1242,53 @@ defineExpose({ validate });
 .qi-connector-reference:is([data-tool-code='read-ftp'], [data-tool-code='read-hdfs'])
   .qi-reference-empty p {
   margin: 0;
+}
+
+/* Redis/RabbitMQ/RocketMQ inputs: spacing measured against the qData reference. */
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-connector-reference-main {
+  row-gap: 16px;
+  margin-top: -5px;
+}
+
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  :deep(.qi-connector-reference-field > label),
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-connector-field > label {
+  padding-top: 6px;
+  color: #303133;
+}
+
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-connector-reference-properties {
+  margin-top: -6px;
+}
+
+/* The reference empty state is the illustration only. */
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-reference-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 204px;
+  padding-top: 64px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-reference-empty::before {
+  display: none;
+}
+
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-reference-empty img {
+  width: min(190px, 100%);
+  margin: 0;
+}
+
+.qi-connector-reference:is([data-tool-code='read-redis'], [data-tool-code='read-rabbitmq'], [data-tool-code='read-rocketmq'])
+  .qi-reference-empty p {
+  display: none;
 }
 </style>

@@ -32,7 +32,7 @@ public final class EtlNativeSqlCapabilities {
         result.put("data-condition", "支持 IF/ELSE 分流；ERROR 策略要求 ELSE 分支；每个分支均须连接输出");
         result.put("data-clean", "仅本地字段删除、TRIM/大小写格式化" + (streaming ? "；不支持实时去重" : "及整行去重；按键或忽略大小写去重须声明全序并校验唯一性，保留首条原值"));
         if (!streaming) {
-            result.put("multi-join", "支持2至8路 INNER/LEFT Join；需要配置输出行数上限");
+            result.put("multi-join", "支持2至8路 INNER/LEFT/RIGHT Join；需要配置输出行数上限");
             result.put("sort-records", "仅支持有界任务，排序后须直接连接输出或脚本输入");
         }
         return Collections.unmodifiableMap(result);

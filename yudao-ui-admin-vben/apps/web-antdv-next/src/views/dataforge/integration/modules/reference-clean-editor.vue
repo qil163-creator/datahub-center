@@ -11,9 +11,12 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
   Alert,
+  AutoComplete,
   Button,
+  Checkbox,
   Input,
   Modal,
+  RadioGroup,
   Select,
   TextArea,
 } from 'antdv-next';
@@ -26,11 +29,14 @@ import {
   governanceCleanSelectionFields,
   governanceCleanUsesAllFields,
   governanceCleanUsesMultipleFields,
+  governanceRuleParameters,
   isGovernanceCleanSelectionEditable,
   selectGovernanceCleanRules,
   setGovernanceCleanSelectionField,
   setGovernanceCleanSelectionFields,
 } from '../../etl/pipeline/node-editors/data-clean-governance';
+
+import '../../etl/pipeline/node-editors/editor-style.css';
 
 defineOptions({ name: 'IntegrationReferenceClean' });
 
@@ -59,6 +65,20 @@ const RULE_PAGE_SIZE = 100;
 let active = true;
 let ruleSequence = 0;
 
+const DEDUP_OPTIONS = [
+  { label: '全字段去重', value: 'ALL_FIELDS' },
+  { label: '按关键字段', value: 'KEY_FIELDS' },
+];
+
+const NULL_OPTIONS = [
+  { label: '丢弃含空值的行', value: 'REMOVE' },
+  { label: '填充默认值', value: 'FILL_DEFAULT' },
+];
+
+const MODE_OPTIONS = [
+  { label: '本地配置', value: 'LOCAL' },
+  { label: '治理清洗规则', value: 'GOVERNANCE' },
+];
 const cleanRules = ref<GovernanceCleanRuleApi.CleanRule[]>([]);
 const cleanRuleLoadFailed = ref(false);
 const cleanRuleLoading = ref(false);
@@ -78,6 +98,13 @@ function openPicker() {
 function removeRule(index: number) { if (!props.disabled) props.config.governanceRules=props.config.governanceRules.filter((_: unknown, position: number) => position!==index); }
 function setWhere(value: unknown) { if (!props.disabled) props.config.whereCondition=value; }
 
+const FORMAT_TYPE_OPTIONS = [
+  { label: '去除首尾空格', value: 'TRIM' },
+  { label: '转大写', value: 'UPPER_CASE' },
+  { label: '转小写', value: 'LOWER_CASE' },
+  { label: '正则替换', value: 'REGEX_REPLACE' },
+];
+
 const fieldSelectOptions = computed(() =>
   (props.inputFields ?? []).map((field) => ({
     label: `${field.name}（${field.dataType ?? '-'}）`,
@@ -85,8 +112,56 @@ const fieldSelectOptions = computed(() =>
   })),
 );
 
+function fieldOptions() {
+  return (props.inputFields ?? []).map((field) => ({
+    value: field.name!,
+    label: `${field.name}（${field.dataType ?? '-'}）`,
+  }));
+}
+
+const removeFields = computed<string[]>({
+  get: () =>
+    props.config.fieldsToRemove
+      ? String(props.config.fieldsToRemove).split(',').filter(Boolean)
+      : [],
+  set: (values) => {
+    props.config.fieldsToRemove = values.join(',');
+  },
+});
+
+const keyFields = computed<string[]>({
+  get: () =>
+    props.config.keyFields
+      ? String(props.config.keyFields).split(',').filter(Boolean)
+      : [],
+  set: (values) => {
+    props.config.keyFields = values.join(',');
+  },
+});
+
 onMounted(() => {
   if (props.disabled) return;
+  const defaults: Record<string, any> = {
+    deduplicationStrategy: 'ALL_FIELDS',
+    nullHandlingStrategy: 'REMOVE',
+  };
+  Object.entries(defaults).forEach(([key, value]) => {
+    if (props.config[key] === null || props.config[key] === undefined) {
+      props.config[key] = value;
+    }
+  });
+  if (!Array.isArray(props.config.defaultValues)) {
+    props.config.defaultValues = [];
+  }
+  if (!Array.isArray(props.config.formatRules)) {
+    props.config.formatRules = [];
+  }
+  if (
+    props.config.executionMode === null ||
+    props.config.executionMode === undefined
+  ) {
+    props.config.executionMode = 'LOCAL';
+  }
   if (!Array.isArray(props.config.governanceRules))
     props.config.governanceRules = [];
 });
@@ -223,6 +298,161 @@ defineExpose({openRulePicker:openPicker});
     </tbody>
 </table>
 </div>
+    <details class="qi-transform-advanced">
+<summary>执行方式与本地清洗配置</summary><fieldset :disabled="disabled" :inert="disabled || undefined">
+<div class="qi-reference-form-row"><label>执行方式</label><RadioGroup v-model:value="config.executionMode" :options="MODE_OPTIONS" :disabled="disabled" /></div>
+    <template v-if="config.executionMode !== 'GOVERNANCE'">
+      <div class="editor-section">去除字段</div>
+      <div class="form-item">
+        <Checkbox
+          :checked="config.enableFieldRemoval === true"
+          @update:checked="(v: boolean) => (config.enableFieldRemoval = v)"
+        >
+          启用
+        </Checkbox>
+        <Select
+          v-if="config.enableFieldRemoval"
+          v-model:value="removeFields"
+          :options="fieldSelectOptions"
+          mode="tags"
+          placeholder="选择要移除的字段"
+        />
+      </div>
+
+      <div class="editor-section">去重</div>
+      <div class="form-item">
+        <Checkbox
+          :checked="config.enableDeduplication === true"
+          @update:checked="(v: boolean) => (config.enableDeduplication = v)"
+        >
+          启用（保留首条）
+        </Checkbox>
+        <template v-if="config.enableDeduplication">
+          <RadioGroup
+            v-model:value="config.deduplicationStrategy"
+            :options="DEDUP_OPTIONS"
+            option-type="button"
+          />
+          <Select
+            v-if="config.deduplicationStrategy === 'KEY_FIELDS'"
+            v-model:value="keyFields"
+            :options="fieldSelectOptions"
+            mode="tags"
+            placeholder="按这些字段判断重复"
+          />
+        </template>
+      </div>
+
+      <div class="editor-section">空值处理</div>
+      <div class="form-item">
+        <Checkbox
+          :checked="config.enableNullHandling === true"
+          @update:checked="(v: boolean) => (config.enableNullHandling = v)"
+        >
+          启用
+        </Checkbox>
+        <template v-if="config.enableNullHandling">
+          <RadioGroup
+            v-model:value="config.nullHandlingStrategy"
+            :options="NULL_OPTIONS"
+            option-type="button"
+          />
+          <template v-if="config.nullHandlingStrategy === 'FILL_DEFAULT'">
+            <div
+              v-for="(item, index) in config.defaultValues ?? []"
+              :key="index"
+              class="editor-row"
+            >
+              <AutoComplete
+                v-model:value="item.fieldName"
+                :options="fieldOptions()"
+                class="w-44"
+                placeholder="字段名"
+              />
+              <Input
+                v-model:value="item.defaultValue"
+                class="flex-1"
+                placeholder="默认值"
+              />
+              <IconifyIcon
+                class="editor-row__remove size-4"
+                icon="lucide:trash-2"
+                @click="config.defaultValues.splice(Number(index), 1)"
+              />
+            </div>
+            <Button
+              class="self-start"
+              size="small"
+              type="dashed"
+              @click="
+                config.defaultValues.push({ fieldName: '', defaultValue: '' })
+              "
+            >
+              <template #icon><IconifyIcon icon="lucide:plus" /></template>
+              添加默认值
+            </Button>
+          </template>
+        </template>
+      </div>
+
+      <div class="editor-section">格式化</div>
+      <div class="form-item">
+        <Checkbox
+          :checked="config.enableFormatting === true"
+          @update:checked="(v: boolean) => (config.enableFormatting = v)"
+        >
+          启用
+        </Checkbox>
+        <template v-if="config.enableFormatting">
+          <div
+            v-for="(rule, index) in config.formatRules ?? []"
+            :key="index"
+            class="editor-row"
+          >
+            <AutoComplete
+              v-model:value="rule.fieldName"
+              :options="fieldOptions()"
+              class="w-40"
+              placeholder="字段名"
+            />
+            <Select
+              v-model:value="rule.type"
+              :options="FORMAT_TYPE_OPTIONS"
+              class="w-36"
+            />
+            <template v-if="rule.type === 'REGEX_REPLACE'">
+              <Input
+                v-model:value="rule.pattern"
+                class="flex-1"
+                placeholder="正则"
+              />
+              <Input
+                v-model:value="rule.replacement"
+                class="flex-1"
+                placeholder="替换为"
+              />
+            </template>
+            <IconifyIcon
+              class="editor-row__remove size-4"
+              icon="lucide:trash-2"
+              @click="config.formatRules.splice(Number(index), 1)"
+            />
+          </div>
+          <Button
+            class="self-start"
+            size="small"
+            type="dashed"
+            @click="config.formatRules.push({ fieldName: '', type: 'TRIM' })"
+          >
+            <template #icon><IconifyIcon icon="lucide:plus" /></template>
+            添加规则
+          </Button>
+        </template>
+      </div>
+</template>
+    <div v-if="config.executionMode === 'GOVERNANCE'"><p v-for="item in config.governanceRules ?? []" :key="item.ruleId">{{ governanceRuleName(item.ruleId) }}：{{ cleanRule(item.ruleId) ? governanceRuleParameters(cleanRule(item.ruleId)?.config) : '未读取，无法确认当前参数' }}</p><p class="qi-reference-notice">函数参数由治理规则持久化管理。旧节点参数仅作一致性核验，规则变化后需重新发布。</p></div>
+</fieldset>
+</details>
     <Modal v-model:open="pickerOpen" title="清洗规则" :width="1200" :footer="null">
       <div class="qi-clean-rule-picker"><aside><button type="button" :class="{'is-active':!category}" @click="category = ''">全部规则（{{ cleanRules.length }}）</button><button v-for="name in categories" :key="name" type="button" :class="{'is-active':category === name}" @click="category = name">{{ name }}</button></aside><main><div class="qi-reference-file-actions"><Input v-model:value="ruleSearch" :disabled="!canLoadRules" placeholder="请输入清洗规则名称" @press-enter="loadGovernanceRules" /><Button :disabled="!canLoadRules" :loading="cleanRuleLoading" @click="loadGovernanceRules">查询</Button></div><p v-if="cleanRuleTruncated" class="qi-reference-notice">仅加载当前条件下前2000条启用规则，请缩小搜索范围。</p><div class="qi-clean-rule-cards"><button v-for="rule in pickerRules" :key="String(rule.id)" type="button" :disabled="disabled || config.governanceRules?.some((item: any) => String(item.ruleId) === String(rule.id))" @click="addGovernanceRule(String(rule.id))"><strong>{{ rule.name || rule.code }}</strong><p>{{ rule.description || rule.useCase || rule.strategyKey }}</p><small>{{ rule.categoryName }}</small></button></div><p v-if="!cleanRuleLoading && !pickerRules.length" class="qi-reference-empty">暂无记录</p></main></div>
     </Modal>

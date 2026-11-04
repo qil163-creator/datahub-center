@@ -260,7 +260,7 @@ public final class EtlNativeSqlCompiler {
         if (streaming) throw invalid("实时 Join 需要事件时间、状态 TTL 和窗口边界，不能隐式生成无界状态");
         if (inputs.size() < 2 || inputs.size() > 8) throw invalid("Join 需要 2 至 8 个数据上游");
         String kind = config.getStr("joinType", "INNER");
-        if (!Set.of("INNER", "LEFT").contains(kind)) throw invalid("Join 仅支持 INNER 或 LEFT");
+        if (!Set.of("INNER", "LEFT", "RIGHT").contains(kind)) throw invalid("Join 仅支持 INNER、LEFT 或 RIGHT");
         var rules = array(config, "joinConditions", false);
         if (rules.isEmpty()) { String key = required(config, "keyField"); rules.add(new JSONObject().set("leftField", key).set("rightField", key)); }
         int maximum = config.getInt("maxOutputRows", 1_000_000);

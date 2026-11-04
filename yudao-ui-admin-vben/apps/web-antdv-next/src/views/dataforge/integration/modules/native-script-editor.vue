@@ -7,10 +7,12 @@ import {
   AutoComplete,
   Button,
   Input,
+  InputNumber,
   Select,
+  TextArea,
 } from 'antdv-next';
 
-import { validateNativeScriptDraft } from './native-script-schema';
+import { validateNativeScript } from './native-script-schema';
 
 import './reference-node-editor.css';
 import './reference-transform-layout.css';
@@ -30,9 +32,30 @@ const CodeEditor = defineAsyncComponent(() =>
 const errors = ref<string[]>([]);
 const realtime = computed(() => props.mode === 'REALTIME');
 const token = computed(() => props.toolCode === 'custom-token');
+const realtimeBatch = computed(() => realtime.value && !token.value);
 const fields = computed<Record<string, any>[]>(() =>
   Array.isArray(props.config.outputFields) ? props.config.outputFields : [],
 );
+const batchLabel = computed(() => {
+  if (token.value) return '作业启动初始化';
+  return realtimeBatch.value ? '条数或时间窗口' : '完整分区批次';
+});
+const batchOptions = computed(() => [
+  {
+    label: batchLabel.value,
+    value: realtimeBatch.value ? 'COUNT_OR_TIME' : 'PARTITION',
+  },
+  ...(!props.config.batchPolicy ||
+  props.config.batchPolicy === (realtimeBatch.value ? 'COUNT_OR_TIME' : 'PARTITION')
+    ? []
+    : [
+        {
+          label: `${props.config.batchPolicy}（与当前模式不符）`,
+          value: props.config.batchPolicy,
+          disabled: true,
+        },
+      ]),
+]);
 const types = [
   'STRING',
   'BIGINT',
@@ -45,6 +68,9 @@ const types = [
 ].map((value) => ({ label: value, value }));
 function set(key: string, value: unknown) {
   if (!props.disabled) props.config[key] = value;
+}
+function removeLegacy(key: string) {
+  if (!props.disabled) Reflect.deleteProperty(props.config, key);
 }
 function addField() {
   if (!props.disabled)
@@ -72,7 +98,7 @@ function nullableValue(field: Record<string, any>) {
   return field.nullable ? 1 : 0;
 }
 function validate() {
-  errors.value = validateNativeScriptDraft(props.config, props);
+  errors.value = validateNativeScript(props.config, props);
   return errors.value.length === 0;
 }
 watch(
@@ -218,5 +244,113 @@ defineExpose({ validate });
 </div>
 </template>
 </details>
+    <details class="qi-transform-advanced">
+      <summary>执行资源与批次配置</summary>
+      <p class="qi-reference-notice">
+        {{ token ? '认证脚本须使用管理员授权的执行资源，每次作业启动尝试仅初始化一次。' : '脚本须使用管理员授权的执行资源。每批独立运行；字段类型与返回数据必须一致。' }}
+      </p>
+      <div class="qi-reference-form-grid">
+        <label>脚本资源编号<Input
+            :value="config.resourceBindingId"
+            :disabled="disabled"
+            aria-label="脚本资源编号"
+            @update:value="(value) => set('resourceBindingId', value)"
+        /></label>
+        <label>运行状态<Select
+            :value="config.workerState"
+            :disabled="disabled"
+            :options="[{ label: '每批独立', value: 'BATCH' }]"
+            aria-label="脚本运行状态"
+            @update:value="(value) => set('workerState', value)"
+        /></label>
+        <label>批次策略<Select
+            :value="config.batchPolicy"
+            :disabled="disabled"
+            :options="batchOptions"
+            aria-label="脚本批次策略"
+            @update:value="(value) => set('batchPolicy', value)"
+        /></label>
+        <label>最大批次行数<InputNumber
+            :value="config.maximumRows"
+            :disabled="disabled"
+            :min="1"
+            :max="10000"
+            :precision="0"
+            aria-label="脚本最大批次行数"
+            @update:value="(value) => set('maximumRows', value)"
+        /></label>
+        <label v-if="realtimeBatch">最长等待毫秒<InputNumber
+            :value="config.flushMillis"
+            :disabled="disabled"
+            :min="10"
+            :max="300000"
+            :precision="0"
+            aria-label="脚本最长等待毫秒"
+            @update:value="(value) => set('flushMillis', value)"
+        /></label>
+        <label v-if="config.classPath !== undefined">历史类路径<Input
+            :value="config.classPath"
+            disabled
+            aria-label="脚本历史类路径"
+        /></label>
+      </div>
+      <p class="qi-reference-notice">
+        {{
+          token
+            ? '每次作业启动尝试初始化一次；算子从checkpoint恢复不重复获取认证。认证变量只在受管上下文中传递，不写入数据字段。'
+            : realtimeBatch
+            ? '达到条数或最长等待时间后处理当前批次。'
+            : '分区数据超过最大批次行数时任务失败，请按数据规模明确设置预算。'
+        }}
+      </p>
+      <Alert
+        v-if="config.batchSize !== undefined && config.batchSize !== null"
+        type="warning"
+        message="历史批次行数尚未转换，请明确设置最大批次行数后清除旧值。"
+        >
+<template #action>
+<Button :disabled="disabled" @click="removeLegacy('batchSize')">
+清除历史批次行数
+</Button>
+</template>
+</Alert>
+      <Alert
+        v-if="!realtimeBatch && config.flushMillis"
+        type="warning"
+        :message="token ? '初始化认证不使用条数或时间窗口，请明确移除旧等待时间并选择作业启动初始化。' : '当前离线模式不使用等待时间，请明确移除旧值。'"
+        >
+<template #action>
+<Button :disabled="disabled" @click="removeLegacy('flushMillis')">
+移除历史等待时间
+</Button>
+</template>
+</Alert>
+      <Alert
+        v-if="
+          token &&
+          config.outputFields &&
+          (!Array.isArray(config.outputFields) || config.outputFields.length)
+        "
+        type="warning"
+        message="初始化认证返回认证变量，不生成数据输出字段，请明确清除旧声明。"
+        >
+<template #action>
+<Button :disabled="disabled" @click="removeLegacy('outputFields')">
+清除历史输出字段
+</Button>
+</template>
+</Alert>
+      <p v-if="config.classPath !== undefined" class="qi-reference-notice">
+        历史类路径保留回显；可用类库由管理员授权的执行资源提供。
+      </p>
+      <label class="qi-reference-form-row">代码文本模式<TextArea
+          :value="config.code"
+          :disabled="disabled"
+          :rows="16"
+          spellcheck="false"
+          aria-label="原生脚本代码"
+          @update:value="(value) => set('code', value)"
+      /></label>
+    </details>
   </div>
 </template>

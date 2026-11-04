@@ -243,3 +243,109 @@
   color: #c0c4cc;
   cursor: default;
 }
+
+.qi-transform-reference .qi-script-compile {
+  margin-bottom: 10px;
+}
+
+.qi-transform-reference .qi-script-compile .ant-btn {
+  height: 28px;
+  padding: 0 11px;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+.qi-transform-reference .qi-script-add-button.ant-btn {
+  height: 27px;
+  padding: 0 11px;
+  font-size: 13px;
+  color: #2d63ff;
+  background: #ecf3ff;
+  border-color: #b3c9ff;
+  border-radius: 2px;
+}
+
+.qi-transform-reference .qi-script-add-button.ant-btn:not(:disabled):hover {
+  color: #fff;
+  background: #2d63ff;
+  border-color: #2d63ff;
+}
+
+.qi-join-projection-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qi-join-projection .is-conflict {
+  border-color: #ff4d4f;
+}
+
+.qi-join-projection th:nth-child(2),
+.qi-join-projection th:nth-child(3) {
+  width: 22%;
+}
+
+/* Join wizard spacing, measured against the qData screenshot. */
+.qi-reference-flow[data-tool-code='multi-join'] {
+  gap: 15px;
+}
+
+.qi-reference-flow[data-tool-code='multi-join'] .qi-reference-steps {
+  margin: 0 15px 6px 20px;
+}
+
+.qi-node-modal-reference .qi-reference-flow[data-tool-code='multi-join'] .qi-node-basics {
+  gap: 15px;
+  margin-bottom: 0;
+}
+
+.qi-reference-flow .ant-btn-primary .qi-icon {
+  filter: brightness(0) invert(1);
+}
+
+.qi-join-conditions {
+  table-layout: fixed;
+}
+
+.qi-reference-flow .qi-join-conditions th,
+.qi-reference-flow .qi-join-projection th {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-reference-flow .qi-join-conditions th:nth-child(1),
+.qi-reference-flow .qi-join-conditions th:nth-child(3) {
+  width: 39%;
+}
+
+.qi-reference-flow .qi-join-conditions th:nth-child(2) {
+  width: 11%;
+}
+
+/* Section "+ 新增" buttons in table-style transform editors use the compact reference size. */
+.qi-transform-reference .qi-reference-table-heading .qi-reference-button.ant-btn,
+.qi-transform-config .qi-reference-table-heading .qi-reference-button.ant-btn {
+  height: 27px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-transform-reference .qi-reference-table-heading .qi-reference-button .qi-icon,
+.qi-transform-config .qi-reference-table-heading .qi-reference-button .qi-icon {
+  margin-right: 2px;
+}
+
+.qi-transform-reference[data-tool-code='sort-records'] .qi-reference-fields-table th,
+.qi-transform-reference[data-tool-code='field-derive'] .qi-reference-fields-table th {
+  height: 35px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-transform-reference[data-tool-code='sort-records'] .qi-reference-table-heading,
+.qi-transform-reference[data-tool-code='field-derive'] .qi-reference-table-heading {
+  margin-bottom: -3px;
+}

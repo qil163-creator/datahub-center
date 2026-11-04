@@ -2,9 +2,9 @@
 /* eslint-disable vue/no-mutating-props -- 编辑父设计器隔离草稿，确认后由设计器写回流程。 */
 import type { IntegrationApi } from '#/api/dataforge/integration';
 
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
-import { Alert } from 'antdv-next';
+import { Alert, Input, InputNumber, TextArea } from 'antdv-next';
 
 import RestApiEditor from './reference-request-editor.vue';
 
@@ -18,6 +18,27 @@ const props = defineProps<{
 }>();
 const editor = ref<InstanceType<typeof RestApiEditor>>();
 const issue = ref('');
+const secretHeaders = ref('{}');
+const contextHeaders = ref('{}');
+watch(
+  () => props.config,
+  (config) => {
+    secretHeaders.value = JSON.stringify(
+      config.headerSecretRefs ?? {},
+      null,
+      2,
+    );
+    contextHeaders.value = JSON.stringify(
+      config.headerContextRefs ?? {},
+      null,
+      2,
+    );
+  },
+  { immediate: true },
+);
+function set(key: string, value: unknown) {
+  if (!props.disabled) props.config[key] = value;
+}
 function contextReference(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const entry = value as Record<string, unknown>;
@@ -33,13 +54,9 @@ function contextReference(value: unknown) {
 }
 function validate() {
   if (
-    props.config.resourceBindingId !== undefined &&
-    props.config.resourceBindingId !== null &&
-    props.config.resourceBindingId !== '' &&
-    (typeof props.config.resourceBindingId !== 'string' ||
-      !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/u.test(
-        props.config.resourceBindingId,
-      ))
+    !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/u.test(
+      props.config.resourceBindingId ?? '',
+    )
   ) {
     issue.value = '请填写管理员为当前任务授权的接口执行资源编号';
     return false;
@@ -65,14 +82,8 @@ function validate() {
     return false;
   }
   try {
-    const references: unknown =
-      typeof props.config.headerSecretRefs === 'string'
-        ? JSON.parse(props.config.headerSecretRefs)
-        : (props.config.headerSecretRefs ?? {});
-    const variables: unknown =
-      typeof props.config.headerContextRefs === 'string'
-        ? JSON.parse(props.config.headerContextRefs)
-        : (props.config.headerContextRefs ?? {});
+    const references: unknown = JSON.parse(secretHeaders.value);
+    const variables: unknown = JSON.parse(contextHeaders.value);
     if (
       !references ||
       typeof references !== 'object' ||
@@ -151,7 +162,8 @@ function validate() {
   issue.value = '';
   return true;
 }
-defineExpose({ validate });
+const stepNav = computed(() => editor.value?.stepNav);
+defineExpose({ stepNav, validate });
 </script>
 
 <template>

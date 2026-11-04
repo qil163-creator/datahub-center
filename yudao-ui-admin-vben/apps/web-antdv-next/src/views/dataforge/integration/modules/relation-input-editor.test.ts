@@ -76,6 +76,7 @@ vi.mock('./table-input-read-options.vue', () => ({
       showStartRequired: Boolean,
       showWhere: Boolean,
       timeFormatWidth: Number,
+      wherePlaceholder: String,
       disabled: Boolean,
     },
     setup: (props, { expose }) => {
@@ -496,6 +497,34 @@ describe('关系输入ODPS交互', () => {
     state.config.readMode = 'TIME_INCREMENT';
     await flush();
     expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeNull();
+  });
+  it('按参考布局显示MongoDB：仅数据连接、参考占位文案、限定MongoDB连接且不显示高级配置', async () => {
+    const state = await mount({ databaseId: '9007199254740993', tableName: 'events', readMode: 'FULL', columns: [{ name: 'id', type: 'STRING' }] }, 'read-mongodb');
+    // Only the data-connection mode exists; there is no SQL option.
+    expect(host.querySelector('[aria-label="连接方式"]')).toBeTruthy();
+    expect(host.querySelector('table[aria-label="关系输入属性字段"]')?.querySelectorAll('th')).toHaveLength(7);
+    expect(host.querySelector('table[aria-label="关系输入属性字段"]')?.textContent).toContain('长度');
+    expect(readOptionsProps.current).toMatchObject({ referenceLayout: true, showStartRequired: false, timeFormatWidth: 240 });
+    expect(readOptionsProps.current?.wherePlaceholder).toBe('例如 id > 10 and id < 1000，请不要以分号;结尾');
+    // Fresh nodes show neither advanced field nor execution sections.
+    expect(host.querySelector('.qi-relation-advanced')).toBeNull();
+    state.config.readMode = 'ID_INCREMENT';
+    await flush();
+    expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeNull();
+  });
+  it('已保存的MongoDB执行资源或字段取值路径仍可访问，不因参考布局丢失', async () => {
+    await mount({ databaseId: '1', tableName: 'events', resourceBindingId: 'mongo.exec', columns: [{ name: 'id', type: 'STRING' }] }, 'read-mongodb');
+    expect(host.querySelector('.qi-relation-advanced')).toBeTruthy();
+    expect(host.querySelector<HTMLInputElement>('input[aria-label="执行资源编号"]')?.value).toBe('mongo.exec');
+    host.remove();
+    app?.unmount();
+    await mount({ databaseId: '1', tableName: 'events', columns: [{ name: 'id', type: 'STRING', key: 'a.b' }] }, 'read-mongodb');
+    expect(host.querySelector('.qi-relation-advanced')).toBeTruthy();
+  });
+  it('按参考布局显示TDengine：连接方式存在且新节点不显示高级配置', async () => {
+    await mount({ columns: [] }, 'read-tdengine');
+    expect(host.querySelector('.qi-relation-mode')).toBeTruthy();
+    expect(host.querySelector('.qi-relation-advanced')).toBeNull();
   });
   it('按Hive切换SQL保留可编辑的时间分支，保存与回切均不丢条件或查询草稿', async () => {
     const conditions = [{ field: 'changed_at', baselineType: 'TIME_RANGE', cursorTime: '2026-11-03' }];

@@ -191,3 +191,174 @@
   display: grid;
   gap: 10px;
 }
+
+.qi-service-form > .qi-service-form-hint {
+  grid-column: 2;
+  margin-top: -16px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #909399;
+}
+
+/* WebService reference spacing, measured against the qData screenshot. */
+.qi-service-editor[data-component-code='read-webservice'] {
+  --qi-node-label-width: 100px;
+
+  gap: 19px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] .qi-service-steps {
+  margin: 0 10px 0 20px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] > section:first-of-type {
+  padding-left: 20px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] .qi-service-form {
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px 0;
+  margin-bottom: 15px;
+}
+
+.qi-node-modal-reference .qi-service-editor[data-component-code='read-webservice'] .qi-node-basics {
+  margin-bottom: 15px;
+}
+
+/* API input reference spacing, measured against the qData screenshot. */
+.qi-service-editor[data-component-code='rest-api'] {
+  --qi-node-label-width: 150px;
+
+  gap: 19px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-steps {
+  margin: 0 10px 0 20px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] > section:first-of-type {
+  padding-left: 15px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-form {
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px 0;
+  margin-bottom: 15px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-form > label {
+  white-space: nowrap;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-form .ant-radio-group {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-data-paths {
+  padding-right: 143px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-form > .qi-service-form-hint {
+  margin-bottom: 2px;
+}
+
+.qi-service-form-hint a {
+  color: #2f62ff;
+}
+
+.qi-node-name-hint {
+  grid-column: 2;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #909399;
+}
+
+.qi-node-modal-reference .qi-service-editor[data-component-code='rest-api'] .qi-node-basics {
+  margin-bottom: 13px;
+}
+
+/* Parameter and header steps: reference table proportions and typography. */
+.qi-service-editor .qi-service-params .qi-service-table-area {
+  min-height: 400px;
+  overflow: visible;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-fields-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-fields-table th {
+  height: 35px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-fields-table th:first-child {
+  width: 47%;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-fields-table th:last-child {
+  width: 130px;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-fields-table td {
+  vertical-align: middle;
+}
+
+.qi-service-editor .qi-service-params .qi-reference-empty {
+  height: 300px;
+}
+
+.qi-service-editor .qi-service-params .qi-service-body-switch {
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 0;
+  margin-top: 20px;
+}
+
+/* Output field step (API input): reference typography and column proportions. */
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th {
+  height: 35px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:nth-child(1) {
+  width: 48px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:nth-child(2) {
+  width: 72px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:nth-child(3) {
+  width: 17%;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:nth-child(4) {
+  width: 15%;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:nth-child(5) {
+  width: 17%;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table .qi-reference-fields-table th:last-child {
+  width: 130px;
+}
+
+.qi-service-editor[data-component-code='rest-api'] .qi-service-output-table {
+  border-bottom: 1px solid #ebeef5;
+}
