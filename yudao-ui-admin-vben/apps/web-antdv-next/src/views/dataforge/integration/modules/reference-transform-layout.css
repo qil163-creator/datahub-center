@@ -349,3 +349,27 @@
 .qi-transform-reference[data-tool-code='field-derive'] .qi-reference-table-heading {
   margin-bottom: -3px;
 }
+
+.qi-transform-reference[data-tool-code='number-range'] .qi-reference-fields-table th {
+  height: 35px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-range-hint {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #909399;
+}
+
+.qi-th-sort::after {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #c0c4cc;
+  content: '⇅';
+}
+
+.qi-transform-reference[data-tool-code='number-range'] .qi-reference-fields-table .ant-input-number {
+  width: 100%;
+}
