@@ -132,7 +132,16 @@ defineExpose({ validate });
       </div>
     </div>
     <slot v-if="token" name="description"></slot>
-    <div><Button type="primary" :disabled="disabled" @click="emit('requestCheck')">编译</Button></div>
+    <div class="qi-script-compile">
+      <Button
+        type="primary"
+        title="请使用设计器中的“检查”，结合当前执行资源及上下游验证脚本。"
+        :auto-insert-space="false"
+        :disabled="disabled"
+        @click="emit('requestCheck')"
+        >编译</Button
+      >
+    </div>
     <div class="qi-script-code" aria-label="原生脚本代码编辑器">
       <CodeEditor
         :model-value="config.code ?? ''"
@@ -145,7 +154,6 @@ defineExpose({ validate });
         @update:model-value="(value) => set('code', value)"
       />
     </div>
-    <p class="qi-reference-notice">请使用设计器中的“检查”，结合当前执行资源及上下游验证脚本。</p>
 
     <p v-if="token" class="qi-reference-notice">
       {{ realtime ? '作业启动时初始化认证，可连接表输入、Kafka输入或TDengine输入；认证节点不接收数据上游。' : '认证脚本返回字符串，并通过认证变量连接接口输入；当前仅支持无数据上游的初始化认证。' }}
@@ -154,12 +162,13 @@ defineExpose({ validate });
       <div class="qi-reference-section-header qi-reference-table-heading">
         <h3>输出字段</h3>
         <Button
-          class="qi-reference-button"
+          class="qi-reference-button qi-script-add-button"
+          :auto-insert-space="false"
           :disabled="disabled"
+          aria-label="新增输出字段"
           @click="addField"
-          >
-新增输出字段
-</Button>
+          >+ 新增</Button
+        >
       </div>
       <div class="qi-reference-fields-scroll">
         <table class="qi-reference-fields-table qi-script-output-fields">
