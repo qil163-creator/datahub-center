@@ -336,14 +336,14 @@ defineExpose({ stepNav, validate });
       v-for="key in ['requestParams', 'headerParams'] as const"
       :key="key"
     >
-      <section v-show="step === (key === 'requestParams' ? 1 : 2)">
+      <section v-show="step === (key === 'requestParams' ? 1 : 2)" class="qi-service-params">
         <div class="qi-service-toolbar">
           <Button
             type="primary"
             :disabled="disabled"
             @click="updateParameter(key, '', '', '')"
           >
-            {{ key === 'requestParams' ? '添加参数' : '添加Header头' }}
+            + {{ key === 'requestParams' ? '添加参数' : '添加Header头' }}
           </Button>
         </div>
         <div class="qi-service-table-area">

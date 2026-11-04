@@ -14,6 +14,8 @@ const props = defineProps<{
   showDescription?: boolean;
   stacked?: boolean;
   typeName?: string;
+  /** Helper text under the node name input (API input reference). */
+  nameHint?: string;
   /** Marks the type label as required (WebService reference). */
   typeRequired?: boolean;
 }>();
@@ -44,7 +46,7 @@ const count = ({ count, maxLength }: { count: number; maxLength?: number }) =>
           aria-label="节点名称"
           aria-required="true"
           @update:value="updateName"
-      /></label>
+      /><small v-if="nameHint" class="qi-node-name-hint">{{ nameHint }}</small></label>
       <label v-if="!hideType"><span><i v-if="typeRequired" aria-hidden="true">*</i>类型</span><Input :value="typeName" disabled placeholder="请输入类型" /></label>
     </template>
     <label v-if="showDescription || descriptionOnly" class="qi-node-description"><span>描述</span><TextArea
