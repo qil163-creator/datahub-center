@@ -323,3 +323,29 @@
 .qi-reference-flow .qi-join-conditions th:nth-child(2) {
   width: 11%;
 }
+
+/* Section "+ 新增" buttons in table-style transform editors use the compact reference size. */
+.qi-transform-reference .qi-reference-table-heading .qi-reference-button.ant-btn,
+.qi-transform-config .qi-reference-table-heading .qi-reference-button.ant-btn {
+  height: 27px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-transform-reference .qi-reference-table-heading .qi-reference-button .qi-icon,
+.qi-transform-config .qi-reference-table-heading .qi-reference-button .qi-icon {
+  margin-right: 2px;
+}
+
+.qi-transform-reference[data-tool-code='sort-records'] .qi-reference-fields-table th,
+.qi-transform-reference[data-tool-code='field-derive'] .qi-reference-fields-table th {
+  height: 35px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qi-transform-reference[data-tool-code='sort-records'] .qi-reference-table-heading,
+.qi-transform-reference[data-tool-code='field-derive'] .qi-reference-table-heading {
+  margin-bottom: -3px;
+}

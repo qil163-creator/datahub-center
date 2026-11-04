@@ -286,8 +286,8 @@ const columns = computed<Column[]>(() => {
           key: 'order',
           label: '排序规则',
           options: [
-            { label: '升序', value: 'ASC' },
             { label: '降序', value: 'DESC' },
+            { label: '升序', value: 'ASC' },
           ],
         },
       ];
@@ -815,7 +815,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         <table class="qi-reference-fields-table">
           <thead>
             <tr>
-              <th>序号</th>
+              <th>序号<Tooltip v-if="toolCode === 'sort-records'" title="拖动序号可调整排序优先级，序号越小优先级越高"><span class="qi-transform-column-help" tabindex="0" aria-label="序号说明"><ReferenceIcon name="info" /></span></Tooltip></th>
               <th v-for="column in primaryColumns" :key="column.key">
                 {{ column.label }}
                 <Tooltip v-if="column.help" :title="column.help"><span class="qi-transform-column-help" tabindex="0" :aria-label="`${column.label}说明`"><ReferenceIcon name="info" /></span></Tooltip>
@@ -835,7 +835,10 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
               @keydown.alt.up.prevent="move(index, index - 1)"
               @keydown.alt.down.prevent="move(index, index + 1)"
             >
-              <td>{{ index + 1 }}</td>
+              <td>
+                <span v-if="toolCode === 'sort-records'" class="qi-dedup-sequence"><ReferenceIcon name="field-drag-ref" />{{ index + 1 }}</span>
+                <template v-else>{{ index + 1 }}</template>
+              </td>
               <td v-for="column in primaryColumns" :key="column.key">
                 <Select
                   v-if="column.check"
