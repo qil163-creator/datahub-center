@@ -1414,6 +1414,7 @@ function toggleGroup(key: string) {
                     v-model:name="editingName"
                     v-model:description="editingDescription"
                     :type-name="currentComponent?.name"
+                    :type-required="editingCode === 'read-webservice'"
                     :disabled="!editable"
                     :stacked="
                       ['multi-join', 'read-webservice'].includes(editingCode)

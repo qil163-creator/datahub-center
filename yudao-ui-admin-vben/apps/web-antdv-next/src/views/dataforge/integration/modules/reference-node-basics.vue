@@ -14,6 +14,8 @@ const props = defineProps<{
   showDescription?: boolean;
   stacked?: boolean;
   typeName?: string;
+  /** Marks the type label as required (WebService reference). */
+  typeRequired?: boolean;
 }>();
 const emit = defineEmits<{
   'update:description': [value: string];
@@ -43,7 +45,7 @@ const count = ({ count, maxLength }: { count: number; maxLength?: number }) =>
           aria-required="true"
           @update:value="updateName"
       /></label>
-      <label v-if="!hideType"><span>类型</span><Input :value="typeName" disabled placeholder="请输入类型" /></label>
+      <label v-if="!hideType"><span><i v-if="typeRequired" aria-hidden="true">*</i>类型</span><Input :value="typeName" disabled placeholder="请输入类型" /></label>
     </template>
     <label v-if="showDescription || descriptionOnly" class="qi-node-description"><span>描述</span><TextArea
         :value="description"

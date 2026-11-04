@@ -191,3 +191,37 @@
   display: grid;
   gap: 10px;
 }
+
+.qi-service-form > .qi-service-form-hint {
+  grid-column: 2;
+  margin-top: -16px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #909399;
+}
+
+/* WebService reference spacing, measured against the qData screenshot. */
+.qi-service-editor[data-component-code='read-webservice'] {
+  --qi-node-label-width: 100px;
+
+  gap: 19px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] .qi-service-steps {
+  margin: 0 10px 0 20px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] > section:first-of-type {
+  padding-left: 20px;
+}
+
+.qi-service-editor[data-component-code='read-webservice'] .qi-service-form {
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px 0;
+  margin-bottom: 15px;
+}
+
+.qi-node-modal-reference .qi-service-editor[data-component-code='read-webservice'] .qi-node-basics {
+  margin-bottom: 15px;
+}
