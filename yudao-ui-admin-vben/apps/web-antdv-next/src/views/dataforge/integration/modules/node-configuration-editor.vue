@@ -40,11 +40,18 @@ const props = defineProps<{
   }[];
 }>();
 const emit = defineEmits<{ requestCheck: [] }>();
+interface StepNav {
+  last: number;
+  next: () => void;
+  prev: () => void;
+  step: number;
+}
 const nodeEditor = ref<{
   canGetRules?: boolean;
   canMergeFields?: boolean;
   openFieldMerge?: () => void;
   openRulePicker?: () => void;
+  stepNav?: StepNav;
   validate?: () => boolean;
 }>();
 const orderEditor = ref<{ validate: () => boolean }>();
@@ -120,6 +127,7 @@ function validate() {
 const canMergeFields = computed(
   () => nodeEditor.value?.canMergeFields === true,
 );
+const stepNav = computed(() => nodeEditor.value?.stepNav);
 const canGetRules = computed(
   () =>
     props.toolCode === 'data-clean' &&
@@ -136,6 +144,7 @@ function openFieldMerge() {
 }
 defineExpose({
   validate,
+  stepNav,
   openFieldMerge,
   canMergeFields,
   canGetRules,

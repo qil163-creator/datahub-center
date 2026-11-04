@@ -2,7 +2,7 @@
 /* eslint-disable vue/no-mutating-props -- 编辑父设计器隔离草稿，确认后由设计器写回流程。 */
 import type { IntegrationApi } from '#/api/dataforge/integration';
 
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { Alert, Input, InputNumber, TextArea } from 'antdv-next';
 
@@ -162,7 +162,8 @@ function validate() {
   issue.value = '';
   return true;
 }
-defineExpose({ validate });
+const stepNav = computed(() => editor.value?.stepNav);
+defineExpose({ stepNav, validate });
 </script>
 
 <template>

@@ -115,6 +115,7 @@ const nodeEditor = ref<{
   canMergeFields?: boolean;
   openFieldMerge?: () => void;
   openRulePicker?: () => void;
+  stepNav?: { last: number; next: () => void; prev: () => void; step: number };
   validate?: () => boolean;
 }>();
 const nodeChecking = ref(false);
@@ -1469,6 +1470,22 @@ function toggleGroup(key: string) {
               @click="nodeEditor?.openFieldMerge?.()"
             >
               获取字段
+            </Button>
+            <Button
+              v-if="nodeEditor?.stepNav && nodeEditor.stepNav.step > 0"
+              :auto-insert-space="false"
+              type="primary"
+              @click="nodeEditor.stepNav.prev()"
+            >
+              上一步
+            </Button>
+            <Button
+              v-if="nodeEditor?.stepNav && nodeEditor.stepNav.step < nodeEditor.stepNav.last"
+              :auto-insert-space="false"
+              type="primary"
+              @click="nodeEditor.stepNav.next()"
+            >
+              下一步
             </Button>
             <Button :auto-insert-space="false" @click="nodeOpen = false">关闭</Button><Button :auto-insert-space="false" :disabled="!editable" type="primary" @click="commitNode">
               保存

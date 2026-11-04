@@ -274,7 +274,16 @@ function jdbcType(type?: null | string) {
   if (value === 'BOOLEAN') return 16;
   return undefined;
 }
-defineExpose({ validate });
+// 上一步/下一步由设计器弹窗页脚渲染，与参考界面一致。
+const stepNav = computed(() => ({
+  last: 3,
+  next: nextStep,
+  prev: () => {
+    if (step.value > 0) step.value--;
+  },
+  step: step.value,
+}));
+defineExpose({ stepNav, validate });
 </script>
 
 <template>
@@ -712,8 +721,5 @@ defineExpose({ validate });
       :incoming-count="pendingColumns.length"
       @resolve="mergeColumns"
     />
-    <div class="qi-service-step-actions">
-      <Button v-if="step > 0" @click="step--">上一步</Button><Button v-if="step < 3" type="primary" @click="nextStep">下一步</Button>
-    </div>
   </div>
 </template>
