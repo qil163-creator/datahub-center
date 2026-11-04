@@ -4,7 +4,7 @@ import type { IntegrationApi } from '#/api/dataforge/integration';
 
 import { computed, ref, watch } from 'vue';
 
-import { Alert, Input, InputNumber, TextArea } from 'antdv-next';
+import { Alert } from 'antdv-next';
 
 import RestApiEditor from './reference-request-editor.vue';
 
@@ -36,9 +36,6 @@ watch(
   },
   { immediate: true },
 );
-function set(key: string, value: unknown) {
-  if (!props.disabled) props.config[key] = value;
-}
 function contextReference(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const entry = value as Record<string, unknown>;

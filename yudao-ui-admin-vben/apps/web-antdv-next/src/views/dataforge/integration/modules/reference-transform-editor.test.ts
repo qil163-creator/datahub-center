@@ -198,7 +198,7 @@ describe('字段拆分配置', () => {
     expect(state.config.outputs).toEqual([]);
     await click('新增');
     expect(state.config.outputs).toEqual([
-      { name: '', type: 'String', trimType: 'NONE' },
+      { name: '', type: 'String' },
     ]);
     expect(
       [...host.querySelectorAll('tbody input')].map((field) =>
@@ -221,10 +221,10 @@ describe('字段拆分配置', () => {
       'Number', 'String', 'Timestamp',
     ]);
     expect(options('去除空格类型 1')).toEqual([
-      { value: 'NONE', label: '不去空格' },
       { value: 'LEFT', label: '去除左空格' },
       { value: 'RIGHT', label: '去除右空格' },
       { value: 'BOTH', label: '去除两边空格' },
+      { value: 'NONE', label: '不去空格' },
     ]);
     expect(host.querySelector('[aria-label="需要拆分的字段"]')!.getAttribute('placeholder')).toBe('请输入拆分的字段');
     expect(state.config.vendor).toBe(7);
