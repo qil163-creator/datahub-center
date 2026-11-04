@@ -17,6 +17,7 @@ async function input(selector:string,value:string) {const field=host.querySelect
 describe('逐字段大小写去重契约',()=>{
   it('首次逐字段修改从旧global初始化，保留其他字符串键与未知参数',async()=>{
     const state=mount({keyFields:['name','city','id'],ignoreCase:true,vendor:7});
+    expect(host.querySelector('details')).toBeNull();
     await input('[aria-label="name忽略大小写"]','0');
     expect(state.config.ignoreCaseFields).toEqual(['city']);expect(state.config.ignoreCase).toBe(true);expect(state.config.vendor).toBe(7);
     expect(host.querySelector<HTMLInputElement>('[aria-label="id忽略大小写"]')?.disabled).toBe(true);

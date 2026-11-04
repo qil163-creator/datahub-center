@@ -10,7 +10,7 @@ import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { DataforgeEtlApi } from '#/api/dataforge/etl';
 import type { IntegrationApi } from '#/api/dataforge/integration';
 
-import { computed, defineAsyncComponent, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useAccessStore } from '@vben/stores';
 
@@ -46,6 +46,7 @@ import {
 } from './field-mapping';
 import ReferenceIcon from './reference-icon.vue';
 import TableInputReadOptions from './table-input-read-options.vue';
+import TableInputSqlEditor from './table-input-sql-editor.vue';
 
 const props = defineProps<{
   config: Record<string, any>;
@@ -56,7 +57,6 @@ const props = defineProps<{
   resolveFields?: () => Promise<IntegrationApi.SchemaField[]>;
   toolCode: 'insert-db' | 'read-db';
 }>();
-const SqlEditor = defineAsyncComponent(() => import('#/components/monaco/sql-editor.vue').then((module) => module.default));
 const access = useAccessStore();
 const isInput = computed(() => props.toolCode === 'read-db');
 const databases = ref<FoundationDatabaseApi.DatabaseSimple[]>([]);
@@ -70,7 +70,7 @@ const validationErrors = ref<string[]>([]);
 const readOptions = ref<{ validate: () => boolean }>();
 const fieldSort = ref<{ direction: -1 | 1; key: 'length' | 'scale' }>();
 const displayedFields = computed(() => fields.value.map((field, index) => ({ ...field, ordinal: index + 1 })).toSorted((left, right) => {
-  const sort = fieldSort.value;
+  const sort = props.config.ifSql === 1 ? undefined : fieldSort.value;
   if (!sort) return 0;
   const a = left[sort.key];
   const b = right[sort.key];
@@ -573,7 +573,6 @@ watch(
     if (isInput.value) {
       props.config.ifSql ??= 0;
       props.config.readMode ??= 'FULL';
-      props.config.fetchSize ??= 5000;
     } else {
       props.config.dataSyncType ??= realtimeOutput.value ? 2 : 1;
       props.config.batchSize ??= 1024;
@@ -594,7 +593,7 @@ watch(
 </script>
 
 <template>
-  <div class="qi-database-editor" :data-tool-code="toolCode">
+  <div class="qi-database-editor" :class="{ 'qi-db-sql-mode': isInput && sqlMode === 1 }" :data-tool-code="toolCode">
     <Alert
       v-if="validationErrors.length > 0"
       type="error"
@@ -659,10 +658,10 @@ watch(
         />
       </div>
       <div class="qi-db-field">
-        <label>数据连接类型</label><Input :value="database?.databaseTypeName || database?.productId || '-'" disabled />
+        <label>数据连接类型</label><Input :value="database?.databaseTypeName || database?.productId || undefined" placeholder="请输入数据连接类型" disabled />
       </div>
       <div class="qi-db-field">
-        <label>数据连接实例</label><Input :value="database?.databaseSchema || '-'" disabled />
+        <label>数据连接实例</label><Input :value="database?.databaseSchema || undefined" placeholder="自动回显实例" disabled />
       </div>
       <div
         v-if="!isInput || sqlMode === 0"
@@ -685,15 +684,16 @@ watch(
       <div v-if="isInput && sqlMode === 1" class="qi-db-field qi-db-full">
         <label><em>*</em>SQL语句</label>
         <div class="qi-db-sql-input">
-          <div class="qi-db-query-editor" aria-label="节点查询SQL">
-            <SqlEditor
-              :model-value="config.sql ?? ''"
-              :readonly="disabled"
-              :minimap="false"
-              height="190px"
-              @update:model-value="(value) => { if (!disabled) config.sql = value; }"
-            />
-          </div>
+          <TableInputSqlEditor
+            class="qi-db-query-editor"
+            :model-value="config.sql ?? ''"
+            :readonly="disabled"
+            :folding="false"
+            render-validation-decorations="off"
+            height="140px"
+            aria-label="节点查询SQL"
+            @update:model-value="(value) => { if (!disabled) config.sql = value; }"
+          />
           <Button
             class="qi-reference-button"
             :disabled="disabled || !config.databaseId || !config.sql?.trim()"
@@ -838,10 +838,10 @@ SQL解析
                 <th>英文名称</th>
                 <th>中文名称</th>
                 <th>字段类型</th>
-                <th>是否主键</th>
-                <th :aria-sort="sortState('length')"><button type="button" class="qi-db-sort" @click="sortFields('length')">字段长度<span aria-hidden="true">{{ fieldSort?.key === 'length' ? fieldSort.direction === 1 ? ' ▴' : ' ▾' : ' ↕' }}</span></button></th>
-                <th :aria-sort="sortState('scale')"><button type="button" class="qi-db-sort" @click="sortFields('scale')">小数精度<span aria-hidden="true">{{ fieldSort?.key === 'scale' ? fieldSort.direction === 1 ? ' ▴' : ' ▾' : ' ↕' }}</span></button></th>
-                <th>读取</th>
+                <th v-if="sqlMode === 0">是否主键</th>
+                <th v-if="sqlMode === 0" :aria-sort="sortState('length')"><button type="button" class="qi-db-sort" @click="sortFields('length')">字段长度<span aria-hidden="true">{{ fieldSort?.key === 'length' ? fieldSort.direction === 1 ? ' ▴' : ' ▾' : ' ↕' }}</span></button></th>
+                <th v-if="sqlMode === 0" :aria-sort="sortState('scale')"><button type="button" class="qi-db-sort" @click="sortFields('scale')">小数精度<span aria-hidden="true">{{ fieldSort?.key === 'scale' ? fieldSort.direction === 1 ? ' ▴' : ' ▾' : ' ↕' }}</span></button></th>
+                <th v-if="sqlMode === 0">读取</th>
               </tr>
             </thead>
             <tbody>
@@ -850,32 +850,28 @@ SQL解析
                 <td>{{ field.fieldName }}</td>
                 <td>{{ field.remarks || '-' }}</td>
                 <td>{{ field.fieldTypeName || '-' }}</td>
-                <td>
+                <td v-if="sqlMode === 0">
                   <span v-if="typeof field.pk !== 'boolean'">-</span>
                   <Switch v-else :checked="field.pk" disabled :aria-label="`${field.fieldName}是否主键`" />
                 </td>
-                <td>{{ field.length ?? '-' }}</td>
-                <td>{{ field.scale ?? '-' }}</td>
-                <td><Checkbox :checked="isSelected(field.fieldName)" :disabled="disabled || fieldLoading" :aria-label="`读取字段${field.fieldName}`" @update:checked="(value) => selectField(field.fieldName, value)" /></td>
+                <td v-if="sqlMode === 0">{{ field.length ?? '-' }}</td>
+                <td v-if="sqlMode === 0">{{ field.scale ?? '-' }}</td>
+                <td v-if="sqlMode === 0"><Checkbox :checked="isSelected(field.fieldName)" :disabled="disabled || fieldLoading" :aria-label="`读取字段${field.fieldName}`" @update:checked="(value) => selectField(field.fieldName, value)" /></td>
               </tr>
             </tbody>
           </table>
           <div v-if="!isInput && !fieldLoading && !fields.length" class="qi-reference-empty">暂无记录</div>
+          <div v-if="sqlMode === 1 && !fieldLoading && !fields.length" class="qi-db-sql-empty">
+            <img src="/assets/qdata-integration/node-empty-reference.png" alt="" aria-hidden="true" />
+            <span>暂无记录</span>
+          </div>
           <Empty
-            v-if="isInput && !fieldLoading && !fields.length"
-            :description="
-              isInput && sqlMode === 1
-                ? 'SQL 字段在任务检查时解析'
-                : '选择数据表后展示字段'
-            "
+            v-if="isInput && sqlMode === 0 && !fieldLoading && !fields.length"
+            description="选择数据表后展示字段"
           />
         </div>
       </Spin>
     </section>
-    <details v-if="isInput" class="qi-db-read-advanced">
-      <summary>高级读取配置</summary>
-      <div class="qi-db-field"><label>单次读取数据</label><InputNumber v-model:value="config.fetchSize" :disabled="disabled" :min="1" :max="10000" :precision="0" aria-label="单次读取数据" /></div>
-    </details>
     <section v-if="!isInput" class="qi-db-section">
       <h3>输出配置</h3>
       <div v-if="!flinkOutput" class="qi-db-field qi-db-full">
@@ -946,39 +942,6 @@ SQL解析
           placeholder="写入后执行的 INSERT、UPDATE 或 DELETE"
         />
       </div>
-      <details class="qi-db-output-execution">
-        <summary>执行配置说明</summary>
-        <template v-if="realtimeOutput">
-          <div class="qi-db-field qi-db-full"><label>真实目标主键</label><Select v-model:value="config.upsertKeys" mode="multiple" :options="fields.filter((field) => field.pk === true && field.nullable === false).map((field) => ({ label: field.fieldName, value: field.fieldName }))" :disabled="disabled" aria-label="实时目标主键" placeholder="选择元数据确认的全部非空主键" /></div>
-          <Alert type="info" show-icon message="增量更新使用目标 PostgreSQL 真实非空主键和已安装的受管 Flink JDBC 输出。执行端重新校验 Catalog、连接身份和主键；空主键明确失败，重放同一主键更新已有行。" />
-          <p v-if="config.dataSyncType === 1">当前保留历史追加配置，请明确选择增量更新后检查任务。</p>
-        </template>
-        <template v-if="flinkOutput && hasSqlHooks">
-          <div class="qi-db-field qi-db-full"><label>历史前置SQL</label><TextArea v-model:value="config.preSql" :rows="4" :disabled="disabled || !sqlHooksSupported" aria-label="历史前置SQL" /></div>
-          <div class="qi-db-field qi-db-full"><label>历史后置SQL</label><TextArea v-model:value="config.postSql" :rows="4" :disabled="disabled || !sqlHooksSupported" aria-label="历史后置SQL" /></div>
-        </template>
-        <Alert
-          v-if="sqlHooksSupported"
-          type="info"
-          show-icon
-          message="前置 SQL、数据写入、后置 SQL 在同一事务提交，任一步失败全部回滚；恢复同一次执行时不会重复已提交的 SQL。使用目标 Schema 内的 schema.table，支持 INSERT VALUES、UPDATE、DELETE，暂不支持函数或子查询。目标连接需具备该 Schema 的 CREATE 权限。"
-        />
-        <Alert
-          v-else
-          type="info"
-          show-icon
-          message="前后置 SQL 仅在 PostgreSQL DataX 幂等写入中执行。其他配置中的历史 SQL 保留展示，非空时会阻止任务检查通过。"
-        />
-        <Button
-          v-if="hasSqlHooks && !sqlHooksSupported && !disabled"
-          @click="
-            config.preSql = '';
-            config.postSql = '';
-          "
-          >
-清除不支持的 SQL 配置
-</Button>
-      </details>
     </section>
   </div>
 </template>
@@ -1041,7 +1004,19 @@ SQL解析
 .qi-db-query-editor {
   width: 100%;
   min-width: 0;
-  border: 1px solid #dcdfe6;
+}
+
+.qi-db-query-editor :deep(.qi-sql-editor-surface) {
+  border: 0;
+}
+
+.qi-db-query-editor :deep(.monaco-editor .margin) {
+  background-color: #f5f5f7;
+}
+
+.qi-db-query-editor :deep(.monaco-editor .view-overlays .current-line) {
+  background: #e8f1ff;
+  border: 0;
 }
 
 .qi-db-sql-input :deep(textarea) {
@@ -1259,10 +1234,55 @@ SQL解析
   background: #fafafa;
 }
 
-.qi-db-read-advanced summary {
-  margin-bottom: 12px;
-  color: #606266;
-  cursor: pointer;
+.qi-db-sql-mode .qi-db-section h3 {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-left: 0;
+  margin: 4px 0 18px;
+  font-size: 16px;
+  border: 0;
+}
+
+.qi-db-sql-mode .qi-db-section h3::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2d63ff;
+  border-radius: 3px;
+}
+
+.qi-database-editor.qi-db-sql-mode .qi-db-field-scroll {
+  height: 310px;
+  max-height: 310px;
+  border-bottom: 1px solid #e3e5ed;
+}
+
+.qi-database-editor.qi-db-sql-mode .qi-db-field-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.qi-database-editor.qi-db-sql-mode .qi-db-field-table th {
+  padding: 7px 10px;
+}
+
+.qi-db-sql-mode .qi-db-field-table th:first-child {
+  width: 72px;
+}
+
+.qi-db-sql-empty {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  padding: 55px 0 40px;
+  color: #909399;
+}
+
+.qi-db-sql-empty img {
+  width: 160px;
+  height: 140px;
+  object-fit: contain;
 }
 
 @media (max-width: 768px) {
@@ -1316,17 +1336,4 @@ SQL解析
   align-items: center;
 }
 
-.qi-db-output-execution {
-  padding: 10px 12px;
-  margin-top: 16px;
-  background: #fafafa;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-}
-
-.qi-db-output-execution summary {
-  margin-bottom: 10px;
-  color: #606266;
-  cursor: pointer;
-}
 </style>

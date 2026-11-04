@@ -123,6 +123,8 @@ describe('行列V2表单与历史执行协议', () => {
     };
     const { state, editor } = mount(config, false, 'row-to-column');
     expect(state.config).toEqual(config);
+    expect(host.textContent).not.toContain('执行契约');
+    expect(host.textContent).not.toContain('历史执行模式');
     expect(
       host.querySelector<HTMLInputElement>('[aria-label="key字段"]')
         ?.placeholder,

@@ -31,7 +31,6 @@ vi.mock('#/api/asset/my-assets', () => ({
   getMyAsset: mock.detail,
   getMyAssetApiDocument: mock.document,
 }));
-vi.mock('#/views/market/data', () => ({ PROCESS_ACTION_OPTIONS: [] }));
 vi.mock('#/views/modeling/modelcommon/detail-field-form.vue', () => ({
   default: { render: () => null },
 }));

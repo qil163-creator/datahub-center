@@ -41,7 +41,6 @@ import {
 import { getDataApiSimpleList } from '#/api/supply/dataapi';
 import { getRangePickerDefaultProps } from '#/utils';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
-import { controlActionText } from '#/views/market/grant-status';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 import {
@@ -588,6 +587,12 @@ watch(
   },
   { flush: 'sync' },
 );
+
+function controlActionText(disabled: boolean): string {
+  return disabled
+    ? '整体禁用（保留来源记录，可再启用）'
+    : '重新启用（按来源账本恢复）';
+}
 
 /**
  * 整体启用/禁用或永久关闭独立授权。expectedRevision 用最近一次读取到的聚合版本，

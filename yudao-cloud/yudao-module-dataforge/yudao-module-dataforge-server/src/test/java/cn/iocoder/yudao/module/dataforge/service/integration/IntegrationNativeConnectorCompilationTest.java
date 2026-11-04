@@ -71,65 +71,20 @@ class IntegrationNativeConnectorCompilationTest {
         }
     }
 
-    @Test void managedCsvCompilationAndFieldAnalysisUseTheSameTaskAuthorizedBinding() {
-        var resources = new IntegrationDataxBindingsProperties();
-        var file = new IntegrationDataxBindingsProperties.ManagedBinding(); file.setAllowedTaskIds(Set.of(4L));
-        file.setConnectorCodes(Set.of("read-csv")); file.setRootPath("/tmp/datahub-native-files");
-        file.setAuthentication(cn.iocoder.yudao.framework.etl.core.compile.EtlDataxConnectorCompiler.Authentication.NONE);
-        resources.setBindings(Map.of("files", file)); ReflectionTestUtils.setField(compiler, "dataxBindings", resources);
-        var binding = new IntegrationRuntimeProperties.NativeTableBinding(); binding.setSparkNamespace(List.of("managed"));
-        properties.setNativeTableBindings(Map.of(2L, binding));
-        var connections = mock(cn.iocoder.yudao.module.dataforge.service.etl.EtlConnectionResolverAdapter.class);
-        var connection = new cn.iocoder.yudao.framework.etl.core.connection.EtlConnectionInfo();
-        connection.setProductType(cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL); connection.setSchema("public");
-        when(connections.resolve(2L)).thenReturn(connection); ReflectionTestUtils.setField(compiler, "connections", connections);
-        var databases = mock(cn.iocoder.yudao.module.dataforge.service.database.DatabaseService.class);
-        var metadata = new cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableMetaRespVO();
-        metadata.setSchemaName("public"); metadata.setTableName("target");
-        var id = new cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableColumnRespVO();
-        id.setFieldName("id"); id.setFieldTypeName("BIGINT");
-        var name = new cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableColumnRespVO();
-        name.setFieldName("name"); name.setFieldTypeName("STRING"); metadata.setColumns(List.of(id, name));
-        when(databases.getTableMeta(2L, "target")).thenReturn(metadata); ReflectionTestUtils.setField(compiler, "databases", databases);
-        var graph = new JSONObject().set("nodes", List.of(node("read", "read-csv", Map.of("resourceBindingId", "files", "relativePath", "input.csv",
-                        "columns", List.of(Map.of("name", "id", "type", "Long", "index", 0), Map.of("name", "name", "type", "String", "index", 1)))),
-                        node("write", "insert-db", Map.of("databaseId", 2, "tableName", "target"))))
-                .set("edges", List.of(Map.of("sourceNodeId", "read", "targetNodeId", "write")));
+    @Test void uploadedFileInputsNoLongerCompileWorkerFileResources() {
         var task = task(); task.setEngine("SPARK"); task.setMode("OFFLINE");
-        assertTrue(JSONUtil.toJsonStr(compiler.compile(task, graph.toString()).getFirst().parameters()).contains("USING csv OPTIONS"));
-        var nodes = cn.iocoder.yudao.module.dataforge.service.etl.EtlGraphConverter.toNodeDefs(
-                cn.iocoder.yudao.module.dataforge.service.etl.EtlSubflowService.maps(graph.get("nodes")));
-        var edges = cn.iocoder.yudao.module.dataforge.service.etl.EtlGraphConverter.toEdgeDefs(
-                cn.iocoder.yudao.module.dataforge.service.etl.EtlSubflowService.maps(graph.get("edges")));
-        assertEquals(Map.of("id", "BIGINT", "name", "STRING"), compiler.analyzeNative(task, nodes, edges).nodes().get("read").outputFields());
-        file.setConnectorCodes(Set.of("read-csv", "read-excel"));
-        var excelColumns = List.of(Map.<String, Object>of("name", "id", "type", "Long", "index", 0),
-                Map.<String, Object>of("name", "amount", "type", "DECIMAL(24,4)", "index", 1),
-                Map.<String, Object>of("name", "day", "type", "Date", "index", 2),
-                Map.<String, Object>of("name", "formula", "type", "String", "index", 3),
-                Map.<String, Object>of("name", "blank", "type", "String", "index", 4),
-                Map.<String, Object>of("name", "empty", "type", "String", "index", 5));
-        metadata.setColumns(excelColumns.stream().map(column -> {
-            var result = new cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableColumnRespVO();
-            result.setFieldName(String.valueOf(column.get("name"))); String type = String.valueOf(column.get("type"));
-            result.setFieldTypeName(switch (type) { case "Long" -> "BIGINT"; case "String" -> "STRING"; case "Date" -> "DATE"; default -> type; });
-            return result;
-        }).toList());
-        var excel = new JSONObject().set("nodes", List.of(node("read", "read-excel", Map.of("resourceBindingId", "files", "relativePath", "input.xlsx",
-                        "sheetName", "Data", "headerRow", 1, "startRow", 2, "columns", excelColumns)),
-                        node("write", "insert-db", Map.of("databaseId", 2, "tableName", "target"))))
-                .set("edges", List.of(Map.of("sourceNodeId", "read", "targetNodeId", "write")));
-        assertThrows(IllegalArgumentException.class, () -> compiler.compile(task, excel.toString()));
-        properties.setManagedFunctions(Set.of("DH_READ_EXCEL"));
-        properties.setSparkInitializationSql("CREATE TEMPORARY FUNCTION DH_READ_EXCEL AS 'cn.iocoder.yudao.framework.etl.spark.EtlReadExcelFunction' USING JAR 'file:///opt/datahub-etl-excel/function.jar', JAR 'file:///opt/datahub-etl-excel/poi.jar';");
-        var excelProgram = JSONUtil.toJsonStr(compiler.compile(task, excel.toString()).getFirst().parameters());
-        assertTrue(excelProgram.contains("DH_READ_EXCEL")); assertTrue(excelProgram.contains("spark.sql.parser.escapedStringLiterals=false"));
-        var excelNodes = cn.iocoder.yudao.module.dataforge.service.etl.EtlGraphConverter.toNodeDefs(
-                cn.iocoder.yudao.module.dataforge.service.etl.EtlSubflowService.maps(excel.get("nodes")));
-        assertEquals(6, compiler.analyzeNative(task, excelNodes, edges).nodes().get("read").outputFields().size());
-        file.setAllowedTaskIds(Set.of(99L));
-        assertThrows(IllegalArgumentException.class, () -> compiler.compile(task, graph.toString()));
-        assertThrows(IllegalArgumentException.class, () -> compiler.analyzeNative(task, nodes, edges));
+        for (String code : List.of("read-csv", "read-excel", "read-json")) {
+            var graph = new JSONObject().set("nodes", List.of(node("read", code, Map.of(
+                    "resourceBindingId", "files", "relativePath", "input.csv",
+                    "columns", List.of(Map.of("name", "id", "type", "Long"))))))
+                    .set("edges", List.of());
+            var failure = assertThrows(IllegalArgumentException.class, () -> compiler.compile(task, graph.toString()));
+            assertTrue(failure.getMessage().contains("暂不支持上传附件执行"));
+            var nodes = cn.iocoder.yudao.module.dataforge.service.etl.EtlGraphConverter.toNodeDefs(
+                    cn.iocoder.yudao.module.dataforge.service.etl.EtlSubflowService.maps(graph.get("nodes")));
+            var analysis = assertThrows(IllegalArgumentException.class, () -> compiler.analyzeNative(task, nodes, List.of()));
+            assertTrue(analysis.getMessage().contains("暂不支持上传附件执行"));
+        }
     }
 
     @Test void mongodbInputOutputUsesTheTaskAuthorizedSparkProviderAndPreservesQueryAndBatches() {

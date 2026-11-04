@@ -49,8 +49,11 @@ class IntegrationComponentCapabilitiesServiceTest {
         assertEquals(Status.PARTIAL, components.get("custom-token").status());
         var batch = service.get("SPARK", "OFFLINE").components().stream()
                 .collect(Collectors.toMap(Component::componentCode, Function.identity()));
-        assertEquals(Status.PARTIAL, batch.get("read-csv").status());
-        assertEquals(Status.PARTIAL, batch.get("read-json").status());
+        for (String code : new String[]{"read-csv", "read-excel", "read-json"}) {
+            assertEquals(Status.PARTIAL, batch.get(code).status());
+            assertTrue(batch.get(code).reason().contains("附件上传、字段解析与配置"));
+            assertFalse(batch.get(code).reason().contains("执行资源"));
+        }
         assertEquals(Status.PARTIAL, batch.get("java-script").status());
         assertEquals(Status.PARTIAL, batch.get("custom-token").status());
         for (String code : new String[]{"read-hdfs", "write-hdfs", "read-hive", "write-hive", "read-redis", "write-redis", "read-ftp", "write-ftp", "rest-api", "read-webservice"})

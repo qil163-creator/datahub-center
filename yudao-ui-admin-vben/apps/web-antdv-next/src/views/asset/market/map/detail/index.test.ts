@@ -54,7 +54,7 @@ vi.mock('#/api/asset/dataasset', () => ({
   unpublishDataAsset: mock.unpublish,
   refreshDataAsset: mock.refresh,
 }));
-vi.mock('#/views/market/modules/apply-form.vue', () => ({
+vi.mock('#/views/asset/market/modules/apply-form.vue', () => ({
   default: { render: () => null },
 }));
 vi.mock('./modules/catalog-tab.vue', () => ({

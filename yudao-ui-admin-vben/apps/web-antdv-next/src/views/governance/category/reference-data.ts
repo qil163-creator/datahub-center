@@ -3,7 +3,41 @@ import type { SafetyCategoryWorkbenchApi as CategoryApi } from '#/api/governance
 import { handleTree } from '@vben/utils';
 
 import { resourceIdKey } from '#/utils/resource-id';
-export { marketCheckTime as categoryTime } from '#/views/market/check/data';
+
+const categoryTimeFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+});
+
+export function categoryTime(value?: CategoryApi.Time) {
+  if (value === undefined || value === null || value === '') return '-';
+  if (typeof value === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(value))
+      return value.slice(0, 16).replace('T', ' ');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  }
+  let millis: number;
+  if (typeof value === 'number') millis = value;
+  else if (/^\d+$/.test(value)) millis = Number(value);
+  else millis = Date.parse(value);
+  if (!Number.isFinite(millis) || Number.isNaN(new Date(millis).getTime()))
+    return String(value);
+  const parts = Object.fromEntries(
+    categoryTimeFormat
+      .formatToParts(millis)
+      .map((part) => [part.type, part.value]),
+  );
+  const text = `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+  return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(text)
+    ? text.slice(0, 16)
+    : text;
+}
 
 export const CATEGORY_FONT =
   "'Helvetica Neue',Helvetica,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',Arial,sans-serif";

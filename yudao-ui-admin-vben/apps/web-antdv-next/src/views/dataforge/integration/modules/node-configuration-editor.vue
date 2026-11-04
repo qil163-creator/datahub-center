@@ -15,9 +15,9 @@ import NativeOrderEditor from './native-order-editor.vue';
 import NativeScriptEditor from './native-script-editor.vue';
 import ReferenceFlowEditor from './reference-flow-editor.vue';
 import ReferenceNodeEditor from './reference-node-editor.vue';
-import RelationInputEditor from './relation-input-editor.vue';
 import ReferenceTransformEditor from './reference-transform-editor.vue';
 import ReferenceWebserviceEditor from './reference-webservice-editor.vue';
+import RelationInputEditor from './relation-input-editor.vue';
 import TransformNodeEditor from './transform-node-editor.vue';
 
 const props = defineProps<{
@@ -26,7 +26,6 @@ const props = defineProps<{
   disabled?: boolean;
   downstreamNodes?: { targetId: string; targetName: string }[];
   engine?: string;
-  executionReason?: string;
   inputFields?: DataforgeEtlApi.FieldMeta[];
   mode?: string;
   resolveFields?: () => Promise<IntegrationApi.SchemaField[]>;
@@ -52,20 +51,12 @@ const editor = computed(() => getNodeEditor(props.toolCode));
 const code = computed(() => props.componentCode ?? props.toolCode);
 const requiresOrder = computed(
   () =>
-    (props.toolCode === 'id-generator' && props.config.mode !== 'UUID') ||
-    (props.toolCode === 'row-column' &&
-      props.config.mode === 'ROW2COL' &&
-      (props.config.rowColumnVersion !== 2 ||
-        !Array.isArray(props.config.pivotMappings) ||
-        props.config.pivotMappings.some(
-          (row: Record<string, any>) => !row.aggregation,
-        ))) ||
-    ((code.value === 'dedup-records' ||
-      (props.toolCode === 'data-clean' && props.config.enableDeduplication)) &&
-      (props.config.deduplicationStrategy === 'KEY_FIELDS' ||
-        (Array.isArray(props.config.ignoreCaseFields)
-          ? props.config.ignoreCaseFields.length > 0
-          : props.config.ignoreCase === true))),
+    props.toolCode === 'data-clean' && code.value !== 'dedup-records' &&
+    props.config.enableDeduplication &&
+    (props.config.deduplicationStrategy === 'KEY_FIELDS' ||
+      (Array.isArray(props.config.ignoreCaseFields)
+        ? props.config.ignoreCaseFields.length > 0
+        : props.config.ignoreCase === true)),
 );
 const customTransform = computed(() =>
   [
@@ -163,7 +154,6 @@ defineExpose({
         :tool-code="relationInput"
         :mode="mode"
         :engine="engine"
-        :execution-reason="executionReason"
         :resolve-fields="resolveFields"
         :disabled="disabled"
       />
@@ -192,7 +182,6 @@ defineExpose({
         ref="nodeEditor"
         :config="config"
         :tool-code="toolCode"
-        :execution-reason="executionReason"
         :mode="mode"
         :input-fields="inputFields"
         :disabled="disabled"

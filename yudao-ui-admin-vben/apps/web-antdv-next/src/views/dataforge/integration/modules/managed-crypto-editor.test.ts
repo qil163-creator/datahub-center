@@ -29,16 +29,59 @@ async function input(label: string, value: string) {
   field.value = value; field.dispatchEvent(new Event('input')); await nextTick();
 }
 describe('集成受管加解密配置', () => {
-  it('只收集AES或SM4密钥引用，不呈现历史明文密钥，显式清除后保留其他配置', async () => {
+  it.each([
+    { toolCode: 'data-encrypt' as const, key: 'encryptFields' },
+    { toolCode: 'data-decrypt' as const, key: 'decryptFields' },
+  ])('$toolCode空字段草稿可编辑主配置，只读空数组和非空历史字段保持原样', async ({ toolCode, key }) => {
+    const { state, editor } = mount({ [key]: [], vendor: 42 }, false, toolCode);
+    expect(host.querySelectorAll('.qi-crypto-field')).toHaveLength(1);
+    expect(host.querySelector('details')).toBeNull();
+    await input('第1行来源字段', 'name');
+    await input('第1行密钥引用', 'managed-key');
+    await input('第1行输出字段', 'result');
+    expect(editor.value!.validate()).toBe(true);
+    expect(state.config[key]).toEqual([{
+      fieldName: 'name',
+      algorithm: 'AES',
+      secretKeyRef: 'managed-key',
+      outputFieldName: 'result',
+      keepOriginal: false,
+    }]);
+    expect(state.config.vendor).toBe(42);
+
+    state.disabled = true;
+    state.config = { [key]: [], vendor: 7 };
+    await nextTick();
+    expect(state.config).toEqual({ [key]: [], vendor: 7 });
+    expect(host.querySelectorAll('.qi-crypto-field')).toHaveLength(0);
+
+    const historical = {
+      [key]: [
+        { fieldName: 'first', algorithm: 'SM4', secretKeyRef: 'old-key', outputFieldName: 'first_out', keepOriginal: true, vendor: 7 },
+        { fieldName: 'second', algorithm: 'AES', secretKeyRef: 'other-key', outputFieldName: 'second_out', custom: '保留' },
+      ],
+      vendor: 9,
+    };
+    const historicalSnapshot = JSON.stringify(historical);
+    state.config = historical;
+    state.disabled = false;
+    await nextTick();
+    expect(host.querySelectorAll('.qi-crypto-field')).toHaveLength(2);
+    expect(editor.value!.validate()).toBe(true);
+    expect(JSON.stringify(state.config)).toBe(historicalSnapshot);
+  });
+  it('删除兼容面板后仍拒绝历史明文密钥，保留旧配置并说明迁移要求', async () => {
     const { state, editor } = mount({ vendor: 42, encryptFields: [{ fieldName: 'name', algorithm: 'AES256', secretKey: 'synthetic-old-key', keepOriginal: true, custom: 'kept' }] });
     expect(host.querySelector('input[type="password"]')).toBeNull();
     expect([...host.querySelectorAll('input')].some((field) => field.value === 'synthetic-old-key')).toBe(false);
     expect(editor.value!.validate()).toBe(false);
-    [...host.querySelectorAll('button')].find((button) => button.textContent?.trim() === '清除旧密钥')!.click(); await nextTick();
+    await nextTick();
+    expect(host.textContent).toContain('历史明文密钥需由管理员迁移为密钥引用后再保存');
+    expect(host.querySelector('details')).toBeNull();
     await input('第1行加解密算法', 'SM4'); await input('第1行密钥引用', 'key-reference');
-    expect(editor.value!.validate()).toBe(true);
+    expect(editor.value!.validate()).toBe(false);
     expect(state.config.encryptFields[0]).toMatchObject({ algorithm: 'SM4', secretKeyRef: 'key-reference', custom: 'kept', keepOriginal: true });
-    expect(state.config.encryptFields[0].secretKey).toBeUndefined(); expect(state.config.vendor).toBe(42);
+    expect(state.config.encryptFields[0].secretKey).toBe('synthetic-old-key'); expect(state.config.vendor).toBe(42);
   });
   it('只读不创建字段，切为只读后不能写入配置', async () => {
     const { state } = mount({ vendor: 1 }, true);
@@ -64,7 +107,7 @@ describe('集成受管加解密配置', () => {
     expect(host.querySelector('[aria-label="密钥引用说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('管理员授权的密钥引用');
     expect(host.querySelector('[aria-label="密文字段说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('留空时覆盖来源字段');
     const section = host.querySelector('.qi-crypto-field')!;
-    expect([...section.children].map((child) => child.tagName)).toEqual(['DIV', 'TEXTAREA', 'DETAILS']);
+    expect([...section.children].map((child) => child.tagName)).toEqual(['DIV', 'TEXTAREA']);
     expect(host.querySelectorAll('[aria-label="节点描述"]')).toHaveLength(1);
   });
   it('解密编辑使用真实密钥引用和密文来源，保留未知属性、覆盖默认与只读保护', async () => {
@@ -73,6 +116,7 @@ describe('集成受管加解密配置', () => {
     expect(host.querySelector('[aria-label="第1行输出字段"]')!.getAttribute('placeholder')).toBe('请输入明文字段');
     expect(host.querySelector('[aria-label="明文字段说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('解密后的数据');
     expect(editor.value!.validate()).toBe(true);
+    expect(host.querySelector('details')).toBeNull();
     await input('第1行加解密算法', 'SM4');
     await input('第1行输出字段', 'plain');
     expect(state.config.decryptFields[0]).toMatchObject({ algorithm: 'SM4', secretKeyRef: 'managed-key', outputFieldName: 'plain', encoding: 'HEX', custom: 7 });

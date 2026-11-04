@@ -6,9 +6,7 @@ import {
   Alert,
   AutoComplete,
   Button,
-  Checkbox,
   Input,
-  InputNumber,
   Modal,
   Select,
   TextArea,
@@ -132,10 +130,6 @@ function moveDedup(from: number, to: number) {
     props.config.keyFields = moveReferenceField(dedupRows.value, from, to);
 }
 
-const deduplicationStrategies = [
-  { label: '按指定字段去重，保留排序后的首条', value: 'KEY_FIELDS' },
-  { label: '整行去重', value: 'ALL_FIELDS' },
-];
 let dragged = -1;
 const trims = [
   { label: '不去空格', value: 'NONE' },
@@ -423,38 +417,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           </tbody>
         </table>
       </div>
-      <details class="qi-transform-advanced">
-        <summary>去重策略与兼容配置</summary>
-        <p class="qi-reference-notice">
-          按字段设置字符串大小写策略。按指定字段保留排序后的首条记录。
-        </p>
-        <label class="qi-reference-form-row">去重策略<Select
-            :disabled="disabled"
-            :value="config.deduplicationStrategy"
-            :options="deduplicationStrategies"
-            aria-label="去重策略"
-            @update:value="
-              (value) => setConfig('deduplicationStrategy', value)
-            "
-        /></label>
-        <label
-          v-if="config.deduplicationStrategy === 'KEY_FIELDS'"
-          class="qi-reference-form-row"
-          >字段名称<Select
-            :disabled="disabled"
-            :value="config.keyFields"
-            :options="fields"
-            mode="tags"
-            aria-label="去重字段"
-            placeholder="请选择或输入去重字段"
-            @update:value="(value) => setConfig('keyFields', value)"
-        /></label>
-        <label v-if="!Array.isArray(config.ignoreCaseFields)" class="qi-reference-form-row">历史统一忽略大小写<Checkbox
-            :disabled="disabled"
-            :checked="config.ignoreCase"
-            @update:checked="(value) => setConfig('ignoreCase', value)"
-            >是</Checkbox></label>
-      </details>
     </template>
     <template v-else>
       <div class="qi-transform-table">
@@ -701,27 +663,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           </tbody>
         </table>
       </div>
-      <details
-        v-if="toolCode === 'string-operation'"
-        class="qi-transform-advanced"
-      >
-        <summary>填充长度配置</summary>
-        <div
-          v-for="(rule, index) in config.rules"
-          :key="index"
-          class="qi-reference-form-row"
-        >
-          <label>{{ rule.inputField || `第${Number(index) + 1}行` }}</label><InputNumber
-            :value="rule.padLength"
-            :aria-label="`第${Number(index) + 1}行填充长度`"
-            :disabled="
-              disabled || !rule.padDirection || rule.padDirection === 'NONE'
-            "
-            :min="0"
-            @update:value="(value) => setRule(rule, 'padLength', value)"
-          />
-        </div>
-      </details>
     </template>
     <NativeStreamingWindowEditor v-if="mode === 'REALTIME' && toolCode === 'dedup-records'" :config="config" :disabled="disabled" />
     <ReferenceFieldMergeDialog v-model:open="fieldMergeOpen" :existing-count="toolCode === 'dedup-records' ? dedupRows.length : (config.rules?.length ?? 0)" :incoming-count="fields.length" :disabled="disabled" @resolve="getFields" />

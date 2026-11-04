@@ -20,7 +20,6 @@ vi.mock('@vben/common-ui', () => ({ Page: {}, useVbenModal: vi.fn(), useVbenDraw
 vi.mock('@vben/hooks', () => ({ useIsMobile: vi.fn() }));
 vi.mock('@vben/access', () => ({ useAccess: vi.fn() }));
 vi.mock('#/api/request', () => ({ requestClient: { get: vi.fn() } }));
-vi.mock('#/views/market/data', () => ({ PROCESS_ACTION_OPTIONS: [] }));
 vi.mock('antdv-next', () => Object.fromEntries([
   'Alert', 'Button', 'Empty', 'Input', 'InputNumber', 'Pagination', 'Select', 'Spin',
   'Table', 'Tag', 'Timeline', 'TimelineItem', 'Tooltip', 'TreeSelect',

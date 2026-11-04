@@ -135,7 +135,7 @@ async function setIdMode(value: 'SEQUENCE' | 'UUID') {
 }
 
 describe('序列与UUID生成器配置', () => {
-  it('新配置保留1/1/0默认值，显示必填提示、序列说明及参数输入提示', async () => {
+  it('新配置保留1/1/0默认值与参数必填提示，不显示已删除的序列说明', async () => {
     const { state, editor } = mount('id-generator', { vendor: 7 });
     expect(state.config).toEqual({
       mode: 'SEQUENCE', start: '1', step: '1', max: '0', vendor: 7,
@@ -151,7 +151,7 @@ describe('序列与UUID生成器配置', () => {
       '请输入序列字段名称', '请输入起始值', '请输入递增幅度', '请输入最大值',
     ]);
     expect(host.querySelectorAll('[aria-required="true"]')).toHaveLength(4);
-    expect(host.querySelector('.qi-id-sequence-help')!.textContent).toContain('最大值为0表示不限');
+    expect(host.querySelector('.qi-id-sequence-help')).toBeNull();
     expect(editor.value!.validate()).toBe(false);
     await setInput('[aria-label="序列字段名称"]', 'generated_id');
     expect(editor.value!.validate()).toBe(true);
@@ -247,6 +247,7 @@ describe('字段拆分配置', () => {
     expect(state.config.outputs).toEqual([second, first]);
     expect(state.config.outputs[1]).not.toHaveProperty('type');
     expect(state.config.keepSource).toBe(true);
+    expect(host.querySelector('details')).toBeNull();
     expect(state.config.vendor).toBe('legacy');
   });
 
@@ -535,7 +536,7 @@ describe('转换辅助操作', () => {
     expect(state.config.rules[1].vendor).toBe(7);
   });
 
-  it('字段派生三模式与拖动只保存有序字段名，元数据只读，单来源操作不隐式丢弃字段', async () => {
+  it('字段派生三模式与拖动只保存有序字段名，删除元数据区后单来源操作仍不隐式丢弃字段', async () => {
     const { state, editor } = mount('field-derive', {
       operateType: 'CONCAT',
       targetField: 'new',
@@ -544,9 +545,7 @@ describe('转换辅助操作', () => {
     });
     await click('只增加新字段');
     expect(state.config.sourceFields).toEqual(['A', 'B']);
-    expect(host.querySelector('details table tbody tr')!.textContent).toContain(
-      'BIGINT',
-    );
+    expect(host.querySelector('details')).toBeNull();
     expect(
       host.querySelector('tbody tr')!.querySelectorAll('input'),
     ).toHaveLength(1);

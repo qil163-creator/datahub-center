@@ -48,7 +48,7 @@ import {
   resourceIdKey,
   sameResourceId,
 } from '#/utils/resource-id';
-import { formatMarketTime } from '#/views/market/market-time';
+import { formatMarketTime } from '#/views/asset/market/market-time';
 
 import { DELIVERY_TYPE_OPTIONS, deliveryLabels, marketCount } from './data';
 import ApplyForm from './modules/mart-apply-form.vue';

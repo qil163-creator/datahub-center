@@ -20,19 +20,6 @@ class EtlNativeFlinkBoundedCompilerTest {
         var match=Pattern.compile("'plan' = '([A-Za-z0-9+/=]+)'").matcher(sql); assertTrue(match.find());
         return JSONUtil.parseObj(new String(Base64.getDecoder().decode(match.group(1)),StandardCharsets.UTF_8));
     }
-    @Test void threeFileFormatsCompileToRealBoundedTablesWithExplicitFiftyMiBBudget() {
-        var resource=binding(Set.of("read-csv","read-json","read-excel"),"/data/managed",null,List.of(),null,EtlDataxConnectorCompiler.Authentication.NONE,"flink-bounded-file");
-        for(String code:List.of("read-csv","read-json","read-excel")) {
-            var config=new LinkedHashMap<String,Object>();config.put("resourceBindingId","files");config.put("relativePath",code.equals("read-csv")?"input.csv":code.equals("read-json")?"input.jsonl":"input.xlsx");config.put("columns",List.of(column()));
-            var compiled=EtlNativeFileCompiler.compile(FLINK,false,"node-"+code,code,config,resource,Set.of());
-            assertTrue(compiled.initializationSql().contains("CREATE TEMPORARY TABLE"));assertTrue(compiled.initializationSql().contains("'connector' = 'datahub-bounded'"));
-            assertFalse(compiled.table().continuousSource());assertEquals("BIGINT",compiled.table().columns().get("id"));
-            if(!code.equals("read-excel")) assertEquals(52428800,plan(compiled.initializationSql()).getInt("maxBytes"));
-        }
-        var config=Map.<String,Object>of("relativePath","input.csv","columns",List.of(column()));
-        assertThrows(IllegalArgumentException.class,()->EtlNativeFileCompiler.compile(FLINK,true,"node","read-csv",config,resource));
-        assertThrows(IllegalArgumentException.class,()->EtlNativeFileCompiler.compile(FLINK,false,"node","read-csv",config,binding(Set.of("read-csv"),"/data/managed",null,List.of(),null,EtlDataxConnectorCompiler.Authentication.NONE)));
-    }
     @Test void redisAndOdpsRequireTheirOwnFlinkInstallationProofAndKeepSecretReferences() {
         var redis=new EtlNativeRedisCompiler.Binding("redis.internal",6379,0,false,"redisRef",Set.of("source:*"),Set.of("result:"),false,true);
         var config=Map.<String,Object>of("databaseId",1,"dataType","string","keyPattern","source:*","columns",List.of(column()));

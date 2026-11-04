@@ -636,21 +636,6 @@ defineExpose({ validate });
           </tbody>
         </table>
       </div>
-      <details class="qi-transform-advanced">
-        <summary>执行契约</summary>
-        <p v-if="!unpivot" class="qi-reference-notice">
-          未选择聚合时按下方确定全序保留最后匹配值。Sum/Average要求数值目标类型；格式用于日期时间解析；null
-          If在类型转换前将相同文本值设为空。
-        </p>
-        <Checkbox
-          v-if="unpivot"
-          :checked="config.skipNull === true"
-          :disabled="disabled"
-          @update:checked="(value) => set('skipNull', value)"
-          >
-跳过空值
-</Checkbox>
-      </details>
     </template>
     <template v-else>
       <template v-if="unpivot">
@@ -911,20 +896,6 @@ defineExpose({ validate });
         <Button :disabled="disabled" @click="upgrade">使用完整行列配置</Button>
       </details>
     </template>
-    <details class="qi-transform-advanced">
-      <summary>历史执行模式</summary>
-      <div class="qi-reference-form-row">
-        <label>转换模式</label><Select
-          :value="config.mode ?? 'COL2ROW'"
-          :disabled="disabled"
-          :options="[
-            { label: '宽表转长表（COL2ROW）', value: 'COL2ROW' },
-            { label: '长表转宽表（ROW2COL）', value: 'ROW2COL' },
-          ]"
-          @update:value="(value) => set('mode', value)"
-        />
-      </div>
-    </details>
     <NativeStreamingWindowEditor
       v-if="mode === 'REALTIME' && !unpivot"
       :config="config"

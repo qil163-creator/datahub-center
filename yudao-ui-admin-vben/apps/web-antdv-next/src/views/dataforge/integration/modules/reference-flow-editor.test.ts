@@ -32,6 +32,8 @@ describe('集成流程的分步配置和真实兼容契约',() => {
   it('join三步按来源投影，不在仅浏览时补写历史投影',async() => {
     const config={joinType:'LEFT',maxOutputRows:30,joinConditions:[{leftField:'id',rightField:'other',vendor:7}],vendor:9};
     const state=mount('multi-join',config);
+    expect(host.textContent).not.toContain('连接关系与执行预算');
+    expect(host.querySelector('details')).toBeNull();
     expect([...host.querySelectorAll('th')].map((cell) => cell.textContent)).toEqual(['A组件字段','运算符','B组件字段','操作']);
     await input('tbody td:first-child input','new_id');
     expect(state.config.joinConditions[0]).toEqual({leftField:'new_id',rightField:'other',vendor:7});
@@ -44,6 +46,8 @@ describe('集成流程的分步配置和真实兼容契约',() => {
   });
   it('条件4步将旧单条件提升为多条件并保留未知分支及输出投影',async() => {
     const state=mount('data-condition',{branches:[{id:'a',type:'IF',fieldName:'id',operator:'EQ',value:'1',targetNodeNo:'sink',vendor:7},{id:'b',type:'ELSE',targetNodeNo:'other'},{id:'legacy',type:'IF',fieldName:'name',operator:'EQ',value:'keep',targetNodeNo:'third'}],unmatchedPolicy:'ERROR'});
+    expect(host.textContent).not.toContain('分支兼容配置');
+    expect(host.querySelector('details')).toBeNull();
     const before=JSON.stringify(state.config);
     await click('分发条件配置'); expect(JSON.stringify(state.config)).toBe(before);
     await click('添加条件'); expect(state.config.branches[0].conditions).toEqual([{fieldName:'id',operator:'EQ',value:'1'},{fieldName:'',operator:'EQ',value:''}]);

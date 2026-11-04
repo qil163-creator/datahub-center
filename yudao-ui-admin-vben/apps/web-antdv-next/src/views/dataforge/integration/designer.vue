@@ -22,7 +22,7 @@ import {
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
-import { Page } from '@vben/common-ui';
+import { confirm, Page } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { Graph } from '@antv/x6';
@@ -221,9 +221,6 @@ const capabilitySummary = computed(() => {
   );
   return `可用 ${states.filter((status) => status !== 'UNAVAILABLE').length} · 不可用 ${states.filter((status) => status === 'UNAVAILABLE').length}`;
 });
-const editingCapability = computed(() =>
-  currentComponent.value ? componentState(currentComponent.value) : undefined,
-);
 const editable = computed(
   () =>
     can('update') &&
@@ -258,7 +255,7 @@ const editorDescription = computed(() =>
     'read-webservice',
   ].includes(editingCode.value),
 );
-const advancedDescription = computed(() =>
+const omittedDescription = computed(() =>
   [
     'add-constant',
     'calculator',
@@ -443,18 +440,20 @@ const dirty = computed(() => {
   void graphVersion.value;
   return !!task.value && !!graph.value && saved.value !== snapshot();
 });
-function discard() {
-  if (!dirty.value) return Promise.resolve(true);
-  return new Promise<boolean>((resolve) =>
-    Modal.confirm({
+async function discard() {
+  if (!dirty.value) return true;
+  try {
+    await confirm({
       title: '流程有未保存的修改',
       content: '确认丢弃未保存的节点与配置？',
-      okText: '确认',
-      cancelText: '取消',
-      onOk: () => resolve(true),
-      onCancel: () => resolve(false),
-    }),
-  );
+      confirmText: '丢弃修改',
+      cancelText: '继续编辑',
+      icon: 'warning',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 onBeforeRouteLeave(discard);
 function beforeUnload(event: BeforeUnloadEvent) {
@@ -1378,7 +1377,7 @@ function toggleGroup(key: string) {
             v-model:description="editingDescription"
             :type-name="currentComponent?.name"
             :disabled="!editable"
-            :show-description="!editorDescription && !advancedDescription"
+            :show-description="!editorDescription && !omittedDescription"
             :heading="editingCode === 'read-json' ? '属性字段' : undefined"
             :description-placeholder="
               editingCode === 'read-json'
@@ -1401,7 +1400,6 @@ function toggleGroup(key: string) {
                 :resolve-fields="resolveEditingFields"
                 :downstream-nodes="downstreamNodes"
                 :upstream-nodes="upstreamNodes"
-                :execution-reason="editingCapability?.reason"
                 :disabled="!editable"
                 :task-id="task?.id"
                 :revision="task?.revision"
@@ -1418,7 +1416,7 @@ function toggleGroup(key: string) {
                       ['multi-join', 'read-webservice'].includes(editingCode)
                     "
                     :show-description="
-                      !editorDescription && !advancedDescription
+                      !editorDescription && !omittedDescription
                     "
                   />
                 </template>
@@ -1442,15 +1440,6 @@ function toggleGroup(key: string) {
                 :type="nodeCheckValid ? 'success' : 'error'"
                 :message="nodeCheckMessages.join('；')"
               />
-              <details v-if="advancedDescription" class="qi-reference-advanced">
-                <summary>节点描述</summary>
-                <ReferenceNodeBasics
-                  v-model:name="editingName"
-                  v-model:description="editingDescription"
-                  description-only
-                  :disabled="!editable"
-                />
-              </details>
             </fieldset>
           </ConfigProvider>
           <template #footer>

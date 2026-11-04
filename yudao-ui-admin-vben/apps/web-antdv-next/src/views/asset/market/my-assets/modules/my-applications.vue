@@ -37,13 +37,13 @@ import {
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
-import { PROCESS_ACTION_OPTIONS } from '#/views/market/data';
+import { PROCESS_ACTION_OPTIONS } from '#/views/asset/market/data';
 import {
   APPLY_STATUS_OPTIONS,
   optionColor,
   optionLabel,
-} from '#/views/market/market-labels';
-import { formatMarketTime } from '#/views/market/market-time';
+} from '#/views/asset/market/market-labels';
+import { formatMarketTime } from '#/views/asset/market/market-time';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 const access = useAccessStore();
@@ -281,9 +281,9 @@ onBeforeUnmount(() => {
   <Drawer>
     <Spin v-if="detailLoading" spinning />
     <Alert v-if="detailError" type="error" :message="detailError" show-icon>
-      <template #action
-        ><Button size="small" @click="loadDetail">重试</Button></template
-      >
+      <template #action>
+<Button size="small" @click="loadDetail">重试</Button>
+</template>
     </Alert>
     <template v-if="detail">
       <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
@@ -302,33 +302,27 @@ onBeforeUnmount(() => {
     </template>
   </Drawer>
   <div class="application-filters">
-    <label
-      >申请标题<Input
+    <label>申请标题<Input
         v-model:value="filters.keyword"
         allow-clear
         :maxlength="100"
         placeholder="请输入申请标题"
         @press-enter="search"
     /></label>
-    <label
-      >申请状态<Select
+    <label>申请状态<Select
         v-model:value="filters.status"
         allow-clear
         :options="APPLY_STATUS_OPTIONS"
         placeholder="请选择申请状态"
     /></label>
     <div class="application-filters__actions">
-      <Button @click="reset">重置</Button
-      ><Button type="primary" :loading="loading" @click="search">查询</Button>
+      <Button @click="reset">重置</Button><Button type="primary" :loading="loading" @click="search">查询</Button>
     </div>
   </div>
   <section class="applications-results">
     <header class="applications-results__header">
       <h2>申请记录</h2>
-      <Button :loading="loading" @click="load"
-        ><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
-        >刷新</Button
-      >
+      <Button :loading="loading" @click="load"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新</Button>
     </header>
     <Alert
       v-if="listError"
@@ -336,10 +330,11 @@ onBeforeUnmount(() => {
       type="error"
       :message="listError"
       show-icon
-      ><template #action
-        ><Button size="small" @click="load">重试</Button></template
-      ></Alert
-    >
+      >
+<template #action>
+<Button size="small" @click="load">重试</Button>
+</template>
+</Alert>
     <TableViewport
       :columns="columns"
       :data-source="rows"
@@ -356,26 +351,20 @@ onBeforeUnmount(() => {
         <Tag
           v-else-if="column.key === 'status'"
           :color="optionColor(APPLY_STATUS_OPTIONS, record.status)"
-          >{{ statusLabel(record.status) }}</Tag
-        >
-        <Button
-          v-else-if="column.key === 'actions'"
-          type="link"
-          size="small"
-          @click="openDetail(record)"
-          ><template #icon><IconifyIcon icon="lucide:eye" /></template
-          >详情</Button
-        >
+          >
+{{ statusLabel(record.status) }}
+</Tag>
+        <Button v-else-if="column.key === 'actions'" type="link" size="small" @click="openDetail(record)"><template #icon><IconifyIcon icon="lucide:eye" /></template>详情</Button>
         <span v-else>{{ record[column.dataIndex] || '-' }}</span>
       </template>
-      <template #emptyText
-        ><Empty
+      <template #emptyText>
+<Empty
           v-if="!loading && !listError"
           description="暂无符合条件的申请记录"
         /><span v-else>{{
           listError ? '读取失败，请重试' : '正在读取申请记录'
-        }}</span></template
-      >
+        }}</span>
+</template>
     </TableViewport>
     <ListPagination
       :current="query.pageNo"

@@ -69,13 +69,13 @@ vi.mock('#/api/asset/dataasset', () => ({
   ASSET_TYPE_OPTIONS: [{ label: '库表', value: 1 }],
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: { render: () => null } }));
-vi.mock('#/views/market/modules/apply-form.vue', () => ({
+vi.mock('#/views/asset/market/modules/apply-form.vue', () => ({
   default: { render: () => null },
 }));
-vi.mock('#/views/market/modules/preview-drawer.vue', () => ({
+vi.mock('#/views/asset/market/modules/preview-drawer.vue', () => ({
   default: { render: () => null },
 }));
-vi.mock('#/views/market/modules/comment-panel.vue', () => ({
+vi.mock('#/views/asset/market/modules/comment-panel.vue', () => ({
   default: {
     setup: () => {
       mock.comments();

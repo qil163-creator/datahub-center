@@ -2,7 +2,6 @@ package cn.iocoder.yudao.module.dataforge.service.integration;
 
 import cn.iocoder.yudao.framework.etl.core.compile.EtlDataxConnectorCompiler;
 import cn.iocoder.yudao.framework.etl.core.compile.EtlNativeConnectorCompiler;
-import cn.iocoder.yudao.framework.etl.core.compile.EtlNativeFileCompiler;
 import cn.iocoder.yudao.framework.etl.core.compile.EtlNativeMongoCompiler;
 import cn.iocoder.yudao.framework.etl.core.compile.EtlNativeOdpsCompiler;
 import cn.iocoder.yudao.framework.etl.core.compile.EtlNativeHttpCompiler;
@@ -88,8 +87,8 @@ public class IntegrationComponentCapabilitiesService {
             return partial(code, "需要锁定到专用账户虚拟根目录的FTP资源和受管秘密引用，支持有界CSV/文本读取、完整字段映射及STOU新文件输出");
         if (EtlNativeTdengineCompiler.supportedCodes(EtlNativeSqlCompiler.Engine.valueOf(engine), streaming).contains(code))
             return partial(code, streaming ? "需要授权的TMQ主题、消费者组及秘密引用，执行环境须安装受管连接器，TDengine版本和完整字段合同须通过核验；主题结构变化会明确失败" : "需要当前批引擎独立安装的TDengine JDBC适配及固定物理表/秘密授权，使用真实元数据投影进行有限结果读取；Spark不能无损表达纳秒时间戳时明确拒绝");
-        if (!streaming && EtlNativeFileCompiler.supportedCodes().contains(code))
-            return partial(code, "使用当前任务获授权的执行资源和相对路径，需显式声明源字段；上传附件仅用于字段解析");
+        if (!streaming && Set.of("read-csv", "read-excel", "read-json").contains(code))
+            return partial(code, "支持附件上传、字段解析与配置；当前引擎暂不支持上传附件执行");
         if (!streaming && "SPARK".equals(engine) && Set.of("java-script", "custom-token").contains(code))
             return partial(code, "需要任务专属mTLS脚本资源、隔离Docker工作进程和已发布源码版本；每个有界分区独立整批执行，Token只留受管运行上下文");
         if ("FLINK".equals(engine) && "custom-token".equals(code))

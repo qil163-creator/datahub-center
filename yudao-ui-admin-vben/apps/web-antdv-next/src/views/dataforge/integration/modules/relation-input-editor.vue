@@ -1,6 +1,5 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-mutating-props -- 仅编辑父设计器的隔离草稿，统一由父级保存。 */
-import type { ReferenceField } from './reference-node-schema';
 import type {
   RelationInputCode,
   RelationInputColumn,
@@ -17,7 +16,6 @@ import {
   Alert,
   Button,
   Input,
-  Modal,
   RadioGroup,
   Select,
   Spin,
@@ -34,11 +32,7 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { validateConnectorConfig } from './connector-schema';
 import DatabaseConnectionPicker from './database-connection-picker.vue';
-import ReferenceFieldEditModal from './reference-field-edit-modal.vue';
-import {
-  moveReferenceField,
-  validateReferenceFields,
-} from './reference-node-schema';
+import { validateReferenceFields } from './reference-node-schema';
 import {
   createRelationReadConfig,
   RELATION_READ_KEYS,
@@ -53,7 +47,6 @@ const props = defineProps<{
   config: Record<string, any>;
   disabled?: boolean;
   engine?: string;
-  executionReason?: string;
   mode?: string;
   resolveFields?: () => Promise<IntegrationApi.SchemaField[]>;
   toolCode: RelationInputCode;
@@ -364,75 +357,12 @@ function sortState(key: 'length' | 'scale') {
 function set(key: string, value: unknown) {
   if (props.disabled) return;
   if (
-    (key === 'resourceBindingId' && !value) ||
     (isTdengine.value && key === 'whereCondition' && !value)
   )
     Reflect.deleteProperty(props.config, key);
   else props.config[key] = value;
 }
 
-const fieldEditorOpen = ref(false);
-const fieldDraft = ref<ReferenceField>({ name: '' });
-const fieldErrors = ref<string[]>([]);
-let editingColumn: RelationInputColumn | undefined;
-let editingConfig: Record<string, any> | undefined;
-function openField(index?: number) {
-  if (props.disabled) return;
-  editingConfig = props.config;
-  editingColumn = index === undefined ? undefined : columns.value[index];
-  fieldDraft.value = editingColumn ? { ...editingColumn } : { name: '' };
-  fieldErrors.value = [];
-  fieldEditorOpen.value = true;
-}
-function saveField() {
-  if (
-    props.disabled ||
-    !fieldEditorOpen.value ||
-    props.config !== editingConfig
-  )
-    return;
-  if (editingColumn && !columns.value.includes(editingColumn)) {
-    fieldErrors.value = ['该字段已变更，请关闭后重新编辑'];
-    return;
-  }
-  const next = editingColumn
-    ? columns.value.map((column) =>
-        column === editingColumn ? { ...fieldDraft.value } : column,
-      )
-    : [...columns.value, { ...fieldDraft.value }];
-  fieldErrors.value = validateReferenceFields(next);
-  if (fieldErrors.value.length > 0) return;
-  props.config.columns = next;
-  fieldEditorOpen.value = false;
-}
-function removeField(index: number) {
-  if (props.disabled) return;
-  if (columns.value.length === 1) {
-    errors.value = ['请至少保留一个属性字段'];
-    return;
-  }
-  const context = props.config;
-  const field = columns.value[index];
-  Modal.confirm({
-    title: '确定要删除这条数据吗？',
-    okText: '确定',
-    cancelText: '取消',
-    onOk: () => {
-      if (!props.disabled && props.config === context)
-        props.config.columns = columns.value.filter(
-          (column) => column !== field,
-        );
-    },
-  });
-}
-function moveField(index: number, offset: number) {
-  if (!props.disabled)
-    props.config.columns = moveReferenceField(
-      columns.value,
-      index,
-      index + offset,
-    );
-}
 function validate() {
   const messages: string[] = [];
   if (!/^[1-9]\d*$/u.test(String(props.config.databaseId ?? '')))
@@ -493,7 +423,9 @@ function validate() {
       messages.push('MongoDB查询条件必须为有效的JSON对象');
     }
   }
-  messages.push(...validateReferenceFields(columns.value));
+  // 持续订阅尚无主题字段解析入口，允许先保存空字段草稿；执行时仍校验完整字段契约。
+  if (!realtime.value || columns.value.length > 0)
+    messages.push(...validateReferenceFields(columns.value));
   errors.value = messages;
   return messages.length === 0;
 }
@@ -503,17 +435,10 @@ watch(
     epoch.value++;
     tableDraft = {};
     sqlDraft = {};
-    fieldEditorOpen.value = false;
     errors.value = [];
     fieldSort.value = undefined;
   },
   { immediate: true, flush: 'sync' },
-);
-watch(
-  () => [props.disabled, access.accessToken, access.refreshToken],
-  () => {
-    fieldEditorOpen.value = false;
-  },
 );
 watch(() => [access.accessToken, access.refreshToken], () => {
   tableDraft = {};
@@ -803,112 +728,6 @@ SQL解析
         </div>
       </Spin>
     </section>
-    <details v-if="!referenceRelation" class="qi-relation-advanced">
-      <summary>高级字段配置</summary>
-      <Button v-if="!sqlMode && !realtime" :disabled="disabled || !config.tableName" :loading="fieldsLoading" @click="loadMetadata(true)">解析属性字段</Button>
-      <Button :disabled="disabled" @click="openField()">+ 新增字段</Button>
-      <div class="qi-relation-table-scroll">
-        <table class="qi-relation-table" aria-label="高级属性字段">
-          <thead>
-            <tr>
-              <th>序号</th>
-              <th>字段名称</th>
-              <th v-if="toolCode === 'read-hive'">输出字段名</th>
-              <th>类型</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(column, index) in columns" :key="index">
-              <td>{{ index + 1 }}</td>
-              <td>{{ column.name }}</td>
-              <td v-if="toolCode === 'read-hive'">
-                <Input
-                  :value="column.alias || column.name"
-                  :disabled="disabled"
-                  :aria-label="`第${index + 1}行输出字段名`"
-                  @update:value="
-                    (value) => {
-                      if (!disabled) column.alias = value;
-                    }
-                  "
-                />
-              </td>
-              <td>{{ column.type || '-' }}</td>
-              <td class="qi-relation-actions">
-                <Button
-                  type="link"
-                  :disabled="disabled"
-                  @click="openField(index)"
-                  >
-修改
-</Button><Button
-                  type="link"
-                  :disabled="disabled"
-                  @click="removeField(index)"
-                  >
-删除
-</Button><Button
-                  type="link"
-                  :disabled="disabled || index === 0"
-                  :aria-label="`上移第${index + 1}行字段`"
-                  @click="moveField(index, -1)"
-                  >
-上移
-</Button><Button
-                  type="link"
-                  :disabled="disabled || index === columns.length - 1"
-                  :aria-label="`下移第${index + 1}行字段`"
-                  @click="moveField(index, 1)"
-                  >
-下移
-</Button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </details>
-    <details v-if="!referenceRelation" class="qi-relation-advanced">
-      <summary>执行配置</summary>
-      <div
-        v-if="
-          isTdengine ||
-          toolCode === 'read-mongodb' ||
-          config.resourceBindingId !== undefined
-        "
-        class="qi-relation-field"
-      >
-        <label>执行资源编号</label><Input
-          :value="config.resourceBindingId"
-          :disabled="disabled"
-          aria-label="执行资源编号"
-          @update:value="(value) => set('resourceBindingId', value)"
-        />
-      </div>
-      <p>
-        {{
-          executionReason ||
-          '执行前由任务检查确认当前引擎、数据源授权及读取配置。'
-        }}
-      </p>
-    </details>
-    <ReferenceFieldEditModal
-      :open="fieldEditorOpen"
-      :field="fieldDraft"
-      :errors="fieldErrors"
-      :disabled="disabled"
-      :show-key="toolCode === 'read-mongodb'"
-      :show-metadata="!isTdengine"
-      :show-format="!isTdengine"
-      @update:field="
-        (value) => {
-          if (!disabled) fieldDraft = value;
-        }
-      "
-      @save="saveField"
-      @cancel="fieldEditorOpen = false"
-    />
   </div>
 </template>
 
@@ -1069,29 +888,6 @@ SQL解析
 
 .qi-relation-refresh {
   margin-top: 12px;
-}
-
-.qi-relation-actions {
-  min-width: 220px;
-  white-space: nowrap;
-}
-
-.qi-relation-advanced {
-  min-width: 0;
-}
-
-.qi-relation-advanced summary {
-  margin: 10px 0;
-  cursor: pointer;
-}
-
-.qi-relation-advanced .qi-relation-table-scroll {
-  margin-top: 10px;
-}
-
-.qi-relation-advanced p {
-  margin: 8px 0 0;
-  color: #909399;
 }
 
 /* ODPS reference layout: read options share the connection grid columns. */

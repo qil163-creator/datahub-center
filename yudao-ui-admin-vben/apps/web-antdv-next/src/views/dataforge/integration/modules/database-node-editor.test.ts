@@ -62,6 +62,9 @@ async function click(text: string) { const button = [...host.querySelectorAll('b
 describe('数据库节点双列字段映射', () => {
   it('表与SQL切换分别保留筛选草稿，SQL只提交自身查询条件', async () => {
     const state = await mount({ databaseId: '9007199254740993', tableName: 'target', whereCondition: 'id > 9007199254740993', selectedColumns: ['id'], sql: 'select id from target' }, 'read-db');
+    expect(host.textContent).not.toContain('高级读取配置');
+    expect(host.querySelector('[aria-label="单次读取数据"]')).toBeNull();
+    expect(state.config.fetchSize).toBeUndefined();
     const mode = host.querySelector<HTMLSelectElement>('select')!;
     mode.value = '1'; mode.dispatchEvent(new Event('change', { bubbles: true })); await flush();
     expect(state.config.ifSql).toBe(1); expect(state.config.whereCondition).toBeUndefined(); expect(state.config.selectedColumns).toBeUndefined();
@@ -69,6 +72,26 @@ describe('数据库节点双列字段映射', () => {
     expect(editor.value!.validate()).toBe(true);
     mode.value = '0'; mode.dispatchEvent(new Event('change', { bubbles: true })); await flush();
     expect(state.config.whereCondition).toBe('id > 9007199254740993'); expect(state.config.selectedColumns).toEqual(['id']); expect(state.config.sql).toBe('select id from target');
+  });
+
+  it('表输入SQL模式复用紧凑编辑器与四列解析结果，保留SQL输入和解析交互', async () => {
+    const resolveFields = vi.fn(async () => [{ name: 'id', dataType: 'BIGINT' }, { name: 'label', dataType: 'VARCHAR' }]);
+    const state = await mount({ databaseId: '9007199254740993', ifSql: 1, sql: 'select id from target' }, 'read-db', resolveFields);
+    expect(host.querySelector('.qi-sql-editor')?.getAttribute('style')).toContain('140px');
+    expect(host.querySelector('.qi-db-sql-empty img')?.getAttribute('src')).toBe('/assets/qdata-integration/node-empty-reference.png');
+    expect([...host.querySelectorAll('[aria-label="表输入属性字段"] th')].map((cell) => cell.textContent)).toEqual(['序号', '英文名称', '中文名称', '字段类型']);
+    const sql = host.querySelector<HTMLTextAreaElement>('textarea')!;
+    sql.value = 'select id, label from target';
+    sql.dispatchEvent(new Event('input'));
+    await flush();
+    expect(state.config.sql).toBe('select id, label from target');
+    await click('SQL解析');
+    expect(resolveFields).toHaveBeenCalledOnce();
+    expect(host.querySelector('.qi-db-sql-empty')).toBeNull();
+    expect(host.querySelectorAll('[aria-label="表输入属性字段"] tbody tr')).toHaveLength(2);
+    expect(host.textContent).toContain('label');
+    expect(state.config.selectedColumns).toBeUndefined();
+    expect(editor.value!.validate()).toBe(true);
   });
 
   it('字段序号与主键来自元数据，长度排序保留读取选择及原字段顺序', async () => {
@@ -90,6 +113,9 @@ describe('数据库节点双列字段映射', () => {
     vi.mocked(getDatabaseTableMeta).mockResolvedValue({ tableName: 'target', columns: [{ fieldName: 'id', fieldTypeName: 'BIGINT', pk: true, nullable: false }, columns[1]!] });
     const state = await mount({ databaseId: '1', tableName: 'target', dataSyncType: 1 });
     state.engine = 'FLINK'; state.mode = 'REALTIME'; await flush();
+    expect(host.querySelector('.qi-db-output-execution')).toBeNull();
+    expect(host.querySelector('[aria-label="实时目标主键"]')).toBeNull();
+    expect(host.textContent).not.toContain('执行配置说明');
     expect(state.config.dataSyncType).toBe(1);
     expect(editor.value!.validate()).toBe(false);
     expect(host.querySelector('[aria-label="前置SQL"]')).toBeNull();
@@ -113,7 +139,11 @@ describe('数据库节点双列字段映射', () => {
     expect(state.config.preSql).toBe(preSql); expect(state.config.postSql).toBe(postSql);
     expect(state.config.databaseId).toBe('9007199254740993');
     expect(editor.value!.validate()).toBe(true);
-    expect(host.textContent).toContain('任一步失败全部回滚');
+    expect(host.querySelector('.qi-db-output-execution')).toBeNull();
+    expect(host.querySelector('[aria-label="目标唯一键"]')).toBeTruthy();
+    expect(host.querySelector('[aria-label="写入模式"]')).toBeTruthy();
+    expect(host.querySelector('[aria-label="单次写入数据"]')).toBeTruthy();
+    expect(host.textContent).not.toContain('执行配置说明');
   });
 
   it('切换到不支持的引擎或连接不静默清空 SQL，并阻止校验通过', async () => {
@@ -126,8 +156,9 @@ describe('数据库节点双列字段映射', () => {
     expect(state.config.preSql).toBe('DELETE FROM target WHERE id=1');
     state.engine = 'DATAX'; state.config.databaseId = '2'; await flush();
     expect(editor.value!.validate()).toBe(false);
-    await click('清除不支持的 SQL 配置');
-    expect(state.config.preSql).toBe(''); expect(state.config.postSql).toBe('');
+    expect(host.textContent).not.toContain('清除不支持的 SQL 配置');
+    expect(state.config.preSql).toBe('DELETE FROM target WHERE id=1');
+    expect(state.config.postSql).toBe('UPDATE target SET name=\'done\'');
   });
 
   it('只读任务禁止编辑前后置 SQL，普通追加模式保留但不执行历史 SQL', async () => {

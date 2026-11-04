@@ -237,7 +237,7 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
       required: true,
       defaultValue: ',',
     },
-    ...(kind === 'hdfs'
+    ...(kind === 'hdfs' && output
       ? [
           {
             key: 'nullFormat',
@@ -246,20 +246,6 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
             required: true,
             defaultValue: '\\N',
           } as ConnectorField,
-          ...(output
-            ? []
-            : [
-                {
-                  key: 'hasHeader',
-                  label: '首行表头',
-                  kind: 'select',
-                  defaultValue: 'false',
-                  options: [
-                    { label: '无表头', value: 'false' },
-                    { label: '有表头', value: 'true' },
-                  ],
-                } as ConnectorField,
-              ]),
         ]
       : []),
     ...(output

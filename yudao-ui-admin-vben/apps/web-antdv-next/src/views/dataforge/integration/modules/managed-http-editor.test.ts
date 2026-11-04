@@ -7,28 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import ManagedHttpEditor from './managed-http-editor.vue';
 
 vi.mock('antdv-next', () => {
-  const Field = defineComponent({
-    props: { value: [String, Number], disabled: Boolean, precision: Number },
-    emits: ['update:value'],
-    setup:
-      (props, { emit }) =>
-      () =>
-        h('input', {
-          value: props.value,
-          disabled: props.disabled,
-          onInput: (event: Event) =>
-            emit(
-              'update:value',
-              props.precision === 0
-                ? Number((event.target as HTMLInputElement).value)
-                : (event.target as HTMLInputElement).value,
-            ),
-        }),
-  });
   return {
-    Input: Field,
-    InputNumber: Field,
-    TextArea: Field,
     Alert: defineComponent({
       props: { message: String },
       setup: (props) => () => h('div', props.message),
@@ -66,38 +45,43 @@ function mount(config: Record<string, any>, disabled = false) {
   app.mount(host);
   return { state, editor };
 }
-async function edit(label: string, value: string) {
-  const input = host.querySelector<HTMLInputElement>(
-    `[aria-label="${label}"]`,
-  )!;
-  input.value = value;
-  input.dispatchEvent(new Event('input'));
-  await nextTick();
-}
-describe('受管API执行配置', () => {
-  it('要求执行资源和有效预算，保留独立接口配置及未知历史属性', async () => {
+describe('接口API输入主配置', () => {
+  it('移除高级面板后无需隐藏资源字段即可保存，保留独立接口配置及未知历史属性', () => {
     const { state, editor } = mount({
       apiConfig: { requestUrl: 'https://fixture.test/rows' },
       vendor: 7,
     });
-    expect(editor.value!.validate()).toBe(false);
-    await edit('接口执行资源', 'api.resource');
-    await edit('接口最大页数', '0');
-    expect(editor.value!.validate()).toBe(false);
-    await edit('接口最大页数', '20');
-    expect(editor.value!.validate()).toBe(true);
-    await edit('接口执行资源', '_api.resource');
-    expect(editor.value!.validate()).toBe(false);
-    await edit('接口执行资源', 'api.resource');
+    expect(host.textContent).toContain('接口参数');
+    expect(host.querySelector('details')).toBeNull();
+    expect(host.textContent).not.toContain('高级执行配置');
     expect(editor.value!.validate()).toBe(true);
     expect(state.config).toEqual({
       apiConfig: { requestUrl: 'https://fixture.test/rows' },
       vendor: 7,
+    });
+  });
+  it('既有执行资源和预算仍校验，错误显示在主配置中', async () => {
+    const { state, editor } = mount({
+      resourceBindingId: 'api.resource',
+      maxPages: 0,
+      apiConfig: {},
+    });
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick();
+    expect(host.textContent).toContain('读取预算');
+    state.config.maxPages = 20;
+    expect(editor.value!.validate()).toBe(true);
+    state.config.resourceBindingId = '_api.resource';
+    expect(editor.value!.validate()).toBe(false);
+    state.config.resourceBindingId = 'api.resource';
+    expect(editor.value!.validate()).toBe(true);
+    expect(state.config).toEqual({
+      apiConfig: {},
       resourceBindingId: 'api.resource',
       maxPages: 20,
     });
   });
-  it('只读事件不写入草稿，认证请求头不误当普通参数保存', async () => {
+  it('只读校验不写入草稿，认证请求头不误当普通参数保存', () => {
     const { state, editor } = mount(
       {
         resourceBindingId: 'api-resource',
@@ -107,19 +91,18 @@ describe('受管API执行配置', () => {
       },
       true,
     );
-    await edit('接口执行资源', 'ignored');
     expect(state.config.resourceBindingId).toBe('api-resource');
     expect(editor.value!.validate()).toBe(false);
   });
-  it('秘密请求头只保存引用，错误JSON不把半成品写入配置', async () => {
+  it('保留既有请求头引用并拒绝错误JSON', () => {
     const { state, editor } = mount({
       resourceBindingId: 'api-resource',
       apiConfig: {},
+      headerSecretRefs: '{',
     });
-    await edit('接口秘密请求头引用', '{');
     expect(editor.value!.validate()).toBe(false);
-    expect(state.config.headerSecretRefs).toBeUndefined();
-    await edit('接口秘密请求头引用', '{"Authorization":"api_access"}');
+    expect(state.config.headerSecretRefs).toBe('{');
+    state.config.headerSecretRefs = '{"Authorization":"api_access"}';
     expect(editor.value!.validate()).toBe(true);
     expect(state.config.headerSecretRefs).toEqual({
       Authorization: 'api_access',
@@ -129,53 +112,46 @@ describe('受管API执行配置', () => {
     const { state, editor } = mount({ resourceBindingId: 'api.resource', apiConfig: {} });
     const secrets = Object.fromEntries(Array.from({ length: 16 }, (_, index) => [`X-Secret${index}`, `secret${index}`]));
     const contexts = Object.fromEntries(Array.from({ length: 16 }, (_, index) => [`X-Context${index}`, { tokenKey: `token${index}` }]));
-    await edit('接口秘密请求头引用', JSON.stringify(secrets));
-    await edit('接口认证变量引用', JSON.stringify(contexts));
+    state.config.headerSecretRefs = secrets;
+    state.config.headerContextRefs = contexts;
     expect(editor.value!.validate()).toBe(true);
-    await edit('接口认证变量引用', JSON.stringify({ ...contexts, 'X-Overflow': { tokenKey: 'extra' } }));
+    state.config.headerContextRefs = { ...contexts, 'X-Overflow': { tokenKey: 'extra' } };
     expect(editor.value!.validate()).toBe(false);
     await nextTick();
     expect(host.textContent).toContain('合计最多32个');
-    expect(state.config.headerContextRefs).toEqual(contexts);
-    await edit('接口秘密请求头引用', '{}');
-    await edit('接口认证变量引用', '{}');
-    for (const label of ['接口秘密请求头引用', '接口认证变量引用']) {
+    expect(state.config.headerContextRefs).toHaveProperty('X-Overflow');
+    state.config.headerSecretRefs = {};
+    state.config.headerContextRefs = {};
+    for (const key of ['headerSecretRefs', 'headerContextRefs']) {
       for (const name of ['Host', 'cOnNection', 'Content-Length', 'Transfer-Encoding', 'Upgrade']) {
-        const value = label === '接口秘密请求头引用' ? 'api_access' : { tokenKey: 'accessToken' };
-        await edit(label, JSON.stringify({ [name]: value }));
+        const value = key === 'headerSecretRefs' ? 'api_access' : { tokenKey: 'accessToken' };
+        state.config[key] = { [name]: value };
         expect(editor.value!.validate()).toBe(false);
         await nextTick();
         expect(host.textContent).toContain('协议保留请求头');
-        await edit(label, '{}');
+        state.config[key] = {};
       }
     }
-    await edit('接口认证变量引用', '{"Authorization":{"tokenKey":"accessToken","prefix":"Bearer "}}');
+    state.config.headerContextRefs = { Authorization: { tokenKey: 'accessToken', prefix: 'Bearer ' } };
     expect(editor.value!.validate()).toBe(true);
     expect(state.config.headerContextRefs).toEqual({ Authorization: { tokenKey: 'accessToken', prefix: 'Bearer ' } });
   });
 
-  it('认证变量仅保存名称与方案，不覆盖同名秘密引用或接受换行前缀', async () => {
+  it('既有认证变量不允许同名秘密引用或换行前缀，只读校验保持原格式', () => {
     const { state, editor } = mount({
       resourceBindingId: 'api-resource',
       apiConfig: {},
-    });
-    await edit(
-      '接口认证变量引用',
-      '{"Authorization":{"tokenKey":"accessToken","prefix":"Bearer "}}',
+      headerContextRefs: '{"Authorization":{"tokenKey":"accessToken","prefix":"Bearer "}}',
+    },
+      true,
     );
+    const before = JSON.stringify(state.config);
     expect(editor.value!.validate()).toBe(true);
-    expect(state.config.headerContextRefs).toEqual({
-      Authorization: { tokenKey: 'accessToken', prefix: 'Bearer ' },
-    });
-    await edit('接口秘密请求头引用', '{"authorization":"api_access"}');
+    expect(JSON.stringify(state.config)).toBe(before);
+    state.config.headerSecretRefs = { authorization: 'api_access' };
     expect(editor.value!.validate()).toBe(false);
-    expect(state.config.headerSecretRefs).toBeUndefined();
-    await edit('接口秘密请求头引用', '{}');
-    await edit(
-      '接口认证变量引用',
-      String.raw`{"Authorization":{"tokenKey":"accessToken","prefix":"Bearer x\r\n"}}`,
-    );
+    state.config.headerSecretRefs = {};
+    state.config.headerContextRefs = String.raw`{"Authorization":{"tokenKey":"accessToken","prefix":"Bearer x\r\n"}}`;
     expect(editor.value!.validate()).toBe(false);
-    expect(state.config.headerContextRefs.Authorization.prefix).toBe('Bearer ');
   });
 });

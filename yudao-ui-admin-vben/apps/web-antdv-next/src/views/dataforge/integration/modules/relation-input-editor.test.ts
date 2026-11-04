@@ -269,6 +269,49 @@ async function click(text: string) {
 }
 
 describe('关系输入ODPS交互', () => {
+  it.each(['read-mongodb', 'read-tdengine'] as const)(
+    '%s 删除高级面板后保留主属性表与历史执行配置，换表仍加载真实字段',
+    async (toolCode) => {
+      const state = await mount({
+        databaseId: '9007199254740993',
+        tableName: 'stations',
+        columns: [{ name: 'saved', type: 'STRING', custom: '保留' }],
+        resourceBindingId: '9007199254740995',
+        maxRows: 75,
+      }, toolCode);
+      expect(host.querySelectorAll('details')).toHaveLength(0);
+      expect(host.textContent).not.toContain('高级字段配置');
+      expect(host.textContent).not.toContain('执行配置');
+      expect(state.config.columns[0]).toEqual({ name: 'saved', type: 'STRING', custom: '保留' });
+      expect(host.querySelector('table[aria-label="关系输入属性字段"]')).toBeTruthy();
+      await input('选择表/视图', 'measurements');
+      expect(databaseApi.getDatabaseTableMeta).toHaveBeenLastCalledWith(
+        '9007199254740993', 'measurements', { silentError: true },
+      );
+      expect(state.config.columns[0]).toMatchObject({ name: 'id', type: 'BIGINT' });
+      expect(state.config).toMatchObject({ resourceBindingId: '9007199254740995', maxRows: 75 });
+    },
+  );
+  it('实时 TDengine 无字段解析入口时可保存订阅草稿，已有无效字段和凭据仍拒绝保存', async () => {
+    vi.mocked(databaseApi.getDatabaseSimpleList).mockResolvedValue([
+      { id: '9007199254740993', name: '时序连接', productId: 'TDENGINE' },
+    ]);
+    const state = await mount({
+      databaseId: '9007199254740993', topic: '', groupId: '', columns: [],
+    }, 'read-tdengine', undefined, 'REALTIME');
+    await input('订阅Topic', 'sensor_topic');
+    await input('消费组ID', 'sensor_group');
+    expect(editor.value?.validate()).toBe(true);
+    expect(databaseApi.getDatabaseTableMeta).not.toHaveBeenCalled();
+    expect(host.querySelectorAll('details')).toHaveLength(0);
+    state.config.columns = [{ name: '', type: 'BIGINT' }];
+    expect(editor.value?.validate()).toBe(false);
+    state.config.columns = [];
+    state.config.password = 'fixture-secret';
+    expect(editor.value?.validate()).toBe(false);
+    await flush();
+    expect(host.textContent).toContain('节点配置不可保存凭据');
+  });
   it('已有字段回显不被自动解析覆盖，选择新表实际读取元数据并显示四列属性', async () => {
     const state = await mount({
       databaseId: '9007199254740993',

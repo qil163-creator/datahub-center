@@ -23,7 +23,7 @@ import {
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
-import { formatMarketTime } from '#/views/market/market-time';
+import { formatMarketTime } from '#/views/asset/market/market-time';
 
 import { deliveryLabels } from '../data';
 import ApplyForm from './mart-apply-form.vue';
@@ -254,8 +254,7 @@ function assetImage(name: string) {
           <h1>
             <span class="mart-detail__badge">{{
               current.sourceRecordId || current.id
-            }}</span
-            >{{ current.marketName || current.assetName
+            }}</span>{{ current.marketName || current.assetName
             }}<Tag class="mart-detail__state">
               {{ authorizationLabel }}
             </Tag>
@@ -266,8 +265,8 @@ function assetImage(name: string) {
                 :src="assetImage('icon-return')"
                 alt=""
                 aria-hidden="true"
-              /> </template
-            >返回
+              />
+</template>返回
           </Button>
         </header>
         <div class="mart-detail__grid">
@@ -275,54 +274,39 @@ function assetImage(name: string) {
             <label>资产名称</label><span>{{ current.assetName || '-' }}</span>
           </div>
           <div class="mart-detail__field">
-            <label>所属集市</label
-            ><span>{{ current.marketCategoryName || '-' }}</span>
+            <label>所属集市</label><span>{{ current.marketCategoryName || '-' }}</span>
           </div>
           <div class="mart-detail__field">
-            <label>归属信息</label
-            ><span class="mart-detail__ownership"
-              ><img
+            <label>归属信息</label><span class="mart-detail__ownership"><img
                 :src="assetImage('icon-folder')"
                 alt=""
                 aria-hidden="true"
               />{{ current.categoryName || '-' }} /
-              {{ current.subjectDomainName || '-' }}</span
-            >
+              {{ current.subjectDomainName || '-' }}</span>
           </div>
           <div class="mart-detail__field">
-            <label>资产类型</label
-            ><span
-              ><Tag class="mart-detail__tag mart-detail__tag--1">{{
+            <label>资产类型</label><span><Tag class="mart-detail__tag mart-detail__tag--1">{{
                 typeLabel
-              }}</Tag></span
-            >
+              }}</Tag></span>
           </div>
           <div class="mart-detail__field">
-            <label>更新频率</label
-            ><span
-              ><Tag class="mart-detail__tag mart-detail__tag--1">{{
+            <label>更新频率</label><span><Tag class="mart-detail__tag mart-detail__tag--1">{{
                 current.frequency || current.updateCycle || '-'
-              }}</Tag></span
-            >
+              }}</Tag></span>
           </div>
           <div class="mart-detail__field">
-            <label>交付形态</label
-            ><span
-              ><Tag
+            <label>交付形态</label><span><Tag
                 v-for="delivery in deliveries"
                 :key="delivery.value"
                 class="mart-detail__tag"
                 :class="`mart-detail__tag--${delivery.value}`"
-                >{{ delivery.label }}</Tag
-              ></span
-            >
+                >{{ delivery.label }}</Tag></span>
           </div>
           <div class="mart-detail__field">
             <label>数据量</label><span>{{ current.rowCount ?? '-' }}</span>
           </div>
           <div class="mart-detail__field">
-            <label>创建时间</label
-            ><span>{{
+            <label>创建时间</label><span>{{
               formatMarketTime(current.publishTime || current.createTime)
             }}</span>
           </div>
@@ -398,8 +382,7 @@ function assetImage(name: string) {
             bordered
           >
             <template #bodyCell="{ column, record, index }">
-              <span v-if="column.key === 'index'">{{ index + 1 }}</span
-              ><span v-else-if="column.key === 'nullableFlag'">{{
+              <span v-if="column.key === 'index'">{{ index + 1 }}</span><span v-else-if="column.key === 'nullableFlag'">{{
                 record.nullableFlag === 1 ? '是' : '否'
               }}</span>
             </template>
@@ -424,8 +407,7 @@ function assetImage(name: string) {
           >
             <h2>{{ apiDocument.name }}</h2>
             <p>
-              <Tag>{{ apiDocument.method }}</Tag
-              >{{ apiDocument.path }}
+              <Tag>{{ apiDocument.method }}</Tag>{{ apiDocument.path }}
             </p>
             <h3>请求参数</h3>
             <Table

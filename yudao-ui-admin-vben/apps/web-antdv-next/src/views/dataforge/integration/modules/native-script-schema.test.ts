@@ -1,11 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateNativeScript } from './native-script-schema';
+import { validateNativeScript, validateNativeScriptDraft } from './native-script-schema';
 
 const offline = { engine: 'SPARK', mode: 'OFFLINE', toolCode: 'java-script' };
 const batch = { resourceBindingId: 'script.resource', code: 'public class EtlScript {}', workerState: 'BATCH', batchPolicy: 'PARTITION', maximumRows: 1000 };
 
 describe('原生脚本显式批次合同', () => {
+  it('草稿保存只校验可编辑的代码与字段，执行时仍检查资源和批次', () => {
+    const draft = { code: 'public class EtlScript {}', unknown: 42 };
+    expect(validateNativeScriptDraft(draft, offline)).toEqual([]);
+    expect(validateNativeScript(draft, offline)).toContain('请填写管理员授权的脚本资源编号');
+    expect(validateNativeScript(draft, offline)).toContain('请明确选择每批独立运行状态');
+    expect(validateNativeScriptDraft({ code: '', outputFields: [{ columnName: '', columnType: 'INVALID' }] }, offline)).toEqual([
+      '请填写脚本代码',
+      '第1行输出字段名称无效',
+      '第1行输出字段类型无效或超出当前引擎精度',
+    ]);
+    expect(draft).toEqual({ code: 'public class EtlScript {}', unknown: 42 });
+  });
   it('明确声明离线完整分区和实时有限窗口，不自动替换历史批次参数', () => {
     expect(validateNativeScript(batch, offline)).toEqual([]);
     expect(validateNativeScript({ ...batch, batchSize: 1000 }, offline)).toContain('请清除历史批次行数，再明确设置最大批次行数');

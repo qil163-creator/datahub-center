@@ -289,6 +289,8 @@ describe('qData补齐配置的真实交互', () => {
     await harness.upload!(new File(['{}'], 'data.ndjson'));
     expect(uploadFileWithInfo).not.toHaveBeenCalled();
     expect(host.textContent).toContain('请选择 jsonl 文件');
+    expect(host.textContent).not.toContain('高级字段配置');
+    expect(host.querySelector('.qi-reference-fields-table')).toBeNull();
   });
 
   it('文件字段新增默认string，日期格式联动必填，旧显式类型和元信息原样保存', async () => {
@@ -604,156 +606,33 @@ describe('qData补齐配置的真实交互', () => {
     expect(state.config.databaseId).toBe('unavailable');
   });
 
-  it('excel执行资源支持指定工作表和公式缓存，切回上传恢复原始解析行列', async () => {
-    const { state, editor } = mount('read-excel', {
-      fileId: '1',
-      fileFormat: 'EXCEL',
-      startRow: 2,
-      startColumn: 3,
-      sheetName: '解析表',
-      schemaFileKey: '1/EXCEL/2/3/sheet:"解析表"',
-      columns: [{ name: 'ID', type: 'Integer' }],
-    });
-    await click('执行资源');
-    state.config.resourceBindingId = 'excel-resource';
-    state.config.relativePath = 'data/book.xlsx';
-    const sheet = host.querySelector<HTMLInputElement>(
-      '[aria-label="执行工作表"]',
-    )!;
-    sheet.value = ' 执行表 ';
-    sheet.dispatchEvent(new Event('input'));
-    const formulas = host.querySelector<HTMLInputElement>(
-      '[aria-label="公式读取方式"]',
-    )!;
-    formulas.value = 'CACHED';
-    formulas.dispatchEvent(new Event('input'));
-    await flush();
-    expect(state.config).toMatchObject({
-      sheetName: ' 执行表 ',
-      formulaMode: 'CACHED',
-      startRow: 2,
-      startColumn: 1,
-    });
-    expect(state.config.fileId).toBeUndefined();
-    expect(host.querySelector('[aria-label="文件编码"]')).toBeNull();
-    expect(editor.value!.validate()).toBe(true);
-    await click('上传解析');
-    expect(state.config).toMatchObject({
-      fileId: '1',
-      startRow: 2,
-      startColumn: 3,
-      sheetName: '解析表',
-    });
-    expect(state.config.resourceBindingId).toBeUndefined();
-    expect(state.config.formulaMode).toBeUndefined();
-    expect(editor.value!.validate()).toBe(true);
-    await click('执行资源');
-    expect(state.config).toMatchObject({
-      resourceBindingId: 'excel-resource',
-      relativePath: 'data/book.xlsx',
-      sheetName: ' 执行表 ',
-      formulaMode: 'CACHED',
-    });
-  });
-
-  it('csv和jsonl可切换到授权执行资源，校验编号及相对路径并保留往返草稿', async () => {
-    const { state, editor } = mount('read-json', {
-      fileId: '1',
-      fileName: 'sample.jsonl',
-      fileFormat: 'JSONL',
-      schemaFileKey: '1/JSONL/1/1',
-      columns: [{ name: 'id', type: 'Integer', jsonPath: '$["id"]' }],
-      vendor: 42,
-    });
-    expect(host.textContent).toContain('用于字段解析，运行请选择执行资源');
-    await click('执行资源');
-    expect(state.config.fileId).toBeUndefined();
-    expect(editor.value!.validate()).toBe(false);
-    const binding = host.querySelector<HTMLInputElement>(
-      '[aria-label="执行资源编号"]',
-    )!;
-    binding.value = 'worker.files';
-    binding.dispatchEvent(new Event('input'));
-    const path = host.querySelector<HTMLInputElement>(
-      '[aria-label="相对文件路径"]',
-    )!;
-    path.value = 'in/levels.jsonl';
-    path.dispatchEvent(new Event('input'));
-    await flush();
-    expect(state.config).toMatchObject({
-      resourceBindingId: 'worker.files',
-      relativePath: 'in/levels.jsonl',
-      vendor: 42,
-    });
-    expect(state.config.columns[0].jsonPath).toBe('$.id');
-    expect(editor.value!.validate()).toBe(true);
-    binding.value = '_worker.files';
-    binding.dispatchEvent(new Event('input'));
-    await flush();
-    expect(editor.value!.validate()).toBe(false);
-    binding.value = 'worker.files';
-    binding.dispatchEvent(new Event('input'));
-    await flush();
-    expect(editor.value!.validate()).toBe(true);
-    path.value = '../levels.jsonl';
-    path.dispatchEvent(new Event('input'));
-    await flush();
-    expect(editor.value!.validate()).toBe(false);
-    path.value = 'in/levels.jsonl';
-    path.dispatchEvent(new Event('input'));
-    await flush();
-    await click('上传解析');
-    expect(state.config.fileId).toBe('1');
-    expect(state.config.fileName).toBe('sample.jsonl');
-    expect(state.config.resourceBindingId).toBeUndefined();
-    expect(state.config.relativePath).toBeUndefined();
-    expect(editor.value!.validate()).toBe(true);
-    await click('执行资源');
-    expect(state.config.resourceBindingId).toBe('worker.files');
-    expect(state.config.relativePath).toBe('in/levels.jsonl');
-    expect(state.config.vendor).toBe(42);
-  });
-
-  it('切换到执行资源后迟到的上传解析不能覆盖手工确认字段', async () => {
-    const pending =
-      deferred<Awaited<ReturnType<typeof getIntegrationFileSchema>>>();
-    vi.mocked(getIntegrationFileSchema).mockReturnValueOnce(pending.promise);
-    const { state } = mount('read-csv', {
-      fileId: '1',
-      fileFormat: 'CSV',
-      columns: [{ name: 'KEEP', type: 'String' }],
-    });
-    await click('解析csv');
-    await click('执行资源');
-    pending.resolve({ fields: [{ name: 'LATE', dataType: 'STRING' }] });
-    await flush();
-    expect(state.config.columns).toEqual([{ name: 'KEEP', type: 'String' }]);
-    expect(state.config.fileId).toBeUndefined();
-  });
-
-  it('受管csv空值标记可配置并往返保留，禁止与空文本混淆', async () => {
-    const { state, editor } = mount('read-csv', {
-      resourceBindingId: 'files',
-      relativePath: 'rows.csv',
-      columns: [{ name: 'name', type: 'String' }],
-    });
-    const marker = host.querySelector<HTMLInputElement>(
-      '[aria-label="文件空值标记"]',
-    )!;
-    expect(marker.value).toBe(String.raw`\N`);
-    marker.value = '';
-    marker.dispatchEvent(new Event('input'));
-    await flush();
-    expect(editor.value!.validate()).toBe(false);
-    marker.value = '__NULL__';
-    marker.dispatchEvent(new Event('input'));
-    await flush();
-    expect(editor.value!.validate()).toBe(true);
-    await click('上传解析');
-    expect(state.config.nullValue).toBeUndefined();
-    await click('执行资源');
-    expect(state.config.nullValue).toBe('__NULL__');
-  });
+  it.each([
+    ['read-csv', 'CSV'],
+    ['read-excel', 'EXCEL'],
+    ['read-json', 'JSONL'],
+  ] as const)(
+    '%s只保留上传解析和字段配置，已解析附件仍能校验保存',
+    async (toolCode, format) => {
+      const { state, editor } = mount(toolCode, {
+        fileId: '1',
+        fileName: 'sample',
+        fileFormat: format,
+        startRow: 2,
+        startColumn: 1,
+        schemaFileKey: `1/${format}/2/1`,
+        columns: [{ name: 'id', type: 'Integer' }],
+      });
+      await flush();
+      expect(host.textContent).toContain('选择文件');
+      expect(host.textContent).toContain('属性字段');
+      expect(host.textContent).not.toContain('文件用途');
+      expect(host.textContent).not.toContain('执行资源');
+      expect(host.querySelector('[aria-label="相对文件路径"]')).toBeNull();
+      expect(editor.value!.validate()).toBe(true);
+      expect(state.config.fileId).toBe('1');
+      expect(state.config.columns).toEqual([{ name: 'id', type: 'Integer' }]);
+    },
+  );
 
   it('历史JSON数组配置不自动切换JSONL，未知属性完整保留', async () => {
     const { state, editor } = mount('read-json', {
@@ -887,20 +766,40 @@ describe('qData补齐配置的真实交互', () => {
     expect(state.config.vendor).toBe(42);
   });
 
-  it('输出消息字段同名映射提供三模式，保留新增模式中已有字段配置', async () => {
+  it('仅保留Kafka输出主字段选择及写入字节，选择上游字段保留已有映射配置', async () => {
     const { state } = mount('write-kafka', {
       databaseId: '1',
       topic: 'topic',
       columns: [{ name: 'OLD', type: 'String', format: 'keep' }],
+      fieldMappings: [{ source: 'OLD', target: 'OLD', custom: 'keep' }],
+      batchSize: 2048,
+      resourceBindingId: '9007199254740993',
     });
     await flush();
-    await click('只增加新字段');
+    expect(host.textContent).not.toContain('高级字段配置');
+    expect(host.textContent).not.toContain('同名自动映射');
+    expect(host.querySelector('.qi-reference-fields-table')).toBeNull();
+    const select = host.querySelector<HTMLInputElement>(
+      '[aria-label="选择属性字段ID"]',
+    )!;
+    select.checked = true;
+    select.dispatchEvent(new Event('change'));
+    await flush();
     expect(state.config.columns).toEqual([
       { name: 'OLD', type: 'String', format: 'keep' },
-      { name: 'ID', type: 'BIGINT' },
+      { name: 'ID', key: 'ID', type: 'BIGINT', index: 1 },
     ]);
-    await click('清空并增加所有字段');
-    expect(state.config.columns).toEqual([{ name: 'ID', type: 'BIGINT' }]);
+    expect(state.config.fieldMappings[0]).toEqual({
+      source: 'OLD', target: 'OLD', custom: 'keep', enabled: true,
+    });
+    const bytes = host.querySelector<HTMLInputElement>(
+      '.qi-reference-form-row input[value="2048"]',
+    )!;
+    bytes.value = '4096';
+    bytes.dispatchEvent(new Event('input'));
+    await flush();
+    expect(Number(state.config.batchSize)).toBe(4096);
+    expect(state.config.resourceBindingId).toBe('9007199254740993');
   });
 
   it('删除需要确认且旧确认不能影响新节点，保留至少一个属性字段', async () => {
@@ -947,23 +846,18 @@ describe('qData补齐配置的真实交互', () => {
     expect(state.config.columns).toHaveLength(2);
   });
 
-  it('确认中切为只读不会删除字段', async () => {
+  it('jsonl只展示解析结果，不再提供重复的字段增删编辑区', async () => {
     const { state } = mount('read-json', {
       fileFormat: 'JSONL',
       fileId: '1',
-      columns: [
-        { name: 'A', type: 'String' },
-        { name: 'B', type: 'String' },
-      ],
+      columns: [{ name: 'A', type: 'String' }, { name: 'B', type: 'String' }],
     });
     await flush();
-    await click('删除');
-    state.disabled = true;
-    await flush();
-    harness.confirm!();
-    expect(state.config.columns).toHaveLength(2);
-    expect(host.querySelector('tbody input')).toBeNull();
-    expect(state.config.columns[0].name).toBe('A');
+    expect(host.querySelectorAll('[aria-label="JSONL属性字段"] tbody tr')).toHaveLength(2);
+    expect(host.textContent).not.toContain('高级字段配置');
+    expect(host.querySelector('.qi-reference-fields-table')).toBeNull();
+    expect([...host.querySelectorAll('button')].some((button) => ['修改', '删除', '新增'].includes(button.textContent?.trim() ?? ''))).toBe(false);
+    expect(state.config.columns).toEqual([{ name: 'A', type: 'String' }, { name: 'B', type: 'String' }]);
   });
 
   it('csv只接受受控上传，解析文本类型，属性弹窗隔离编辑、关闭不回写且旧上下文不能保存', async () => {
@@ -1076,15 +970,11 @@ describe('qData补齐配置的真实交互', () => {
       partial: true,
       warnings: ['混合类型，需手动确认'],
     });
-    const { state, editor } = mount('read-json', {
+    const { state, editor } = mount('read-csv', {
       fileId: '1',
-      fileFormat: 'JSONL',
+      fileFormat: 'CSV',
     });
-    await click(
-      host.querySelector('[data-tool-code="read-excel"]')
-        ? '解析Excel'
-        : '解析JSONL',
-    );
+    await click('解析csv');
     expect(editor.value!.validate()).toBe(false);
     await click('修改');
     const firstType = host.querySelector<HTMLInputElement>(

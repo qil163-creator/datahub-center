@@ -271,6 +271,8 @@ public class IntegrationFlowCompiler {
         var engine = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine.valueOf(task.getEngine());
         boolean streaming = "REALTIME".equals(task.getMode());
         for (var node : nodes) {
+            if (Set.of("read-csv", "read-excel", "read-json").contains(node.getToolCode()))
+                throw invalid("当前引擎暂不支持上传附件执行");
             var config = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeConfigJson.normalize(JSONUtil.parseObj(node.getNodeJson()));
             if (Set.of("read-db", "insert-db").contains(node.getToolCode())
                     && config.getStr("tableName", "").startsWith("dh_native_"))
@@ -361,12 +363,6 @@ public class IntegrationFlowCompiler {
                         task.getId() + ":" + node.getNo(), node.getToolCode(), config, binding, properties.getManagedFunctions(), managedSecretReferences(task),
                         cn.iocoder.yudao.framework.etl.core.compile.EtlNativeScriptCompiler.contextKeys(node.getNo(), nodes, edges));
                 table = plan.table(); initialization = plan.initializationSql(); nativeMappings = plan.fieldMappings();
-            } else if (cn.iocoder.yudao.framework.etl.core.compile.EtlNativeFileCompiler.supportedCodes().contains(node.getToolCode())) {
-                databaseId = Long.MIN_VALUE;
-                var binding = dataxBindings.require(task.getId(), node.getToolCode(), null, config.getStr("resourceBindingId"));
-                var plan = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeFileCompiler.compile(engine, streaming,
-                        task.getId() + ":" + node.getNo(), node.getToolCode(), config, binding, properties.getManagedFunctions());
-                table = plan.table(); initialization = plan.initializationSql();
             } else { result.add(node); continue; }
             var adapted = cn.iocoder.yudao.framework.common.util.object.BeanUtils.toBean(node, EtlNodeDef.class);
             boolean output = node.getToolCode().startsWith("write-");

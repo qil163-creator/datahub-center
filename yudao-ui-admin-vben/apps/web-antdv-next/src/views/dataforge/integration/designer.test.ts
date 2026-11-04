@@ -4,6 +4,7 @@ import type { IntegrationApi as Api } from '#/api/dataforge/integration';
 import type { IntegrationComponentCapabilities } from '#/api/dataforge/integration/component-capabilities';
 
 import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,14 +21,14 @@ const harness = vi.hoisted(() => ({
   graphs: [] as any[],
   editorConfig: {} as Record<string, any>,
   editorValid: true,
-  success: vi.fn(), warning: vi.fn(), error: vi.fn(), drag: vi.fn(), push: vi.fn(),
+  confirm: vi.fn(), success: vi.fn(), warning: vi.fn(), error: vi.fn(), drag: vi.fn(), push: vi.fn(),
 }));
 vi.mock('vue-router', () => ({
   useRoute: () => harness.route, useRouter: () => ({ push: harness.push }), onBeforeRouteLeave: vi.fn(),
 }));
 vi.mock('@vben/access', () => ({ useAccess: () => ({ hasAccessByCodes: (codes: string[]) => !codes.includes('dataforge:integration:update') || harness.update }) }));
 vi.mock('@vben/stores', () => ({ useAccessStore: () => harness.access, useUserStore: () => ({ userInfo: { userId: '9007199254740999' } }) }));
-vi.mock('@vben/common-ui', () => ({ Page: defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }) }));
+vi.mock('@vben/common-ui', () => ({ confirm: harness.confirm, Page: defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }) }));
 vi.mock('@antv/x6', () => ({
   Graph: class {
     disposed = false; edges: any[] = []; events = new Map<string, (value: any) => void>(); nodes: any[] = [];
@@ -124,7 +125,7 @@ function task(id = '9007199254740993', name = '当前任务', flow?: Record<stri
 }
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; }
 beforeEach(() => {
-  vi.clearAllMocks(); harness.graphs = []; harness.update = true; harness.editorValid = true;
+  vi.clearAllMocks(); harness.confirm.mockResolvedValue(undefined); harness.graphs = []; harness.update = true; harness.editorValid = true;
   harness.route = reactive({ params: { id: '9007199254740993' } });
   harness.access = reactive({ accessToken: 'session', accessCodes: ['query', 'update'] });
   vi.mocked(api.getIntegration).mockResolvedValue(task());
@@ -136,6 +137,22 @@ beforeEach(() => {
 afterEach(() => { app?.unmount(); app = undefined; host?.remove(); });
 
 describe('集成流程设计器交互', () => {
+  it('离开未保存流程使用有明确按钮的通用确认，取消保留画布并且确认才放行', async () => {
+    await mount();
+    const leave = vi.mocked(onBeforeRouteLeave).mock.calls.at(-1)![0] as () => Promise<boolean>;
+    expect(await leave()).toBe(true);
+    expect(harness.confirm).not.toHaveBeenCalled();
+    host.querySelector<HTMLButtonElement>('[data-component-code="read-db"]')!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    await flush();
+    const instance = harness.graphs[0];
+    const before = instance.nodes.length;
+    harness.confirm.mockRejectedValueOnce(new Error('dialog cancelled'));
+    expect(await leave()).toBe(false);
+    expect(harness.confirm).toHaveBeenLastCalledWith({ title: '流程有未保存的修改', content: '确认丢弃未保存的节点与配置？', confirmText: '丢弃修改', cancelText: '继续编辑', icon: 'warning' });
+    expect(instance.nodes).toHaveLength(before);
+    expect(await leave()).toBe(true);
+  });
+
   it('新建实时输出和认证节点使用各自执行语义，旧追加输出仍保持原快照', async () => {
     vi.mocked(api.getIntegration).mockResolvedValue({ ...task(undefined, undefined, { nodes: [node('legacy', 'insert-db', { dataSyncType: 1 })], edges: [] }), engine: 'FLINK', mode: 'REALTIME' });
     await mount();

@@ -18,11 +18,8 @@ import {
   Alert,
   AutoComplete,
   Button,
-  Dropdown,
   Input,
   InputNumber,
-  Menu,
-  MenuItem,
   message,
   Modal,
   Popover,
@@ -89,42 +86,8 @@ const referenceCount = ({
   count: number;
   maxLength?: number;
 }) => `${count} / ${maxLength ?? 256}个字符`;
-const fileMode = ref<'managed' | 'upload'>('upload');
 const uploadedFile = shallowRef<File>();
 const uploadedAt = ref<number>();
-let uploadDraft: Record<string, unknown> = {};
-let managedDraft: Record<string, unknown> = {};
-const uploadKeys = [
-  'fileId',
-  'fileName',
-  'fileUrl',
-  'schemaFileKey',
-  'startRow',
-  'startColumn',
-  'sheetName',
-];
-const managedKeys = [
-  'resourceBindingId',
-  'relativePath',
-  'path',
-  'encoding',
-  'charset',
-  'hasHeader',
-  'fieldDelimiter',
-  'delimiter',
-  'quote',
-  'escape',
-  'multiLine',
-  'nullValue',
-  'startRow',
-  'startColumn',
-  'sheetName',
-  'headerRow',
-  'endRow',
-  'formulaMode',
-  'skipEmptyRows',
-];
-const defaultCsvNullValue = String.raw`\N`;
 const connections = ref<FoundationDatabaseApi.DatabaseSimple[]>([]);
 const fieldEditorOpen = ref(false);
 const fieldDraft = ref<ReferenceField>({ name: '' });
@@ -136,15 +99,8 @@ let dragged = -1;
 const isFile = computed(() =>
   ['read-csv', 'read-excel', 'read-json'].includes(props.toolCode),
 );
-const supportsManagedFile = computed(() =>
-  ['read-csv', 'read-excel', 'read-json'].includes(props.toolCode),
-);
-const managedFile = computed(
-  () => supportsManagedFile.value && fileMode.value === 'managed',
-);
-const tabularUpload = computed(
-  () =>
-    !managedFile.value && ['read-csv', 'read-excel'].includes(props.toolCode),
+const tabularUpload = computed(() =>
+  ['read-csv', 'read-excel'].includes(props.toolCode),
 );
 const attachmentUrl = computed(() =>
   safeFileDownloadUrl(props.config.fileUrl, window.location.href),
@@ -212,16 +168,13 @@ const fileExtensions = computed(() => {
 const isKafka = computed(() => props.toolCode.endsWith('kafka'));
 const isOutput = computed(() => props.toolCode === 'write-kafka');
 const isMapping = computed(() => props.toolCode === 'column-map');
-// Must equal the rendered header cells so the empty-state colspan does not add phantom columns.
+// 空状态合并列数与实际表头一致，避免生成额外空列。
 const fieldColumnCount = computed(
   () =>
     4 +
     (isMapping.value ? 1 : 0) +
-    (props.toolCode === 'read-json' ? 2 : 0) +
     (isKafka.value && !isOutput.value ? 1 : 0) +
-    (isMapping.value || props.toolCode === 'read-json' || managedFile.value
-      ? 2
-      : 0) +
+    (isMapping.value ? 2 : 0) +
     (props.toolCode === 'read-excel' || props.toolCode === 'read-csv' ? 1 : 0),
 );
 const legacyFile = computed(
@@ -361,8 +314,7 @@ const parametersError = computed(() => {
   }
 });
 const uploadRequest = useObjectRequest(
-  () =>
-    `${epoch.value}/${attachmentEpoch.value}/${props.toolCode}/${fileMode.value}`,
+  () => `${epoch.value}/${attachmentEpoch.value}/${props.toolCode}`,
   () => {
     uploading.value = false;
   },
@@ -373,7 +325,6 @@ const parseRequest = useObjectRequest(
       epoch.value,
       attachmentEpoch.value,
       props.toolCode,
-      fileMode.value,
       props.config.fileId,
       props.config.startRow,
       props.config.startColumn,
@@ -395,15 +346,6 @@ watch(
   () => [props.config, props.disabled, props.toolCode],
   () => {
     epoch.value++;
-    fileMode.value =
-      supportsManagedFile.value &&
-      (props.config.resourceBindingId ||
-        props.config.path ||
-        props.config.relativePath)
-        ? 'managed'
-        : 'upload';
-    uploadDraft = {};
-    managedDraft = {};
     issues.value = [];
     failed.value = '';
     warnings.value = [];
@@ -417,7 +359,6 @@ watch(
     if (isFile.value && !props.config.fileUrl)
       props.config.fileFormat ??= fileFormat.value;
     if (props.toolCode === 'read-excel') {
-      if (managedFile.value) props.config.startRow ??= 2;
       props.config.startColumn ??= 1;
     }
   },
@@ -558,40 +499,6 @@ function adoptFile() {
   props.config.fileName = undefined;
   props.config.schemaFileKey = undefined;
 }
-function setFileMode(mode: 'managed' | 'upload') {
-  if (props.disabled || !supportsManagedFile.value || mode === fileMode.value)
-    return;
-  const outgoing = fileMode.value === 'upload' ? uploadKeys : managedKeys;
-  const draft = Object.fromEntries(
-    outgoing
-      .filter((key) => props.config[key] !== undefined)
-      .map((key) => [key, props.config[key]]),
-  );
-  if (fileMode.value === 'upload') uploadDraft = draft;
-  else managedDraft = draft;
-  for (const key of outgoing) Reflect.deleteProperty(props.config, key);
-  Object.assign(props.config, mode === 'managed' ? managedDraft : uploadDraft);
-  fileMode.value = mode;
-  issues.value = [];
-  failed.value = '';
-  warnings.value = [];
-  if (mode === 'managed') {
-    props.config.fileFormat = fileFormat.value;
-    if (props.toolCode === 'read-excel') {
-      props.config.startRow ??= 2;
-      props.config.startColumn ??= 1;
-    }
-    if (props.toolCode === 'read-json')
-      setRows(
-        rows.value.map((field) => {
-          const match = field.jsonPath?.match(
-            /^\$\["([\p{L}_][\p{L}\p{N}_]*)"\]$/u,
-          );
-          return match ? { ...field, jsonPath: `$.${match[1]}` } : field;
-        }),
-      );
-  }
-}
 function clearLegacyKafka() {
   if (props.disabled) return;
   delete props.config.bootstrapServers;
@@ -614,8 +521,7 @@ async function loadConnections() {
   }
 }
 async function upload(file: File) {
-  if (uploading.value || parsing.value || props.disabled || managedFile.value)
-    return false;
+  if (uploading.value || parsing.value || props.disabled) return false;
   const extension = file.name.split('.').at(-1)?.toLowerCase();
   const allowed = fileExtensions.value;
   if (!extension || !allowed.includes(extension)) {
@@ -670,10 +576,7 @@ const fileKey = () => {
   return sheetName() ? `${base}/sheet:${JSON.stringify(sheetName())}` : base;
 };
 const fileNeedsParsing = computed(
-  () =>
-    !managedFile.value &&
-    props.config.fileId &&
-    props.config.schemaFileKey !== fileKey(),
+  () => props.config.fileId && props.config.schemaFileKey !== fileKey(),
 );
 const invalidExcelStart = computed(
   () =>
@@ -687,7 +590,6 @@ async function parseFile() {
     parsing.value ||
     uploading.value ||
     !props.config.fileId ||
-    managedFile.value ||
     legacyFile.value ||
     props.disabled
   )
@@ -796,49 +698,16 @@ function setRemoved(index: number, value: string) {
 function removeRemoved(index: number) {
   if (!props.disabled) props.config.removedFields.splice(index, 1);
 }
-function validCsvNullValue(value: unknown) {
-  return (
-    typeof value === 'string' &&
-    value.length > 0 &&
-    value.length <= 64 &&
-    ![...value].some((character) => {
-      const point = character.codePointAt(0) ?? 0;
-      return point < 32 || (point >= 127 && point <= 159);
-    })
-  );
-}
 function validate() {
   const result: string[] = [];
   if (uploading.value || parsing.value || connectionsLoading.value)
     result.push('请等待当前操作完成');
   if (isFile.value) {
-    if (managedFile.value) {
-      if (
-        !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/u.test(
-          props.config.resourceBindingId ?? '',
-        )
-      )
-        result.push('请填写管理员授权的执行资源编号');
-      const path = props.config.relativePath || props.config.path || '';
-      if (
-        !/^[\w./-]+$/u.test(path) ||
-        path.startsWith('/') ||
-        path.includes('//') ||
-        path.split('/').some((part: string) => ['.', '..'].includes(part))
-      )
-        result.push('请填写执行资源内的相对文件路径');
-      if (props.config.fileId || props.config.fileUrl)
-        result.push('请明确移除上传附件或历史地址后选择执行资源');
-      const nullValue: unknown = props.config.nullValue ?? defaultCsvNullValue;
-      if (props.toolCode === 'read-csv' && !validCsvNullValue(nullValue))
-        result.push('空值标记必须为1至64个非控制字符，不能使用空字符串');
-    } else {
-      if (legacyFile.value)
-        result.push('请明确切换到文件读取配置，历史HTTP数组配置不会自动转换');
-      if (!props.config.fileId) result.push('请上传附件');
-      if (props.config.schemaFileKey !== fileKey())
-        result.push('文件或起始行列已变化，请重新解析并确认属性字段');
-    }
+    if (legacyFile.value)
+      result.push('请明确切换到文件读取配置，历史HTTP数组配置不会自动转换');
+    if (!props.config.fileId) result.push('请上传附件');
+    if (props.config.schemaFileKey !== fileKey())
+      result.push('文件或起始行列已变化，请重新解析并确认属性字段');
     if (
       props.toolCode === 'read-excel' &&
       ![props.config.startRow, props.config.startColumn].every(
@@ -931,7 +800,7 @@ defineExpose({ validate });
     <p v-for="warning in warnings" :key="warning" class="qi-reference-notice">
       {{ warning }}
     </p>
-    <template v-if="isFile && !managedFile">
+    <template v-if="isFile">
       <h3 v-if="toolCode === 'read-json'" class="qi-reference-io-heading">
         上传文件
       </h3>
@@ -962,7 +831,10 @@ defineExpose({ validate });
               >
                 <Button
                   class="qi-reference-button"
-                  :class="{ 'qi-file-select-button': tabularUpload || toolCode === 'read-json' }"
+                  :class="{
+                    'qi-file-select-button':
+                      tabularUpload || toolCode === 'read-json',
+                  }"
                   :loading="uploading"
                   :disabled="disabled || parsing || legacyFile"
                 >
@@ -975,8 +847,7 @@ defineExpose({ validate });
                     <path
                       fill="currentColor"
                       d="M160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64zm384-578.304V704h-64V247.296L237.248 490.048 192 444.8 512 128l320 316.8-45.248 45.248z"
-                    />
-                  </svg><ReferenceIcon v-else name="plus" />选择文件
+                    /></svg><ReferenceIcon v-else name="plus" />选择文件
                 </Button>
               </Upload>
             </div>
@@ -992,7 +863,8 @@ defineExpose({ validate });
               </p>
             </template>
             <p v-else class="qi-reference-file-tip">
-              仅支持上传 <strong>{{ fileExtensions.join(', ') }}</strong>
+              仅支持上传
+              <strong>{{ fileExtensions.join(', ') }}</strong>
               格式的文件，大小不超过 <strong>50MB</strong>
             </p>
             <div v-if="config.fileId" class="qi-reference-attachment">
@@ -1126,12 +998,8 @@ defineExpose({ validate });
           </Popover>
           <Button
             v-else
-            :class="
-              toolCode === 'read-json'
-                ? 'qi-jsonl-parse-button'
-                : 'qi-reference-button'
-            "
-            :type="toolCode === 'read-json' ? 'primary' : 'default'"
+            class="qi-reference-button"
+            type="default"
             :loading="parsing"
             :disabled="
               disabled ||
@@ -1267,7 +1135,9 @@ defineExpose({ validate });
               >
                 字段长度<span
                   class="qi-sort-caret"
-                  :data-sort="metadataSort?.key === 'length' ? metadataSort.direction : 0"
+                  :data-sort="
+                    metadataSort?.key === 'length' ? metadataSort.direction : 0
+                  "
                   aria-hidden="true"
                 ></span>
               </button>
@@ -1280,7 +1150,11 @@ defineExpose({ validate });
               >
                 小数精度<span
                   class="qi-sort-caret"
-                  :data-sort="metadataSort?.key === 'precision' ? metadataSort.direction : 0"
+                  :data-sort="
+                    metadataSort?.key === 'precision'
+                      ? metadataSort.direction
+                      : 0
+                  "
                   aria-hidden="true"
                 ></span>
               </button>
@@ -1303,15 +1177,7 @@ defineExpose({ validate });
         </tbody>
       </table>
     </section>
-    <component
-      :is="isOutput || toolCode === 'read-json' ? 'details' : 'div'"
-      :class="{
-        'qi-reference-execution-options': isOutput || toolCode === 'read-json',
-      }"
-    >
-      <summary v-if="isOutput || toolCode === 'read-json'">
-        高级字段配置
-      </summary>
+    <div v-if="!isOutput && toolCode !== 'read-json'">
       <div class="qi-reference-section-header">
         <h3 v-if="isMapping">需要选择与修改的字段</h3>
         <h3
@@ -1331,27 +1197,6 @@ defineExpose({ validate });
           >
             获取字段
           </Button>
-          <Dropdown v-if="isOutput" :trigger="['click']">
-            <Button
-              class="qi-reference-button"
-              :disabled="disabled || !inputFields?.length"
-            >
-              同名自动映射
-            </Button>
-            <template #popupRender>
-              <Menu>
-                <MenuItem @click="resolveFields('addNewOnly')">
-                  只增加新字段
-                </MenuItem>
-                <MenuItem @click="resolveFields('addAll')">
-                  增加所有字段
-                </MenuItem>
-                <MenuItem @click="resolveFields('clearAndAddAll')">
-                  清空并增加所有字段
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
           <Button
             v-if="tabularUpload || (isKafka && !isOutput)"
             class="qi-reference-button qi-file-add-button"
@@ -1374,8 +1219,7 @@ defineExpose({ validate });
         <table
           class="qi-reference-fields-table"
           :class="{
-            'qi-reference-field-details':
-              isMapping || toolCode === 'read-json' || managedFile,
+            'qi-reference-field-details': isMapping,
           }"
         >
           <thead>
@@ -1383,15 +1227,11 @@ defineExpose({ validate });
               <th>序号</th>
               <th>字段名称</th>
               <th v-if="isMapping">字段别名</th>
-              <th v-if="toolCode === 'read-json'">中文名称</th>
-              <th v-if="toolCode === 'read-json'">路径</th>
               <th>字段类型</th>
               <th v-if="isKafka && !isOutput">JSON解析取值</th>
-              <template
-                v-if="isMapping || toolCode === 'read-json' || managedFile"
-              >
+              <template v-if="isMapping">
                 <th>字段长度</th>
-                <th>{{ isMapping ? '字段精度' : '小数精度' }}</th>
+                <th>字段精度</th>
               </template>
               <th v-if="toolCode === 'read-excel' || toolCode === 'read-csv'">
                 日期格式
@@ -1432,12 +1272,6 @@ defineExpose({ validate });
                   placeholder="请输入新的字段名称"
                 />
               </td>
-              <td v-if="toolCode === 'read-json'">
-                {{ field.comment || '-' }}
-              </td>
-              <td v-if="toolCode === 'read-json'">
-                {{ field.jsonPath || '-' }}
-              </td>
               <td>
                 <Select
                   v-if="isMapping"
@@ -1454,9 +1288,7 @@ defineExpose({ validate });
               <td v-if="isKafka && !isOutput">
                 {{ field.key ?? field.jsonPath ?? '-' }}
               </td>
-              <template
-                v-if="isMapping || toolCode === 'read-json' || managedFile"
-              >
+              <template v-if="isMapping">
                 <td>
                   <Input
                     v-if="isMapping"
@@ -1522,7 +1354,7 @@ defineExpose({ validate });
           </tbody>
         </table>
       </div>
-    </component>
+    </div>
     <section v-if="isMapping" class="qi-reference-removed-section">
       <div class="qi-reference-section-header">
         <h3>需要移除的字段</h3>
@@ -1579,194 +1411,6 @@ defineExpose({ validate });
         :precision="0"
       />
     </div>
-    <details
-      v-if="supportsManagedFile"
-      class="qi-reference-execution-options"
-      :open="managedFile"
-    >
-      <summary>执行配置</summary>
-      <div class="qi-reference-form-row">
-        <label>文件用途</label>
-        <div class="qi-reference-file-actions">
-          <Button
-            :disabled="disabled"
-            :type="fileMode === 'upload' ? 'primary' : 'default'"
-            :aria-pressed="fileMode === 'upload'"
-            @click="setFileMode('upload')"
-          >
-            上传解析
-</Button><Button
-            :disabled="disabled"
-            :type="fileMode === 'managed' ? 'primary' : 'default'"
-            :aria-pressed="fileMode === 'managed'"
-            @click="setFileMode('managed')"
-          >
-            执行资源
-          </Button>
-        </div>
-      </div>
-      <template v-if="managedFile">
-        <div class="qi-reference-form-row">
-          <label>执行资源编号</label><Input
-            :value="config.resourceBindingId"
-            :disabled="disabled"
-            aria-label="执行资源编号"
-            placeholder="填写管理员为当前任务授权的资源编号"
-            @update:value="(value) => setConfig('resourceBindingId', value)"
-          />
-        </div>
-        <div class="qi-reference-form-row">
-          <label>相对文件路径</label><Input
-            :value="config.relativePath || config.path"
-            :disabled="disabled"
-            aria-label="相对文件路径"
-            placeholder="例如 input/data.csv"
-            @update:value="
-              (value) => {
-                setConfig('relativePath', value);
-                if (!disabled && config.path !== undefined)
-                  setConfig('path', value);
-              }
-            "
-          />
-        </div>
-        <div v-if="toolCode !== 'read-excel'" class="qi-reference-form-row">
-          <label>文件编码</label><Select
-            :value="config.encoding || config.charset || 'UTF-8'"
-            :disabled="disabled"
-            aria-label="文件编码"
-            :options="
-              ['UTF-8', 'GBK', 'GB2312', 'ISO-8859-1'].map((value) => ({
-                label: value,
-                value,
-              }))
-            "
-            @update:value="
-              (value) => {
-                setConfig('encoding', value);
-                if (!disabled && config.charset !== undefined)
-                  setConfig('charset', value);
-              }
-            "
-          />
-        </div>
-        <div v-if="toolCode === 'read-csv'" class="qi-reference-form-grid">
-          <label>首行为表头<Select
-              :value="
-                config.hasHeader === true || config.hasHeader === 'true'
-                  ? 'true'
-                  : 'false'
-              "
-              :options="[
-                { label: '是', value: 'true' },
-                { label: '否', value: 'false' },
-              ]"
-              :disabled="disabled"
-              @update:value="
-                (value) => {
-                  setConfig('hasHeader', value === 'true');
-                  if (config.startRow !== undefined)
-                    setConfig('startRow', value === 'true' ? 2 : 1);
-                }
-              "
-          /></label>
-          <label>分隔符<Input
-              :value="config.fieldDelimiter || config.delimiter || ','"
-              :disabled="disabled"
-              aria-label="文件分隔符"
-              @update:value="
-                (value) => {
-                  setConfig('fieldDelimiter', value);
-                  if (!disabled && config.delimiter !== undefined)
-                    setConfig('delimiter', value);
-                }
-              "
-          /></label>
-          <label>空值标记<Input
-              :value="config.nullValue ?? defaultCsvNullValue"
-              :disabled="disabled"
-              aria-label="文件空值标记"
-              placeholder="与空文本区分，例如 \N"
-              @update:value="(value) => setConfig('nullValue', value)"
-          /></label>
-          <label>起始列<InputNumber
-              :value="config.startColumn ?? 1"
-              :min="1"
-              :precision="0"
-              :disabled="disabled"
-              @update:value="(value) => setConfig('startColumn', value)"
-          /></label>
-        </div>
-        <div v-if="toolCode === 'read-excel'" class="qi-reference-form-grid">
-          <label>工作表<Input
-              :value="config.sheetName"
-              :disabled="disabled"
-              aria-label="执行工作表"
-              placeholder="留空读取第一个工作表"
-              @update:value="(value) => setConfig('sheetName', value)"
-          /></label>
-          <label>标题行<InputNumber
-              :value="config.headerRow ?? 1"
-              :min="0"
-              :precision="0"
-              :disabled="disabled"
-              @update:value="(value) => setConfig('headerRow', value)"
-          /></label>
-          <label>起始行<InputNumber
-              :value="config.startRow ?? 1"
-              :min="1"
-              :precision="0"
-              :disabled="disabled"
-              @update:value="(value) => setConfig('startRow', value)"
-          /></label>
-          <label>结束行<InputNumber
-              :value="config.endRow ?? 0"
-              :min="0"
-              :precision="0"
-              :disabled="disabled"
-              @update:value="(value) => setConfig('endRow', value)"
-          /></label>
-          <label>起始列<InputNumber
-              :value="config.startColumn ?? 1"
-              :min="1"
-              :precision="0"
-              :disabled="disabled"
-              @update:value="(value) => setConfig('startColumn', value)"
-          /></label>
-          <label>公式读取<Select
-              :value="config.formulaMode ?? 'LITERAL'"
-              :options="[
-                { label: '公式文本', value: 'LITERAL' },
-                { label: '已保存的缓存值', value: 'CACHED' },
-              ]"
-              :disabled="disabled"
-              aria-label="公式读取方式"
-              @update:value="(value) => setConfig('formulaMode', value)"
-          /></label>
-          <label>跳过空行<Select
-              :value="config.skipEmptyRows === false ? 'false' : 'true'"
-              :options="[
-                { label: '是', value: 'true' },
-                { label: '否', value: 'false' },
-              ]"
-              :disabled="disabled"
-              @update:value="
-                (value) => setConfig('skipEmptyRows', value === 'true')
-              "
-          /></label>
-        </div>
-        <p class="qi-reference-notice">
-          {{
-            toolCode === 'read-excel'
-              ? '执行资源须由管理员授权。行列从1开始，结束行0表示读到末尾，标题行0表示无标题；公式使用文本或已保存的缓存值，运行时不重新计算。'
-              : '执行资源须由管理员授权给当前任务。请声明完整源字段；CSV 从第一条数据开始读取，起始列从1开始，JSONL 使用顶层字段映射。'
-          }}
-        </p>
-      </template>
-      <p class="qi-reference-notice">
-        用于字段解析，运行请选择执行资源；执行时仍受该资源的行数和字节预算约束。
-      </p>
-    </details>
     <ReferenceFieldMergeDialog
       v-model:open="mergeOpen"
       :existing-count="rows.length"
@@ -1795,18 +1439,12 @@ defineExpose({ validate });
       @cancel="closeFieldEditor"
     />
     <ReferenceFieldEditModal
-      v-else
+      v-else-if="isMapping"
       :open="fieldEditorOpen"
       :field="fieldDraft"
       :disabled="disabled"
       :errors="fieldErrors"
       :show-key="isKafka && !isOutput"
-      :show-json-path="toolCode === 'read-json'"
-      :show-comment="toolCode === 'read-json'"
-      :show-metadata="
-        toolCode === 'read-excel' || toolCode === 'read-json' || managedFile
-      "
-      :show-format="isFile"
       @update:field="updateFieldDraft"
       @save="saveFieldEditor"
       @cancel="closeFieldEditor"
@@ -1849,24 +1487,6 @@ defineExpose({ validate });
   .qi-reference-fields-table
   th:last-child {
   width: 150px;
-}
-
-.qi-reference-execution-options {
-  padding: 10px 12px;
-  background: #fafafa;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-}
-
-.qi-reference-execution-options summary {
-  margin-bottom: 10px;
-  color: #606266;
-  cursor: pointer;
-}
-
-.qi-reference-execution-options[open] {
-  display: grid;
-  gap: 14px;
 }
 
 .qi-reference-io-heading {
@@ -2199,18 +1819,24 @@ defineExpose({ validate });
   color: #606266;
 }
 
-.qi-tabular-file-reference .qi-reference-attachment .qi-reference-attachment-name.ant-btn-link {
+.qi-tabular-file-reference
+  .qi-reference-attachment
+  .qi-reference-attachment-name.ant-btn-link {
   color: #2d63ff;
 }
 
 /* Icon-only download/delete buttons must fit their 24px grid cells. */
-.qi-tabular-file-reference .qi-reference-attachment :deep(.ant-btn-link:not(.qi-reference-attachment-name)) {
+.qi-tabular-file-reference
+  .qi-reference-attachment
+  :deep(.ant-btn-link:not(.qi-reference-attachment-name)) {
   width: 24px;
   min-width: 24px;
   padding: 0;
 }
 
-.qi-tabular-file-reference .qi-reference-attachment :deep(.ant-btn-link > :is(svg, img)) {
+.qi-tabular-file-reference
+  .qi-reference-attachment
+  :deep(.ant-btn-link > :is(svg, img)) {
   flex: none;
   width: 14px;
   height: 14px;
@@ -2251,7 +1877,9 @@ defineExpose({ validate });
   margin-bottom: 16px;
 }
 
-.qi-file-reference-editor .qi-reference-section-header h3.qi-file-fields-heading {
+.qi-file-reference-editor
+  .qi-reference-section-header
+  h3.qi-file-fields-heading {
   display: flex;
   gap: 9px;
   align-items: center;
@@ -2260,7 +1888,9 @@ defineExpose({ validate });
   border-left: 0;
 }
 
-.qi-file-reference-editor .qi-reference-section-header h3.qi-file-fields-heading::before {
+.qi-file-reference-editor
+  .qi-reference-section-header
+  h3.qi-file-fields-heading::before {
   width: 6px;
   height: 16px;
   content: '';
@@ -2299,7 +1929,9 @@ defineExpose({ validate });
   text-align: center;
 }
 
-.qi-tabular-file-reference .qi-reference-fields-table .qi-reference-empty::before {
+.qi-tabular-file-reference
+  .qi-reference-fields-table
+  .qi-reference-empty::before {
   display: none;
 }
 
@@ -2318,7 +1950,9 @@ defineExpose({ validate });
   color: #f56c6c;
 }
 
-[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading {
+[data-tool-code='read-kafka']
+  .qi-reference-section-header
+  h3.qi-file-fields-heading {
   display: flex;
   gap: 9px;
   align-items: center;
@@ -2327,7 +1961,9 @@ defineExpose({ validate });
   border-left: 0;
 }
 
-[data-tool-code='read-kafka'] .qi-reference-section-header h3.qi-file-fields-heading::before {
+[data-tool-code='read-kafka']
+  .qi-reference-section-header
+  h3.qi-file-fields-heading::before {
   width: 6px;
   height: 16px;
   content: '';
@@ -2377,7 +2013,9 @@ defineExpose({ validate });
   height: 274px;
 }
 
-[data-tool-code='read-kafka'] .qi-reference-fields-table .qi-reference-empty::before {
+[data-tool-code='read-kafka']
+  .qi-reference-fields-table
+  .qi-reference-empty::before {
   display: none;
 }
 
@@ -2391,7 +2029,8 @@ defineExpose({ validate });
   border-left: 0;
 }
 
-[data-tool-code='read-json'].qi-file-reference-editor .qi-reference-io-heading::before {
+[data-tool-code='read-json'].qi-file-reference-editor
+  .qi-reference-io-heading::before {
   width: 6px;
   height: 16px;
   content: '';

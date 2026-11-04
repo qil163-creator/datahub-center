@@ -24,8 +24,8 @@ import {
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
-import { PROCESS_ACTION_OPTIONS } from '#/views/market/data';
-import { formatMarketTime } from '#/views/market/market-time';
+import { PROCESS_ACTION_OPTIONS } from '#/views/asset/market/data';
+import { formatMarketTime } from '#/views/asset/market/market-time';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 import { deliveryLabels } from '../../data';

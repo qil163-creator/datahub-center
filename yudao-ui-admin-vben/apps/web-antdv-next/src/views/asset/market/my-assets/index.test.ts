@@ -149,7 +149,7 @@ vi.mock('./modules/api-document.vue', () => ({
 vi.mock('./modules/my-applications.vue', () => ({
   default: { render: () => null },
 }));
-vi.mock('#/views/market/modules/preview-drawer.vue', () => ({
+vi.mock('#/views/asset/market/modules/preview-drawer.vue', () => ({
   default: { render: () => null },
 }));
 vi.mock('@vben/common-ui', () => {

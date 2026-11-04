@@ -33,13 +33,13 @@ import {
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
-import { marketCategoryTree } from '#/views/asset/marketcategory/category-tree';
 import {
   MY_ASSETS_ROUTE_NAME,
   parseAuthorizedApplyId,
-} from '#/views/market/authorized-assets-navigation';
-import { formatMarketTime } from '#/views/market/market-time';
-import PreviewDrawer from '#/views/market/modules/preview-drawer.vue';
+} from '#/views/asset/market/authorized-assets-navigation';
+import { formatMarketTime } from '#/views/asset/market/market-time';
+import PreviewDrawer from '#/views/asset/market/modules/preview-drawer.vue';
+import { marketCategoryTree } from '#/views/asset/marketcategory/category-tree';
 
 import { DELIVERY_TYPE_OPTIONS, deliveryLabels } from '../data';
 import { accessState, assetTitle, canOpenDelivery } from './data';
@@ -490,8 +490,7 @@ function syncFilterValues() {
               :loading="loading"
               @click="filterFormApi.validateAndSubmit()"
             >
-              <template #icon><IconifyIcon icon="lucide:search" /></template
-              >查询
+              <template #icon><IconifyIcon icon="lucide:search" /></template>查询
             </Button>
           </template>
         </FilterForm>
@@ -507,9 +506,9 @@ function syncFilterValues() {
               :loading="categoryLoading"
               @click="loadCategories"
             >
-              <template #icon
-                ><IconifyIcon icon="lucide:refresh-cw"
-              /></template>
+              <template #icon>
+<IconifyIcon icon="lucide:refresh-cw" />
+</template>
               重试
             </Button>
           </template>
@@ -518,8 +517,7 @@ function syncFilterValues() {
           <header class="my-assets-results__header">
             <h2>我的资产</h2>
             <Button :loading="loading" @click="loadAssets">
-              <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
-              >刷新
+              <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新
             </Button>
           </header>
           <Alert
@@ -573,24 +571,21 @@ function syncFilterValues() {
                 v-else-if="column.key === 'validity'"
                 class="my-assets-validity"
               >
-                <span>{{ formatMarketTime(record.applyStartTime) }}</span
-                ><span class="text-muted-foreground"
-                  >至
+                <span>{{ formatMarketTime(record.applyStartTime) }}</span><span class="text-muted-foreground">至
                   {{
                     record.applyEndTime === undefined ||
                     record.applyEndTime === null
                       ? '长期有效'
                       : formatMarketTime(record.applyEndTime)
-                  }}</span
-                >
+                  }}</span>
               </div>
               <div
                 v-else-if="column.key === 'accessStatus'"
                 class="my-assets-status"
               >
                 <Tag :color="accessState(record.accessStatus).color">
-                  {{ accessState(record.accessStatus).label }} </Tag
-                ><span v-if="record.disabledReason">{{
+                  {{ accessState(record.accessStatus).label }}
+</Tag><span v-if="record.disabledReason">{{
                   record.disabledReason
                 }}</span>
               </div>
@@ -611,19 +606,15 @@ function syncFilterValues() {
                       : '打开时再次核验授权')
                   "
                 >
-                  <span
-                    ><Button
+                  <span><Button
                       type="link"
                       size="small"
                       :disabled="!canOpenDelivery(record, 'preview')"
                       @click="openPreview(record)"
                     >
-                      <template #icon
-                        ><IconifyIcon icon="lucide:table-2"
-                      /></template>
+                      <template #icon><IconifyIcon icon="lucide:table-2" /></template>
                       数据预览
-                    </Button></span
-                  >
+                    </Button></span>
                 </Tooltip>
                 <Tooltip
                   v-else-if="record.deliveryType === 2"
@@ -634,32 +625,24 @@ function syncFilterValues() {
                       : '打开时再次核验批准字段与接口版本')
                   "
                 >
-                  <span
-                    ><Button
+                  <span><Button
                       type="link"
                       size="small"
                       :disabled="!canOpenDelivery(record, 'document')"
                       @click="openApiDocument(record)"
                     >
-                      <template #icon
-                        ><IconifyIcon icon="lucide:book-open"
-                      /></template>
+                      <template #icon><IconifyIcon icon="lucide:book-open" /></template>
                       API 文档
-                    </Button></span
-                  >
+                    </Button></span>
                 </Tooltip>
                 <Tooltip
                   v-else-if="record.deliveryType === 3"
                   title="文件交付暂未接通，请联系资产提供方"
                 >
-                  <span
-                    ><Button type="link" size="small" disabled>
-                      <template #icon
-                        ><IconifyIcon icon="lucide:download"
-                      /></template>
+                  <span><Button type="link" size="small" disabled>
+                      <template #icon><IconifyIcon icon="lucide:download" /></template>
                       文件获取
-                    </Button></span
-                  >
+                    </Button></span>
                 </Tooltip>
               </div>
               <span v-else>{{ cellText(record, column.dataIndex) }}</span>

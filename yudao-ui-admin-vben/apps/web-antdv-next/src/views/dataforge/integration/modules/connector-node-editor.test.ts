@@ -1,7 +1,7 @@
 /* eslint-disable vue/one-component-per-file, vue/require-default-prop -- 测试替身仅模拟本组件依赖的输入事件。 */
 import type { App } from 'vue';
 
-import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
+import { createApp, defineComponent, h, nextTick, reactive, ref } from 'vue';
 
 import { Modal } from 'antdv-next';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as databaseApi from '#/api/dataforge/database';
 
 import ConnectorNodeEditor from './connector-node-editor.vue';
+import { validateConnectorConfig } from './connector-schema';
 
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => ({ accessToken: 'session', refreshToken: 'refresh' }),
@@ -117,6 +118,7 @@ vi.mock('antdv-next', () => {
 
 let app: App | undefined;
 let host: HTMLDivElement;
+const editor = ref<{ validate: () => boolean }>();
 afterEach(() => {
   app?.unmount();
   host?.remove();
@@ -125,18 +127,19 @@ afterEach(() => {
 function mount(
   toolCode: string,
   config: Record<string, any>,
-  executionReason?: string,
+  inputFields: { dataType: string; name: string }[] = [],
 ) {
   host = document.createElement('div');
   document.body.append(host);
-  const state = reactive({ config, disabled: false, executionReason });
+  const state = reactive({ config, disabled: false });
   app = createApp({
     render: () =>
       h(ConnectorNodeEditor, {
+        ref: editor,
         toolCode,
         config: state.config,
         disabled: state.disabled,
-        executionReason: state.executionReason,
+        inputFields,
       }),
   });
   app.mount(host);
@@ -163,32 +166,57 @@ async function input(label: string, value: string) {
 }
 
 describe('连接器属性字段编辑与即时反馈', () => {
-  it('执行提示使用当前任务的后端能力原因，更新后不保留旧DataX限制', async () => {
-    const state = mount(
-      'read-mongodb',
-      { columns: [] },
-      'Spark 支持受管集合读取。',
-    );
-    expect(host.textContent).toContain('Spark 支持受管集合读取。');
-    expect(host.textContent).not.toContain('当前 DataX 发行包');
-    state.executionReason = '当前实时模式暂不支持集合读取。';
+  it('新FTP填写主配置和属性字段后可以保存，执行检查仍要求授权资源', async () => {
+    const state = mount('read-ftp', { columns: [] });
+    await input('文件路径', 'incoming/rows.csv');
+    await click('+ 新增');
+    await input('属性字段编辑名称', 'id');
+    await input('属性字段编辑索引', '0');
+    await click('保存属性');
+    expect(editor.value!.validate()).toBe(true);
+    expect(host.querySelector('.qi-connector-advanced')).toBeNull();
+    expect(state.config.columns).toMatchObject([{ name: 'id', type: 'STRING', index: 0 }]);
+    expect(state.config.resourceBindingId).toBeUndefined();
+    expect(state.config.credentialRef).toBeUndefined();
+    expect(validateConnectorConfig('read-ftp', state.config).map((issue) => issue.field)).toEqual(['resourceBindingId', 'credentialRef']);
+  });
+
+  it('ftp缺失高级必填项不阻止保存，非法历史值与明文凭据仍被拒绝', async () => {
+    const state = mount('read-ftp', { path: 'incoming/rows.csv', columns: [{ name: 'id', type: 'LONG', index: 0 }] });
+    expect(editor.value!.validate()).toBe(true);
+    for (const [key, value] of [
+      ['resourceBindingId', '_invalid'],
+      ['credentialRef', 'Bearer plaintext'],
+      ['maxRows', 0],
+      ['ftpConfig', '{"nested":{"password":"plaintext"}}'],
+    ] as const) {
+      const original = state.config[key];
+      state.config[key] = value;
+      expect(editor.value!.validate()).toBe(false);
+      state.config[key] = original;
+    }
+    expect(editor.value!.validate()).toBe(true);
+    expect(state.config.resourceBindingId).toBeUndefined();
+    expect(state.config.credentialRef).toBeUndefined();
+    state.config.credentialRef = null;
+    state.config.resourceBindingId = '';
+    expect(editor.value!.validate()).toBe(true);
+    expect(state.config.credentialRef).toBeNull();
+    expect(state.config.resourceBindingId).toBe('');
     await nextTick();
-    expect(host.textContent).toContain('当前实时模式暂不支持集合读取。');
-    expect(host.textContent).not.toContain('Spark 支持受管集合读取。');
   });
-  it('编辑 Hive 输入字段别名时保留物理字段与已有配置', async () => {
-    const state = mount('read-hive', {
-      databaseId: '1',
-      tableName: 't',
-      columns: [{ name: 'name', type: 'STRING', custom: '保留' }],
-    });
-    await input('第1行输出字段名', 'label');
-    expect(state.config.columns[0]).toMatchObject({
-      name: 'name',
-      alias: 'label',
-      custom: '保留',
-    });
-  });
+
+  it.each([['read-hdfs', 0], ['write-hdfs', 0], ['read-rocketmq', 1], ['write-rocketmq', 1]] as const)(
+    '%s 主配置可保存，保留严格执行校验与已存在的高级参数', async (toolCode, groupIssues) => {
+      const state = mount(toolCode, { databaseId: '1', path: 'incoming/rows.csv', topic: 'events', columns: [{ name: 'id', type: 'LONG', index: 0 }], vendor: 42 });
+      expect(editor.value!.validate()).toBe(true);
+      expect(state.config.vendor).toBe(42);
+      expect(state.config.groupId).toBeUndefined();
+      expect(validateConnectorConfig(toolCode, state.config).filter((issue) => issue.field === 'groupId')).toHaveLength(groupIssues);
+      await nextTick();
+    },
+  );
+
   it('受管 FTP 无需选择 SQL 数据连接，历史连接仅在明确操作后移除', async () => {
     const state = mount('write-ftp', {
       databaseId: '9007199254740993',
@@ -208,55 +236,64 @@ describe('连接器属性字段编辑与即时反馈', () => {
     });
   });
 
-  it('输出字段改名保留来源并生成与后端一致的显式映射', async () => {
-    const state = mount('write-rocketmq', {
-      databaseId: '1',
-      topic: 'events',
-      groupId: 'group',
-      columns: [{ name: 'name', key: 'name', type: 'STRING', index: 0 }],
+  it('文件输出主属性改名保留来源并同步显式映射', async () => {
+    const state = mount('write-ftp', {
+      resourceBindingId: 'ftp.fixture', path: 'out',
+      columns: [{ name: 'name', key: 'source_name', type: 'STRING', custom: 42 }],
     });
-    await input('第1行字段名称', '标签');
-    expect(state.config.columns[0]).toMatchObject({
-      name: '标签',
-      key: 'name',
-    });
-    expect(state.config.fieldMappings).toEqual([
-      { source: 'name', target: '标签', enabled: true },
-    ]);
+    await click('修改第1行属性字段');
+    await input('属性字段编辑名称', 'label');
+    await click('保存属性');
+    expect(state.config.columns[0]).toMatchObject({ name: 'label', key: 'source_name', custom: 42 });
+    expect(state.config.fieldMappings).toEqual([{ source: 'source_name', target: 'label', enabled: true }]);
+    expect(state.config.fieldMappingColumns[0]).toMatchObject({ name: 'label', key: 'source_name', custom: 42 });
   });
 
-  it('非文件字段重排时同步内部顺序编号并保留来源映射', async () => {
-    const editor = mount('write-rocketmq', {
-      databaseId: '1',
-      topic: 'events',
-      groupId: 'group',
-      columns: [
-        { name: 'id', key: 'id', type: 'LONG', index: 0 },
-        { name: '标签', key: 'name', type: 'STRING', index: 1 },
-      ],
-    });
-    host
-      .querySelector('tr[tabindex="0"]')!
-      .dispatchEvent(
-        new KeyboardEvent('keydown', {
-          key: 'ArrowDown',
-          altKey: true,
-          bubbles: true,
-        }),
-      );
+  it.each(['write-odps', 'write-hive', 'write-hdfs', 'write-mongodb', 'write-redis', 'write-rabbitmq', 'write-rocketmq', 'write-ftp'])(
+    '%s 删除高级面板后保留主要映射、输出配置和历史参数', async (toolCode) => {
+      const columns = [{ name: 'id', type: 'LONG', key: 'source_id', custom: 7 }];
+      const mappings = [{ source: 'source_id', target: 'id', enabled: true, vendor: 9 }];
+      const state = mount(toolCode, { databaseId: '9007199254740993', resourceBindingId: 'resource.fixture', credentialRef: 'credential.fixture', maxRows: 1000, columns, fieldMappings: mappings, custom: 42 });
+      await nextTick();
+      expect(host.querySelector('.qi-connector-advanced')).toBeNull();
+      expect(host.textContent).not.toContain('高级字段配置');
+      expect(host.textContent).not.toContain('执行配置与高级参数');
+      expect(host.textContent).toContain('输出配置');
+      expect(host.querySelector('.qi-reference-output-selection, .qi-output-mapping')).toBeTruthy();
+      expect(state.config).toMatchObject({ databaseId: '9007199254740993', resourceBindingId: 'resource.fixture', credentialRef: 'credential.fixture', maxRows: 1000, columns, fieldMappings: mappings, custom: 42 });
+    },
+  );
+
+  it.each(['write-redis', 'write-rabbitmq', 'write-rocketmq'])(
+    '%s 主要输出字段选择继续保存来源和已有附加属性', async (toolCode) => {
+      const state = mount(toolCode, { columns: [{ name: 'label', key: 'name', type: 'STRING', custom: 42 }] }, [
+        { name: 'name', dataType: 'STRING' }, { name: 'id', dataType: 'LONG' },
+      ]);
+      const select = host.querySelector<HTMLInputElement>('[aria-label="选择属性字段id"]')!;
+      expect(select).toBeTruthy();
+      select.checked = true;
+      select.dispatchEvent(new Event('change'));
+      await nextTick();
+      expect(state.config.columns).toMatchObject([{ name: 'label', key: 'name', custom: 42 }, { name: 'id', key: 'id', type: 'LONG' }]);
+      expect(state.config.fieldMappings).toMatchObject([{ source: 'name', target: 'label', enabled: true }, { source: 'id', target: 'id', enabled: true }]);
+    },
+  );
+
+  it('hdfs保留主配置与属性编辑，不再显示两块高级配置或初始化其专用参数', async () => {
+    const original = { name: 'id', type: 'LONG', index: 0 };
+    const state = mount('read-hdfs', { columns: [original] });
     await nextTick();
-    expect(editor.config.columns).toEqual([
-      { name: '标签', key: 'name', type: 'STRING', index: 0 },
-      { name: 'id', key: 'id', type: 'LONG', index: 1 },
-    ]);
-    expect(editor.config.fieldMappings).toEqual([
-      { source: 'name', target: '标签', enabled: true },
-      { source: 'id', target: 'id', enabled: true },
-    ]);
+    expect(host.textContent).not.toContain('高级字段配置');
+    expect(host.textContent).not.toContain('执行配置与高级参数');
+    expect(host.querySelector('.qi-connector-advanced')).toBeNull();
+    expect(host.querySelector('[aria-label="属性字段"]')).toBeTruthy();
+    expect(state.config.nullFormat).toBeUndefined();
+    expect(state.config.hasHeader).toBeUndefined();
+    expect(state.config.columns).toEqual([original]);
   });
 
-  it.each(['read-hdfs', 'read-ftp'])(
-    '%s 重排和删除后仍读取原文件的物理列位置',
+  it.each(['read-ftp'])(
+    '%s 主属性字段删除后仍读取原文件的物理列位置',
     async (toolCode) => {
       const state = mount(toolCode, {
         columns: [
@@ -264,21 +301,7 @@ describe('连接器属性字段编辑与即时反馈', () => {
           { name: 'name', type: 'STRING', index: 5 },
         ],
       });
-      host
-        .querySelector('tr[tabindex="0"]')!
-        .dispatchEvent(
-          new KeyboardEvent('keydown', {
-            key: 'ArrowDown',
-            altKey: true,
-            bubbles: true,
-          }),
-        );
-      await nextTick();
-      expect(state.config.columns).toEqual([
-        { name: 'name', type: 'STRING', index: 5 },
-        { name: 'id', type: 'LONG', index: 0 },
-      ]);
-      await click('删除第2行字段');
+      await click('删除第1行字段');
       const confirmation = vi.mocked(Modal.confirm).mock.calls.at(-1)![0] as {
         onOk: () => void;
       };
@@ -290,70 +313,38 @@ describe('连接器属性字段编辑与即时反馈', () => {
     },
   );
 
-  it('关闭不改草稿，保存验证重名/精度并保留原附加参数', async () => {
-    const state = mount('read-mongodb', {
-      databaseId: '9007199254740993',
-      tableName: 't',
-      columns: [
-        {
-          name: 'a',
-          type: 'DECIMAL',
-          precision: '2',
-          format: '0.00',
-          custom: '保留',
-        },
-        { name: 'b', type: 'STRING' },
-      ],
-    });
-    await click('修改第1行属性字段');
-    await input('属性字段编辑名称', 'cancelled');
-    expect(state.config.columns[0].name).toBe('a');
-    await click('关闭属性');
-    expect(state.config.columns[0].name).toBe('a');
-    await click('修改第1行属性字段');
-    await input('属性字段编辑名称', 'b');
-    await click('保存属性');
-    expect(host.textContent).toContain('字段b重复');
-    expect(state.config.columns[0].name).toBe('a');
-    await input('属性字段编辑名称', 'amount');
-    await input('属性字段编辑精度', 'invalid');
-    await click('保存属性');
-    expect(host.textContent).toContain('小数精度必须为非负整数');
-    await input('属性字段编辑精度', '4');
-    await click('保存属性');
-    expect(state.config.columns[0]).toMatchObject({
-      name: 'amount',
-      type: 'DECIMAL',
-      precision: '4',
-      format: '0.00',
-      custom: '保留',
-    });
-    expect(host.querySelector('[role="dialog"]')).toBeNull();
-  });
-
-  it('节点切换和只读变更使未保存属性编辑失效', async () => {
-    const oldConfig = {
-      databaseId: '1',
-      tableName: 'a',
-      columns: [{ name: 'a', type: 'STRING' }],
-    };
-    const state = mount('read-mongodb', oldConfig);
-    await click('修改第1行属性字段');
-    await input('属性字段编辑名称', 'stale');
-    state.config = {
-      databaseId: '2',
-      tableName: 'b',
-      columns: [{ name: 'fresh', type: 'LONG' }],
-    };
-    await nextTick();
-    expect(host.querySelector('[role="dialog"]')).toBeNull();
-    expect(oldConfig.columns[0]!.name).toBe('a');
-    await click('修改第1行属性字段');
-    state.disabled = true;
-    await nextTick();
-    expect(host.querySelector('[role="dialog"]')).toBeNull();
-    expect(state.config.columns[0].name).toBe('fresh');
-  });
+  it.each(['read-ftp', 'read-redis', 'read-rabbitmq', 'read-rocketmq'])(
+    '%s 删除附加面板后保留主字段编辑及历史配置',
+    async (toolCode) => {
+      const original = toolCode === 'read-redis'
+        ? { name: 'id', type: 'LONG', key: '@key', custom: 7 }
+        : { name: 'id', type: 'LONG', index: 0, custom: 7 };
+      const state = mount(toolCode, {
+        databaseId: '9007199254740993',
+        resourceBindingId: 'resource.fixture',
+        credentialRef: 'credential.fixture',
+        maxRows: 1234,
+        custom: { retained: true },
+        columns: [original],
+      });
+      await nextTick();
+      expect(host.querySelector('.qi-connector-advanced')).toBeNull();
+      expect(host.textContent).not.toContain('高级字段配置');
+      expect(host.textContent).not.toContain('执行配置与高级参数');
+      expect(host.querySelector('table[aria-label="属性字段"]')).toBeTruthy();
+      await click('修改第1行属性字段');
+      await input('属性字段编辑名称', 'renamed');
+      await click('保存属性');
+      expect(state.config).toMatchObject({
+        databaseId: '9007199254740993',
+        resourceBindingId: 'resource.fixture',
+        credentialRef: 'credential.fixture',
+        maxRows: 1234,
+        custom: { retained: true },
+        columns: [{ ...original, name: 'renamed' }],
+      });
+    },
+  );
 
   it('json错误和嵌套凭据输入后立即反馈，无需失焦或保存', async () => {
     const state = mount('read-rabbitmq', {
@@ -370,21 +361,6 @@ describe('连接器属性字段编辑与即时反馈', () => {
     await input('配置参数', '{"queue":"events"}');
     expect(host.textContent).toContain('JSON对象格式有效');
     expect(state.config.config).toBe('{"queue":"events"}');
-  });
-  it('受管服务凭据引用即时校验且仅保存引用编号', async () => {
-    const state = mount('read-webservice', {
-      columns: [],
-      headerSecretRefs: '{}',
-    });
-    await input('请求头凭据引用', '{"Authorization":"service.auth"}');
-    expect(host.textContent).toContain('凭据引用格式有效');
-    expect(state.config.headerSecretRefs).toBe(
-      '{"Authorization":"service.auth"}',
-    );
-    await input('请求头凭据引用', '{"Authorization":"Bearer plaintext"}');
-    expect(host.textContent).toContain(
-      '请求头凭据引用只能填写请求头名称和已授权凭据引用编号',
-    );
   });
   it('历史订阅节点仅在明确操作后清理表读取参数，保留订阅和未知配置', async () => {
     const state = mount('read-tdengine', {
@@ -538,7 +514,7 @@ describe('连接器属性字段编辑与即时反馈', () => {
     state.disabled = true;
     await nextTick();
     expect(select.disabled).toBe(true);
-    expect([...host.querySelectorAll('.qi-connector-advanced input')].every((input) => (input as HTMLInputElement).disabled)).toBe(true);
+    expect(host.querySelector('.qi-connector-advanced')).toBeNull();
     await input('连接器数据连接', '2');
     expect(state.config.databaseId).toBe('9007199254740993');
   });

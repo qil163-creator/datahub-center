@@ -196,7 +196,7 @@ async function analyze() {
     return;
   }
   if (!props.config.resourceBindingId) {
-    issue.value = '请在高级执行配置中填写当前任务授权的接口执行资源';
+    issue.value = '当前节点尚未关联任务授权的接口执行资源，暂不能分析输出字段';
     return;
   }
   const ticket = request.begin();
@@ -217,7 +217,7 @@ async function analyze() {
         ? {}
         : { nullable: field.nullable }),
     }));
-    if (columns.value.length) {
+    if (columns.value.length > 0) {
       pendingColumns.value = discovered;
       mergeOpen.value = true;
     } else setApi('dataColumns', discovered);

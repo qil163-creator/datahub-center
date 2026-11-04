@@ -26,10 +26,10 @@ import {
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
-import { optionLabel, SHARE_ATTRIBUTE_OPTIONS } from '#/views/market/data';
-import ApplyForm from '#/views/market/modules/apply-form.vue';
-import CommentPanel from '#/views/market/modules/comment-panel.vue';
-import PreviewDrawer from '#/views/market/modules/preview-drawer.vue';
+import { optionLabel, SHARE_ATTRIBUTE_OPTIONS } from '#/views/asset/market/data';
+import ApplyForm from '#/views/asset/market/modules/apply-form.vue';
+import CommentPanel from '#/views/asset/market/modules/comment-panel.vue';
+import PreviewDrawer from '#/views/asset/market/modules/preview-drawer.vue';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 import { deliveryLabels } from '../data';

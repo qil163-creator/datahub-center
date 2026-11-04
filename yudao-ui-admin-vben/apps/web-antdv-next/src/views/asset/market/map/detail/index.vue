@@ -33,7 +33,7 @@ import {
   unpublishDataAsset,
 } from '#/api/asset/dataasset';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
-import ApplyForm from '#/views/market/modules/apply-form.vue';
+import ApplyForm from '#/views/asset/market/modules/apply-form.vue';
 
 import { TABLE_KIND_META } from '../data';
 import CatalogTab from './modules/catalog-tab.vue';

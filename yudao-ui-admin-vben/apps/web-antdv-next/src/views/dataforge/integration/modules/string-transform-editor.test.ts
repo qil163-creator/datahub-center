@@ -90,6 +90,7 @@ describe('字符串和字段赋值配置', () => {
     await input('第1行去空格方式', 'BOTH');
     expect(state.config.rules[0]).toMatchObject({ trim: 'BOTH', padDirection: 'LEFT', padCharacter: '*', padLength: 12, custom: 9 });
     expect(state.config.vendor).toBe(7);
+    expect(host.textContent).not.toContain('填充长度配置');
   });
 
   it('替换选项下拉只保存boolean，并保持三种替换来源互斥及正则切换契约', async () => {

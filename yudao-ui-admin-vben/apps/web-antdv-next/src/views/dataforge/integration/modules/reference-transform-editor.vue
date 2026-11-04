@@ -57,7 +57,6 @@ type Column = {
   help?: string;
   key: string;
   label: string;
-  metadata?: boolean;
   minArity?: number;
   options?: { label: string; value: string }[];
   placeholder?: string;
@@ -80,9 +79,6 @@ const sectionTitle = computed(
       'number-range': '范围(最小 <= 值 < 最大)',
       'java-script': '声明输出字段',
     })[props.toolCode] ?? '字段配置',
-);
-const primaryColumns = computed(() =>
-  columns.value.filter((column) => !column.metadata),
 );
 let dragged = -1;
 const rowKey = computed(
@@ -233,12 +229,7 @@ const columns = computed<Column[]>(() => {
       ];
     }
     case 'field-derive': {
-      return [
-        { key: 'name', label: '字段名称', source: true },
-        { key: 'dataType', label: '字段类型', metadata: true },
-        { key: 'length', label: '字段长度', metadata: true },
-        { key: 'scale', label: '小数精度', metadata: true },
-      ];
+      return [{ key: 'name', label: '字段名称', source: true }];
     }
     case 'field-split': {
       return [
@@ -349,13 +340,6 @@ function commitRows(value: Row[]) {
   if (!props.disabled)
     props.config[rowKey.value] =
       props.toolCode === 'field-derive' ? value.map((row) => row.name) : value;
-}
-function metadata(row: Row, key: string) {
-  return (
-    props.inputFields?.find((field) => field.name === row.name)?.[
-      key as 'dataType' | 'length' | 'scale'
-    ] ?? '-'
-  );
 }
 function cellDisabled(row: Row, column: Column) {
   return (
@@ -610,12 +594,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         </div>
       </div>
       <slot name="description"></slot>
-      <details v-if="config.mode !== 'UUID'" class="qi-id-sequence-help">
-        <summary>序列说明</summary>
-        <p class="qi-reference-notice">
-          最大值为0表示不限；递增序列按下方确定顺序生成。
-        </p>
-      </details>
     </template>
     <template v-else>
       <template v-if="toolCode === 'field-derive'">
@@ -768,27 +746,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           @update:value="(value) => { setConfig('defaultValue', value); setConfig('unmatched', String(value ?? '').length ? 'DEFAULT' : 'KEEP'); }"
         />
       </div>
-      <details v-if="toolCode === 'value-map'" class="qi-transform-advanced">
-        <summary>未匹配处理方式</summary>
-        <div class="qi-reference-form-row">
-          <label>未命中处理</label><Select
-            :value="config.unmatched"
-            :disabled="disabled"
-            :options="[
-              { value: 'KEEP', label: '保留原值' },
-              { value: 'DEFAULT', label: '设为默认值' },
-              { value: 'SET_NULL', label: '置空' },
-            ]"
-            @update:value="(value) => setConfig('unmatched', value)"
-          /><Input
-            v-if="config.unmatched === 'DEFAULT'"
-            :value="config.defaultValue"
-            :disabled="disabled"
-            placeholder="不匹配时的默认值"
-            @update:value="(value) => setConfig('defaultValue', value)"
-          />
-        </div>
-      </details>
       <div
         v-if="showRows"
         class="qi-reference-section-header qi-reference-table-heading"
@@ -809,7 +766,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           <thead>
             <tr>
               <th>序号</th>
-              <th v-for="column in primaryColumns" :key="column.key">
+              <th v-for="column in columns" :key="column.key">
                 {{ column.label }}
                 <Tooltip v-if="column.help" :title="column.help"><span class="qi-transform-column-help" tabindex="0" :aria-label="`${column.label}说明`"><ReferenceIcon name="info" /></span></Tooltip>
               </th>
@@ -829,7 +786,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
               @keydown.alt.down.prevent="move(index, index + 1)"
             >
               <td>{{ index + 1 }}</td>
-              <td v-for="column in primaryColumns" :key="column.key">
+              <td v-for="column in columns" :key="column.key">
                 <Select
                   v-if="column.check"
                   :value="row[column.key] === undefined ? undefined : row[column.key] ? 1 : 0"
@@ -888,7 +845,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
             </tr>
             <tr v-if="!rows.length">
               <td
-                :colspan="primaryColumns.length + 2"
+                :colspan="columns.length + 2"
                 class="qi-reference-empty"
               >
                 暂无记录
@@ -897,37 +854,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           </tbody>
         </table>
       </div>
-      <details
-        v-if="toolCode === 'field-derive' && showRows"
-        class="qi-transform-advanced"
-      >
-        <summary>来源字段元数据</summary>
-        <table class="qi-reference-fields-table">
-          <thead>
-            <tr>
-              <th>字段名称</th>
-              <th>字段类型</th>
-              <th>字段长度</th>
-              <th>小数精度</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, index) in rows" :key="index">
-              <td>{{ row.name }}</td>
-              <td>{{ metadata(row, 'dataType') }}</td>
-              <td>{{ metadata(row, 'length') }}</td>
-              <td>{{ metadata(row, 'scale') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
-      <details v-if="toolCode === 'field-split'" class="qi-transform-advanced">
-<summary>原字段处理</summary><label><Checkbox
-          :checked="config.keepSource"
-          :disabled="disabled"
-          @update:checked="(value) => setConfig('keepSource', value)"
-        />保留原字段</label>
-</details>
     </template>
     <ReferenceFieldMergeDialog v-model:open="fieldMergeOpen" :existing-count="rows.length" :incoming-count="inputFields?.length ?? 0" :disabled="disabled" @resolve="getFields" />
   </div>

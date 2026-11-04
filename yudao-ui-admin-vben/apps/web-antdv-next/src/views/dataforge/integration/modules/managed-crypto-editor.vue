@@ -5,8 +5,6 @@ import { computed, ref, watch } from 'vue';
 import {
   Alert,
   AutoComplete,
-  Button,
-  Checkbox,
   Input,
   Select,
   Tooltip,
@@ -67,20 +65,11 @@ function add() {
       },
     ];
 }
-function remove(index: number) {
-  if (!props.disabled)
-    props.config[configKey.value] = fields.value.filter(
-      (_, position) => position !== index,
-    );
-}
-function clearLegacyKey(field: Record<string, any>) {
-  if (!props.disabled) delete field.secretKey;
-}
 watch(
   () => [props.config, props.toolCode, props.disabled],
   () => {
     issues.value = [];
-    if (!props.disabled && !Array.isArray(props.config[configKey.value])) add();
+    if (!props.disabled && fields.value.length === 0) add();
   },
   { immediate: true },
 );
@@ -96,7 +85,8 @@ function validate() {
       (props.toolCode === 'data-encrypt' || field.algorithm === 'BASE64');
     if (!['AES', 'SM4'].includes(field.algorithm) && !legacySupported)
       errors.push(`${prefix}请选择AES或SM4，并确认历史配置的算法语义`);
-    if (field.secretKey) errors.push(`${prefix}请清除旧密钥后填写密钥引用`);
+    if (field.secretKey)
+      errors.push(`${prefix}历史明文密钥需由管理员迁移为密钥引用后再保存`);
     if (
       !legacySupported &&
       !/^[A-Za-z][A-Za-z0-9_.-]{0,99}$/u.test(field.secretKeyRef ?? '')
@@ -163,49 +153,6 @@ defineExpose({ validate });
         /></label>
       </div>
       <slot v-if="index === 0" name="description"></slot>
-      <details class="qi-transform-advanced">
-        <summary>
-          字段保留与兼容配置{{ fields.length > 1 ? ` · 第${index + 1}组` : '' }}
-        </summary>
-        <p class="qi-reference-notice">
-          {{
-            toolCode === 'data-encrypt'
-              ? '会将加密后的数据输出到指定字段。'
-              : '会将解密后的数据输出到指定字段。'
-          }}密钥在授权执行资源中维护；加解密须使用一致的算法和密钥引用。
-        </p>
-        <Checkbox
-          :checked="field.keepOriginal === true"
-          :disabled="disabled"
-          @update:checked="(value) => set(field, 'keepOriginal', value)"
-          >
-保留来源字段
-</Checkbox>
-        <Button :disabled="disabled" type="link" danger @click="remove(index)">
-删除字段
-</Button>
-        <Alert
-          v-if="field.secretKey"
-          type="warning"
-          message="此字段有历史密钥配置，请清除后改用密钥引用。"
-          >
-<template #action>
-<Button
-              :disabled="disabled"
-              size="small"
-              @click="clearLegacyKey(field)"
-              >
-清除旧密钥
-</Button>
-</template>
-</Alert>
-      </details>
     </section>
-    <details class="qi-transform-advanced">
-      <summary>多个字段处理</summary>
-      <Button class="qi-reference-button" :disabled="disabled" @click="add">
-新增加解密字段
-</Button>
-    </details>
   </div>
 </template>
