@@ -9,6 +9,7 @@ import {
   Checkbox,
   Input,
   InputNumber,
+  message,
   Modal,
   Select,
   TextArea,
@@ -285,8 +286,8 @@ const columns = computed<Column[]>(() => {
           key: 'order',
           label: '排序规则',
           options: [
-            { label: '升序', value: 'ASC' },
             { label: '降序', value: 'DESC' },
+            { label: '升序', value: 'ASC' },
           ],
         },
       ];
@@ -382,6 +383,10 @@ function rowErrors() {
 }
 function add() {
   if (props.disabled) return;
+  if (props.toolCode === 'field-derive' && !(props.inputFields?.length)) {
+    message.warning('输入字段为空，无法添加字段');
+    return;
+  }
   if (
     props.toolCode === 'field-derive' &&
     ['REGEX_EXTRACT', 'REPLACE', 'SUBSTRING'].includes(
@@ -621,7 +626,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
       <template v-if="toolCode === 'field-derive'">
         <div class="qi-reference-form-grid">
         <div class="qi-reference-form-row">
-          <label>操作类型</label><Select
+          <label class="qi-id-required">操作类型</label><Select
             :value="config.operateType"
             :disabled="disabled"
             :options="deriveModes"
@@ -629,9 +634,10 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           />
         </div>
         <div class="qi-reference-form-row">
-          <label>新增字段名称</label><Input
+          <label class="qi-id-required">新增字段名称 <Tooltip title="生成结果将写入该字段，作为新列追加到数据中"><span class="qi-id-field-help" tabindex="0" aria-label="新增字段名称说明"><ReferenceIcon name="info" /></span></Tooltip></label><Input
             :value="config.targetField"
             :disabled="disabled"
+            placeholder="请输入新增字段名称"
             @update:value="(value) => setConfig('targetField', value)"
           />
         </div>
@@ -651,6 +657,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
             v-else
             :value="config[parameter.key]"
             :disabled="disabled"
+            :placeholder="`请输入${parameter.label}`"
             @update:value="(value) => setConfig(parameter.key, value)"
           />
         </div>
@@ -808,7 +815,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         <table class="qi-reference-fields-table">
           <thead>
             <tr>
-              <th>序号</th>
+              <th>序号<Tooltip v-if="toolCode === 'sort-records'" title="拖动序号可调整排序优先级，序号越小优先级越高"><span class="qi-transform-column-help" tabindex="0" aria-label="序号说明"><ReferenceIcon name="info" /></span></Tooltip></th>
               <th v-for="column in primaryColumns" :key="column.key">
                 {{ column.label }}
                 <Tooltip v-if="column.help" :title="column.help"><span class="qi-transform-column-help" tabindex="0" :aria-label="`${column.label}说明`"><ReferenceIcon name="info" /></span></Tooltip>
@@ -828,7 +835,10 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
               @keydown.alt.up.prevent="move(index, index - 1)"
               @keydown.alt.down.prevent="move(index, index + 1)"
             >
-              <td>{{ index + 1 }}</td>
+              <td>
+                <span v-if="toolCode === 'sort-records'" class="qi-dedup-sequence"><ReferenceIcon name="field-drag-ref" />{{ index + 1 }}</span>
+                <template v-else>{{ index + 1 }}</template>
+              </td>
               <td v-for="column in primaryColumns" :key="column.key">
                 <Select
                   v-if="column.check"

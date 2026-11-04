@@ -329,8 +329,15 @@ function mqFields(output: boolean): ConnectorField[] {
       key: 'config',
       label: '配置参数',
       kind: 'json',
-      defaultValue: '{}',
       full: true,
+      // Inputs start empty with the reference example; outputs keep the "{}" default.
+      ...(output
+        ? { defaultValue: '{}' }
+        : {
+            maxLength: 256,
+            placeholder: '例如: {"group.id":"demo_test"}',
+            quiet: true,
+          }),
     },
     ...(output ? [batch] : []),
   ];
@@ -408,7 +415,8 @@ function redisFields(output: boolean): ConnectorField[] {
       key: 'dataType',
       label: '数据类型',
       kind: 'select',
-      defaultValue: 'string',
+      // Inputs start empty and must be chosen, as in the reference; outputs keep the default.
+      ...(output ? { defaultValue: 'string' } : { required: true }),
       options: choices('string', 'hash', 'list'),
     },
     {

@@ -106,6 +106,15 @@ async function input(label: string, value: string) {
   element.dispatchEvent(new Event('input'));
   await flush();
 }
+// The URL is parsed automatically once the field is committed (blur).
+async function commitWsdlUrl() {
+  const field = host.querySelector<HTMLInputElement>(
+    '[aria-label="WSDL URL"]',
+  );
+  expect(field).toBeTruthy();
+  field!.dispatchEvent(new Event('blur'));
+  await flush();
+}
 async function click(label: string) {
   const element = [...host.querySelectorAll('button')].find(
     (button) => button.textContent?.trim() === label,
@@ -231,6 +240,19 @@ describe('集成专属四步骤接口配置', () => {
       { fieldName: 'current', fieldType: 12 },
     ]);
   });
+  it('提交WSDL地址后自动解析一次，不再提供解析按钮并显示参考提示', async () => {
+    vi.mocked(api.getIntegrationWebServiceMetadata).mockResolvedValue(response);
+    mount(WebServiceEditor, {
+      resourceBindingId: 'soap.weather',
+      apiUrl: 'https://example.test/weather?wsdl',
+      columns: [],
+    });
+    expect(host.textContent).not.toContain('解析WSDL');
+    expect(host.textContent).toContain('输入 WSDL 地址后自动解析');
+    await commitWsdlUrl();
+    await commitWsdlUrl();
+    expect(api.getIntegrationWebServiceMetadata).toHaveBeenCalledTimes(1);
+  });
   it('受管WSDL解析提供服务端口操作联动，不在解析时重写已有草稿', async () => {
     vi.mocked(api.getIntegrationWebServiceMetadata).mockResolvedValue(response);
     const { state } = mount(WebServiceEditor, {
@@ -240,7 +262,7 @@ describe('集成专属四步骤接口配置', () => {
       vendor: '保留',
     });
     const before = JSON.stringify(state.config);
-    await click('解析WSDL');
+    await commitWsdlUrl();
     expect(JSON.stringify(state.config)).toBe(before);
     await input('WSDL服务', 'Weather');
     await input('WSDL端口', 'WeatherSoap');
@@ -274,7 +296,7 @@ describe('集成专属四步骤接口配置', () => {
       apiUrl: 'https://example.test/weather?wsdl',
       serviceName: '原服务',
     });
-    await click('解析WSDL');
+    await commitWsdlUrl();
     state.config = {
       resourceBindingId: 'soap.weather',
       apiUrl: 'https://example.test/weather?wsdl',
@@ -287,7 +309,7 @@ describe('集成专属四步骤接口配置', () => {
       host.querySelector<HTMLInputElement>('[aria-label="WSDL端点地址"]')
         ?.value,
     ).toBe('');
-    await click('解析WSDL');
+    await commitWsdlUrl();
     expect(host.textContent).toContain('未授权控制面元数据地址');
     expect(state.config.serviceName).toBe('新节点服务');
   });
@@ -323,7 +345,7 @@ describe('集成专属四步骤接口配置', () => {
       apiMethod: 'soap11',
       targetNamespace: 'urn:test',
     });
-    await click('解析WSDL');
+    await commitWsdlUrl();
     await input('WSDL请求接口', 'Read12');
     expect(state.config).toMatchObject({
       portName: 'WeatherSoap12',
@@ -334,7 +356,7 @@ describe('集成专属四步骤接口配置', () => {
     secondPort.operations[0]!.name = 'Read';
     state.config.portName = '';
     state.config.operationName = '';
-    await click('解析WSDL');
+    await commitWsdlUrl();
     await input('WSDL请求接口', 'Read');
     expect(state.config.portName).toBe('');
     expect(state.config.operationName).toBe('');

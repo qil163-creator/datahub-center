@@ -127,12 +127,21 @@ defineExpose({ validate });
           @update:value="(value) => set('tokenKey', value)"
         />
         <p class="qi-reference-notice">
-          {{ realtime ? '认证结果写入此变量，用于已连接实时输入源的启动认证。' : '认证脚本返回的字符串写入此变量，供接口输入组件引用。' }}
+          {{ realtime ? '认证结果写入此变量，用于已连接实时输入源的启动认证。' : '脚本认证成功返回的token将放入本变量中,API节点Header头中通过${变量id}引用' }}
         </p>
       </div>
     </div>
     <slot v-if="token" name="description"></slot>
-    <div><Button type="primary" :disabled="disabled" @click="emit('requestCheck')">编译</Button></div>
+    <div class="qi-script-compile">
+      <Button
+        type="primary"
+        title="请使用设计器中的“检查”，结合当前执行资源及上下游验证脚本。"
+        :auto-insert-space="false"
+        :disabled="disabled"
+        @click="emit('requestCheck')"
+        >编译</Button
+      >
+    </div>
     <div class="qi-script-code" aria-label="原生脚本代码编辑器">
       <CodeEditor
         :model-value="config.code ?? ''"
@@ -145,21 +154,18 @@ defineExpose({ validate });
         @update:model-value="(value) => set('code', value)"
       />
     </div>
-    <p class="qi-reference-notice">请使用设计器中的“检查”，结合当前执行资源及上下游验证脚本。</p>
 
-    <p v-if="token" class="qi-reference-notice">
-      {{ realtime ? '作业启动时初始化认证，可连接表输入、Kafka输入或TDengine输入；认证节点不接收数据上游。' : '认证脚本返回字符串，并通过认证变量连接接口输入；当前仅支持无数据上游的初始化认证。' }}
-    </p>
-    <template v-else>
+    <template v-if="!token">
       <div class="qi-reference-section-header qi-reference-table-heading">
         <h3>输出字段</h3>
         <Button
-          class="qi-reference-button"
+          class="qi-reference-button qi-script-add-button"
+          :auto-insert-space="false"
           :disabled="disabled"
+          aria-label="新增输出字段"
           @click="addField"
-          >
-新增输出字段
-</Button>
+          >+ 新增</Button
+        >
       </div>
       <div class="qi-reference-fields-scroll">
         <table class="qi-reference-fields-table qi-script-output-fields">
@@ -247,7 +253,7 @@ defineExpose({ validate });
     <details class="qi-transform-advanced">
       <summary>执行资源与批次配置</summary>
       <p class="qi-reference-notice">
-        {{ token ? '认证脚本须使用管理员授权的执行资源，每次作业启动尝试仅初始化一次。' : '脚本须使用管理员授权的执行资源。每批独立运行；字段类型与返回数据必须一致。' }}
+        {{ token ? (realtime ? '认证脚本须使用管理员授权的执行资源，每次作业启动尝试仅初始化一次。作业启动时初始化认证，可连接表输入、Kafka输入或TDengine输入；认证节点不接收数据上游。' : '认证脚本须使用管理员授权的执行资源，每次作业启动尝试仅初始化一次。认证脚本返回字符串，并通过认证变量连接接口输入；当前仅支持无数据上游的初始化认证。') : '脚本须使用管理员授权的执行资源。每批独立运行；字段类型与返回数据必须一致。' }}
       </p>
       <div class="qi-reference-form-grid">
         <label>脚本资源编号<Input

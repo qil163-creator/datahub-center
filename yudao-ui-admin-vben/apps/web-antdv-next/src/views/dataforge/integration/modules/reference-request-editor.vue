@@ -274,7 +274,16 @@ function jdbcType(type?: null | string) {
   if (value === 'BOOLEAN') return 16;
   return undefined;
 }
-defineExpose({ validate });
+// 上一步/下一步由设计器弹窗页脚渲染，与参考界面一致。
+const stepNav = computed(() => ({
+  last: 3,
+  next: nextStep,
+  prev: () => {
+    if (step.value > 0) step.value--;
+  },
+  step: step.value,
+}));
+defineExpose({ stepNav, validate });
 </script>
 
 <template>
@@ -317,6 +326,9 @@ defineExpose({ validate });
             @update:value="(value) => setApi('requestUrl', value)"
           />
         </div>
+        <span class="qi-service-form-hint">
+          请指定API地址可用${变量id}获取变量值作为URL的一部分如:http://ip:80/api/${id}
+        </span>
         <label class="required">返回数据格式</label><Select
           :value="config.dataType ?? 2"
           :disabled="disabled"
@@ -327,6 +339,9 @@ defineExpose({ validate });
           aria-label="返回数据格式"
           @update:value="(value) => setApi('dataType', value)"
         />
+        <span class="qi-service-form-hint">
+          指定返回数据的格式,普通字符串默认设置在data中第一行的responseBody字段中
+        </span>
         <template v-if="config.dataType === 1">
           <label class="required">返回数据行所在字段</label>
           <div class="qi-service-data-paths">
@@ -360,14 +375,25 @@ defineExpose({ validate });
 </Button>
             </div>
           </div>
+          <span class="qi-service-form-hint">
+            API返回的JSON对象如果数据行不在data字段中时请指定字段Id,详细语法请参考：
+            <a
+              href="https://docs.apifox.com/jsonpath"
+              target="_blank"
+              rel="noopener noreferrer"
+              >https://docs.apifox.com/jsonpath</a>
+          </span>
         </template>
-        <label>分页读取</label><RadioGroup
+        <label class="required">分页读取</label><RadioGroup
           :value="config.ifPage ?? 0"
           :disabled="disabled"
           @update:value="(value) => setApi('ifPage', value)"
         >
           <Radio :value="0">否</Radio><Radio :value="1">是</Radio>
         </RadioGroup>
+        <span class="qi-service-form-hint">
+          是表示分页循环读取,同时必须在API输入参数指定${pageNo}变量作为API的输入参数,否则不能自动分页
+        </span>
         <template v-if="config.ifPage === 1">
           <label class="required">分页参数</label>
           <div class="qi-service-inline">
@@ -406,19 +432,22 @@ defineExpose({ validate });
             disabled
             title="当前执行协议未支持持久时间增量游标"
           >
-            时间增量
+            时间增量更新
           </Radio>
         </RadioGroup>
+        <span class="qi-service-form-hint">
+          全量读取全部数据，时间增量仅读取指定时间范围内的数据。
+        </span>
       </div>
     </section>
     <template
       v-for="key in ['requestParam', 'requestHeader'] as const"
       :key="key"
     >
-      <section v-show="step === (key === 'requestParam' ? 1 : 2)">
+      <section v-show="step === (key === 'requestParam' ? 1 : 2)" class="qi-service-params">
         <div class="qi-service-toolbar">
           <Button type="primary" :disabled="disabled" @click="addPair(key)">
-            {{ key === 'requestParam' ? '添加参数' : '添加Header头' }}
+            + {{ key === 'requestParam' ? '添加参数' : '添加Header头' }}
           </Button>
         </div>
         <div
@@ -712,8 +741,5 @@ defineExpose({ validate });
       :incoming-count="pendingColumns.length"
       @resolve="mergeColumns"
     />
-    <div class="qi-service-step-actions">
-      <Button v-if="step > 0" @click="step--">上一步</Button><Button v-if="step < 3" type="primary" @click="nextStep">下一步</Button>
-    </div>
   </div>
 </template>

@@ -22,6 +22,8 @@ describe('qData连接器配置边界', () => {
         resourceBindingId: 'task-fixture',
         topic: 'events',
         keyPattern: 'sensor:*',
+        // Redis inputs have no default data type; it must be chosen.
+        ...(code === 'read-redis' ? { dataType: 'string' } : {}),
         apiUrl: 'https://example.test/service?wsdl',
         operationName: 'query',
         columns: [{ name: 'id', type: 'STRING', index: 0 }],
@@ -46,7 +48,9 @@ describe('qData连接器配置边界', () => {
   });
 
   it('消息组件 RocketMQ 的消费组、生产组及逐条确认默认值与执行契约一致', () => {
-    expect(connectorDefaults('read-rocketmq')).toMatchObject({ config: '{}', offsetReset: 'earliest' });
+    // Inputs start with an empty 配置参数 (reference placeholder); outputs keep the "{}" default.
+    expect(connectorDefaults('read-rocketmq')).toMatchObject({ offsetReset: 'earliest' });
+    expect(connectorDefaults('read-rocketmq')).not.toHaveProperty('config');
     expect(connectorDefaults('write-rocketmq')).toMatchObject({ config: '{}', batchSize: 1 });
     expect(connectorDefaults('write-rocketmq')).not.toHaveProperty('offsetReset');
     for (const code of ['read-rocketmq', 'write-rocketmq']) {

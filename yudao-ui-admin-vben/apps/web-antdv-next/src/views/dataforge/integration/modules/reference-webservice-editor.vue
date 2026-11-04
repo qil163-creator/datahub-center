@@ -34,10 +34,12 @@ const parsing = ref(false);
 const issue = ref('');
 const metadata = ref<WebServiceMetadata>();
 const nodeVersion = ref(0);
+const parsedUrl = ref('');
 watch(
   () => props.config,
   () => {
     nodeVersion.value++;
+    parsedUrl.value = '';
   },
   { flush: 'sync' },
 );
@@ -169,8 +171,15 @@ function nextStep() {
   issue.value = '';
   step.value++;
 }
+// The reference parses the WSDL once the URL is committed (blur or Enter).
+function commitUrl() {
+  const url = String(props.config.apiUrl ?? '').trim();
+  if (!url || url === parsedUrl.value) return;
+  void parseWsdl();
+}
 async function parseWsdl() {
   if (props.disabled || parsing.value) return;
+  parsedUrl.value = String(props.config.apiUrl ?? '').trim();
   issue.value = '';
   if (props.taskId === undefined || props.revision === undefined) {
     issue.value = '请先保存任务，再解析WSDL';
@@ -192,8 +201,10 @@ async function parseWsdl() {
     if (!ticket() || props.disabled) return;
     metadata.value = result;
   } catch (error) {
-    if (ticket())
+    if (ticket()) {
+      parsedUrl.value = '';
       issue.value = error instanceof Error ? error.message : 'WSDL解析失败';
+    }
   } finally {
     if (ticket()) parsing.value = false;
   }
@@ -206,6 +217,19 @@ function useDeclaredParameters() {
     if (!(parameter.name in next)) next[parameter.name] = '';
   set('requestParams', JSON.stringify(next, null, 2));
 }
+// HTTP bindings are only shown for a WSDL that declares them; SOAP is selectable.
+const methodOptions = computed(() =>
+  [
+    { label: 'SOAP 1.1', value: 'soap11' },
+    { label: 'SOAP 1.2', value: 'soap12' },
+    { label: 'HTTP GET', value: 'httpGet' },
+    { label: 'HTTP POST', value: 'httpPost' },
+  ].map((item) => ({
+    ...item,
+    disabled:
+      item.value.startsWith('http') && props.config.apiMethod !== item.value,
+  })),
+);
 function options<T extends { name: string }>(items?: T[], current?: string) {
   const result = (items ?? []).map((item) => ({
     label: item.name,
@@ -220,7 +244,16 @@ function validate() {
   issue.value = errors.map((error) => error.message).join('；');
   return errors.length === 0;
 }
-defineExpose({ validate });
+// 上一步/下一步由设计器弹窗页脚渲染，与参考界面一致。
+const stepNav = computed(() => ({
+  last: 3,
+  next: nextStep,
+  prev: () => {
+    if (step.value > 0) step.value--;
+  },
+  step: step.value,
+}));
+defineExpose({ stepNav, validate });
 </script>
 
 <template>
@@ -250,10 +283,13 @@ defineExpose({ validate });
             placeholder="请输入 WSDL URL"
             aria-label="WSDL URL"
             @update:value="(value) => set('apiUrl', value)"
-          /><Button :loading="parsing" :disabled="disabled" @click="parseWsdl">
-            解析WSDL
-          </Button>
+            @blur="commitUrl"
+            @press-enter="commitUrl"
+          />
         </div>
+        <span class="qi-service-form-hint">
+          输入 WSDL 地址后自动解析服务、端口、端点地址、请求接口和请求方式。
+        </span>
         <label class="required">请求接口</label><Select
           :value="config.operationName"
           :disabled="disabled || (!metadata && !config.operationName)"
@@ -265,15 +301,28 @@ defineExpose({ validate });
         <label class="required">请求方式</label><Select
           :value="config.apiMethod"
           :disabled="disabled || (!port && !config.apiMethod)"
-          :options="[
-            { label: 'SOAP 1.1', value: 'soap11' },
-            { label: 'SOAP 1.2', value: 'soap12' },
-            { label: 'HTTP GET', value: 'httpGet' },
-            { label: 'HTTP POST', value: 'httpPost' },
-          ]"
+          :options="methodOptions"
+          placeholder="请选择请求方式"
           aria-label="WSDL请求方式"
           @update:value="(value) => set('apiMethod', value)"
         />
+        <template v-if="config.apiMethod && (config.serviceName || port)">
+          <label>服务</label><Input
+            :value="config.serviceName"
+            disabled
+            aria-label="WSDL服务名称"
+          />
+          <label>端口</label><Input
+            :value="config.portName"
+            disabled
+            aria-label="WSDL端口名称"
+          />
+          <label>端点地址</label><Input
+            :value="port?.endpoint"
+            disabled
+            aria-label="WSDL端点地址回显"
+          />
+        </template>
       </div>
       <slot name="description"></slot>
       <Alert
@@ -287,14 +336,14 @@ defineExpose({ validate });
       v-for="key in ['requestParams', 'headerParams'] as const"
       :key="key"
     >
-      <section v-show="step === (key === 'requestParams' ? 1 : 2)">
+      <section v-show="step === (key === 'requestParams' ? 1 : 2)" class="qi-service-params">
         <div class="qi-service-toolbar">
           <Button
             type="primary"
             :disabled="disabled"
             @click="updateParameter(key, '', '', '')"
           >
-            {{ key === 'requestParams' ? '添加参数' : '添加Header头' }}
+            + {{ key === 'requestParams' ? '添加参数' : '添加Header头' }}
           </Button>
         </div>
         <div class="qi-service-table-area">
@@ -474,9 +523,6 @@ defineExpose({ validate });
         />
       </div>
     </section>
-    <div class="qi-service-step-actions">
-      <Button v-if="step > 0" @click="step--">上一步</Button><Button v-if="step < 3" type="primary" @click="nextStep">下一步</Button>
-    </div>
     <details class="qi-reference-advanced">
       <summary>高级执行配置</summary>
       <div class="qi-service-form">

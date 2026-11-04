@@ -76,7 +76,13 @@ function change(field: ConnectorField, value: unknown) {
           :options="field.options"
           :suffix-icon="field.plain ? null : undefined"
           :disabled="disabled"
-          :show-search="field.key === 'dataType'"
+          :class="{ 'qi-flip-arrow': field.key === 'dataType' }"
+          :classes="
+            field.key === 'dataType'
+              ? { popup: { root: 'qi-file-field-popup' } }
+              : undefined
+          "
+          :placeholder="`请选择${field.label}`"
           option-filter-prop="label"
           :status="error(field.key) ? 'error' : undefined"
           :aria-label="field.label"

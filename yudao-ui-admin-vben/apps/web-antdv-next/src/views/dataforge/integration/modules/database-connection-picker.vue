@@ -17,12 +17,18 @@ const props = withDefaults(
     disabled?: boolean;
     loading?: boolean;
     placeholder?: string;
+    /**
+     * Restricts the catalog to these connection type codes (e.g. MONGODB).
+     * Switches to the reference layout: only matching categories and types.
+     */
+    typeCodes?: string[];
     value?: number | string;
   }>(),
   {
     disabled: false,
     loading: false,
     placeholder: '请选择源数据库连接',
+    typeCodes: undefined,
     value: undefined,
   },
 );
@@ -45,12 +51,34 @@ const request = useObjectRequest(
     typeError.value = false;
   },
 );
-const categories = [
+const baseCategories = [
   { code: '', name: '全部' },
   { code: 'RELATIONAL', name: '关系型数据库' },
   { code: 'ANALYTICAL', name: '分析型数据库/数据仓库' },
   { code: 'OTHER', name: '其他连接' },
 ];
+// Catalog categories, in dictionary order (connection type catalog).
+const catalogCategories = [
+  { code: 'RELATIONAL', name: '关系型数据库' },
+  { code: 'ANALYTICAL', name: '分析型数据库/数据仓库' },
+  { code: 'FILE_OBJECT_STORAGE', name: '文件/对象存储' },
+  { code: 'NOSQL_CACHE', name: 'NoSQL/缓存' },
+  { code: 'MESSAGE_QUEUE', name: '消息队列' },
+  { code: 'TIME_SERIES', name: '时序数据库' },
+  { code: 'SEMI_STRUCTURED', name: '半结构化存储' },
+  { code: 'VECTOR', name: '向量型数据库' },
+  { code: 'OTHER', name: '其他连接' },
+];
+const scoped = computed(() => !!props.typeCodes?.length);
+const allowedCodes = computed(
+  () => new Set((props.typeCodes ?? []).map((code) => code.toUpperCase())),
+);
+function isAllowed(...codes: (string | undefined)[]) {
+  return (
+    !scoped.value ||
+    codes.some((code) => !!code && allowedCodes.value.has(code.toUpperCase()))
+  );
+}
 const typeById = computed(
   () => new Map(types.value.map((item) => [String(item.id), item])),
 );
@@ -65,6 +93,10 @@ function databaseType(database: FoundationDatabaseApi.DatabaseSimple) {
   );
 }
 function categoryCode(code?: string) {
+  if (scoped.value)
+    return catalogCategories.some((item) => item.code === code)
+      ? (code as string)
+      : 'OTHER';
   return code === 'RELATIONAL' || code === 'ANALYTICAL' ? code : 'OTHER';
 }
 const connections = computed(() =>
@@ -104,13 +136,25 @@ const searched = computed(() => {
       ),
   );
 });
-const visibleCategories = computed(() =>
-  categories.filter(
+const visibleCategories = computed(() => {
+  if (scoped.value) {
+    const present = new Set<string>([
+      ...types.value
+        .filter((item) => isAllowed(item.typeCode, item.productId))
+        .map((item) => categoryCode(item.categoryCode)),
+      ...connections.value.map((item) => item.category),
+    ]);
+    return [
+      baseCategories[0]!,
+      ...catalogCategories.filter((item) => present.has(item.code)),
+    ];
+  }
+  return baseCategories.filter(
     (item) =>
       item.code !== 'OTHER' ||
       connections.value.some((connection) => connection.category === 'OTHER'),
-  ),
-);
+  );
+});
 const categoryConnections = computed(() =>
   searched.value.filter(
     (item) => !category.value || item.category === category.value,
@@ -129,6 +173,7 @@ const typeOptions = computed(() => {
     }
   >();
   for (const item of types.value) {
+    if (!isAllowed(item.typeCode, item.productId)) continue;
     const group = categoryCode(item.categoryCode);
     if (category.value && group !== category.value) continue;
     const key = `type:${item.id}`;
@@ -223,11 +268,13 @@ watch(keyword, () => {
     :open="open"
     trigger="click"
     placement="bottomLeft"
+    :classes="scoped ? { root: 'qi-connection-picker-popover' } : undefined"
     @update:open="setOpen"
   >
     <template #content>
       <div
         class="qi-connection-picker"
+        :class="{ 'qi-connection-picker--scoped': scoped }"
         role="dialog"
         aria-label="选择数据库连接"
         @keydown.esc="setOpen(false)"
@@ -237,7 +284,21 @@ watch(keyword, () => {
           allow-clear
           placeholder="请输入数据连接名称"
           aria-label="搜索数据连接"
-        />
+        >
+          <template v-if="scoped" #prefix>
+            <svg
+              class="qi-connection-picker__search"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </template>
+        </Input>
         <div v-if="typeError" class="qi-connection-picker__error" role="status">
           连接类型加载失败，仍可从全部连接中选择。
           <Button type="link" size="small" @click="loadTypes">重试</Button>
@@ -305,7 +366,13 @@ watch(keyword, () => {
                   alt=""
                 /><span>{{ item.name }}</span><small>({{ item.count }})</small>
               </button>
-              <p>当前分类有 {{ typeOptions.length }} 种连接类型</p>
+              <p>
+                {{
+                  scoped
+                    ? `共 有 ${typeOptions.length} 种连接类型`
+                    : `当前分类有 ${typeOptions.length} 种连接类型`
+                }}
+              </p>
             </div>
             <div
               class="qi-connection-picker__connections"
@@ -335,8 +402,19 @@ watch(keyword, () => {
                   alt=""
                 /><span>{{ item.database.name || item.database.id }}</span>
               </button>
+              <div
+                v-if="scoped && !visibleConnections.length && !keyword"
+                class="qi-connection-picker__empty-state"
+              >
+                <img
+                  src="/assets/qdata-integration/node-empty-reference.png"
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span>暂无数据源</span>
+              </div>
               <p
-                v-if="!visibleConnections.length"
+                v-else-if="!visibleConnections.length"
                 class="qi-connection-picker__empty"
               >
                 {{ keyword ? '没有找到匹配的数据连接' : '暂无数据连接' }}
@@ -491,6 +569,41 @@ watch(keyword, () => {
   margin: 0;
   font-size: 12px;
   color: #999;
+}
+
+.qi-connection-picker--scoped {
+  width: min(756px, calc(100vw - 48px));
+}
+
+.qi-connection-picker--scoped .qi-connection-picker__columns button {
+  min-height: 46px;
+}
+
+.qi-connection-picker--scoped .qi-connection-picker__types p {
+  position: sticky;
+  top: 100%;
+  padding: 10px 12px;
+}
+
+.qi-connection-picker__search {
+  width: 16px;
+  height: 16px;
+  color: #a8abb2;
+}
+
+.qi-connection-picker__empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding-top: 38px;
+  font-size: 13px;
+  color: #909399;
+}
+
+.qi-connection-picker__empty-state img {
+  width: 92px;
+  height: auto;
 }
 
 .qi-connection-picker__error {

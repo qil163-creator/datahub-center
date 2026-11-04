@@ -64,7 +64,10 @@ public class MultiJoinExecutor extends AbstractEtlNodeExecutor {
                         indexRows.computeIfAbsent(key, ignored -> new ArrayList<>()).add(row);
                     }
                     List<Map<String, Object>> next = new ArrayList<>();
+                    java.util.Set<Map<String, Object>> matchedRight = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+                    java.util.LinkedHashSet<String> leftFields = new java.util.LinkedHashSet<>();
                     for (Map<String, Object> left : current) {
+                        leftFields.addAll(left.keySet());
                         checkStop();
                         List<Map<String, Object>> matches = indexRows.getOrDefault(key(left.get(leftField)), List.of());
                         if (matches.isEmpty()) {
@@ -78,10 +81,23 @@ public class MultiJoinExecutor extends AbstractEtlNodeExecutor {
                         }
                         for (Map<String, Object> right : matches) {
                             checkStop();
+                            matchedRight.add(right);
                             Map<String, Object> merged = new LinkedHashMap<>(left);
                             right.forEach(merged::putIfAbsent);
                             nextBudget.retainRow(merged);
                             next.add(merged);
+                        }
+                    }
+                    if ("RIGHT".equals(joinType)) {
+                        // RIGHT JOIN：右侧未命中的行保留，左侧字段补 null。
+                        for (Map<String, Object> right : rightRows) {
+                            checkStop();
+                            if (matchedRight.contains(right)) continue;
+                            Map<String, Object> unmatched = new LinkedHashMap<>();
+                            leftFields.forEach(field -> unmatched.put(field, null));
+                            right.forEach(unmatched::put);
+                            nextBudget.retainRow(unmatched);
+                            next.add(unmatched);
                         }
                     }
                     current = next;

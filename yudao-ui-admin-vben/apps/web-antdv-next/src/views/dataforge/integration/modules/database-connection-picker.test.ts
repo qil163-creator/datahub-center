@@ -98,11 +98,16 @@ let host: HTMLDivElement;
 async function flush() {
   for (let index = 0; index < 5; index++) await nextTick();
 }
-async function mount(value?: string, items = databases) {
+async function mount(
+  value?: string,
+  items = databases,
+  typeCodes?: string[],
+) {
   host = document.createElement('div');
   document.body.append(host);
   const state = reactive({
     value,
+    typeCodes,
     databases: items,
     disabled: false,
     loading: false,
@@ -145,6 +150,30 @@ afterEach(() => {
 });
 
 describe('表输入数据库连接选择器', () => {
+  it('限定连接类型时只显示相关分类与类型，并使用参考文案', async () => {
+    await mount(undefined, [], ['MYSQL']);
+    await open();
+    const categories = host.querySelector('[aria-label="数据库连接分类"]')!;
+    expect(categories.textContent).toContain('关系型数据库(0)');
+    // Categories without an allowed type are not listed.
+    expect(categories.textContent).not.toContain('分析型数据库/数据仓库');
+    const typeList = host.querySelector('[aria-label="数据库连接类型"]')!;
+    expect(typeList.textContent).toContain('MySQL(0)');
+    expect(typeList.textContent).not.toContain('Oracle');
+    expect(typeList.textContent).not.toContain('Doris');
+    expect(typeList.textContent).toContain('共 有 1 种连接类型');
+    expect(host.textContent).toContain('暂无数据源');
+  });
+
+  it('未限定连接类型时保持原有分类与文案', async () => {
+    await mount();
+    await open();
+    expect(
+      host.querySelector('[aria-label="数据库连接类型"]')?.textContent,
+    ).toContain('当前分类有');
+    expect(host.textContent).not.toContain('暂无数据源');
+  });
+
   it('依据真实类型分类和计数，零连接类型仍可浏览', async () => {
     await mount();
     await open();
