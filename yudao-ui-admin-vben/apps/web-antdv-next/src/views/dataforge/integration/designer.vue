@@ -236,6 +236,7 @@ const editable = computed(
 );
 const currentComponent = computed(() => componentOf(editingCode.value));
 const nodeHelp = computed(() => ({
+  'field-derive': '基于来源字段按操作类型生成新字段，结果将作为新列追加到数据中。',
   'field-split': '将一个字段按分隔符或正则表达式拆分，按顺序写入拆分字段。',
   'dedup-records': '按选定字段识别重复记录，可逐字段设置是否忽略大小写。',
   'row-to-column': '将多列数据拆分成多行，每行保存字段对应的键和值。',
