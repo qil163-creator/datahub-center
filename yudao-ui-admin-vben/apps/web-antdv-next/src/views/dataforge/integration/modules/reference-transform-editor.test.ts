@@ -135,11 +135,9 @@ async function setIdMode(value: 'SEQUENCE' | 'UUID') {
 }
 
 describe('序列与UUID生成器配置', () => {
-  it('新配置保留1/1/0默认值，显示必填提示、序列说明及参数输入提示', async () => {
+  it('新配置的起始值、递增幅度、最大值保持为空并提示必填，显示必填提示、序列说明及参数输入提示', async () => {
     const { state, editor } = mount('id-generator', { vendor: 7 });
-    expect(state.config).toEqual({
-      mode: 'SEQUENCE', start: '1', step: '1', max: '0', vendor: 7,
-    });
+    expect(state.config).toEqual({ mode: 'SEQUENCE', vendor: 7 });
     expect(host.querySelectorAll('.qi-id-required')).toHaveLength(4);
     expect(host.querySelector('[aria-label="序列字段名称说明"]')).toBeTruthy();
     expect(host.querySelector('[title="会将自动生成的序列输出到这一列"]')).toBeTruthy();
@@ -154,7 +152,12 @@ describe('序列与UUID生成器配置', () => {
     expect(host.querySelector('.qi-id-sequence-help')!.textContent).toContain('最大值为0表示不限');
     expect(editor.value!.validate()).toBe(false);
     await setInput('[aria-label="序列字段名称"]', 'generated_id');
+    expect(editor.value!.validate()).toBe(false);
+    await setInput('[aria-label="起始值"]', '1');
+    await setInput('[aria-label="递增幅度"]', '1');
+    await setInput('[aria-label="最大值"]', '0');
     expect(editor.value!.validate()).toBe(true);
+    expect(state.config).toMatchObject({ start: '1', step: '1', max: '0' });
   });
 
   it('切换UUID隐藏序列参数且切回后保留无损Long、排序与未知配置', async () => {

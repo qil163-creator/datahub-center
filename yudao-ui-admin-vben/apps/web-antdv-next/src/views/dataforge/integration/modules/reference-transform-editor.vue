@@ -310,7 +310,7 @@ watch(
     if (props.disabled) return;
     let defaults: Row = {};
     if (props.toolCode === 'id-generator')
-      defaults = { mode: 'SEQUENCE', start: '1', step: '1', max: '0' };
+      defaults = { mode: 'SEQUENCE' };
     else if (props.toolCode === 'field-split')
       defaults = { splitType: 'DELIMITER' };
     else if (props.toolCode === 'value-map') defaults = { unmatched: 'KEEP' };
