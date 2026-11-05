@@ -1,0 +1,111 @@
+.qi-column-map-reference {
+  gap: 20px;
+}
+
+.qi-column-map-reference .qi-reference-section-header {
+  display: grid;
+  gap: 16px;
+  justify-content: start;
+}
+
+.qi-column-map-reference .qi-reference-section-header > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.qi-column-map-reference .qi-reference-section-header h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 400;
+  color: #303133;
+}
+
+.qi-column-map-reference .qi-reference-section-header h3::before {
+  width: 6px;
+  height: 16px;
+  content: '';
+  background: #2f62ff;
+  border-radius: 4px;
+}
+
+.qi-column-map-reference .qi-reference-section-header .ant-btn {
+  height: 27px;
+  padding: 0 9px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-column-map-reference .qi-reference-section-header .qi-reference-button .qi-icon {
+  margin-right: 2px;
+}
+
+.qi-column-map-reference .ant-btn.qi-column-map-fetch {
+  color: #fff;
+  background: #e6a23c;
+  border-color: #e6a23c;
+}
+
+.qi-column-map-reference .ant-btn.qi-column-map-fetch:not(:disabled):hover {
+  color: #fff;
+  background: #ebb563;
+  border-color: #ebb563;
+}
+
+.qi-column-map-reference .ant-btn.qi-column-map-fetch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.qi-column-map-reference .qi-reference-fields-scroll {
+  max-height: 340px;
+  border-bottom: 1px solid #e2e5ed;
+}
+
+.qi-column-map-reference .qi-reference-fields-table th,
+.qi-column-map-reference .qi-reference-fields-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.qi-column-map-reference .qi-reference-fields-table th {
+  font-weight: 600;
+}
+
+.qi-column-map-reference .qi-reference-fields-table .ant-input-number {
+  width: 100%;
+}
+
+.qi-column-map-sort {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qi-column-map-arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.qi-column-map-reference .qi-reference-fields-table .qi-reference-empty {
+  height: 274px;
+  padding-bottom: 12px;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.qi-column-map-reference .qi-reference-fields-table .qi-reference-empty::before {
+  margin-bottom: 36px;
+}

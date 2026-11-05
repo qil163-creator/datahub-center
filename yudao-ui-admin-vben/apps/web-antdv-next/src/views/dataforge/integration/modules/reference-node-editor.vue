@@ -54,6 +54,7 @@ import {
 import ReferenceOutputSelection from './reference-output-selection.vue';
 
 import './reference-node-editor.css';
+import './column-map-reference.css';
 
 const props = defineProps<{
   config: Record<string, any>;
@@ -200,24 +201,40 @@ const rows = computed<ReferenceField[]>(() => {
   return Array.isArray(value) ? value : [];
 });
 const metadataSort = ref<{ direction: -1 | 1; key: 'length' | 'precision' }>();
+function compareMetadata(
+  left: ReferenceField,
+  right: ReferenceField,
+  sort: NonNullable<typeof metadataSort.value>,
+) {
+  const first = left[sort.key];
+  const second = right[sort.key];
+  const a =
+    first === null || first === undefined || !/^\d+$/u.test(String(first))
+      ? undefined
+      : BigInt(first);
+  const b =
+    second === null || second === undefined || !/^\d+$/u.test(String(second))
+      ? undefined
+      : BigInt(second);
+  if (a === undefined) return b === undefined ? 0 : 1;
+  if (b === undefined) return -1;
+  return a === b ? 0 : (a < b ? -1 : 1) * sort.direction;
+}
 const jsonlRows = computed(() => {
   const sort = metadataSort.value;
   if (!sort) return rows.value;
-  return rows.value.toSorted((left, right) => {
-    const first = left[sort.key];
-    const second = right[sort.key];
-    const a =
-      first === null || first === undefined || !/^\d+$/u.test(String(first))
-        ? undefined
-        : BigInt(first);
-    const b =
-      second === null || second === undefined || !/^\d+$/u.test(String(second))
-        ? undefined
-        : BigInt(second);
-    if (a === undefined) return b === undefined ? 0 : 1;
-    if (b === undefined) return -1;
-    return a === b ? 0 : (a < b ? -1 : 1) * sort.direction;
-  });
+  return rows.value.toSorted((left, right) =>
+    compareMetadata(left, right, sort),
+  );
+});
+// 字段选择、修改：排序只改变展示顺序，行操作仍按真实下标写回配置。
+const tableEntries = computed(() => {
+  const entries = rows.value.map((field, index) => ({ field, index }));
+  const sort = metadataSort.value;
+  if (!isMapping.value || !sort) return entries;
+  return entries.toSorted((left, right) =>
+    compareMetadata(left.field, right.field, sort),
+  );
 });
 function sortMetadata(key: 'length' | 'precision') {
   if (metadataSort.value?.key !== key) {
@@ -482,6 +499,8 @@ function removeField(index: number) {
   });
 }
 function move(from: number, to: number) {
+  // 按长度/精度排序展示时，拖动与键盘排序会和显示顺序不一致，因此不响应。
+  if (metadataSort.value) return;
   setRows(moveReferenceField(rows.value, from, to));
 }
 function resolveFields(mode: 'addAll' | 'addNewOnly' | 'clearAndAddAll') {
@@ -690,7 +709,31 @@ function addRow() {
   if (!props.disabled) addField();
 }
 function addRemovedField() {
-  if (!props.disabled) props.config.removedFields = [...removed.value, ''];
+  if (props.disabled) return;
+  // 有上游字段时自动带入第一个尚未选择、也未移除的字段；无可用字段时提示。
+  if (fieldOptions.value.length > 0) {
+    const taken = new Set([
+      ...rows.value.map((field) => field.name),
+      ...removed.value,
+    ]);
+    const next = fieldOptions.value.find((option) => !taken.has(option.value));
+    if (!next) {
+      message.warning('已无可添加的字段');
+      return;
+    }
+    props.config.removedFields = [...removed.value, next.value];
+    return;
+  }
+  props.config.removedFields = [...removed.value, ''];
+}
+/** 已在“选择与修改”列表中或已被其他行移除的字段不可再选。 */
+function removedOptions(current: string) {
+  const selected = new Set(rows.value.map((field) => field.name));
+  const others = new Set(removed.value.filter((name) => name !== current));
+  return fieldOptions.value.map((option) => ({
+    ...option,
+    disabled: selected.has(option.value) || others.has(option.value),
+  }));
 }
 function setRemoved(index: number, value: string) {
   if (!props.disabled) props.config.removedFields[index] = value;
@@ -763,6 +806,7 @@ defineExpose({ validate });
     class="qi-reference-editor"
     :class="{
       'qi-io-reference-editor': !isMapping,
+      'qi-column-map-reference': isMapping,
       'qi-file-reference-editor': isFile,
       'qi-tabular-file-reference': tabularUpload,
     }"
@@ -1190,14 +1234,6 @@ defineExpose({ validate });
         </h3>
         <div>
           <Button
-            v-if="isMapping"
-            class="qi-reference-button"
-            :disabled="disabled || !inputFields?.length"
-            @click="requestReferenceFields"
-          >
-            获取字段
-          </Button>
-          <Button
             v-if="tabularUpload || (isKafka && !isOutput)"
             class="qi-reference-button qi-file-add-button"
             :disabled="disabled"
@@ -1212,6 +1248,14 @@ defineExpose({ validate });
             @click="addRow"
           >
             <ReferenceIcon name="plus" />新增
+          </Button>
+          <Button
+            v-if="isMapping"
+            class="qi-column-map-fetch"
+            :disabled="disabled || !inputFields?.length"
+            @click="requestReferenceFields"
+          >
+            获取字段
           </Button>
         </div>
       </div>
@@ -1230,8 +1274,42 @@ defineExpose({ validate });
               <th>字段类型</th>
               <th v-if="isKafka && !isOutput">JSON解析取值</th>
               <template v-if="isMapping">
-                <th>字段长度</th>
-                <th>字段精度</th>
+                <th :aria-sort="metadataSortState('length')">
+                  <button
+                    type="button"
+                    class="qi-column-map-sort"
+                    aria-label="按字段长度排序"
+                    @click="sortMetadata('length')"
+                  >
+                    字段长度<span
+                      class="qi-sort-caret"
+                      :data-sort="
+                        metadataSort?.key === 'length'
+                          ? metadataSort.direction
+                          : 0
+                      "
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+                </th>
+                <th :aria-sort="metadataSortState('precision')">
+                  <button
+                    type="button"
+                    class="qi-column-map-sort"
+                    aria-label="按字段精度排序"
+                    @click="sortMetadata('precision')"
+                  >
+                    字段精度<span
+                      class="qi-sort-caret"
+                      :data-sort="
+                        metadataSort?.key === 'precision'
+                          ? metadataSort.direction
+                          : 0
+                      "
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+                </th>
               </template>
               <th v-if="toolCode === 'read-excel' || toolCode === 'read-csv'">
                 日期格式
@@ -1241,9 +1319,9 @@ defineExpose({ validate });
           </thead>
           <tbody>
             <tr
-              v-for="(field, index) in rows"
+              v-for="({ field, index }, position) in tableEntries"
               :key="index"
-              :draggable="isMapping && !disabled"
+              :draggable="isMapping && !disabled && !metadataSort"
               :tabindex="isMapping && !disabled ? 0 : undefined"
               :aria-label="
                 isMapping ? `第${index + 1}行，按Alt与上下键排序` : undefined
@@ -1254,15 +1332,20 @@ defineExpose({ validate });
               @keydown.alt.up.prevent="move(index, index - 1)"
               @keydown.alt.down.prevent="move(index, index + 1)"
             >
-              <td>{{ index + 1 }}</td>
+              <td>{{ position + 1 }}</td>
               <td>
-                <Input
+                <AutoComplete
                   v-if="isMapping"
                   :value="field.name"
+                  :options="fieldOptions"
                   :disabled="disabled"
                   @update:value="(value) => updateField(field, 'name', value)"
                   placeholder="字段名称"
-                /><span v-else>{{ field.name || '-' }}</span>
+                >
+                  <template #suffixIcon>
+                    <span class="qi-column-map-arrow" aria-hidden="true"></span>
+                  </template>
+                </AutoComplete><span v-else>{{ field.name || '-' }}</span>
               </td>
               <td v-if="isMapping">
                 <Input
@@ -1290,25 +1373,31 @@ defineExpose({ validate });
               </td>
               <template v-if="isMapping">
                 <td>
-                  <Input
+                  <InputNumber
                     v-if="isMapping"
                     :value="field.length"
                     :disabled="disabled"
+                    :min="0"
+                    :precision="0"
+                    string-mode
+                    placeholder="请输入字段长度"
                     @update:value="
                       (value) => updateField(field, 'length', value)
                     "
-                    inputmode="numeric"
                   /><span v-else>{{ field.length ?? '-' }}</span>
                 </td>
                 <td>
-                  <Input
+                  <InputNumber
                     v-if="isMapping"
                     :value="field.precision"
                     :disabled="disabled"
+                    :min="0"
+                    :precision="0"
+                    string-mode
+                    placeholder="请输入字段精度"
                     @update:value="
                       (value) => updateField(field, 'precision', value)
                     "
-                    inputmode="numeric"
                   />
                   <span v-else>{{ field.precision ?? '-' }}</span>
                 </td>
@@ -1346,6 +1435,7 @@ defineExpose({ validate });
                   />
                   <p>暂无记录</p>
                 </template>
+                <template v-else-if="isMapping">暂无记录</template>
                 <template v-else>
                   暂无字段，请解析文件、新增字段或获取上游字段
                 </template>
@@ -1363,7 +1453,7 @@ defineExpose({ validate });
           class="qi-reference-button"
           @click="addRemovedField"
         >
-          <ReferenceIcon name="plus" />新增移除字段
+          <ReferenceIcon name="plus" />新增
         </Button>
       </div>
       <div class="qi-reference-fields-scroll">
@@ -1382,9 +1472,14 @@ defineExpose({ validate });
                 <AutoComplete
                   :value="name"
                   :disabled="disabled"
-                  :options="fieldOptions"
+                  :options="removedOptions(name)"
+                  placeholder="请选择字段"
                   @update:value="(value) => setRemoved(index, value)"
-                />
+                >
+                  <template #suffixIcon>
+                    <span class="qi-column-map-arrow" aria-hidden="true"></span>
+                  </template>
+                </AutoComplete>
               </td>
               <td>
                 <Button
@@ -1396,6 +1491,9 @@ defineExpose({ validate });
                   <ReferenceIcon name="delete" />删除
                 </Button>
               </td>
+            </tr>
+            <tr v-if="!removed.length">
+              <td colspan="3" class="qi-reference-empty">暂无记录</td>
             </tr>
           </tbody>
         </table>

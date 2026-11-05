@@ -16,6 +16,7 @@ const harness = vi.hoisted(() => ({
   upload: undefined as ((file: File) => Promise<boolean>) | undefined,
   confirm: undefined as (() => void) | undefined,
   success: vi.fn(),
+  warning: vi.fn(),
 }));
 vi.mock('@vben/utils', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@vben/utils')>()),
@@ -48,7 +49,7 @@ vi.mock('antdv-next', () => {
         h('div', [slots.default?.(), slots.popupRender?.()]),
   });
   const Input = defineComponent({
-    props: { value: [String, Number], placeholder: String },
+    props: { value: [String, Number], placeholder: String, options: Array },
     emits: ['update:value'],
     setup:
       (props, { emit }) =>
@@ -56,6 +57,9 @@ vi.mock('antdv-next', () => {
         h('input', {
           value: props.value,
           placeholder: props.placeholder,
+          'data-options': props.options
+            ? JSON.stringify(props.options)
+            : undefined,
           onInput: (event: Event) =>
             emit('update:value', (event.target as HTMLInputElement).value),
         }),
@@ -101,7 +105,7 @@ vi.mock('antdv-next', () => {
         () =>
           h('div', [props.label, slots.default?.(), props.help]),
     }),
-    message: { success: harness.success },
+    message: { success: harness.success, warning: harness.warning },
     Modal: Object.assign(
       defineComponent({
         props: { open: Boolean },
@@ -765,6 +769,76 @@ describe('qData补齐配置的真实交互', () => {
       state.config.fieldSelections.map((field: { name: string }) => field.name),
     ).toEqual(['ID', 'OLD']);
     expect(state.config.vendor).toBe(42);
+  });
+
+  it('字段选择修改的移除字段自动带入未选字段，无可用字段时提示，已选字段不可再选', async () => {
+    const fields = [
+      { name: 'A', dataType: 'VARCHAR' },
+      { name: 'B', dataType: 'VARCHAR' },
+      { name: 'C', dataType: 'VARCHAR' },
+    ];
+    const { state } = mount(
+      'column-map',
+      {
+        columnMappingMode: 'FIELDS',
+        fieldSelections: [{ name: 'A' }],
+        removedFields: [],
+      },
+      fields,
+    );
+    const addRemoved = async () => {
+      [...host.querySelectorAll('button')]
+        .filter((button) => button.textContent?.trim() === '新增')
+        .at(-1)!
+        .click();
+      await flush();
+    };
+    await addRemoved();
+    expect(state.config.removedFields).toEqual(['B']);
+    await addRemoved();
+    expect(state.config.removedFields).toEqual(['B', 'C']);
+    await addRemoved();
+    expect(state.config.removedFields).toEqual(['B', 'C']);
+    expect(harness.warning).toHaveBeenCalledWith('已无可添加的字段');
+    const removedSelect = host.querySelector<HTMLInputElement>(
+      '.qi-reference-removed-section tbody tr input',
+    )!;
+    expect(JSON.parse(removedSelect.dataset.options!)).toEqual([
+      { label: 'A', value: 'A', disabled: true },
+      { label: 'B', value: 'B', disabled: false },
+      { label: 'C', value: 'C', disabled: true },
+    ]);
+  });
+
+  it('字段选择修改的长度精度排序只改变展示顺序，空表显示暂无记录', async () => {
+    const { state } = mount('column-map', {
+      columnMappingMode: 'FIELDS',
+      fieldSelections: [
+        { name: 'A', length: '30' },
+        { name: 'B', length: '10' },
+        { name: 'C', length: '20' },
+      ],
+      removedFields: [],
+    });
+    const names = () =>
+      [...host.querySelectorAll('.qi-reference-fields-table')[0]!.querySelectorAll('tbody tr')].map(
+        (row) => row.querySelectorAll('input')[0]!.value,
+      );
+    expect(names()).toEqual(['A', 'B', 'C']);
+    await click('按字段长度排序');
+    expect(names()).toEqual(['B', 'C', 'A']);
+    await click('按字段长度排序');
+    expect(names()).toEqual(['A', 'C', 'B']);
+    expect(
+      state.config.fieldSelections.map((field: { name: string }) => field.name),
+    ).toEqual(['A', 'B', 'C']);
+    await click('按字段长度排序');
+    expect(names()).toEqual(['A', 'B', 'C']);
+
+    state.config = { columnMappingMode: 'FIELDS', fieldSelections: [], removedFields: [] };
+    await flush();
+    const empties = [...host.querySelectorAll('.qi-reference-empty')].map((cell) => cell.textContent?.trim());
+    expect(empties).toEqual(['暂无记录', '暂无记录']);
   });
 
   it('仅保留Kafka输出主字段选择及写入字节，选择上游字段保留已有映射配置', async () => {
