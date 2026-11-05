@@ -23,6 +23,8 @@ export interface ConnectorField {
   plain?: boolean;
   /** Unit addon rendered after a number input, such as “条”. */
   suffix?: string;
+  /** The backend rejects a non-empty value; validation asks the user to clear it. */
+  unsupported?: boolean;
 }
 export interface ConnectorSchema {
   name: string;
@@ -580,29 +582,39 @@ export const connectorSchemas: Readonly<Record<string, ConnectorSchema>> = {
     'Hive输出组件',
     [
       ...tabularOutput.map((field) => {
+        // 参考界面的写入模式不预选；Hive 原生写入当前只支持追加，全量保持不可选。
         if (field.key === 'writeModeType')
           return {
             ...writeMode,
-            options: writeMode.options?.map((option) => ({
-              ...option,
-              disabled: option.value !== 2,
-            })),
+            defaultValue: undefined,
+            required: true,
+            options: [
+              { label: '追加', value: 2, disabled: false },
+              { label: '全量', value: 1, disabled: true },
+            ],
           };
         if (field.key === 'batchSize')
           return {
             ...field,
             defaultValue: undefined,
-            label: '单次写入条数（暂不支持，可清空）',
+            placeholder: '请输入单次写入数据条数',
+            suffix: '条',
+            hint: '不输入默认值1000条',
+            unsupported: true,
           };
         if (field.key === 'primaryKeys')
-          return { ...field, label: '更新主键（暂不支持，可清空）' };
+          return { ...field, label: '更新主键', unsupported: true };
         if (field.key === 'whereCondition')
-          return { ...field, label: '覆盖条件（暂不支持，可清空）' };
+          return { ...field, maxLength: 256, unsupported: true };
+        if (field.key === 'tableName')
+          return { ...field, placeholder: '选择表' };
         return field;
       }),
       ...sqlHooks.map((field) => ({
         ...field,
-        label: `${field.label}（暂不支持，可清空）`,
+        maxLength: 256,
+        unsupported: true,
+        ...(field.key === 'postSql' ? { hint: '数据同步完成后执行的SQL' } : {}),
       })),
     ],
     'output',
@@ -1058,6 +1070,8 @@ export function validateConnectorConfig(
       continue;
     }
     if (missing) continue;
+    if (field.unsupported)
+      issues.push({ field: field.key, message: `${field.label}暂不支持，请清空` });
     if (
       field.key === 'resourceBindingId' &&
       (typeof value !== 'string' ||

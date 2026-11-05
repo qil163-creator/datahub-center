@@ -99,7 +99,13 @@ const showPlatformConnection = computed(
   () => descriptor.value?.connection || props.toolCode === 'read-ftp',
 );
 const odps = computed(() => props.toolCode.endsWith('-odps'));
-const odpsOutput = computed(() => props.toolCode === 'write-odps');
+// 参考界面中，这些输出组件的“选择表”位于数据连接类型与实例之后，且选表后自动解析字段。
+const tableAfterDetails = computed(() => ['write-hive', 'write-odps'].includes(props.toolCode));
+const outputConnector = computed(() => descriptor.value?.direction === 'output');
+const connectionPlaceholder = computed(() => {
+  if (odps.value) return '请选择ODPS数据源';
+  return outputConnector.value ? '请选择目标数据连接' : '请选择平台数据连接';
+});
 const tableConnector = computed(
   () =>
     relationInput.value ||
@@ -698,7 +704,7 @@ defineExpose({ validate });
               show-search
               option-filter-prop="label"
               allow-clear
-              :placeholder="odps ? '请选择ODPS数据源' : '请选择平台数据连接'"
+              :placeholder="connectionPlaceholder"
               aria-label="连接器数据连接"
               @update:value="selectDatabase"
             /><small v-if="error('databaseId')">{{
@@ -707,7 +713,7 @@ defineExpose({ validate });
           </div>
         </div>
         <ConnectorReferenceFields
-          v-if="!odpsOutput"
+          v-if="!tableAfterDetails"
           :config="config"
           :fields="leadingFields"
           :disabled="disabled"
@@ -718,14 +724,14 @@ defineExpose({ validate });
         />
         <template v-if="descriptor.connection && showConnectionDetails">
           <div class="qi-connector-field">
-            <label>数据连接类型</label><Input :value="database?.databaseTypeName || (odps ? 'ODPS' : '-')" disabled />
+            <label>数据连接类型</label><Input :value="database?.databaseTypeName || (odps ? 'ODPS' : outputConnector ? undefined : '-')" :placeholder="outputConnector ? '请输入数据连接类型' : undefined" disabled />
           </div>
           <div v-if="toolCode !== 'write-rocketmq'" class="qi-connector-field">
-            <label>数据连接实例</label><Input :value="database?.databaseSchema || (odps ? undefined : '-')" :placeholder="odps ? '自动回显项目名' : undefined" disabled />
+            <label>数据连接实例</label><Input :value="database?.databaseSchema || (outputConnector ? undefined : '-')" :placeholder="odps ? '自动回显项目名' : outputConnector ? '请输入数据连接实例' : undefined" disabled />
           </div>
         </template>
         <ConnectorReferenceFields
-          v-if="odpsOutput"
+          v-if="tableAfterDetails"
           :config="config"
           :fields="leadingFields"
           :disabled="disabled"
@@ -746,7 +752,7 @@ defineExpose({ validate });
         @change="changeReferenceField"
       />
     </div>
-    <div v-if="tableConnector && (!odpsOutput || metadataIssue || (config.tableName && !targetFields))" class="qi-connector-reference-parse">
+    <div v-if="tableConnector && (!tableAfterDetails || metadataIssue || (config.tableName && !targetFields))" class="qi-connector-reference-parse">
       <Button
         :disabled="disabled || !config.tableName || fieldsLoading"
         :loading="fieldsLoading"

@@ -59,7 +59,7 @@ function change(field: ConnectorField, value: unknown) {
           show-search
           option-filter-prop="label"
           allow-clear
-          placeholder="请选择表"
+          :placeholder="field.placeholder ?? '请选择表'"
           @update:value="(value) => change(field, value)"
         />
         <RadioGroup
@@ -101,7 +101,7 @@ function change(field: ConnectorField, value: unknown) {
             :disabled="disabled"
             :status="error(field.key) ? 'error' : undefined"
             :aria-label="field.label"
-            :placeholder="`请输入${field.label}`"
+            :placeholder="field.placeholder ?? `请输入${field.label}`"
             @update:value="(value) => change(field, value)"
           /><span v-if="field.suffix" class="qi-connector-addon">{{ field.suffix }}</span>
         </div>

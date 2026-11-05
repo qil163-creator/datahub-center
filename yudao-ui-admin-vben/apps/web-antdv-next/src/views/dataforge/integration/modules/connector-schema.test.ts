@@ -24,6 +24,8 @@ describe('qData连接器配置边界', () => {
         keyPattern: 'sensor:*',
         // Redis inputs have no default data type; it must be chosen.
         ...(code === 'read-redis' ? { dataType: 'string' } : {}),
+        // Hive output follows the reference: no write mode is preselected, 追加 must be chosen.
+        ...(code === 'write-hive' ? { writeModeType: 2 } : {}),
         apiUrl: 'https://example.test/service?wsdl',
         operationName: 'query',
         columns: [{ name: 'id', type: 'STRING', index: 0 }],
@@ -69,9 +71,14 @@ describe('qData连接器配置边界', () => {
     expect(validateConnectorConfig('read-csv', config)).toEqual([]);
   });
 
-  it('新增 Hive 配置只默认追加和全量读取，保留旧参数供用户显式清理', () => {
-    expect(connectorDefaults('write-hive')).toMatchObject({ writeModeType: 2 });
+  it('新增 Hive 配置不预选写入模式（必须明确选择追加），读取默认全量，暂不支持的参数填写后提示清空', () => {
+    expect(connectorDefaults('write-hive')).not.toHaveProperty('writeModeType');
     expect(connectorDefaults('write-hive')).not.toHaveProperty('batchSize');
+    const base = { databaseId: '1', tableName: 'target', columns: [{ name: 'id', type: 'LONG' }] };
+    expect(validateConnectorConfig('write-hive', base)).toContainEqual({ field: 'writeModeType', message: '请填写写入模式' });
+    expect(validateConnectorConfig('write-hive', { ...base, writeModeType: 2 })).toEqual([]);
+    expect(validateConnectorConfig('write-hive', { ...base, writeModeType: 2, preSql: 'delete from t', whereCondition: 'id > 1', batchSize: 10 }).map((issue) => issue.message))
+      .toEqual(expect.arrayContaining(['where条件暂不支持，请清空', '前置SQL暂不支持，请清空', '单次写入数据暂不支持，请清空']));
     for (const code of ['read-hive', 'read-mongodb', 'read-odps']) {
       expect(connectorDefaults(code)).toMatchObject({ readMode: 'FULL' });
       expect(connectorDefaults(code)).not.toHaveProperty('dateFormat');

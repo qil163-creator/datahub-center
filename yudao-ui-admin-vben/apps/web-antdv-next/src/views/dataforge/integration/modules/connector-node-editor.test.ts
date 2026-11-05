@@ -299,6 +299,24 @@ describe('连接器属性字段编辑与即时反馈', () => {
     expect(state.config.columns).toEqual([]);
   });
 
+  it('Hive输出对齐参考：选择表在连接实例之后、where条件为常规标签、写入模式不预选，暂不支持的参数填写后才提示', async () => {
+    const state = mount('write-hive', { columns: [] }, [{ name: 'id', dataType: 'LONG' }]);
+    await nextTick();
+    const labels = [...host.querySelectorAll('label')].map((item) => item.textContent?.replace('*', '').trim());
+    for (const [before, after] of [['数据连接类型', '数据连接实例'], ['数据连接实例', '选择表'], ['选择表', 'where条件'], ['前置SQL', '写入模式'], ['写入模式', '单次写入数据'], ['单次写入数据', '后置SQL']] as const)
+      expect(labels.indexOf(before), `${before} 应在 ${after} 之前`).toBeLessThan(labels.indexOf(after));
+    expect(state.config.writeModeType).toBeUndefined();
+    expect(host.querySelector('[aria-label="写入模式"]')!.getAttribute('data-options')).toBe(
+      JSON.stringify([{ label: '追加', value: 2, disabled: false }, { label: '全量', value: 1, disabled: true }]),
+    );
+    expect(host.textContent).not.toContain('暂不支持');
+    expect(host.textContent).toContain('不输入默认值1000条');
+    expect(host.textContent).toContain('数据同步完成后执行的SQL');
+    expect(host.textContent).not.toContain('解析');
+    expect(host.textContent).not.toContain('同名自动映射');
+    expect(host.querySelector('.qi-connector-addon')!.textContent).toBe('条');
+  });
+
   it.each(['write-redis', 'write-rabbitmq', 'write-rocketmq'])(
     '%s 主要输出字段选择继续保存来源和已有附加属性', async (toolCode) => {
       const state = mount(toolCode, { columns: [{ name: 'label', key: 'name', type: 'STRING', custom: 42 }] }, [
