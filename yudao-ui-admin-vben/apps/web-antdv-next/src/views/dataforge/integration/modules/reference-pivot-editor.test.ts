@@ -294,7 +294,7 @@ describe('行列V2表单与历史执行协议', () => {
     ).toBeTruthy();
     expect(
       host.querySelector(
-        '[data-tooltip="可填写【key字段】列中的全部数据。结合【key字段】+分组+【目标字段】，锁定具体值并写入目标字段。"]',
+        '[data-tooltip="可填写【key字段】列中的全部数据。结合【key字段】+ 分组 +【目标字段】，锁定具体值并写入目标字段"]',
       ),
     ).toBeTruthy();
     [...host.querySelectorAll('button')]

@@ -18,7 +18,6 @@ import NativeStreamingWindowEditor from './native-streaming-window-editor.vue';
 import { validateStreamingWindow } from './native-streaming-window-schema';
 import ReferenceFieldMergeDialog from './reference-field-merge-dialog.vue';
 import ReferenceIcon from './reference-icon.vue';
-import { referenceFieldTypes } from './reference-node-schema';
 
 import './reference-pivot-editor.css';
 
@@ -90,6 +89,14 @@ const dataFields = computed(() =>
       !groups.value.includes(field.value),
   ),
 );
+// 与原生 SQL 编译器可接受的标量目标类型一致（大小写不敏感）；既有配置的值保持不变。
+const pivotTypes = [
+  { label: 'long', value: 'LONG' },
+  { label: 'boolean', value: 'BOOLEAN' },
+  { label: 'string', value: 'STRING' },
+  { label: 'date', value: 'DATE' },
+  { label: 'double', value: 'DOUBLE' },
+];
 const aggregations = [
   { label: 'Sum', value: 'Sum' },
   { label: 'Average', value: 'Average' },
@@ -439,7 +446,7 @@ defineExpose({ validate });
                 </th>
                 <th>
                   <span class="qi-pivot-column-title">关键字<Tooltip
-                      title="可填写【key字段】列中的全部数据。结合【key字段】+分组+【目标字段】，锁定具体值并写入目标字段。"
+                      title="可填写【key字段】列中的全部数据。结合【key字段】+ 分组 +【目标字段】，锁定具体值并写入目标字段"
                       ><button
                         type="button"
                         class="qi-pivot-info"
@@ -537,7 +544,7 @@ defineExpose({ validate });
                 <td>
                   <Select
                     :value="mapping.type"
-                    :options="referenceFieldTypes"
+                    :options="pivotTypes"
                     :disabled="disabled"
                     placeholder="请选择字段类型"
                     @update:value="
