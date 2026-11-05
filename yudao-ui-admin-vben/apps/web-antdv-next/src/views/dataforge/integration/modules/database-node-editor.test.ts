@@ -225,6 +225,22 @@ describe('数据库节点双列字段映射', () => {
     expect(state.config.fieldMappings).toEqual([{ source: 'id', target: 'id', enabled: true }, { source: 'name', target: 'name', enabled: true }]);
   });
 
+  it('输出配置显示参考提示文案，字段映射正常时不显示同名自动映射，Doris增量更新显示UPSERT说明', async () => {
+    const state = await mount({ databaseId: '1', tableName: 'target', dataSyncType: 1 });
+    expect(host.textContent).not.toContain('同名自动映射');
+    expect(host.textContent).toContain('数据写入之前执行的SQL');
+    expect(host.textContent).toContain('数据同步完成后执行的SQL');
+    expect(host.textContent).toContain('不输入默认值1000条');
+    expect(host.textContent).not.toContain('Doris的Unique模型');
+    expect(host.querySelector('textarea[aria-label="前置SQL"]')!.getAttribute('placeholder')).toBe('请输入前置SQL');
+    expect(host.querySelector('textarea[aria-label="后置SQL"]')!.getAttribute('placeholder')).toBe('请输入后置SQL');
+    vi.mocked(getDatabaseSimpleList).mockResolvedValue([{ id: '1', productId: 'DORIS', databaseTypeName: 'Doris' }]);
+    state.config = { databaseId: '1', tableName: 'target', dataSyncType: 2 }; await flush();
+    app?.unmount(); host.remove();
+    await mount({ databaseId: '1', tableName: 'target', dataSyncType: 2 });
+    expect(host.textContent).toContain('Doris的Unique模型支持UPSERT模式，导入时若主键已存在则更新，不存在则插入。');
+  });
+
   it('sql解析复用权威schema，未知类型留空且节点切换忽略旧响应', async () => {
     let complete!: (value: { dataType?: string; name: string; }[]) => void;
     const resolveFields = vi.fn(() => new Promise<{ dataType?: string; name: string; }[]>((resolve) => { complete = resolve; }));

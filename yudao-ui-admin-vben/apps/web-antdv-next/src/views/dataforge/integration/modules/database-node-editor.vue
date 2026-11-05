@@ -130,12 +130,6 @@ const hasSqlHooks = computed(() =>
     String(value ?? '').trim(),
   ),
 );
-const databaseOptions = computed(() =>
-  databases.value.map((item) => ({
-    value: String(item.id),
-    label: item.name || String(item.id),
-  })),
-);
 const tableOptions = computed(() =>
   tables.value.map((item) => ({
     value: item.tableName,
@@ -464,6 +458,20 @@ function selectField(name: string, checked: boolean) {
     ? [...new Set([...current, name])]
     : current.filter((item) => item !== name);
 }
+/** 已映射的字段在表中不存在时才提供“同名自动映射”，正常状态与参考界面一致。 */
+const mappingNeedsRepair = computed(
+  () =>
+    !fieldLoading.value &&
+    !loadError.value &&
+    [...mappingColumns.value.source, ...mappingColumns.value.target].some(
+      (column) => !!column.name && !column.exists,
+    ),
+);
+const isDoris = computed(() =>
+  /doris/iu.test(`${database.value?.productId ?? ''} ${database.value?.databaseTypeName ?? ''}`),
+);
+const countText = ({ count, maxLength }: { count: number; maxLength?: number }) =>
+  `${count} / ${maxLength ?? 256}个字符`;
 function autoMap() {
   if (props.disabled || fieldLoading.value) return;
   mappingColumns.value = createMappingColumns(
@@ -628,33 +636,13 @@ watch(
       >
         <label><em>*</em>{{ isInput ? '源数据库连接' : '目标数据连接' }}</label>
         <DatabaseConnectionPicker
-          v-if="isInput"
           :value="config.databaseId"
           :databases="databases"
           :loading="databaseLoading"
           :disabled="disabled"
-          placeholder="请选择源数据库连接"
+          :placeholder="isInput ? '请选择源数据库连接' : '请选择目标数据连接'"
           @update:value="(value) => { if (!disabled) config.databaseId = value; }"
           @change="changeDatabase"
-        />
-        <Select
-          v-else
-          :value="
-            config.databaseId == null ? undefined : String(config.databaseId)
-          "
-          :options="databaseOptions"
-          :loading="databaseLoading"
-          show-search
-          option-filter-prop="label"
-          allow-clear
-          :placeholder="isInput ? '请选择源数据库连接' : '请选择目标数据连接'"
-          aria-label="节点数据连接"
-          @update:value="
-            (value) => {
-              config.databaseId = value;
-              changeDatabase();
-            }
-          "
         />
       </div>
       <div class="qi-db-field">
@@ -706,7 +694,7 @@ SQL解析
       </div>
       <div v-if="!isInput" class="qi-db-field qi-db-full">
         <label>where条件</label>
-        <TextArea v-model:value="config.whereCondition" :rows="3" :maxlength="256" show-count aria-label="where条件" placeholder="请输入where条件" />
+        <TextArea v-model:value="config.whereCondition" :rows="3" :maxlength="256" :show-count="{ formatter: countText }" aria-label="where条件" placeholder="请输入where条件" />
       </div>
     </div>
     <TableInputReadOptions
@@ -718,7 +706,7 @@ SQL解析
     />
     <section class="qi-db-section">
       <h3>{{ isInput ? '属性字段' : '字段映射' }}</h3>
-      <div v-if="!isInput" class="qi-db-mapping-toolbar">
+      <div v-if="!isInput && mappingNeedsRepair" class="qi-db-mapping-toolbar">
         <span>源字段 <span aria-hidden="true">→</span> 目标字段</span>
         <Button
           class="qi-reference-button"
@@ -881,19 +869,24 @@ SQL解析
           :rows="4"
           :maxlength="4000"
           :disabled="disabled || !sqlHooksSupported"
-          show-count
+          :show-count="{ formatter: countText }"
           aria-label="前置SQL"
-          placeholder="写入前执行的 INSERT、UPDATE 或 DELETE"
+          title="写入前执行的 INSERT、UPDATE 或 DELETE"
+          placeholder="请输入前置SQL"
         />
+        <p class="qi-db-hint">数据写入之前执行的SQL</p>
       </div>
 
       <div class="qi-db-grid">
         <div class="qi-db-field">
-          <label>写入模式</label><RadioGroup
+          <label><em>*</em>写入模式</label><RadioGroup
             v-model:value="config.dataSyncType"
             :options="writeModes"
             aria-label="写入模式"
           />
+          <p v-if="isDoris && config.dataSyncType === 2" class="qi-db-hint">
+            Doris的Unique模型支持UPSERT模式，导入时若主键已存在则更新，不存在则插入。
+          </p>
         </div>
         <div class="qi-db-field">
           <label>单次写入数据</label><div class="qi-db-batch-value">
@@ -903,9 +896,10 @@ SQL解析
             :max="10000"
             :precision="0"
             aria-label="单次写入数据"
-            placeholder="不输入默认1000条"
+            placeholder="请输入"
           /><span>条</span>
 </div>
+          <p class="qi-db-hint">不输入默认值1000条</p>
         </div>
       </div>
       <template v-if="config.dataSyncType === 2 && !realtimeOutput">
@@ -937,10 +931,12 @@ SQL解析
           :rows="4"
           :maxlength="4000"
           :disabled="disabled || !sqlHooksSupported"
-          show-count
+          :show-count="{ formatter: countText }"
           aria-label="后置SQL"
-          placeholder="写入后执行的 INSERT、UPDATE 或 DELETE"
+          title="写入后执行的 INSERT、UPDATE 或 DELETE"
+          placeholder="请输入后置SQL"
         />
+        <p class="qi-db-hint">数据同步完成后执行的SQL</p>
       </div>
     </section>
   </div>
@@ -1332,8 +1328,32 @@ SQL解析
 
 .qi-db-batch-value {
   display: flex;
-  gap: 8px;
   align-items: center;
+}
+
+.qi-db-batch-value :deep(.ant-input-number) {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.qi-db-batch-value > span {
+  padding: 0 16px;
+  line-height: 30px;
+  color: #909399;
+  text-align: center;
+  background: #f5f7fa;
+  border: 1px solid #dcdfe6;
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+}
+
+.qi-db-hint {
+  grid-column: 2;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: #909399;
 }
 
 </style>
