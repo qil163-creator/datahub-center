@@ -93,6 +93,8 @@ const mqInput = computed(() =>
 const referenceInput = computed(() => fileInput.value || mqInput.value);
 // HDFS 输出沿用文件输入的连接选择器与“名称 + 类型”的属性字段对话框。
 const hdfsOutput = computed(() => props.toolCode === 'write-hdfs');
+// MongoDB 输出使用限定 MongoDB 类型的分类连接选择器。
+const mongoOutput = computed(() => props.toolCode === 'write-mongodb');
 const mqTypeCodes = computed(() => {
   const code = props.toolCode.replace(/^read-/u, '').toUpperCase();
   return mqInput.value ? [code] : undefined;
@@ -102,7 +104,7 @@ const showPlatformConnection = computed(
 );
 const odps = computed(() => props.toolCode.endsWith('-odps'));
 // 参考界面中，这些输出组件的“选择表”位于数据连接类型与实例之后，且选表后自动解析字段。
-const tableAfterDetails = computed(() => ['write-hive', 'write-odps'].includes(props.toolCode));
+const tableAfterDetails = computed(() => ['write-hive', 'write-mongodb', 'write-odps'].includes(props.toolCode));
 const outputConnector = computed(() => descriptor.value?.direction === 'output');
 const connectionPlaceholder = computed(() => {
   if (odps.value) return '请选择ODPS数据源';
@@ -684,11 +686,11 @@ defineExpose({ validate });
             }}</label>
           <div>
             <DatabaseConnectionPicker
-              v-if="referenceInput || hdfsOutput"
+              v-if="referenceInput || hdfsOutput || mongoOutput"
               :value="config.databaseId ?? undefined"
               :databases="pickerDatabases"
               :placeholder="outputConnector ? connectionPlaceholder : undefined"
-              :type-codes="mqTypeCodes"
+              :type-codes="mongoOutput ? ['MONGODB'] : mqTypeCodes"
               :loading="loading"
               :disabled="disabled"
               @change="selectDatabase"

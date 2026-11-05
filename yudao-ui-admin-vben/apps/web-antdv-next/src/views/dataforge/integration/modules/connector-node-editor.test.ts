@@ -338,6 +338,22 @@ describe('连接器属性字段编辑与即时反馈', () => {
     expect(host.querySelector('[aria-label="属性字段编辑索引"]')).toBeNull();
   });
 
+  it('MongoDB输出对齐参考：限定类型的连接选择器、选择表在实例之后、写入模式与单次条数不预设', async () => {
+    const state = mount('write-mongodb', { ...connectorDefaults('write-mongodb'), columns: [] });
+    await nextTick();
+    const picker = host.querySelector('[aria-label="连接器数据连接"]')!;
+    expect(picker.getAttribute('data-type-codes')).toBe(JSON.stringify(['MONGODB']));
+    const labels = [...host.querySelectorAll('label')].map((item) => item.textContent?.replace('*', '').trim());
+    for (const [before, after] of [['数据连接类型', '数据连接实例'], ['数据连接实例', '选择表'], ['选择表', 'where条件'], ['写入模式', '单次写入数据']] as const)
+      expect(labels.indexOf(before), `${before} 应在 ${after} 之前`).toBeLessThan(labels.indexOf(after));
+    expect(state.config.writeModeType).toBeUndefined();
+    expect(state.config.batchSize).toBeUndefined();
+    expect(host.querySelector('.qi-connector-addon')!.textContent).toBe('条');
+    expect(host.textContent).toContain('不输入默认值1000条');
+    expect(host.textContent).not.toContain('前置SQL');
+    expect(host.textContent).not.toContain('解析');
+  });
+
   it.each(['write-redis', 'write-rabbitmq', 'write-rocketmq'])(
     '%s 主要输出字段选择继续保存来源和已有附加属性', async (toolCode) => {
       const state = mount(toolCode, { columns: [{ name: 'label', key: 'name', type: 'STRING', custom: 42 }] }, [

@@ -26,6 +26,8 @@ describe('qData连接器配置边界', () => {
         ...(code === 'read-redis' ? { dataType: 'string' } : {}),
         // Hive output follows the reference: no write mode is preselected, 追加 must be chosen.
         ...(code === 'write-hive' ? { writeModeType: 2 } : {}),
+        // MongoDB output likewise starts without a write mode; 追加 is the execution-protocol value 0.
+        ...(code === 'write-mongodb' ? { writeModeType: 0 } : {}),
         apiUrl: 'https://example.test/service?wsdl',
         operationName: 'query',
         columns: [{ name: 'id', type: 'STRING', index: 0 }],
@@ -163,9 +165,13 @@ describe('qData连接器配置边界', () => {
     }
   });
 
-  it('集合Mongo追加默认值使用执行协议INSERT编号，不能误映射为增量更新', () => {
-    expect(connectorDefaults('write-mongodb')).toMatchObject({ writeModeType: 0, batchSize: 1024 });
+  it('集合Mongo追加使用执行协议INSERT编号0，不能误映射为增量更新；写入模式与单次条数不预设', () => {
+    expect(connectorDefaults('write-mongodb')).not.toHaveProperty('writeModeType');
+    expect(connectorDefaults('write-mongodb')).not.toHaveProperty('batchSize');
     expect(connectorSchemas['write-mongodb']?.fields.find((field) => field.key === 'writeModeType')?.options).toContainEqual({ label: '追加', value: 0 });
+    const base = { databaseId: '1', tableName: 't', columns: [{ name: 'id', type: 'LONG' }] };
+    expect(validateConnectorConfig('write-mongodb', base)).toContainEqual({ field: 'writeModeType', message: '请填写写入模式' });
+    expect(validateConnectorConfig('write-mongodb', { ...base, writeModeType: 0 })).toEqual([]);
   });
 
   it('受管ftp仅允许顶层凭据编号，预算和新建模式与运行契约一致', () => {

@@ -648,14 +648,23 @@ export const connectorSchemas: Readonly<Record<string, ConnectorSchema>> = {
   'write-mongodb': schema(
     'MongoDB输出组件',
     tabularOutput.map((field) => {
+      // 参考界面不预选写入模式、单次写入条数留空；后端缺省分别按追加与 1000 条处理。
       if (field.key === 'writeModeType') return {
-        ...field, defaultValue: 0, options: [
+        ...field, defaultValue: undefined, required: true, options: [
           { label: '追加', value: 0 },
           { label: '全量', value: 1, disabled: true },
           { label: '增量更新（历史配置）', value: 2 },
         ],
       };
-      if (field.key === 'batchSize') return { ...field, defaultValue: 1024 };
+      if (field.key === 'batchSize') return {
+        ...field,
+        defaultValue: undefined,
+        placeholder: '请输入单次写入数据条数',
+        suffix: '条',
+        hint: '不输入默认值1000条',
+      };
+      if (field.key === 'tableName') return { ...field, placeholder: '选择表' };
+      if (field.key === 'whereCondition') return { ...field, maxLength: 256 };
       return field;
     }),
     'output',
