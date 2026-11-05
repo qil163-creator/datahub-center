@@ -436,7 +436,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
                 <th>去空格方式</th>
                 <th>大小写转换</th>
                 <th>填充方向</th>
-                <th>填充字符 <Tooltip title="如果使用填充功能，指定填充所使用的字符。填充长度在下方配置。"><span class="qi-string-help" tabindex="0" aria-label="填充字符说明"><ReferenceIcon name="info" /></span></Tooltip></th>
+                <th>填充字符 <Tooltip title="如果使用填充功能，指定填充所使用的字符"><span class="qi-string-help" tabindex="0" aria-label="填充字符说明"><ReferenceIcon name="info" /></span></Tooltip></th>
 </template><template v-if="toolCode === 'string-replace'">
                 <th>使用正则表达式</th>
                 <th>搜索</th>

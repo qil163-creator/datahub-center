@@ -225,7 +225,7 @@ defineExpose({openRulePicker:openPicker});
         <span v-if="governanceCleanUsesAllFields(cleanRule(item.ruleId))">全部字段</span>
         <Select v-else-if="governanceCleanUsesMultipleFields(cleanRule(item.ruleId))" :value="governanceCleanSelectionFields(item)" :options="fieldSelectOptions" mode="multiple" :disabled="!canLoadRules || !cleanRule(item.ruleId) || !isGovernanceCleanSelectionEditable(item)" @update:value="(value) => setGovernanceCleanSelectionFields(item,value as string[])" />
         <Select v-else :value="governanceCleanSelectionField(item)" :options="fieldSelectOptions" :disabled="!canLoadRules || !cleanRule(item.ruleId) || !isGovernanceCleanSelectionEditable(item)" @update:value="(value) => setGovernanceCleanSelectionField(item,String(value ?? ''))" />
-      </td><td>{{ cleanRule(item.ruleId)?.strategyKey ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.description ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.categoryName ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.status === 0 ? '启用' : '未读取' }}</td><td><Button type="link" danger :disabled="disabled" @click="removeRule(Number(index))"> 删除 </Button></td>
+      </td><td>{{ cleanRule(item.ruleId)?.strategyKey ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.description ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.categoryName ?? '-' }}</td><td>{{ cleanRule(item.ruleId)?.status === 0 ? '启用' : '未读取' }}</td><td><Button type="link" danger :disabled="disabled" @click="removeRule(Number(index))">删除</Button></td>
 </tr>
       <tr v-if="!config.governanceRules?.length"><td colspan="8" class="qi-reference-empty">暂无记录</td></tr>
     </tbody>
