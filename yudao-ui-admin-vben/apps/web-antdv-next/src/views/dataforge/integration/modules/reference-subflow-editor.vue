@@ -83,10 +83,10 @@ onBeforeUnmount(() => {
     <fieldset :disabled="disabled" :inert="disabled || undefined">
     <Alert v-if="error" type="error" :message="error" />
     <div class="qi-reference-form-row">
-      <label>子流程</label>
+      <label class="qi-subflow-required">子流程</label>
       <div>
         <Select v-model:value="pipelineId" :options="pipelineOptions" :loading="pipelineLoading" :disabled="disabled" show-search :filter-option="false" placeholder="请选择子流程" @search="(value) => { search = value; searchPipelines(); }" @focus="searchPipelines()" />
-        <p class="qi-reference-help">子流程用于调用已有流程，适合封装公共处理逻辑，实现流程复用。子流程变更不会自动同步，需明确选择并应用新的发布版本。</p>
+        <p class="qi-reference-help">子流程用于调用已有流程，适合封装公共处理逻辑，实现流程复用。注意：子流程变更不会自动同步，需重新打开并保存当前节点以使配置生效。</p>
         <div v-if="pipelineTotal > 20" class="qi-reference-file-actions"><Button :disabled="disabled || pipelinePage <= 1 || pipelineLoading" @click="searchPipelines(pipelinePage - 1)">上一页流程</Button><span>第{{ pipelinePage }}页</span><Button :disabled="disabled || pipelinePage * 20 >= pipelineTotal || pipelineLoading" @click="searchPipelines(pipelinePage + 1)">下一页流程</Button></div>
       </div>
     </div>
@@ -94,3 +94,18 @@ onBeforeUnmount(() => {
     </fieldset>
   </div>
 </template>
+
+<style scoped>
+.qi-subflow-required::before {
+  margin-right: 4px;
+  color: #f56c6c;
+  content: '*';
+}
+
+.qi-reference-help {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: #909399;
+}
+</style>

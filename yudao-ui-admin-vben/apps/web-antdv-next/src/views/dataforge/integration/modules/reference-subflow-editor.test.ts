@@ -110,6 +110,8 @@ describe('子流程主配置', () => {
     expect(host.textContent).not.toContain('固定发布版本与输入输出契约');
     expect(host.textContent).toContain('节点描述保留');
     expect(host.textContent).toContain('子流程用于调用已有流程');
+    expect(host.textContent).toContain('注意：子流程变更不会自动同步，需重新打开并保存当前节点以使配置生效。');
+    expect(host.querySelector('label.qi-subflow-required')?.textContent).toBe('子流程');
     expect(api.getSubflowPipelinePage).not.toHaveBeenCalled();
     await focus();
     expect(options()).toEqual([

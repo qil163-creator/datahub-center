@@ -265,6 +265,7 @@ const editorDescription = computed(() =>
     'field-derive',
     'id-generator',
     'read-webservice',
+    'sub-pipeline',
   ].includes(editingCode.value),
 );
 const omittedDescription = computed(() =>
@@ -1397,6 +1398,11 @@ function toggleGroup(key: string) {
                 : undefined
             "
             :hide-type="editingCode === 'sub-pipeline'"
+            :name-hint="
+              editingCode === 'sub-pipeline'
+                ? '用于标识当前子流程节点，建议填写清晰的业务名称，便于查看和排查。'
+                : undefined
+            "
             :stacked="editingCode === 'sub-pipeline'"
           />
           <ConfigProvider :component-disabled="!editable">
@@ -1444,6 +1450,11 @@ function toggleGroup(key: string) {
                     v-model:name="editingName"
                     v-model:description="editingDescription"
                     description-only
+                    :description-placeholder="
+                      editingCode === 'sub-pipeline'
+                        ? '可填写该节点的用途、处理逻辑、输入输出说明或维护注意事项。'
+                        : undefined
+                    "
                     :disabled="!editable"
                   />
                 </template>
