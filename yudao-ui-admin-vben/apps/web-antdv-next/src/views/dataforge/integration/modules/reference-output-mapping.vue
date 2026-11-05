@@ -64,6 +64,12 @@ const targetFields = computed<MappingField[]>(() => {
       : [];
   });
 });
+/** 已映射的字段在表中不存在时才提供“同名自动映射”，正常状态与参考界面一致。 */
+const needsRepair = computed(() =>
+  [...columns.value.source, ...columns.value.target].some(
+    (field) => !!field.name && !field.exists,
+  ),
+);
 const rowCount = computed(() =>
   Math.max(columns.value.source.length, columns.value.target.length),
 );
@@ -256,6 +262,7 @@ defineExpose({ autoMap, validate });
     <div class="qi-output-mapping-toolbar">
       <h3>字段映射</h3>
       <Button
+        v-if="needsRepair"
         class="qi-reference-button"
         :disabled="disabled || !sourceFields.length || !targetFields.length"
         @click="autoMap"
@@ -295,6 +302,7 @@ defineExpose({ autoMap, validate });
             <div class="qi-output-mapping-heading">
               <p>{{ side === 'source' ? '来源表字段：' : '目标字段：' }}</p>
               <Checkbox
+                v-if="columns[side].length"
                 :checked="selection(side).all"
                 :indeterminate="selection(side).partial"
                 :disabled="
@@ -344,9 +352,6 @@ defineExpose({ autoMap, validate });
                   class="qi-output-mapping-drag"
                 />
               </div>
-              <p v-if="!columns[side].length" class="qi-output-mapping-empty">
-                暂无记录
-              </p>
             </div>
           </div>
         </template>
@@ -488,9 +493,4 @@ defineExpose({ autoMap, validate });
   transform: rotate(45deg);
 }
 
-.qi-output-mapping-empty {
-  padding: 20px 12px;
-  color: #909399;
-  text-align: center;
-}
 </style>

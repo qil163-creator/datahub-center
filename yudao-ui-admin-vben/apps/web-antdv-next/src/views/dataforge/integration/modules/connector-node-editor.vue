@@ -98,6 +98,8 @@ const mqTypeCodes = computed(() => {
 const showPlatformConnection = computed(
   () => descriptor.value?.connection || props.toolCode === 'read-ftp',
 );
+const odps = computed(() => props.toolCode.endsWith('-odps'));
+const odpsOutput = computed(() => props.toolCode === 'write-odps');
 const tableConnector = computed(
   () =>
     relationInput.value ||
@@ -696,7 +698,7 @@ defineExpose({ validate });
               show-search
               option-filter-prop="label"
               allow-clear
-              placeholder="请选择平台数据连接"
+              :placeholder="odps ? '请选择ODPS数据源' : '请选择平台数据连接'"
               aria-label="连接器数据连接"
               @update:value="selectDatabase"
             /><small v-if="error('databaseId')">{{
@@ -705,6 +707,7 @@ defineExpose({ validate });
           </div>
         </div>
         <ConnectorReferenceFields
+          v-if="!odpsOutput"
           :config="config"
           :fields="leadingFields"
           :disabled="disabled"
@@ -715,12 +718,22 @@ defineExpose({ validate });
         />
         <template v-if="descriptor.connection && showConnectionDetails">
           <div class="qi-connector-field">
-            <label>数据连接类型</label><Input :value="database?.databaseTypeName || '-'" disabled />
+            <label>数据连接类型</label><Input :value="database?.databaseTypeName || (odps ? 'ODPS' : '-')" disabled />
           </div>
           <div v-if="toolCode !== 'write-rocketmq'" class="qi-connector-field">
-            <label>数据连接实例</label><Input :value="database?.databaseSchema || '-'" disabled />
+            <label>数据连接实例</label><Input :value="database?.databaseSchema || (odps ? undefined : '-')" :placeholder="odps ? '自动回显项目名' : undefined" disabled />
           </div>
         </template>
+        <ConnectorReferenceFields
+          v-if="odpsOutput"
+          :config="config"
+          :fields="leadingFields"
+          :disabled="disabled"
+          :issues="showErrors ? issues : []"
+          :table-options="tableOptions"
+          :tables-loading="tablesLoading"
+          @change="changeReferenceField"
+        />
         <div v-if="tdengineRealtime" class="qi-connector-field"><label><em>*</em>订阅Topic</label><AutoComplete :value="config.topic" :options="config.topic ? [{ value: config.topic }] : []" :disabled="disabled" aria-label="订阅 Topic" placeholder="请选择或输入订阅Topic" @update:value="(value) => changeField('topic', value)" /></div>
       </div>
       <ConnectorReferenceFields
@@ -733,7 +746,7 @@ defineExpose({ validate });
         @change="changeReferenceField"
       />
     </div>
-    <div v-if="tableConnector" class="qi-connector-reference-parse">
+    <div v-if="tableConnector && (!odpsOutput || metadataIssue || (config.tableName && !targetFields))" class="qi-connector-reference-parse">
       <Button
         :disabled="disabled || !config.tableName || fieldsLoading"
         :loading="fieldsLoading"

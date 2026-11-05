@@ -274,6 +274,31 @@ describe('连接器属性字段编辑与即时反馈', () => {
     },
   );
 
+  it('ODPS输出对齐参考：连接类型与实例回显、选择表在实例之后、追加在前，空映射不显示操作按钮和暂无记录', async () => {
+    const state = mount('write-odps', { columns: [] }, [{ name: 'id', dataType: 'LONG' }]);
+    await nextTick();
+    const labels = [...host.querySelectorAll('label')].map((item) => item.textContent?.replace('*', '').trim());
+    expect(labels.indexOf('数据连接类型')).toBeLessThan(labels.indexOf('数据连接实例'));
+    expect(labels.indexOf('数据连接实例')).toBeLessThan(labels.indexOf('选择表'));
+    expect(labels.indexOf('选择表')).toBeLessThan(labels.indexOf('写入模式'));
+    const typeInput = [...host.querySelectorAll('label')].find((item) => item.textContent === '数据连接类型')!.nextElementSibling as HTMLInputElement;
+    expect(typeInput.value).toBe('ODPS');
+    const instance = [...host.querySelectorAll('label')].find((item) => item.textContent === '数据连接实例')!.nextElementSibling as HTMLInputElement;
+    expect(instance.getAttribute('placeholder')).toBe('自动回显项目名');
+    expect(host.querySelector('[aria-label="写入模式"]')!.getAttribute('data-options')).toBe(
+      JSON.stringify([{ label: '追加', value: 2 }, { label: '全量', value: 1 }]),
+    );
+    expect(host.querySelector('.qi-connector-addon')!.textContent).toBe('条');
+    expect(host.textContent).toContain('不输入默认值1024条');
+    expect(host.textContent).toContain('数据写入之后执行的SQL');
+    expect(host.textContent).not.toContain('数据写入之前执行的SQL');
+    expect(host.textContent).not.toContain('解析');
+    expect(host.textContent).not.toContain('同名自动映射');
+    expect(host.textContent).not.toContain('全选');
+    expect(host.querySelector('.qi-output-mapping-empty')).toBeNull();
+    expect(state.config.columns).toEqual([]);
+  });
+
   it.each(['write-redis', 'write-rabbitmq', 'write-rocketmq'])(
     '%s 主要输出字段选择继续保存来源和已有附加属性', async (toolCode) => {
       const state = mount(toolCode, { columns: [{ name: 'label', key: 'name', type: 'STRING', custom: 42 }] }, [

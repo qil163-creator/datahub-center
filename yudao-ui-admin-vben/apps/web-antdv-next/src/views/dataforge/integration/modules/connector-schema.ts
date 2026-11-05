@@ -21,6 +21,8 @@ export interface ConnectorField {
   quiet?: boolean;
   /** Renders a select without its dropdown arrow, like a plain input. */
   plain?: boolean;
+  /** Unit addon rendered after a number input, such as “条”. */
+  suffix?: string;
 }
 export interface ConnectorSchema {
   name: string;
@@ -528,10 +530,22 @@ export const connectorSchemas: Readonly<Record<string, ConnectorSchema>> = {
           (field) =>
             field.key !== 'whereCondition' && field.key !== 'primaryKeys',
         )
-        .map((field) =>
-          field.key === 'batchSize' ? { ...field, defaultValue: 1024 } : field,
-        ),
-      ...sqlHooks,
+        .map((field) => {
+          if (field.key === 'batchSize')
+            return { ...field, defaultValue: 1024, suffix: '条', hint: '不输入默认值1024条' };
+          if (field.key === 'writeModeType')
+            return {
+              ...field,
+              required: true,
+              options: [
+                { label: '追加', value: 2 },
+                { label: '全量', value: 1 },
+              ],
+            };
+          return field;
+        }),
+      { key: 'preSql', label: '前置SQL', kind: 'textarea', full: true, maxLength: 4000 },
+      { key: 'postSql', label: '后置SQL', kind: 'textarea', full: true, maxLength: 4000, hint: '数据写入之后执行的SQL' },
     ],
     'output',
     'plain',

@@ -88,22 +88,23 @@ function change(field: ConnectorField, value: unknown) {
           :aria-label="field.label"
           @update:value="(value) => change(field, value)"
         />
-        <InputNumber
-          v-else-if="field.kind === 'number'"
-          :value="
-            typeof config[field.key] === 'number'
-              ? config[field.key]
-              : undefined
-          "
-          :min="field.min ?? 0"
-          :max="field.max"
-          :precision="0"
-          :disabled="disabled"
-          :status="error(field.key) ? 'error' : undefined"
-          :aria-label="field.label"
-          :placeholder="`请输入${field.label}`"
-          @update:value="(value) => change(field, value)"
-        />
+        <div v-else-if="field.kind === 'number'" class="qi-connector-number">
+          <InputNumber
+            :value="
+              typeof config[field.key] === 'number'
+                ? config[field.key]
+                : undefined
+            "
+            :min="field.min ?? 0"
+            :max="field.max"
+            :precision="0"
+            :disabled="disabled"
+            :status="error(field.key) ? 'error' : undefined"
+            :aria-label="field.label"
+            :placeholder="`请输入${field.label}`"
+            @update:value="(value) => change(field, value)"
+          /><span v-if="field.suffix" class="qi-connector-addon">{{ field.suffix }}</span>
+        </div>
         <TextArea
           v-else-if="field.kind === 'json' || field.kind === 'textarea'"
           :value="text(field)"
@@ -183,6 +184,31 @@ em {
 
 .is-valid {
   color: #909399;
+}
+
+.qi-connector-number {
+  display: flex;
+  align-items: center;
+}
+
+.qi-connector-number :deep(.ant-input-number) {
+  flex: 1;
+}
+
+.qi-connector-addon {
+  padding: 0 16px;
+  line-height: 30px;
+  color: #909399;
+  text-align: center;
+  background: #f5f7fa;
+  border: 1px solid #dcdfe6;
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+}
+
+.qi-connector-number:has(.qi-connector-addon) :deep(.ant-input-number) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .qi-connector-field-hint {
