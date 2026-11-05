@@ -2,13 +2,7 @@
 /* eslint-disable vue/no-mutating-props -- 仅修改父设计器的隔离草稿，确认节点后才写回流程。 */
 import { computed, ref, watch } from 'vue';
 
-import {
-  Alert,
-  AutoComplete,
-  Input,
-  Select,
-  Tooltip,
-} from 'antdv-next';
+import { Alert, Input, Select, Tooltip } from 'antdv-next';
 
 import ReferenceIcon from './reference-icon.vue';
 
@@ -92,7 +86,12 @@ function validate() {
       !/^[A-Za-z][A-Za-z0-9_.-]{0,99}$/u.test(field.secretKeyRef ?? '')
     )
       errors.push(`${prefix}请填写管理员授权的密钥引用`);
-    const target = field.outputFieldName?.trim() || field.fieldName?.trim();
+    const outputField = field.outputFieldName?.trim();
+    if (!outputField)
+      errors.push(
+        `${prefix}请填写${props.toolCode === 'data-encrypt' ? '密文' : '明文'}字段`,
+      );
+    const target = outputField || field.fieldName?.trim();
     if (target && targets.has(target)) errors.push(`${prefix}输出字段重复`);
     if (target) targets.add(target);
   }
@@ -123,17 +122,17 @@ defineExpose({ validate });
             placeholder="请选择算法"
             @update:value="(value) => set(field, 'algorithm', value)"
         /></label>
-        <label v-if="!keylessLegacy.has(field.algorithm)"><span class="qi-crypto-required">密钥引用 <Tooltip title="填写管理员授权的密钥引用编号。密钥在执行资源中维护，加解密须使用一致的算法和密钥引用。"><span class="qi-crypto-help" tabindex="0" aria-label="密钥引用说明"><ReferenceIcon name="info" /></span></Tooltip></span><Input
+        <label v-if="!keylessLegacy.has(field.algorithm)"><span class="qi-crypto-required">秘钥 <Tooltip title="密钥必须为 16 位字母加数字。此处填写管理员授权的密钥引用，密钥在执行资源中维护，加解密须使用一致的算法和密钥引用。"><span class="qi-crypto-help" tabindex="0" aria-label="密钥引用说明"><ReferenceIcon name="info" /></span></Tooltip></span><Input
             :value="field.secretKeyRef"
             :disabled="disabled"
             :aria-label="`第${index + 1}行密钥引用`"
             aria-required="true"
-            placeholder="请输入密钥引用"
+            placeholder="请输入秘钥"
             @update:value="(value) => set(field, 'secretKeyRef', value)"
         /></label>
         <label><span class="qi-crypto-required">{{ toolCode === 'data-encrypt' ? '明文字段' : '密文字段'
-          }}</span><AutoComplete
-            :value="field.fieldName"
+          }}</span><Select
+            :value="field.fieldName || undefined"
             :options="fieldOptions"
             :disabled="disabled"
             :aria-label="`第${index + 1}行来源字段`"
@@ -141,13 +140,14 @@ defineExpose({ validate });
             :placeholder="
               toolCode === 'data-encrypt' ? '请选择明文字段' : '请选择密文字段'
             "
-            @update:value="(value) => set(field, 'fieldName', value)"
-        ><template #suffixIcon><span class="qi-crypto-select-arrow" aria-hidden="true"></span></template></AutoComplete></label>
-        <label><span>{{ toolCode === 'data-encrypt' ? '密文字段' : '明文字段'
-          }} <Tooltip :title="`${toolCode === 'data-encrypt' ? '会将加密后的数据输出到这一列。' : '会将解密后的数据输出到这一列。'}留空时覆盖来源字段。`"><span class="qi-crypto-help" tabindex="0" :aria-label="toolCode === 'data-encrypt' ? '密文字段说明' : '明文字段说明'"><ReferenceIcon name="info" /></span></Tooltip></span><Input
+            @update:value="(value) => set(field, 'fieldName', value ?? '')"
+        /></label>
+        <label><span class="qi-crypto-required">{{ toolCode === 'data-encrypt' ? '密文字段' : '明文字段'
+          }} <Tooltip :title="toolCode === 'data-encrypt' ? '会将加密后的数据输出到这一列' : '会将解密后的数据输出到这一列'"><span class="qi-crypto-help" tabindex="0" :aria-label="toolCode === 'data-encrypt' ? '密文字段说明' : '明文字段说明'"><ReferenceIcon name="info" /></span></Tooltip></span><Input
             :value="field.outputFieldName"
             :disabled="disabled"
             :aria-label="`第${index + 1}行输出字段`"
+            aria-required="true"
             :placeholder="toolCode === 'data-encrypt' ? '请输入密文字段' : '请输入明文字段'"
             @update:value="(value) => set(field, 'outputFieldName', value)"
         /></label>

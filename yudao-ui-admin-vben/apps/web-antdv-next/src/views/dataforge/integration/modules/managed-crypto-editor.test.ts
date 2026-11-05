@@ -8,7 +8,7 @@ import ManagedCryptoEditor from './managed-crypto-editor.vue';
 
 vi.mock('antdv-next', () => {
   const Field = defineComponent({ props: { value: [String, Boolean], disabled: Boolean }, emits: ['update:value'], setup: (props, { emit }) => () => h('input', { value: props.value, disabled: props.disabled, onInput: (event: Event) => emit('update:value', (event.target as HTMLInputElement).value) }) });
-  return { Input: Field, AutoComplete: Field, Select: Field, Checkbox: defineComponent({ render: () => null }),
+  return { Input: Field, Select: Field, Checkbox: defineComponent({ render: () => null }),
     Tooltip: defineComponent({ props: { title: String }, setup: (props, { slots }) => () => h('span', { 'data-help': props.title }, slots.default?.()) }),
     Button: defineComponent({ props: { disabled: Boolean }, setup: (props, { slots }) => () => h('button', { disabled: props.disabled }, slots.default?.()) }),
     Alert: defineComponent({ props: { message: String }, setup: (props, { slots }) => () => h('div', [props.message, slots.action?.()]) }),
@@ -101,11 +101,14 @@ describe('集成受管加解密配置', () => {
   it('加密主表保持算法和受管密钥、来源和输出两列，描述在字段之后且提示覆盖契约', () => {
     const { state } = mount({ vendor: 42 });
     expect(state.config.encryptFields[0]).toMatchObject({ algorithm: 'AES', secretKeyRef: '', fieldName: '', outputFieldName: '' });
-    expect(host.querySelector('[aria-label="第1行密钥引用"]')!.getAttribute('placeholder')).toBe('请输入密钥引用');
+    expect(host.querySelector('[aria-label="第1行密钥引用"]')!.getAttribute('placeholder')).toBe('请输入秘钥');
     expect(host.querySelector('[aria-label="第1行来源字段"]')!.getAttribute('placeholder')).toBe('请选择明文字段');
     expect(host.querySelector('[aria-label="第1行输出字段"]')!.getAttribute('placeholder')).toBe('请输入密文字段');
+    expect(host.textContent).toContain('秘钥');
+    expect(host.querySelector('[aria-label="密钥引用说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('密钥必须为 16 位字母加数字');
     expect(host.querySelector('[aria-label="密钥引用说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('管理员授权的密钥引用');
-    expect(host.querySelector('[aria-label="密文字段说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('留空时覆盖来源字段');
+    expect(host.querySelector('[aria-label="密文字段说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toBe('会将加密后的数据输出到这一列');
+    expect(host.querySelectorAll('.qi-crypto-required')).toHaveLength(4);
     const section = host.querySelector('.qi-crypto-field')!;
     expect([...section.children].map((child) => child.tagName)).toEqual(['DIV', 'TEXTAREA']);
     expect(host.querySelectorAll('[aria-label="节点描述"]')).toHaveLength(1);
@@ -115,10 +118,13 @@ describe('集成受管加解密配置', () => {
     expect(host.querySelector('[aria-label="第1行来源字段"]')!.getAttribute('placeholder')).toBe('请选择密文字段');
     expect(host.querySelector('[aria-label="第1行输出字段"]')!.getAttribute('placeholder')).toBe('请输入明文字段');
     expect(host.querySelector('[aria-label="明文字段说明"]')!.closest<HTMLElement>('[data-help]')!.dataset.help).toContain('解密后的数据');
-    expect(editor.value!.validate()).toBe(true);
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick();
+    expect(host.textContent).toContain('请填写明文字段');
     expect(host.querySelector('details')).toBeNull();
     await input('第1行加解密算法', 'SM4');
     await input('第1行输出字段', 'plain');
+    expect(editor.value!.validate()).toBe(true);
     expect(state.config.decryptFields[0]).toMatchObject({ algorithm: 'SM4', secretKeyRef: 'managed-key', outputFieldName: 'plain', encoding: 'HEX', custom: 7 });
     const saved = JSON.stringify(state.config);
     state.disabled = true;
