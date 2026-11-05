@@ -14,6 +14,7 @@ import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableColumnMapp
 import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableMapper;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillMergeStrategyEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillWorkflowModeEnum;
+import cn.iocoder.yudao.module.system.api.dict.DictDataApi;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,9 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
 
     @Resource
     private FillTableColumnMapper columnMapper;
+
+    @Resource
+    private DictDataApi dictDataApi;
 
     @Resource
     private FillTableVersionMapper versionMapper;
@@ -221,13 +225,21 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
             field.put("targetColumnName", column.getName());
             field.put("fieldType", column.getFieldType());
             field.put("fillType", column.getFillType());
-            field.put("dictOptions", parseDictOptions(column));
+            field.put("dictOptions", resolveOptions(column));
             field.put("hidden", isTrue(column.getFillHide()));
             field.put("required", column.getNullable() != null && column.getNullable() == 0);
             field.put("pk", isTrue(column.getPk()));
             field.put("pkType", column.getPkType());
             field.put("length", column.getFieldLength());
             field.put("scale", column.getFieldScale());
+            // 取值范围、格式、唯一与规则级别随版本固化，提交和导入按此校验
+            field.put("min", StrUtil.emptyToNull(StrUtil.trim(column.getMinValue())));
+            field.put("max", StrUtil.emptyToNull(StrUtil.trim(column.getMaxValue())));
+            field.put("regex", StrUtil.emptyToNull(StrUtil.trim(column.getRegexPattern())));
+            field.put("regexMessage", StrUtil.emptyToNull(StrUtil.trim(column.getRegexMessage())));
+            field.put("unique", isTrue(column.getUniqueFlag()));
+            field.put("ruleSeverity", column.getRuleSeverity() == null
+                    ? FillFieldRuleValidator.SEVERITY_ERROR : column.getRuleSeverity());
             field.put("sort", column.getSort());
             // 一期字段均为输入字段；公式列（editable=false）由公式 schema 标注后覆盖
             field.put("editable", true);
@@ -263,9 +275,21 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
             if (column.getNullable() != null && column.getNullable() == 0) {
                 rules.add(rule("REQUIRED", column.getFieldCode(), null));
             }
-            List<String> dictOptions = parseDictOptions(column);
+            List<String> dictOptions = resolveOptions(column);
             if (CollUtil.isNotEmpty(dictOptions)) {
                 rules.add(rule("DICT", column.getFieldCode(), dictOptions));
+            }
+            if (StrUtil.isNotBlank(column.getMinValue())) {
+                rules.add(rule("MIN_VALUE", column.getFieldCode(), column.getMinValue().trim()));
+            }
+            if (StrUtil.isNotBlank(column.getMaxValue())) {
+                rules.add(rule("MAX_VALUE", column.getFieldCode(), column.getMaxValue().trim()));
+            }
+            if (StrUtil.isNotBlank(column.getRegexPattern())) {
+                rules.add(rule("REGEX", column.getFieldCode(), column.getRegexPattern().trim()));
+            }
+            if (isTrue(column.getUniqueFlag())) {
+                rules.add(rule("UNIQUE", column.getFieldCode(), null));
             }
             if (column.getFieldLength() != null && column.getFieldLength() > 0) {
                 rules.add(rule("MAX_LENGTH", column.getFieldCode(), column.getFieldLength()));
@@ -292,6 +316,26 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
             rule.put("param", param);
         }
         return rule;
+    }
+
+    /**
+     * 解析选择值：绑定系统字典时固化当前启用的字典项名称，否则使用手工维护的选择值。
+     */
+    private List<String> resolveOptions(FillTableColumnDO column) {
+        if (StrUtil.isBlank(column.getDictType())) {
+            return parseDictOptions(column);
+        }
+        var items = dictDataApi.getDictDataList(column.getDictType().trim()).getCheckedData();
+        List<String> labels = items == null ? List.of() : items.stream()
+                .filter(item -> item.getStatus() != null && item.getStatus() == 0)
+                .map(item -> StrUtil.trim(item.getLabel()))
+                .filter(StrUtil::isNotEmpty)
+                .distinct()
+                .collect(Collectors.toList());
+        if (labels.isEmpty()) {
+            throw exception(FILL_TABLE_COLUMN_DICT_INVALID, column.getDictType());
+        }
+        return labels;
     }
 
     /**

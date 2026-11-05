@@ -1,4 +1,4 @@
--- Included migrations through: 0262
+-- Included migrations through: 0263
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -8398,7 +8398,14 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_table_column" (
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted" int2 NOT NULL DEFAULT 0,
-  "field_code" varchar(64) COLLATE "pg_catalog"."default"
+  "field_code" varchar(64) COLLATE "pg_catalog"."default",
+  "min_value" varchar(40) COLLATE "pg_catalog"."default",
+  "max_value" varchar(40) COLLATE "pg_catalog"."default",
+  "regex_pattern" varchar(200) COLLATE "pg_catalog"."default",
+  "regex_message" varchar(100) COLLATE "pg_catalog"."default",
+  "unique_flag" int2 NOT NULL DEFAULT 0,
+  "rule_severity" int2 NOT NULL DEFAULT 1,
+  "dict_type" varchar(100) COLLATE "pg_catalog"."default"
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."table_id" IS '填报表编号';
@@ -8416,6 +8423,13 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."if_query" I
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."pk" IS '是否主键：0-否 1-是';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."pk_type" IS '主键类型：1-UUID（应用生成） 2-自行录入';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."sort" IS '字段顺序（建表与页面展示顺序）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."min_value" IS '最小值（数值或日期时间，按字段类型比较；空表示不限）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."max_value" IS '最大值（数值或日期时间，按字段类型比较；空表示不限）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."regex_pattern" IS '格式正则（仅字符串字段，整体匹配）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."regex_message" IS '格式不符时的提示语';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."unique_flag" IS '同一次填报内该字段取值是否必须唯一：0-否 1-是';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."rule_severity" IS '取值范围、格式、唯一规则的级别：1-错误（阻断提交） 2-警告';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."dict_type" IS '选择值来源的系统字典类型；设置后发布时固化字典项，优先于 fill_values';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."tenant_id" IS '租户编号';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."creator" IS '创建者';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."create_time" IS '创建时间';

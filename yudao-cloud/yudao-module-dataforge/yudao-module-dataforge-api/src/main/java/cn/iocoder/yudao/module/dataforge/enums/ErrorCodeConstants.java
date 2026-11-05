@@ -133,6 +133,8 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_TABLE_QUERY_COLUMN_INVALID = new ErrorCode(1_500_015_012, "查询条件字段【{}】不在表字段配置中");
     ErrorCode FILL_TABLE_IMPORT_FILE_INVALID = new ErrorCode(1_500_015_013, "导入文件不合法：{}");
     ErrorCode FILL_TABLE_IMPORT_DATA_INVALID = new ErrorCode(1_500_015_014, "导入数据校验失败：{}");
+    ErrorCode FILL_TABLE_COLUMN_RULE_INVALID = new ErrorCode(1_500_015_015, "字段校验规则无效：{}");
+    ErrorCode FILL_TABLE_COLUMN_DICT_INVALID = new ErrorCode(1_500_015_016, "字典类型【{}】不存在或没有可用的字典项");
 
     // ========== 文件管理 1_500_016_000 ==========
 

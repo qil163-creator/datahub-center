@@ -38,6 +38,13 @@ export namespace DataforgeFillTableApi {
     pk?: number; // 是否主键
     pkType?: number; // 1-UUID 2-自行录入
     sort?: number; // 顺序
+    minValue?: string; // 最小值（数值/日期时间，字符串保持精度）
+    maxValue?: string; // 最大值
+    regexPattern?: string; // 格式正则（字符串字段，整体匹配）
+    regexMessage?: string; // 格式不符提示语
+    uniqueFlag?: number; // 同一次填报内取值唯一：0-否 1-是
+    ruleSeverity?: number; // 规则级别：1-错误（阻断提交） 2-警告
+    dictType?: string; // 选择值来源的系统字典类型
   }
 }
 

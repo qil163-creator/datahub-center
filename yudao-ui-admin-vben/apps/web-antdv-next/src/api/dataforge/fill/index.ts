@@ -139,6 +139,10 @@ export namespace DataforgeFillApi {
       rowId: string;
       rowOrder: number | string;
     }[];
+    /** 同一填报实例上一次提交的编号；首次提交为空 */
+    previousSubmissionId?: number | string;
+    /** 提交时产生的警告（不阻断提交） */
+    warnings?: ValidationIssue[];
   }
 
   /** 采集计划目标组织 */
@@ -386,7 +390,7 @@ export function getSubmissionsByWorkItem(workItemId: number | string) {
 }
 
 /** 提交快照只读预览（审批人从 BPM 业务表单打开） */
-export function getSubmissionPreview(id: number) {
+export function getSubmissionPreview(id: number | string) {
   return requestClient.get<DataforgeFillApi.SubmissionPreview>(
     `/dataforge/fill-submission/preview?id=${id}`,
   );

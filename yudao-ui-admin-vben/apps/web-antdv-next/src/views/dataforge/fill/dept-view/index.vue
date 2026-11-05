@@ -21,7 +21,7 @@ const router = useRouter();
 function viewData(row: DataforgeFillApi.WorkItem) {
   router.push({
     path: '/dataforge/fill/workbench',
-    query: { workItemId: row.id },
+    query: { workItemId: String(row.id) },
   });
 }
 

@@ -361,6 +361,14 @@ public class FillExcelServiceImpl implements FillExcelService {
                     && text.length() > field.length) {
                 issues.add(issue("MAX_LENGTH", field.fieldCode, excelRowNo,
                         String.format("第 %s 行【%s】长度超过 %s", excelRowNo, field.name, field.length)));
+                continue;
+            }
+            // 取值范围、小数位与格式规则，与提交强校验同源
+            for (FillFieldRuleValidator.Violation violation : FillFieldRuleValidator.checkValue(field.schema, text)) {
+                FillSubmitRespVO.Issue issue = issue(violation.ruleCode(), field.fieldCode, excelRowNo,
+                        String.format("第 %s 行【%s】%s", excelRowNo, field.name, violation.detail()));
+                issue.setSeverity(violation.severity());
+                issues.add(issue);
             }
         }
     }
@@ -562,6 +570,9 @@ public class FillExcelServiceImpl implements FillExcelService {
             meta.hidden = Boolean.TRUE.equals(map.get("hidden"));
             meta.editable = !Boolean.FALSE.equals(map.get("editable"));
             meta.length = map.get("length") instanceof Number number ? number.intValue() : null;
+            Map<String, Object> schema = new java.util.LinkedHashMap<>();
+            map.forEach((key, value) -> schema.put(String.valueOf(key), value));
+            meta.schema = schema;
             if (map.get("dictOptions") instanceof List<?> options) {
                 meta.dictOptions = options.stream().map(String::valueOf).toList();
             } else {
@@ -639,6 +650,9 @@ public class FillExcelServiceImpl implements FillExcelService {
         private Integer length;
 
         private List<String> dictOptions;
+
+        /** 发布版本固化的完整字段 schema，供取值范围/格式规则校验使用 */
+        private Map<String, Object> schema = Map.of();
 
         /** dbswitch 逻辑类型：1-小数 5-整数 6-长整型 */
         private boolean isNumeric() {

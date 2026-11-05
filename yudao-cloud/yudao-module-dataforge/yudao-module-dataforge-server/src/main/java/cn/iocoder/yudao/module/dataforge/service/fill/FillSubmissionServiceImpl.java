@@ -132,17 +132,18 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         validationIssueMapper.deleteDraftIssuesByWorkItemId(workItemId);
         boolean hasError = issues.stream()
                 .anyMatch(issue -> FillValidationSeverityEnum.ERROR.getSeverity().equals(issue.getSeverity()));
+        // 错误和警告都落问题清单：警告不阻断提交，但留给审批人参考
+        issues.forEach(issue -> validationIssueMapper.insert(FillValidationIssueDO.builder()
+                .workItemId(workItemId)
+                .ruleCode(issue.getRuleCode())
+                .severity(issue.getSeverity())
+                .rowId(issue.getRowId())
+                .fieldCode(issue.getFieldCode())
+                .displayRowNo(issue.getDisplayRowNo())
+                .message(issue.getMessage())
+                .build()));
         if (hasError) {
-            // 3a. 校验失败：落问题清单，回到原状态（首提回填报中，整改提回整改中）
-            issues.forEach(issue -> validationIssueMapper.insert(FillValidationIssueDO.builder()
-                    .workItemId(workItemId)
-                    .ruleCode(issue.getRuleCode())
-                    .severity(issue.getSeverity())
-                    .rowId(issue.getRowId())
-                    .fieldCode(issue.getFieldCode())
-                    .displayRowNo(issue.getDisplayRowNo())
-                    .message(issue.getMessage())
-                    .build()));
+            // 3a. 校验失败：回到原状态（首提回填报中，整改提回整改中）
             workItemMapper.compareAndSetStatus(workItemId,
                     FillWorkItemStatusEnum.SUBMIT_VALIDATING.getStatus(), fromStatus);
             FillSubmitRespVO respVO = new FillSubmitRespVO();
@@ -210,6 +211,8 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         respVO.setSubmissionId(submission.getId());
         respVO.setAttemptNo(attemptNo);
         respVO.setRowCount(rows.size());
+        // 仅有警告时提交成功，把警告一并返回供前端提示
+        respVO.setIssues(issues);
         return respVO;
     }
 
@@ -289,6 +292,27 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
             rowVO.setData(parseRowData(row.getData()));
             return rowVO;
         }));
+        // 上一次提交：供审批人对比整改前后的差异（预览权限即可读取，不依赖填报人专用的提交历史接口）
+        respVO.setPreviousSubmissionId(submissionMapper.selectListByWorkItemId(submission.getWorkItemId()).stream()
+                .filter(other -> other.getAttemptNo() != null && submission.getAttemptNo() != null
+                        && other.getAttemptNo() < submission.getAttemptNo())
+                .max(java.util.Comparator.comparing(FillSubmissionDO::getAttemptNo))
+                .map(FillSubmissionDO::getId).orElse(null));
+        // 警告按填报实例保存，只对当前有效提交展示，避免把新提交的警告挂到历史提交上
+        if (item != null && Objects.equals(item.getCurrentSubmissionId(), submissionId)) {
+            respVO.setWarnings(validationIssueMapper.selectListByWorkItemId(item.getId()).stream()
+                    .filter(issue -> FillValidationSeverityEnum.WARNING.getSeverity().equals(issue.getSeverity()))
+                    .map(issue -> {
+                        FillSubmitRespVO.Issue warning = new FillSubmitRespVO.Issue();
+                        warning.setRuleCode(issue.getRuleCode());
+                        warning.setSeverity(issue.getSeverity());
+                        warning.setRowId(issue.getRowId());
+                        warning.setFieldCode(issue.getFieldCode());
+                        warning.setDisplayRowNo(issue.getDisplayRowNo());
+                        warning.setMessage(issue.getMessage());
+                        return warning;
+                    }).toList());
+        }
         return respVO;
     }
 
@@ -368,12 +392,56 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                         && maxLength.intValue() > 0 && text.length() > maxLength.intValue()) {
                     issues.add(issue("MAX_LENGTH", row.getRowId(), fieldCode, displayNo,
                             String.format("第 %s 行【%s】长度超过 %s", displayNo, fieldName, maxLength)));
+                    continue;
+                }
+                // 取值范围、小数位与格式规则（级别由字段配置决定，警告不阻断提交）
+                for (FillFieldRuleValidator.Violation violation : FillFieldRuleValidator.checkValue(field, text)) {
+                    issues.add(issue(violation.ruleCode(), row.getRowId(), fieldCode, displayNo,
+                            String.format("第 %s 行【%s】%s", displayNo, fieldName, violation.detail()),
+                            violation.severity()));
                 }
             }
         }
+        validateFieldUnique(fields, rows, issues);
         // UPSERT 策略：业务键组合在草稿内必须唯一，否则合并覆盖行为不确定
         validateBusinessKeyUnique(version, rows, issues);
         return issues;
+    }
+
+    /**
+     * 校验配置了“唯一”的字段：同一次填报内取值不得重复（空值不参与比较）。
+     */
+    private void validateFieldUnique(List<Map<String, Object>> fields, List<FillDraftRowDO> rows,
+            List<FillSubmitRespVO.Issue> issues) {
+        for (Map<String, Object> field : fields) {
+            if (!Boolean.TRUE.equals(field.get("unique"))) {
+                continue;
+            }
+            String fieldCode = String.valueOf(field.get("fieldCode"));
+            String fieldName = String.valueOf(field.getOrDefault("name", fieldCode));
+            int severity = field.get("ruleSeverity") instanceof Number number
+                    && number.intValue() == FillFieldRuleValidator.SEVERITY_WARNING
+                    ? FillFieldRuleValidator.SEVERITY_WARNING : FillFieldRuleValidator.SEVERITY_ERROR;
+            Map<String, Integer> seenRowNo = new LinkedHashMap<>();
+            int displayNo = 0;
+            for (FillDraftRowDO row : rows) {
+                displayNo++;
+                if (issues.size() >= MAX_ISSUES) {
+                    return;
+                }
+                Object value = parseRowData(row.getData()).get(fieldCode);
+                String text = value == null ? "" : String.valueOf(value).trim();
+                if (text.isEmpty()) {
+                    continue;
+                }
+                Integer firstRowNo = seenRowNo.putIfAbsent(text, displayNo);
+                if (firstRowNo != null) {
+                    issues.add(issue("UNIQUE", row.getRowId(), fieldCode, displayNo,
+                            String.format("第 %s 行【%s】与第 %s 行重复，该字段取值必须唯一",
+                                    displayNo, fieldName, firstRowNo), severity));
+                }
+            }
+        }
     }
 
     /**
@@ -431,9 +499,15 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
      */
     private FillSubmitRespVO.Issue issue(String ruleCode, String rowId, String fieldCode,
             Integer displayRowNo, String message) {
+        return issue(ruleCode, rowId, fieldCode, displayRowNo, message,
+                FillValidationSeverityEnum.ERROR.getSeverity());
+    }
+
+    private FillSubmitRespVO.Issue issue(String ruleCode, String rowId, String fieldCode,
+            Integer displayRowNo, String message, int severity) {
         FillSubmitRespVO.Issue issue = new FillSubmitRespVO.Issue();
         issue.setRuleCode(ruleCode);
-        issue.setSeverity(FillValidationSeverityEnum.ERROR.getSeverity());
+        issue.setSeverity(severity);
         issue.setRowId(rowId);
         issue.setFieldCode(fieldCode);
         issue.setDisplayRowNo(displayRowNo);

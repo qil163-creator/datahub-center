@@ -7,12 +7,16 @@ import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableColum
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableColumnMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableMapper;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillFieldRuleValidator;
+import cn.iocoder.yudao.module.system.api.dict.DictDataApi;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.regex.Pattern;
+
+import cn.hutool.core.util.StrUtil;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
@@ -39,6 +43,9 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
 
     @Resource
     private FillTableMapper fillTableMapper;
+
+    @Resource
+    private DictDataApi dictDataApi;
 
     /**
      * 创建填报表字段。
@@ -132,6 +139,43 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
         FillTableColumnDO exists = columnMapper.selectByTableIdAndName(reqVO.getTableId(), reqVO.getName());
         if (exists != null && !exists.getId().equals(reqVO.getId())) {
             throw exception(FILL_TABLE_COLUMN_NAME_DUPLICATE);
+        }
+        normalizeRules(reqVO);
+        String ruleError = FillFieldRuleValidator.checkDefinition(reqVO.getFieldType(), reqVO.getMinValue(),
+                reqVO.getMaxValue(), reqVO.getRegexPattern(), reqVO.getRuleSeverity());
+        if (ruleError != null) {
+            throw exception(FILL_TABLE_COLUMN_RULE_INVALID, ruleError);
+        }
+        if (reqVO.getUniqueFlag() != null && reqVO.getUniqueFlag() != 0 && reqVO.getUniqueFlag() != 1) {
+            throw exception(FILL_TABLE_COLUMN_RULE_INVALID, "唯一规则只能是开启或关闭");
+        }
+        if (StrUtil.isNotBlank(reqVO.getDictType())) {
+            var items = dictDataApi.getDictDataList(reqVO.getDictType()).getCheckedData();
+            boolean usable = items != null && items.stream()
+                    .anyMatch(item -> item.getStatus() != null && item.getStatus() == 0
+                            && StrUtil.isNotBlank(item.getLabel()));
+            if (!usable) {
+                throw exception(FILL_TABLE_COLUMN_DICT_INVALID, reqVO.getDictType());
+            }
+            // 选择值来自字典时，录入类型固定为“选择”
+            reqVO.setFillType(2);
+        }
+    }
+
+    /**
+     * 规整规则字段：去除首尾空白；空值统一存空串，使更新时能清除旧规则（updateById 会忽略 null）。
+     */
+    private void normalizeRules(FillTableColumnSaveReqVO reqVO) {
+        reqVO.setMinValue(StrUtil.trimToEmpty(reqVO.getMinValue()));
+        reqVO.setMaxValue(StrUtil.trimToEmpty(reqVO.getMaxValue()));
+        reqVO.setRegexPattern(StrUtil.trimToEmpty(reqVO.getRegexPattern()));
+        reqVO.setRegexMessage(StrUtil.trimToEmpty(reqVO.getRegexMessage()));
+        reqVO.setDictType(StrUtil.trimToEmpty(reqVO.getDictType()));
+        if (reqVO.getUniqueFlag() == null) {
+            reqVO.setUniqueFlag(0);
+        }
+        if (reqVO.getRuleSeverity() == null) {
+            reqVO.setRuleSeverity(FillFieldRuleValidator.SEVERITY_ERROR);
         }
     }
 

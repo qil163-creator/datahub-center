@@ -36,6 +36,8 @@ export interface FillCollabCallbacks {
 }
 
 const HEARTBEAT_INTERVAL_MS = 25_000;
+/** 发出心跳后超过该时间仍未收到 pong，则判定连接已半开失效并主动重连。 */
+const PONG_TIMEOUT_MS = 10_000;
 const PRESENCE_PING_INTERVAL_MS = 30_000;
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30_000;
@@ -50,7 +52,11 @@ export class FillCollabClient {
     Array<(result: { granted: boolean; holderUserId?: number }) => void>
   >();
   private presenceTimer: null | ReturnType<typeof setInterval> = null;
+  private pongTimer: null | ReturnType<typeof setTimeout> = null;
   private reconnectAttempts = 0;
+  private reconnectTimer: null | ReturnType<typeof setTimeout> = null;
+  /** 当前连接是否成功建立过；失败的重连尝试不再重复提示“连接异常”。 */
+  private opened = false;
   private readonly url: string;
   private readonly workItemId: number | string;
   private ws: null | WebSocket = null;
@@ -89,6 +95,7 @@ export class FillCollabClient {
   close() {
     this.closedByUser = true;
     this.stopTimers();
+    this.clearReconnect();
     this.lockWaiters.forEach((waiters) => {
       waiters.forEach((waiter) => waiter({ granted: false }));
     });
@@ -102,6 +109,7 @@ export class FillCollabClient {
 
   connect() {
     this.closedByUser = false;
+    this.clearReconnect();
     this.openSocket();
   }
 
@@ -123,6 +131,13 @@ export class FillCollabClient {
   }
 
   // ---------------------------------------------------------------- 内部实现
+
+  private clearReconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
 
   private cellLockKey(rowId?: string, fieldCode?: string) {
     return `${rowId ?? ''}::${fieldCode ?? '-'}`;
@@ -189,6 +204,7 @@ export class FillCollabClient {
 
   private handleMessage(raw: string) {
     if (raw === 'pong') {
+      this.clearPongTimer();
       return;
     }
     try {
@@ -206,6 +222,7 @@ export class FillCollabClient {
     this.ws = ws;
     ws.addEventListener('open', () => {
       this.reconnectAttempts = 0;
+      this.opened = true;
       this.callbacks.onStatusChange?.(true);
       // 入房（重连后重新入房，服务端回执含最新 serverVersion，客户端据此增量拉取补齐）
       this.send('fill-work-item-join', { workItemId: this.workItemId });
@@ -215,13 +232,18 @@ export class FillCollabClient {
       this.handleMessage(String(event.data)),
     );
     ws.addEventListener('close', () => {
+      // 旧连接的关闭事件不能影响已经建立的新连接
+      if (this.ws !== ws) return;
       this.stopTimers();
       this.callbacks.onStatusChange?.(false);
       this.scheduleReconnect();
     });
     ws.addEventListener('error', () => {
-      // close 事件负责重连，这里仅提示
-      this.callbacks.onError?.('连接异常');
+      // close 事件负责重连；仅在连接曾经成功后首次中断时提示，避免重连循环中反复弹窗
+      if (this.opened) {
+        this.opened = false;
+        this.callbacks.onError?.('协同连接中断，正在重连');
+      }
     });
   }
 
@@ -245,12 +267,16 @@ export class FillCollabClient {
     if (this.closedByUser) {
       return;
     }
-    const delay = Math.min(
+    const base = Math.min(
       RECONNECT_BASE_MS * 2 ** this.reconnectAttempts,
       RECONNECT_MAX_MS,
     );
+    // 加入抖动，避免大量客户端在服务重启后同时重连
+    const delay = base + Math.floor(Math.random() * base * 0.2);
     this.reconnectAttempts += 1;
-    setTimeout(() => {
+    this.clearReconnect();
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
       if (!this.closedByUser) {
         this.openSocket();
       }
@@ -269,6 +295,11 @@ export class FillCollabClient {
     this.heartbeatTimer = setInterval(() => {
       if (this.ws?.readyState === WebSocket.OPEN) {
         this.ws.send('ping');
+        this.clearPongTimer();
+        this.pongTimer = setTimeout(() => {
+          // 连接看似打开但服务端无响应：主动关闭，交给 close 事件重连并补拉操作
+          this.ws?.close();
+        }, PONG_TIMEOUT_MS);
       }
     }, HEARTBEAT_INTERVAL_MS);
     this.presenceTimer = setInterval(() => {
@@ -276,7 +307,15 @@ export class FillCollabClient {
     }, PRESENCE_PING_INTERVAL_MS);
   }
 
+  private clearPongTimer() {
+    if (this.pongTimer) {
+      clearTimeout(this.pongTimer);
+      this.pongTimer = null;
+    }
+  }
+
   private stopTimers() {
+    this.clearPongTimer();
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;

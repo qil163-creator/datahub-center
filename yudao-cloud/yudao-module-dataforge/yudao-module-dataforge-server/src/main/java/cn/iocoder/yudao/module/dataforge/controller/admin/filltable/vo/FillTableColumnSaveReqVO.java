@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Schema(description = "管理后台 - 填报表字段新增/修改 Request VO")
@@ -61,5 +62,31 @@ public class FillTableColumnSaveReqVO {
 
     @Schema(description = "字段顺序", example = "1")
     private Integer sort;
+
+    @Schema(description = "最小值（数值或日期时间）", example = "0")
+    @Size(max = 40, message = "最小值不能超过 40 个字符")
+    private String minValue;
+
+    @Schema(description = "最大值（数值或日期时间）", example = "100")
+    @Size(max = 40, message = "最大值不能超过 40 个字符")
+    private String maxValue;
+
+    @Schema(description = "格式正则（仅字符串字段，整体匹配）", example = "[0-9]{18}")
+    @Size(max = 200, message = "格式正则不能超过 200 个字符")
+    private String regexPattern;
+
+    @Schema(description = "格式不符时的提示语", example = "请输入 18 位数字")
+    @Size(max = 100, message = "提示语不能超过 100 个字符")
+    private String regexMessage;
+
+    @Schema(description = "同一次填报内取值是否必须唯一：0-否 1-是", example = "0")
+    private Integer uniqueFlag;
+
+    @Schema(description = "规则级别：1-错误 2-警告", example = "1")
+    private Integer ruleSeverity;
+
+    @Schema(description = "选择值来源的系统字典类型", example = "common_status")
+    @Size(max = 100, message = "字典类型不能超过 100 个字符")
+    private String dictType;
 
 }

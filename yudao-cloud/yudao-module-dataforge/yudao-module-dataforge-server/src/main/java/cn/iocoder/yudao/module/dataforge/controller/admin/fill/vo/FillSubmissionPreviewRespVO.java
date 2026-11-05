@@ -33,6 +33,12 @@ public class FillSubmissionPreviewRespVO extends FillSubmissionRespVO {
     @Schema(description = "不可变快照行（按 rowOrder 升序）")
     private List<Row> rows;
 
+    @Schema(description = "同一填报实例上一次提交的编号；首次提交为空（供审批人对比整改前后差异）")
+    private Long previousSubmissionId;
+
+    @Schema(description = "提交时产生的警告提示（仅当前有效提交返回；警告不阻断提交）")
+    private List<FillSubmitRespVO.Issue> warnings;
+
     @Schema(description = "管理后台 - 快照行")
     @Data
     public static class Row {

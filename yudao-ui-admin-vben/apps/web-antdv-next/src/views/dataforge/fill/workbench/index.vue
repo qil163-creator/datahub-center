@@ -100,6 +100,25 @@ const snapshotMeta = ref<{
 const serverVersion = ref(0);
 const wsOpen = ref(false);
 const memberUserIds = ref<number[]>([]);
+// 用户编号到昵称的缓存，锁冲突和在线成员提示显示姓名而不是数字编号。
+const userNames = ref<Record<string, string>>({});
+let userNamesLoading: null | Promise<void> = null;
+function loadUserNames() {
+  userNamesLoading ??= getSimpleUserList()
+    .then((users) => {
+      userNames.value = Object.fromEntries(
+        (users as any[]).map((user) => [String(user.id), String(user.nickname ?? user.id)]),
+      );
+    })
+    .catch(() => {
+      userNamesLoading = null;
+    });
+  return userNamesLoading;
+}
+function userLabel(userId?: null | number | string) {
+  if (userId === undefined || userId === null || userId === '') return '其他用户';
+  return userNames.value[String(userId)] ?? `用户${userId}`;
+}
 const pendingCount = ref(0);
 const clientSessionId = `sess-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -109,6 +128,7 @@ const myClientOpIds = new Set<string>();
 const pendingQueue: DataforgeFillApi.OperationApplyReq['operations'] = [];
 let flushTimer: null | ReturnType<typeof setTimeout> = null;
 let flushing = false;
+let needRestore = false;
 let pulling = false;
 
 async function loadSnapshot() {
@@ -130,6 +150,12 @@ async function loadSnapshot() {
   pendingQueue.length = 0;
   pendingCount.value = 0;
   reloadSeq.value += 1;
+}
+
+/** 刷新前先同步本端未保存的修改，避免重新加载快照时静默丢弃。 */
+async function refreshSnapshot() {
+  await flushNow();
+  await loadSnapshot();
 }
 
 /** 增量拉取远端操作并应用（广播只是提示，一致性靠这里） */
@@ -215,6 +241,7 @@ async function flushOperations(retrying = false) {
   pendingCount.value = 0;
   const allowed: typeof batch = [];
   let denied = false;
+  await loadUserNames();
   for (const op of batch) {
     if (op.opType !== 'SET_CELL' || !op.rowId) {
       allowed.push(op);
@@ -228,7 +255,7 @@ async function flushOperations(retrying = false) {
       denied = true;
       message.warning(
         result.holderUserId
-          ? `单元格正被用户 ${result.holderUserId} 编辑，未提交该格修改`
+          ? `单元格正被 ${userLabel(result.holderUserId)} 编辑，未提交该格修改`
           : '未能获得单元格编辑锁，未提交该格修改',
       );
       continue;
@@ -237,10 +264,13 @@ async function flushOperations(retrying = false) {
   }
   if (denied) {
     await pullRemoteOperations();
+    // 被拒绝的修改仍显示在本地表格里，需要在其余操作同步完成后以服务端数据为准恢复。
+    needRestore = true;
   }
   if (allowed.length === 0) {
     flushing = false;
     if (pendingQueue.length > 0) scheduleFlush();
+    else void restoreAfterDenied();
     return;
   }
   try {
@@ -264,12 +294,24 @@ async function flushOperations(retrying = false) {
   } finally {
     flushing = false;
     if (pendingQueue.length > 0) scheduleFlush();
+    else if (needRestore) void restoreAfterDenied();
   }
+}
+
+/** 编辑锁被拒绝后，用服务端快照覆盖本地未保存的单元格值，避免界面显示“已修改”但实际未保存。 */
+async function restoreAfterDenied() {
+  if (!needRestore || flushing || pendingQueue.length > 0) return;
+  needRestore = false;
+  await loadSnapshot();
 }
 
 // ---------------------------------------------------------------- 提交与审批
 const submitting = ref(false);
 const issues = ref<DataforgeFillApi.ValidationIssue[]>([]);
+// 严重级别 1 为错误（阻断提交），2 为警告（可提交）
+const isWarning = (issue: DataforgeFillApi.ValidationIssue) => issue.severity === 2;
+const errorCount = computed(() => issues.value.filter((issue) => !isWarning(issue)).length);
+const warningCount = computed(() => issues.value.filter((issue) => isWarning(issue)).length);
 const issuesOpen = ref(false);
 const submissionsOpen = ref(false);
 const submissions = ref<DataforgeFillApi.Submission[]>([]);
@@ -314,13 +356,22 @@ async function handleSubmit() {
       submissionType: isEmpty ? 2 : 1,
     });
     if (resp.success) {
-      message.success(`提交成功（第 ${resp.attemptNo} 次），已进入审批`);
-      issues.value = [];
+      // 仅有警告时提交成功，警告留在列表中并随提交一并交给审批人
+      issues.value = resp.issues ?? [];
+      message.success(
+        warningCount.value > 0
+          ? `提交成功（第 ${resp.attemptNo} 次），已进入审批；另有 ${warningCount.value} 条警告提示`
+          : `提交成功（第 ${resp.attemptNo} 次），已进入审批`,
+      );
       await loadSnapshot();
     } else {
       issues.value = resp.issues ?? [];
       issuesOpen.value = true;
-      message.error(`校验未通过，共 ${issues.value.length} 个问题`);
+      message.error(
+        warningCount.value > 0
+          ? `校验未通过：${errorCount.value} 个错误，另有 ${warningCount.value} 条警告`
+          : `校验未通过，共 ${errorCount.value} 个问题`,
+      );
     }
   } catch (error: any) {
     message.error(error?.message ?? '提交失败');
@@ -518,6 +569,8 @@ async function handleTransfer() {
   }
   transferSaving.value = true;
   try {
+    // 转派后本人失去编辑权限，先把未同步的修改提交到服务端。
+    await flushNow();
     await transferWorkItem({
       reason: transferReason.value || undefined,
       targetUserId: transferTargetId.value,
@@ -614,10 +667,12 @@ function setupCollabClient() {
           heldLock.value = undefined;
           stopLockRenew();
         }
-        message.warning(
-          payload.holderUserId
-            ? `单元格正被用户 ${payload.holderUserId} 编辑`
-            : '未能获得单元格编辑锁',
+        void loadUserNames().then(() =>
+          message.warning(
+            payload.holderUserId
+              ? `单元格正被 ${userLabel(payload.holderUserId)} 编辑`
+              : '未能获得单元格编辑锁',
+          ),
         );
       },
       onOperationApplied: (payload) => {
@@ -636,6 +691,7 @@ function setupCollabClient() {
       },
       onPresenceSnapshot: (payload) => {
         memberUserIds.value = payload.memberUserIds ?? [];
+        void loadUserNames();
         if (payload.serverVersion > serverVersion.value) {
           void pullRemoteOperations();
         }
@@ -742,12 +798,12 @@ function handleOperation(op: DomainOperation) {
             <Tag :color="wsOpen ? 'success' : 'error'">
               {{ wsOpen ? '协同已连接' : '协同未连接' }}
             </Tag>
-            <Tag>在线 {{ memberUserIds.length }} 人</Tag>
+            <Tag :title="memberUserIds.map((id) => userLabel(id)).join('、')">在线 {{ memberUserIds.length }} 人</Tag>
             <Tag>版本 {{ serverVersion }}</Tag>
             <Tag :color="pendingCount > 0 ? 'warning' : 'default'">
               未同步 {{ pendingCount }}
             </Tag>
-            <Button @click="loadSnapshot"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新</Button>
+            <Button @click="refreshSnapshot"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新</Button>
             <Dropdown>
               <Button :loading="importing"><template #icon><IconifyIcon icon="lucide:file-spreadsheet" /></template>Excel</Button>
               <template #popupRender>
@@ -759,9 +815,9 @@ function handleOperation(op: DomainOperation) {
               </template>
             </Dropdown>
             <Button v-if="!readonly" @click="openTransfer"><template #icon><IconifyIcon icon="lucide:user-round-pen" /></template>转派</Button>
-            <Button v-if="issues.length > 0" danger @click="issuesOpen = true">
+            <Button v-if="issues.length > 0" :danger="errorCount > 0" @click="issuesOpen = true">
 <template #icon><IconifyIcon icon="lucide:list-checks" /></template>
-              校验问题 {{ issues.length }}
+              {{ errorCount > 0 ? '校验问题' : '校验提示' }} {{ issues.length }}
             </Button>
             <Button @click="openSubmissions"><template #icon><IconifyIcon icon="lucide:history" /></template>提交历史</Button>
             <Button v-if="!readonly" @click="openEmptyReport"><template #icon><IconifyIcon icon="lucide:file-check" /></template>零上报</Button>
@@ -814,17 +870,20 @@ function handleOperation(op: DomainOperation) {
 
     <Drawer v-model:open="issuesOpen" :width="520" title="提交校验问题">
       <p class="text-muted-foreground mb-2 text-xs">
-        点击问题条目可定位到对应单元格；全部修正后重新提交。
+        点击问题条目可定位到对应单元格；错误必须全部修正后才能提交，警告不阻断提交。
       </p>
       <div class="flex flex-col gap-2">
         <div
           v-for="(issue, index) in issues"
           :key="index"
-          class="cursor-pointer rounded-md border p-2 text-sm hover:border-red-400"
+          class="cursor-pointer rounded-md border p-2 text-sm"
+          :class="isWarning(issue) ? 'hover:border-yellow-400' : 'hover:border-red-400'"
           @click="focusIssue(issue)"
         >
           <Space>
-            <Tag color="error">{{ issue.ruleCode }}</Tag>
+            <Tag :color="isWarning(issue) ? 'warning' : 'error'">
+              {{ isWarning(issue) ? '警告' : '错误' }} · {{ issue.ruleCode }}
+            </Tag>
             <span v-if="issue.displayRowNo">第 {{ issue.displayRowNo }} 行</span>
             <span v-if="issue.fieldCode" class="font-mono text-xs">{{ issue.fieldCode }}</span>
           </Space>

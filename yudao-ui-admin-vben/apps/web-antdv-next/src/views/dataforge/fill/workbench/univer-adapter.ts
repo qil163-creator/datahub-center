@@ -602,8 +602,13 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
 
       const sheet = this.getActiveSheet();
       if (!sheet) continue;
-      const left = Number(sheet.getRange(sheetRow, leftIndex, 1, 1).getValue());
-      const right = Number(
+      // 空单元格不是 0：任一操作数为空时公式列保持空白，与服务端“缺值不计算”一致
+      const toNumber = (value: unknown) =>
+        value === null || value === undefined || String(value).trim() === ''
+          ? Number.NaN
+          : Number(value);
+      const left = toNumber(sheet.getRange(sheetRow, leftIndex, 1, 1).getValue());
+      const right = toNumber(
         sheet.getRange(sheetRow, rightIndex, 1, 1).getValue(),
       );
       const result =

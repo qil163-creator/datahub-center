@@ -234,3 +234,63 @@ export function useGridColumns(): VxeTableGridOptions<DataforgeFillTableApi.Fill
     },
   ];
 }
+
+/** 规则级别 */
+export const RULE_SEVERITY_OPTIONS = [
+  { label: '错误（阻断提交）', value: 1 },
+  { label: '警告（可提交）', value: 2 },
+];
+
+/** 数值与日期时间字段可设置取值范围 */
+export function supportsRange(fieldType?: number) {
+  return [1, 3, 5, 6, 9, 10].includes(fieldType ?? -1);
+}
+
+/** 范围输入框的占位提示 */
+export function rangePlaceholder(fieldType?: number) {
+  switch (fieldType) {
+    case 3: {
+      return '如 2026-01-01';
+    }
+    case 9: {
+      return '如 2026-01-01 00:00:00';
+    }
+    case 10: {
+      return '如 08:00:00';
+    }
+    default: {
+      return '数值，留空不限';
+    }
+  }
+}
+
+/** 字段列表“规则”列的简要标签；只描述已配置的规则 */
+export function describeColumnRules(column: {
+  dictType?: string;
+  fieldType?: number;
+  maxValue?: string;
+  minValue?: string;
+  regexPattern?: string;
+  ruleSeverity?: number;
+  uniqueFlag?: number;
+}): string[] {
+  const tags: string[] = [];
+  const min = column.minValue?.trim();
+  const max = column.maxValue?.trim();
+  if (supportsRange(column.fieldType) && (min || max)) {
+    tags.push(`范围 ${min || '-∞'} ~ ${max || '+∞'}`);
+  }
+  if (column.fieldType === 2 && column.regexPattern?.trim()) {
+    tags.push('格式');
+  }
+  if (column.uniqueFlag === 1) {
+    tags.push('唯一');
+  }
+  if (column.dictType?.trim()) {
+    tags.push(`字典 ${column.dictType.trim()}`);
+  }
+  if (column.ruleSeverity === 2 && tags.some((tag) => tag !== `字典 ${column.dictType?.trim()}`)) {
+    tags.push('警告级');
+  }
+  return tags;
+}

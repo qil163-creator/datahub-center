@@ -112,6 +112,41 @@ public class FillTableColumnDO extends BaseDO {
     private String fieldCode;
 
     /**
+     * 最小值（数值或日期时间，按字段类型比较；空表示不限）
+     */
+    private String minValue;
+
+    /**
+     * 最大值（数值或日期时间，按字段类型比较；空表示不限）
+     */
+    private String maxValue;
+
+    /**
+     * 格式正则（仅字符串字段，整体匹配）
+     */
+    private String regexPattern;
+
+    /**
+     * 格式不符时的提示语
+     */
+    private String regexMessage;
+
+    /**
+     * 同一次填报内该字段取值是否必须唯一：0-否 1-是
+     */
+    private Integer uniqueFlag;
+
+    /**
+     * 范围、格式、唯一规则的级别：1-错误（阻断提交） 2-警告
+     */
+    private Integer ruleSeverity;
+
+    /**
+     * 选择值来源的系统字典类型；设置后发布时固化字典项，优先于 fillValues
+     */
+    private String dictType;
+
+    /**
      * 转换为 dbswitch 的列描述，用于生成建表 DDL
      *
      * 注意：UUID 主键由应用生成字符串，不映射为数据库自增（修正 srt-cloud 的问题）

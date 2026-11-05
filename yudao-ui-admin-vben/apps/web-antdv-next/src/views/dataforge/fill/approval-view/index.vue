@@ -1,15 +1,26 @@
 <script lang="ts" setup>
 import type { DataforgeFillApi } from '#/api/dataforge/fill';
 
-import { computed, onMounted, ref } from 'vue';
+import type { SnapshotDiff } from './diff';
+
+import { computed, onMounted, ref, watch } from 'vue';
 
 import { formatDateTime } from '@vben/utils';
 
-import { Descriptions, DescriptionsItem, Spin, Table, Tag } from 'antdv-next';
+import {
+  Alert,
+  Descriptions,
+  DescriptionsItem,
+  Spin,
+  Table,
+  Tag,
+} from 'antdv-next';
 
 import { getSubmissionPreview } from '#/api/dataforge/fill';
+import { getSimpleUserList } from '#/api/system/user';
 
 import { APPROVAL_STATUS_TEXT } from '../shared';
+import { changedCellCount, diffSnapshots } from './diff';
 
 /**
  * 提交快照只读预览（审批人视图）
@@ -23,7 +34,10 @@ defineOptions({ name: 'DataforgeFillApprovalView' });
 const props = defineProps<{ id: number | string }>();
 
 const loading = ref(true);
+const loadFailed = ref('');
 const preview = ref<DataforgeFillApi.SubmissionPreview>();
+const previous = ref<DataforgeFillApi.SubmissionPreview>();
+const submitterName = ref('');
 
 interface PreviewField {
   fieldCode: string;
@@ -62,13 +76,74 @@ const dataSource = computed(() =>
     .map((row, index) => ({ ...row, __no: index + 1 })),
 );
 
-onMounted(async () => {
+// 与上一次提交对比（整改后重新提交时审批人只需关注变化）
+const diff = computed<SnapshotDiff | undefined>(() =>
+  previous.value && preview.value
+    ? diffSnapshots(
+        previous.value.rows,
+        preview.value.rows,
+        fields.value.map((field) => field.fieldCode),
+      )
+    : undefined,
+);
+const changedCount = computed(() =>
+  diff.value ? changedCellCount(diff.value) : 0,
+);
+const warnings = computed(() => preview.value?.warnings ?? []);
+function rowClass(record: { rowId: string }) {
+  return diff.value?.addedRowIds.has(record.rowId) ? 'qi-fill-row-added' : '';
+}
+function cellChanged(record: { rowId: string }, fieldCode: string) {
+  return diff.value?.changedCells.get(record.rowId)?.has(fieldCode) === true;
+}
+
+// 路由参数变化时必须丢弃旧响应，避免审批人看到上一条提交的数据
+let loadSequence = 0;
+async function load() {
+  const current = ++loadSequence;
+  loading.value = true;
+  loadFailed.value = '';
+  preview.value = undefined;
+  previous.value = undefined;
+  submitterName.value = '';
   try {
-    preview.value = await getSubmissionPreview(Number(props.id));
+    const result = await getSubmissionPreview(props.id);
+    if (current !== loadSequence) return;
+    preview.value = result;
+    void resolveSubmitter(current, result.submitterUserId);
+    if (
+      result.previousSubmissionId !== undefined &&
+      result.previousSubmissionId !== null
+    ) {
+      try {
+        const old = await getSubmissionPreview(result.previousSubmissionId);
+        if (current === loadSequence) previous.value = old;
+      } catch {
+        // 上一次提交不可读时只是缺少对比，不影响审批
+      }
+    }
+  } catch (error: any) {
+    if (current === loadSequence) {
+      loadFailed.value = error?.message ?? '提交快照加载失败，请刷新后重试';
+    }
   } finally {
-    loading.value = false;
+    if (current === loadSequence) loading.value = false;
   }
-});
+}
+
+async function resolveSubmitter(current: number, userId?: number | string) {
+  if (userId === undefined || userId === null) return;
+  try {
+    const users = (await getSimpleUserList()) as any[];
+    const found = users.find((user) => String(user.id) === String(userId));
+    if (current === loadSequence) submitterName.value = found?.nickname ?? '';
+  } catch {
+    // 查不到姓名时仍显示编号
+  }
+}
+
+onMounted(load);
+watch(() => props.id, load);
 </script>
 
 <template>
@@ -87,8 +162,8 @@ onMounted(async () => {
         <DescriptionsItem label="提交次数"
           >第 {{ preview.attemptNo }} 次</DescriptionsItem
         >
-        <DescriptionsItem label="提交人编号">{{
-          preview.submitterUserId
+        <DescriptionsItem label="提交人">{{
+          submitterName || preview.submitterUserId
         }}</DescriptionsItem>
         <DescriptionsItem label="提交时间">
           {{ formatDateTime(preview.submitTime) || '-' }}
@@ -118,6 +193,32 @@ onMounted(async () => {
         </DescriptionsItem>
       </Descriptions>
 
+      <Alert v-if="loadFailed" type="error" show-icon :message="loadFailed" />
+      <Alert
+        v-if="diff"
+        type="info"
+        show-icon
+        :message="`较上一次提交：新增 ${diff.addedRowIds.size} 行，删除 ${diff.removedRows.length} 行，修改 ${changedCount} 个单元格`"
+        description="新增行以绿色底色标出，被修改的单元格以黄色底色标出。"
+      />
+      <Alert
+        v-if="warnings.length > 0"
+        type="warning"
+        show-icon
+        :message="`提交时存在 ${warnings.length} 条警告（填报人已确认可提交）`"
+      >
+        <template #description>
+          <ul class="m-0 max-h-40 list-disc overflow-auto pl-4">
+            <li v-for="(warning, index) in warnings.slice(0, 50)" :key="index">
+              {{ warning.message }}
+            </li>
+            <li v-if="warnings.length > 50">
+              其余 {{ warnings.length - 50 }} 条省略
+            </li>
+          </ul>
+        </template>
+      </Alert>
+
       <div
         v-if="preview?.submissionType === 2"
         class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:bg-amber-950"
@@ -134,11 +235,25 @@ onMounted(async () => {
         bordered
         row-key="rowId"
         size="small"
+        :row-class-name="(record: any) => rowClass(record)"
       >
-        <template #bodyCell="{ column, record }">
+        <template #bodyCell="{ column, record, text }">
           <template v-if="column.key === '__no'">{{ record.__no }}</template>
+          <div
+            v-else-if="cellChanged(record, String(column.key))"
+            class="qi-fill-cell-changed"
+          >
+            {{ text }}
+          </div>
         </template>
       </Table>
+
+      <p
+        v-if="diff && diff.removedRows.length > 0"
+        class="text-muted-foreground text-xs"
+      >
+        上一次提交中的 {{ diff.removedRows.length }} 行在本次提交中已删除。
+      </p>
 
       <p class="text-muted-foreground text-xs">
         以上为不可变提交快照内容，与审批结论一一对应；审批人不能修改表格内容。
@@ -151,5 +266,15 @@ onMounted(async () => {
 :deep(.ant-table-thead > tr > th),
 :deep(.ant-table-tbody > tr > td) {
   font-size: 12px;
+}
+
+:deep(.qi-fill-row-added > td) {
+  background: #f0f9eb !important;
+}
+
+.qi-fill-cell-changed {
+  padding: 4px 8px;
+  margin: -4px -8px;
+  background: #fdf6ec;
 }
 </style>

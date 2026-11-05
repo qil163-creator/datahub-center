@@ -27,11 +27,17 @@ import {
   updateFillTableColumn,
 } from '#/api/dataforge/filltable';
 
+import { getSimpleDictTypeList } from '#/api/system/dict/type';
+
 import {
+  describeColumnRules,
   FIELD_TYPE_OPTIONS,
   FILL_TYPE_OPTIONS,
   fillTableOptionLabel,
   PK_TYPE_OPTIONS,
+  rangePlaceholder,
+  RULE_SEVERITY_OPTIONS,
+  supportsRange,
 } from '../data';
 
 defineOptions({ name: 'DataforgeFillTableColumns' });
@@ -51,6 +57,7 @@ const tableColumns = [
   { title: '主键', key: 'pk', width: 90 },
   { title: '必填', key: 'nullable', width: 60 },
   { title: '录入', key: 'fillType', width: 90 },
+  { title: '规则', key: 'rules', width: 180 },
   { title: '查询', key: 'ifQuery', width: 60 },
   { title: '隐藏', key: 'fillHide', width: 60 },
   { title: '操作', key: 'actions', width: 160, fixed: 'right' as const },
@@ -89,8 +96,64 @@ function defaultColumn(): DataforgeFillTableApi.FillTableColumn {
     pk: 0,
     pkType: 1,
     sort: undefined,
+    minValue: '',
+    maxValue: '',
+    regexPattern: '',
+    regexMessage: '',
+    uniqueFlag: 0,
+    ruleSeverity: 1,
+    dictType: '',
   };
 }
+
+/** 选择值来源：手工维护或系统字典 */
+const optionSource = ref<'dict' | 'manual'>('manual');
+const dictTypeOptions = ref<{ label: string; value: string }[]>([]);
+let dictTypesLoading: null | Promise<void> = null;
+function loadDictTypes() {
+  dictTypesLoading ??= getSimpleDictTypeList()
+    .then((list) => {
+      dictTypeOptions.value = list.map((item) => ({
+        label: `${item.name}（${item.type}）`,
+        value: item.type,
+      }));
+    })
+    .catch(() => {
+      dictTypesLoading = null;
+    });
+  return dictTypesLoading;
+}
+function syncOptionSource() {
+  optionSource.value = editModel.dictType?.trim() ? 'dict' : 'manual';
+  if (optionSource.value === 'dict') void loadDictTypes();
+}
+function changeOptionSource(value: 'dict' | 'manual') {
+  optionSource.value = value;
+  if (value === 'dict') {
+    void loadDictTypes();
+  } else {
+    editModel.dictType = '';
+  }
+}
+// 切换字段类型后，不适用的规则一并清空，避免保存后被后端拒绝
+function changeFieldType(value: number) {
+  editModel.fieldType = value;
+  if (!supportsRange(value)) {
+    editModel.minValue = '';
+    editModel.maxValue = '';
+  }
+  if (value !== 2) {
+    editModel.regexPattern = '';
+    editModel.regexMessage = '';
+  }
+}
+const hasAnyRule = computed(
+  () =>
+    !!editModel.minValue?.trim() ||
+    !!editModel.maxValue?.trim() ||
+    !!editModel.regexPattern?.trim() ||
+    editModel.uniqueFlag === 1,
+);
 
 const editModel =
   reactive<DataforgeFillTableApi.FillTableColumn>(defaultColumn());
@@ -98,11 +161,13 @@ const isEditColumn = computed(() => !!editModel.id);
 
 function handleAddColumn() {
   Object.assign(editModel, defaultColumn());
+  syncOptionSource();
   editVisible.value = true;
 }
 
 function handleEditColumn(row: DataforgeFillTableApi.FillTableColumn) {
   Object.assign(editModel, defaultColumn(), row);
+  syncOptionSource();
   editVisible.value = true;
 }
 
@@ -119,9 +184,24 @@ async function handleSaveColumn() {
     message.warning('请填写中文名');
     return;
   }
-  if (editModel.fillType === 2 && !editModel.fillValues?.trim()) {
+  if (
+    editModel.fillType === 2 &&
+    optionSource.value === 'dict' &&
+    !editModel.dictType?.trim()
+  ) {
+    message.warning('请选择字典类型');
+    return;
+  }
+  if (
+    editModel.fillType === 2 &&
+    optionSource.value === 'manual' &&
+    !editModel.fillValues?.trim()
+  ) {
     message.warning('下拉选择类型必须填写选择值（英文逗号分隔）');
     return;
+  }
+  if (editModel.fillType !== 2 || optionSource.value === 'manual') {
+    editModel.dictType = '';
   }
   await (isEditColumn.value
     ? updateFillTableColumn(editModel)
@@ -205,6 +285,18 @@ const [ModalComponent, modalApi] = useVbenModal({
           <template v-else-if="column.key === 'fillType'">
             {{ fillTableOptionLabel(FILL_TYPE_OPTIONS, record.fillType) }}
           </template>
+          <template v-else-if="column.key === 'rules'">
+            <template v-if="describeColumnRules(record).length > 0">
+              <Tag
+                v-for="tag in describeColumnRules(record)"
+                :key="tag"
+                class="mb-1"
+              >
+                {{ tag }}
+              </Tag>
+            </template>
+            <span v-else>-</span>
+          </template>
           <template v-else-if="column.key === 'ifQuery'">
             {{ record.ifQuery === 1 ? '是' : '否' }}
           </template>
@@ -269,9 +361,10 @@ const [ModalComponent, modalApi] = useVbenModal({
         <div class="form-item">
           <label class="form-item__label">数据类型</label>
           <Select
-            v-model:value="editModel.fieldType"
+            :value="editModel.fieldType"
             :options="FIELD_TYPE_OPTIONS"
             class="w-full"
+            @update:value="(value: any) => changeFieldType(value)"
           />
         </div>
         <div class="form-item">
@@ -308,6 +401,20 @@ const [ModalComponent, modalApi] = useVbenModal({
           />
         </div>
         <div v-if="editModel.fillType === 2" class="form-item">
+          <label class="form-item__label">选择值来源</label>
+          <RadioGroup
+            :value="optionSource"
+            :options="[
+              { label: '手工维护', value: 'manual' },
+              { label: '系统字典', value: 'dict' },
+            ]"
+            @update:value="(value: any) => changeOptionSource(value)"
+          />
+        </div>
+        <div
+          v-if="editModel.fillType === 2 && optionSource === 'manual'"
+          class="form-item"
+        >
           <label class="form-item__label form-item__label--required">
             选择值
           </label>
@@ -315,6 +422,68 @@ const [ModalComponent, modalApi] = useVbenModal({
             v-model:value="editModel.fillValues"
             allow-clear
             placeholder="英文逗号分隔，如 男,女"
+          />
+        </div>
+        <div
+          v-if="editModel.fillType === 2 && optionSource === 'dict'"
+          class="form-item"
+        >
+          <label class="form-item__label form-item__label--required">
+            字典类型
+          </label>
+          <div class="min-w-0 flex-1">
+            <Select
+              v-model:value="editModel.dictType"
+              :options="dictTypeOptions"
+              class="w-full"
+              show-search
+              option-filter-prop="label"
+              placeholder="选择系统字典"
+            />
+            <p class="rule-hint">
+              发布时固化字典当前启用项的显示名称作为可选值；之后字典变化不影响已发布版本。
+            </p>
+          </div>
+        </div>
+        <div v-if="supportsRange(editModel.fieldType)" class="form-item">
+          <label class="form-item__label">最小值</label>
+          <Input
+            v-model:value="editModel.minValue"
+            allow-clear
+            :placeholder="rangePlaceholder(editModel.fieldType)"
+          />
+        </div>
+        <div v-if="supportsRange(editModel.fieldType)" class="form-item">
+          <label class="form-item__label">最大值</label>
+          <Input
+            v-model:value="editModel.maxValue"
+            allow-clear
+            :placeholder="rangePlaceholder(editModel.fieldType)"
+          />
+        </div>
+        <div v-if="editModel.fieldType === 2" class="form-item">
+          <label class="form-item__label">格式正则</label>
+          <Input
+            v-model:value="editModel.regexPattern"
+            allow-clear
+            :maxlength="200"
+            placeholder="整体匹配，如 [0-9]{18}"
+          />
+        </div>
+        <div v-if="editModel.fieldType === 2" class="form-item">
+          <label class="form-item__label">格式提示语</label>
+          <Input
+            v-model:value="editModel.regexMessage"
+            allow-clear
+            :maxlength="100"
+            placeholder="不符合时显示，如 请输入 18 位数字"
+          />
+        </div>
+        <div v-if="hasAnyRule" class="form-item">
+          <label class="form-item__label">规则级别</label>
+          <RadioGroup
+            v-model:value="editModel.ruleSeverity"
+            :options="RULE_SEVERITY_OPTIONS"
           />
         </div>
         <div class="form-item form-item--switches">
@@ -333,6 +502,14 @@ const [ModalComponent, modalApi] = useVbenModal({
               @change="(v: any) => (editModel.nullable = v ? 0 : 1)"
             />
             必填
+          </span>
+          <span class="switch-item">
+            <Switch
+              :checked="editModel.uniqueFlag === 1"
+              size="small"
+              @change="(v: any) => (editModel.uniqueFlag = v ? 1 : 0)"
+            />
+            同一次填报内取值唯一
           </span>
           <span class="switch-item">
             <Switch
@@ -414,6 +591,13 @@ const [ModalComponent, modalApi] = useVbenModal({
   margin-right: 4px;
   color: hsl(var(--destructive));
   content: '*';
+}
+
+.rule-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: hsl(var(--muted-foreground));
 }
 </style>
 

@@ -60,4 +60,25 @@ public class FillTableColumnRespVO {
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
+    @Schema(description = "最小值（数值或日期时间）", example = "0")
+    private String minValue;
+
+    @Schema(description = "最大值（数值或日期时间）", example = "100")
+    private String maxValue;
+
+    @Schema(description = "格式正则（仅字符串字段，整体匹配）", example = "[0-9]{18}")
+    private String regexPattern;
+
+    @Schema(description = "格式不符时的提示语", example = "请输入 18 位数字")
+    private String regexMessage;
+
+    @Schema(description = "同一次填报内取值是否必须唯一：0-否 1-是", example = "0")
+    private Integer uniqueFlag;
+
+    @Schema(description = "规则级别：1-错误 2-警告", example = "1")
+    private Integer ruleSeverity;
+
+    @Schema(description = "选择值来源的系统字典类型", example = "common_status")
+    private String dictType;
+
 }
