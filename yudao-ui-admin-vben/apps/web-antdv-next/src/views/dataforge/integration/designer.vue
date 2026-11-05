@@ -232,6 +232,10 @@ const editable = computed(
     !loadError.value,
 );
 const currentComponent = computed(() => componentOf(editingCode.value));
+/** 参考界面中“获取字段”按钮位于“保存”之后的节点。 */
+const getFieldsAfterSave = computed(() =>
+  ['dedup-records', 'string-operation'].includes(editingCode.value),
+);
 const nodeHelp = computed(() => ({
   'sort-records': '按选定字段和排序规则对记录排序，序号越小优先级越高。',
   'field-derive': '基于来源字段按操作类型生成新字段，结果将作为新列追加到数据中。',
@@ -1360,7 +1364,7 @@ function toggleGroup(key: string) {
           :class="{
             'qi-node-modal-table-input': editingCode === 'read-db',
             'qi-node-modal-field-split': editingCode === 'field-split',
-            'qi-node-modal-dedup': editingCode === 'dedup-records',
+            'qi-node-modal-dedup': getFieldsAfterSave,
             'qi-node-modal-row-to-column': editingCode === 'row-to-column',
             'qi-node-modal-column-to-row': editingCode === 'column-to-row',
             'qi-node-modal-id-generator': editingCode === 'id-generator',
@@ -1461,7 +1465,7 @@ function toggleGroup(key: string) {
               获取清洗规则
             </Button>
             <Button
-              v-else-if="nodeEditor?.canMergeFields && editingCode !== 'dedup-records'"
+              v-else-if="nodeEditor?.canMergeFields && !getFieldsAfterSave"
               class="qi-node-get-fields"
               :disabled="!editable"
               @click="nodeEditor?.openFieldMerge?.()"
@@ -1488,7 +1492,7 @@ function toggleGroup(key: string) {
               保存
             </Button>
             <Button
-              v-if="editingCode === 'dedup-records' && nodeEditor?.canMergeFields"
+              v-if="getFieldsAfterSave && nodeEditor?.canMergeFields"
               class="qi-node-get-fields"
               :disabled="!editable"
               @click="nodeEditor?.openFieldMerge?.()"

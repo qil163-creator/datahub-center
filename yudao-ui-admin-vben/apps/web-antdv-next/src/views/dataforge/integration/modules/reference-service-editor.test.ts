@@ -45,7 +45,12 @@ vi.mock('antdv-next', () => {
     Radio: Container,
     Checkbox: Container,
     Switch: Container,
-    Modal: Container,
+    Modal: defineComponent({
+      setup:
+        (_props, { slots }) =>
+        () =>
+          h('div', [slots.default?.(), slots.footer?.()]),
+    }),
     RadioGroup: Container,
     Alert: Container,
     Button: defineComponent({

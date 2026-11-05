@@ -247,24 +247,6 @@
   border-color: #e6a23c;
 }
 
-.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(1) {
-  color: #fff;
-  background: #e6a23c;
-  border-color: #e6a23c;
-}
-
-.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(2) {
-  color: #fff;
-  background: #2f62ff;
-  border-color: #2f62ff;
-}
-
-.qi-pivot-merge-dialog .qi-field-merge-actions .ant-btn:nth-child(3) {
-  color: #fff;
-  background: #f56c6c;
-  border-color: #f56c6c;
-}
-
 .qi-pivot-reference .qi-pivot-key-grid .ant-select,
 .qi-pivot-reference .qi-pivot-source-select .ant-select {
   width: 100%;

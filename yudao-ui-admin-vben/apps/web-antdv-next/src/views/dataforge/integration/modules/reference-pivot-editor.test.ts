@@ -36,7 +36,7 @@ vi.mock('antdv-next', () => {
             ? h(
                 'div',
                 { role: 'dialog', 'aria-label': props.title },
-                slots.default?.(),
+                [slots.default?.(), slots.footer?.()],
               )
             : null,
     }),
@@ -249,7 +249,7 @@ describe('行列V2表单与历史执行协议', () => {
       host.querySelector('[role="dialog"]')?.getAttribute('aria-label'),
     ).toBe('字段冲突处理');
     expect(host.querySelector('[role="dialog"]')?.textContent).toContain(
-      '已有1个字段，检测到3个新字段',
+      '已有 1 个字段，检测到 3 个新字段',
     );
     await choose('取消');
     expect(state.config.groupFields).toEqual(['legacy']);

@@ -66,6 +66,15 @@
   text-align: center;
 }
 
+.qi-rule-reference.qi-transform-config[data-tool-code='string-operation'] .qi-transform-table .qi-reference-fields-table .qi-reference-empty {
+  padding-bottom: 12px;
+  vertical-align: bottom;
+}
+
+.qi-rule-reference.qi-transform-config[data-tool-code='string-operation'] .qi-reference-fields-table .qi-reference-empty::before {
+  margin-bottom: 36px;
+}
+
 .qi-string-sequence {
   display: flex;
   gap: 5px;

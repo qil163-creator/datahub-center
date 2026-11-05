@@ -61,7 +61,7 @@ vi.mock('antdv-next', () => {
     AutoComplete: Field,
     Checkbox: Box,
     Tooltip: Box,
-    Modal: Object.assign(defineComponent({props:{open:Boolean},setup:(props,{slots}) => () => props.open ? h('div',slots.default?.()) : null}), {confirm:(options:{onOk:()=>void}) => {harness.confirm=options.onOk;}}),
+    Modal: Object.assign(defineComponent({props:{open:Boolean},setup:(props,{slots}) => () => props.open ? h('div',[slots.default?.(),slots.footer?.()]) : null}), {confirm:(options:{onOk:()=>void}) => {harness.confirm=options.onOk;}}),
     Alert: defineComponent({
       props: { message: String },
       setup: (props) => () => h('p', { role: 'alert' }, props.message),

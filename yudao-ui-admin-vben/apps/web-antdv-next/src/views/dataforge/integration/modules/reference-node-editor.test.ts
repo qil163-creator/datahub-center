@@ -112,6 +112,7 @@ vi.mock('antdv-next', () => {
             props.open
               ? h('div', { class: 'field-editor' }, [
                   slots.default?.(),
+                  slots.footer?.(),
                   h('button', { onClick: () => emit('ok') }, '保存属性字段'),
                   h(
                     'button',
