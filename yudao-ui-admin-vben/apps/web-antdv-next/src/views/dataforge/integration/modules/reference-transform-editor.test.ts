@@ -101,7 +101,11 @@ function mount(
   return { state, editor };
 }
 async function click(text: string) {
-  const labels:Record<string,string>={'只增加新字段':'增加新的','增加所有字段':'增加所有','清空并增加所有字段':'清除并增加所有'};
+  const labels:Record<string,string> = {
+    只增加新字段: '增加新的',
+    增加所有字段: '增加所有',
+    清空并增加所有字段: '清除并增加所有',
+  };
   if (text in labels) {openFieldMerge(); await nextTick();}
   const target=[...host.querySelectorAll('button')].find((item) => item.textContent?.trim()===(labels[text] ?? text));
   expect(target).toBeTruthy();
@@ -135,23 +139,32 @@ async function setIdMode(value: 'SEQUENCE' | 'UUID') {
 }
 
 describe('序列与UUID生成器配置', () => {
-  it('新配置保留1/1/0默认值，显示必填提示、序列说明及参数输入提示', async () => {
+  it('新配置保留1/1/0默认值与必填输入提示，删除底部序列说明', async () => {
     const { state, editor } = mount('id-generator', { vendor: 7 });
     expect(state.config).toEqual({
-      mode: 'SEQUENCE', start: '1', step: '1', max: '0', vendor: 7,
+      mode: 'SEQUENCE',
+      start: '1',
+      step: '1',
+      max: '0',
+      vendor: 7,
     });
     expect(host.querySelectorAll('.qi-id-required')).toHaveLength(4);
     expect(host.querySelector('[aria-label="序列字段名称说明"]')).toBeTruthy();
-    expect(host.querySelector('[title="会将自动生成的序列输出到这一列"]')).toBeTruthy();
+    expect(
+      host.querySelector('[title="会将自动生成的序列输出到这一列"]'),
+    ).toBeTruthy();
     expect(
       [...host.querySelectorAll('input:not([type="radio"])')].map((field) =>
         field.getAttribute('placeholder'),
       ),
     ).toEqual([
-      '请输入序列字段名称', '请输入起始值', '请输入递增幅度', '请输入最大值',
+      '请输入序列字段名称',
+      '请输入起始值',
+      '请输入递增幅度',
+      '请输入最大值',
     ]);
     expect(host.querySelectorAll('[aria-required="true"]')).toHaveLength(4);
-    expect(host.querySelector('.qi-id-sequence-help')!.textContent).toContain('最大值为0表示不限');
+    expect(host.querySelector('.qi-id-sequence-help')).toBeNull();
     expect(editor.value!.validate()).toBe(false);
     await setInput('[aria-label="序列字段名称"]', 'generated_id');
     expect(editor.value!.validate()).toBe(true);
@@ -247,6 +260,7 @@ describe('字段拆分配置', () => {
     expect(state.config.outputs).toEqual([second, first]);
     expect(state.config.outputs[1]).not.toHaveProperty('type');
     expect(state.config.keepSource).toBe(true);
+    expect(host.textContent).not.toContain('原字段处理');
     expect(state.config.vendor).toBe('legacy');
   });
 
@@ -374,6 +388,7 @@ describe('计算器与常量及值映射参考配置', () => {
     expect(host.querySelector<HTMLInputElement>('[aria-label="原值 1"]')!.placeholder).toBe('请输入原值');
     expect(host.querySelector<HTMLInputElement>('[aria-label="目标值 1"]')!.placeholder).toBe('请输入目标值');
     expect(host.querySelector('[aria-label="不匹配时的默认值说明"]')).toBeTruthy();
+    expect(host.textContent).not.toContain('未匹配处理方式');
     expect(editor.value!.validate()).toBe(true);
     await setInput('[aria-label="不匹配时的默认值"]', 'fallback');
     expect(state.config.unmatched).toBe('DEFAULT');
@@ -535,7 +550,7 @@ describe('转换辅助操作', () => {
     expect(state.config.rules[1].vendor).toBe(7);
   });
 
-  it('字段派生三模式与拖动只保存有序字段名，元数据只读，单来源操作不隐式丢弃字段', async () => {
+  it('字段派生删除元数据面板后仍支持来源字段获取与拖动，单来源操作不隐式丢弃字段', async () => {
     const { state, editor } = mount('field-derive', {
       operateType: 'CONCAT',
       targetField: 'new',
@@ -544,9 +559,8 @@ describe('转换辅助操作', () => {
     });
     await click('只增加新字段');
     expect(state.config.sourceFields).toEqual(['A', 'B']);
-    expect(host.querySelector('details table tbody tr')!.textContent).toContain(
-      'BIGINT',
-    );
+    expect(host.querySelector('details table')).toBeNull();
+    expect(host.textContent).not.toContain('来源字段元数据');
     expect(
       host.querySelector('tbody tr')!.querySelectorAll('input'),
     ).toHaveLength(1);
@@ -680,5 +694,4 @@ describe('转换辅助操作', () => {
     field.value = 'ignored'; field.dispatchEvent(new Event('input')); await nextTick();
     expect(state.config.rules[0].replacementField).toBe('');
   });
-
 });

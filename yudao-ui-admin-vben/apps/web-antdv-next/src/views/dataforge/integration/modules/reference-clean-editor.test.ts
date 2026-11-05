@@ -55,10 +55,10 @@ afterEach(() => {
   host?.remove();
   vi.clearAllMocks();
 });
-function mount(config: Record<string, any>) {
+function mount(config: Record<string, any>, disabled = false) {
   host = document.createElement('div');
   document.body.append(host);
-  const state = reactive({ config, disabled: false });
+  const state = reactive({ config, disabled });
   app = createApp({ render: () => h(ReferenceCleanEditor, {
     ...state,
     inputFields: [{ name: 'code', dataType: 'STRING' }],
@@ -99,6 +99,34 @@ describe('转换组件主要清洗配置', () => {
     expect(state.config.deduplicationStrategy).toBeUndefined();
   });
 
+  it('只读历史本地配置保留字段、去重及空值参数，伪造where编辑不会写入草稿', async () => {
+    const config = {
+      executionMode: 'LOCAL',
+      whereCondition: 'code != null',
+      fieldsToRemove: 'old',
+      enableDeduplication: true,
+      deduplicationStrategy: 'KEY_FIELDS',
+      keyFields: 'code',
+      enableNullHandling: true,
+      nullHandlingStrategy: 'FILL_DEFAULT',
+      defaultValues: [{ fieldName: 'code', defaultValue: 'unknown' }],
+      formatRules: [{ fieldName: 'code', type: 'UPPER_CASE', vendor: 7 }],
+      unknown: 42,
+    };
+    const before = JSON.stringify(config);
+    const state = mount(config, true);
+    expect(host.querySelector('details')).toBeNull();
+    const where = host.querySelector<HTMLInputElement>(
+      'input[placeholder="请输入where条件"]',
+    )!;
+    expect(where.disabled).toBe(true);
+    where.value = 'ignored';
+    where.dispatchEvent(new Event('input'));
+    await nextTick();
+    expect(JSON.stringify(state.config)).toBe(before);
+    expect(getCleanRulePage).not.toHaveBeenCalled();
+  });
+
   it('主要规则选择器仍加载治理规则并保存无损编号', async () => {
     vi.mocked(getCleanRulePage).mockResolvedValue({
       list: [{
@@ -119,6 +147,12 @@ describe('转换组件主要清洗配置', () => {
     await nextTick();
     expect(state.config.executionMode).toBe('GOVERNANCE');
     expect(state.config.governanceRules).toMatchObject([{ ruleId: '9007199254740993' }]);
+    expect(state.config.unknown).toBe(42);
+    const remove = host.querySelector<HTMLButtonElement>('tbody button')!;
+    expect(remove.textContent).toBe('删除');
+    remove.click();
+    await nextTick();
+    expect(state.config.governanceRules).toEqual([]);
     expect(state.config.unknown).toBe(42);
   });
 });

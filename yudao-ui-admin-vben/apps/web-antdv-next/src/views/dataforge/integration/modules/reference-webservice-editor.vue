@@ -9,7 +9,6 @@ import {
   Alert,
   Button,
   Input,
-  InputNumber,
   Select,
   TextArea,
 } from 'antdv-next';
@@ -113,44 +112,79 @@ function updateColumn(index: number, key: string, value: unknown) {
     ),
   );
 }
-function selectService(name: unknown) {
-  if (props.disabled) return;
-  set('serviceName', name);
-  set('portName', '');
-  set('operationName', '');
-}
-function selectPort(name: unknown) {
-  if (props.disabled) return;
-  set('portName', name);
-  set('operationName', '');
-  if (port.value) set('apiMethod', port.value.apiMethod);
+const operationCandidates = computed(() =>
+  (metadata.value?.services ?? []).flatMap((entry) =>
+    entry.ports.flatMap((item) =>
+      item.operations.map((selected) => ({ entry, item, selected })),
+    ),
+  ),
+);
+function operationValue(candidate: (typeof operationCandidates.value)[number]) {
+  const { entry, item, selected } = candidate;
+  const duplicates = operationCandidates.value.filter(
+    (other) => other.selected.name === selected.name,
+  );
+  return duplicates.length > 1
+    ? JSON.stringify([entry.name, item.name, selected.name])
+    : selected.name;
 }
 const operationChoices = computed(() => {
-  const names = new Set<string>();
-  for (const entry of metadata.value?.services ?? [])
-    for (const item of entry.ports)
-      for (const op of item.operations) names.add(op.name);
-  if (props.config.operationName) names.add(props.config.operationName);
-  return [...names].map((name) => ({ label: name, value: name }));
+  const choices = operationCandidates.value.map((candidate) => {
+    const value = operationValue(candidate);
+    const { entry, item, selected } = candidate;
+    return {
+      label:
+        value === selected.name
+          ? selected.name
+          : `${selected.name}（${entry.name} / ${item.name}）`,
+      value,
+    };
+  });
+  if (
+    props.config.operationName &&
+    !operationCandidates.value.some(
+      ({ selected }) => selected.name === props.config.operationName,
+    )
+  )
+    choices.push({
+      label: props.config.operationName,
+      value: props.config.operationName,
+    });
+  return choices;
 });
-function selectOperation(name: unknown) {
+const selectedOperation = computed(() => {
+  const candidate = operationCandidates.value.find(
+    ({ entry, item, selected }) =>
+      entry.name === props.config.serviceName &&
+      item.name === props.config.portName &&
+      selected.name === props.config.operationName,
+  );
+  return candidate ? operationValue(candidate) : props.config.operationName;
+});
+function selectOperation(value: unknown) {
   if (props.disabled) return;
-  const matches = [];
-  for (const entry of metadata.value?.services ?? [])
-    for (const item of entry.ports) {
-      const selected = item.operations.find((op) => op.name === name);
-      if (selected) matches.push({ entry, item, selected });
-    }
+  const matches = operationCandidates.value.filter(
+    (candidate) =>
+      operationValue(candidate) === value || candidate.selected.name === value,
+  );
   const match =
+    matches.find(
+      (candidate) =>
+        operationValue(candidate) === value &&
+        candidate.selected.name !== value,
+    ) ??
     matches.find(({ item }) => item === port.value) ??
     (matches.length === 1 ? matches[0] : undefined);
   if (!match && matches.length > 1) {
-    issue.value = '存在同名接口，请先在高级配置中选择服务和端口';
+    issue.value = '存在同名接口，请选择标明服务和端口的请求接口';
     return;
   }
   issue.value = '';
-  set('operationName', name);
-  if (!match) return;
+  if (!match) {
+    set('operationName', value);
+    return;
+  }
+  set('operationName', match.selected.name);
   set('serviceName', match.entry.name);
   set('portName', match.item.name);
   set('apiMethod', match.item.apiMethod);
@@ -177,7 +211,7 @@ async function parseWsdl() {
     return;
   }
   if (!props.config.resourceBindingId) {
-    issue.value = '请在高级执行配置中填写当前任务授权的执行资源编号';
+    issue.value = '当前任务缺少授权的执行资源，暂时无法解析WSDL';
     return;
   }
   const ticket = request.begin();
@@ -206,21 +240,25 @@ function useDeclaredParameters() {
     if (!(parameter.name in next)) next[parameter.name] = '';
   set('requestParams', JSON.stringify(next, null, 2));
 }
-function options<T extends { name: string }>(items?: T[], current?: string) {
-  const result = (items ?? []).map((item) => ({
-    label: item.name,
-    value: item.name,
-  }));
-  if (current && !result.some((item) => item.value === current))
-    result.push({ label: current, value: current });
-  return result;
-}
 function validate() {
-  const errors = validateConnectorConfig('read-webservice', props.config);
+  const resource = props.config.resourceBindingId;
+  const errors = validateConnectorConfig('read-webservice', props.config).filter(
+    (error) =>
+      error.field !== 'resourceBindingId' ||
+      (resource !== undefined && resource !== null && resource !== ''),
+  );
   issue.value = errors.map((error) => error.message).join('；');
   return errors.length === 0;
 }
-defineExpose({ validate });
+const stepNav = computed(() => ({
+  last: 3,
+  next: nextStep,
+  prev: () => {
+    if (step.value > 0) step.value--;
+  },
+  step: step.value,
+}));
+defineExpose({ stepNav, validate });
 </script>
 
 <template>
@@ -255,7 +293,7 @@ defineExpose({ validate });
           </Button>
         </div>
         <label class="required">请求接口</label><Select
-          :value="config.operationName"
+          :value="selectedOperation"
           :disabled="disabled || (!metadata && !config.operationName)"
           :options="operationChoices"
           placeholder="请先解析 WSDL"
@@ -474,67 +512,5 @@ defineExpose({ validate });
         />
       </div>
     </section>
-    <div class="qi-service-step-actions">
-      <Button v-if="step > 0" @click="step--">上一步</Button><Button v-if="step < 3" type="primary" @click="nextStep">下一步</Button>
-    </div>
-    <details class="qi-reference-advanced">
-      <summary>高级执行配置</summary>
-      <div class="qi-service-form">
-        <label>服务</label><Select
-          :value="config.serviceName"
-          :disabled="disabled"
-          :options="options(metadata?.services, config.serviceName)"
-          placeholder="-"
-          aria-label="WSDL服务"
-          @update:value="selectService"
-        />
-        <label>端口</label><Select
-          :value="config.portName"
-          :disabled="disabled"
-          :options="options(service?.ports, config.portName)"
-          placeholder="-"
-          aria-label="WSDL端口"
-          @update:value="selectPort"
-        />
-        <label>端点地址</label><Input
-          :value="port?.endpoint"
-          disabled
-          placeholder="-"
-          aria-label="WSDL端点地址"
-        />
-        <label>命名空间</label><Input
-          :value="config.targetNamespace"
-          :disabled="disabled"
-          placeholder="-"
-          aria-label="WSDL命名空间"
-          @update:value="(value) => set('targetNamespace', value)"
-        />
-        <label class="required">执行资源编号</label><Input
-          :value="config.resourceBindingId"
-          :disabled="disabled"
-          aria-label="WSDL执行资源编号"
-          @update:value="(value) => set('resourceBindingId', value)"
-        /><label>最多读取行数</label><InputNumber
-          :value="config.maxRows ?? 10000"
-          :min="1"
-          :disabled="disabled"
-          @update:value="(value) => set('maxRows', value)"
-        /><label>响应字节上限</label><InputNumber
-          :value="config.maxResponseBytes ?? 8388608"
-          :min="1"
-          :disabled="disabled"
-          @update:value="(value) => set('maxResponseBytes', value)"
-        /><label>请求头凭据引用</label><TextArea
-          :value="
-            typeof config.headerSecretRefs === 'string'
-              ? config.headerSecretRefs
-              : JSON.stringify(config.headerSecretRefs ?? {}, null, 2)
-          "
-          :rows="3"
-          :disabled="disabled"
-          @update:value="(value) => set('headerSecretRefs', value)"
-        />
-      </div>
-    </details>
   </div>
 </template>

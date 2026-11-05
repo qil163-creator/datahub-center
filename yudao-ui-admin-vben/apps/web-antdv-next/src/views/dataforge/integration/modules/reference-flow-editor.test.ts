@@ -18,7 +18,8 @@ vi.mock('antdv-next', () => {
     Button:defineComponent({props:{disabled:Boolean},setup:(props,{slots}) => () => h('button',{disabled:props.disabled},slots.default?.())}),
   };
 });
-let app:App|undefined; let host:HTMLDivElement;
+let app:App|undefined;
+let host:HTMLDivElement;
 const editor = ref<{ validate: () => boolean }>();
 afterEach(() => {app?.unmount(); host?.remove();});
 function mount(toolCode:string,config:Record<string,any>,disabled=false) {
@@ -29,9 +30,15 @@ function mount(toolCode:string,config:Record<string,any>,disabled=false) {
 }
 async function click(text:string) { const button=[...host.querySelectorAll('button')].find((item) => item.textContent?.trim().endsWith(text)); expect(button).toBeTruthy(); button!.click(); await nextTick(); }
 async function input(selector:string,value:string) {const field=host.querySelector<HTMLInputElement>(selector)!; expect(field).toBeTruthy(); field.value=value; field.dispatchEvent(new Event('input')); await nextTick();}
-describe('集成流程的分步配置和真实兼容契约',() => {
-  it('join三步按来源投影，不在仅浏览时补写历史投影',async() => {
-    const config={joinType:'LEFT',maxOutputRows:30,joinConditions:[{leftField:'id',rightField:'other',vendor:7}],vendor:9};
+describe('集成流程的分步配置和真实兼容契约', () => {
+  it('join三步按来源投影，不在仅浏览时补写历史投影', async () => {
+    const config = {
+      joinType:'LEFT',
+      conditionRelation: 'OR',
+      maxOutputRows:30,
+      joinConditions:[{leftField:'id',rightField:'other',vendor:7}],
+      vendor:9,
+    };
     const state=mount('multi-join',config);
     expect(host.textContent).not.toContain('连接关系与执行预算');
     expect(host.querySelector('details')).toBeNull();
@@ -43,7 +50,14 @@ describe('集成流程的分步配置和真实兼容契约',() => {
     expect(host.querySelector('tbody td:nth-child(2) input')?.getAttribute('value')).toBe('id');
     await input('tbody td:nth-child(3) input','a_id');
     expect(state.config.leftFields).toEqual([{name:'id',alias:'a_id',type:'BIGINT',length:undefined,precision:undefined}]);
-    expect(state.config.vendor).toBe(9); expect(state.config.maxOutputRows).toBe(30);
+    expect(state.config.vendor).toBe(9);
+    expect(state.config.maxOutputRows).toBe(30);
+    expect(state.config.conditionRelation).toBe('OR');
+    expect(editor.value!.validate()).toBe(true);
+    state.config.joinConditions[0].rightField = '';
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick();
+    expect(host.textContent).toContain('请填写完整连接条件');
   });
   it('条件4步将旧单条件提升为多条件并保留未知分支及输出投影',async() => {
     const state=mount('data-condition',{branches:[{id:'a',type:'IF',fieldName:'id',operator:'EQ',value:'1',targetNodeNo:'sink',vendor:7},{id:'b',type:'ELSE',targetNodeNo:'other'},{id:'legacy',type:'IF',fieldName:'name',operator:'EQ',value:'keep',targetNodeNo:'third'}],unmatchedPolicy:'ERROR'});

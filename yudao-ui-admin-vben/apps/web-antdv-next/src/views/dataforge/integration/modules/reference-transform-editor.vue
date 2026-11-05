@@ -58,7 +58,6 @@ type Column = {
   help?: string;
   key: string;
   label: string;
-  metadata?: boolean;
   minArity?: number;
   options?: { label: string; value: string }[];
   placeholder?: string;
@@ -296,9 +295,6 @@ const columns = computed<Column[]>(() => {
     }
   }
 });
-const primaryColumns = computed(() =>
-  columns.value.filter((column) => !column.metadata),
-);
 watch(
   () => [props.config, props.toolCode, props.disabled],
   () => {
@@ -346,13 +342,6 @@ function commitRows(value: Row[]) {
   if (!props.disabled)
     props.config[rowKey.value] =
       props.toolCode === 'field-derive' ? value.map((row) => row.name) : value;
-}
-function metadata(row: Row, key: string) {
-  return (
-    props.inputFields?.find((field) => field.name === row.name)?.[
-      key as 'dataType' | 'length' | 'scale'
-    ] ?? '-'
-  );
 }
 function cellDisabled(row: Row, column: Column) {
   return (
@@ -595,7 +584,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           class="qi-reference-form-row"
         >
           <label class="qi-id-required">{{ item.label }}</label><div class="qi-reference-long-input">
-            <button type="button" :disabled="disabled" :aria-label="`减少${item.label}`" @click="stepSequence(item.key, -1)">−</button><Input
+            <button type="button" :disabled="disabled" :aria-label="`减少${item.label}`" @click="stepSequence(item.key, -1)"> − </button><Input
               :value="config[item.key]"
               :disabled="disabled"
               :placeholder="`请输入${item.label}`"
@@ -603,17 +592,11 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
               aria-required="true"
               inputmode="numeric"
               @update:value="(value) => setConfig(item.key, value)"
-            /><button type="button" :disabled="disabled" :aria-label="`增加${item.label}`" @click="stepSequence(item.key, 1)">+</button>
+            /><button type="button" :disabled="disabled" :aria-label="`增加${item.label}`" @click="stepSequence(item.key, 1)"> + </button>
           </div>
         </div>
       </div>
       <slot name="description"></slot>
-      <details v-if="config.mode !== 'UUID'" class="qi-id-sequence-help">
-        <summary>序列说明</summary>
-        <p class="qi-reference-notice">
-          最大值为0表示不限；递增序列按下方确定顺序生成。
-        </p>
-      </details>
     </template>
     <template v-else>
       <template v-if="toolCode === 'field-derive'">
@@ -767,27 +750,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           @update:value="(value) => { setConfig('defaultValue', value); setConfig('unmatched', String(value ?? '').length ? 'DEFAULT' : 'KEEP'); }"
         />
       </div>
-      <details v-if="toolCode === 'value-map'" class="qi-transform-advanced">
-        <summary>未匹配处理方式</summary>
-        <div class="qi-reference-form-row">
-          <label>未命中处理</label><Select
-            :value="config.unmatched"
-            :disabled="disabled"
-            :options="[
-              { value: 'KEEP', label: '保留原值' },
-              { value: 'DEFAULT', label: '设为默认值' },
-              { value: 'SET_NULL', label: '置空' },
-            ]"
-            @update:value="(value) => setConfig('unmatched', value)"
-          /><Input
-            v-if="config.unmatched === 'DEFAULT'"
-            :value="config.defaultValue"
-            :disabled="disabled"
-            placeholder="不匹配时的默认值"
-            @update:value="(value) => setConfig('defaultValue', value)"
-          />
-        </div>
-      </details>
       <div
         v-if="showRows"
         class="qi-reference-section-header qi-reference-table-heading"
@@ -807,8 +769,8 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
         <table class="qi-reference-fields-table">
           <thead>
             <tr>
-              <th>序号<Tooltip v-if="toolCode === 'sort-records'" title="拖动序号可调整排序优先级，序号越小优先级越高"><span class="qi-transform-column-help" tabindex="0" aria-label="序号说明"><ReferenceIcon name="info" /></span></Tooltip></th>
-              <th v-for="column in primaryColumns" :key="column.key" :class="{ 'qi-th-sort': column.sortIcon }">
+              <th> 序号<Tooltip v-if="toolCode === 'sort-records'" title="拖动序号可调整排序优先级，序号越小优先级越高"><span class="qi-transform-column-help" tabindex="0" aria-label="序号说明"><ReferenceIcon name="info" /></span></Tooltip></th>
+              <th v-for="column in columns" :key="column.key" :class="{ 'qi-th-sort': column.sortIcon }">
                 {{ column.label }}
                 <Tooltip v-if="column.help" :title="column.help"><span class="qi-transform-column-help" tabindex="0" :aria-label="`${column.label}说明`"><ReferenceIcon name="info" /></span></Tooltip>
               </th>
@@ -828,7 +790,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
               @keydown.alt.down.prevent="move(index, index + 1)"
             >
               <td>{{ index + 1 }}</td>
-              <td v-for="column in primaryColumns" :key="column.key">
+              <td v-for="column in columns" :key="column.key">
                 <Select
                   v-if="column.check"
                   :value="row[column.key] === undefined ? undefined : row[column.key] ? 1 : 0"
@@ -895,7 +857,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
             </tr>
             <tr v-if="!rows.length">
               <td
-                :colspan="primaryColumns.length + 2"
+                :colspan="columns.length + 2"
                 class="qi-reference-empty"
               >
                 暂无记录
@@ -904,37 +866,6 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
           </tbody>
         </table>
       </div>
-      <details
-        v-if="toolCode === 'field-derive' && showRows"
-        class="qi-transform-advanced"
-      >
-        <summary>来源字段元数据</summary>
-        <table class="qi-reference-fields-table">
-          <thead>
-            <tr>
-              <th>字段名称</th>
-              <th>字段类型</th>
-              <th>字段长度</th>
-              <th>小数精度</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, index) in rows" :key="index">
-              <td>{{ row.name }}</td>
-              <td>{{ metadata(row, 'dataType') }}</td>
-              <td>{{ metadata(row, 'length') }}</td>
-              <td>{{ metadata(row, 'scale') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
-      <details v-if="toolCode === 'field-split'" class="qi-transform-advanced">
-<summary>原字段处理</summary><label><Checkbox
-          :checked="config.keepSource"
-          :disabled="disabled"
-          @update:checked="(value) => setConfig('keepSource', value)"
-        />保留原字段</label>
-</details>
     </template>
     <ReferenceFieldMergeDialog v-model:open="fieldMergeOpen" :existing-count="rows.length" :incoming-count="inputFields?.length ?? 0" :disabled="disabled" @resolve="getFields" />
   </div>

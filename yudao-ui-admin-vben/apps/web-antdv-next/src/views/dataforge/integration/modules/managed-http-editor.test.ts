@@ -71,8 +71,10 @@ describe('接口API输入主配置', () => {
     expect(host.textContent).toContain('读取预算');
     state.config.maxPages = 20;
     expect(editor.value!.validate()).toBe(true);
-    state.config.resourceBindingId = '_api.resource';
-    expect(editor.value!.validate()).toBe(false);
+    for (const invalid of ['_api.resource', ' ', 0, false]) {
+      state.config.resourceBindingId = invalid;
+      expect(editor.value!.validate()).toBe(false);
+    }
     state.config.resourceBindingId = 'api.resource';
     expect(editor.value!.validate()).toBe(true);
     expect(state.config).toEqual({
@@ -107,6 +109,28 @@ describe('接口API输入主配置', () => {
     expect(state.config.headerSecretRefs).toEqual({
       Authorization: 'api_access',
     });
+  });
+  it('校验读取当前嵌套引用且失败时不覆盖草稿，不再回写旧缓存', () => {
+    const { state, editor } = mount({
+      apiConfig: {},
+      headerSecretRefs: { Authorization: 'old_reference' },
+      headerContextRefs: { 'X-Auth': { tokenKey: 'oldToken' } },
+      vendor: 42,
+    });
+    state.config.headerSecretRefs.Authorization = 'new_reference';
+    state.config.headerContextRefs['X-Auth'].tokenKey = 'newToken';
+    expect(editor.value!.validate()).toBe(true);
+    expect(state.config.headerSecretRefs).toEqual({
+      Authorization: 'new_reference',
+    });
+    expect(state.config.headerContextRefs).toEqual({
+      'X-Auth': { tokenKey: 'newToken' },
+    });
+    state.config.headerSecretRefs.Authorization = 'invalid reference';
+    const before = JSON.stringify(state.config);
+    expect(editor.value!.validate()).toBe(false);
+    expect(JSON.stringify(state.config)).toBe(before);
+    expect(state.config.vendor).toBe(42);
   });
   it('引用合计不超过32个且禁止协议保留头，认证头仍可使用引用', async () => {
     const { state, editor } = mount({ resourceBindingId: 'api.resource', apiConfig: {} });

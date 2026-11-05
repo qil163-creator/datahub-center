@@ -18,7 +18,7 @@ vi.mock('#/api/dataforge/integration/service-metadata', () => ({
 }));
 vi.mock('antdv-next', () => {
   const Field = defineComponent({
-    props: { value: [String, Number], disabled: Boolean },
+    props: { value: [String, Number], disabled: Boolean, options: Array },
     emits: ['update:value'],
     setup:
       (props, { emit }) =>
@@ -63,7 +63,7 @@ vi.mock('antdv-next', () => {
 });
 let app: App | undefined;
 let host: HTMLDivElement;
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => vi.resetAllMocks());
 afterEach(() => {
   app?.unmount();
   app = undefined;
@@ -242,8 +242,6 @@ describe('集成专属四步骤接口配置', () => {
     const before = JSON.stringify(state.config);
     await click('解析WSDL');
     expect(JSON.stringify(state.config)).toBe(before);
-    await input('WSDL服务', 'Weather');
-    await input('WSDL端口', 'WeatherSoap');
     await input('WSDL请求接口', 'Read');
     expect(state.config).toMatchObject({
       serviceName: 'Weather',
@@ -253,10 +251,8 @@ describe('集成专属四步骤接口配置', () => {
       targetNamespace: 'urn:test',
       vendor: '保留',
     });
-    expect(
-      host.querySelector<HTMLInputElement>('[aria-label="WSDL端点地址"]')
-        ?.value,
-    ).toBe('https://example.test/service');
+    expect(host.querySelector('[aria-label="WSDL端点地址"]')).toBeNull();
+    expect(host.textContent).not.toContain('高级执行配置');
     await click('获取接口参数');
     expect(JSON.parse(state.config.requestParams)).toEqual({ city: '' });
   });
@@ -283,10 +279,7 @@ describe('集成专属四步骤接口配置', () => {
     await flush();
     resolve(response);
     await flush();
-    expect(
-      host.querySelector<HTMLInputElement>('[aria-label="WSDL端点地址"]')
-        ?.value,
-    ).toBe('');
+    expect(host.querySelector('[aria-label="WSDL端点地址"]')).toBeNull();
     await click('解析WSDL');
     expect(host.textContent).toContain('未授权控制面元数据地址');
     expect(state.config.serviceName).toBe('新节点服务');
@@ -339,5 +332,20 @@ describe('集成专属四步骤接口配置', () => {
     expect(state.config.portName).toBe('');
     expect(state.config.operationName).toBe('');
     expect(host.textContent).toContain('存在同名接口');
+    await input(
+      'WSDL请求接口',
+      JSON.stringify(['Weather', 'WeatherSoap12', 'Read']),
+    );
+    expect(state.config).toMatchObject({
+      serviceName: 'Weather',
+      portName: 'WeatherSoap12',
+      operationName: 'Read',
+      apiMethod: 'soap12',
+      targetNamespace: 'urn:test:12',
+    });
+    expect(
+      host.querySelector<HTMLInputElement>('[aria-label="WSDL请求接口"]')
+        ?.value,
+    ).toBe(JSON.stringify(['Weather', 'WeatherSoap12', 'Read']));
   });
 });
