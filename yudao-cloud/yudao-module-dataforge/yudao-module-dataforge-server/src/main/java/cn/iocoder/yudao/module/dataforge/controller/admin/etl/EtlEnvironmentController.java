@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.*;
@@ -45,6 +46,7 @@ public class EtlEnvironmentController {
      * @return ETL环境
      */
     @PostMapping("/save")
+    @BusinessOperateLog(type = "数据开发-ETL 环境连接", bizId = "#result")
     @Operation(summary = "创建或按修订号更新环境")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Long> save(@Valid @RequestBody EtlEnvironmentSaveReqVO req) {
@@ -59,6 +61,7 @@ public class EtlEnvironmentController {
      * @return ETL环境
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-ETL 环境连接", bizId = "#id")
     @Operation(summary = "删除未被引用的环境")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Boolean> delete(@RequestParam("id") @Positive Long id,
@@ -88,6 +91,7 @@ public class EtlEnvironmentController {
      * @return ETL环境
      */
     @PostMapping("/binding/save")
+    @BusinessOperateLog(type = "数据开发-ETL 环境连接", bizId = "#result")
     @Operation(summary = "创建或按修订号更新连接绑定")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Long> saveBinding(@Valid @RequestBody EtlEnvironmentBindingSaveReqVO req) {
@@ -102,6 +106,7 @@ public class EtlEnvironmentController {
      * @return ETL环境
      */
     @DeleteMapping("/binding/delete")
+    @BusinessOperateLog(type = "数据开发-ETL 环境连接", bizId = "#id")
     @Operation(summary = "按修订号删除连接绑定，引用此修订的运行将被阻止")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Boolean> deleteBinding(@RequestParam("id") @Positive Long id,

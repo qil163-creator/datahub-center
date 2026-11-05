@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.MarketCommentPageReqVO;
@@ -29,6 +30,7 @@ public class MarketCommentController {
     /**
      * 发表评价。
      */
+    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "发表评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -39,6 +41,7 @@ public class MarketCommentController {
     /**
      * 修改自己的评价。
      */
+    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "修改自己的评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -50,6 +53,7 @@ public class MarketCommentController {
     /**
      * 删除自己的评价。
      */
+    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除自己的评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -61,6 +65,7 @@ public class MarketCommentController {
     /**
      * 资产方回复评价。
      */
+    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#reqVO.id")
     @PutMapping("/reply")
     @Operation(summary = "资产方回复评价")
     @PreAuthorize("@ss.hasPermission('asset:market:check')")

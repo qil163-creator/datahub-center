@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.dataapi;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.*;
 import cn.iocoder.yudao.module.supply.service.dataapi.DataApiOperationService;
@@ -51,6 +52,7 @@ public class DataApiOperationController {
      * @param request 请求参数
      * @return 数据 API操作响应数据
      */
+    @BusinessOperateLog(type = "数据服务-数据服务写操作台账", bizId = "#request.id")
     @PostMapping("/resolve")
     @Operation(summary = "记录未知写操作核查证据；不会重试或释放业务键")
     @PreAuthorize("@ss.hasPermission('supply:data-api:operation-resolve')")

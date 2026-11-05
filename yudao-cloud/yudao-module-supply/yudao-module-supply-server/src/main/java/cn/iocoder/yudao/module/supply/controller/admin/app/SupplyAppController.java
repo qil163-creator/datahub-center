@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.app;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -54,6 +55,7 @@ public class SupplyAppController {
      * @param createReqVO 创建参数
      * @return 供应应用响应数据
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#result.id")
     @PostMapping("/create")
     @Operation(summary = "创建应用（自动生成秘钥）")
     @ApiAccessLog(responseEnable = false, sanitizeKeys = {"secret", "plainSecret", "appSecret"})
@@ -71,6 +73,7 @@ public class SupplyAppController {
      * @param updateReqVO 更新参数
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新应用")
     @PreAuthorize("@ss.hasPermission('supply:app:update')")
@@ -85,6 +88,7 @@ public class SupplyAppController {
      * @param id 记录编号
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @PutMapping("/reset-secret")
     @Operation(summary = "重置应用秘钥")
     @Parameter(name = "id", description = "编号", required = true)
@@ -100,6 +104,7 @@ public class SupplyAppController {
      * @param id 记录编号
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除应用（级联删除 API 授权）")
     @Parameter(name = "id", description = "编号", required = true)
@@ -147,6 +152,7 @@ public class SupplyAppController {
      * @param appStatus 应用状态
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @PutMapping("/update-status")
     @Operation(summary = "启用、暂停或撤销应用")
     @PreAuthorize("@ss.hasPermission('supply:app:update')")
@@ -191,6 +197,7 @@ public class SupplyAppController {
      * @param createReqVO 创建参数
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#result")
     @PostMapping("/api-auth/create")
     @Operation(summary = "新增应用 API 授权")
     @PreAuthorize("@ss.hasAnyPermissions('supply:app:grant', 'supply:app:update')")
@@ -220,6 +227,7 @@ public class SupplyAppController {
      * @param expectedRevision 预期修订号
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @PutMapping("/api-auth/enable")
     @Operation(summary = "明确重新启用应用 API 授权聚合")
     // 沿用本控制器管理授权的平台内全应用范围；不是应用 owner/成员自助授权入口。
@@ -238,6 +246,7 @@ public class SupplyAppController {
      * @param disabled 禁用状态
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @PutMapping("/api-auth/control")
     @Operation(summary = "整体启用或禁用应用 API 授权（按聚合版本防止旧页面覆盖）")
     // 沿用本控制器管理授权的平台内全应用范围；不接受来源系统标识，逐来源生命周期属于来源系统。
@@ -256,6 +265,7 @@ public class SupplyAppController {
      * @param expectedRevision 预期修订号
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @PutMapping("/api-auth/revoke")
     @Operation(summary = "永久关闭管理端 ADMIN 授权（终态；市场来源须由来源系统撤销）")
     @PreAuthorize("@ss.hasAnyPermissions('supply:app:grant', 'supply:app:update')")
@@ -271,6 +281,7 @@ public class SupplyAppController {
      * @param id 记录编号
      * @return 供应应用
      */
+    @BusinessOperateLog(type = "数据服务-应用管理", bizId = "#id")
     @DeleteMapping("/api-auth/delete")
     @Operation(summary = "整体禁用应用 API 授权（保留来源记录）")
     @Parameter(name = "id", description = "授权编号", required = true)

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -43,6 +44,7 @@ public class DataDomainController {
      * @param createReqVO 创建参数
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建数据板块")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:create')")
@@ -56,6 +58,7 @@ public class DataDomainController {
      * @param updateReqVO 更新参数
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新数据板块")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:update')")
@@ -70,6 +73,7 @@ public class DataDomainController {
      * @param reqVO 请求参数
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "更新数据板块状态")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:update')")
@@ -85,6 +89,7 @@ public class DataDomainController {
      * @param id 记录编号
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数据板块")
     @Parameter(name = "id", description = "编号", required = true)
@@ -100,6 +105,7 @@ public class DataDomainController {
      * @param request 请求参数
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#request.id")
     @PutMapping("/update-naming-rules")
     @Operation(summary = "更新板块六类逻辑表命名规则")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:update')")
@@ -115,6 +121,7 @@ public class DataDomainController {
      * @param ids 记录编号集合
      * @return 数据域
      */
+    @BusinessOperateLog(type = "数据建模-数据板块", bizId = "#ids")
     @DeleteMapping("/delete-list")
     @Operation(summary = "批量删除数据板块")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:delete')")

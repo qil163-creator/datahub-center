@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.model;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.model.vo.materialized.*;
@@ -106,6 +107,7 @@ public class ModelMaterializedController {
      * @param reqVO 请求参数
      * @return 模型物化
      */
+    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#reqVO.modelId")
     @PostMapping("/publish")
     @Operation(summary = "首次发布模型")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")
@@ -119,6 +121,7 @@ public class ModelMaterializedController {
      * @param reqVO 请求参数
      * @return 模型物化
      */
+    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#result")
     @PostMapping("/republish")
     @Operation(summary = "重新发布模型")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")
@@ -132,6 +135,7 @@ public class ModelMaterializedController {
      * @param id 记录编号
      * @return 模型物化
      */
+    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#id")
     @PostMapping("/reconcile")
     @Operation(summary = "对账未知部署或恢复已过期执行；不执行新的DDL")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")

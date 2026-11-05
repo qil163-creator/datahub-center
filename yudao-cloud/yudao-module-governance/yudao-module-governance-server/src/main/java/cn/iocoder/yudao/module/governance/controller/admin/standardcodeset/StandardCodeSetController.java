@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardcodeset;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetImportExcelVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetImportRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetPageReqVO;
@@ -74,6 +75,7 @@ public class StandardCodeSetController {
      * 切换标准启用状态。
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-标准码", bizId = "#id")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> updateStatus(@RequestParam Integer id, @RequestParam Short status,
@@ -93,6 +95,7 @@ public class StandardCodeSetController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-标准码", bizId = "#result")
     @Operation(summary = "创建数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:create')")
     public CommonResult<Integer> createStandardCodeSet(@Valid @RequestBody StandardCodeSetSaveReqVO createReqVO) {
@@ -105,6 +108,7 @@ public class StandardCodeSetController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-标准码", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> updateStandardCodeSet(@Valid @RequestBody StandardCodeSetSaveReqVO updateReqVO) {
@@ -118,6 +122,7 @@ public class StandardCodeSetController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-标准码", bizId = "#id")
     @Operation(summary = "删除数据标准--标准码")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
@@ -131,6 +136,7 @@ public class StandardCodeSetController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据治理-标准码", bizId = "#ids")
     @Operation(summary = "批量删除数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
     public CommonResult<Boolean> deleteStandardCodeSetList(@RequestParam("ids") List<Integer> ids) {
@@ -198,6 +204,7 @@ public class StandardCodeSetController {
      * 导入码表/码值。
      */
     @PostMapping("/import")
+    @BusinessOperateLog(type = "数据治理-标准码", action = "导入码表与码值（处理结果见导入回执）")
     @Operation(summary = "导入码表/码值")
     @Parameters({
             @Parameter(name = "file", description = "Excel 文件", required = true),

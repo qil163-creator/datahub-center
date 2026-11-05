@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.level;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -43,6 +44,7 @@ public class SafetyLevelController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据分级", bizId = "#result")
     @Operation(summary = "创建数据分级")
     @PreAuthorize("@ss.hasPermission('governance:level:create')")
     public CommonResult<Long> createLevel(@Valid @RequestBody SafetyLevelSaveReqVO createReqVO) {
@@ -55,6 +57,7 @@ public class SafetyLevelController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据分级", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据分级")
     @PreAuthorize("@ss.hasPermission('governance:level:update')")
     public CommonResult<Boolean> updateLevel(@Valid @RequestBody SafetyLevelSaveReqVO updateReqVO) {
@@ -68,6 +71,7 @@ public class SafetyLevelController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据分级", bizId = "#id")
     @Operation(summary = "删除数据分级")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:level:delete')")
@@ -81,6 +85,7 @@ public class SafetyLevelController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据治理-数据分级", bizId = "#ids")
     @Operation(summary = "批量删除数据分级")
     @PreAuthorize("@ss.hasPermission('governance:level:delete')")
     public CommonResult<Boolean> deleteLevelList(@RequestParam("ids") List<Long> ids) {

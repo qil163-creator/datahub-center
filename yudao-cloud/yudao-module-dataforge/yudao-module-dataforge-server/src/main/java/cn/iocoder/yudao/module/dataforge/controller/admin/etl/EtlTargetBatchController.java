@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.*;
 import cn.iocoder.yudao.module.dataforge.service.etl.EtlTargetBatchService;
@@ -51,6 +52,7 @@ public class EtlTargetBatchController {
      * @return ETL 目标批次
      */
     @PostMapping("/archive")
+    @BusinessOperateLog(type = "数据开发-ETL 目标批次", bizId = "#request.recordId")
     @Operation(summary = "归档已完成运行", description = "未关闭工单和未确认提交阻断归档；保留全部审计，不物理删除目标与证据")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Boolean> archive(@Valid @RequestBody EtlArchiveReqVO request) {
@@ -65,6 +67,7 @@ public class EtlTargetBatchController {
      * @return ETL 目标批次
      */
     @PostMapping("/restore-archive")
+    @BusinessOperateLog(type = "数据开发-ETL 目标批次", bizId = "#request.recordId")
     @Operation(summary = "在证据保留期内恢复归档运行")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Boolean> restoreArchive(@Valid @RequestBody EtlReplayRetryReqVO request) {
@@ -79,6 +82,7 @@ public class EtlTargetBatchController {
      * @return 运行回执
      */
     @PostMapping("/replay")
+    @BusinessOperateLog(type = "数据开发-ETL 目标批次", bizId = "#request.workOrderId")
     @Operation(summary = "按治理源端整改提交发起完整批次回放", description = "冻结所选版本、复核全部原目标，保留原检测证据；不接受任意目标或自定义 SQL")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> replay(
@@ -106,6 +110,7 @@ public class EtlTargetBatchController {
      * @return ETL 目标批次
      */
     @PostMapping("/retry-recheck")
+    @BusinessOperateLog(type = "数据开发-ETL 目标批次", bizId = "#request.recordId")
     @Operation(summary = "恢复回放复检证据投递", description = "只重报现有回放结果，不重复执行回放")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<Boolean> retryRecheck(@Valid @RequestBody EtlReplayRetryReqVO request) {
@@ -150,6 +155,7 @@ public class EtlTargetBatchController {
      * @return ETL 目标批次
      */
     @PostMapping("/retry")
+    @BusinessOperateLog(type = "数据开发-ETL 目标批次", bizId = "#request.batchId")
     @Operation(summary = "人工恢复目标回执或质量登记对账", description = "复用原批次与原实例，不把检测失败改为通过；操作原因持久审计")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<Boolean> retry(@Valid @RequestBody EtlTargetRetryReqVO request) {

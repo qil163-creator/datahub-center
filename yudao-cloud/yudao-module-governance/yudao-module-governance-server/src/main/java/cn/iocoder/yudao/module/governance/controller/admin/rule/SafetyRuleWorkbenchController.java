@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.rule;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.rule.vo.*;
@@ -69,6 +70,7 @@ public class SafetyRuleWorkbenchController {
      * 新建展示脱敏规则并关联分类。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-展示脱敏规则工作台", bizId = "#result")
     @Operation(summary = "新建展示脱敏规则并关联分类")
     @PreAuthorize("@ss.hasPermission('governance:rule:create')")
     public CommonResult<Long> create(@Valid @RequestBody SafetyRuleWorkbenchSaveReqVO request) {
@@ -79,6 +81,7 @@ public class SafetyRuleWorkbenchController {
      * 修改展示脱敏规则。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-展示脱敏规则工作台", bizId = "#request.id")
     @Operation(summary = "修改展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody SafetyRuleWorkbenchSaveReqVO request) {
@@ -90,6 +93,7 @@ public class SafetyRuleWorkbenchController {
      * 修改展示脱敏规则状态。
      */
     @PutMapping("/change-status")
+    @BusinessOperateLog(type = "数据治理-展示脱敏规则工作台", bizId = "#request.id")
     @Operation(summary = "修改展示脱敏规则状态")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
     public CommonResult<Boolean> changeStatus(@Valid @RequestBody SafetyRuleWorkbenchStatusReqVO request) {
@@ -101,6 +105,7 @@ public class SafetyRuleWorkbenchController {
      * 删除展示脱敏规则并解除自身分类关联。
      */
     @PostMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-展示脱敏规则工作台", bizId = "#request.id")
     @Operation(summary = "删除展示脱敏规则并解除自身分类关联")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
     public CommonResult<Boolean> delete(@Valid @RequestBody SafetyRuleWorkbenchVersionReqVO request) {
@@ -112,6 +117,7 @@ public class SafetyRuleWorkbenchController {
      * 批量删除展示脱敏规则。
      */
     @PostMapping("/delete-list")
+    @BusinessOperateLog(type = "数据治理-展示脱敏规则工作台", bizId = "#request.items.![id]")
     @Operation(summary = "批量删除展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
     public CommonResult<Boolean> deleteList(@Valid @RequestBody SafetyRuleWorkbenchBatchReqVO request) {

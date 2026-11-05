@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.assettag;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.assettag.vo.AssetTagBindReqVO;
@@ -34,6 +35,7 @@ public class AssetTagController {
     /**
      * 创建资产标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:create')")
@@ -44,6 +46,7 @@ public class AssetTagController {
     /**
      * 更新资产标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -55,6 +58,7 @@ public class AssetTagController {
     /**
      * 启用/停用资产标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#id")
     @PutMapping("/update-status")
     @Operation(summary = "启用/停用资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -68,6 +72,7 @@ public class AssetTagController {
     /**
      * 删除资产标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:delete')")
@@ -80,6 +85,7 @@ public class AssetTagController {
     /**
      * 按修订号原子批量删除禁用且无引用的标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#req.items.![id]")
     @PostMapping("/delete-list")
     @Operation(summary = "按修订号原子批量删除禁用且无引用的标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:delete')")
@@ -101,6 +107,7 @@ public class AssetTagController {
     /**
      * 维护范围内按修订号移除单条资产标签关联。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#relationId")
     @DeleteMapping("/unbind")
     @Operation(summary = "维护范围内按修订号移除单条资产标签关联")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -154,6 +161,7 @@ public class AssetTagController {
     /**
      * 全量覆盖资产标签。
      */
+    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#reqVO.assetId")
     @PutMapping("/bind")
     @Operation(summary = "全量覆盖资产标签")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:tag')")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.quality.vo.AssetQualityTaskRespVO;
 import cn.iocoder.yudao.module.asset.controller.admin.quality.vo.AssetQualityTaskSaveReqVO;
@@ -28,6 +29,7 @@ public class AssetQualityTaskController {
     /**
      * 创建资产质量任务。
      */
+    @BusinessOperateLog(type = "数据资产-资产质量任务", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建资产质量任务")
     @PreAuthorize("@ss.hasPermission('asset:quality-task:manage')")
@@ -38,6 +40,7 @@ public class AssetQualityTaskController {
     /**
      * 更新资产质量任务。
      */
+    @BusinessOperateLog(type = "数据资产-资产质量任务", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新资产质量任务")
     @PreAuthorize("@ss.hasPermission('asset:quality-task:manage')")
@@ -49,6 +52,7 @@ public class AssetQualityTaskController {
     /**
      * 删除资产质量任务。
      */
+    @BusinessOperateLog(type = "数据资产-资产质量任务", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除资产质量任务")
     @PreAuthorize("@ss.hasPermission('asset:quality-task:manage')")
@@ -73,6 +77,7 @@ public class AssetQualityTaskController {
      *
      *  @return 治理质量任务实例编号
      */
+    @BusinessOperateLog(type = "数据资产-资产质量任务", bizId = "#id")
     @PostMapping("/execute")
     @Operation(summary = "执行资产质量任务")
     @PreAuthorize("@ss.hasPermission('asset:quality-task:manage')")

@@ -66,9 +66,7 @@ const listFailed = ref(false);
 const page = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
-const filters = reactive<{ engName?: string; name?: string; status?: number }>(
-  {},
-);
+const filters = reactive<{ name?: string; status?: number }>({});
 const scope = () =>
   JSON.stringify([
     active.value,
@@ -256,7 +254,6 @@ async function loadCategories() {
 async function query() {
   const values = await gridApi.formApi.getValues();
   filters.name = values.name || undefined;
-  filters.engName = values.engName || undefined;
   filters.status = values.status;
   page.value = 1;
   await load();
@@ -264,7 +261,6 @@ async function query() {
 async function reset() {
   await gridApi.formApi.reset();
   filters.name = undefined;
-  filters.engName = undefined;
   filters.status = undefined;
   page.value = 1;
   await load();
@@ -353,11 +349,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             type="warning"
             message="术语类目加载失败"
           >
-            <template #action
-              ><Button size="small" @click="loadCategories"
-                >重试</Button
-              ></template
-            >
+            <template #action>
+              <Button size="small" @click="loadCategories">重试</Button>
+            </template>
           </Alert>
           <Tree
             v-else
@@ -380,9 +374,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         <template #table-title>
           <span>业务术语列表</span>
           <Alert v-if="listFailed" type="warning" message="术语列表加载失败">
-            <template #action
-              ><Button size="small" @click="load">重试</Button></template
-            >
+            <template #action>
+              <Button size="small" @click="load">重试</Button>
+            </template>
           </Alert>
         </template>
         <template #category="{ row }">

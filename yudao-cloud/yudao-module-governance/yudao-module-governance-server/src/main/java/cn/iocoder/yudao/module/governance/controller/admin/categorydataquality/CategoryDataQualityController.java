@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorydataquality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -41,6 +42,7 @@ public class CategoryDataQualityController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量类目", bizId = "#result")
     @Operation(summary = "创建数据质量类目")
     @PreAuthorize("@ss.hasPermission('governance:category-data-quality:create')")
     public CommonResult<Long> createCategoryDataQuality(@Valid @RequestBody CategoryDataQualitySaveReqVO createReqVO) {
@@ -53,6 +55,7 @@ public class CategoryDataQualityController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量类目", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据质量类目")
     @PreAuthorize("@ss.hasPermission('governance:category-data-quality:update')")
     public CommonResult<Boolean> updateCategoryDataQuality(
@@ -67,6 +70,7 @@ public class CategoryDataQualityController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量类目", bizId = "#id")
     @Operation(summary = "删除数据质量类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-data-quality:delete')")

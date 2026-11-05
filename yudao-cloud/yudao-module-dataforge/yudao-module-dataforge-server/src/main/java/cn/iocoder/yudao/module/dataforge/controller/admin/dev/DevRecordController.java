@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.dev;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -111,6 +112,7 @@ public class DevRecordController {
      * @return 开发记录
      */
     @PutMapping("/stop")
+    @BusinessOperateLog(type = "数据开发-数据开发任务实例", bizId = "#id")
     @Operation(summary = "停止运行中的任务实例")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
@@ -140,6 +142,7 @@ public class DevRecordController {
      * @return 开发记录
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据开发任务实例", bizId = "#id")
     @Operation(summary = "删除任务实例")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:delete')")
@@ -155,6 +158,7 @@ public class DevRecordController {
      * @return 开发记录
      */
     @PostMapping("/resolve-unknown")
+    @BusinessOperateLog(type = "数据开发-数据开发任务实例", bizId = "#req.id")
     @Operation(summary = "记录未知实例的人工核查结论")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
     public CommonResult<Boolean> resolveUnknown(@Valid @RequestBody
@@ -170,6 +174,7 @@ public class DevRecordController {
      * @return 开发记录
      */
     @PostMapping("/resolve-quality")
+    @BusinessOperateLog(type = "数据开发-数据开发任务实例", bizId = "#req.id")
     @Operation(summary = "核实原质检已结束，将未知质量保守收敛为失败")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
     public CommonResult<Boolean> resolveQuality(@Valid @RequestBody

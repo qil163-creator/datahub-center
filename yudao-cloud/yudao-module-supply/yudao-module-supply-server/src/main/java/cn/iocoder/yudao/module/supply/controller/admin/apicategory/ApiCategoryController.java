@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.apicategory;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.supply.controller.admin.apicategory.vo.*;
@@ -32,6 +33,7 @@ public class ApiCategoryController {
      * @param createReqVO 创建参数
      * @return API分类
      */
+    @BusinessOperateLog(type = "数据服务-服务分类", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建服务分类")
     @PreAuthorize("@ss.hasPermission('supply:api-category:create')")
@@ -45,6 +47,7 @@ public class ApiCategoryController {
      * @param updateReqVO 更新参数
      * @return API分类
      */
+    @BusinessOperateLog(type = "数据服务-服务分类", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新服务分类")
     @PreAuthorize("@ss.hasPermission('supply:api-category:update')")
@@ -59,6 +62,7 @@ public class ApiCategoryController {
      * @param reqVO 请求参数
      * @return API分类
      */
+    @BusinessOperateLog(type = "数据服务-服务分类", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "更新服务分类状态")
     @PreAuthorize("@ss.hasPermission('supply:api-category:update')")
@@ -74,6 +78,7 @@ public class ApiCategoryController {
      * @param id 记录编号
      * @return API分类
      */
+    @BusinessOperateLog(type = "数据服务-服务分类", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除服务分类")
     @Parameter(name = "id", description = "编号", required = true)

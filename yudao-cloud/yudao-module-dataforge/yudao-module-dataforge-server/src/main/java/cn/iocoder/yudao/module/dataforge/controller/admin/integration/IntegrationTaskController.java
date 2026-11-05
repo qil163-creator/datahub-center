@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.integration;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.integration.vo.IntegrationModels.*;
@@ -109,6 +110,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PostMapping("/category/create")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#result")
     @Operation(summary = "新增共享集成类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
     public CommonResult<Long> createCategory(@RequestBody @Valid CategorySaveReq req) {
@@ -122,6 +124,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PutMapping("/category/update")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#req.id")
     @Operation(summary = "修改共享集成类目并防止循环引用")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> updateCategory(@RequestBody @Valid CategorySaveReq req) {
@@ -136,6 +139,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @DeleteMapping("/category/delete")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#id")
     @Operation(summary = "删除无子类目且无任务引用的共享类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
     public CommonResult<Boolean> deleteCategory(@RequestParam Long id) {
@@ -175,6 +179,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#result")
     @Operation(summary = "新建集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
     public CommonResult<Long> create(@RequestBody @Valid SaveReq req) {
@@ -188,6 +193,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#req.id")
     @Operation(summary = "修改集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> update(@RequestBody @Valid SaveReq req) {
@@ -202,6 +208,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#id")
     @Operation(summary = "删除已下线且关闭调度的集成任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
     public CommonResult<Boolean> delete(@RequestParam Long id) {
@@ -216,6 +223,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PostMapping("/clone")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#result")
     @Operation(summary = "克隆集成定义为未上线的新任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
     public CommonResult<Long> cloneTask(@RequestParam Long id) {
@@ -229,6 +237,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PutMapping("/status")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#req.id")
     @Operation(summary = "切换集成任务上下线状态")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> status(@RequestBody @Valid StatusReq req) {
@@ -243,6 +252,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PutMapping("/schedule")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#req.id")
     @Operation(summary = "保存调度周期或切换调度；开启要求绑定本平台可执行流程")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> schedule(@RequestBody @Valid ScheduleReq req) {
@@ -296,6 +306,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PostMapping("/run")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#id")
     @Operation(summary = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
     public CommonResult<Long> run(@RequestParam Long id) {
@@ -309,6 +320,7 @@ public class IntegrationTaskController {
      * @return 集成任务
      */
     @PostMapping("/stop")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#id")
     @Operation(summary = "请求停止本平台正在执行的实例")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
     public CommonResult<Boolean> stop(@RequestParam Long id) {
@@ -317,6 +329,7 @@ public class IntegrationTaskController {
     }
     /** 保存流程草稿，或编译并登记到 DolphinScheduler。 */
     @PutMapping("/flow")
+    @BusinessOperateLog(type = "数据开发-离线与实时数据集成", bizId = "#req.id")
     @Operation(summary = "保存集成流程并发布 DS 离线定义")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<TaskResp> saveFlow(@RequestBody @Valid FlowReq req) { return success(service.saveFlow(req)); }

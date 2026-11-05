@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.object.*;
@@ -56,6 +57,7 @@ public class MetaTableController {
      * 维护表的业务/管理属性（逐属性记录手工变更明细）。
      */
     @PutMapping("/update-biz")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#reqVO.id")
     @Operation(summary = "维护表的业务/管理属性（逐属性记录手工变更明细）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> updateTableBiz(@Valid @RequestBody MetaTableUpdateBizReqVO reqVO) {
@@ -67,6 +69,7 @@ public class MetaTableController {
      * 确认删除表（仅待确认删除状态；历史与快照保留）。
      */
     @PutMapping("/confirm-delete")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#id")
     @Operation(summary = "确认删除表（仅待确认删除状态；历史与快照保留）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -79,6 +82,7 @@ public class MetaTableController {
      * 发布表（仅更新发布状态，保留独立定版）。
      */
     @PutMapping("/publish")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#id")
     @Operation(summary = "发布表（仅更新发布状态，保留独立定版）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
@@ -92,6 +96,7 @@ public class MetaTableController {
      * 取消发布（保留定版镜像与资产引用）。
      */
     @PutMapping("/unpublish")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#id")
     @Operation(summary = "取消发布（保留定版镜像与资产引用）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
@@ -126,6 +131,7 @@ public class MetaTableController {
      * 维护字段的业务/管理属性（逐属性记录手工变更明细）。
      */
     @PutMapping("/update-column-biz")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#reqVO.id")
     @Operation(summary = "维护字段的业务/管理属性（逐属性记录手工变更明细）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> updateColumnBiz(@Valid @RequestBody MetaColumnUpdateBizReqVO reqVO) {
@@ -169,6 +175,7 @@ public class MetaTableController {
      * 批量认责（技术/业务负责人，逐表留痕）。
      */
     @PutMapping("/batch-owner")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#reqVO.ids")
     @Operation(summary = "批量认责（技术/业务负责人，逐表留痕）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> batchAssignOwner(@Valid @RequestBody MetaBatchOwnerReqVO reqVO) {
@@ -180,6 +187,7 @@ public class MetaTableController {
      * 指定结构版本定版；业务属性按确认时冻结。
      */
     @PutMapping("/finalize")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#request.id")
     @Operation(summary = "指定结构版本定版；业务属性按确认时冻结")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
     public CommonResult<Boolean> finalizeTable(@Valid @RequestBody MetaTableFinalizeReqVO request) {
@@ -191,6 +199,7 @@ public class MetaTableController {
      * 撤销定版，不改变发布状态与已存在的资产快照引用。
      */
     @PutMapping("/cancel-finalize")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#request.id")
     @Operation(summary = "撤销定版，不改变发布状态与已存在的资产快照引用")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
     public CommonResult<Boolean> cancelFinalizeTable(@Valid @RequestBody MetaTableStateReqVO request) {
@@ -233,6 +242,7 @@ public class MetaTableController {
      * 删除未发布且未关联资产目录的表；历史版本保留。
      */
     @PutMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-表元数据", bizId = "#request.id")
     @Operation(summary = "删除未发布且未关联资产目录的表；历史版本保留")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> deleteTable(@Valid @RequestBody MetaTableStateReqVO request) {

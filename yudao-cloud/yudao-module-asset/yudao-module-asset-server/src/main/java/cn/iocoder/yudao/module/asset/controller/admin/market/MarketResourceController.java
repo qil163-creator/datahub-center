@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataasset.vo.MarketConsumerDetailRespVO;
@@ -68,6 +69,7 @@ public class MarketResourceController {
     /**
      * 绑定资源可交付 API。
      */
+    @BusinessOperateLog(type = "数据资产-集市共享资源", bizId = "#reqVO.assetId")
     @PostMapping("/bind-api")
     @Operation(summary = "绑定资源可交付 API")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")

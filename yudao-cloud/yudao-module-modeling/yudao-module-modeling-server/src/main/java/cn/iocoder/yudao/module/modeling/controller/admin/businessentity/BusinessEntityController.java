@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.businessentity;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.businessentity.vo.*;
@@ -32,6 +33,7 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
+    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "新增业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:create')")
@@ -45,6 +47,7 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
+    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#request.id")
     @PutMapping("/update")
     @Operation(summary = "修改业务实体及关系")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:update')")
@@ -88,6 +91,7 @@ public class BusinessEntityController {
      * @param expectedRevision 预期修订号
      * @return 业务实体
      */
+    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:delete')")
@@ -103,6 +107,7 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
+    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#request.targets.![id]")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子批量删除业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:delete')")

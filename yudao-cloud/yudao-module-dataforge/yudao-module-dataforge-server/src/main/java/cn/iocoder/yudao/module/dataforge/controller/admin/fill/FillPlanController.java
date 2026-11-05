@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanPageReqVO;
@@ -38,6 +39,7 @@ public class FillPlanController {
      * @return 填报计划
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-在线填报采集计划", bizId = "#result")
     @Operation(summary = "创建采集计划")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:create')")
     public CommonResult<Long> createPlan(@Valid @RequestBody FillPlanSaveReqVO createReqVO) {
@@ -51,6 +53,7 @@ public class FillPlanController {
      * @return 填报计划
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-在线填报采集计划", bizId = "#updateReqVO.id")
     @Operation(summary = "更新采集计划", description = "启用中的计划不允许变更模板版本与周期类型")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:update')")
     public CommonResult<Boolean> updatePlan(@Valid @RequestBody FillPlanSaveReqVO updateReqVO) {
@@ -65,6 +68,7 @@ public class FillPlanController {
      * @return 填报计划
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-在线填报采集计划", bizId = "#id")
     @Operation(summary = "删除采集计划（仅草稿/停用状态）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:delete')")
@@ -107,6 +111,7 @@ public class FillPlanController {
      * @return 填报计划
      */
     @PutMapping("/publish")
+    @BusinessOperateLog(type = "数据开发-在线填报采集计划", bizId = "#id")
     @Operation(summary = "发布（启用）采集计划", description = "完整性校验并登记目标表写入；一次性计划发布即生成任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:publish')")
@@ -122,6 +127,7 @@ public class FillPlanController {
      * @return 填报计划
      */
     @PutMapping("/disable")
+    @BusinessOperateLog(type = "数据开发-在线填报采集计划", bizId = "#id")
     @Operation(summary = "停用采集计划", description = "停止未来任务生成；已生成任务不受影响")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:publish')")

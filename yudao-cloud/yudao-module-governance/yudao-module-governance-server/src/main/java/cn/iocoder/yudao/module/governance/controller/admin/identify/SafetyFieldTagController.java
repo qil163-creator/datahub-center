@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.identify;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -53,6 +54,7 @@ public class SafetyFieldTagController {
      * 触发一次敏感数据扫描（异步）。
      */
     @PostMapping("/scan")
+    @BusinessOperateLog(type = "数据治理-敏感字段打标", bizId = "#result")
     @Operation(summary = "触发一次敏感数据扫描（异步）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:scan')")
     public CommonResult<Long> triggerScan(@Valid @RequestBody SafetyScanReqVO reqVO) {
@@ -76,6 +78,7 @@ public class SafetyFieldTagController {
      * 人工添加打标（直接确认并回写元数据）。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-敏感字段打标", bizId = "#result")
     @Operation(summary = "人工添加打标（直接确认并回写元数据）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
     public CommonResult<Long> createTag(@Valid @RequestBody SafetyFieldTagSaveReqVO createReqVO) {
@@ -86,6 +89,7 @@ public class SafetyFieldTagController {
      * 批量确认打标（回写元数据分级与敏感标记）。
      */
     @PutMapping("/confirm")
+    @BusinessOperateLog(type = "数据治理-敏感字段打标", bizId = "#ids")
     @Operation(summary = "批量确认打标（回写元数据分级与敏感标记）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
     public CommonResult<Boolean> confirmTags(@RequestBody List<Long> ids) {
@@ -97,6 +101,7 @@ public class SafetyFieldTagController {
      * 批量驳回打标。
      */
     @PutMapping("/reject")
+    @BusinessOperateLog(type = "数据治理-敏感字段打标", bizId = "#ids")
     @Operation(summary = "批量驳回打标")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
     public CommonResult<Boolean> rejectTags(@RequestBody List<Long> ids) {
@@ -108,6 +113,7 @@ public class SafetyFieldTagController {
      * 删除打标记录。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-敏感字段打标", bizId = "#id")
     @Operation(summary = "删除打标记录")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:delete')")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -68,6 +69,7 @@ public class QualityAlertController {
      * 处理告警：状态置为已处理
      */
     @PutMapping("/process")
+    @BusinessOperateLog(type = "数据治理-数据质量-告警记录", bizId = "#id")
     @Operation(summary = "处理告警")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:update')")
@@ -80,6 +82,7 @@ public class QualityAlertController {
      * 删除告警记录。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-告警记录", bizId = "#id")
     @Operation(summary = "删除告警记录")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:delete')")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorytag;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagListReqVO;
@@ -31,6 +32,7 @@ public class CategoryTagController {
     /**
      * 创建标签类目。
      */
+    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建标签类目")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:create')")
@@ -41,6 +43,7 @@ public class CategoryTagController {
     /**
      * 更新标签类目。
      */
+    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新标签类目")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:update')")
@@ -52,6 +55,7 @@ public class CategoryTagController {
     /**
      * 删除标签类目。
      */
+    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除标签类目")
     @Parameter(name = "id", description = "编号", required = true)

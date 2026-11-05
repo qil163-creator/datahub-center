@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataquery;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryFileRespVO;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryFileSaveReqVO;
@@ -36,6 +37,7 @@ public class DataQueryFileController {
     /**
      * 创建目录或 SQL 脚本。
      */
+    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建目录或 SQL 脚本")
     @PreAuthorize("@ss.hasPermission('asset:data-query:save')")
@@ -46,6 +48,7 @@ public class DataQueryFileController {
     /**
      * 更新目录或 SQL 脚本。
      */
+    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新目录或 SQL 脚本")
     @PreAuthorize("@ss.hasPermission('asset:data-query:save')")
@@ -57,6 +60,7 @@ public class DataQueryFileController {
     /**
      * 删除目录或 SQL 脚本。
      */
+    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除目录或 SQL 脚本")
     @Parameter(name = "id", description = "编号", required = true)

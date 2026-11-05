@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.identify;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -53,6 +54,7 @@ public class SafetyIdentifyRuleController {
      * 创建敏感识别规则。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#result")
     @Operation(summary = "创建敏感识别规则")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:create')")
     public CommonResult<Long> createRule(@Valid @RequestBody SafetyIdentifyRuleSaveReqVO createReqVO) {
@@ -63,6 +65,7 @@ public class SafetyIdentifyRuleController {
      * 更新敏感识别规则。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#updateReqVO.id")
     @Operation(summary = "更新敏感识别规则")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:update')")
     public CommonResult<Boolean> updateRule(@Valid @RequestBody SafetyIdentifyRuleSaveReqVO updateReqVO) {
@@ -74,6 +77,7 @@ public class SafetyIdentifyRuleController {
      * 删除敏感识别规则。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#id")
     @Operation(summary = "删除敏感识别规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:delete')")

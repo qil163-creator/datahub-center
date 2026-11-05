@@ -189,7 +189,10 @@ const [Grid, gridApi] = useVbenVxeGrid({
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page
+    auto-content-height
+    content-class="flex min-h-0 flex-col overflow-hidden"
+  >
     <template #doc>
       <DocAlert title="用户体系" url="https://doc.iocoder.cn/user-center/" />
       <DocAlert title="三方登陆" url="https://doc.iocoder.cn/social-user/" />
@@ -204,13 +207,29 @@ const [Grid, gridApi] = useVbenVxeGrid({
     <AssignRoleModal @success="handleRefresh" />
     <ImportModal @success="handleRefresh" />
 
-    <div class="flex h-full w-full">
+    <div class="flex h-full min-h-0 w-full gap-4 overflow-hidden">
       <!-- 左侧部门树 -->
-      <Card class="mr-4 h-full w-1/6">
-        <DeptTreeSelect show-expand-toggle @select="handleDeptSelect" />
+      <Card
+        class="h-full min-h-0 w-1/6 min-w-[240px] shrink-0 overflow-hidden"
+        :styles="{
+          body: {
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            minHeight: 0,
+            overflow: 'hidden',
+            padding: '12px',
+          },
+        }"
+      >
+        <DeptTreeSelect
+          horizontal-scroll
+          show-expand-toggle
+          @select="handleDeptSelect"
+        />
       </Card>
       <!-- 右侧用户列表 -->
-      <div class="w-5/6">
+      <div class="h-full min-h-0 min-w-0 flex-1 overflow-hidden">
         <Grid table-title="用户列表">
           <template #toolbar-tools>
             <TableAction

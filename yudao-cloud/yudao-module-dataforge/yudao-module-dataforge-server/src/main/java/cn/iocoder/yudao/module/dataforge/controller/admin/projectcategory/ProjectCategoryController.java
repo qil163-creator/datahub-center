@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.projectcategory;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.projectcategory.vo.ProjectCategoryKindReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.projectcategory.vo.ProjectCategoryRespVO;
@@ -72,6 +73,7 @@ public class ProjectCategoryController {
      * @return 项目分类
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-项目类目管理", bizId = "#result")
     @Operation(summary = "创建项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:create' : 'dataforge:dev-category:create')")
     public CommonResult<Long> create(@Valid @RequestBody ProjectCategorySaveReqVO request) {
@@ -85,6 +87,7 @@ public class ProjectCategoryController {
      * @return 项目分类
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-项目类目管理", bizId = "#request.id")
     @Operation(summary = "修改项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:update' : 'dataforge:dev-category:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody ProjectCategorySaveReqVO request) {
@@ -100,6 +103,7 @@ public class ProjectCategoryController {
      * @return 项目分类
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-项目类目管理", bizId = "#id")
     @Operation(summary = "删除无子级和任务引用的项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:delete' : 'dataforge:dev-category:delete')")
     public CommonResult<Boolean> delete(@Valid ProjectCategoryKindReqVO request, @RequestParam @Positive Long id) {
@@ -115,6 +119,7 @@ public class ProjectCategoryController {
      * @return 项目分类
      */
     @DeleteMapping("/delete-list")
+    @BusinessOperateLog(type = "数据开发-项目类目管理", bizId = "#ids")
     @Operation(summary = "按叶子到父级的顺序整批删除项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:delete' : 'dataforge:dev-category:delete')")
     public CommonResult<Boolean> deleteList(@Valid ProjectCategoryKindReqVO request,
@@ -130,6 +135,7 @@ public class ProjectCategoryController {
      * @return 项目分类
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据开发-项目类目管理", bizId = "#request.id")
     @Operation(summary = "仅修改项目类目启停状态")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:update' : 'dataforge:dev-category:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody ProjectCategoryStatusReqVO request) {

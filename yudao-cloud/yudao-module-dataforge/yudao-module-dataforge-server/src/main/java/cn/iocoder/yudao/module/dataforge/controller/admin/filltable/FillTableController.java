@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.filltable;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.*;
@@ -40,6 +41,7 @@ public class FillTableController {
      * @return 填报表
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表", bizId = "#result")
     @Operation(summary = "创建填报表")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:create')")
     public CommonResult<Long> createFillTable(@Valid @RequestBody FillTableSaveReqVO createReqVO) {
@@ -53,6 +55,7 @@ public class FillTableController {
      * @return 填报表
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表", bizId = "#updateReqVO.id")
     @Operation(summary = "更新填报表（已发布需先取消发布）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
     public CommonResult<Boolean> updateFillTable(@Valid @RequestBody FillTableSaveReqVO updateReqVO) {
@@ -67,6 +70,7 @@ public class FillTableController {
      * @return 填报表
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表", bizId = "#id")
     @Operation(summary = "删除填报表（级联删除字段配置）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:delete')")
@@ -109,6 +113,7 @@ public class FillTableController {
      * @return 填报表
      */
     @PutMapping("/release")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表", bizId = "#id")
     @Operation(summary = "发布填报表（在目标数据源创建物理表）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
@@ -124,6 +129,7 @@ public class FillTableController {
      * @return 填报表
      */
     @PutMapping("/cancel")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表", bizId = "#id")
     @Operation(summary = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")

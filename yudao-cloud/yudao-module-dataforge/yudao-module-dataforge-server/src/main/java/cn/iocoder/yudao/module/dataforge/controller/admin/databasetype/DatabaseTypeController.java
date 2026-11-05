@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.databasetype;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -48,6 +49,7 @@ public class DatabaseTypeController {
      * @return 数据库类型
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据库类型定义", bizId = "#result")
     @Operation(summary = "创建数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:create')")
     public CommonResult<Long> createDatabaseType(@Valid @RequestBody DatabaseTypeSaveReqVO createReqVO) {
@@ -61,6 +63,7 @@ public class DatabaseTypeController {
      * @return 数据库类型
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据库类型定义", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
     public CommonResult<Boolean> updateDatabaseType(@Valid @RequestBody DatabaseTypeSaveReqVO updateReqVO) {
@@ -69,6 +72,7 @@ public class DatabaseTypeController {
     }
 
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据开发-数据库类型定义", bizId = "#request.id")
     @Operation(summary = "更新数据库类型状态")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
     public CommonResult<Boolean> updateDatabaseTypeStatus(@Valid @RequestBody DatabaseTypeStatusReqVO request) {
@@ -83,6 +87,7 @@ public class DatabaseTypeController {
      * @return 数据库类型
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据库类型定义", bizId = "#id")
     @Operation(summary = "删除数据库类型定义")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:delete')")
@@ -99,6 +104,7 @@ public class DatabaseTypeController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据开发-数据库类型定义", bizId = "#ids")
     @Operation(summary = "批量删除数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:delete')")
     public CommonResult<Boolean> deleteDatabaseTypeList(@RequestParam("ids") List<Long> ids) {

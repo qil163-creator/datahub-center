@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorydataasset;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -40,6 +41,7 @@ public class CategoryDataAssetController {
      *  @param createReqVO 创建信息
      *  @return 编号
      */
+    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建数据资产类目管理")
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:create')")
@@ -52,6 +54,7 @@ public class CategoryDataAssetController {
      *
      *  @param updateReqVO 更新信息
      */
+    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新数据资产类目管理")
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:update')")
@@ -65,6 +68,7 @@ public class CategoryDataAssetController {
      *
      *  @param id 编号
      */
+    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数据资产类目管理")
     @Parameter(name = "id", description = "编号", required = true)

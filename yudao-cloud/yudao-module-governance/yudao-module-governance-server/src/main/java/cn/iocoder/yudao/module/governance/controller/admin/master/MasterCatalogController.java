@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterCatalogRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterCatalogSaveReqVO;
@@ -30,6 +31,7 @@ public class MasterCatalogController {
      * 创建主数据目录节点
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#result")
     @Operation(summary = "创建主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:create')")
     public CommonResult<Long> createCatalog(@Valid @RequestBody MasterCatalogSaveReqVO createReqVO) {
@@ -40,6 +42,7 @@ public class MasterCatalogController {
      * 更新主数据目录节点（父级与类型不可变更）
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#updateReqVO.id")
     @Operation(summary = "更新主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:update')")
     public CommonResult<Boolean> updateCatalog(@Valid @RequestBody MasterCatalogSaveReqVO updateReqVO) {
@@ -51,6 +54,7 @@ public class MasterCatalogController {
      * 删除主数据目录节点（存在子节点或已建模型时拒绝）
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#id")
     @Operation(summary = "删除主数据目录节点")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:delete')")

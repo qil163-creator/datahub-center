@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.category;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -50,6 +51,7 @@ public class SafetyCategoryController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#result")
     @Operation(summary = "创建数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:create')")
     public CommonResult<Long> createCategory(@Valid @RequestBody SafetyCategorySaveReqVO createReqVO) {
@@ -62,6 +64,7 @@ public class SafetyCategoryController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> updateCategory(@Valid @RequestBody SafetyCategorySaveReqVO updateReqVO) {
@@ -75,6 +78,7 @@ public class SafetyCategoryController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#id")
     @Operation(summary = "删除数据分类信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category:delete')")
@@ -90,6 +94,7 @@ public class SafetyCategoryController {
      * @param request 批量删除请求，包含分类编号与预期修订号
      */
     @PostMapping("/delete-list")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#request.items.![id]")
     @Operation(summary = "批量删除数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:delete')")
     public CommonResult<Boolean> deleteCategoryList(@Valid @RequestBody SafetyCategoryBatchReqVO request) {
@@ -156,6 +161,7 @@ public class SafetyCategoryController {
      * 修改分类启停状态。
      */
     @PutMapping("/change-status")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#request.id")
     @Operation(summary = "修改分类启停状态")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> changeStatus(@Valid @RequestBody SafetyCategoryStatusReqVO request) {
@@ -167,6 +173,7 @@ public class SafetyCategoryController {
      * 批量指定数据分级。
      */
     @PutMapping("/batch-level")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#request.items.![id]")
     @Operation(summary = "批量指定数据分级")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> assignLevel(@Valid @RequestBody SafetyCategoryBatchLevelReqVO request) {
@@ -188,6 +195,7 @@ public class SafetyCategoryController {
      * 保存分类展示脱敏配置及规则版本。
      */
     @PutMapping("/mask")
+    @BusinessOperateLog(type = "数据治理-数据分类信息", bizId = "#request.id")
     @Operation(summary = "保存分类展示脱敏配置及规则版本")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> saveMask(@Valid @RequestBody SafetyCategoryMaskReqVO request) {

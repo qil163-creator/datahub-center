@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.framework.operatelog.config;
 
 import cn.iocoder.yudao.framework.operatelog.core.service.LogRecordServiceImpl;
+import cn.iocoder.yudao.framework.operatelog.core.aop.BusinessOperateLogAspect;
+import cn.iocoder.yudao.framework.common.biz.system.logger.OperateLogCommonApi;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.starter.annotation.EnableLogRecord;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,11 @@ public class YudaoOperateLogConfiguration {
     @Primary
     public ILogRecordService iLogRecordServiceImpl() {
         return new LogRecordServiceImpl();
+    }
+
+    @Bean
+    public BusinessOperateLogAspect businessOperateLogAspect(OperateLogCommonApi operateLogApi) {
+        return new BusinessOperateLogAspect(operateLogApi);
     }
 
 }

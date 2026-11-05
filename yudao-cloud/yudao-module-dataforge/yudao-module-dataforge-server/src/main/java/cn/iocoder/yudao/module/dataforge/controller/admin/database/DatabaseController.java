@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.database;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -42,6 +43,7 @@ public class DatabaseController {
      * @return 数据源
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#result")
     @Operation(summary = "创建数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:create')")
     @ApiAccessLog(requestEnable = false, responseEnable = false)
@@ -56,6 +58,7 @@ public class DatabaseController {
      * @return 数据源
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     @ApiAccessLog(requestEnable = false, responseEnable = false)
@@ -71,6 +74,7 @@ public class DatabaseController {
      * @return 数据源
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#id")
     @Operation(summary = "删除数据库信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
@@ -87,6 +91,7 @@ public class DatabaseController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#ids")
     @Operation(summary = "批量删除数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
     public CommonResult<Boolean> deleteDatabaseList(@RequestParam("ids") List<Long> ids) {

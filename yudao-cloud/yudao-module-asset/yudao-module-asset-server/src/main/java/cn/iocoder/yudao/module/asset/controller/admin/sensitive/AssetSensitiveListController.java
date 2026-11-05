@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.sensitive;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.asset.controller.admin.sensitive.vo.*;
 import cn.iocoder.yudao.module.asset.service.sensitive.AssetSensitiveListService;
@@ -48,6 +49,7 @@ public class AssetSensitiveListController {
     /**
      * 创建敏感清单记录，默认禁用。
      */
+    @BusinessOperateLog(type = "数据资产-资产敏感清单", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建敏感清单记录，默认禁用")
     @PreAuthorize("@ss.hasPermission('asset:sensitive-list:create')")
@@ -58,6 +60,7 @@ public class AssetSensitiveListController {
     /**
      * 修改禁用状态的敏感清单记录。
      */
+    @BusinessOperateLog(type = "数据资产-资产敏感清单", bizId = "#req.id")
     @PutMapping("/update")
     @Operation(summary = "修改禁用状态的敏感清单记录")
     @PreAuthorize("@ss.hasPermission('asset:sensitive-list:update')")
@@ -69,6 +72,7 @@ public class AssetSensitiveListController {
     /**
      * 按修订号启用或禁用敏感清单记录。
      */
+    @BusinessOperateLog(type = "数据资产-资产敏感清单", bizId = "#req.id")
     @PutMapping("/change-status")
     @Operation(summary = "按修订号启用或禁用敏感清单记录")
     @PreAuthorize("@ss.hasPermission('asset:sensitive-list:update')")
@@ -80,6 +84,7 @@ public class AssetSensitiveListController {
     /**
      * 删除禁用状态的敏感清单记录。
      */
+    @BusinessOperateLog(type = "数据资产-资产敏感清单", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除禁用状态的敏感清单记录")
     @PreAuthorize("@ss.hasPermission('asset:sensitive-list:delete')")
@@ -94,6 +99,7 @@ public class AssetSensitiveListController {
     /**
      * 原子校验所选范围并批量删除禁用项，返回跳过的启用项。
      */
+    @BusinessOperateLog(type = "数据资产-资产敏感清单", bizId = "#result.deletedIds")
     @PostMapping("/delete-list")
     @Operation(summary = "原子校验所选范围并批量删除禁用项，返回跳过的启用项")
     @PreAuthorize("@ss.hasPermission('asset:sensitive-list:delete')")

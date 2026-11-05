@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fileresource;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.*;
@@ -130,6 +131,7 @@ public class FileResourceController {
      * @return 文件资源
      */
     @PostMapping("/upload")
+    @BusinessOperateLog(type = "数据开发-外部文件管理", bizId = "#connectionId")
     @Operation(summary = "上传文件到选定连接目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:create')")
     @ApiAccessLog(requestEnable = false)
@@ -146,6 +148,7 @@ public class FileResourceController {
      * @return 文件资源
      */
     @PostMapping("/mkdir")
+    @BusinessOperateLog(type = "数据开发-外部文件管理", bizId = "#req.connectionId")
     @Operation(summary = "创建远程文件夹")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:create')")
     public CommonResult<Boolean> mkdir(@Valid @RequestBody FileResourceNameReqVO req) {
@@ -160,6 +163,7 @@ public class FileResourceController {
      * @return 文件资源
      */
     @PutMapping("/rename")
+    @BusinessOperateLog(type = "数据开发-外部文件管理", bizId = "#req.connectionId")
     @Operation(summary = "重命名远程文件或目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:update')")
     public CommonResult<Boolean> rename(@Valid @RequestBody FileResourceNameReqVO req) {
@@ -174,6 +178,7 @@ public class FileResourceController {
      * @return 文件资源批次响应数据
      */
     @PostMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-外部文件管理", bizId = "#req.connectionId", action = "执行远程文件批量删除（逐项结果见业务回执）")
     @Operation(summary = "逐项删除远程文件或目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:delete')")
     public CommonResult<FileResourceBatchRespVO> delete(@Valid @RequestBody FileResourceBatchReqVO req) {

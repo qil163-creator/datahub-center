@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.dataapi;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -34,6 +35,7 @@ public class DataApiController {
      * @param createReqVO 创建参数
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:create')")
@@ -47,6 +49,7 @@ public class DataApiController {
      * @param updateReqVO 更新参数
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:update')")
@@ -61,6 +64,7 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "上线/下线 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
@@ -75,6 +79,7 @@ public class DataApiController {
      * @param id 记录编号
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除 API 服务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -222,6 +227,7 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
     @PostMapping("/publish")
     @Operation(summary = "发布当前草稿为不可变快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
@@ -235,6 +241,7 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
+    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
     @PostMapping("/rollback")
     @Operation(summary = "回滚到既有发布快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:rollback')")

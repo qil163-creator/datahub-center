@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.planning.vo.bizcategory.*;
 import cn.iocoder.yudao.module.modeling.service.planning.BizCategoryService;
@@ -31,6 +32,7 @@ public class BizCategoryController {
      * @param createReqVO 创建参数
      * @return 业务分类
      */
+    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建业务分类")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:create')")
@@ -44,6 +46,7 @@ public class BizCategoryController {
      * @param updateReqVO 更新参数
      * @return 业务分类
      */
+    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新业务分类")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
@@ -58,6 +61,7 @@ public class BizCategoryController {
      * @param reqVO 请求参数
      * @return 业务分类
      */
+    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "更新业务分类状态")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
@@ -73,6 +77,7 @@ public class BizCategoryController {
      * @param id 记录编号
      * @return 业务分类
      */
+    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务分类")
     @Parameter(name = "id", description = "编号", required = true)

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.qualityrule;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -57,6 +58,7 @@ public class AuditRuleController {
      * 创建稽查规则。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量稽查规则", bizId = "#result")
     @Operation(summary = "创建稽查规则")
     @PreAuthorize("@ss.hasPermission('governance:audit-rule:create')")
     public CommonResult<Long> createAuditRule(@Valid @RequestBody AuditRuleSaveReqVO createReqVO) {
@@ -67,6 +69,7 @@ public class AuditRuleController {
      * 更新稽查规则。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量稽查规则", bizId = "#updateReqVO.id")
     @Operation(summary = "更新稽查规则")
     @PreAuthorize("@ss.hasPermission('governance:audit-rule:update')")
     public CommonResult<Boolean> updateAuditRule(@Valid @RequestBody AuditRuleSaveReqVO updateReqVO) {
@@ -78,6 +81,7 @@ public class AuditRuleController {
      * 更新稽查规则状态。
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-数据质量稽查规则", bizId = "#id")
     @Operation(summary = "更新稽查规则状态")
     @PreAuthorize("@ss.hasPermission('governance:audit-rule:update')")
     public CommonResult<Boolean> updateAuditRuleStatus(@RequestParam("id") Long id,
@@ -90,6 +94,7 @@ public class AuditRuleController {
      * 删除稽查规则。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量稽查规则", bizId = "#id")
     @Operation(summary = "删除稽查规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:audit-rule:delete')")

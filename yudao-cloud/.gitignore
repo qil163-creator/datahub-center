@@ -59,6 +59,9 @@ application-my.yaml
 /.agents/
 /.workflow/
 /docs/
+!/docs/
+/docs/*
+!/docs/audit/
 /script/
 /sql/
 /tools/

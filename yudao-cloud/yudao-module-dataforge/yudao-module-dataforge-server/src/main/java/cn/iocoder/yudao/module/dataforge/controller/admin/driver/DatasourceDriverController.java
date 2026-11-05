@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.driver;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -43,6 +44,7 @@ public class DatasourceDriverController {
      * @return 数据源驱动
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据源驱动管理", bizId = "#result")
     @Operation(summary = "创建数据源驱动管理")
     @PreAuthorize("@ss.hasPermission('dataforge:datasource-driver:create')")
     public CommonResult<Long> createDatasourceDriver(@Valid @RequestBody DatasourceDriverSaveReqVO createReqVO) {
@@ -56,6 +58,7 @@ public class DatasourceDriverController {
      * @return 数据源驱动
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据源驱动管理", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据源驱动管理")
     @PreAuthorize("@ss.hasPermission('dataforge:datasource-driver:update')")
     public CommonResult<Boolean> updateDatasourceDriver(@Valid @RequestBody DatasourceDriverSaveReqVO updateReqVO) {
@@ -70,6 +73,7 @@ public class DatasourceDriverController {
      * @return 数据源驱动
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据源驱动管理", bizId = "#id")
     @Operation(summary = "删除数据源驱动管理")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:datasource-driver:delete')")
@@ -86,6 +90,7 @@ public class DatasourceDriverController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据开发-数据源驱动管理", bizId = "#ids")
     @Operation(summary = "批量删除数据源驱动管理")
     @PreAuthorize("@ss.hasPermission('dataforge:datasource-driver:delete')")
     public CommonResult<Boolean> deleteDatasourceDriverList(@RequestParam("ids") List<Long> ids) {

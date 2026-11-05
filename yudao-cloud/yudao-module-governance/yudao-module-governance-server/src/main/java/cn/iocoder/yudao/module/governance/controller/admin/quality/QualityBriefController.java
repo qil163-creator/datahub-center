@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -40,6 +41,7 @@ public class QualityBriefController {
      *  @return 简报编号
      */
     @PostMapping("/generate")
+    @BusinessOperateLog(type = "数据治理-数据质量-质检简报", bizId = "#result")
     @Operation(summary = "生成简报（按模板渲染变量与附表）")
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:create')")
     public CommonResult<Long> generateBrief(@Valid @RequestBody QualityBriefGenerateReqVO reqVO) {
@@ -50,6 +52,7 @@ public class QualityBriefController {
      * 发布简报
      */
     @PutMapping("/publish")
+    @BusinessOperateLog(type = "数据治理-数据质量-质检简报", bizId = "#id")
     @Operation(summary = "发布简报")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:update')")
@@ -62,6 +65,7 @@ public class QualityBriefController {
      * 删除简报。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-质检简报", bizId = "#id")
     @Operation(summary = "删除简报")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:delete')")

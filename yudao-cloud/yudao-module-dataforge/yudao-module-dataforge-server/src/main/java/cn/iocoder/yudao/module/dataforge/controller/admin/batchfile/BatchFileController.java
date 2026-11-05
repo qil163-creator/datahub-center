@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.batchfile;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
@@ -89,6 +90,7 @@ public class BatchFileController {
      * @return 文件
      */
     @PostMapping("/upload")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#result.id")
     @Operation(summary = "上传并解析当前用户的文件")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
     @ApiAccessLog(operateType = OperateTypeEnum.IMPORT, requestEnable = false)
@@ -103,6 +105,7 @@ public class BatchFileController {
      * @return 文件
      */
     @PostMapping("/system-file")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#result.id")
     @Operation(summary = "选择已授权的系统文件并解析")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
     @ApiAccessLog(operateType = OperateTypeEnum.IMPORT, requestEnable = false)
@@ -117,6 +120,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @DeleteMapping("/upload")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#id")
     @Operation(summary = "移除本人未绑定素材")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
     public CommonResult<Boolean> removeUpload(@RequestParam Long id) {
@@ -131,6 +135,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#result")
     @Operation(summary = "保存四步入库配置，不执行数据写入")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:create')")
     public CommonResult<Long> create(@Valid @RequestBody Save request) {
@@ -144,6 +149,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#request.id")
     @Operation(summary = "修改已下线且无活动运行的任务")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody Save request) {
@@ -159,6 +165,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#id")
     @Operation(summary = "删除已下线任务")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:delete')")
     public CommonResult<Boolean> delete(@RequestParam Long id, @RequestParam Long revision) {
@@ -173,6 +180,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @PutMapping("/status")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#request.id")
     @Operation(summary = "修改上线状态")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody Status request) {
@@ -187,6 +195,7 @@ public class BatchFileController {
      * @return 回执
      */
     @PostMapping("/execute")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#request.id")
     @Operation(summary = "幂等排队执行一次")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:execute')")
     public CommonResult<Receipt> execute(@Valid @RequestBody Execute request) {
@@ -226,6 +235,7 @@ public class BatchFileController {
      * @return 批次文件
      */
     @PostMapping("/resolve")
+    @BusinessOperateLog(type = "数据开发-批量文件入库", bizId = "#request.id")
     @Operation(summary = "人工核查未知结果并解除任务占用")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:execute')")
     public CommonResult<Boolean> resolve(@Valid @RequestBody Resolve request) {

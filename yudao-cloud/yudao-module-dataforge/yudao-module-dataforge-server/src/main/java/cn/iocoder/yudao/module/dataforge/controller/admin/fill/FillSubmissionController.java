@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillSubmissionPreviewRespVO;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillSubmissionService;
@@ -50,6 +51,7 @@ public class FillSubmissionController {
      * @return 填报提交
      */
     @PutMapping("/withdraw")
+    @BusinessOperateLog(type = "数据开发-在线填报提交快照", bizId = "#id")
     @Operation(summary = "撤回审批中的提交（仅实际提交人）",
             description = "先经 BPM 成功终止流程实例；保留原快照，实例转入整改中")
     @Parameter(name = "id", description = "提交快照编号", required = true)

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.apitest;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.supply.controller.admin.apitest.vo.ApiTestCatalogRespVO;
@@ -65,6 +66,7 @@ public class ApiTestController {
      * @param reqVO 请求参数
      * @return API测试发送响应数据
      */
+    @BusinessOperateLog(type = "数据服务-HTTP 接口测试", action = "发起真实接口测试请求", bizId = "#reqVO.apiId")
     @PostMapping("/send")
     @Operation(summary = "发送登记 API 或公开 HTTP 地址的真实测试请求")
     @ApiAccessLog(requestEnable = false, responseEnable = false)

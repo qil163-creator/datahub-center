@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.EtlFileOutputRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.EtlFileRetryReqVO;
@@ -105,6 +106,7 @@ public class EtlFileOutputController {
      * @return ETL 文件输出
      */
     @PostMapping("/retry")
+    @BusinessOperateLog(type = "数据开发-ETL 文件输出对账", bizId = "#request.id")
     @Operation(summary = "按修订号重试本人已失去租约的文件对账，不强制覆盖或删除文件")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') && (@ss.hasPermission('dataforge:etl:run') || @ss.hasPermission('dataforge:etl:file-cleanup'))")
     public CommonResult<Boolean> retry(@Valid @RequestBody EtlFileRetryReqVO request) {
@@ -119,6 +121,7 @@ public class EtlFileOutputController {
      * @return ETL 文件输出响应数据
      */
     @PostMapping("/retire")
+    @BusinessOperateLog(type = "数据开发-ETL 文件输出对账", bizId = "#request.id")
     @Operation(summary = "明确确认后申请清理本人已发布文件，后台在到期且身份可证明时执行")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') && @ss.hasPermission('dataforge:etl:file-cleanup')")
     public CommonResult<EtlFileOutputRespVO> retire(@Valid @RequestBody EtlFileRetireReqVO request) {

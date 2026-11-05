@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.filltable;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.FillTableColumnRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.FillTableColumnSaveReqVO;
@@ -47,6 +48,7 @@ public class FillTableColumnController {
      * @return 填报表列
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表字段", bizId = "#result")
     @Operation(summary = "创建填报表字段")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
     public CommonResult<Long> createColumn(@Valid @RequestBody FillTableColumnSaveReqVO createReqVO) {
@@ -60,6 +62,7 @@ public class FillTableColumnController {
      * @return 填报表列
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表字段", bizId = "#updateReqVO.id")
     @Operation(summary = "更新填报表字段")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
     public CommonResult<Boolean> updateColumn(@Valid @RequestBody FillTableColumnSaveReqVO updateReqVO) {
@@ -74,6 +77,7 @@ public class FillTableColumnController {
      * @return 填报表列
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据填报-填报表字段", bizId = "#id")
     @Operation(summary = "删除填报表字段")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")

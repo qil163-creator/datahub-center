@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.*;
@@ -28,6 +29,7 @@ public class MarketDemandController {
     /**
      * 创建数据需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建数据需求")
     @PreAuthorize("@ss.hasPermission('asset:demand:create')")
@@ -38,6 +40,7 @@ public class MarketDemandController {
     /**
      * 修改数据需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#reqVO.id")
     @PutMapping("/update")
     @Operation(summary = "修改数据需求")
     @PreAuthorize("@ss.hasPermission('asset:demand:create')")
@@ -49,6 +52,7 @@ public class MarketDemandController {
     /**
      * 删除草稿需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除草稿需求")
     @PreAuthorize("@ss.hasPermission('asset:demand:create')")
@@ -60,6 +64,7 @@ public class MarketDemandController {
     /**
      * 发布到需求大厅。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#id")
     @PutMapping("/publish")
     @Operation(summary = "发布到需求大厅")
     @PreAuthorize("@ss.hasPermission('asset:demand:submit')")
@@ -71,6 +76,7 @@ public class MarketDemandController {
     /**
      * 关闭、撤销或驳回需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#reqVO.id")
     @PutMapping("/close")
     @Operation(summary = "关闭、撤销或驳回需求")
     @PreAuthorize("@ss.hasAnyPermissions('asset:demand:close', 'asset:demand:match')")
@@ -102,6 +108,7 @@ public class MarketDemandController {
     /**
      * 响应需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#reqVO.demandId")
     @PostMapping("/reply")
     @Operation(summary = "响应需求")
     @PreAuthorize("@ss.hasPermission('asset:demand:match')")
@@ -112,6 +119,7 @@ public class MarketDemandController {
     /**
      * 把已有资产匹配到需求。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#reqVO.demandId")
     @PostMapping("/match")
     @Operation(summary = "把已有资产匹配到需求")
     @PreAuthorize("@ss.hasPermission('asset:demand:match')")
@@ -122,6 +130,7 @@ public class MarketDemandController {
     /**
      * 需求方确认匹配。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#reqVO.id")
     @PutMapping("/match/confirm")
     @Operation(summary = "需求方确认匹配")
     @PreAuthorize("@ss.hasPermission('asset:demand:submit')")
@@ -133,6 +142,7 @@ public class MarketDemandController {
     /**
      * 验收已交付需求，已匹配不等于已解决。
      */
+    @BusinessOperateLog(type = "数据资产-供需对接", bizId = "#id")
     @PutMapping("/accept")
     @Operation(summary = "验收已交付需求，已匹配不等于已解决")
     @PreAuthorize("@ss.hasPermission('asset:demand:submit')")

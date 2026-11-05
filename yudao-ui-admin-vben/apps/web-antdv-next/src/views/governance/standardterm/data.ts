@@ -247,15 +247,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
       },
     },
     {
-      fieldName: 'engName',
-      label: '英文名称',
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: '请输入英文名称',
-      },
-    },
-    {
       fieldName: 'status',
       label: '状态',
       component: 'Select',

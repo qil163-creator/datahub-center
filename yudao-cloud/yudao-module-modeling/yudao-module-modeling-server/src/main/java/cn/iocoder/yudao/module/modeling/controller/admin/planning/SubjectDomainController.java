@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.planning.vo.subjectdomain.*;
 import cn.iocoder.yudao.module.modeling.service.planning.SubjectDomainService;
@@ -35,6 +36,7 @@ public class SubjectDomainController {
      * @param createReqVO 创建参数
      * @return 主题域
      */
+    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建主题域")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:create')")
@@ -48,6 +50,7 @@ public class SubjectDomainController {
      * @param updateReqVO 更新参数
      * @return 主题域
      */
+    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新主题域")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:update')")
@@ -62,6 +65,7 @@ public class SubjectDomainController {
      * @param reqVO 请求参数
      * @return 主题域
      */
+    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "更新主题域状态")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:update')")
@@ -77,6 +81,7 @@ public class SubjectDomainController {
      * @param id 记录编号
      * @return 主题域
      */
+    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除主题域")
     @Parameter(name = "id", description = "编号", required = true)

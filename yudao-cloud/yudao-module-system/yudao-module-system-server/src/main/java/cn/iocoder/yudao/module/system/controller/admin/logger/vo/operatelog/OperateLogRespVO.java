@@ -53,6 +53,15 @@ public class OperateLogRespVO implements VO {
     @Schema(description = "操作明细", example = "修改编号为 1 的用户信息，将性别从男改成女，将姓名从芋道改成源码。")
     private String action;
 
+    /** 兼容早期统一日志的重复编号后缀，编号由独立字段展示，原始审计内容保留。 */
+    public String getAction() {
+        if (action == null || bizId == null || !action.startsWith("操作请求成功：")) {
+            return action;
+        }
+        String suffix = "；业务编号：" + bizId;
+        return action.endsWith(suffix) ? action.substring(0, action.length() - suffix.length()) : action;
+    }
+
     @Schema(description = "拓展字段", example = "{'orderId': 1}")
     private String extra;
 

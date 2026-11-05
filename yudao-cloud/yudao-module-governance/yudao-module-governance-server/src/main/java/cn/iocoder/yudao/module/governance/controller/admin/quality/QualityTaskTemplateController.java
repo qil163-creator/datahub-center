@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -36,6 +37,7 @@ public class QualityTaskTemplateController {
      * 创建任务模板。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量-任务模板", bizId = "#result")
     @Operation(summary = "创建任务模板")
     @PreAuthorize("@ss.hasPermission('governance:quality-task-template:create')")
     public CommonResult<Long> createTemplate(@Valid @RequestBody QualityTaskTemplateSaveReqVO createReqVO) {
@@ -46,6 +48,7 @@ public class QualityTaskTemplateController {
      * 更新任务模板。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量-任务模板", bizId = "#updateReqVO.id")
     @Operation(summary = "更新任务模板")
     @PreAuthorize("@ss.hasPermission('governance:quality-task-template:update')")
     public CommonResult<Boolean> updateTemplate(@Valid @RequestBody QualityTaskTemplateSaveReqVO updateReqVO) {
@@ -57,6 +60,7 @@ public class QualityTaskTemplateController {
      * 更新任务模板状态。
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-数据质量-任务模板", bizId = "#id")
     @Operation(summary = "更新任务模板状态")
     @PreAuthorize("@ss.hasPermission('governance:quality-task-template:update')")
     public CommonResult<Boolean> updateTemplateStatus(@RequestParam("id") Long id,
@@ -69,6 +73,7 @@ public class QualityTaskTemplateController {
      * 删除任务模板。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-任务模板", bizId = "#id")
     @Operation(summary = "删除任务模板")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-task-template:delete')")
@@ -105,6 +110,7 @@ public class QualityTaskTemplateController {
      *  @return 本次新生成的任务数
      */
     @PostMapping("/materialize")
+    @BusinessOperateLog(type = "数据治理-数据质量-任务模板", bizId = "#id")
     @Operation(summary = "同步物化：按模板批量生成检测任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-task-template:update')")

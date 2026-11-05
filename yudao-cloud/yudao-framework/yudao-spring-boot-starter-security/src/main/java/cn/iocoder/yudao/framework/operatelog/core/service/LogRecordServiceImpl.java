@@ -25,6 +25,8 @@ import java.util.List;
 @Slf4j
 public class LogRecordServiceImpl implements ILogRecordService {
 
+    private static final String RECORDED_COUNT = LogRecordServiceImpl.class.getName() + ".recordedCount";
+
     @Resource
     private OperateLogCommonApi operateLogApi;
 
@@ -32,20 +34,35 @@ public class LogRecordServiceImpl implements ILogRecordService {
     public void record(LogRecord logRecord) {
         OperateLogCreateReqDTO reqDTO = new OperateLogCreateReqDTO();
         try {
-            reqDTO.setTraceId(TracerUtils.getTraceId());
-            // 补充用户信息
-            fillUserFields(reqDTO);
-            // 补全模块信息
-            fillModuleFields(reqDTO, logRecord);
-            // 补全请求信息
-            fillRequestFields(reqDTO);
+            reqDTO = createRequest(logRecord);
 
             // 2. 异步记录日志
             operateLogApi.createOperateLogAsync(reqDTO);
+            HttpServletRequest request = ServletUtils.getRequest();
+            if (request != null) {
+                request.setAttribute(RECORDED_COUNT, recordedCount() + 1);
+            }
         } catch (Throwable ex) {
             // 由于 @Async 异步调用，这里打印下日志，更容易跟进
             log.error("[record][url({}) log({}) 发生异常]", reqDTO.getRequestUrl(), reqDTO, ex);
         }
+    }
+
+    /** 捕获调用时的可信身份与请求上下文，供提交后投递复用。 */
+    public static OperateLogCreateReqDTO createRequest(LogRecord record) {
+        OperateLogCreateReqDTO request = new OperateLogCreateReqDTO();
+        request.setTraceId(TracerUtils.getTraceId());
+        fillUserFields(request);
+        fillModuleFields(request, record);
+        fillRequestFields(request);
+        return request;
+    }
+
+    /** 当前请求内已投递的详细日志数量，用于汇总入口去重。 */
+    public static int recordedCount() {
+        HttpServletRequest request = ServletUtils.getRequest();
+        Object count = request == null ? null : request.getAttribute(RECORDED_COUNT);
+        return count instanceof Integer number ? number : 0;
     }
 
     private static void fillUserFields(OperateLogCreateReqDTO reqDTO) {

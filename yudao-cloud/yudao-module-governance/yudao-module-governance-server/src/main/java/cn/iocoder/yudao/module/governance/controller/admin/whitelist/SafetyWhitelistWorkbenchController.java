@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.whitelist;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.governance.controller.admin.whitelist.vo.*;
 import cn.iocoder.yudao.module.governance.service.whitelist.SafetyWhitelistWorkbenchService;
@@ -68,6 +69,7 @@ public class SafetyWhitelistWorkbenchController {
      * 配置分类范围白名单并记录本地授权依据。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-分类脱敏白名单工作台", bizId = "#result")
     @Operation(summary = "配置分类范围白名单并记录本地授权依据")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:create')")
     public CommonResult<Long> create(@Valid @RequestBody SafetyWhitelistWorkbenchSaveReqVO req) {
@@ -78,6 +80,7 @@ public class SafetyWhitelistWorkbenchController {
      * 修改分类范围白名单。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-分类脱敏白名单工作台", bizId = "#req.id")
     @Operation(summary = "修改分类范围白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody SafetyWhitelistWorkbenchSaveReqVO req) {
@@ -89,6 +92,7 @@ public class SafetyWhitelistWorkbenchController {
      * 修改分类范围白名单状态。
      */
     @PutMapping("/change-status")
+    @BusinessOperateLog(type = "数据治理-分类脱敏白名单工作台", bizId = "#req.id")
     @Operation(summary = "修改分类范围白名单状态")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody SafetyWhitelistWorkbenchStatusReqVO req) {
@@ -100,6 +104,7 @@ public class SafetyWhitelistWorkbenchController {
      * 删除停用分类白名单。
      */
     @PostMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-分类脱敏白名单工作台", bizId = "#req.id")
     @Operation(summary = "删除停用分类白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> delete(@Valid @RequestBody SafetyWhitelistWorkbenchVersionReqVO req) {
@@ -111,6 +116,7 @@ public class SafetyWhitelistWorkbenchController {
      * 原子批量删除停用分类白名单。
      */
     @PostMapping("/delete-list")
+    @BusinessOperateLog(type = "数据治理-分类脱敏白名单工作台", bizId = "#req.items.![id]")
     @Operation(summary = "原子批量删除停用分类白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> deleteList(@Valid @RequestBody SafetyWhitelistWorkbenchBatchReqVO req) {

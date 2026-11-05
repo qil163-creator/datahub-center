@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.push;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.push.vo.DataPushConfigPageReqVO;
@@ -35,6 +36,7 @@ public class DataPushConfigController {
      * @return 数据推送配置
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据开发-数据推送配置", bizId = "#result")
     @Operation(summary = "创建推送配置")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
     public CommonResult<Long> createConfig(@Valid @RequestBody DataPushConfigSaveReqVO createReqVO) {
@@ -48,6 +50,7 @@ public class DataPushConfigController {
      * @return 数据推送配置
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据开发-数据推送配置", bizId = "#updateReqVO.id")
     @Operation(summary = "更新推送配置")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:update')")
     public CommonResult<Boolean> updateConfig(@Valid @RequestBody DataPushConfigSaveReqVO updateReqVO) {
@@ -62,6 +65,7 @@ public class DataPushConfigController {
      * @return 数据推送配置
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据开发-数据推送配置", bizId = "#id")
     @Operation(summary = "删除推送配置")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:delete')")
@@ -118,6 +122,7 @@ public class DataPushConfigController {
      * @return 数据推送配置
      */
     @PostMapping("/copy")
+    @BusinessOperateLog(type = "数据开发-数据推送配置", bizId = "#result")
     @Operation(summary = "复制推送配置")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")

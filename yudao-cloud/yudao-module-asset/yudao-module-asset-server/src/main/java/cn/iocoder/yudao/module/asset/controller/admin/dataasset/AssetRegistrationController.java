@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataasset;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataasset.vo.*;
@@ -39,6 +40,7 @@ public class AssetRegistrationController {
     /**
      * 从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用。
      */
+    @BusinessOperateLog(type = "数据资产-资产注册", bizId = "#result")
     @PostMapping("/register-generic")
     @Operation(summary = "从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:create')")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.businesscondition;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.businesscondition.vo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.indicator.vo.*;
@@ -36,6 +37,7 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
+    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建业务限定定义")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:create')")
@@ -49,6 +51,7 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
+    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#request.id")
     @PutMapping("/update")
     @Operation(summary = "修改未启用的业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:update')")
@@ -64,6 +67,7 @@ public class BusinessConditionController {
      * @param expectedRevision 预期修订号
      * @return 业务限定
      */
+    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未启用的业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:delete')")
@@ -79,6 +83,7 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
+    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#request.id")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:update')")

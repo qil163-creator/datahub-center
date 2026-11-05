@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.doc;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -61,6 +62,7 @@ public class StandardDocController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#result")
     @Operation(summary = "创建标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:create')")
     public CommonResult<Long> createDoc(@Valid @RequestBody StandardDocSaveReqVO createReqVO) {
@@ -71,6 +73,7 @@ public class StandardDocController {
      * 按登记工作台要求校验类目、原文和标准编号后创建。
      */
     @PostMapping("/registration/create")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#result")
     @Operation(summary = "登记标准文件，类目、标准编号和原文必填")
     @PreAuthorize("@ss.hasPermission('governance:doc:create')")
     public CommonResult<Long> registerDoc(@Valid @RequestBody StandardDocSaveReqVO createReqVO) {
@@ -81,6 +84,7 @@ public class StandardDocController {
      * 登记工作台提交完整元信息，允许清空版本号、废止日期。
      */
     @PutMapping("/registration/update")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#updateReqVO.id")
     @Operation(summary = "更新标准文件登记工作台元信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
     public CommonResult<Boolean> updateRegisteredDoc(@Valid @RequestBody StandardDocSaveReqVO updateReqVO) {
@@ -94,6 +98,7 @@ public class StandardDocController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#updateReqVO.id")
     @Operation(summary = "更新标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
     public CommonResult<Boolean> updateDoc(@Valid @RequestBody StandardDocSaveReqVO updateReqVO) {
@@ -107,6 +112,7 @@ public class StandardDocController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#id")
     @Operation(summary = "删除标准文件登记信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:doc:delete')")
@@ -120,6 +126,7 @@ public class StandardDocController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#ids")
     @Operation(summary = "批量删除标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:delete')")
     public CommonResult<Boolean> deleteDocList(@RequestParam("ids") List<Long> ids) {
@@ -198,6 +205,7 @@ public class StandardDocController {
      *  @return 新版本号
      */
     @PutMapping("/publish-version")
+    @BusinessOperateLog(type = "数据治理-标准文件登记信息", bizId = "#id")
     @Operation(summary = "生成标准文件版本快照")
     @Parameter(name = "id", description = "标准文件编号", required = true)
     @Parameter(name = "changeSummary", description = "变更说明")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.qualityrule;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -65,6 +66,7 @@ public class CleanRuleController {
      * 创建清洗规则。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#result")
     @Operation(summary = "创建清洗规则")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:create')")
     public CommonResult<Long> createCleanRule(@Valid @RequestBody CleanRuleSaveReqVO createReqVO) {
@@ -75,6 +77,7 @@ public class CleanRuleController {
      * 更新清洗规则。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#updateReqVO.id")
     @Operation(summary = "更新清洗规则")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")
     public CommonResult<Boolean> updateCleanRule(@Valid @RequestBody CleanRuleSaveReqVO updateReqVO) {
@@ -86,6 +89,7 @@ public class CleanRuleController {
      * 更新清洗规则状态。
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#id")
     @Operation(summary = "更新清洗规则状态")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")
     public CommonResult<Boolean> updateCleanRuleStatus(@RequestParam("id") Long id,
@@ -98,6 +102,7 @@ public class CleanRuleController {
      * 删除清洗规则。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#id")
     @Operation(summary = "删除清洗规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:delete')")

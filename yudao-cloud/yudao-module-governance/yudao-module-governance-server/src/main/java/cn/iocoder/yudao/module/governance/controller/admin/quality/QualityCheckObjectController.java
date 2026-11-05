@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -39,6 +40,7 @@ public class QualityCheckObjectController {
      * 创建检查对象。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量-检查对象", bizId = "#result")
     @Operation(summary = "创建检查对象")
     @PreAuthorize("@ss.hasPermission('governance:quality-check-object:create')")
     public CommonResult<Long> createCheckObject(@Valid @RequestBody QualityCheckObjectSaveReqVO createReqVO) {
@@ -49,6 +51,7 @@ public class QualityCheckObjectController {
      * 更新检查对象。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量-检查对象", bizId = "#updateReqVO.id")
     @Operation(summary = "更新检查对象")
     @PreAuthorize("@ss.hasPermission('governance:quality-check-object:update')")
     public CommonResult<Boolean> updateCheckObject(@Valid @RequestBody QualityCheckObjectSaveReqVO updateReqVO) {
@@ -60,6 +63,7 @@ public class QualityCheckObjectController {
      * 删除检查对象。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-检查对象", bizId = "#id")
     @Operation(summary = "删除检查对象")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-check-object:delete')")

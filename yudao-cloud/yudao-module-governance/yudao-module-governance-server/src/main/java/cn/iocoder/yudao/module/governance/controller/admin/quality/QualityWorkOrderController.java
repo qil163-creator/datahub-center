@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderCommandReqVO;
@@ -39,6 +40,7 @@ public class QualityWorkOrderController {
      * 创建问题工单。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", bizId = "#result")
     @Operation(summary = "创建问题工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:create')")
     public CommonResult<Long> createWorkOrder(@Valid @RequestBody QualityWorkOrderSaveReqVO createReqVO) {
@@ -49,6 +51,7 @@ public class QualityWorkOrderController {
      * 更新问题工单。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", bizId = "#updateReqVO.id")
     @Operation(summary = "更新问题工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:update')")
     public CommonResult<Boolean> updateWorkOrder(@Valid @RequestBody QualityWorkOrderSaveReqVO updateReqVO) {
@@ -60,6 +63,7 @@ public class QualityWorkOrderController {
      * 删除问题工单。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", bizId = "#id")
     @Operation(summary = "删除问题工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:delete')")
     public CommonResult<Boolean> deleteWorkOrder(@RequestParam("id") Long id) {
@@ -102,6 +106,7 @@ public class QualityWorkOrderController {
      * 将质量工单分派给指定处理人，并记录分派信息。
      */
     @PostMapping("/assign")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "分派质量工单", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:assign')")
     public CommonResult<QualityWorkOrderRespVO> assign(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.assign(reqVO));
@@ -111,6 +116,7 @@ public class QualityWorkOrderController {
      * 领取待处理的质量工单任务或记录。
      */
     @PostMapping("/claim")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "领取质量工单", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:claim')")
     public CommonResult<QualityWorkOrderRespVO> claim(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.claim(reqVO));
@@ -120,6 +126,7 @@ public class QualityWorkOrderController {
      * 将质量工单转交给指定处理人，并保留操作轨迹。
      */
     @PostMapping("/transfer")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "转交质量工单", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> transfer(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.transfer(reqVO));
@@ -129,6 +136,7 @@ public class QualityWorkOrderController {
      * 提交处理结果。
      */
     @PostMapping("/submit-resolution")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "提交质量工单处理结果", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> submitResolution(
             @Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -139,6 +147,7 @@ public class QualityWorkOrderController {
      * 受理质量工单复检请求并关联本次提交记录。
      */
     @PostMapping("/recheck")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "提交质量工单复检", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> recheck(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.recheck(reqVO));
@@ -148,6 +157,7 @@ public class QualityWorkOrderController {
      * 校验质量工单处理证据后记录确认结论。
      */
     @PostMapping("/confirm")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "确认质量工单处理结论", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:confirm')")
     public CommonResult<QualityWorkOrderRespVO> confirm(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.confirm(reqVO));
@@ -157,6 +167,7 @@ public class QualityWorkOrderController {
      * 撤销质量工单当前提交或处理状态。
      */
     @PostMapping("/withdraw-submission")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "撤销质量工单提交", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> withdraw(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.withdraw(reqVO));
@@ -166,6 +177,7 @@ public class QualityWorkOrderController {
      * 延长截止时间。
      */
     @PostMapping("/extend-deadline")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "延长质量工单截止时间", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> extendDeadline(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.extendDeadline(reqVO));
@@ -175,6 +187,7 @@ public class QualityWorkOrderController {
      * 重新打开已结束的质量工单。
      */
     @PostMapping("/reopen")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "重新打开质量工单", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:reopen')")
     public CommonResult<QualityWorkOrderRespVO> reopen(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.reopen(reqVO));
@@ -184,6 +197,7 @@ public class QualityWorkOrderController {
      * 记录质量工单协调信息并更新相关处理安排。
      */
     @PostMapping("/request-coordination")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", action = "请求质量工单协调", bizId = "#reqVO.id")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:coordinate')")
     public CommonResult<QualityWorkOrderRespVO> coordinate(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
         return success(workOrderService.coordinate(reqVO));
@@ -224,6 +238,7 @@ public class QualityWorkOrderController {
      * 人工核验结果未知的通知。
      */
     @PostMapping("/notify-review")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", bizId = "#reqVO.id")
     @Operation(summary = "人工核验结果未知的通知")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderNotifyRespVO> reviewNotify(
@@ -235,6 +250,7 @@ public class QualityWorkOrderController {
      * 基于人工未送达结论显式授权重试。
      */
     @PostMapping("/notify-authorize-retry")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题工单", bizId = "#reqVO.id")
     @Operation(summary = "基于人工未送达结论显式授权重试")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderNotifyRespVO> authorizeNotifyRetry(

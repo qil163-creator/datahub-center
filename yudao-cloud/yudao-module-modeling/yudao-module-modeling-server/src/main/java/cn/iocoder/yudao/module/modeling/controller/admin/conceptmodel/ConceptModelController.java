@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.conceptmodel;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.conceptmodel.vo.*;
@@ -31,6 +32,7 @@ public class ConceptModelController {
      * @param request 请求参数
      * @return 概念模型
      */
+    @BusinessOperateLog(type = "数据建模-概念模型", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建概念模型草稿")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:create')")
@@ -44,6 +46,7 @@ public class ConceptModelController {
      * @param request 请求参数
      * @return 概念模型
      */
+    @BusinessOperateLog(type = "数据建模-概念模型", bizId = "#request.id")
     @PutMapping("/update")
     @Operation(summary = "修改概念模型及实体关系设计")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:update')")
@@ -58,6 +61,7 @@ public class ConceptModelController {
      * @param request 请求参数
      * @return 概念模型
      */
+    @BusinessOperateLog(type = "数据建模-概念模型", bizId = "#request.id")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用概念模型")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:update')")
@@ -73,6 +77,7 @@ public class ConceptModelController {
      * @param expectedRevision 预期修订号
      * @return 概念模型
      */
+    @BusinessOperateLog(type = "数据建模-概念模型", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除概念模型草稿")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:delete')")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -48,6 +49,7 @@ public class StandardCodeItemController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-码值", bizId = "#result")
     @Operation(summary = "创建数据标准--码值")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:create')")
     public CommonResult<Integer> createStandardCodeItem(@Valid @RequestBody StandardCodeItemSaveReqVO createReqVO) {
@@ -60,6 +62,7 @@ public class StandardCodeItemController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-码值", bizId = "#updateReqVO.id")
     @Operation(summary = "更新数据标准--码值")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> updateStandardCodeItem(@Valid @RequestBody StandardCodeItemSaveReqVO updateReqVO) {
@@ -73,6 +76,7 @@ public class StandardCodeItemController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-码值", bizId = "#id")
     @Operation(summary = "删除数据标准--码值")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
@@ -86,6 +90,7 @@ public class StandardCodeItemController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据治理-码值", bizId = "#ids")
     @Operation(summary = "批量删除数据标准--码值")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
     public CommonResult<Boolean> deleteStandardCodeItemList(@RequestParam("ids") List<Integer> ids) {

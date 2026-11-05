@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.rule;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -48,6 +49,7 @@ public class SafetyRuleController {
      *  @return 编号
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-脱敏规则（主表）；参数演进由版本表承载", bizId = "#result")
     @Operation(summary = "创建脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:create')")
     public CommonResult<Long> createRule(@Valid @RequestBody SafetyRuleSaveReqVO createReqVO) {
@@ -60,6 +62,7 @@ public class SafetyRuleController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-脱敏规则（主表）；参数演进由版本表承载", bizId = "#updateReqVO.id")
     @Operation(summary = "更新脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
     public CommonResult<Boolean> updateRule(@Valid @RequestBody SafetyRuleSaveReqVO updateReqVO) {
@@ -73,6 +76,7 @@ public class SafetyRuleController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-脱敏规则（主表）；参数演进由版本表承载", bizId = "#id")
     @Operation(summary = "删除脱敏规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
@@ -86,6 +90,7 @@ public class SafetyRuleController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
+    @BusinessOperateLog(type = "数据治理-脱敏规则（主表）；参数演进由版本表承载", bizId = "#ids")
     @Operation(summary = "批量删除脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
     public CommonResult<Boolean> deleteRuleList(@RequestParam("ids") List<Long> ids) {

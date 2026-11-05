@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.*;
@@ -29,6 +30,7 @@ public class MasterCodeRuleController {
      * 创建编码规则。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-主数据编码规则", bizId = "#result")
     @Operation(summary = "创建编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:create')")
     public CommonResult<Long> create(@Valid @RequestBody MasterCodeRuleSaveReqVO req) {
@@ -39,6 +41,7 @@ public class MasterCodeRuleController {
      * 修改编码规则。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-主数据编码规则", bizId = "#req.id")
     @Operation(summary = "修改编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody MasterCodeRuleSaveReqVO req) {
@@ -50,6 +53,7 @@ public class MasterCodeRuleController {
      * 启停编码规则。
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-主数据编码规则", bizId = "#req.id")
     @Operation(summary = "启停编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody MasterCodeRuleStatusReqVO req) {
@@ -61,6 +65,7 @@ public class MasterCodeRuleController {
      * 删除编码规则。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-主数据编码规则", bizId = "#id")
     @Operation(summary = "删除编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:delete')")
     public CommonResult<Boolean> delete(@RequestParam Long id) {
@@ -72,6 +77,7 @@ public class MasterCodeRuleController {
      * 批量删除编码规则。
      */
     @DeleteMapping("/delete-list")
+    @BusinessOperateLog(type = "数据治理-主数据编码规则", bizId = "#ids")
     @Operation(summary = "批量删除编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam List<Long> ids) {

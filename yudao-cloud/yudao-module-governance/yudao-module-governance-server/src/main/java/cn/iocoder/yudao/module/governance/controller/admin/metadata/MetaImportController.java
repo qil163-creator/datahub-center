@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.collect.MetaImportRespVO;
@@ -40,6 +41,7 @@ public class MetaImportController {
      * 导入 Excel 数据字典（走与直连采集同一套 diff 引擎）。
      */
     @PostMapping("/excel")
+    @BusinessOperateLog(type = "数据治理-元数据导入", action = "导入元数据字典（处理结果见导入回执）", bizId = "#datasourceId")
     @Operation(summary = "导入 Excel 数据字典（走与直连采集同一套 diff 引擎）")
     @Parameter(name = "datasourceId", description = "数据源编号（无直连场景登记逻辑数据源）", required = true)
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -90,6 +92,7 @@ public class MetaImportController {
      *  @return 表元数据编号
      */
     @PostMapping("/register-table")
+    @BusinessOperateLog(type = "数据治理-元数据导入", bizId = "#result")
     @Operation(summary = "手工登记单张表（origin=手工）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Long> registerTable(@Valid @RequestBody MetaTableRegisterReqVO reqVO) {

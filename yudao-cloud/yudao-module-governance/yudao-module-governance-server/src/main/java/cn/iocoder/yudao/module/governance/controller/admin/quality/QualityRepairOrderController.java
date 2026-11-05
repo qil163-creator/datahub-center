@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -37,6 +38,7 @@ public class QualityRepairOrderController {
      * 创建修复工单。
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#result")
     @Operation(summary = "创建修复工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:create')")
     public CommonResult<Long> createRepairOrder(@Valid @RequestBody QualityRepairOrderSaveReqVO createReqVO) {
@@ -47,6 +49,7 @@ public class QualityRepairOrderController {
      * 更新修复工单。
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#updateReqVO.id")
     @Operation(summary = "更新修复工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> updateRepairOrder(@Valid @RequestBody QualityRepairOrderSaveReqVO updateReqVO) {
@@ -58,6 +61,7 @@ public class QualityRepairOrderController {
      * 删除修复工单。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#id")
     @Operation(summary = "删除修复工单")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:delete')")
@@ -104,6 +108,7 @@ public class QualityRepairOrderController {
      * 审批：通过/拒绝
      */
     @PutMapping("/approve")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#id")
     @Operation(summary = "审批修复工单（通过/拒绝）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:approve')")
     public CommonResult<Boolean> approveRepairOrder(@RequestParam("id") Long id,
@@ -116,6 +121,7 @@ public class QualityRepairOrderController {
      * 执行修复：真实回源执行修复 SQL，回写执行状态与结果
      */
     @PostMapping("/execute")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#id")
     @Operation(summary = "执行修复（真实回源执行修复SQL）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:execute')")
@@ -128,6 +134,7 @@ public class QualityRepairOrderController {
      * 内容或物理目标变更后，由编辑人员撤销旧批准并重新送审。
      */
     @PostMapping("/resubmit")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#id")
     @Operation(summary = "撤销未执行修复单的旧审批并重新送审")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> resubmitRepairOrder(@RequestParam("id") Long id) {
@@ -139,6 +146,7 @@ public class QualityRepairOrderController {
      * 验证：验证通过/验证未通过
      */
     @PutMapping("/verify")
+    @BusinessOperateLog(type = "数据治理-数据质量-修复工单", bizId = "#id")
     @Operation(summary = "验证修复结果（验证通过/验证未通过）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> verifyRepairOrder(@RequestParam("id") Long id,

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterDataPageReqVO;
@@ -78,6 +79,7 @@ public class MasterDataController {
      * 幂等提交主数据变更，审批通过后生效。
      */
     @PostMapping("/submit")
+    @BusinessOperateLog(type = "数据治理-主数据记录维护", action = "提交主数据变更", bizId = "#result.id")
     @Operation(summary = "幂等提交主数据变更，审批通过后生效")
     @PreAuthorize("(#reqVO.operation == 'CREATE' and @ss.hasPermission('governance:master-data:create')) or "
             + "(#reqVO.operation == 'UPDATE' and @ss.hasPermission('governance:master-data:update')) or "
@@ -101,6 +103,7 @@ public class MasterDataController {
      * 批量新增主数据记录。
      */
     @PostMapping("/add")
+    @BusinessOperateLog(type = "数据治理-主数据记录维护", action = "提交主数据新增变更", bizId = "#result.id")
     @Operation(summary = "批量新增主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:create')")
     public CommonResult<MasterDataMutationRespVO> addMasterData(@Valid @RequestBody MasterDataRowsReqVO reqVO) {
@@ -111,6 +114,7 @@ public class MasterDataController {
      * 按主键批量更新主数据记录。
      */
     @PostMapping("/update")
+    @BusinessOperateLog(type = "数据治理-主数据记录维护", action = "提交主数据修改变更", bizId = "#result.id")
     @Operation(summary = "按主键批量更新主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:update')")
     public CommonResult<MasterDataMutationRespVO> updateMasterData(@Valid @RequestBody MasterDataRowsReqVO reqVO) {
@@ -121,6 +125,7 @@ public class MasterDataController {
      * 按主键批量删除主数据记录。
      */
     @PostMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-主数据记录维护", action = "提交主数据删除变更", bizId = "#result.id")
     @Operation(summary = "按主键批量删除主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:delete')")
     public CommonResult<MasterDataMutationRespVO> deleteMasterData(@Valid @RequestBody MasterDataRowsReqVO reqVO) {

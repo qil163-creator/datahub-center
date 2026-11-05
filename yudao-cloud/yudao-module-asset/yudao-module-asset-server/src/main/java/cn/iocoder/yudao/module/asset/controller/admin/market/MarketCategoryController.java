@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.*;
 import cn.iocoder.yudao.module.asset.service.market.MarketCategoryService;
@@ -61,6 +62,7 @@ public class MarketCategoryController {
     /**
      * 新增集市类目。
      */
+    @BusinessOperateLog(type = "数据资产-集市类目", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "新增集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:create')")
@@ -71,6 +73,7 @@ public class MarketCategoryController {
     /**
      * 修改集市类目。
      */
+    @BusinessOperateLog(type = "数据资产-集市类目", bizId = "#req.id")
     @PutMapping("/update")
     @Operation(summary = "修改集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:update')")
@@ -82,6 +85,7 @@ public class MarketCategoryController {
     /**
      * 启用或停用集市类目。
      */
+    @BusinessOperateLog(type = "数据资产-集市类目", bizId = "#req.id")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:update')")
@@ -93,6 +97,7 @@ public class MarketCategoryController {
     /**
      * 删除无引用的集市类目。
      */
+    @BusinessOperateLog(type = "数据资产-集市类目", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除无引用的集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:delete')")
@@ -104,6 +109,7 @@ public class MarketCategoryController {
     /**
      * 原子删除无引用的集市类目集合。
      */
+    @BusinessOperateLog(type = "数据资产-集市类目", bizId = "#ids")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子删除无引用的集市类目集合")
     @PreAuthorize("@ss.hasPermission('asset:market-category:delete')")

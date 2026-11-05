@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.logictable;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.logictable.vo.*;
@@ -77,6 +78,7 @@ public class LogicTableController {
      * @param enabled 启用状态
      * @return 逻辑表
      */
+    @BusinessOperateLog(type = "数据建模-逻辑表", bizId = "#id")
     @PutMapping("/update-enabled")
     @Operation(summary = "启用或停用逻辑表")
     @PreAuthorize("@ss.hasPermission('modeling:logic-table:update')")
@@ -106,6 +108,7 @@ public class LogicTableController {
      * @param ids 记录编号集合
      * @return 逻辑表
      */
+    @BusinessOperateLog(type = "数据建模-逻辑表", bizId = "#ids")
     @DeleteMapping("/delete")
     @Operation(summary = "删除逻辑表（支持批量）")
     @Parameter(name = "ids", description = "编号列表", required = true, example = "1,2")

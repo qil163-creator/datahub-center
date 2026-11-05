@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.model;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -46,6 +47,7 @@ public class LogicModelController {
      * @param createReqVO 创建参数
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建逻辑模型（正向/逆向建模）")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")
@@ -59,6 +61,7 @@ public class LogicModelController {
      * @param updateReqVO 更新参数
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "修改逻辑模型基础信息")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")
@@ -75,6 +78,7 @@ public class LogicModelController {
      * @param expectedRevision 预期修订号
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#id")
     @PutMapping("/update-enabled")
     @Operation(summary = "启用或禁用逻辑模型")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")
@@ -91,6 +95,7 @@ public class LogicModelController {
      * @param reqVO 请求参数
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#reqVO.modelId")
     @PutMapping("/draft-save")
     @Operation(summary = "原子保存统一模型草稿、字段与业务口径")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")
@@ -106,6 +111,7 @@ public class LogicModelController {
      * @param expectedRevision 预期修订号
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除逻辑模型")
     @Parameter(name = "id", description = "编号", required = true)
@@ -178,6 +184,7 @@ public class LogicModelController {
     }
 
     /** 发布当前设计，不保留模型历史版本。 */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#modelId")
     @PutMapping("/publish")
     @Operation(summary = "发布模型当前设计")
     @PreAuthorize("@ss.hasPermission('modeling:model:publish')")
@@ -193,6 +200,7 @@ public class LogicModelController {
      * @param id 记录编号
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#id")
     @PutMapping("/discard")
     @Operation(summary = "废弃逻辑模型")
     @Parameter(name = "id", description = "模型编号", required = true)
@@ -241,6 +249,7 @@ public class LogicModelController {
      * @param reqVO 请求参数
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#result")
     @PostMapping("/relation-save")
     @Operation(summary = "新增/修改逻辑模型关系")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")
@@ -255,6 +264,7 @@ public class LogicModelController {
      * @param expectedRevision 预期修订号
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#id")
     @DeleteMapping("/relation-delete")
     @Operation(summary = "删除逻辑模型关系")
     @Parameter(name = "id", description = "关系编号", required = true)
@@ -271,6 +281,7 @@ public class LogicModelController {
      * @param reqVO 请求参数
      * @return 逻辑模型
      */
+    @BusinessOperateLog(type = "数据建模-逻辑模型", bizId = "#reqVO.positions.![modelId]")
     @PutMapping("/er-layout-save")
     @Operation(summary = "批量保存模型 ER 画布坐标")
     @PreAuthorize("@ss.hasPermission('modeling:model:save')")

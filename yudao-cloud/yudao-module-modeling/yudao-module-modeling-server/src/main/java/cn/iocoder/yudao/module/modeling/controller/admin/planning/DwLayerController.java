@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -46,6 +47,7 @@ public class DwLayerController {
      * @param createReqVO 创建参数
      * @return 数仓分层
      */
+    @BusinessOperateLog(type = "数据建模-数仓分层", bizId = "#result")
     @PostMapping("/create")
     @Operation(summary = "创建数仓分层")
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:create')")
@@ -59,6 +61,7 @@ public class DwLayerController {
      * @param updateReqVO 更新参数
      * @return 数仓分层
      */
+    @BusinessOperateLog(type = "数据建模-数仓分层", bizId = "#updateReqVO.id")
     @PutMapping("/update")
     @Operation(summary = "更新数仓分层")
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:update')")
@@ -73,6 +76,7 @@ public class DwLayerController {
      * @param reqVO 请求参数
      * @return 数仓分层
      */
+    @BusinessOperateLog(type = "数据建模-数仓分层", bizId = "#reqVO.id")
     @PutMapping("/update-status")
     @Operation(summary = "更新数仓分层状态")
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:update')")
@@ -87,6 +91,7 @@ public class DwLayerController {
      * @param id 记录编号
      * @return 数仓分层
      */
+    @BusinessOperateLog(type = "数据建模-数仓分层", bizId = "#id")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数仓分层")
     @Parameter(name = "id", description = "编号", required = true)

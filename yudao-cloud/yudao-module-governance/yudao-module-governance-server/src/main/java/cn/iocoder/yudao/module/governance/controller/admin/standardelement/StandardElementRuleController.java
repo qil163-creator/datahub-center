@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardelement;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.*;
@@ -47,6 +48,7 @@ public class StandardElementRuleController {
      * 创建关联配置。
      */
     @PostMapping("/rule-create")
+    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#result")
     @Operation(summary = "创建关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Long> create(@Valid @RequestBody StandardElementRuleSaveReqVO request) {
@@ -57,6 +59,7 @@ public class StandardElementRuleController {
      * 更新关联配置。
      */
     @PutMapping("/rule-update")
+    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#request.id")
     @Operation(summary = "更新关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody StandardElementRuleSaveReqVO request) {
@@ -68,6 +71,7 @@ public class StandardElementRuleController {
      * 删除关联配置。
      */
     @DeleteMapping("/rule-delete")
+    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#id")
     @Operation(summary = "删除关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> delete(@RequestParam Integer elementId, @RequestParam Long id) {

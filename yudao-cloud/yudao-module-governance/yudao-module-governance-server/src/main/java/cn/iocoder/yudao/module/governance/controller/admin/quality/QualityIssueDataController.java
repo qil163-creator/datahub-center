@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -59,6 +60,7 @@ public class QualityIssueDataController {
      * 忽略问题行或添加备注。
      */
     @PostMapping("/row-action")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题数据", bizId = "#request.auditLogId")
     @Operation(summary = "忽略问题行或添加备注")
     @PreAuthorize("@ss.hasPermission('governance:quality-issue-data:update')")
     public CommonResult<Boolean> rowAction(@Valid @RequestBody QualityIssueRowActionReqVO request) {
@@ -107,6 +109,7 @@ public class QualityIssueDataController {
      * 更新处理状态
      */
     @PutMapping("/update-status")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题数据", bizId = "#id")
     @Operation(summary = "更新问题数据处理状态")
     @PreAuthorize("@ss.hasPermission('governance:quality-issue-data:update')")
     public CommonResult<Boolean> updateIssueStatus(@RequestParam("id") Long id,
@@ -119,6 +122,7 @@ public class QualityIssueDataController {
      * 删除问题数据。
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-数据质量-问题数据", bizId = "#id")
     @Operation(summary = "删除问题数据")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-issue-data:delete')")

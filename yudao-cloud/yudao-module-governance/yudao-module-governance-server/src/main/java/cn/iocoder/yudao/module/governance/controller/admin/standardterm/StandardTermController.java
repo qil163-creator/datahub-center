@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardterm;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -48,6 +49,7 @@ public class StandardTermController {
      * 创建业务术语
      */
     @PostMapping("/create")
+    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#result")
     @Operation(summary = "创建业务术语")
     @PreAuthorize("@ss.hasPermission('governance:standard-term:create')")
     public CommonResult<Long> createStandardTerm(@Valid @RequestBody StandardTermSaveReqVO createReqVO) {
@@ -58,6 +60,7 @@ public class StandardTermController {
      * 更新业务术语
      */
     @PutMapping("/update")
+    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#updateReqVO.id")
     @Operation(summary = "更新业务术语")
     @PreAuthorize("@ss.hasPermission('governance:standard-term:update')")
     public CommonResult<Boolean> updateStandardTerm(@Valid @RequestBody StandardTermSaveReqVO updateReqVO) {
@@ -69,6 +72,7 @@ public class StandardTermController {
      * 删除业务术语
      */
     @DeleteMapping("/delete")
+    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#id")
     @Operation(summary = "删除业务术语")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-term:delete')")
@@ -81,6 +85,7 @@ public class StandardTermController {
      * 批量删除业务术语。
      */
     @DeleteMapping("/delete-list")
+    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#ids")
     @Operation(summary = "批量删除业务术语")
     @Parameter(name = "ids", description = "编号列表", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-term:delete')")

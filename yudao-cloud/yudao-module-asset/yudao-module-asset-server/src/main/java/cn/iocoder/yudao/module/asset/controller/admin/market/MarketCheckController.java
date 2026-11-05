@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.*;
@@ -63,6 +64,7 @@ public class MarketCheckController {
     /**
      * 保存审批意见；来源工单不授予真实数据权限，本地申请复用原审批链。
      */
+    @BusinessOperateLog(type = "数据资产-服务审批", action = "保存服务审批意见", bizId = "#req.origin == 'NATIVE' ? #req.id : 0")
     @PutMapping("/check")
     @Operation(summary = "保存审批意见；来源工单不授予真实数据权限，本地申请复用原审批链")
     @PreAuthorize("@ss.hasPermission('asset:market:check')")

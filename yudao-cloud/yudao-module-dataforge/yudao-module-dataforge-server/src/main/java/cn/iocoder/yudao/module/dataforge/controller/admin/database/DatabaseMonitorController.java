@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.database;
 
+import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO.*;
@@ -59,6 +60,7 @@ public class DatabaseMonitorController {
      * @return 概览
      */
     @PostMapping("/collect")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#databaseId")
     @Operation(summary = "主动采集数据库连接状态与响应时间，每分钟幂等")
     @PreAuthorize("@ss.hasPermission('dataforge:database:query')")
     public CommonResult<Overview> collect(@RequestParam @Positive Long databaseId) {
@@ -112,6 +114,7 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PostMapping("/rule/create")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#result")
     @Operation(summary = "创建数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Long> createRule(@Valid @RequestBody RuleSave req) {
@@ -125,6 +128,7 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/rule/update")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
     @Operation(summary = "更新数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> updateRule(@Valid @RequestBody RuleSave req) {
@@ -139,6 +143,7 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/rule/status")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
     @Operation(summary = "启停数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> statusRule(@Valid @RequestBody RuleStatus req) {
@@ -154,6 +159,7 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @DeleteMapping("/rule/delete")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#id")
     @Operation(summary = "删除数据库告警规则，保留历史告警审计记录")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> deleteRule(@RequestParam @Positive Long databaseId, @RequestParam @Positive Long id) {
@@ -195,6 +201,7 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/alarm/handle")
+    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
     @Operation(summary = "处理或忽略数据库告警，保留操作人和原因")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> handle(@Valid @RequestBody AlarmHandle req) {
