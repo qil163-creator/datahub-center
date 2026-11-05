@@ -91,6 +91,8 @@ const mqInput = computed(() =>
   ['read-redis', 'read-rabbitmq', 'read-rocketmq'].includes(props.toolCode),
 );
 const referenceInput = computed(() => fileInput.value || mqInput.value);
+// HDFS 输出沿用文件输入的连接选择器与“名称 + 类型”的属性字段对话框。
+const hdfsOutput = computed(() => props.toolCode === 'write-hdfs');
 const mqTypeCodes = computed(() => {
   const code = props.toolCode.replace(/^read-/u, '').toUpperCase();
   return mqInput.value ? [code] : undefined;
@@ -309,7 +311,7 @@ function addReferenceColumn() {
   editedConfig = props.config;
   addingColumn.value = true;
   // File inputs start with an empty index, as the reference dialog asks for it explicitly.
-  columnDraft.value = { name: '', type: mqInput.value ? '' : 'STRING', ...(descriptor.value?.columnMode === 'index' && !fileInput.value ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
+  columnDraft.value = { name: '', type: mqInput.value || hdfsOutput.value ? '' : 'STRING', ...(descriptor.value?.columnMode === 'index' && !fileInput.value ? { index: columns.value.length } : {}), ...(showKey.value ? { key: '' } : {}) };
   columnEditorErrors.value = [];
   columnEditorOpen.value = true;
 }
@@ -682,9 +684,10 @@ defineExpose({ validate });
             }}</label>
           <div>
             <DatabaseConnectionPicker
-              v-if="referenceInput"
+              v-if="referenceInput || hdfsOutput"
               :value="config.databaseId ?? undefined"
               :databases="pickerDatabases"
+              :placeholder="outputConnector ? connectionPlaceholder : undefined"
               :type-codes="mqTypeCodes"
               :loading="loading"
               :disabled="disabled"
@@ -937,7 +940,8 @@ defineExpose({ validate });
       />
     </section>
     <KafkaInputFieldModal
-      v-if="referenceInput"
+      v-if="referenceInput || hdfsOutput"
+      :hide-key="hdfsOutput"
       :key-mode="fileInput ? 'index' : 'json'"
       :key-label="descriptor.columnMode === 'redis' ? '解析值' : undefined"
       :key-placeholder="descriptor.columnMode === 'redis' ? '请输入解析值' : undefined"

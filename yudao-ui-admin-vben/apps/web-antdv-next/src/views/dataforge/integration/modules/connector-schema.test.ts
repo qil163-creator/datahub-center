@@ -232,7 +232,11 @@ describe('qData连接器配置边界', () => {
     expect(connectorSchemas['read-rabbitmq']?.fields.find((field) => field.key === 'topic')?.full).toBe(false);
     expect(connectorSchemas['read-hdfs']?.fields.find((field) => field.key === 'path')?.full).toBe(false);
     expect(connectorSchemas['read-ftp']?.fields.find((field) => field.key === 'path')?.full).toBe(false);
-    expect(connectorSchemas['write-hdfs']?.fields.find((field) => field.key === 'path')?.full).toBe(true);
+    // HDFS output follows the reference: the path takes its own row at half width.
+    const hdfsPath = connectorSchemas['write-hdfs']?.fields.find((field) => field.key === 'path');
+    expect(hdfsPath?.full).toBe(false);
+    expect(hdfsPath?.halfRow).toBe(true);
+    expect(connectorSchemas['write-ftp']?.fields.find((field) => field.key === 'path')?.full).toBe(true);
   });
 
 });

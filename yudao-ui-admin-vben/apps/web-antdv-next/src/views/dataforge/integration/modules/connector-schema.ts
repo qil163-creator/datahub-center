@@ -25,6 +25,10 @@ export interface ConnectorField {
   suffix?: string;
   /** The backend rejects a non-empty value; validation asks the user to clear it. */
   unsupported?: boolean;
+  /** Occupies a whole grid row but only half of its width. */
+  halfRow?: boolean;
+  /** Select can be cleared back to an empty value. */
+  clearable?: boolean;
 }
 export interface ConnectorSchema {
   name: string;
@@ -211,9 +215,11 @@ function schema(
   };
 }
 function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
+  // HDFS output follows the qData reference: required plain encoding, compression optional without a default.
+  const hdfsOutput = kind === 'hdfs' && output;
   return [
     // File inputs follow the qData reference: required encoding shown as a plain box.
-    output ? encoding : { ...encoding, required: true, plain: true },
+    output && !hdfsOutput ? encoding : { ...encoding, required: true, plain: true },
     ...(kind === 'ftp' && !output ? [
       { key: 'syncMode', label: '同步方式', kind: 'select', defaultValue: 'SINGLE_FILE', options: [{label: '单文件', value: 'SINGLE_FILE'}, {label: '指定目录', value: 'DIRECTORY'}] } as ConnectorField,
       // Deleting source files is not supported by the FTP compiler, so "是" stays disabled.
@@ -224,13 +230,14 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
       label: '文件路径',
       kind: 'text',
       required: true,
-      full: output,
+      full: output && !hdfsOutput,
+      halfRow: hdfsOutput,
     },
     {
       key: 'fileType',
       label: '文件类型',
       kind: 'select',
-      required: !output,
+      required: !output || hdfsOutput,
       defaultValue: 'csv',
       options: choices('csv', 'text'),
     },
@@ -254,19 +261,28 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
       : []),
     ...(output
       ? [
-          {
-            key: 'compression',
-            label: '压缩方式',
-            kind: 'select',
-            defaultValue: '',
-            options: [
-              { label: '不压缩', value: '' },
-              ...choices('gzip', 'bzip2', 'lzo', 'snappy'),
-            ],
-          } as ConnectorField,
+          (hdfsOutput
+            ? {
+                key: 'compression',
+                label: '压缩方式',
+                kind: 'select',
+                halfRow: true,
+                clearable: true,
+                options: choices('gzip', 'bzip2', 'lzo', 'snappy'),
+              }
+            : {
+                key: 'compression',
+                label: '压缩方式',
+                kind: 'select',
+                defaultValue: '',
+                options: [
+                  { label: '不压缩', value: '' },
+                  ...choices('gzip', 'bzip2', 'lzo', 'snappy'),
+                ],
+              }) as ConnectorField,
         ]
       : []),
-    output
+    output && !hdfsOutput
       ? {
           key: kind === 'ftp' ? 'ftpConfig' : 'hadoopConfig',
           label: '配置参数',
@@ -299,6 +315,7 @@ function fileFields(kind: 'ftp' | 'hdfs', output: boolean): ConnectorField[] {
           kind === 'hdfs'
             ? ({
                 ...writeMode,
+                required: true,
                 options: [{ label: '追加', value: 2 }, { label: '全量', value: 1, disabled: true }],
               } as ConnectorField)
             : writeMode,

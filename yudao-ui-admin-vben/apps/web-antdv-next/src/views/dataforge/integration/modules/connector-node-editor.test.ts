@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as databaseApi from '#/api/dataforge/database';
 
 import ConnectorNodeEditor from './connector-node-editor.vue';
-import { validateConnectorConfig } from './connector-schema';
+import { connectorDefaults, validateConnectorConfig } from './connector-schema';
 
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => ({ accessToken: 'session', refreshToken: 'refresh' }),
@@ -315,6 +315,27 @@ describe('连接器属性字段编辑与即时反馈', () => {
     expect(host.textContent).not.toContain('解析');
     expect(host.textContent).not.toContain('同名自动映射');
     expect(host.querySelector('.qi-connector-addon')!.textContent).toBe('条');
+  });
+
+  it('HDFS输出对齐参考：分类连接选择器、编码与文件类型必填、压缩方式无默认且可清空、配置参数留空，字段对话框只有名称和类型', async () => {
+    const state = mount('write-hdfs', { ...connectorDefaults('write-hdfs'), columns: [] });
+    await nextTick();
+    expect(host.querySelector('[aria-label="连接器数据连接"]')!.hasAttribute('data-databases')).toBe(true);
+    expect(state.config.compression).toBeUndefined();
+    expect(state.config.hadoopConfig).toBeUndefined();
+    const labels = [...host.querySelectorAll('label')].map((item) => item.textContent?.trim());
+    for (const required of ['编码', '文件路径', '文件类型', '分隔符', '写入模式'])
+      expect(labels).toContain(`*${required}`);
+    expect(labels).toContain('压缩方式');
+    expect(host.querySelector('[aria-label="压缩方式"]')!.getAttribute('data-options')).toBe(
+      JSON.stringify([{ label: 'gzip', value: 'gzip' }, { label: 'bzip2', value: 'bzip2' }, { label: 'lzo', value: 'lzo' }, { label: 'snappy', value: 'snappy' }]),
+    );
+    expect(host.querySelectorAll('.is-half-row')).toHaveLength(2);
+    await click('新增');
+    expect(host.querySelector('[aria-label="属性字段编辑名称"]')).toBeTruthy();
+    expect(host.querySelector('[aria-label="属性字段编辑类型"]')).toBeTruthy();
+    expect(host.querySelector('[aria-label="属性字段编辑取值"]')).toBeNull();
+    expect(host.querySelector('[aria-label="属性字段编辑索引"]')).toBeNull();
   });
 
   it.each(['write-redis', 'write-rabbitmq', 'write-rocketmq'])(

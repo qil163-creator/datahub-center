@@ -44,6 +44,7 @@ function change(field: ConnectorField, value: unknown) {
       :class="{
         'is-full':
           field.full || field.kind === 'json' || field.kind === 'textarea',
+        'is-half-row': field.halfRow,
       }"
     >
       <label><em v-if="field.required">*</em>{{ field.label }}</label>
@@ -76,6 +77,7 @@ function change(field: ConnectorField, value: unknown) {
           :options="field.options"
           :suffix-icon="field.plain ? null : undefined"
           :disabled="disabled"
+          :allow-clear="field.clearable"
           :class="{ 'qi-flip-arrow': field.key === 'dataType' }"
           :classes="
             field.key === 'dataType'
@@ -168,6 +170,11 @@ function change(field: ConnectorField, value: unknown) {
 
 .is-full {
   grid-column: 1 / -1;
+}
+
+.is-half-row {
+  grid-column: 1 / -1;
+  width: calc((100% - 24px) / 2);
 }
 
 label {

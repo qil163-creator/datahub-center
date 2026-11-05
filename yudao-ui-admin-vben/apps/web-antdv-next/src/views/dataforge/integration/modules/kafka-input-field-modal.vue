@@ -22,6 +22,8 @@ const props = withDefaults(
     field: ReferenceField;
     /** "json" edits the JSON parse path (Kafka); "index" edits the column index (FTP/HDFS). */
     keyMode?: 'index' | 'json';
+    /** Hides the parse-path/index control for outputs that only declare name and type. */
+    hideKey?: boolean;
     /** Overrides the parse-value label/placeholder (e.g. Redis "解析值"). */
     keyLabel?: string;
     keyPlaceholder?: string;
@@ -31,6 +33,7 @@ const props = withDefaults(
   {
     disabled: false,
     errors: () => [],
+    hideKey: false,
     keyLabel: undefined,
     keyMode: 'json',
     keyPlaceholder: undefined,
@@ -163,7 +166,7 @@ function save() {
         />
       </FormItem>
       <FormItem
-        v-if="keyMode === 'index'"
+        v-if="!hideKey && keyMode === 'index'"
         label="索引"
         required
         :validate-status="fieldIssue('key') ? 'error' : undefined"
@@ -179,7 +182,7 @@ function save() {
         />
       </FormItem>
       <FormItem
-        v-else
+        v-else-if="!hideKey"
         class="qi-kafka-input-key"
         :label="resolvedKeyLabel"
         required
