@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.dataapi;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -35,7 +35,9 @@ public class DataApiController {
      * @param createReqVO 创建参数
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#result")
+    @LogRecord(type = "数据服务-API 管理", subType = "创建 API 服务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建 API 服务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:create')")
@@ -49,7 +51,9 @@ public class DataApiController {
      * @param updateReqVO 更新参数
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据服务-API 管理", subType = "更新 API 服务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新 API 服务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:update')")
@@ -64,7 +68,9 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
+    @LogRecord(type = "数据服务-API 管理", subType = "上线/下线 API 服务", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "上线/下线 API 服务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "上线/下线 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
@@ -79,7 +85,9 @@ public class DataApiController {
      * @param id 记录编号
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#id")
+    @LogRecord(type = "数据服务-API 管理", subType = "删除 API 服务", bizNo = "{{(#id) ?: 0}}",
+            success = "删除 API 服务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除 API 服务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -227,7 +235,9 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
+    @LogRecord(type = "数据服务-API 管理", subType = "发布当前草稿为不可变快照", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "发布当前草稿为不可变快照", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/publish")
     @Operation(summary = "发布当前草稿为不可变快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
@@ -241,7 +251,9 @@ public class DataApiController {
      * @param reqVO 请求参数
      * @return 数据 API
      */
-    @BusinessOperateLog(type = "数据服务-API 管理", bizId = "#reqVO.id")
+    @LogRecord(type = "数据服务-API 管理", subType = "回滚到既有发布快照", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "回滚到既有发布快照", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/rollback")
     @Operation(summary = "回滚到既有发布快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:rollback')")

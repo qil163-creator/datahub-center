@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -40,7 +40,9 @@ public class MetaCollectTaskController {
      * 创建采集任务（默认下线、调度停止，由发布/调度开关显式开启）
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#result")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "创建元数据采集任务",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建元数据采集任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建元数据采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:create')")
     public CommonResult<Long> createTask(@Valid @RequestBody MetaCollectTaskSaveReqVO createReqVO) {
@@ -51,7 +53,9 @@ public class MetaCollectTaskController {
      * 更新采集任务
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "更新元数据采集任务",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新元数据采集任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新元数据采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:update')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody MetaCollectTaskSaveReqVO updateReqVO) {
@@ -63,7 +67,9 @@ public class MetaCollectTaskController {
      * 删除采集任务（仅下线状态可删）
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "删除元数据采集任务",
+            bizNo = "{{(#id) ?: 0}}", success = "删除元数据采集任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除元数据采集任务")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:delete')")
@@ -99,7 +105,9 @@ public class MetaCollectTaskController {
      * 任务上下线（发布/取消发布任务）
      */
     @PutMapping("/update-enabled")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "任务上下线（发布/取消发布任务）",
+            bizNo = "{{(#id) ?: 0}}", success = "任务上下线（发布/取消发布任务）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务上下线（发布/取消发布任务）")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @Parameter(name = "enabled", description = "0-下线 1-上线", required = true, example = "1")
@@ -114,7 +122,9 @@ public class MetaCollectTaskController {
      * 调度启停（开启时校验 cron 并推进下次执行时间）
      */
     @PutMapping("/update-schedule-enabled")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "调度启停",
+            bizNo = "{{(#id) ?: 0}}", success = "调度启停",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "调度启停")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @Parameter(name = "scheduleEnabled", description = "0-停止 1-启动", required = true, example = "1")
@@ -129,7 +139,9 @@ public class MetaCollectTaskController {
      * 手动执行一次
      */
     @PostMapping("/run")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "手动执行一次采集",
+            bizNo = "{{(#id) ?: 0}}", success = "手动执行一次采集",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次采集")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:run')")
@@ -166,7 +178,9 @@ public class MetaCollectTaskController {
      * 批量删除采集任务。
      */
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-元数据采集任务", bizId = "#ids")
+    @LogRecord(type = "数据治理-元数据采集任务", subType = "批量删除采集任务",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除采集任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam("ids") java.util.List<Long> ids) {

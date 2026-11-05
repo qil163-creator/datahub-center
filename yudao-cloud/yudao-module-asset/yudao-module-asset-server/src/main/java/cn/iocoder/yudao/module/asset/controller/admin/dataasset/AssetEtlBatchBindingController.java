@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataasset;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataasset.vo.*;
 import cn.iocoder.yudao.module.asset.service.dataasset.AssetEtlBatchBindingService;
@@ -50,7 +50,9 @@ public class AssetEtlBatchBindingController {
     /**
      * 绑定明确批次并追加关联修订历史。
      */
-    @BusinessOperateLog(type = "数据资产-资产 ETL 批次关联", bizId = "#request.assetId")
+    @LogRecord(type = "数据资产-资产 ETL 批次关联", subType = "绑定明确批次并追加关联修订历史", bizNo = "{{(#request.assetId) ?: 0}}",
+            success = "绑定明确批次并追加关联修订历史", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/bind")
     @Operation(summary = "绑定明确批次并追加关联修订历史")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")

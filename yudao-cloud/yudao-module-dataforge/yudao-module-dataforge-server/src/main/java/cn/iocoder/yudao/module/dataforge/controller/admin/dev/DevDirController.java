@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.dev;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.dev.vo.dir.DevDirRespVO;
@@ -41,7 +41,9 @@ public class DevDirController {
      * @return 开发目录
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-数据开发目录", bizId = "#result")
+    @LogRecord(type = "数据开发-数据开发目录", subType = "创建开发目录", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建开发目录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建开发目录")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Long> createDir(@Valid @RequestBody DevDirSaveReqVO createReqVO) {
@@ -55,7 +57,9 @@ public class DevDirController {
      * @return 开发目录
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-数据开发目录", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-数据开发目录", subType = "更新开发目录", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新开发目录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新开发目录")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Boolean> updateDir(@Valid @RequestBody DevDirSaveReqVO updateReqVO) {
@@ -70,7 +74,9 @@ public class DevDirController {
      * @return 开发目录
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-数据开发目录", bizId = "#id")
+    @LogRecord(type = "数据开发-数据开发目录", subType = "删除开发目录", bizNo = "{{(#id) ?: 0}}",
+            success = "删除开发目录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除开发目录")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:delete')")

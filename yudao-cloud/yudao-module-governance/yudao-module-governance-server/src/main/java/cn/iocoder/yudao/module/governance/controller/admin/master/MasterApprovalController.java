@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.*;
@@ -48,7 +48,9 @@ public class MasterApprovalController {
      * 通过人工审批并应用数据变更。
      */
     @PutMapping("/approve")
-    @BusinessOperateLog(type = "数据治理-主数据审批", bizId = "#req.id")
+    @LogRecord(type = "数据治理-主数据审批", subType = "通过人工审批并应用数据变更",
+            bizNo = "{{(#req.id) ?: 0}}", success = "通过人工审批并应用数据变更",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "通过人工审批并应用数据变更")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:approve')")
     public CommonResult<MasterApprovalRespVO> approve(@Valid @RequestBody MasterApprovalReviewReqVO req) {
@@ -59,7 +61,9 @@ public class MasterApprovalController {
      * 驳回人工审批，正式数据保持原状态。
      */
     @PutMapping("/reject")
-    @BusinessOperateLog(type = "数据治理-主数据审批", bizId = "#req.id")
+    @LogRecord(type = "数据治理-主数据审批", subType = "驳回人工审批，正式数据保持原状态",
+            bizNo = "{{(#req.id) ?: 0}}", success = "驳回人工审批，正式数据保持原状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "驳回人工审批，正式数据保持原状态")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:reject')")
     public CommonResult<MasterApprovalRespVO> reject(@Valid @RequestBody MasterApprovalReviewReqVO req) {
@@ -70,7 +74,9 @@ public class MasterApprovalController {
      * 同步权威流程状态或标记超时执行待核查。
      */
     @PutMapping("/reconcile")
-    @BusinessOperateLog(type = "数据治理-主数据审批", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据审批", subType = "同步权威流程状态或标记超时执行待核查",
+            bizNo = "{{(#id) ?: 0}}", success = "同步权威流程状态或标记超时执行待核查",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "同步权威流程状态或标记超时执行待核查")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:reconcile')")
     public CommonResult<MasterApprovalRespVO> reconcile(@RequestParam Long id) {
@@ -81,7 +87,9 @@ public class MasterApprovalController {
      * 核查未知结果并记录依据，不重新写入外部数据。
      */
     @PutMapping("/resolve")
-    @BusinessOperateLog(type = "数据治理-主数据审批", bizId = "#req.id")
+    @LogRecord(type = "数据治理-主数据审批", subType = "核查未知结果并记录依据，不重新写入外部数据",
+            bizNo = "{{(#req.id) ?: 0}}", success = "核查未知结果并记录依据，不重新写入外部数据",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "核查未知结果并记录依据，不重新写入外部数据")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:resolve')")
     public CommonResult<MasterApprovalRespVO> resolve(@Valid @RequestBody MasterApprovalResolveReqVO req) {

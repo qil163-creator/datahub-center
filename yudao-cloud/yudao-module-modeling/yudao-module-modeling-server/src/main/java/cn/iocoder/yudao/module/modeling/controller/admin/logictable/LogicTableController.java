@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.logictable;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.logictable.vo.*;
@@ -78,7 +78,9 @@ public class LogicTableController {
      * @param enabled 启用状态
      * @return 逻辑表
      */
-    @BusinessOperateLog(type = "数据建模-逻辑表", bizId = "#id")
+    @LogRecord(type = "数据建模-逻辑表", subType = "启用或停用逻辑表", bizNo = "{{(#id) ?: 0}}",
+            success = "启用或停用逻辑表", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-enabled")
     @Operation(summary = "启用或停用逻辑表")
     @PreAuthorize("@ss.hasPermission('modeling:logic-table:update')")
@@ -108,7 +110,9 @@ public class LogicTableController {
      * @param ids 记录编号集合
      * @return 逻辑表
      */
-    @BusinessOperateLog(type = "数据建模-逻辑表", bizId = "#ids")
+    @LogRecord(type = "数据建模-逻辑表", subType = "删除逻辑表（支持批量）", bizNo = "{{(#ids) ?: 0}}",
+            success = "删除逻辑表（支持批量）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除逻辑表（支持批量）")
     @Parameter(name = "ids", description = "编号列表", required = true, example = "1,2")

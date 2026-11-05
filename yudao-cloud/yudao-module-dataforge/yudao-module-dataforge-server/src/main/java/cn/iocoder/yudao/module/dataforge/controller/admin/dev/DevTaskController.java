@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.dev;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -63,7 +63,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#result")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "创建开发任务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建开发任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建开发任务")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Long> createTask(@Valid @RequestBody DevTaskSaveReqVO createReqVO) {
@@ -77,7 +79,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "保存开发任务并立即生成当前运行版本", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "保存开发任务并立即生成当前运行版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存开发任务并立即生成当前运行版本")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody DevTaskSaveReqVO updateReqVO) {
@@ -92,7 +96,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#id")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "删除开发任务", bizNo = "{{(#id) ?: 0}}",
+            success = "删除开发任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除开发任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:delete')")
@@ -192,7 +198,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#id")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "更新已保存任务的启用状态", bizNo = "{{(#id) ?: 0}}",
+            success = "更新已保存任务的启用状态", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新已保存任务的启用状态")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Boolean> updateTaskStatus(@RequestParam("id") Long id,
@@ -208,7 +216,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PutMapping("/update-schedule")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#reqVO.id")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "更新任务调度设置", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新任务调度设置", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新任务调度设置")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
     public CommonResult<Boolean> updateTaskSchedule(@Valid @RequestBody DevTaskScheduleReqVO reqVO) {
@@ -223,7 +233,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PostMapping("/run")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#reqVO.id")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "手动运行任务（生成执行实例）", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "手动运行任务（生成执行实例）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动运行任务（生成执行实例）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
@@ -272,7 +284,9 @@ public class DevTaskController {
      * @return 开发任务
      */
     @PutMapping("/version/rollback")
-    @BusinessOperateLog(type = "数据开发-数据开发任务", bizId = "#versionId")
+    @LogRecord(type = "数据开发-数据开发任务", subType = "回滚到指定版本", bizNo = "{{(#versionId) ?: 0}}",
+            success = "回滚到指定版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "回滚到指定版本")
     @Parameter(name = "versionId", description = "版本编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")

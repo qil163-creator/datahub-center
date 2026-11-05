@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.MarketApplyPageReqVO;
@@ -63,7 +63,9 @@ public class MarketApplyController {
     /**
      * 提交资源申请。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#result")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "提交资源申请", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "提交资源申请", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "提交资源申请")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -74,7 +76,9 @@ public class MarketApplyController {
     /**
      * 修改草稿申请。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "修改草稿申请", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "修改草稿申请", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改草稿申请")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -86,7 +90,9 @@ public class MarketApplyController {
     /**
      * expectedRevision 为客户端所见内容版本；为空时与 {@link #submitApply(Long)} 相同。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "提交草稿进入待审，内容冻结", bizNo = "{{(#id) ?: 0}}",
+            success = "提交草稿进入待审，内容冻结", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/submit")
     @Operation(summary = "提交草稿进入待审，内容冻结")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -99,7 +105,9 @@ public class MarketApplyController {
     /**
      * 删除草稿/驳回/已撤销申请。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "删除草稿/驳回/已撤销申请", bizNo = "{{(#id) ?: 0}}",
+            success = "删除草稿/驳回/已撤销申请", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除草稿/驳回/已撤销申请")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -111,7 +119,9 @@ public class MarketApplyController {
     /**
      * 撤销自己的申请。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "撤销自己的申请", bizNo = "{{(#id) ?: 0}}",
+            success = "撤销自己的申请", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/cancel")
     @Operation(summary = "撤销自己的申请")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -124,7 +134,9 @@ public class MarketApplyController {
     /**
      * 审批申请。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "审批申请", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "审批申请", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/check")
     @Operation(summary = "审批申请")
     @PreAuthorize("@ss.hasPermission('asset:market:check')")
@@ -136,7 +148,9 @@ public class MarketApplyController {
     /**
      * expectedSourceRevision 为客户端所见交付来源版本；为空时与 {@link #authApply(Long, Integer)} 相同。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "开通或取消授权", bizNo = "{{(#id) ?: 0}}",
+            success = "开通或取消授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/auth")
     @Operation(summary = "开通或取消授权")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -149,7 +163,9 @@ public class MarketApplyController {
     /**
      * 收回已通过的授权。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "收回已通过的授权", bizNo = "{{(#id) ?: 0}}",
+            success = "收回已通过的授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/revoke")
     @Operation(summary = "收回已通过的授权")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -204,7 +220,9 @@ public class MarketApplyController {
     /**
      * 要求一次性补正材料，不转为驳回。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "要求一次性补正材料，不转为驳回", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "要求一次性补正材料，不转为驳回", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/supplement")
     @Operation(summary = "要求一次性补正材料，不转为驳回")
     @PreAuthorize("@ss.hasPermission('asset:market:check')")
@@ -216,7 +234,9 @@ public class MarketApplyController {
     /**
      * 补正后重新提交，生成新修订快照。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "补正后重新提交，生成新修订快照", bizNo = "{{(#id) ?: 0}}",
+            success = "补正后重新提交，生成新修订快照", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/resubmit")
     @Operation(summary = "补正后重新提交，生成新修订快照")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -229,7 +249,9 @@ public class MarketApplyController {
     /**
      * 续期已通过申请，生成新修订并重新交付。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "续期已通过申请，生成新修订并重新交付", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "续期已通过申请，生成新修订并重新交付", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/renew")
     @Operation(summary = "续期已通过申请，生成新修订并重新交付")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -246,7 +268,9 @@ public class MarketApplyController {
      *
      *  @return 新申请编号
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#result")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "提交续期申请（新申请，需重新审批）", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "提交续期申请（新申请，需重新审批）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/renewal-request")
     @Operation(summary = "提交续期申请（新申请，需重新审批）")
     @PreAuthorize("@ss.hasPermission('asset:market:apply')")
@@ -257,7 +281,9 @@ public class MarketApplyController {
     /**
      * 暂停有效授权。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "暂停有效授权", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "暂停有效授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/pause")
     @Operation(summary = "暂停有效授权")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -269,7 +295,9 @@ public class MarketApplyController {
     /**
      * 恢复已暂停授权。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "恢复已暂停授权", bizNo = "{{(#id) ?: 0}}",
+            success = "恢复已暂停授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/resume")
     @Operation(summary = "恢复已暂停授权")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -282,7 +310,9 @@ public class MarketApplyController {
     /**
      * 重试待执行或失败的交付操作。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", action = "发起待执行或失败交付重试")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "发起待执行或失败交付重试", bizNo = "0",
+            success = "发起待执行或失败交付重试", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/retry-delivery")
     @Operation(summary = "重试待执行或失败的交付操作")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -315,7 +345,9 @@ public class MarketApplyController {
     /**
      * 人工按原操作身份核查未知结果；不重发交付命令。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#result.applyId")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "人工按原操作身份核查未知结果；不重发交付命令", bizNo = "{{(#_ret.data.applyId) ?: 0}}",
+            success = "人工按原操作身份核查未知结果；不重发交付命令", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/recheck-delivery")
     @Operation(summary = "人工按原操作身份核查未知结果；不重发交付命令")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -328,7 +360,9 @@ public class MarketApplyController {
      * 受控重投：仅限冻结命令完整匹配且动作是撤销/暂停的 MANUAL/UNKNOWN 原操作，按原 operationId 重发一次；
      *  必须绑定核查决定，GRANT 一律拒绝。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", action = "受控重投历史交付", bizId = "#result.applyId")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "受控重投历史交付", bizNo = "{{(#_ret.data.applyId) ?: 0}}",
+            success = "受控重投历史交付", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/redeliver-delivery")
     @Operation(summary = "交付受控重投：仅限冻结命令完整匹配的撤销/暂停 MANUAL/UNKNOWN 原操作，按原 operationId 重发一次；GRANT 拒绝")
     @PreAuthorize("@ss.hasPermission('asset:market:redeliver')")
@@ -340,7 +374,9 @@ public class MarketApplyController {
     /**
      * 记录待核查结论与证据审计；不恢复、撤销或重新投递授权。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#result.applyId")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "记录待核查结论与证据审计；不恢复、撤销或重新投递授权", bizNo = "{{(#_ret.data.applyId) ?: 0}}",
+            success = "记录待核查结论与证据审计；不恢复、撤销或重新投递授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delivery-review")
     @Operation(summary = "记录待核查结论与证据审计；不恢复、撤销或重新投递授权")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -352,7 +388,9 @@ public class MarketApplyController {
     /**
      * 历史交付实际处置：收回授权，或在原回执与正式批准均匹配时确认原批准。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", bizId = "#result.applyId")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "历史交付实际处置：收回授权，或在原回执与正式批准均匹配时确认原批准", bizNo = "{{(#_ret.data.applyId) ?: 0}}",
+            success = "历史交付实际处置：收回授权，或在原回执与正式批准均匹配时确认原批准", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delivery-disposal")
     @Operation(summary = "历史交付实际处置：收回授权，或在原回执与正式批准均匹配时确认原批准")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")
@@ -364,7 +402,9 @@ public class MarketApplyController {
     /**
      * 历史交付批量处置：逐条独立执行并逐条返回结果（最多二十条，部分成功不整体回滚）。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源申请", action = "批量处置历史交付", bizId = "#result.items.?[success].![result.applyId]")
+    @LogRecord(type = "数据资产-数据集市资源申请", subType = "批量处置历史交付", bizNo = "{{(#_ret.data.items.?[success].![result.applyId]) ?: 0}}",
+            success = "批量处置历史交付", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delivery-disposal-batch")
     @Operation(summary = "历史交付批量处置：逐条独立执行并逐条返回结果（最多二十条，部分成功不整体回滚）")
     @PreAuthorize("@ss.hasPermission('asset:market:auth')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.indicator;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.indicator.vo.*;
 import cn.iocoder.yudao.module.modeling.service.indicator.IndicatorModelService;
@@ -32,7 +32,9 @@ public class IndicatorModelController {
      * @param request 请求参数
      * @return 指标模型
      */
-    @BusinessOperateLog(type = "数据建模-指标模型", bizId = "#result")
+    @LogRecord(type = "数据建模-指标模型", subType = "创建指标定义", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建指标定义", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建指标定义")
     @PreAuthorize("@ss.hasPermission('modeling:indicator-model:create')")
@@ -46,7 +48,9 @@ public class IndicatorModelController {
      * @param request 请求参数
      * @return 指标模型
      */
-    @BusinessOperateLog(type = "数据建模-指标模型", bizId = "#request.id")
+    @LogRecord(type = "数据建模-指标模型", subType = "更新草稿指标定义", bizNo = "{{(#request.id) ?: 0}}",
+            success = "更新草稿指标定义", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新草稿指标定义")
     @PreAuthorize("@ss.hasPermission('modeling:indicator-model:update')")
@@ -62,7 +66,9 @@ public class IndicatorModelController {
      * @param expectedRevision 预期修订号
      * @return 指标模型
      */
-    @BusinessOperateLog(type = "数据建模-指标模型", bizId = "#id")
+    @LogRecord(type = "数据建模-指标模型", subType = "删除未被引用的草稿指标", bizNo = "{{(#id) ?: 0}}",
+            success = "删除未被引用的草稿指标", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未被引用的草稿指标")
     @PreAuthorize("@ss.hasPermission('modeling:indicator-model:delete')")
@@ -78,7 +84,9 @@ public class IndicatorModelController {
      * @param request 请求参数
      * @return 指标模型
      */
-    @BusinessOperateLog(type = "数据建模-指标模型", bizId = "#request.id")
+    @LogRecord(type = "数据建模-指标模型", subType = "启用或停用指标定义", bizNo = "{{(#request.id) ?: 0}}",
+            success = "启用或停用指标定义", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用指标定义")
     @PreAuthorize("@ss.hasPermission('modeling:indicator-model:update')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.businesscondition;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.businesscondition.vo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.indicator.vo.*;
@@ -37,7 +37,9 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
-    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#result")
+    @LogRecord(type = "数据建模-业务限定", subType = "创建业务限定定义", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建业务限定定义", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建业务限定定义")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:create')")
@@ -51,7 +53,9 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
-    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#request.id")
+    @LogRecord(type = "数据建模-业务限定", subType = "修改未启用的业务限定", bizNo = "{{(#request.id) ?: 0}}",
+            success = "修改未启用的业务限定", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改未启用的业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:update')")
@@ -67,7 +71,9 @@ public class BusinessConditionController {
      * @param expectedRevision 预期修订号
      * @return 业务限定
      */
-    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#id")
+    @LogRecord(type = "数据建模-业务限定", subType = "删除未启用的业务限定", bizNo = "{{(#id) ?: 0}}",
+            success = "删除未启用的业务限定", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未启用的业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:delete')")
@@ -83,7 +89,9 @@ public class BusinessConditionController {
      * @param request 请求参数
      * @return 业务限定
      */
-    @BusinessOperateLog(type = "数据建模-业务限定", bizId = "#request.id")
+    @LogRecord(type = "数据建模-业务限定", subType = "启用或停用业务限定", bizNo = "{{(#request.id) ?: 0}}",
+            success = "启用或停用业务限定", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:update')")

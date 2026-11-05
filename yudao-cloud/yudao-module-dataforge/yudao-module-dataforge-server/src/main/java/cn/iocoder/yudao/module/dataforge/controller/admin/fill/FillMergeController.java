@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillMergeBatchPageReqVO;
@@ -65,7 +65,9 @@ public class FillMergeController {
      * @return 填报合并
      */
     @PutMapping("/retry")
-    @BusinessOperateLog(type = "数据开发-在线填报合并记录", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报合并记录", subType = "重试失败的合并批次", bizNo = "{{(#id) ?: 0}}",
+            success = "重试失败的合并批次", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "重试失败的合并批次", description = "置回待执行，由合并 Job 拾取；不要求重新审批")
     @Parameter(name = "id", description = "批次编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-merge:retry')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardterm;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -49,7 +49,9 @@ public class StandardTermController {
      * 创建业务术语
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#result")
+    @LogRecord(type = "数据治理-业务术语", subType = "创建业务术语",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建业务术语",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建业务术语")
     @PreAuthorize("@ss.hasPermission('governance:standard-term:create')")
     public CommonResult<Long> createStandardTerm(@Valid @RequestBody StandardTermSaveReqVO createReqVO) {
@@ -60,7 +62,9 @@ public class StandardTermController {
      * 更新业务术语
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-业务术语", subType = "更新业务术语",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新业务术语",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新业务术语")
     @PreAuthorize("@ss.hasPermission('governance:standard-term:update')")
     public CommonResult<Boolean> updateStandardTerm(@Valid @RequestBody StandardTermSaveReqVO updateReqVO) {
@@ -72,7 +76,9 @@ public class StandardTermController {
      * 删除业务术语
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#id")
+    @LogRecord(type = "数据治理-业务术语", subType = "删除业务术语",
+            bizNo = "{{(#id) ?: 0}}", success = "删除业务术语",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除业务术语")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-term:delete')")
@@ -85,7 +91,9 @@ public class StandardTermController {
      * 批量删除业务术语。
      */
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-业务术语", bizId = "#ids")
+    @LogRecord(type = "数据治理-业务术语", subType = "批量删除业务术语",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除业务术语",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除业务术语")
     @Parameter(name = "ids", description = "编号列表", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-term:delete')")

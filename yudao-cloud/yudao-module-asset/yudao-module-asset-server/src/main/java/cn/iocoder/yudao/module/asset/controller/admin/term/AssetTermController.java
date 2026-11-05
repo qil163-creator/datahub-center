@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.term;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.term.vo.AssetTermBindReqVO;
 import cn.iocoder.yudao.module.asset.controller.admin.term.vo.AssetTermRespVO;
@@ -41,7 +41,9 @@ public class AssetTermController {
     /**
      * termId 是治理业务术语编号；为空表示解绑。
      */
-    @BusinessOperateLog(type = "数据资产-资产字段关联治理术语", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-资产字段关联治理术语", subType = "资产字段绑定/解除治理业务术语", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "资产字段绑定/解除治理业务术语", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/bind-column")
     @Operation(summary = "资产字段绑定/解除治理业务术语")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:term')")

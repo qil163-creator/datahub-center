@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorydataasset;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -41,7 +41,9 @@ public class CategoryDataAssetController {
      *  @param createReqVO 创建信息
      *  @return 编号
      */
-    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#result")
+    @LogRecord(type = "数据资产-数据资产类目管理", subType = "创建数据资产类目管理", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建数据资产类目管理", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建数据资产类目管理")
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:create')")
@@ -54,7 +56,9 @@ public class CategoryDataAssetController {
      *
      *  @param updateReqVO 更新信息
      */
-    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据资产-数据资产类目管理", subType = "更新数据资产类目管理", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新数据资产类目管理", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新数据资产类目管理")
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:update')")
@@ -68,7 +72,9 @@ public class CategoryDataAssetController {
      *
      *  @param id 编号
      */
-    @BusinessOperateLog(type = "数据资产-数据资产类目管理", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产类目管理", subType = "删除数据资产类目管理", bizNo = "{{(#id) ?: 0}}",
+            success = "删除数据资产类目管理", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数据资产类目管理")
     @Parameter(name = "id", description = "编号", required = true)

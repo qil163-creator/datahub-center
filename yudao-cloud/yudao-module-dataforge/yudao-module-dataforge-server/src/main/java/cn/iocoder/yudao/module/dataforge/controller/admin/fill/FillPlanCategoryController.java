@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanCategoryRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanCategorySaveReqVO;
@@ -61,7 +61,9 @@ public class FillPlanCategoryController {
      * @return 填报计划分类
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-采集计划分类", bizId = "#result")
+    @LogRecord(type = "数据开发-采集计划分类", subType = "创建采集计划分类", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建采集计划分类", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建采集计划分类")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:create')")
     public CommonResult<Long> createCategory(@Valid @RequestBody FillPlanCategorySaveReqVO reqVO) {
@@ -75,7 +77,9 @@ public class FillPlanCategoryController {
      * @return 填报计划分类
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-采集计划分类", bizId = "#reqVO.id")
+    @LogRecord(type = "数据开发-采集计划分类", subType = "更新采集计划分类", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新采集计划分类", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新采集计划分类")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:update')")
     public CommonResult<Boolean> updateCategory(@Valid @RequestBody FillPlanCategorySaveReqVO reqVO) {
@@ -90,7 +94,9 @@ public class FillPlanCategoryController {
      * @return 填报计划分类
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-采集计划分类", bizId = "#id")
+    @LogRecord(type = "数据开发-采集计划分类", subType = "删除采集计划分类，有子分类或计划引用时拒绝", bizNo = "{{(#id) ?: 0}}",
+            success = "删除采集计划分类，有子分类或计划引用时拒绝", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除采集计划分类，有子分类或计划引用时拒绝")
     @Parameter(name = "id", description = "分类编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:delete')")

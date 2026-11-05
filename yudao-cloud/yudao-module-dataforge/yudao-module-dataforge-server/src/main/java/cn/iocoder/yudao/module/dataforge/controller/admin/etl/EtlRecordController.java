@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.EtlRecordPageReqVO;
@@ -46,7 +46,9 @@ public class EtlRecordController {
      * @return ETL 运行记录
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-ETL 流程日志", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 流程日志", subType = "删除执行记录（含节点记录）", bizNo = "{{(#id) ?: 0}}",
+            success = "删除执行记录（含节点记录）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除执行记录（含节点记录）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:delete')")

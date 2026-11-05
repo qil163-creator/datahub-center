@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.file.*;
 import cn.iocoder.yudao.module.governance.service.metadata.MetaFileService;
@@ -59,7 +59,9 @@ public class MetaFileController {
      * 更新文件业务属性。
      */
     @PutMapping("/update-biz")
-    @BusinessOperateLog(type = "数据治理-文件元数据", bizId = "#req.id")
+    @LogRecord(type = "数据治理-文件元数据", subType = "更新文件业务属性",
+            bizNo = "{{(#req.id) ?: 0}}", success = "更新文件业务属性",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新文件业务属性")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody MetaFileUpdateBizReqVO req) {
@@ -71,7 +73,9 @@ public class MetaFileController {
      * 删除文件元数据，不删除远端文件。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-文件元数据", bizId = "#id")
+    @LogRecord(type = "数据治理-文件元数据", subType = "删除文件元数据，不删除远端文件",
+            bizNo = "{{(#id) ?: 0}}", success = "删除文件元数据，不删除远端文件",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除文件元数据，不删除远端文件")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:delete')")
     public CommonResult<Boolean> delete(@RequestParam("id") Long id) {
@@ -83,7 +87,9 @@ public class MetaFileController {
      * 批量删除文件元数据，不删除远端文件。
      */
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-文件元数据", bizId = "#ids")
+    @LogRecord(type = "数据治理-文件元数据", subType = "批量删除文件元数据，不删除远端文件",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除文件元数据，不删除远端文件",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除文件元数据，不删除远端文件")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam("ids") List<Long> ids) {

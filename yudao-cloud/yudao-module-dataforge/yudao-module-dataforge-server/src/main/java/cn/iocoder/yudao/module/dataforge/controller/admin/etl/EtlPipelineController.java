@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaResult;
@@ -115,7 +115,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/version/restore")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#req.versionId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "恢复历史发布配置为新草稿，保留现有发布版本和调度", bizNo = "{{(#req.versionId) ?: 0}}",
+            success = "恢复历史发布配置为新草稿，保留现有发布版本和调度", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "恢复历史发布配置为新草稿，保留现有发布版本和调度")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save') and @ss.hasPermission('dataforge:etl:query')")
     public CommonResult<Integer> restoreVersion(@Valid @RequestBody EtlVersionRestoreReqVO req) {
@@ -279,7 +281,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/retry-quality-registration")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#batchId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "人工重试治理登记，不重跑 ETL", bizNo = "{{(#batchId) ?: 0}}",
+            success = "人工重试治理登记，不重跑 ETL", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工重试治理登记，不重跑 ETL")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run') and @ss.hasPermission('dataforge:etl:query')")
     public CommonResult<Boolean> retryQualityRegistration(@RequestParam("batchId") Long batchId) {
@@ -307,7 +311,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/quality-work-order")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#request.batchId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "为内联质量报告创建治理工单，超时可查询报告确认关联", bizNo = "{{(#request.batchId) ?: 0}}",
+            success = "为内联质量报告创建治理工单，超时可查询报告确认关联", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "为内联质量报告创建治理工单，超时可查询报告确认关联")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') and @ss.hasPermission('governance:quality-audit-log:query') and @ss.hasPermission('governance:quality-work-order:create')")
     public CommonResult<Long> qualityWorkOrder(@Valid @RequestBody EtlQualityWorkOrderReqVO request) {
@@ -325,7 +331,9 @@ public class EtlPipelineController {
      */
     @PostMapping("/save")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false, responseEnable = false)
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#result")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "保存流程（新建或更新）", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "保存流程（新建或更新）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存流程（新建或更新）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Long> savePipeline(@Valid @RequestBody EtlPipelineSaveReqVO saveReqVO) {
@@ -339,7 +347,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "删除流程", bizNo = "{{(#id) ?: 0}}",
+            success = "删除流程", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除流程")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:delete')")
@@ -384,7 +394,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PutMapping("/release")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）", bizNo = "{{(#id) ?: 0}}",
+            success = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:release')")
@@ -401,7 +413,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PutMapping("/cancel-release")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "任务下线（调度开启中不可下线）", bizNo = "{{(#id) ?: 0}}",
+            success = "任务下线（调度开启中不可下线）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务下线（调度开启中不可下线）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:release')")
@@ -418,7 +432,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PutMapping("/schedule")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "开启/关闭调度（仅周期任务，需先上线）", bizNo = "{{(#id) ?: 0}}",
+            success = "开启/关闭调度（仅周期任务，需先上线）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "开启/关闭调度（仅周期任务，需先上线）")
     @Parameter(name = "id", description = "编号", required = true)
     @Parameter(name = "enable", description = "是否开启", required = true)
@@ -436,7 +452,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/copy")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#result")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "克隆流程（复制画布与配置，新流程为未上线状态）", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "克隆流程（复制画布与配置，新流程为未上线状态）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "克隆流程（复制画布与配置，新流程为未上线状态）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -451,7 +469,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/run")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#id", action = "提交 ETL 手动执行请求")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "提交 ETL 手动执行请求", bizNo = "{{(#id) ?: 0}}",
+            success = "提交 ETL 手动执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次，返回执行记录编号")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -466,7 +486,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/stop")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#recordId", action = "提交 ETL 停止执行请求")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "提交 ETL 停止执行请求", bizNo = "{{(#recordId) ?: 0}}",
+            success = "提交 ETL 停止执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止执行")
     @Parameter(name = "recordId", description = "执行记录编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -482,7 +504,9 @@ public class EtlPipelineController {
      * @return 运行回执
      */
     @PostMapping("/run-command")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#request.pipelineId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "持久受理手动执行（使用稳定请求标识重放回执）", bizNo = "{{(#request.pipelineId) ?: 0}}",
+            success = "持久受理手动执行（使用稳定请求标识重放回执）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理手动执行（使用稳定请求标识重放回执）")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false, responseEnable = false)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -515,7 +539,9 @@ public class EtlPipelineController {
      * @return 运行回执
      */
     @PostMapping("/stop-command")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "持久受理停止意图（回执不表示执行已退出）", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "持久受理停止意图（回执不表示执行已退出）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理停止意图（回执不表示执行已退出）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> stopCommand(
@@ -530,7 +556,9 @@ public class EtlPipelineController {
      * @return 运行回执
      */
     @PostMapping("/resolve-command")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "凭状态版本与退出、输出证据人工核查运行结果", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "凭状态版本与退出、输出证据人工核查运行结果", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "凭状态版本与退出、输出证据人工核查运行结果")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:resolve')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> resolveCommand(
@@ -545,7 +573,9 @@ public class EtlPipelineController {
      * @return ETL 流程
      */
     @PostMapping("/resolve-unknown")
-    @BusinessOperateLog(type = "数据开发-ETL 生产流程", bizId = "#reqVO.recordId")
+    @LogRecord(type = "数据开发-ETL 生产流程", subType = "兼容人工核查入口（同样要求状态版本与完整证据）", bizNo = "{{(#reqVO.recordId) ?: 0}}",
+            success = "兼容人工核查入口（同样要求状态版本与完整证据）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "兼容人工核查入口（同样要求状态版本与完整证据）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:resolve')")
     public CommonResult<Boolean> resolveUnknown(@Valid @RequestBody EtlResolveUnknownReqVO reqVO) {

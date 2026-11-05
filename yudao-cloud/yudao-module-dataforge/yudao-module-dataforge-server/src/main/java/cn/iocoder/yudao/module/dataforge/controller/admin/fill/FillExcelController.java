@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillExcelImportConfirmReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillExcelImportPreviewRespVO;
@@ -71,7 +71,9 @@ public class FillExcelController {
      * @return 填报操作应用响应数据
      */
     @PostMapping("/{id}/excel/import/confirm")
-    @BusinessOperateLog(type = "数据开发-在线填报 Excel", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报 Excel", subType = "Excel 导入确认", bizNo = "{{(#id) ?: 0}}",
+            success = "Excel 导入确认", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "Excel 导入确认", description = "预检数据行经草稿操作通道原子写入（追加或整体替换），并广播协同更新")
     @Parameter(name = "id", description = "工作项编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")

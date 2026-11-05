@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenerateReqVO;
@@ -85,7 +85,9 @@ public class FillTaskController {
      * @return 填报任务
      */
     @PostMapping("/generate")
-    @BusinessOperateLog(type = "数据开发-在线填报采集任务", bizId = "#result")
+    @LogRecord(type = "数据开发-在线填报采集任务", subType = "手工生成/补生成任务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "手工生成/补生成任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手工生成/补生成任务", description = "一次性任务重新生成；调度停机后按历史生成时点补生成周期任务")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:create')")
     public CommonResult<Long> generateTask(@Valid @RequestBody FillTaskGenerateReqVO reqVO) {
@@ -99,7 +101,9 @@ public class FillTaskController {
      * @return 填报任务
      */
     @PostMapping("/urge")
-    @BusinessOperateLog(type = "数据开发-在线填报采集任务", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报采集任务", subType = "任务级一键催办", bizNo = "{{(#id) ?: 0}}",
+            success = "任务级一键催办", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务级一键催办", description = "对全部未完成组织实例发送催办；1 小时频控内的自动跳过")
     @Parameter(name = "id", description = "任务编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:urge')")

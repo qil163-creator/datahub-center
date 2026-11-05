@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -41,7 +41,9 @@ public class QualityRuleSetController {
      * 创建规则集。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-数据质量-规则集", bizId = "#result")
+    @LogRecord(type = "数据治理-数据质量-规则集", subType = "创建规则集",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建规则集",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建规则集")
     @PreAuthorize("@ss.hasPermission('governance:quality-rule-set:create')")
     public CommonResult<Long> createRuleSet(@Valid @RequestBody QualityRuleSetSaveReqVO createReqVO) {
@@ -52,7 +54,9 @@ public class QualityRuleSetController {
      * 更新规则集。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-数据质量-规则集", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-数据质量-规则集", subType = "更新规则集",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新规则集",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新规则集")
     @PreAuthorize("@ss.hasPermission('governance:quality-rule-set:update')")
     public CommonResult<Boolean> updateRuleSet(@Valid @RequestBody QualityRuleSetSaveReqVO updateReqVO) {
@@ -64,7 +68,9 @@ public class QualityRuleSetController {
      * 更新规则集状态。
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-数据质量-规则集", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-规则集", subType = "更新规则集状态",
+            bizNo = "{{(#id) ?: 0}}", success = "更新规则集状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新规则集状态")
     @PreAuthorize("@ss.hasPermission('governance:quality-rule-set:update')")
     public CommonResult<Boolean> updateRuleSetStatus(@RequestParam("id") Long id,
@@ -77,7 +83,9 @@ public class QualityRuleSetController {
      * 删除规则集。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据质量-规则集", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-规则集", subType = "删除规则集",
+            bizNo = "{{(#id) ?: 0}}", success = "删除规则集",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除规则集")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-rule-set:delete')")
@@ -133,7 +141,9 @@ public class QualityRuleSetController {
      * 保存规则集规则（全量覆盖）
      */
     @PostMapping("/save-items")
-    @BusinessOperateLog(type = "数据治理-数据质量-规则集", bizId = "#reqVO.ruleSetId")
+    @LogRecord(type = "数据治理-数据质量-规则集", subType = "保存规则集明细（全量覆盖）",
+            bizNo = "{{(#reqVO.ruleSetId) ?: 0}}", success = "保存规则集明细（全量覆盖）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存规则集明细（全量覆盖）")
     @PreAuthorize("@ss.hasPermission('governance:quality-rule-set:update')")
     public CommonResult<Boolean> saveRuleSetItems(@Valid @RequestBody QualityRuleSetItemSaveReqVO reqVO) {

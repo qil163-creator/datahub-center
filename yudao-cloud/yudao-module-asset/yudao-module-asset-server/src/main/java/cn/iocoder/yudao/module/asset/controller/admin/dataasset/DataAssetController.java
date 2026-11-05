@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataasset;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -92,7 +92,9 @@ public class DataAssetController {
     /**
      * 批量编目数据资产。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#result")
+    @LogRecord(type = "数据资产-数据资产", subType = "批量编目数据资产", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "批量编目数据资产", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/batch-register")
     @Operation(summary = "批量编目数据资产")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:create')")
@@ -104,7 +106,9 @@ public class DataAssetController {
     /**
      * 维护数据资产。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据资产", subType = "维护数据资产", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "维护数据资产", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "维护数据资产")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -127,7 +131,9 @@ public class DataAssetController {
     /**
      * 维护资产字段的业务与标准属性。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-数据资产", subType = "维护资产字段的业务与标准属性", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "维护资产字段的业务与标准属性", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-column")
     @Operation(summary = "维护资产字段的业务与标准属性")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -140,7 +146,9 @@ public class DataAssetController {
     /**
      * 刷新资产引用的元数据定版与运行指标。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "刷新资产引用的元数据定版与运行指标", bizNo = "{{(#id) ?: 0}}",
+            success = "刷新资产引用的元数据定版与运行指标", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/refresh")
     @Operation(summary = "刷新资产引用的元数据定版与运行指标")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -152,7 +160,9 @@ public class DataAssetController {
     /**
      * 发布数据资产。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "发布数据资产", bizNo = "{{(#id) ?: 0}}",
+            success = "发布数据资产", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "发布数据资产")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
@@ -164,7 +174,9 @@ public class DataAssetController {
     /**
      * 停止新申请并保留既有授权。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "停止新申请并保留既有授权", bizNo = "{{(#id) ?: 0}}",
+            success = "停止新申请并保留既有授权", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/unpublish")
     @Operation(summary = "停止新申请并保留既有授权")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
@@ -176,7 +188,9 @@ public class DataAssetController {
     /**
      * 停止供数并持久触发全部存量授权撤销。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#req.assetId")
+    @LogRecord(type = "数据资产-数据资产", subType = "停止供数并持久触发全部存量授权撤销", bizNo = "{{(#req.assetId) ?: 0}}",
+            success = "停止供数并持久触发全部存量授权撤销", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/stop-supply")
     @Operation(summary = "停止供数并持久触发全部存量授权撤销")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:stop-supply')")
@@ -188,7 +202,9 @@ public class DataAssetController {
     /**
      * 重查未知回执或明确拒绝后受控重投。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", action = "处置目录交付", bizId = "#req.assetId")
+    @LogRecord(type = "数据资产-数据资产", subType = "处置目录交付", bizNo = "{{(#req.assetId) ?: 0}}",
+            success = "处置目录交付", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-delivery/handle")
     @Operation(summary = "重查未知回执或明确拒绝后受控重投")
     @PreAuthorize("@ss.hasPermission('asset:catalog-delivery:handle')")
@@ -200,8 +216,9 @@ public class DataAssetController {
     /**
      * false 表示元数据解绑已排队，目录保留到回执确认后再次完成删除。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id", recordOnFalse = true,
-            action = "提交数据资产退役删除请求（完成状态以业务回执为准）")
+    @LogRecord(type = "数据资产-数据资产", subType = "提交数据资产退役删除请求（完成状态以业务回执为准）", bizNo = "{{(#id) ?: 0}}",
+            success = "提交数据资产退役删除请求（完成状态以业务回执为准）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未发布的数据资产")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:delete')")
@@ -246,7 +263,9 @@ public class DataAssetController {
     /**
      * 创建未挂接技术资源的政务目录草稿。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#result")
+    @LogRecord(type = "数据资产-数据资产", subType = "创建未挂接技术资源的政务目录草稿", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建未挂接技术资源的政务目录草稿", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/draft")
     @Operation(summary = "创建未挂接技术资源的政务目录草稿")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:create')")
@@ -258,7 +277,9 @@ public class DataAssetController {
     /**
      * 挂接技术资源。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-数据资产", subType = "挂接技术资源", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "挂接技术资源", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/tech-link")
     @Operation(summary = "挂接技术资源")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -279,7 +300,9 @@ public class DataAssetController {
     /**
      * 提交目录版本审核。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#assetId")
+    @LogRecord(type = "数据资产-数据资产", subType = "提交目录版本审核", bizNo = "{{(#assetId) ?: 0}}",
+            success = "提交目录版本审核", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/catalog-version/submit")
     @Operation(summary = "提交目录版本审核")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -292,7 +315,9 @@ public class DataAssetController {
     /**
      * 审核目录版本。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据资产", subType = "审核目录版本", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "审核目录版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-version/check")
     @Operation(summary = "审核目录版本")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
@@ -304,7 +329,9 @@ public class DataAssetController {
     /**
      * 发布已审核通过的目录版本。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "发布已审核通过的目录版本", bizNo = "{{(#id) ?: 0}}",
+            success = "发布已审核通过的目录版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-version/publish")
     @Operation(summary = "发布已审核通过的目录版本")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
@@ -339,7 +366,9 @@ public class DataAssetController {
     /**
      * 提交校核工单。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#result")
+    @LogRecord(type = "数据资产-数据资产", subType = "提交校核工单", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "提交校核工单", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/ticket")
     @Operation(summary = "提交校核工单")
     @PreAuthorize("@ss.hasAnyPermissions('asset:data-asset:query', 'asset:market:query')")
@@ -350,7 +379,9 @@ public class DataAssetController {
     /**
      * 认领校核工单。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "认领校核工单", bizNo = "{{(#id) ?: 0}}",
+            success = "认领校核工单", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/claim")
     @Operation(summary = "认领校核工单")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -362,7 +393,9 @@ public class DataAssetController {
     /**
      * 反馈校核处理结果。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "反馈校核处理结果", bizNo = "{{(#id) ?: 0}}",
+            success = "反馈校核处理结果", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/feedback")
     @Operation(summary = "反馈校核处理结果")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")
@@ -375,7 +408,9 @@ public class DataAssetController {
     /**
      * 复核校核工单。
      */
-    @BusinessOperateLog(type = "数据资产-数据资产", bizId = "#id")
+    @LogRecord(type = "数据资产-数据资产", subType = "复核校核工单", bizNo = "{{(#id) ?: 0}}",
+            success = "复核校核工单", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/review")
     @Operation(summary = "复核校核工单")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")

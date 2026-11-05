@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.identify;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -54,7 +54,9 @@ public class SafetyIdentifyRuleController {
      * 创建敏感识别规则。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#result")
+    @LogRecord(type = "数据治理-敏感数据识别规则", subType = "创建敏感识别规则",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建敏感识别规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建敏感识别规则")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:create')")
     public CommonResult<Long> createRule(@Valid @RequestBody SafetyIdentifyRuleSaveReqVO createReqVO) {
@@ -65,7 +67,9 @@ public class SafetyIdentifyRuleController {
      * 更新敏感识别规则。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-敏感数据识别规则", subType = "更新敏感识别规则",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新敏感识别规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新敏感识别规则")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:update')")
     public CommonResult<Boolean> updateRule(@Valid @RequestBody SafetyIdentifyRuleSaveReqVO updateReqVO) {
@@ -77,7 +81,9 @@ public class SafetyIdentifyRuleController {
      * 删除敏感识别规则。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-敏感数据识别规则", bizId = "#id")
+    @LogRecord(type = "数据治理-敏感数据识别规则", subType = "删除敏感识别规则",
+            bizNo = "{{(#id) ?: 0}}", success = "删除敏感识别规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除敏感识别规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:delete')")

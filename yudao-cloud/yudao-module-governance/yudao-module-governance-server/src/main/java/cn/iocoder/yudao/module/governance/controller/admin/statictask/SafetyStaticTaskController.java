@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.statictask;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -45,7 +45,9 @@ public class SafetyStaticTaskController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#result")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "创建静态脱敏任务",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建静态脱敏任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建静态脱敏任务")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:create')")
     public CommonResult<Long> createTask(@Valid @RequestBody SafetyStaticTaskSaveReqVO createReqVO) {
@@ -58,7 +60,9 @@ public class SafetyStaticTaskController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "更新静态脱敏任务",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新静态脱敏任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新静态脱敏任务")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:update')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody SafetyStaticTaskSaveReqVO updateReqVO) {
@@ -72,7 +76,9 @@ public class SafetyStaticTaskController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#id")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "删除静态脱敏任务",
+            bizNo = "{{(#id) ?: 0}}", success = "删除静态脱敏任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除静态脱敏任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:delete')")
@@ -85,7 +91,9 @@ public class SafetyStaticTaskController {
      * 批量删除静态脱敏任务。
      */
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#ids")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "批量删除静态脱敏任务",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除静态脱敏任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除静态脱敏任务")
     @Parameter(name = "ids", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:delete')")
@@ -131,7 +139,9 @@ public class SafetyStaticTaskController {
      *  @param status 状态：0-上线、1-下线
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#id")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "更新静态脱敏任务上下线状态",
+            bizNo = "{{(#id) ?: 0}}", success = "更新静态脱敏任务上下线状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新静态脱敏任务上下线状态")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:update')")
     public CommonResult<Boolean> updateTaskStatus(@RequestParam("id") Long id,
@@ -146,7 +156,9 @@ public class SafetyStaticTaskController {
      *  @param id 任务编号
      */
     @PostMapping("/execute")
-    @BusinessOperateLog(type = "数据治理-静态脱敏任务", bizId = "#id")
+    @LogRecord(type = "数据治理-静态脱敏任务", subType = "手动执行静态脱敏任务（异步）",
+            bizNo = "{{(#id) ?: 0}}", success = "手动执行静态脱敏任务（异步）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行静态脱敏任务（异步）")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:execute')")

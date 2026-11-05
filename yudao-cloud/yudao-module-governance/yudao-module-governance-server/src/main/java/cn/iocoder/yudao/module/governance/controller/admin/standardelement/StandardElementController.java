@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardelement;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementEnumCheckRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementImpactRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementImportExcelVO;
@@ -68,7 +68,9 @@ public class StandardElementController {
      * 切换标准启用状态。
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "切换标准启用状态",
+            bizNo = "{{(#id) ?: 0}}", success = "切换标准启用状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> updateStatus(@RequestParam Integer id, @RequestParam Short status,
@@ -88,7 +90,9 @@ public class StandardElementController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#result")
+    @LogRecord(type = "数据治理-标准数据元", subType = "创建数据标准--标准数据元",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建数据标准--标准数据元",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:create')")
     public CommonResult<Integer> createStandardElement(@Valid @RequestBody StandardElementSaveReqVO createReqVO) {
@@ -101,7 +105,9 @@ public class StandardElementController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "更新数据标准--标准数据元",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新数据标准--标准数据元",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> updateStandardElement(@Valid @RequestBody StandardElementSaveReqVO updateReqVO) {
@@ -113,7 +119,9 @@ public class StandardElementController {
      * 绑定数据标准--标准数据元的标准码表。
      */
     @PutMapping("/bind-code-set")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "绑定数据标准--标准数据元的标准码表",
+            bizNo = "{{(#id) ?: 0}}", success = "绑定数据标准--标准数据元的标准码表",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定数据标准--标准数据元的标准码表")
     @Parameter(name = "id", description = "数据元编号", required = true)
     @Parameter(name = "codeSetId", description = "标准码表编号", required = true)
@@ -130,7 +138,9 @@ public class StandardElementController {
      *  @param id 数据元编号
      */
     @PutMapping("/publish")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "发布数据标准--标准数据元（草稿 → 已发布）",
+            bizNo = "{{(#id) ?: 0}}", success = "发布数据标准--标准数据元（草稿 → 已发布）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布数据标准--标准数据元（草稿 → 已发布）")
     @Parameter(name = "id", description = "数据元编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -179,7 +189,9 @@ public class StandardElementController {
      * 撤销落标映射（同时解除元数据字段与该标准的绑定）。
      */
     @PutMapping("/revoke-mapping")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#mappingId")
+    @LogRecord(type = "数据治理-标准数据元", subType = "撤销落标映射（同时解除元数据字段与该标准的绑定）",
+            bizNo = "{{(#mappingId) ?: 0}}", success = "撤销落标映射（同时解除元数据字段与该标准的绑定）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤销落标映射（同时解除元数据字段与该标准的绑定）")
     @Parameter(name = "mappingId", description = "落标映射编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -194,7 +206,9 @@ public class StandardElementController {
      *  @param id 数据元编号
      */
     @PutMapping("/deprecate")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "废止数据标准--标准数据元（已发布 → 已废止）",
+            bizNo = "{{(#id) ?: 0}}", success = "废止数据标准--标准数据元（已发布 → 已废止）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "废止数据标准--标准数据元（已发布 → 已废止）")
     @Parameter(name = "id", description = "数据元编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -232,7 +246,9 @@ public class StandardElementController {
      *  @return 变更的事实数量
      */
     @PutMapping("/sync-model-mappings")
-    @BusinessOperateLog(type = "数据治理-标准数据元")
+    @LogRecord(type = "数据治理-标准数据元", subType = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）",
+            bizNo = "0", success = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Integer> syncModelFieldMappings() {
@@ -262,7 +278,9 @@ public class StandardElementController {
      * 导入标准数据元。
      */
     @PostMapping("/import")
-    @BusinessOperateLog(type = "数据治理-标准数据元", action = "导入标准数据元（处理结果见导入回执）")
+    @LogRecord(type = "数据治理-标准数据元", subType = "导入标准数据元（处理结果见导入回执）",
+            bizNo = "0", success = "导入标准数据元（处理结果见导入回执）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "导入标准数据元")
     @Parameters({
             @Parameter(name = "file", description = "Excel 文件", required = true),
@@ -284,7 +302,9 @@ public class StandardElementController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元", subType = "删除数据标准--标准数据元",
+            bizNo = "{{(#id) ?: 0}}", success = "删除数据标准--标准数据元",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据标准--标准数据元")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:delete')")
@@ -298,7 +318,9 @@ public class StandardElementController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
-    @BusinessOperateLog(type = "数据治理-标准数据元", bizId = "#ids")
+    @LogRecord(type = "数据治理-标准数据元", subType = "批量删除数据标准--标准数据元",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除数据标准--标准数据元",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:delete')")
     public CommonResult<Boolean> deleteStandardElementList(@RequestParam("ids") List<Integer> ids) {

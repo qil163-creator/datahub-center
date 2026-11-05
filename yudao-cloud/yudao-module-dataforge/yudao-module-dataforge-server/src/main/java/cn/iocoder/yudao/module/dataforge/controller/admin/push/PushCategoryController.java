@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.push;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.push.vo.*;
 import cn.iocoder.yudao.module.dataforge.service.push.PushCategoryService;
@@ -35,27 +35,37 @@ public class PushCategoryController {
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:query')")
     public CommonResult<PushCategoryRespVO> get(@RequestParam @Positive Long id) { return success(service.get(id)); }
 
-    @PostMapping("/create") @BusinessOperateLog(type = "数据开发-数据推送类目", bizId = "#result")
+    @PostMapping("/create") @LogRecord(type = "数据开发-数据推送类目", subType = "创建推送类目", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建推送类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建推送类目")
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:create')")
     public CommonResult<Long> create(@Valid @RequestBody PushCategorySaveReqVO request) { return success(service.create(request)); }
 
-    @PutMapping("/update") @BusinessOperateLog(type = "数据开发-数据推送类目", bizId = "#request.id")
+    @PutMapping("/update") @LogRecord(type = "数据开发-数据推送类目", subType = "修改推送类目", bizNo = "{{(#request.id) ?: 0}}",
+            success = "修改推送类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改推送类目")
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody PushCategorySaveReqVO request) { service.update(request); return success(true); }
 
-    @PutMapping("/update-status") @BusinessOperateLog(type = "数据开发-数据推送类目", bizId = "#request.id")
+    @PutMapping("/update-status") @LogRecord(type = "数据开发-数据推送类目", subType = "更新推送类目状态", bizNo = "{{(#request.id) ?: 0}}",
+            success = "更新推送类目状态", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送类目状态")
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody PushCategoryStatusReqVO request) { service.updateStatus(request); return success(true); }
 
-    @DeleteMapping("/delete") @BusinessOperateLog(type = "数据开发-数据推送类目", bizId = "#id")
+    @DeleteMapping("/delete") @LogRecord(type = "数据开发-数据推送类目", subType = "删除推送类目", bizNo = "{{(#id) ?: 0}}",
+            success = "删除推送类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除推送类目")
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:delete')")
     public CommonResult<Boolean> delete(@RequestParam @Positive Long id) { service.delete(List.of(id)); return success(true); }
 
-    @DeleteMapping("/delete-list") @BusinessOperateLog(type = "数据开发-数据推送类目", bizId = "#ids")
+    @DeleteMapping("/delete-list") @LogRecord(type = "数据开发-数据推送类目", subType = "批量删除推送类目", bizNo = "{{(#ids) ?: 0}}",
+            success = "批量删除推送类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除推送类目")
     @PreAuthorize("@ss.hasPermission('dataforge:push-category:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam @NotEmpty @Size(max = 200) List<@Positive Long> ids) { service.delete(ids); return success(true); }

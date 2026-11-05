@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.task.*;
 import cn.iocoder.yudao.module.governance.service.quality.QualityEtlTaskCreationService;
@@ -28,7 +28,9 @@ public class QualityEtlTaskCreationController {
      * 创建目标检查对象和 SQL 任务并保留幂等回执；不启动检测。
      */
     @PostMapping("/create-for-etl")
-    @BusinessOperateLog(type = "数据治理-ETL 目标检测任务生成", action = "提交创建质量检测任务（含幂等回执）", bizId = "#result.taskId")
+    @LogRecord(type = "数据治理-ETL 目标检测任务生成", subType = "提交创建质量检测任务（含幂等回执）",
+            bizNo = "{{(#_ret.data.taskId) ?: 0}}", success = "提交创建质量检测任务（含幂等回执）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建目标检查对象和 SQL 任务并保留幂等回执；不启动检测")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:create') && @ss.hasPermission('governance:quality-task:query') && @ss.hasPermission('governance:quality-check-object:create') && @ss.hasPermission('governance:quality-rule:query')")
     public CommonResult<QualityEtlTaskCreateRespVO> create(@Valid @RequestBody QualityEtlTaskCreateReqVO request) {

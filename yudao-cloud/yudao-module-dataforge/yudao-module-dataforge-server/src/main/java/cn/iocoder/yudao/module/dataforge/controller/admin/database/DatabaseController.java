@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.database;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -43,7 +43,9 @@ public class DatabaseController {
      * @return 数据源
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#result")
+    @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "创建数据库信息", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建数据库信息", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:create')")
     @ApiAccessLog(requestEnable = false, responseEnable = false)
@@ -58,7 +60,9 @@ public class DatabaseController {
      * @return 数据源
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "更新数据库信息", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新数据库信息", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     @ApiAccessLog(requestEnable = false, responseEnable = false)
@@ -74,7 +78,9 @@ public class DatabaseController {
      * @return 数据源
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#id")
+    @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "删除数据库信息", bizNo = "{{(#id) ?: 0}}",
+            success = "删除数据库信息", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
@@ -91,7 +97,9 @@ public class DatabaseController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
-    @BusinessOperateLog(type = "数据开发-数据源中心-数据库信息", bizId = "#ids")
+    @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "批量删除数据库信息", bizNo = "{{(#ids) ?: 0}}",
+            success = "批量删除数据库信息", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
     public CommonResult<Boolean> deleteDatabaseList(@RequestParam("ids") List<Long> ids) {

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.system;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -45,7 +45,9 @@ public class SystemSourceController {
      * @return 业务系统
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-来源系统", bizId = "#result")
+    @LogRecord(type = "数据开发-来源系统", subType = "创建来源系统", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建来源系统", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:create')")
     public CommonResult<Long> createSystemSource(@Valid @RequestBody SystemSourceSaveReqVO createReqVO) {
@@ -59,7 +61,9 @@ public class SystemSourceController {
      * @return 业务系统
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-来源系统", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-来源系统", subType = "更新来源系统", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新来源系统", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:update')")
     public CommonResult<Boolean> updateSystemSource(@Valid @RequestBody SystemSourceSaveReqVO updateReqVO) {
@@ -74,7 +78,9 @@ public class SystemSourceController {
      * @return 业务系统
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-来源系统", bizId = "#id")
+    @LogRecord(type = "数据开发-来源系统", subType = "删除来源系统", bizNo = "{{(#id) ?: 0}}",
+            success = "删除来源系统", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除来源系统")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:delete')")
@@ -91,7 +97,9 @@ public class SystemSourceController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
-    @BusinessOperateLog(type = "数据开发-来源系统", bizId = "#ids")
+    @LogRecord(type = "数据开发-来源系统", subType = "批量删除来源系统", bizNo = "{{(#ids) ?: 0}}",
+            success = "批量删除来源系统", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:delete')")
     public CommonResult<Boolean> deleteSystemSourceList(@RequestParam("ids") List<Long> ids) {

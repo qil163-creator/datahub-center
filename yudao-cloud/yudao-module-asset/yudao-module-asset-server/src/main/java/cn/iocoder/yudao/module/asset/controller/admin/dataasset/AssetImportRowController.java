@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataasset;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.asset.controller.admin.dataasset.vo.*;
 import cn.iocoder.yudao.module.asset.service.dataasset.*;
@@ -32,7 +32,9 @@ public class AssetImportRowController {
     /**
      * 以修订号维护本地迁入行并记录前后变更。
      */
-    @BusinessOperateLog(type = "数据资产-迁入资产数据维护", bizId = "#req.id")
+    @LogRecord(type = "数据资产-迁入资产数据维护", subType = "以修订号维护本地迁入行并记录前后变更", bizNo = "{{(#req.id) ?: 0}}",
+            success = "以修订号维护本地迁入行并记录前后变更", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/update")
     @Operation(summary = "以修订号维护本地迁入行并记录前后变更")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:update')")

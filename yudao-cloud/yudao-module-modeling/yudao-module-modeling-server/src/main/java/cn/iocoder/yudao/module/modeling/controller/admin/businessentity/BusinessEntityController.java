@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.businessentity;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.businessentity.vo.*;
@@ -33,7 +33,9 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
-    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#result")
+    @LogRecord(type = "数据建模-业务实体", subType = "新增业务实体", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "新增业务实体", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "新增业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:create')")
@@ -47,7 +49,9 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
-    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#request.id")
+    @LogRecord(type = "数据建模-业务实体", subType = "修改业务实体及关系", bizNo = "{{(#request.id) ?: 0}}",
+            success = "修改业务实体及关系", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改业务实体及关系")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:update')")
@@ -91,7 +95,9 @@ public class BusinessEntityController {
      * @param expectedRevision 预期修订号
      * @return 业务实体
      */
-    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#id")
+    @LogRecord(type = "数据建模-业务实体", subType = "删除业务实体", bizNo = "{{(#id) ?: 0}}",
+            success = "删除业务实体", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:delete')")
@@ -107,7 +113,9 @@ public class BusinessEntityController {
      * @param request 请求参数
      * @return 业务实体
      */
-    @BusinessOperateLog(type = "数据建模-业务实体", bizId = "#request.targets.![id]")
+    @LogRecord(type = "数据建模-业务实体", subType = "原子批量删除业务实体", bizNo = "{{(#request.targets.![id]) ?: 0}}",
+            success = "原子批量删除业务实体", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子批量删除业务实体")
     @PreAuthorize("@ss.hasPermission('modeling:business-entity:delete')")

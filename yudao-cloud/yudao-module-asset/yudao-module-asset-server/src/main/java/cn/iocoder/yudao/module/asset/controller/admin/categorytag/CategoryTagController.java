@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorytag;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagListReqVO;
@@ -32,7 +32,9 @@ public class CategoryTagController {
     /**
      * 创建标签类目。
      */
-    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#result")
+    @LogRecord(type = "数据资产-标签类目", subType = "创建标签类目", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建标签类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建标签类目")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:create')")
@@ -43,7 +45,9 @@ public class CategoryTagController {
     /**
      * 更新标签类目。
      */
-    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-标签类目", subType = "更新标签类目", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新标签类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新标签类目")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:update')")
@@ -55,7 +59,9 @@ public class CategoryTagController {
     /**
      * 删除标签类目。
      */
-    @BusinessOperateLog(type = "数据资产-标签类目", bizId = "#id")
+    @LogRecord(type = "数据资产-标签类目", subType = "删除标签类目", bizNo = "{{(#id) ?: 0}}",
+            success = "删除标签类目", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除标签类目")
     @Parameter(name = "id", description = "编号", required = true)

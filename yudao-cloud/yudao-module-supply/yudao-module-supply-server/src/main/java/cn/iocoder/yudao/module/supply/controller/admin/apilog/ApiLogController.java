@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.apilog;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -62,7 +62,9 @@ public class ApiLogController {
      * @param id 记录编号
      * @return API日志
      */
-    @BusinessOperateLog(type = "数据服务-调用记录", bizId = "#id")
+    @LogRecord(type = "数据服务-调用记录", subType = "删除调用记录", bizNo = "{{(#id) ?: 0}}",
+            success = "删除调用记录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除调用记录")
     @Parameter(name = "id", description = "编号", required = true)

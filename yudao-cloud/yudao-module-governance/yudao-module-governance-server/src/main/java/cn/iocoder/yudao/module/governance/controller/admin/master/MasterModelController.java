@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterColumnVO;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterModelRespVO;
@@ -38,7 +38,9 @@ public class MasterModelController {
      * 创建主数据模型草稿，仅保存平台定义，字段与主键可在发布前完善。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-主数据模型", bizId = "#result")
+    @LogRecord(type = "数据治理-主数据模型", subType = "保存主数据模型草稿（不创建物理表）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "保存主数据模型草稿（不创建物理表）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存主数据模型草稿（不创建物理表）")
     @PreAuthorize("@ss.hasPermission('governance:master-model:create')")
     public CommonResult<Long> createModel(@Valid @RequestBody MasterModelSaveReqVO createReqVO) {
@@ -49,7 +51,9 @@ public class MasterModelController {
      * 保存模型修改并保持原发布状态；曾发布模型只能修改业务信息，结构仍冻结。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-主数据模型", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-主数据模型", subType = "保存主数据模型修改（结构变更保存为草稿）",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "保存主数据模型修改（结构变更保存为草稿）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存主数据模型修改（结构变更保存为草稿）")
     @PreAuthorize("@ss.hasPermission('governance:master-model:update')")
     public CommonResult<Boolean> updateModel(@Valid @RequestBody MasterModelSaveReqVO updateReqVO) {
@@ -163,7 +167,9 @@ public class MasterModelController {
      * 下线模型并保留物理表（存在派发任务时拒绝）
      */
     @PutMapping("/cancel-release")
-    @BusinessOperateLog(type = "数据治理-主数据模型", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据模型", subType = "下线主数据模型（保留物理表和数据）",
+            bizNo = "{{(#id) ?: 0}}", success = "下线主数据模型（保留物理表和数据）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "下线主数据模型（保留物理表和数据）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-model:release')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.brief.QualityBriefTemplatePageReqVO;
@@ -38,7 +38,9 @@ public class QualityBriefTemplateController {
      * 创建简报模板（含段落 + 附列配置）。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-数据质量-简报模板", bizId = "#result")
+    @LogRecord(type = "数据治理-数据质量-简报模板", subType = "创建简报模板（含段落 + 附列配置）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建简报模板（含段落 + 附列配置）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建简报模板（含段落 + 附列配置）")
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:create')")
     public CommonResult<Long> createTemplate(@Valid @RequestBody QualityBriefTemplateSaveReqVO createReqVO) {
@@ -49,7 +51,9 @@ public class QualityBriefTemplateController {
      * 更新简报模板（段落全量覆盖）。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-数据质量-简报模板", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-数据质量-简报模板", subType = "更新简报模板（段落全量覆盖）",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新简报模板（段落全量覆盖）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新简报模板（段落全量覆盖）")
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:update')")
     public CommonResult<Boolean> updateTemplate(@Valid @RequestBody QualityBriefTemplateSaveReqVO updateReqVO) {
@@ -61,7 +65,9 @@ public class QualityBriefTemplateController {
      * 删除简报模板。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据质量-简报模板", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-简报模板", subType = "删除简报模板",
+            bizNo = "{{(#id) ?: 0}}", success = "删除简报模板",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除简报模板")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:delete')")

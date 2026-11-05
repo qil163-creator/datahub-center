@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.MarketFavoriteReqVO;
@@ -56,7 +56,9 @@ public class MarketMartController {
     /**
      * 保存市场展示配置并沿资产目录原状态机发布。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-数据集市", subType = "保存市场展示配置并沿资产目录原状态机发布", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "保存市场展示配置并沿资产目录原状态机发布", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "保存市场展示配置并沿资产目录原状态机发布")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
@@ -89,7 +91,9 @@ public class MarketMartController {
     /**
      * 设置当前用户收藏状态，重复设置保持幂等。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-数据集市", subType = "设置当前用户收藏状态，重复设置保持幂等", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "设置当前用户收藏状态，重复设置保持幂等", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/favorite")
     @Operation(summary = "设置当前用户收藏状态，重复设置保持幂等")
     @PreAuthorize("@ss.hasPermission('asset:market:favorite')")

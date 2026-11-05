@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etltemplate;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etltemplate.vo.*;
 import cn.iocoder.yudao.module.dataforge.service.etltemplate.EtlTemplateService;
@@ -30,7 +30,9 @@ public class EtlTemplateController {
      * @return ETL模板
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-ETL 团队模板", bizId = "#result")
+    @LogRecord(type = "数据开发-ETL 团队模板", subType = "创建团队图片段模板，不复制运行身份或参数默认值", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建团队图片段模板，不复制运行身份或参数默认值", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建团队图片段模板，不复制运行身份或参数默认值")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save') and @ss.hasPermission('dataforge:etl:query')")
     public CommonResult<Long> create(@Valid @RequestBody EtlTemplateCreateReqVO request) {
@@ -70,7 +72,9 @@ public class EtlTemplateController {
      * @return ETL模板
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-ETL 团队模板", bizId = "#id")
+    @LogRecord(type = "数据开发-ETL 团队模板", subType = "创建人删除团队模板，不影响已应用的流程", bizNo = "{{(#id) ?: 0}}",
+            success = "创建人删除团队模板，不影响已应用的流程", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建人删除团队模板，不影响已应用的流程")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Boolean> delete(@RequestParam("id") Long id) {

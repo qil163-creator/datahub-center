@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardcodeset;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.*;
@@ -48,7 +48,9 @@ public class StandardCodeMappingController {
      * 创建关联配置。
      */
     @PostMapping("/mapping-create")
-    @BusinessOperateLog(type = "数据治理-码值映射", bizId = "#result")
+    @LogRecord(type = "数据治理-码值映射", subType = "创建关联配置",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Long> create(@Valid @RequestBody StandardCodeMappingSaveReqVO request) {
@@ -59,7 +61,9 @@ public class StandardCodeMappingController {
      * 更新关联配置。
      */
     @PutMapping("/mapping-update")
-    @BusinessOperateLog(type = "数据治理-码值映射", bizId = "#request.id")
+    @LogRecord(type = "数据治理-码值映射", subType = "更新关联配置",
+            bizNo = "{{(#request.id) ?: 0}}", success = "更新关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody StandardCodeMappingSaveReqVO request) {
@@ -71,7 +75,9 @@ public class StandardCodeMappingController {
      * 删除关联配置。
      */
     @DeleteMapping("/mapping-delete")
-    @BusinessOperateLog(type = "数据治理-码值映射", bizId = "#id")
+    @LogRecord(type = "数据治理-码值映射", subType = "删除关联配置",
+            bizNo = "{{(#id) ?: 0}}", success = "删除关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> delete(@RequestParam Integer codeSetId, @RequestParam Long id) {

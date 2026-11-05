@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.qualityrule;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -66,7 +66,9 @@ public class CleanRuleController {
      * 创建清洗规则。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#result")
+    @LogRecord(type = "数据治理-数据质量清洗规则", subType = "创建清洗规则",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建清洗规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建清洗规则")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:create')")
     public CommonResult<Long> createCleanRule(@Valid @RequestBody CleanRuleSaveReqVO createReqVO) {
@@ -77,7 +79,9 @@ public class CleanRuleController {
      * 更新清洗规则。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-数据质量清洗规则", subType = "更新清洗规则",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新清洗规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")
     public CommonResult<Boolean> updateCleanRule(@Valid @RequestBody CleanRuleSaveReqVO updateReqVO) {
@@ -89,7 +93,9 @@ public class CleanRuleController {
      * 更新清洗规则状态。
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量清洗规则", subType = "更新清洗规则状态",
+            bizNo = "{{(#id) ?: 0}}", success = "更新清洗规则状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则状态")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")
     public CommonResult<Boolean> updateCleanRuleStatus(@RequestParam("id") Long id,
@@ -102,7 +108,9 @@ public class CleanRuleController {
      * 删除清洗规则。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据质量清洗规则", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量清洗规则", subType = "删除清洗规则",
+            bizNo = "{{(#id) ?: 0}}", success = "删除清洗规则",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除清洗规则")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:delete')")

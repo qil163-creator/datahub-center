@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categoryterm;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.CategoryTermListReqVO;
@@ -31,7 +31,9 @@ public class CategoryTermController {
     private CategoryTermService categoryTermService;
 
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-业务术语类目", bizId = "#result")
+    @LogRecord(type = "数据治理-业务术语类目", subType = "创建业务术语类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建业务术语类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建业务术语类目")
     @PreAuthorize("@ss.hasPermission('governance:category-term:create')")
     public CommonResult<Long> createCategoryTerm(@Valid @RequestBody CategoryTermSaveReqVO reqVO) {
@@ -39,7 +41,9 @@ public class CategoryTermController {
     }
 
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-业务术语类目", bizId = "#reqVO.id")
+    @LogRecord(type = "数据治理-业务术语类目", subType = "更新业务术语类目",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "更新业务术语类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新业务术语类目")
     @PreAuthorize("@ss.hasPermission('governance:category-term:update')")
     public CommonResult<Boolean> updateCategoryTerm(@Valid @RequestBody CategoryTermSaveReqVO reqVO) {
@@ -48,7 +52,9 @@ public class CategoryTermController {
     }
 
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-业务术语类目", bizId = "#id")
+    @LogRecord(type = "数据治理-业务术语类目", subType = "删除业务术语类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除业务术语类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除业务术语类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-term:delete')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.access;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
@@ -38,7 +38,9 @@ public class DataAccessController {
      * @return 运行回执
      */
     @PostMapping("/run-command")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#request.taskId")
+    @LogRecord(type = "数据开发-数据同步", subType = "持久受理运行命令", bizNo = "{{(#request.taskId) ?: 0}}",
+            success = "持久受理运行命令", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理运行命令", description = "返回原始记录身份；排队受理不等于开始执行")
     @PreAuthorize("@ss.hasPermission('dataforge:access:run')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> runCommand(
@@ -53,7 +55,9 @@ public class DataAccessController {
      * @return 运行回执
      */
     @PostMapping("/stop-command")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-数据同步", subType = "持久受理记录级停止", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "持久受理记录级停止", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理记录级停止", description = "stopRequested=true 不表示资源已经停止；应查询该记录的状态")
     @PreAuthorize("@ss.hasPermission('dataforge:access:run')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> stopCommand(
@@ -68,7 +72,9 @@ public class DataAccessController {
      * @return 运行回执
      */
     @PostMapping("/resolve-command")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-数据同步", subType = "人工核查未知执行或部分输出", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "人工核查未知执行或部分输出", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知执行或部分输出", description = "要求独立核查权限、停止与输出证据以及当前行版本")
     @PreAuthorize("@ss.hasPermission('dataforge:access:resolve')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> resolveCommand(
@@ -99,7 +105,9 @@ public class DataAccessController {
      * @return 运行回执
      */
     @PostMapping("/group-recover-command")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-数据同步", subType = "恢复中断的数据组", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "恢复中断的数据组", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "恢复中断的数据组", description = "服务端确认上一执行器已退出后受理；组恢复完成仍须核查原同步输出")
     @PreAuthorize("@ss.hasPermission('dataforge:access:resolve')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> groupRecoverCommand(
@@ -115,7 +123,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#result")
+    @LogRecord(type = "数据开发-数据同步", subType = "创建数据同步任务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建数据同步任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据同步任务")
     @ApiAccessLog(requestEnable = false)
     @PreAuthorize("@ss.hasPermission('dataforge:access:create')")
@@ -130,7 +140,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-数据同步", subType = "更新数据同步任务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新数据同步任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据同步任务")
     @ApiAccessLog(requestEnable = false)
     @PreAuthorize("@ss.hasPermission('dataforge:access:update')")
@@ -146,7 +158,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#id")
+    @LogRecord(type = "数据开发-数据同步", subType = "删除数据同步任务", bizNo = "{{(#id) ?: 0}}",
+            success = "删除数据同步任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据同步任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:delete')")
@@ -233,7 +247,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PutMapping("/release")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#id")
+    @LogRecord(type = "数据开发-数据同步", subType = "发布任务", bizNo = "{{(#id) ?: 0}}",
+            success = "发布任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布任务", description = "周期任务进入调度，一次性任务立即执行一次")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:release')")
@@ -249,7 +265,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PutMapping("/cancel")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#id")
+    @LogRecord(type = "数据开发-数据同步", subType = "取消发布", bizNo = "{{(#id) ?: 0}}",
+            success = "取消发布", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:release')")
@@ -265,7 +283,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PostMapping("/run")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#id", action = "提交数据同步手动执行请求")
+    @LogRecord(type = "数据开发-数据同步", subType = "提交数据同步手动执行请求", bizNo = "{{(#id) ?: 0}}",
+            success = "提交数据同步手动执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:run')")
@@ -281,7 +301,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @PostMapping("/stop")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#id", action = "提交数据同步停止执行请求")
+    @LogRecord(type = "数据开发-数据同步", subType = "提交数据同步停止执行请求", bizNo = "{{(#id) ?: 0}}",
+            success = "提交数据同步停止执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止正在运行的任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:run')")
@@ -326,7 +348,9 @@ public class DataAccessController {
      * @return 数据同步任务
      */
     @DeleteMapping("/task/delete-list")
-    @BusinessOperateLog(type = "数据开发-数据同步", bizId = "#ids")
+    @LogRecord(type = "数据开发-数据同步", subType = "批量删除执行记录", bizNo = "{{(#ids) ?: 0}}",
+            success = "批量删除执行记录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除执行记录")
     @Parameter(name = "ids", description = "执行记录编号列表", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:access:delete')")

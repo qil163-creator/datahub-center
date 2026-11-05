@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.planning.vo.bizcategory.*;
 import cn.iocoder.yudao.module.modeling.service.planning.BizCategoryService;
@@ -32,7 +32,9 @@ public class BizCategoryController {
      * @param createReqVO 创建参数
      * @return 业务分类
      */
-    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#result")
+    @LogRecord(type = "数据建模-业务分类", subType = "创建业务分类", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建业务分类", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建业务分类")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:create')")
@@ -46,7 +48,9 @@ public class BizCategoryController {
      * @param updateReqVO 更新参数
      * @return 业务分类
      */
-    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据建模-业务分类", subType = "更新业务分类", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新业务分类", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新业务分类")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
@@ -61,7 +65,9 @@ public class BizCategoryController {
      * @param reqVO 请求参数
      * @return 业务分类
      */
-    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#reqVO.id")
+    @LogRecord(type = "数据建模-业务分类", subType = "更新业务分类状态", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新业务分类状态", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新业务分类状态")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
@@ -77,7 +83,9 @@ public class BizCategoryController {
      * @param id 记录编号
      * @return 业务分类
      */
-    @BusinessOperateLog(type = "数据建模-业务分类", bizId = "#id")
+    @LogRecord(type = "数据建模-业务分类", subType = "删除业务分类", bizNo = "{{(#id) ?: 0}}",
+            success = "删除业务分类", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务分类")
     @Parameter(name = "id", description = "编号", required = true)

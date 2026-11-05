@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.model;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.model.vo.materialized.*;
@@ -107,7 +107,9 @@ public class ModelMaterializedController {
      * @param reqVO 请求参数
      * @return 模型物化
      */
-    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#reqVO.modelId")
+    @LogRecord(type = "数据建模-模型物化发布", subType = "首次发布模型", bizNo = "{{(#reqVO.modelId) ?: 0}}",
+            success = "首次发布模型", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/publish")
     @Operation(summary = "首次发布模型")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")
@@ -121,7 +123,9 @@ public class ModelMaterializedController {
      * @param reqVO 请求参数
      * @return 模型物化
      */
-    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#result")
+    @LogRecord(type = "数据建模-模型物化发布", subType = "重新发布模型", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "重新发布模型", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/republish")
     @Operation(summary = "重新发布模型")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")
@@ -135,7 +139,9 @@ public class ModelMaterializedController {
      * @param id 记录编号
      * @return 模型物化
      */
-    @BusinessOperateLog(type = "数据建模-模型物化发布", bizId = "#id")
+    @LogRecord(type = "数据建模-模型物化发布", subType = "对账未知部署或恢复已过期执行；不执行新的DDL", bizNo = "{{(#id) ?: 0}}",
+            success = "对账未知部署或恢复已过期执行；不执行新的DDL", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/reconcile")
     @Operation(summary = "对账未知部署或恢复已过期执行；不执行新的DDL")
     @PreAuthorize("@ss.hasPermission('modeling:model-materialized:publish')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.*;
@@ -56,7 +56,9 @@ public class MasterDistributeController {
      * 启用或停用 REST 推送（不发送数据）。
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "启用或停用 REST 推送（不发送数据）",
+            bizNo = "{{(#id) ?: 0}}", success = "启用或停用 REST 推送（不发送数据）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "启用或停用 REST 推送（不发送数据）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:release')")
     public CommonResult<Boolean> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
@@ -68,7 +70,9 @@ public class MasterDistributeController {
      * 重试最近一次发送前失败的推送。
      */
     @PutMapping("/retry")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "重试最近一次发送前失败的推送",
+            bizNo = "{{(#id) ?: 0}}", success = "重试最近一次发送前失败的推送",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "重试最近一次发送前失败的推送")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:run')")
     public CommonResult<Boolean> retry(@RequestParam("id") Long id) {
@@ -80,7 +84,9 @@ public class MasterDistributeController {
      * 人工核查未知派发结果并停用排期（不发送数据）。
      */
     @PutMapping("/resolve")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#request.recordId")
+    @LogRecord(type = "数据治理-主数据派发", subType = "人工核查未知派发结果并停用排期（不发送数据）",
+            bizNo = "{{(#request.recordId) ?: 0}}", success = "人工核查未知派发结果并停用排期（不发送数据）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知派发结果并停用排期（不发送数据）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:resolve')")
     public CommonResult<MasterDistributeLogRespVO> resolve(@Valid @RequestBody MasterDistributeResolveReqVO request) {
@@ -92,7 +98,9 @@ public class MasterDistributeController {
      */
     @PostMapping("/create")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#result")
+    @LogRecord(type = "数据治理-主数据派发", subType = "创建主数据派发任务",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建主数据派发任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建主数据派发任务")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:create')")
     public CommonResult<Long> createDistribute(@Valid @RequestBody MasterDistributeSaveReqVO createReqVO) {
@@ -104,7 +112,9 @@ public class MasterDistributeController {
      */
     @PutMapping("/update")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "更新主数据派发任务",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新主数据派发任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新主数据派发任务")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:update')")
     public CommonResult<Boolean> updateDistribute(@Valid @RequestBody MasterDistributeSaveReqVO updateReqVO) {
@@ -116,7 +126,9 @@ public class MasterDistributeController {
      * 删除派发任务（已发布不可删除）
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "删除主数据派发任务",
+            bizNo = "{{(#id) ?: 0}}", success = "删除主数据派发任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除主数据派发任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:delete')")
@@ -151,7 +163,9 @@ public class MasterDistributeController {
      * 发布：一次性任务立即执行一次，周期任务按 Cron 排期
      */
     @PutMapping("/release")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "发布派发任务（一次性任务立即执行，周期任务开始排期）",
+            bizNo = "{{(#id) ?: 0}}", success = "发布派发任务（一次性任务立即执行，周期任务开始排期）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布派发任务（一次性任务立即执行，周期任务开始排期）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:release')")
@@ -164,7 +178,9 @@ public class MasterDistributeController {
      * 取消发布：停止后续排期，发送前取消，发送后保留未知结果。
      */
     @PutMapping("/cancel-release")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "取消发布派发任务",
+            bizNo = "{{(#id) ?: 0}}", success = "取消发布派发任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布派发任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:release')")
@@ -177,7 +193,9 @@ public class MasterDistributeController {
      * 手动执行一次（无论是否发布）
      */
     @PutMapping("/hand-run")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据派发", subType = "手动执行一次派发",
+            bizNo = "{{(#id) ?: 0}}", success = "手动执行一次派发",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次派发")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:run')")
@@ -190,7 +208,9 @@ public class MasterDistributeController {
      * 停止指定运行，发布及周期排期保持不变。平台内拥有运行权限的管理员可操作。
      */
     @PutMapping("/stop")
-    @BusinessOperateLog(type = "数据治理-主数据派发", bizId = "#request.recordId")
+    @LogRecord(type = "数据治理-主数据派发", subType = "停止指定派发运行（不改变发布及排期，发送后结果仍须核查）",
+            bizNo = "{{(#request.recordId) ?: 0}}", success = "停止指定派发运行（不改变发布及排期，发送后结果仍须核查）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止指定派发运行（不改变发布及排期，发送后结果仍须核查）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:run')")
     public CommonResult<MasterDistributeLogRespVO> stopRun(@Valid @RequestBody MasterDistributeStopReqVO request) {

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataquery;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryFileRespVO;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryFileSaveReqVO;
@@ -37,7 +37,9 @@ public class DataQueryFileController {
     /**
      * 创建目录或 SQL 脚本。
      */
-    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#result")
+    @LogRecord(type = "数据资产-数据查询文件目录", subType = "创建目录或 SQL 脚本", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建目录或 SQL 脚本")
     @PreAuthorize("@ss.hasPermission('asset:data-query:save')")
@@ -48,7 +50,9 @@ public class DataQueryFileController {
     /**
      * 更新目录或 SQL 脚本。
      */
-    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据查询文件目录", subType = "更新目录或 SQL 脚本", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新目录或 SQL 脚本")
     @PreAuthorize("@ss.hasPermission('asset:data-query:save')")
@@ -60,7 +64,9 @@ public class DataQueryFileController {
     /**
      * 删除目录或 SQL 脚本。
      */
-    @BusinessOperateLog(type = "数据资产-数据查询文件目录", bizId = "#id")
+    @LogRecord(type = "数据资产-数据查询文件目录", subType = "删除目录或 SQL 脚本", bizNo = "{{(#id) ?: 0}}",
+            success = "删除目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除目录或 SQL 脚本")
     @Parameter(name = "id", description = "编号", required = true)

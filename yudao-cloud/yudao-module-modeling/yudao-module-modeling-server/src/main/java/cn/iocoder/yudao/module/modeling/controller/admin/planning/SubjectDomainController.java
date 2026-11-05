@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.planning.vo.subjectdomain.*;
 import cn.iocoder.yudao.module.modeling.service.planning.SubjectDomainService;
@@ -36,7 +36,9 @@ public class SubjectDomainController {
      * @param createReqVO 创建参数
      * @return 主题域
      */
-    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#result")
+    @LogRecord(type = "数据建模-主题域", subType = "创建主题域", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建主题域", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建主题域")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:create')")
@@ -50,7 +52,9 @@ public class SubjectDomainController {
      * @param updateReqVO 更新参数
      * @return 主题域
      */
-    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据建模-主题域", subType = "更新主题域", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新主题域", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新主题域")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:update')")
@@ -65,7 +69,9 @@ public class SubjectDomainController {
      * @param reqVO 请求参数
      * @return 主题域
      */
-    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#reqVO.id")
+    @LogRecord(type = "数据建模-主题域", subType = "更新主题域状态", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新主题域状态", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新主题域状态")
     @PreAuthorize("@ss.hasPermission('modeling:subject-domain:update')")
@@ -81,7 +87,9 @@ public class SubjectDomainController {
      * @param id 记录编号
      * @return 主题域
      */
-    @BusinessOperateLog(type = "数据建模-主题域", bizId = "#id")
+    @LogRecord(type = "数据建模-主题域", subType = "删除主题域", bizNo = "{{(#id) ?: 0}}",
+            success = "删除主题域", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除主题域")
     @Parameter(name = "id", description = "编号", required = true)

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterCatalogRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterCatalogSaveReqVO;
@@ -31,7 +31,9 @@ public class MasterCatalogController {
      * 创建主数据目录节点
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#result")
+    @LogRecord(type = "数据治理-主数据目录", subType = "创建主数据目录节点",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建主数据目录节点",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:create')")
     public CommonResult<Long> createCatalog(@Valid @RequestBody MasterCatalogSaveReqVO createReqVO) {
@@ -42,7 +44,9 @@ public class MasterCatalogController {
      * 更新主数据目录节点（父级与类型不可变更）
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-主数据目录", subType = "更新主数据目录节点",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新主数据目录节点",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:update')")
     public CommonResult<Boolean> updateCatalog(@Valid @RequestBody MasterCatalogSaveReqVO updateReqVO) {
@@ -54,7 +58,9 @@ public class MasterCatalogController {
      * 删除主数据目录节点（存在子节点或已建模型时拒绝）
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-主数据目录", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据目录", subType = "删除主数据目录节点",
+            bizNo = "{{(#id) ?: 0}}", success = "删除主数据目录节点",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除主数据目录节点")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:delete')")

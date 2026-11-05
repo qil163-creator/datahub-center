@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.MarketCommentPageReqVO;
@@ -30,7 +30,9 @@ public class MarketCommentController {
     /**
      * 发表评价。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#result")
+    @LogRecord(type = "数据资产-数据集市资源评价", subType = "发表评价", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "发表评价", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "发表评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -41,7 +43,9 @@ public class MarketCommentController {
     /**
      * 修改自己的评价。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源评价", subType = "修改自己的评价", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "修改自己的评价", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改自己的评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -53,7 +57,9 @@ public class MarketCommentController {
     /**
      * 删除自己的评价。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#id")
+    @LogRecord(type = "数据资产-数据集市资源评价", subType = "删除自己的评价", bizNo = "{{(#id) ?: 0}}",
+            success = "删除自己的评价", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除自己的评价")
     @PreAuthorize("@ss.hasPermission('asset:market:comment')")
@@ -65,7 +71,9 @@ public class MarketCommentController {
     /**
      * 资产方回复评价。
      */
-    @BusinessOperateLog(type = "数据资产-数据集市资源评价", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-数据集市资源评价", subType = "资产方回复评价", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "资产方回复评价", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/reply")
     @Operation(summary = "资产方回复评价")
     @PreAuthorize("@ss.hasPermission('asset:market:check')")

@@ -3,6 +3,7 @@ package cn.iocoder.yudao.framework.operatelog.core.service;
 import cn.iocoder.yudao.framework.common.biz.system.logger.OperateLogCommonApi;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.common.biz.system.logger.dto.OperateLogCreateReqDTO;
@@ -11,9 +12,13 @@ import com.mzt.logapi.service.ILogRecordService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 操作日志 ILogRecordService 实现类
@@ -32,20 +37,95 @@ public class LogRecordServiceImpl implements ILogRecordService {
 
     @Override
     public void record(LogRecord logRecord) {
-        OperateLogCreateReqDTO reqDTO = new OperateLogCreateReqDTO();
         try {
-            reqDTO = createRequest(logRecord);
-
-            // 2. 异步记录日志
-            operateLogApi.createOperateLogAsync(reqDTO);
+            if ("BUSINESS_OPERATION".equals(logRecord.getExtra())) {
+                recordBusinessOperation(logRecord);
+                return;
+            }
+            // 保持既有注解与领域详细日志的写入路径。
+            operateLogApi.createOperateLogAsync(createRequest(logRecord));
             HttpServletRequest request = ServletUtils.getRequest();
             if (request != null) {
                 request.setAttribute(RECORDED_COUNT, recordedCount() + 1);
             }
         } catch (Throwable ex) {
-            // 由于 @Async 异步调用，这里打印下日志，更容易跟进
-            log.error("[record][url({}) log({}) 发生异常]", reqDTO.getRequestUrl(), reqDTO, ex);
+            // 不输出日志载荷或异常正文，避免业务内容与凭据进入错误日志。
+            log.error("[record][操作日志处理失败 type({}) trace({}) failureType({})]",
+                    logRecord.getType(), TracerUtils.getTraceId(), ex.getClass().getSimpleName());
         }
+    }
+
+    /** 复用既有记录器，处理管理端批量编号、提交时机和已存在的领域详细日志。 */
+    private void recordBusinessOperation(LogRecord record) {
+        if (recordedCount() > 0) {
+            return;
+        }
+        List<OperateLogCreateReqDTO> requests = new ArrayList<>();
+        for (Long id : parseBusinessIds(record.getBizNo())) {
+            LogRecord item = LogRecord.builder().type(shorten(record.getType(), 50))
+                    .subType(shorten(record.getSubType(), 50)).bizNo(String.valueOf(id))
+                    .action(shorten(record.getAction(), 2000))
+                    .extra(JsonUtils.toJsonString(Map.of("source", "BUSINESS_OPERATION", "result", "REQUEST_SUCCEEDED",
+                            "objectScope", id == 0L ? "MODULE" : "OBJECT"))).build();
+            // 在当前请求线程捕获可信操作人和请求信息，回调和异步投递只持有 DTO。
+            OperateLogCreateReqDTO request = createRequest(item);
+            if (request.getUserId() != null && request.getUserType() != null) {
+                requests.add(request);
+            }
+        }
+        Runnable write = () -> {
+            if (recordedCount() > 0) {
+                return;
+            }
+            for (OperateLogCreateReqDTO request : requests) {
+                try {
+                    operateLogApi.createOperateLogAsync(request);
+                } catch (RuntimeException failure) {
+                    log.error("[record][操作日志投递失败 type({}) bizId({}) trace({}) failureType({})]",
+                            request.getType(), request.getBizId(), request.getTraceId(), failure.getClass().getSimpleName());
+                }
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    write.run();
+                }
+            });
+        } else {
+            write.run();
+        }
+    }
+
+    /** 原生注解会将集合表达式转换成列表文本；仅接收完整整数编号，不解析业务载荷。 */
+    private static List<Long> parseBusinessIds(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of(0L);
+        }
+        String text = value.trim();
+        if (text.startsWith("[") && text.endsWith("]")) {
+            text = text.substring(1, text.length() - 1).trim();
+            if (text.isEmpty()) {
+                return List.of();
+            }
+        }
+        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        for (String item : text.split(",", -1)) {
+            String id = item.trim();
+            if ("null".equals(id)) {
+                ids.add(0L);
+            } else if (id.matches("[0-9]{1,19}")) {
+                ids.add(Long.parseLong(id));
+            } else {
+                throw new IllegalArgumentException("业务编号必须为完整整数编号");
+            }
+        }
+        return List.copyOf(ids);
+    }
+
+    private static String shorten(String value, int length) {
+        return value.length() <= length ? value : value.substring(0, length);
     }
 
     /** 捕获调用时的可信身份与请求上下文，供提交后投递复用。 */

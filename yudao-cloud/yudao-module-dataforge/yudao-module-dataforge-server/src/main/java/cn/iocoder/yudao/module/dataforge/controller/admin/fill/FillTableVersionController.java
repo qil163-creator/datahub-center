@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTableVersionPublishReqVO;
@@ -40,7 +40,9 @@ public class FillTableVersionController {
      * @return 填报表版本
      */
     @PostMapping("/publish")
-    @BusinessOperateLog(type = "数据开发-在线填报模板版本", bizId = "#result")
+    @LogRecord(type = "数据开发-在线填报模板版本", subType = "发布模板版本", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "发布模板版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布模板版本", description = "从填报表当前字段配置固化不可变版本，模板进入审批流工作模式")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
     public CommonResult<Long> publishVersion(@Valid @RequestBody FillTableVersionPublishReqVO reqVO) {
@@ -84,7 +86,9 @@ public class FillTableVersionController {
      * @return 填报表版本
      */
     @PutMapping("/disable")
-    @BusinessOperateLog(type = "数据开发-在线填报模板版本", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报模板版本", subType = "停用模板版本", bizNo = "{{(#id) ?: 0}}",
+            success = "停用模板版本", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停用模板版本", description = "仅禁止新任务引用，不影响进行中任务")
     @Parameter(name = "id", description = "版本编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -42,7 +42,9 @@ public class CategoryCleanRuleController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-清洗规则类目", bizId = "#result")
+    @LogRecord(type = "数据治理-清洗规则类目", subType = "创建清洗规则类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建清洗规则类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建清洗规则类目")
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:create')")
     public CommonResult<Long> createCategoryCleanRule(@Valid @RequestBody CategoryCleanRuleSaveReqVO createReqVO) {
@@ -55,7 +57,9 @@ public class CategoryCleanRuleController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-清洗规则类目", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-清洗规则类目", subType = "更新清洗规则类目",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新清洗规则类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则类目")
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:update')")
     public CommonResult<Boolean> updateCategoryCleanRule(@Valid @RequestBody CategoryCleanRuleSaveReqVO updateReqVO) {
@@ -69,7 +73,9 @@ public class CategoryCleanRuleController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-清洗规则类目", bizId = "#id")
+    @LogRecord(type = "数据治理-清洗规则类目", subType = "删除清洗规则类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除清洗规则类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除清洗规则类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:delete')")

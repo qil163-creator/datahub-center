@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -91,7 +91,9 @@ public class QualityTaskController {
      * 创建质量任务。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量任务", bizId = "#result")
+    @LogRecord(type = "数据治理-数据质量-质量任务", subType = "创建质量任务",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建质量任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建质量任务")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:create')")
     public CommonResult<Long> createTask(@Valid @RequestBody QualityTaskSaveReqVO createReqVO) {
@@ -102,7 +104,9 @@ public class QualityTaskController {
      * 更新质量任务。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量任务", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-数据质量-质量任务", subType = "更新质量任务",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新质量任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新质量任务")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:update')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody QualityTaskSaveReqVO updateReqVO) {
@@ -114,7 +118,9 @@ public class QualityTaskController {
      * 更新任务状态（上线/下线）
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量任务", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-质量任务", subType = "更新质量任务状态（上线/下线）",
+            bizNo = "{{(#id) ?: 0}}", success = "更新质量任务状态（上线/下线）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新质量任务状态（上线/下线）")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:update')")
     public CommonResult<Boolean> updateTaskStatus(@RequestParam("id") Long id,
@@ -127,7 +133,9 @@ public class QualityTaskController {
      * 删除质量任务。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量任务", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-质量任务", subType = "删除质量任务",
+            bizNo = "{{(#id) ?: 0}}", success = "删除质量任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除质量任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-task:delete')")
@@ -173,7 +181,9 @@ public class QualityTaskController {
      *  @return 任务实例编号
      */
     @PostMapping("/execute")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量任务", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-质量任务", subType = "手动执行一次质量任务",
+            bizNo = "{{(#id) ?: 0}}", success = "手动执行一次质量任务",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次质量任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-task:execute')")

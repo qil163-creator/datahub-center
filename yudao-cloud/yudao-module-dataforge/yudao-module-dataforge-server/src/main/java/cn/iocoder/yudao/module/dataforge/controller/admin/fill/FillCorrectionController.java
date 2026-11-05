@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -54,7 +54,9 @@ public class FillCorrectionController {
      * @return 填报更正
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-在线填报数据更正", bizId = "#result")
+    @LogRecord(type = "数据开发-在线填报数据更正", subType = "发起数据更正", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "发起数据更正", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发起数据更正", description = "仅最新已合并快照可更正；实例转入整改中，重新提交后走新 BPM 审批并幂等覆盖")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-correction:create')")
     public CommonResult<Long> createCorrection(@Valid @RequestBody FillCorrectionCreateReqVO createReqVO) {
@@ -68,7 +70,9 @@ public class FillCorrectionController {
      * @return 填报更正
      */
     @PutMapping("/cancel")
-    @BusinessOperateLog(type = "数据开发-在线填报数据更正", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报数据更正", subType = "取消更正（仅草拟中且尚未重新提交）", bizNo = "{{(#id) ?: 0}}",
+            success = "取消更正（仅草拟中且尚未重新提交）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消更正（仅草拟中且尚未重新提交）")
     @Parameter(name = "id", description = "更正实例编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-correction:create')")

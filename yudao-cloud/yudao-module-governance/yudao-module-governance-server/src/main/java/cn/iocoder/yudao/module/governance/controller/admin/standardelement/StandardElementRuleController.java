@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardelement;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.*;
@@ -48,7 +48,9 @@ public class StandardElementRuleController {
      * 创建关联配置。
      */
     @PostMapping("/rule-create")
-    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#result")
+    @LogRecord(type = "数据治理-数据元关联规则", subType = "创建关联配置",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Long> create(@Valid @RequestBody StandardElementRuleSaveReqVO request) {
@@ -59,7 +61,9 @@ public class StandardElementRuleController {
      * 更新关联配置。
      */
     @PutMapping("/rule-update")
-    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#request.id")
+    @LogRecord(type = "数据治理-数据元关联规则", subType = "更新关联配置",
+            bizNo = "{{(#request.id) ?: 0}}", success = "更新关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody StandardElementRuleSaveReqVO request) {
@@ -71,7 +75,9 @@ public class StandardElementRuleController {
      * 删除关联配置。
      */
     @DeleteMapping("/rule-delete")
-    @BusinessOperateLog(type = "数据治理-数据元关联规则", bizId = "#id")
+    @LogRecord(type = "数据治理-数据元关联规则", subType = "删除关联配置",
+            bizNo = "{{(#id) ?: 0}}", success = "删除关联配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> delete(@RequestParam Integer elementId, @RequestParam Long id) {

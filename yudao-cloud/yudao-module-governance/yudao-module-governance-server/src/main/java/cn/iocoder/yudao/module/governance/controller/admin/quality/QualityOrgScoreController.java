@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.orgscore.QualityOrgScorePageReqVO;
@@ -48,7 +48,9 @@ public class QualityOrgScoreController {
      *  @return 生成的评分记录数
      */
     @PostMapping("/calculate")
-    @BusinessOperateLog(type = "数据治理-数据质量-质量评分", bizId = "#ruleSetId")
+    @LogRecord(type = "数据治理-数据质量-质量评分", subType = "计算评分（依赖周期内该规则集下已执行的检测结果）",
+            bizNo = "{{(#ruleSetId) ?: 0}}", success = "计算评分（依赖周期内该规则集下已执行的检测结果）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "计算评分（依赖周期内该规则集下已执行的检测结果）")
     @PreAuthorize("@ss.hasPermission('governance:quality-org-score:create')")
     public CommonResult<Integer> calculateScore(@RequestParam("ruleSetId") Long ruleSetId,

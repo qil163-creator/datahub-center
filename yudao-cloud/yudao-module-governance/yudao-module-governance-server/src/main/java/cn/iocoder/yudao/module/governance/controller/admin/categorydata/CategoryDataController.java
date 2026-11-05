@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorydata;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -43,7 +43,9 @@ public class CategoryDataController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-数据分类 类目", bizId = "#result")
+    @LogRecord(type = "数据治理-数据分类 类目", subType = "创建数据分类类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建数据分类类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据分类类目")
     @PreAuthorize("@ss.hasPermission('governance:category-data:create')")
     public CommonResult<Long> createCategoryData(@Valid @RequestBody CategoryDataSaveReqVO createReqVO) {
@@ -56,7 +58,9 @@ public class CategoryDataController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-数据分类 类目", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-数据分类 类目", subType = "更新数据分类类目",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新数据分类类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据分类类目")
     @PreAuthorize("@ss.hasPermission('governance:category-data:update')")
     public CommonResult<Boolean> updateCategoryData(@Valid @RequestBody CategoryDataSaveReqVO updateReqVO) {
@@ -70,7 +74,9 @@ public class CategoryDataController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据分类 类目", bizId = "#id")
+    @LogRecord(type = "数据治理-数据分类 类目", subType = "删除数据分类类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除数据分类类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据分类类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-data:delete')")

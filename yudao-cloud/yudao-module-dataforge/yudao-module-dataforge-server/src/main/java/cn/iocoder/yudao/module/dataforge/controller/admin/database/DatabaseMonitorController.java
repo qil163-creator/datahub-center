@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.database;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseMonitorVO.*;
@@ -60,7 +60,9 @@ public class DatabaseMonitorController {
      * @return 概览
      */
     @PostMapping("/collect")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#databaseId")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "主动采集数据库连接状态与响应时间，每分钟幂等", bizNo = "{{(#databaseId) ?: 0}}",
+            success = "主动采集数据库连接状态与响应时间，每分钟幂等", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "主动采集数据库连接状态与响应时间，每分钟幂等")
     @PreAuthorize("@ss.hasPermission('dataforge:database:query')")
     public CommonResult<Overview> collect(@RequestParam @Positive Long databaseId) {
@@ -114,7 +116,9 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PostMapping("/rule/create")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#result")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "创建数据库告警规则", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建数据库告警规则", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Long> createRule(@Valid @RequestBody RuleSave req) {
@@ -128,7 +132,9 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/rule/update")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "更新数据库告警规则", bizNo = "{{(#req.id) ?: 0}}",
+            success = "更新数据库告警规则", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> updateRule(@Valid @RequestBody RuleSave req) {
@@ -143,7 +149,9 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/rule/status")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "启停数据库告警规则", bizNo = "{{(#req.id) ?: 0}}",
+            success = "启停数据库告警规则", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "启停数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> statusRule(@Valid @RequestBody RuleStatus req) {
@@ -159,7 +167,9 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @DeleteMapping("/rule/delete")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#id")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "删除数据库告警规则，保留历史告警审计记录", bizNo = "{{(#id) ?: 0}}",
+            success = "删除数据库告警规则，保留历史告警审计记录", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库告警规则，保留历史告警审计记录")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> deleteRule(@RequestParam @Positive Long databaseId, @RequestParam @Positive Long id) {
@@ -201,7 +211,9 @@ public class DatabaseMonitorController {
      * @return 数据源监控
      */
     @PutMapping("/alarm/handle")
-    @BusinessOperateLog(type = "数据开发-数据库运行监控与告警", bizId = "#req.id")
+    @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "处理或忽略数据库告警，保留操作人和原因", bizNo = "{{(#req.id) ?: 0}}",
+            success = "处理或忽略数据库告警，保留操作人和原因", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "处理或忽略数据库告警，保留操作人和原因")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     public CommonResult<Boolean> handle(@Valid @RequestBody AlarmHandle req) {

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.*;
@@ -32,7 +32,9 @@ public class MasterDomainController {
      * 创建主数据域。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-主数据域", bizId = "#result")
+    @LogRecord(type = "数据治理-主数据域", subType = "创建主数据域",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建主数据域",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建主数据域")
     @PreAuthorize("@ss.hasPermission('governance:master-domain:create')")
     public CommonResult<Long> create(@Valid @RequestBody MasterDomainSaveReqVO req) {
@@ -43,7 +45,9 @@ public class MasterDomainController {
      * 修改主数据域。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-主数据域", bizId = "#req.id")
+    @LogRecord(type = "数据治理-主数据域", subType = "修改主数据域",
+            bizNo = "{{(#req.id) ?: 0}}", success = "修改主数据域",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改主数据域")
     @PreAuthorize("@ss.hasPermission('governance:master-domain:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody MasterDomainSaveReqVO req) {
@@ -55,7 +59,9 @@ public class MasterDomainController {
      * 更新主数据域状态。
      */
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-主数据域", bizId = "#req.id")
+    @LogRecord(type = "数据治理-主数据域", subType = "更新主数据域状态",
+            bizNo = "{{(#req.id) ?: 0}}", success = "更新主数据域状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新主数据域状态")
     @PreAuthorize("@ss.hasPermission('governance:master-domain:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody MasterDomainUpdateStatusReqVO req) {
@@ -67,7 +73,9 @@ public class MasterDomainController {
      * 删除主数据域。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-主数据域", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据域", subType = "删除主数据域",
+            bizNo = "{{(#id) ?: 0}}", success = "删除主数据域",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除主数据域")
     @PreAuthorize("@ss.hasPermission('governance:master-domain:delete')")
     public CommonResult<Boolean> delete(@RequestParam("id") Long id) {
@@ -79,7 +87,9 @@ public class MasterDomainController {
      * 批量删除主数据域。
      */
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-主数据域", bizId = "#ids")
+    @LogRecord(type = "数据治理-主数据域", subType = "批量删除主数据域",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除主数据域",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除主数据域")
     @PreAuthorize("@ss.hasPermission('governance:master-domain:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam("ids") @NotEmpty @Size(max = 100) List<Long> ids) {

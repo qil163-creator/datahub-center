@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fullsync;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fullsync.vo.*;
@@ -36,7 +36,9 @@ public class FullSyncWizardController {
     }
 
     @DeleteMapping("/{id}")
-    @BusinessOperateLog(type = "数据开发-整库同步", bizId = "#id")
+    @LogRecord(type = "数据开发-整库同步", subType = "删除未提交执行的整库同步配置", bizNo = "{{(#id) ?: 0}}",
+            success = "删除未提交执行的整库同步配置", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除未提交执行的整库同步配置")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:delete')")
     public CommonResult<Boolean> delete(@PathVariable("id") Long id,
@@ -46,7 +48,9 @@ public class FullSyncWizardController {
     }
 
     @PostMapping
-    @BusinessOperateLog(type = "数据开发-整库同步", bizId = "#result.id")
+    @LogRecord(type = "数据开发-整库同步", subType = "创建整库同步向导草稿", bizNo = "{{(#_ret.data.id) ?: 0}}",
+            success = "创建整库同步向导草稿", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建整库同步向导草稿")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:create')")
     public CommonResult<FullSyncWizardRespVO> create(@Valid @RequestBody FullSyncWizardSaveReqVO req) {
@@ -54,7 +58,9 @@ public class FullSyncWizardController {
     }
 
     @PutMapping("/{id}/step")
-    @BusinessOperateLog(type = "数据开发-整库同步", bizId = "#id")
+    @LogRecord(type = "数据开发-整库同步", subType = "保存整库同步向导步骤", bizNo = "{{(#id) ?: 0}}",
+            success = "保存整库同步向导步骤", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存整库同步向导步骤")
     @Parameter(name = "id", description = "向导编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:update')")
@@ -78,7 +84,9 @@ public class FullSyncWizardController {
     }
 
     @PostMapping("/{id}/submit")
-    @BusinessOperateLog(type = "数据开发-整库同步", bizId = "#id")
+    @LogRecord(type = "数据开发-整库同步", subType = "发布并提交整库同步", bizNo = "{{(#id) ?: 0}}",
+            success = "发布并提交整库同步", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布并提交整库同步")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:release')")
     public CommonResult<FullSyncWizardRespVO> submit(@PathVariable("id") Long id,

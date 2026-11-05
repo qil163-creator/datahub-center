@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.tag.MetaTagBindReqVO;
@@ -40,7 +40,9 @@ public class MetaTagController {
      * 创建元数据标签。
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-元数据标签", bizId = "#result")
+    @LogRecord(type = "数据治理-元数据标签", subType = "创建元数据标签",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建元数据标签",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建元数据标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:create')")
     public CommonResult<Long> createTag(@Valid @RequestBody MetaTagSaveReqVO createReqVO) {
@@ -51,7 +53,9 @@ public class MetaTagController {
      * 更新元数据标签。
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-元数据标签", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-元数据标签", subType = "更新元数据标签",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新元数据标签",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新元数据标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:update')")
     public CommonResult<Boolean> updateTag(@Valid @RequestBody MetaTagSaveReqVO updateReqVO) {
@@ -63,7 +67,9 @@ public class MetaTagController {
      * 删除元数据标签。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-元数据标签", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据标签", subType = "删除元数据标签",
+            bizNo = "{{(#id) ?: 0}}", success = "删除元数据标签",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除元数据标签")
     @Parameter(name = "id", description = "标签编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:delete')")
@@ -106,7 +112,9 @@ public class MetaTagController {
      * 全量覆盖对象已绑标签
      */
     @PutMapping("/bind")
-    @BusinessOperateLog(type = "数据治理-元数据标签", bizId = "#reqVO.objectId")
+    @LogRecord(type = "数据治理-元数据标签", subType = "绑定标签（全量覆盖该对象已绑标签）",
+            bizNo = "{{(#reqVO.objectId) ?: 0}}", success = "绑定标签（全量覆盖该对象已绑标签）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定标签（全量覆盖该对象已绑标签）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> bindTags(@Valid @RequestBody MetaTagBindReqVO reqVO) {
@@ -118,7 +126,9 @@ public class MetaTagController {
      * 解绑单个标签。
      */
     @DeleteMapping("/unbind")
-    @BusinessOperateLog(type = "数据治理-元数据标签", bizId = "#objectId")
+    @LogRecord(type = "数据治理-元数据标签", subType = "解绑单个标签",
+            bizNo = "{{(#objectId) ?: 0}}", success = "解绑单个标签",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "解绑单个标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
     public CommonResult<Boolean> unbindTag(@RequestParam("tagId") Long tagId,

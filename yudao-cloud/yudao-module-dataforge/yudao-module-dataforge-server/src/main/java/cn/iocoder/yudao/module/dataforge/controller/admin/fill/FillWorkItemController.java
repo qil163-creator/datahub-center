@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillDraftSnapshotRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyReqVO;
@@ -110,7 +110,9 @@ public class FillWorkItemController {
      * @return 填报工作项
      */
     @PutMapping("/assignees")
-    @BusinessOperateLog(type = "数据开发-在线填报工作项", bizId = "#reqVO.workItemId")
+    @LogRecord(type = "数据开发-在线填报工作项", subType = "调整填报人（发起者/授权管理员：新增或移除）", bizNo = "{{(#reqVO.workItemId) ?: 0}}",
+            success = "调整填报人（发起者/授权管理员：新增或移除）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "调整填报人（发起者/授权管理员：新增或移除）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:assignee')")
     public CommonResult<Boolean> updateAssignees(@Valid @RequestBody FillWorkItemAssigneeUpdateReqVO reqVO) {
@@ -125,7 +127,9 @@ public class FillWorkItemController {
      * @return 填报工作项
      */
     @PostMapping("/transfer")
-    @BusinessOperateLog(type = "数据开发-在线填报工作项", bizId = "#reqVO.workItemId")
+    @LogRecord(type = "数据开发-在线填报工作项", subType = "填报职责转派（填报人本人发起，限同组织）", bizNo = "{{(#reqVO.workItemId) ?: 0}}",
+            success = "填报职责转派（填报人本人发起，限同组织）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "填报职责转派（填报人本人发起，限同组织）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:transfer')")
     public CommonResult<Boolean> transfer(@Valid @RequestBody FillWorkItemTransferReqVO reqVO) {
@@ -140,7 +144,9 @@ public class FillWorkItemController {
      * @return 填报工作项
      */
     @PostMapping("/urge")
-    @BusinessOperateLog(type = "数据开发-在线填报工作项", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报工作项", subType = "催办单个组织实例", bizNo = "{{(#id) ?: 0}}",
+            success = "催办单个组织实例", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "催办单个组织实例", description = "通知当前有效填报人；1 小时内重复催办被拒绝")
     @Parameter(name = "id", description = "工作项编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:urge')")
@@ -192,7 +198,9 @@ public class FillWorkItemController {
      * @return 填报操作应用响应数据
      */
     @PatchMapping("/{id}/operations")
-    @BusinessOperateLog(type = "数据开发-在线填报工作项", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报工作项", subType = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clien", bizNo = "{{(#id) ?: 0}}",
+            success = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clientOpId 幂等）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clientOpId 幂等）")
     @Parameter(name = "id", description = "工作项编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")
@@ -211,7 +219,9 @@ public class FillWorkItemController {
      * @return 填报提交响应数据
      */
     @PostMapping("/{id}/submit")
-    @BusinessOperateLog(type = "数据开发-在线填报工作项", bizId = "#id")
+    @LogRecord(type = "数据开发-在线填报工作项", subType = "提交填报数据", bizNo = "{{(#id) ?: 0}}",
+            success = "提交填报数据", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "提交填报数据",
             description = "冻结草稿（状态+版本 CAS）→ 服务端强校验 → 不可变快照 → 可靠启动 BPM；校验失败返回问题清单")
     @Parameter(name = "id", description = "工作项编号", required = true)

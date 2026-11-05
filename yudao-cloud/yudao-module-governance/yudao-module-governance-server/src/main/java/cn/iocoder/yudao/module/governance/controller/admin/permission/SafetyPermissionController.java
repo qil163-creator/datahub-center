@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.permission;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.permission.vo.SafetyPermissionColumnRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.permission.vo.SafetyPermissionDatabaseRespVO;
@@ -54,7 +54,9 @@ public class SafetyPermissionController {
      * 保存表与字段权限配置。
      */
     @PostMapping("/save")
-    @BusinessOperateLog(type = "数据治理-数据权限", bizId = "#saveReqVO.databaseId")
+    @LogRecord(type = "数据治理-数据权限", subType = "保存表与字段权限配置",
+            bizNo = "{{(#saveReqVO.databaseId) ?: 0}}", success = "保存表与字段权限配置",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存表与字段权限配置")
     @PreAuthorize("@ss.hasPermission('governance:safety-permission:update')")
     public CommonResult<Boolean> saveConfig(@Valid @RequestBody SafetyPermissionSaveReqVO saveReqVO) {
@@ -81,7 +83,9 @@ public class SafetyPermissionController {
      * 核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并。
      */
     @PostMapping("/bind-legacy")
-    @BusinessOperateLog(type = "数据治理-数据权限", bizId = "#request.databaseId")
+    @LogRecord(type = "数据治理-数据权限", subType = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并",
+            bizNo = "{{(#request.databaseId) ?: 0}}", success = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并")
     @PreAuthorize("@ss.hasPermission('governance:safety-permission:update')")
     public CommonResult<Boolean> bindLegacy(@Valid @RequestBody SafetyPermissionLegacyBindReqVO request) {

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.push;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.push.vo.*;
@@ -37,7 +37,9 @@ public class DataPushTaskController {
      * @return 数据推送任务日志响应数据
      */
     @PostMapping("/resolve-command")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#request.recordId")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）", bizNo = "{{(#request.recordId) ?: 0}}",
+            success = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:resolve')")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false, responseEnable = false)
@@ -52,7 +54,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#result")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "创建推送任务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建推送任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
@@ -67,7 +71,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "更新推送任务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
+            success = "更新推送任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:update')")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
@@ -83,7 +89,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#id")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "删除推送任务", bizNo = "{{(#id) ?: 0}}",
+            success = "删除推送任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:delete')")
     public CommonResult<Boolean> deleteTask(@RequestParam("id") Long id) {
@@ -124,7 +132,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PutMapping("/release")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#id")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "发布任务", bizNo = "{{(#id) ?: 0}}",
+            success = "发布任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:release')")
     public CommonResult<Boolean> releaseTask(@RequestParam("id") Long id) {
@@ -139,7 +149,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PutMapping("/cancel-release")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#id")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "取消发布", bizNo = "{{(#id) ?: 0}}",
+            success = "取消发布", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:release')")
     public CommonResult<Boolean> cancelTask(@RequestParam("id") Long id) {
@@ -154,7 +166,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PutMapping("/hand-run")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#id", action = "提交数据推送手动执行请求")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "提交数据推送手动执行请求", bizNo = "{{(#id) ?: 0}}",
+            success = "提交数据推送手动执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:run')")
     public CommonResult<Boolean> handRun(@RequestParam("id") Long id) {
@@ -169,7 +183,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PutMapping("/stop")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#id", action = "提交数据推送停止执行请求")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "提交数据推送停止执行请求", bizNo = "{{(#id) ?: 0}}",
+            success = "提交数据推送停止执行请求", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止正在运行的任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:run')")
     public CommonResult<Boolean> stopTask(@RequestParam("id") Long id) {
@@ -267,7 +283,9 @@ public class DataPushTaskController {
      * @return 数据推送任务
      */
     @PostMapping("/copy")
-    @BusinessOperateLog(type = "数据开发-数据推送任务", bizId = "#result")
+    @LogRecord(type = "数据开发-数据推送任务", subType = "复制推送任务", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "复制推送任务", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "复制推送任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")

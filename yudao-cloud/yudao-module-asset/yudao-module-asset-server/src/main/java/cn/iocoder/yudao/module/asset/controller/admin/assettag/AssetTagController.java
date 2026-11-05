@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.assettag;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.asset.controller.admin.assettag.vo.AssetTagBindReqVO;
@@ -35,7 +35,9 @@ public class AssetTagController {
     /**
      * 创建资产标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#result")
+    @LogRecord(type = "数据资产-资产标签", subType = "创建资产标签", bizNo = "{{(#_ret.data) ?: 0}}",
+            success = "创建资产标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:create')")
@@ -46,7 +48,9 @@ public class AssetTagController {
     /**
      * 更新资产标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#reqVO.id")
+    @LogRecord(type = "数据资产-资产标签", subType = "更新资产标签", bizNo = "{{(#reqVO.id) ?: 0}}",
+            success = "更新资产标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -58,7 +62,9 @@ public class AssetTagController {
     /**
      * 启用/停用资产标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#id")
+    @LogRecord(type = "数据资产-资产标签", subType = "启用/停用资产标签", bizNo = "{{(#id) ?: 0}}",
+            success = "启用/停用资产标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用/停用资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -72,7 +78,9 @@ public class AssetTagController {
     /**
      * 删除资产标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#id")
+    @LogRecord(type = "数据资产-资产标签", subType = "删除资产标签", bizNo = "{{(#id) ?: 0}}",
+            success = "删除资产标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除资产标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:delete')")
@@ -85,7 +93,9 @@ public class AssetTagController {
     /**
      * 按修订号原子批量删除禁用且无引用的标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#req.items.![id]")
+    @LogRecord(type = "数据资产-资产标签", subType = "按修订号原子批量删除禁用且无引用的标签", bizNo = "{{(#req.items.![id]) ?: 0}}",
+            success = "按修订号原子批量删除禁用且无引用的标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delete-list")
     @Operation(summary = "按修订号原子批量删除禁用且无引用的标签")
     @PreAuthorize("@ss.hasPermission('asset:tag:delete')")
@@ -107,7 +117,9 @@ public class AssetTagController {
     /**
      * 维护范围内按修订号移除单条资产标签关联。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#relationId")
+    @LogRecord(type = "数据资产-资产标签", subType = "维护范围内按修订号移除单条资产标签关联", bizNo = "{{(#relationId) ?: 0}}",
+            success = "维护范围内按修订号移除单条资产标签关联", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/unbind")
     @Operation(summary = "维护范围内按修订号移除单条资产标签关联")
     @PreAuthorize("@ss.hasPermission('asset:tag:update')")
@@ -161,7 +173,9 @@ public class AssetTagController {
     /**
      * 全量覆盖资产标签。
      */
-    @BusinessOperateLog(type = "数据资产-资产标签", bizId = "#reqVO.assetId")
+    @LogRecord(type = "数据资产-资产标签", subType = "全量覆盖资产标签", bizNo = "{{(#reqVO.assetId) ?: 0}}",
+            success = "全量覆盖资产标签", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/bind")
     @Operation(summary = "全量覆盖资产标签")
     @PreAuthorize("@ss.hasPermission('asset:data-asset:tag')")

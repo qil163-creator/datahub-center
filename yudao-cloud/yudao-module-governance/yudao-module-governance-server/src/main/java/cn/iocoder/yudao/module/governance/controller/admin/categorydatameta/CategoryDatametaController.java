@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorydatameta;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -42,7 +42,9 @@ public class CategoryDatametaController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-标准数据元类目", bizId = "#result")
+    @LogRecord(type = "数据治理-标准数据元类目", subType = "创建标准数据元类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建标准数据元类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建标准数据元类目")
     @PreAuthorize("@ss.hasPermission('governance:category-datameta:create')")
     public CommonResult<Long> createCategoryDatameta(@Valid @RequestBody CategoryDatametaSaveReqVO createReqVO) {
@@ -55,7 +57,9 @@ public class CategoryDatametaController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-标准数据元类目", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-标准数据元类目", subType = "更新标准数据元类目",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新标准数据元类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准数据元类目")
     @PreAuthorize("@ss.hasPermission('governance:category-datameta:update')")
     public CommonResult<Boolean> updateCategoryDatameta(@Valid @RequestBody CategoryDatametaSaveReqVO updateReqVO) {
@@ -69,7 +73,9 @@ public class CategoryDatametaController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-标准数据元类目", bizId = "#id")
+    @LogRecord(type = "数据治理-标准数据元类目", subType = "删除标准数据元类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除标准数据元类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除标准数据元类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-datameta:delete')")

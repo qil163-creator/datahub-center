@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -69,7 +69,9 @@ public class QualityAlertController {
      * 处理告警：状态置为已处理
      */
     @PutMapping("/process")
-    @BusinessOperateLog(type = "数据治理-数据质量-告警记录", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-告警记录", subType = "处理告警",
+            bizNo = "{{(#id) ?: 0}}", success = "处理告警",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "处理告警")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:update')")
@@ -82,7 +84,9 @@ public class QualityAlertController {
      * 删除告警记录。
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-数据质量-告警记录", bizId = "#id")
+    @LogRecord(type = "数据治理-数据质量-告警记录", subType = "删除告警记录",
+            bizNo = "{{(#id) ?: 0}}", success = "删除告警记录",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除告警记录")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:delete')")

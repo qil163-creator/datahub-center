@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.*;
 import cn.iocoder.yudao.module.governance.service.master.MasterPushCategoryService;
@@ -36,31 +36,41 @@ public class MasterPushCategoryController {
     public CommonResult<MasterPushCategoryRespVO> get(@RequestParam @Positive Long id) { return success(service.get(id)); }
 
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-主数据推送类目", bizId = "#result")
+    @LogRecord(type = "数据治理-主数据推送类目", subType = "创建推送类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建推送类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:create')")
     public CommonResult<Long> create(@Valid @RequestBody MasterPushCategorySaveReqVO request) { return success(service.create(request)); }
 
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-主数据推送类目", bizId = "#request.id")
+    @LogRecord(type = "数据治理-主数据推送类目", subType = "修改推送类目",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改推送类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody MasterPushCategorySaveReqVO request) { service.update(request); return success(true); }
 
     @PutMapping("/update-status")
-    @BusinessOperateLog(type = "数据治理-主数据推送类目", bizId = "#request.id")
+    @LogRecord(type = "数据治理-主数据推送类目", subType = "更新推送类目状态",
+            bizNo = "{{(#request.id) ?: 0}}", success = "更新推送类目状态",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送类目状态")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody MasterPushCategoryStatusReqVO request) { service.updateStatus(request); return success(true); }
 
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-主数据推送类目", bizId = "#id")
+    @LogRecord(type = "数据治理-主数据推送类目", subType = "删除推送类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除推送类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:delete')")
     public CommonResult<Boolean> delete(@RequestParam @Positive Long id) { service.delete(List.of(id)); return success(true); }
 
     @DeleteMapping("/delete-list")
-    @BusinessOperateLog(type = "数据治理-主数据推送类目", bizId = "#ids")
+    @LogRecord(type = "数据治理-主数据推送类目", subType = "批量删除推送类目",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除推送类目",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:delete')")
     public CommonResult<Boolean> deleteList(@RequestParam @NotEmpty @Size(max = 200) List<@Positive Long> ids) { service.delete(ids); return success(true); }

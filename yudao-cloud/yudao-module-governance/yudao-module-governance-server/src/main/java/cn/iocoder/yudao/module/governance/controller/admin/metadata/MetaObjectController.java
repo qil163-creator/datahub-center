@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.object.MetaObjectTreeNodeVO;
@@ -49,7 +49,9 @@ public class MetaObjectController {
      * 确认删除库（级联其未删除的表与字段；记录与快照永久保留）
      */
     @PutMapping("/confirm-delete-db")
-    @BusinessOperateLog(type = "数据治理-元数据对象", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据对象", subType = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）",
+            bizNo = "{{(#id) ?: 0}}", success = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）")
     @Parameter(name = "id", description = "库元数据编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-object:update')")
@@ -63,7 +65,9 @@ public class MetaObjectController {
      *  已发布表跳过，所有定版指针保持不变
      */
     @PutMapping("/publish-db")
-    @BusinessOperateLog(type = "数据治理-元数据对象", bizId = "#id")
+    @LogRecord(type = "数据治理-元数据对象", subType = "库级批量发布（发布本库全部正常且校验通过且未发布的表）",
+            bizNo = "{{(#id) ?: 0}}", success = "库级批量发布（发布本库全部正常且校验通过且未发布的表）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "库级批量发布（发布本库全部正常且校验通过且未发布的表）")
     @Parameter(name = "id", description = "库元数据编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")

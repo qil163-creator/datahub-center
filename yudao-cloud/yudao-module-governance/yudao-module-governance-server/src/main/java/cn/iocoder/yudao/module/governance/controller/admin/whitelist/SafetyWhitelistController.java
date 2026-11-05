@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.whitelist;
 
-import cn.iocoder.yudao.framework.operatelog.core.annotation.BusinessOperateLog;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -46,7 +46,9 @@ public class SafetyWhitelistController {
      *  @return 编号
      */
     @PostMapping("/create")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#result")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "创建脱敏白名单",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建脱敏白名单",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:create')")
     public CommonResult<Long> createWhitelist(@Valid @RequestBody SafetyWhitelistSaveReqVO createReqVO) {
@@ -59,7 +61,9 @@ public class SafetyWhitelistController {
      *  @param updateReqVO 更新信息
      */
     @PutMapping("/update")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#updateReqVO.id")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "更新脱敏白名单",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新脱敏白名单",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> updateWhitelist(@Valid @RequestBody SafetyWhitelistSaveReqVO updateReqVO) {
@@ -73,7 +77,9 @@ public class SafetyWhitelistController {
      *  @param id 编号
      */
     @DeleteMapping("/delete")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#id")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "删除脱敏白名单",
+            bizNo = "{{(#id) ?: 0}}", success = "删除脱敏白名单",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除脱敏白名单")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
@@ -87,7 +93,9 @@ public class SafetyWhitelistController {
      */
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#ids")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "批量删除脱敏白名单",
+            bizNo = "{{(#ids) ?: 0}}", success = "批量删除脱敏白名单",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> deleteWhitelistList(@RequestParam("ids") List<Long> ids) {
@@ -146,7 +154,9 @@ public class SafetyWhitelistController {
      * 提交审批：DRAFT / REJECTED → PENDING
      */
     @PutMapping("/submit")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#id")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "提交审批（草稿/已驳回 → 审批中）",
+            bizNo = "{{(#id) ?: 0}}", success = "提交审批（草稿/已驳回 → 审批中）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "提交审批（草稿/已驳回 → 审批中）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
@@ -159,7 +169,9 @@ public class SafetyWhitelistController {
      * 审批通过：PENDING → APPROVED，并自动启用
      */
     @PutMapping("/approve")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#id")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "审批通过（审批中 → 已通过，并自动启用）",
+            bizNo = "{{(#id) ?: 0}}", success = "审批通过（审批中 → 已通过，并自动启用）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批通过（审批中 → 已通过，并自动启用）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:approve')")
@@ -173,7 +185,9 @@ public class SafetyWhitelistController {
      * 审批驳回：PENDING → REJECTED，并停用
      */
     @PutMapping("/reject")
-    @BusinessOperateLog(type = "数据治理-脱敏白名单", bizId = "#id")
+    @LogRecord(type = "数据治理-脱敏白名单", subType = "审批驳回（审批中 → 已驳回，并停用）",
+            bizNo = "{{(#id) ?: 0}}", success = "审批驳回（审批中 → 已驳回，并停用）",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批驳回（审批中 → 已驳回，并停用）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:approve')")
