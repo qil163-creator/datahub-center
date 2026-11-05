@@ -180,13 +180,20 @@ function blankRule(inputField = '') {
     search: '',
     replacement: '',
     regex: false,
-    caseSensitive: true,
+    caseSensitive: false,
     wholeWord: false,
     emptyReplacement: false,
     replacementField: '',
     sourceField: inputField,
     targetField: inputField,
   };
+}
+/** 使用字段值替换时，不能选择当前行自身的输入字段。 */
+function replacementOptions(rule: Record<string, any>) {
+  return fields.value.map((field) => ({
+    ...field,
+    disabled: field.value === rule.inputField,
+  }));
 }
 function addRule() {
   if (props.disabled) return;
@@ -608,7 +615,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
                 <td>
                   <AutoComplete
                     :disabled="disabled"
-                    :options="fields"
+                    :options="replacementOptions(rule)"
                     placeholder="请选择"
                     :value="rule.replacementField"
                     :aria-label="`第${Number(index) + 1}行使用字段值替换`"
@@ -623,7 +630,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
                 </td>
                 <td>
                   <Select
-                    :disabled="disabled"
+                    :disabled="disabled || rule.regex === true"
                     :value="rule.wholeWord ? 1 : 0"
                     :options="yesNo"
                     :aria-label="`第${Number(index) + 1}行整个单词匹配`"
@@ -634,7 +641,7 @@ defineExpose({ validate, openFieldMerge, canMergeFields });
                 </td>
                 <td>
                   <Select
-                    :disabled="disabled"
+                    :disabled="disabled || rule.regex === true"
                     :value="rule.caseSensitive === false ? 0 : 1"
                     :options="yesNo"
                     :aria-label="`第${Number(index) + 1}行大小写敏感`"

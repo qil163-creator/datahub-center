@@ -93,12 +93,28 @@ describe('字符串和字段赋值配置', () => {
     expect(host.textContent).not.toContain('填充长度配置');
   });
 
+  it('新增替换规则默认不区分大小写，使用字段值替换不能选择自身输入字段', async () => {
+    const state = mount('string-replace', { rules: [] });
+    expect(state.config.rules).toEqual([]);
+    state.config.rules = [{ inputField: 'name', search: '', replacement: '', regex: false, wholeWord: false, caseSensitive: false, emptyReplacement: false, replacementField: '' }];
+    await nextTick();
+    expect(choices('第1行使用字段值替换')).toEqual([
+      { value: 'name', label: 'name', disabled: true },
+      { value: 'city', label: 'city', disabled: false },
+    ]);
+    expect(host.querySelector<HTMLInputElement>('[aria-label="第1行大小写敏感"]')!.value).toBe('0');
+  });
+
   it('替换选项下拉只保存boolean，并保持三种替换来源互斥及正则切换契约', async () => {
     const state = mount('string-replace', {
       rules: [{ inputField: 'name', search: 'x', replacement: 'literal', replacementField: '', emptyReplacement: false, regex: false, wholeWord: true, caseSensitive: true, custom: 8 }],
     });
     await input('第1行使用正则表达式', '1');
     expect(state.config.rules[0]).toMatchObject({ regex: true, wholeWord: false, caseSensitive: false, custom: 8 });
+    expect(host.querySelector<HTMLInputElement>('[aria-label="第1行整个单词匹配"]')!.disabled).toBe(true);
+    expect(host.querySelector<HTMLInputElement>('[aria-label="第1行大小写敏感"]')!.disabled).toBe(true);
+    await input('第1行使用正则表达式', '0');
+    expect(host.querySelector<HTMLInputElement>('[aria-label="第1行整个单词匹配"]')!.disabled).toBe(false);
     await input('第1行整个单词匹配', '1');
     await input('第1行大小写敏感', '1');
     expect(state.config.rules[0]).toMatchObject({ wholeWord: true, caseSensitive: true });
