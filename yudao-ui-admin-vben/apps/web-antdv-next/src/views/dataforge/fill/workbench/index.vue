@@ -44,6 +44,7 @@ import { getSimpleUserList } from '#/api/system/user';
 
 import { APPROVAL_STATUS_TEXT, WORK_ITEM_STATUS_TEXT } from '../shared';
 import { FillCollabClient } from './collab-client';
+import { buildImportIssueReport } from './import-report';
 import { mapDraftRows, mapFieldSchema } from './schema-mapper';
 import SheetEditor from './SheetEditor.vue';
 
@@ -482,6 +483,17 @@ const importing = ref(false);
 const importConfirming = ref(false);
 const importMode = ref(1);
 const importPreview = ref<DataforgeFillApi.ExcelImportPreview>();
+
+function downloadImportIssueReport() {
+  if (!importPreview.value) return;
+  const names = Object.fromEntries(fields.value.map((f) => [f.fieldCode, f.name]));
+  downloadFileFromBlobPart({
+    fileName: `${snapshotMeta.value.taskName || '填报'}-导入错误报告.csv`,
+    source: new Blob([buildImportIssueReport(importPreview.value.issues, names)], {
+      type: 'text/csv;charset=utf-8',
+    }),
+  });
+}
 
 async function handleExcelMenu(event: { key: string }) {
   if (!workItemId.value) return;
@@ -967,7 +979,7 @@ function handleOperation(op: DomainOperation) {
             :key="index"
             class="py-0.5 text-sm"
           >
-            <Tag color="error">{{ issue.ruleCode }}</Tag>
+            <Tag :color="issue.severity === 2 ? 'warning' : 'error'">{{ issue.ruleCode }}</Tag>
             {{ issue.message }}
           </div>
           <div
@@ -976,6 +988,9 @@ function handleOperation(op: DomainOperation) {
           >
             仅显示前 100 条，共 {{ importPreview.issues.length }} 条
           </div>
+        </div>
+        <div v-if="importPreview.issues.length > 0">
+          <Button size="small" @click="downloadImportIssueReport">下载完整错误报告（CSV）</Button>
         </div>
         <p v-if="importPreview.errorCount > 0" class="text-xs text-red-500">
           存在校验错误时不允许导入，请修正 Excel 后重新上传。
