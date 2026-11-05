@@ -1,0 +1,185 @@
+/* 条件分发/Join 分步向导：步骤条状态、表格与空态，对齐 qData 参考界面。 */
+.qi-reference-flow .qi-reference-steps button[data-state='done'] {
+  color: #2f62ff;
+  background: #ecf3ff;
+}
+
+.qi-reference-flow .qi-reference-steps button[data-state='done'] .qi-reference-step-number {
+  color: #fff;
+  background: #2f62ff;
+  border-color: #2f62ff;
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] {
+  gap: 15px;
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] .qi-reference-steps {
+  margin: 0;
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] .ant-btn {
+  height: 27px;
+  padding: 0 9px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] .qi-reference-fields-table .ant-btn-link {
+  height: auto;
+  padding: 0 4px;
+  font-size: 14px;
+}
+
+.qi-flow-condition-note {
+  padding: 12px 26px;
+  font-size: 14px;
+  line-height: 23px;
+  color: #303133;
+  background: #edf5ff;
+  border-radius: 2px;
+}
+
+.qi-flow-condition-note p {
+  margin: 0;
+}
+
+.qi-flow-relation {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  min-height: 32px;
+  padding-left: 2px;
+  font-size: 14px;
+}
+
+.qi-flow-relation .qi-reference-radio-options > label {
+  display: inline-flex;
+  grid-template-columns: none;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.qi-flow-relation .qi-reference-radio-options input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #2f62ff;
+}
+
+.qi-flow-relation .qi-reference-radio-options > label:has(input:checked) {
+  color: #2f62ff;
+}
+
+.qi-flow-field-table {
+  min-width: 0;
+}
+
+.qi-flow-field-table th,
+.qi-flow-field-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.qi-flow-field-table th {
+  font-weight: 600;
+}
+
+.qi-flow-field-table th:first-child {
+  width: 80px;
+}
+
+.qi-flow-field-table th:last-child {
+  width: 120px;
+}
+
+.qi-flow-input-scroll {
+  max-height: 300px;
+}
+
+.qi-flow-tag,
+.qi-flow-value-tag {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  line-height: 24px;
+  color: #8e44ad;
+  background: #f4eafa;
+  border-radius: 2px;
+}
+
+.qi-flow-value-tag button {
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  color: #b58bc9;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qi-flow-value-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.qi-flow-value-add {
+  padding: 0 4px;
+  font-size: 18px;
+  line-height: 1;
+  color: #606266;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qi-flow-value-add:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.qi-flow-value-input {
+  max-width: 200px;
+}
+
+.qi-flow-sort {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.qi-flow-add-row .ant-btn:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+  background: #f5f7fa;
+  border-color: #e4e7ed;
+}
+
+.qi-flow-select-arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid #a8abb2;
+  border-bottom: 1px solid #a8abb2;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] .qi-reference-fields-table .qi-reference-empty {
+  height: 298px;
+  padding-bottom: 32px;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.qi-reference-flow[data-tool-code='data-condition'] .qi-reference-fields-table .qi-reference-empty::before {
+  margin-bottom: 60px;
+}

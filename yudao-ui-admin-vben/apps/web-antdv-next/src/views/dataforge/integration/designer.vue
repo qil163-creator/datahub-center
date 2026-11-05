@@ -1436,8 +1436,11 @@ function toggleGroup(key: string) {
                         : undefined
                     "
                     :disabled="!editable"
+                    :hide-type="editingCode === 'data-condition'"
                     :stacked="
-                      ['multi-join', 'read-webservice'].includes(editingCode)
+                      ['data-condition', 'multi-join', 'read-webservice'].includes(
+                        editingCode,
+                      )
                     "
                     :show-description="
                       !editorDescription && !omittedDescription

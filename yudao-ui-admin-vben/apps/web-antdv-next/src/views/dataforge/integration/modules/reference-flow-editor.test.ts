@@ -10,7 +10,7 @@ vi.mock('./reference-clean-editor.vue', () => ({ default: { render: () => null }
 vi.mock('./reference-pivot-editor.vue', () => ({ default: { render: () => null } }));
 vi.mock('./reference-subflow-editor.vue', () => ({ default: { render: () => null } }));
 vi.mock('antdv-next', () => {
-  const Field = defineComponent({props:{value:[String,Number],disabled:Boolean},emits:['update:value'],setup:(props,{emit}) => () => h('input',{value:props.value,disabled:props.disabled,onInput:(event:Event) => emit('update:value',(event.target as HTMLInputElement).value)})});
+  const Field = defineComponent({props:{value:[String,Number],disabled:Boolean},emits:['update:value','blur','pressEnter'],setup:(props,{emit}) => () => h('input',{value:props.value,disabled:props.disabled,onInput:(event:Event) => emit('update:value',(event.target as HTMLInputElement).value),onBlur:() => emit('blur'),onKeydown:(event:KeyboardEvent) => { if (event.key==='Enter') emit('pressEnter'); }})});
   return {
     AutoComplete:Field, Input:Field, InputNumber:Field, Select:Field,
     Checkbox:defineComponent({props:{checked:Boolean,disabled:Boolean},emits:['update:checked'],setup:(props,{emit}) => () => h('input',{type:'checkbox',checked:props.checked,disabled:props.disabled,onChange:(event:Event) => emit('update:checked',(event.target as HTMLInputElement).checked)})}),
@@ -20,7 +20,7 @@ vi.mock('antdv-next', () => {
 });
 let app:App|undefined;
 let host:HTMLDivElement;
-const editor = ref<{ validate: () => boolean }>();
+const editor = ref<{ stepNav?: { last: number; next: () => void; prev: () => void; step: number }; validate: () => boolean }>();
 afterEach(() => {app?.unmount(); host?.remove();});
 function mount(toolCode:string,config:Record<string,any>,disabled=false) {
   host=document.createElement('div'); document.body.append(host);
@@ -69,15 +69,28 @@ describe('集成流程的分步配置和真实兼容契约', () => {
     expect(host.querySelector('[placeholder="请选择False组件"]')).not.toBeNull();
     const legacy = JSON.stringify(state.config.branches[2]);
     const before=JSON.stringify(state.config);
-    await click('下一步'); expect(JSON.stringify(state.config)).toBe(before);
+    expect(editor.value!.stepNav).toMatchObject({ step: 0, last: 3 });
+    editor.value!.stepNav!.next(); await nextTick(); expect(JSON.stringify(state.config)).toBe(before);
+    expect(editor.value!.stepNav!.step).toBe(1);
     expect(host.textContent).toContain('条件说明');
-    await click('添加条件'); expect(state.config.branches[0].conditions).toEqual([{fieldName:'id',operator:'EQ',value:'1'},{fieldName:'',operator:'EQ',value:''}]);
+    expect(host.textContent).not.toContain('未配置条件时');
+    await click('添加条件'); expect(state.config.branches[0].conditions).toEqual([{fieldName:'id',operator:'EQ',value:'1'},{fieldName:'',operator:'',value:''}]);
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick(); expect(host.textContent).toContain('请完善分发条件的字段名称和判断条件');
+    state.config.branches[0].conditions.pop();
     expect(state.config.branches[0].vendor).toBe(7); expect(state.config.branches[2].id).toBe('legacy');
     await click('True组件字段配置');
-    const checkbox=host.querySelector<HTMLInputElement>('input[aria-label="输出字段name"]')!; checkbox.checked=false; checkbox.dispatchEvent(new Event('change')); await nextTick();
+    expect([...host.querySelectorAll('tbody tr')]).toHaveLength(2);
+    expect(state.config.branches[0].fields).toBeUndefined();
+    const removeRow=[...host.querySelectorAll('tbody tr')][1]!.querySelector('button')!; removeRow.click(); await nextTick();
     expect(state.config.branches[0].fields).toEqual(['id']); expect(state.config.branches[1].fields).toBeUndefined();
+    await click('添加字段');
+    expect(state.config.branches[0].fields).toEqual(['id','name']);
+    expect(host.querySelector('.qi-flow-add-row button')!.hasAttribute('disabled')).toBe(true);
+    expect(host.textContent).toContain('条件判断结果为True 时，流转至该组件。');
     await click('False组件字段配置');
-    expect(host.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect([...host.querySelectorAll('tbody tr')]).toHaveLength(2);
+    expect(host.textContent).toContain('条件判断结果为False 时，流转至该组件。');
     expect(JSON.stringify(state.config.branches[2])).toBe(legacy);
     expect(state.config.unmatchedPolicy).toBe('ERROR');
     expect(editor.value!.validate()).toBe(true);
@@ -85,6 +98,29 @@ describe('集成流程的分步配置和真实兼容契约', () => {
     expect(editor.value!.validate()).toBe(false);
     await nextTick();
     expect(host.textContent).toContain('请选择分支下游组件');
+  });
+  it('条件值以标签展示并可清除，空值运算符不需要比较值，历史运算符保留不可再选', async () => {
+    const state=mount('data-condition',{branches:[{id:'a',type:'IF',conditions:[{fieldName:'id',operator:'GT',value:'3'},{fieldName:'name',operator:'IS_NULL',value:''},{fieldName:'name',operator:'EQ',value:'x'},{fieldName:'id',operator:'NE',value:''}],targetNodeNo:'sink'}]});
+    editor.value!.stepNav!.next(); await nextTick();
+    const operatorSelect=host.querySelector<HTMLInputElement>('[aria-label="第1行判断条件"]')!;
+    expect(operatorSelect).toBeTruthy();
+    const tags=[...host.querySelectorAll('.qi-flow-value-tag')].map((tag) => tag.firstElementChild?.textContent);
+    expect(tags).toEqual(['3','x']);
+    expect(host.querySelectorAll('.qi-flow-value-add')).toHaveLength(1);
+    expect(host.querySelectorAll('.qi-flow-value-cell')).toHaveLength(3);
+    (host.querySelectorAll('.qi-flow-value-tag button')[1] as HTMLButtonElement).click(); await nextTick();
+    expect(state.config.branches[0].conditions[2].value).toBe('');
+    expect(editor.value!.validate()).toBe(false);
+    await nextTick(); expect(host.textContent).toContain('请填写分发条件的比较值');
+    (host.querySelector('.qi-flow-value-add') as HTMLButtonElement).click(); await nextTick();
+    await input('[aria-label="第3行比较值"]','y');
+    host.querySelector<HTMLInputElement>('[aria-label="第3行比较值"]')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+    await nextTick();
+    expect(state.config.branches[0].conditions[2].value).toBe('y');
+    expect(host.querySelector('[aria-label="第3行比较值"]')).toBeNull();
+    expect(editor.value!.validate()).toBe(false);
+    state.config.branches[0].conditions[3].value='z';
+    expect(editor.value!.validate()).toBe(true);
   });
   it('只读浏览切换步骤或伪造输入均不改写节点',async() => {
     const state=mount('multi-join',{joinConditions:[{leftField:'id',rightField:'other'}],vendor:9},true);
