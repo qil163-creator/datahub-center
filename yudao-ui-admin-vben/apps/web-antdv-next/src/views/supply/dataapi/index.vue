@@ -367,6 +367,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     height: 'auto',
     showHeaderOverflow: 'tooltip',
     showOverflow: false,
+    stripe: true,
     proxyConfig: {
       ajax: {
         query: async ({ page }, formValues) => {
@@ -550,59 +551,69 @@ onMounted(() => {
             />
           </template>
           <template #name="{ row }">
-            <div class="flex flex-wrap items-center gap-1">
-              <IconifyIcon
-                class="size-4 shrink-0 text-emerald-500"
-                icon="carbon:api-1"
+            <div class="dataapi-name-cell">
+              <div class="dataapi-name-heading flex flex-wrap items-center gap-1">
+                <IconifyIcon
+                  class="size-4 shrink-0 text-emerald-500"
+                  icon="carbon:api-1"
+                />
+                <span
+                  class="max-w-full min-w-0 break-words whitespace-normal"
+                >
+                  {{ row.name }}
+                </span>
+                <Tag class="dataapi-meta-tag shrink-0" color="purple">
+                  {{ row.version }}
+                </Tag>
+                <Tag
+                  v-if="row.unpublishedDraft"
+                  class="dataapi-meta-tag"
+                  color="warning"
+                >
+                  未发布草稿
+                </Tag>
+              </div>
+              <TextEllipsisCell
+                class="text-muted-foreground whitespace-pre-wrap break-words text-xs"
+                :content="row.description || '-'"
+                :line="2"
+                :line-height="18"
+                :reserve-lines="false"
+                center
               />
-              <span
-                class="max-w-full min-w-0 break-words whitespace-normal font-medium"
-              >
-                {{ row.name }}
-              </span>
-              <Tag class="dataapi-meta-tag shrink-0" color="blue">
-                {{ row.version }}
-              </Tag>
-              <Tag
-                v-if="row.unpublishedDraft"
-                class="dataapi-meta-tag"
-                color="warning"
-              >
-                未发布草稿
-              </Tag>
             </div>
-            <TextEllipsisCell
-              class="text-muted-foreground whitespace-pre-wrap break-words text-xs"
-              :content="row.description || '-'"
-              :line="2"
-              center
-            />
           </template>
           <template #categoryId="{ row }">
             <Tag
-              class="dataapi-meta-tag max-w-full whitespace-normal break-words"
+              class="dataapi-meta-tag dataapi-category-tag max-w-full whitespace-normal break-words"
               color="processing"
             >
               {{ categoryName(row.categoryId) }}
             </Tag>
           </template>
           <template #path="{ row }">
-            <Tooltip :title="row.path">
-              <div class="truncate font-mono text-sm">{{ row.path }}</div>
-            </Tooltip>
-            <div class="mt-0.5 flex flex-wrap gap-1">
-              <Tag
-                class="dataapi-meta-tag"
-                :color="row.method === 'GET' ? 'green' : 'geekblue'"
-              >
-                {{ optionLabel(METHOD_OPTIONS, row.method) }}
-              </Tag>
-              <Tag
-                class="dataapi-meta-tag"
-                :color="optionColor(RESULT_FORMAT_OPTIONS, row.resultFormat)"
-              >
-                {{ optionLabel(RESULT_FORMAT_OPTIONS, row.resultFormat) }}
-              </Tag>
+            <div class="dataapi-path-cell">
+              <Tooltip :title="row.path">
+                <div class="truncate">{{ row.path }}</div>
+              </Tooltip>
+              <div class="flex flex-wrap gap-1">
+                <Tag
+                  class="dataapi-meta-tag"
+                  :color="row.method === 'GET' ? 'processing' : 'geekblue'"
+                >
+                  {{ optionLabel(METHOD_OPTIONS, row.method) }}
+                </Tag>
+                <Tag
+                  class="dataapi-meta-tag"
+                  :color="
+                    row.resultFormat === 'PAGE'
+                      ? 'purple'
+                      : optionColor(RESULT_FORMAT_OPTIONS, row.resultFormat)
+                  "
+                >
+                  {{ optionLabel(RESULT_FORMAT_OPTIONS, row.resultFormat) }}
+                </Tag>
+              </div>
             </div>
           </template>
           <template #authType="{ row }">
@@ -753,10 +764,39 @@ onMounted(() => {
 }
 
 .dataapi-meta-tag {
-  padding-inline: 4px;
+  padding: 1px 5px;
+  margin-inline-end: 0;
   font-size: 11px;
   line-height: 16px;
-  border-radius: calc(var(--radius) / 2);
+  border-color: transparent;
+  border-radius: 2px;
+}
+
+.dataapi-category-tag {
+  padding: 1px 6px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.dataapi-name-cell,
+.dataapi-path-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-width: 0;
+  min-height: 52px;
+  line-height: 22px;
+}
+
+.dataapi-name-heading {
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.dataapi-name-heading .dataapi-meta-tag {
+  font-size: 11px;
+  line-height: 16px;
 }
 
 .dataapi-layout {
@@ -832,6 +872,10 @@ onMounted(() => {
 .dataapi-tree :deep(.ant-tree) {
   font-size: 14px;
   background: transparent;
+}
+
+.dataapi-grid {
+  --vxe-ui-table-row-striped-background-color: hsl(var(--muted) / 30%);
 }
 
 .dataapi-grid :deep(.vxe-body--column) {

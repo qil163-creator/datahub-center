@@ -142,8 +142,8 @@ export function useGridColumns(): VxeTableGridOptions<SupplyDataApiApi.DataApi>[
     { field: 'id', title: '编号', width: 70 },
     {
       field: 'name',
-      title: 'API名称/版本与描述',
-      minWidth: 220,
+      title: 'API名称/版本号/描述',
+      minWidth: 340,
       align: 'left',
       showOverflow: false,
       slots: { default: 'name' },
@@ -151,13 +151,14 @@ export function useGridColumns(): VxeTableGridOptions<SupplyDataApiApi.DataApi>[
     {
       field: 'categoryId',
       title: '所属类目',
-      width: 120,
+      width: 140,
+      align: 'left',
       slots: { default: 'categoryId' },
     },
     {
       field: 'path',
       title: 'API路径/请求类型/返回格式',
-      minWidth: 240,
+      minWidth: 280,
       align: 'left',
       showOverflow: false,
       slots: { default: 'path' },
@@ -177,7 +178,8 @@ export function useGridColumns(): VxeTableGridOptions<SupplyDataApiApi.DataApi>[
     {
       field: 'creator',
       title: '创建人',
-      width: 100,
+      width: 140,
+      align: 'left',
       formatter: ({ cellValue }) => getUserNickname(cellValue),
     },
     {

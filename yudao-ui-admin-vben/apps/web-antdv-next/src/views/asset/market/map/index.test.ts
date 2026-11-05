@@ -155,6 +155,7 @@ vi.mock('antdv-next', () => {
     Modal: Object.assign(box, { confirm: vi.fn() }),
     Pagination: box,
     Select: box,
+    SpaceCompact: box,
     Spin: box,
     Tag: box,
     Tooltip: box,
@@ -182,8 +183,8 @@ interface State {
   query: {
     categoryId?: DataAssetApi.Id;
     dataDomainId?: DataAssetApi.Id;
+    keyword?: string;
     layer?: string;
-    status?: number;
   };
   onGroupSelect: (keys: string[], info: { node: any }) => void;
   reset: () => void;
@@ -454,15 +455,16 @@ describe('asset map workspace', () => {
     expect(mock.publishOpen).toHaveBeenCalledOnce();
     expect(mock.publishData).toHaveBeenCalledWith({ asset });
   });
-  it('transmits large category ids and draft filters without numeric conversion', async () => {
+  it('transmits large category ids and keyword filters without numeric conversion', async () => {
     mount();
     await flush();
     state.query.categoryId = '9007199254740993';
-    state.query.status = 0;
+    state.query.keyword = '河流';
     await state.loadAssets();
     expect(mock.page).toHaveBeenLastCalledWith(
-      expect.objectContaining({ categoryId: '9007199254740993', status: 0 }),
+      expect.objectContaining({ categoryId: '9007199254740993', keyword: '河流' }),
     );
+    expect(mock.page.mock.lastCall?.[0]).not.toHaveProperty('status');
   });
   it.each(['resolve', 'reject'] as const)(
     'prevents a stale list %s from affecting the current request',

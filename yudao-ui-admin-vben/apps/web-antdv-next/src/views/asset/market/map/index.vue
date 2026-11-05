@@ -34,6 +34,7 @@ import {
   message,
   Modal,
   Select,
+  SpaceCompact,
   Spin,
   Tag,
   Tree,
@@ -233,7 +234,6 @@ const query = reactive<{
   dataDomainId?: number | string;
   keyword?: string;
   layer?: string;
-  status?: number;
 }>({});
 
 const [FilterForm, filterFormApi] = useVbenForm({
@@ -241,10 +241,9 @@ const [FilterForm, filterFormApi] = useVbenForm({
   commonConfig: { componentProps: { class: 'w-full' }, labelWidth: 100 },
   layout: 'horizontal',
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-  showCollapseButton: true,
+  showCollapseButton: false,
   submitOnEnter: true,
-  resetButtonOptions: { show: false },
-  submitButtonOptions: { show: false },
+  submitButtonOptions: { content: '查询' },
   schema: [
     {
       fieldName: 'assetType',
@@ -262,21 +261,10 @@ const [FilterForm, filterFormApi] = useVbenForm({
       component: 'Input',
       componentProps: { allowClear: true, placeholder: '请输入资产名称' },
     },
-    {
-      fieldName: 'status',
-      label: '发布状态',
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: ASSET_STATUS_OPTIONS,
-        placeholder: '请选择发布状态',
-      },
-    },
   ],
   handleValuesChange(values) {
     query.assetType = values.assetType;
     query.keyword = values.keyword;
-    query.status = values.status;
   },
   handleSubmit: search,
   handleReset: reset,
@@ -393,7 +381,6 @@ function reset() {
     dataDomainId: undefined,
     keyword: undefined,
     layer: undefined,
-    status: undefined,
   });
   selectedGroupKey.value = undefined;
   search();
@@ -1063,7 +1050,6 @@ function syncFilterValues() {
     void filterFormApi.setValues({
       assetType: query.assetType,
       keyword: query.keyword,
-      status: query.status,
     });
 }
 </script>
@@ -1158,39 +1144,35 @@ function syncFilterValues() {
           @vue:mounted="syncFilterValues"
           class="rounded-lg bg-background p-4"
         >
-          <template #reset-before>
-            <Button @click="reset">
-              <template #icon><IconifyIcon icon="lucide:stamp" /></template>重置
-            </Button>
-            <Button type="primary" @click="filterFormApi.validateAndSubmit()">
-              <template #icon>
-                <img :src="mapSvg('search')" alt="" class="size-4" />
-</template>查询
-            </Button>
-          </template>
           <template #expand-after>
-            <Dropdown
-              v-access:code="'asset:data-asset:create'"
-              :trigger="['click']"
-            >
-              <Button
-                class="asset-register-button"
-                type="primary"
-                @click="openRegister()"
-              >
-                <template #icon><IconifyIcon icon="lucide:plus" /></template>注册<span class="asset-register-button__split"></span><IconifyIcon icon="lucide:chevron-down" @click.stop />
-</Button><template #popupRender>
-                <Menu>
-                  <Menu.Item key="table" @click="openRegister(1)">
-                    数据库表
-</Menu.Item><Menu.Item key="api" @click="openRegister(2)">
-                    外部API
-</Menu.Item><Menu.Item key="file" @click="openRegister(3)">
-                    非结构化数据
-                  </Menu.Item>
-                </Menu>
-              </template>
-            </Dropdown>
+            <SpaceCompact v-access:code="'asset:data-asset:create'">
+              <Button type="primary" @click="openRegister()">
+                <template #icon>
+                  <IconifyIcon class="size-4" icon="lucide:plus" />
+                </template>
+                注册
+              </Button>
+              <Dropdown :trigger="['click']">
+                <Button type="primary" aria-label="选择注册资产类型">
+                  <template #icon>
+                    <IconifyIcon class="size-4" icon="lucide:chevron-down" />
+                  </template>
+                </Button>
+                <template #popupRender>
+                  <Menu>
+                    <Menu.Item key="table" @click="openRegister(1)">
+                      数据库表
+                    </Menu.Item>
+                    <Menu.Item key="api" @click="openRegister(2)">
+                      外部API
+                    </Menu.Item>
+                    <Menu.Item key="file" @click="openRegister(3)">
+                      非结构化数据
+                    </Menu.Item>
+                  </Menu>
+                </template>
+              </Dropdown>
+            </SpaceCompact>
           </template>
         </FilterForm>
         <div class="asset-list-wrap">
@@ -1652,13 +1634,6 @@ function syncFilterValues() {
   gap: 16px;
   min-width: 0;
   min-height: 0;
-}
-
-.asset-register-button__split {
-  align-self: stretch;
-  width: 1px;
-  margin-left: 8px;
-  background: #d7e2ff;
 }
 
 .asset-list-wrap {

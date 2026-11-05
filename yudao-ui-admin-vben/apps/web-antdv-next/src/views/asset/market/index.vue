@@ -1285,6 +1285,10 @@ function assetImage(name: string) {
   border-radius: calc(var(--radius) - 2px);
 }
 
+.mart-card__facts .mart-tag + .mart-tag {
+  margin-inline-start: 4px;
+}
+
 .mart-tag--1 {
   color: var(--mart-primary);
   background: hsl(var(--primary) / 10%);
@@ -1313,9 +1317,17 @@ function assetImage(name: string) {
 }
 
 .mart-pagination {
+  display: flex;
   flex: none;
-  padding: 0 20px;
+  align-items: center;
+  padding: 12px 20px;
   background: #fff;
+  border-radius: var(--radius);
+}
+
+.mart-pagination :deep(.list-pagination) {
+  margin-top: 0;
+  background: transparent;
 }
 
 @media (width <= 1700px) {
