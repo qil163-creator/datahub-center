@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.tag.MetaTagBindReqVO;
@@ -41,7 +42,7 @@ public class MetaTagController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-元数据标签", subType = "创建元数据标签",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建元数据标签",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了元数据标签【{{(#createReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建元数据标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:create')")
@@ -54,11 +55,12 @@ public class MetaTagController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-元数据标签", subType = "更新元数据标签",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新元数据标签",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了元数据标签，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新元数据标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:update')")
     public CommonResult<Boolean> updateTag(@Valid @RequestBody MetaTagSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         tagService.updateTag(updateReqVO);
         return success(true);
     }
@@ -68,12 +70,13 @@ public class MetaTagController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-元数据标签", subType = "删除元数据标签",
-            bizNo = "{{(#id) ?: 0}}", success = "删除元数据标签",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了元数据标签【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除元数据标签")
     @Parameter(name = "id", description = "标签编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:meta-tag:delete')")
     public CommonResult<Boolean> deleteTag(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         tagService.deleteTag(id);
         return success(true);
     }
@@ -113,7 +116,7 @@ public class MetaTagController {
      */
     @PutMapping("/bind")
     @LogRecord(type = "数据治理-元数据标签", subType = "绑定标签（全量覆盖该对象已绑标签）",
-            bizNo = "{{(#reqVO.objectId) ?: 0}}", success = "绑定标签（全量覆盖该对象已绑标签）",
+            bizNo = "{{(#reqVO.objectId) ?: 0}}", success = "将标签编号【{{(#reqVO.tagIds) ?: '未设置'}}】绑定到类型【{{(#reqVO.objectType) ?: '未设置'}}】的元数据对象【{{(#reqVO.objectId) ?: '未设置'}}】，提交修订【{{(#reqVO.revision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定标签（全量覆盖该对象已绑标签）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -127,7 +130,7 @@ public class MetaTagController {
      */
     @DeleteMapping("/unbind")
     @LogRecord(type = "数据治理-元数据标签", subType = "解绑单个标签",
-            bizNo = "{{(#objectId) ?: 0}}", success = "解绑单个标签",
+            bizNo = "{{(#objectId) ?: 0}}", success = "从类型【{{(#objectType) ?: '未设置'}}】的元数据对象【{{(#objectId) ?: '未设置'}}】解绑了标签【{{(#tagId) ?: '未设置'}}】，提交修订【{{(#revision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "解绑单个标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -161,4 +164,20 @@ public class MetaTagController {
         return success(tagService.getTagsByObject(objectType, objectId));
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = tagService.getTag(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

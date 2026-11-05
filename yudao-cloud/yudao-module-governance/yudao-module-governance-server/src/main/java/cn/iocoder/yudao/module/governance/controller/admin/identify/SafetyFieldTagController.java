@@ -55,7 +55,7 @@ public class SafetyFieldTagController {
      */
     @PostMapping("/scan")
     @LogRecord(type = "数据治理-敏感字段打标", subType = "触发一次敏感数据扫描（异步）",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "触发一次敏感数据扫描（异步）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "发起了数据源【{{(#reqVO.databaseId) ?: '未设置'}}】的敏感数据扫描，扫描记录编号【{{(#_ret.data) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "触发一次敏感数据扫描（异步）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:scan')")
@@ -81,7 +81,7 @@ public class SafetyFieldTagController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-敏感字段打标", subType = "人工添加打标（直接确认并回写元数据）",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "人工添加打标（直接确认并回写元数据）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "为数据源【{{(#createReqVO.databaseId) ?: '未设置'}}】表【{{(#createReqVO.tableName) ?: '未设置'}}】字段【{{(#createReqVO.columnName) ?: '未设置'}}】添加了敏感标记，标记编号【{{(#_ret.data) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工添加打标（直接确认并回写元数据）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
@@ -94,7 +94,7 @@ public class SafetyFieldTagController {
      */
     @PutMapping("/confirm")
     @LogRecord(type = "数据治理-敏感字段打标", subType = "批量确认打标（回写元数据分级与敏感标记）",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量确认打标（回写元数据分级与敏感标记）",
+            bizNo = "{{(#ids) ?: 0}}", success = "确认了敏感字段标记【{{(#ids) ?: '未设置'}}】，并将分级与敏感标记回写元数据",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量确认打标（回写元数据分级与敏感标记）")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
@@ -108,7 +108,7 @@ public class SafetyFieldTagController {
      */
     @PutMapping("/reject")
     @LogRecord(type = "数据治理-敏感字段打标", subType = "批量驳回打标",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量驳回打标",
+            bizNo = "{{(#ids) ?: 0}}", success = "驳回了敏感字段标记【{{(#ids) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量驳回打标")
     @PreAuthorize("@ss.hasPermission('governance:safety-identify:confirm')")
@@ -122,7 +122,7 @@ public class SafetyFieldTagController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-敏感字段打标", subType = "删除打标记录",
-            bizNo = "{{(#id) ?: 0}}", success = "删除打标记录",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了敏感字段标记，编号【{{(#id) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除打标记录")
     @Parameter(name = "id", description = "编号", required = true)

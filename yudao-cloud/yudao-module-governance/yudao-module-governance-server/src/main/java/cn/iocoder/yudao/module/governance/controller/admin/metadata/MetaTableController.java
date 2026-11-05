@@ -58,7 +58,7 @@ public class MetaTableController {
      */
     @PutMapping("/update-biz")
     @LogRecord(type = "数据治理-表元数据", subType = "维护表的业务/管理属性（逐属性记录手工变更明细）",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "维护表的业务/管理属性（逐属性记录手工变更明细）",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "修改了元数据表【{{(#reqVO.id) ?: 0}}】的业务属性，业务名称【{{(#reqVO.businessName) ?: '未设置'}}】，提交业务修订【{{(#reqVO.bizRevision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "维护表的业务/管理属性（逐属性记录手工变更明细）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -72,7 +72,7 @@ public class MetaTableController {
      */
     @PutMapping("/confirm-delete")
     @LogRecord(type = "数据治理-表元数据", subType = "确认删除表（仅待确认删除状态；历史与快照保留）",
-            bizNo = "{{(#id) ?: 0}}", success = "确认删除表（仅待确认删除状态；历史与快照保留）",
+            bizNo = "{{(#id) ?: 0}}", success = "确认删除了待确认元数据表【{{(#id) ?: 0}}】，保留历史版本与快照",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "确认删除表（仅待确认删除状态；历史与快照保留）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
@@ -87,7 +87,7 @@ public class MetaTableController {
      */
     @PutMapping("/publish")
     @LogRecord(type = "数据治理-表元数据", subType = "发布表（仅更新发布状态，保留独立定版）",
-            bizNo = "{{(#id) ?: 0}}", success = "发布表（仅更新发布状态，保留独立定版）",
+            bizNo = "{{(#id) ?: 0}}", success = "发布了元数据表【{{(#id) ?: 0}}】，提交状态修订【{{(#stateRevision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布表（仅更新发布状态，保留独立定版）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
@@ -103,7 +103,7 @@ public class MetaTableController {
      */
     @PutMapping("/unpublish")
     @LogRecord(type = "数据治理-表元数据", subType = "取消发布（保留定版镜像与资产引用）",
-            bizNo = "{{(#id) ?: 0}}", success = "取消发布（保留定版镜像与资产引用）",
+            bizNo = "{{(#id) ?: 0}}", success = "取消发布了元数据表【{{(#id) ?: 0}}】，提交状态修订【{{(#stateRevision) ?: '未设置'}}】，保留定版镜像",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布（保留定版镜像与资产引用）")
     @Parameter(name = "id", description = "表元数据编号", required = true, example = "1")
@@ -140,7 +140,7 @@ public class MetaTableController {
      */
     @PutMapping("/update-column-biz")
     @LogRecord(type = "数据治理-表元数据", subType = "维护字段的业务/管理属性（逐属性记录手工变更明细）",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "维护字段的业务/管理属性（逐属性记录手工变更明细）",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "修改了元数据字段【{{(#reqVO.id) ?: 0}}】的业务属性，业务名称【{{(#reqVO.businessName) ?: '未设置'}}】，提交字段修订【{{(#reqVO.revision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "维护字段的业务/管理属性（逐属性记录手工变更明细）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -186,7 +186,7 @@ public class MetaTableController {
      */
     @PutMapping("/batch-owner")
     @LogRecord(type = "数据治理-表元数据", subType = "批量认责（技术/业务负责人，逐表留痕）",
-            bizNo = "{{(#reqVO.ids) ?: 0}}", success = "批量认责（技术/业务负责人，逐表留痕）",
+            bizNo = "{{(#reqVO.ids) ?: 0}}", success = "为元数据表【{{(#reqVO.ids) ?: '未设置'}}】指定了负责人，技术负责人编号【{{(#reqVO.techLeaderUserId) ?: '未设置'}}】，业务负责人编号【{{(#reqVO.businessLeaderUserId) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量认责（技术/业务负责人，逐表留痕）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -200,7 +200,7 @@ public class MetaTableController {
      */
     @PutMapping("/finalize")
     @LogRecord(type = "数据治理-表元数据", subType = "指定结构版本定版；业务属性按确认时冻结",
-            bizNo = "{{(#request.id) ?: 0}}", success = "指定结构版本定版；业务属性按确认时冻结",
+            bizNo = "{{(#request.id) ?: 0}}", success = "将元数据表【{{(#request.id) ?: '未设置'}}】的结构快照【{{(#request.snapshotId) ?: '未设置'}}】设为定版，提交状态修订【{{(#request.stateRevision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "指定结构版本定版；业务属性按确认时冻结")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
@@ -214,7 +214,7 @@ public class MetaTableController {
      */
     @PutMapping("/cancel-finalize")
     @LogRecord(type = "数据治理-表元数据", subType = "撤销定版，不改变发布状态与已存在的资产快照引用",
-            bizNo = "{{(#request.id) ?: 0}}", success = "撤销定版，不改变发布状态与已存在的资产快照引用",
+            bizNo = "{{(#request.id) ?: 0}}", success = "撤销了元数据表【{{(#request.id) ?: '未设置'}}】的定版，提交状态修订【{{(#request.stateRevision) ?: '未设置'}}】，发布状态保持原值",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤销定版，不改变发布状态与已存在的资产快照引用")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:publish')")
@@ -259,7 +259,7 @@ public class MetaTableController {
      */
     @PutMapping("/delete")
     @LogRecord(type = "数据治理-表元数据", subType = "删除未发布且未关联资产目录的表；历史版本保留",
-            bizNo = "{{(#request.id) ?: 0}}", success = "删除未发布且未关联资产目录的表；历史版本保留",
+            bizNo = "{{(#request.id) ?: 0}}", success = "删除了未发布的元数据表【{{(#request.id) ?: '未设置'}}】，提交状态修订【{{(#request.stateRevision) ?: '未设置'}}】，保留历史版本",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除未发布且未关联资产目录的表；历史版本保留")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")

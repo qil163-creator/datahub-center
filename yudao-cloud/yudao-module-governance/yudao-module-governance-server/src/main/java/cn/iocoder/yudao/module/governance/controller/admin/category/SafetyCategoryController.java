@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.category;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -52,7 +53,7 @@ public class SafetyCategoryController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-数据分类信息", subType = "创建数据分类信息",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建数据分类信息",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了数据分类【{{(#createReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:create')")
@@ -67,11 +68,12 @@ public class SafetyCategoryController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据分类信息", subType = "更新数据分类信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新数据分类信息",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了数据分类，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> updateCategory(@Valid @RequestBody SafetyCategorySaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         categoryService.updateCategory(updateReqVO);
         return success(true);
     }
@@ -83,13 +85,14 @@ public class SafetyCategoryController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-数据分类信息", subType = "删除数据分类信息",
-            bizNo = "{{(#id) ?: 0}}", success = "删除数据分类信息",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了数据分类【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据分类信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category:delete')")
     public CommonResult<Boolean> deleteCategory(@RequestParam("id") @Positive Long id,
             @RequestParam("revision") @Positive Long revision) {
+        captureAuditContext(id);
         categoryService.deleteCategory(id, revision);
         return success(true);
     }
@@ -101,7 +104,7 @@ public class SafetyCategoryController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-数据分类信息", subType = "批量删除数据分类信息",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "批量删除数据分类信息",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除数据分类，对象编号【{{(#request.items.![id]) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:delete')")
@@ -170,11 +173,12 @@ public class SafetyCategoryController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-数据分类信息", subType = "修改分类启停状态",
-            bizNo = "{{(#request.id) ?: 0}}", success = "修改分类启停状态",
+            bizNo = "{{(#request.id) ?: 0}}", success = "调整了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#request.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类启停状态")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> changeStatus(@Valid @RequestBody SafetyCategoryStatusReqVO request) {
+        captureAuditContext(request.getId());
         categoryService.changeStatus(request);
         return success(true);
     }
@@ -184,7 +188,7 @@ public class SafetyCategoryController {
      */
     @PutMapping("/batch-level")
     @LogRecord(type = "数据治理-数据分类信息", subType = "批量指定数据分级",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "批量指定数据分级",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "为数据分类【{{(#request.items.![id]) ?: 0}}】指定了数据分级【{{(#request.dataLevelId) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量指定数据分级")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
@@ -208,11 +212,12 @@ public class SafetyCategoryController {
      */
     @PutMapping("/mask")
     @LogRecord(type = "数据治理-数据分类信息", subType = "保存分类展示脱敏配置及规则版本",
-            bizNo = "{{(#request.id) ?: 0}}", success = "保存分类展示脱敏配置及规则版本",
+            bizNo = "{{(#request.id) ?: 0}}", success = "保存了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的脱敏规则【{{(#request.ruleName) ?: '未设置'}}】，分类编号【{{(#request.id) ?: 0}}】，规则版本【{{(#request.ruleVersionId) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存分类展示脱敏配置及规则版本")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
     public CommonResult<Boolean> saveMask(@Valid @RequestBody SafetyCategoryMaskReqVO request) {
+        captureAuditContext(request.getId());
         masks.save(request);
         return success(true);
     }
@@ -229,4 +234,24 @@ public class SafetyCategoryController {
         return result;
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = categoryService.getCategory(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getRevision() == null
+                        ? "未设置" : String.valueOf(auditBefore.getRevision()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

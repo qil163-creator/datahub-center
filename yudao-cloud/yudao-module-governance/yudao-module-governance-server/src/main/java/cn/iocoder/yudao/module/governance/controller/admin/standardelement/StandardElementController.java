@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardelement;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementEnumCheckRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementImpactRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardelement.vo.StandardElementImportExcelVO;
@@ -69,12 +70,13 @@ public class StandardElementController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-标准数据元", subType = "切换标准启用状态",
-            bizNo = "{{(#id) ?: 0}}", success = "切换标准启用状态",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> updateStatus(@RequestParam Integer id, @RequestParam Short status,
             @RequestParam Long revision) {
+        captureAuditContext(id);
         standardElementService.updateStatus(id, status, revision);
         return success(true);
     }
@@ -91,7 +93,7 @@ public class StandardElementController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-标准数据元", subType = "创建数据标准--标准数据元",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建数据标准--标准数据元",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了标准数据元【{{(#createReqVO.name) ?: '未设置'}}】，编码【{{(#createReqVO.engName) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:create')")
@@ -106,11 +108,12 @@ public class StandardElementController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准数据元", subType = "更新数据标准--标准数据元",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新数据标准--标准数据元",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准数据元，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.engName) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> updateStandardElement(@Valid @RequestBody StandardElementSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         standardElementService.updateStandardElement(updateReqVO);
         return success(true);
     }
@@ -120,7 +123,7 @@ public class StandardElementController {
      */
     @PutMapping("/bind-code-set")
     @LogRecord(type = "数据治理-标准数据元", subType = "绑定数据标准--标准数据元的标准码表",
-            bizNo = "{{(#id) ?: 0}}", success = "绑定数据标准--标准数据元的标准码表",
+            bizNo = "{{(#id) ?: 0}}", success = "为标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】绑定了标准码表【{{(#codeSetId) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定数据标准--标准数据元的标准码表")
     @Parameter(name = "id", description = "数据元编号", required = true)
@@ -128,6 +131,7 @@ public class StandardElementController {
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> bindStandardElementCodeSet(@RequestParam("id") Integer id,
             @RequestParam("codeSetId") Integer codeSetId) {
+        captureAuditContext(id);
         standardElementService.bindCodeSet(id, codeSetId);
         return success(true);
     }
@@ -139,12 +143,13 @@ public class StandardElementController {
      */
     @PutMapping("/publish")
     @LogRecord(type = "数据治理-标准数据元", subType = "发布数据标准--标准数据元（草稿 → 已发布）",
-            bizNo = "{{(#id) ?: 0}}", success = "发布数据标准--标准数据元（草稿 → 已发布）",
+            bizNo = "{{(#id) ?: 0}}", success = "发布了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】，生命周期由草稿变为已发布",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布数据标准--标准数据元（草稿 → 已发布）")
     @Parameter(name = "id", description = "数据元编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> publishStandardElement(@RequestParam("id") Integer id) {
+        captureAuditContext(id);
         standardElementService.publishStandardElement(id);
         return success(true);
     }
@@ -190,7 +195,7 @@ public class StandardElementController {
      */
     @PutMapping("/revoke-mapping")
     @LogRecord(type = "数据治理-标准数据元", subType = "撤销落标映射（同时解除元数据字段与该标准的绑定）",
-            bizNo = "{{(#mappingId) ?: 0}}", success = "撤销落标映射（同时解除元数据字段与该标准的绑定）",
+            bizNo = "{{(#mappingId) ?: 0}}", success = "撤销了落标映射【{{(#mappingId) ?: '未设置'}}】，并解除其元数据字段与标准的绑定",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤销落标映射（同时解除元数据字段与该标准的绑定）")
     @Parameter(name = "mappingId", description = "落标映射编号", required = true)
@@ -207,12 +212,13 @@ public class StandardElementController {
      */
     @PutMapping("/deprecate")
     @LogRecord(type = "数据治理-标准数据元", subType = "废止数据标准--标准数据元（已发布 → 已废止）",
-            bizNo = "{{(#id) ?: 0}}", success = "废止数据标准--标准数据元（已发布 → 已废止）",
+            bizNo = "{{(#id) ?: 0}}", success = "废止了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】，生命周期由已发布变为已废止",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "废止数据标准--标准数据元（已发布 → 已废止）")
     @Parameter(name = "id", description = "数据元编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
     public CommonResult<Boolean> deprecateStandardElement(@RequestParam("id") Integer id) {
+        captureAuditContext(id);
         standardElementService.deprecateStandardElement(id);
         return success(true);
     }
@@ -247,7 +253,7 @@ public class StandardElementController {
      */
     @PutMapping("/sync-model-mappings")
     @LogRecord(type = "数据治理-标准数据元", subType = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）",
-            bizNo = "0", success = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）",
+            bizNo = "0", success = "同步了全局建模字段的落标事实，处理数量【{{(#_ret.data) ?: '未设置'}}】，缺失关系已补齐、失效关系已标记",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "全局同步建模字段的落标事实（补齐缺失、失效置 STALE）")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -279,7 +285,7 @@ public class StandardElementController {
      */
     @PostMapping("/import")
     @LogRecord(type = "数据治理-标准数据元", subType = "导入标准数据元（处理结果见导入回执）",
-            bizNo = "0", success = "导入标准数据元（处理结果见导入回执）",
+            bizNo = "0", success = "提交了标准数据元的Excel导入，允许更新已有记录【{{(#updateSupport) ?: '未设置'}}】，逐行处理结果见导入回执",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "导入标准数据元")
     @Parameters({
@@ -303,12 +309,13 @@ public class StandardElementController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-标准数据元", subType = "删除数据标准--标准数据元",
-            bizNo = "{{(#id) ?: 0}}", success = "删除数据标准--标准数据元",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据标准--标准数据元")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-element:delete')")
     public CommonResult<Boolean> deleteStandardElement(@RequestParam("id") Integer id) {
+        captureAuditContext(id);
         standardElementService.deleteStandardElement(id);
         return success(true);
     }
@@ -319,7 +326,7 @@ public class StandardElementController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准数据元", subType = "批量删除数据标准--标准数据元",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除数据标准--标准数据元",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准数据元，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:delete')")
@@ -380,4 +387,24 @@ public class StandardElementController {
                 BeanUtils.toBean(list, StandardElementRespVO.class));
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Integer id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = standardElementService.getStandardElement(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getRevision() == null
+                        ? "未设置" : String.valueOf(auditBefore.getRevision()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

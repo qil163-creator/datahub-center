@@ -70,7 +70,7 @@ public class QualityAlertController {
      */
     @PutMapping("/process")
     @LogRecord(type = "数据治理-数据质量-告警记录", subType = "处理告警",
-            bizNo = "{{(#id) ?: 0}}", success = "处理告警",
+            bizNo = "{{(#id) ?: 0}}", success = "将质量告警【{{(#id) ?: 0}}】标记为已处理",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "处理告警")
     @Parameter(name = "id", description = "编号", required = true)
@@ -85,7 +85,7 @@ public class QualityAlertController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-数据质量-告警记录", subType = "删除告警记录",
-            bizNo = "{{(#id) ?: 0}}", success = "删除告警记录",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了质量告警，编号【{{(#id) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除告警记录")
     @Parameter(name = "id", description = "编号", required = true)

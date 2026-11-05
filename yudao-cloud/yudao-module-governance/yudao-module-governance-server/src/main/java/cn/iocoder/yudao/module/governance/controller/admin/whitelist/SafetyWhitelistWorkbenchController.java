@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.whitelist;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.governance.controller.admin.whitelist.vo.*;
 import cn.iocoder.yudao.module.governance.service.whitelist.SafetyWhitelistWorkbenchService;
@@ -70,7 +71,7 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "配置分类范围白名单并记录本地授权依据",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "配置分类范围白名单并记录本地授权依据",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了分类范围白名单【{{(#req.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "配置分类范围白名单并记录本地授权依据")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:create')")
@@ -83,11 +84,12 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "修改分类范围白名单",
-            bizNo = "{{(#req.id) ?: 0}}", success = "修改分类范围白名单",
+            bizNo = "{{(#req.id) ?: 0}}", success = "修改了分类范围白名单，原名称【{{(#auditObjectName) ?: '编号' + #req.id}}】，提交名称【{{(#req.name) ?: '未设置'}}】，目标状态【{{(#req.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类范围白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody SafetyWhitelistWorkbenchSaveReqVO req) {
+        captureAuditContext(req.getId());
         service.update(req);
         return success(true);
     }
@@ -97,11 +99,12 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "修改分类范围白名单状态",
-            bizNo = "{{(#req.id) ?: 0}}", success = "修改分类范围白名单状态",
+            bizNo = "{{(#req.id) ?: 0}}", success = "调整了分类范围白名单【{{(#auditObjectName) ?: '编号' + #req.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#req.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类范围白名单状态")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody SafetyWhitelistWorkbenchStatusReqVO req) {
+        captureAuditContext(req.getId());
         service.changeStatus(req);
         return success(true);
     }
@@ -111,11 +114,12 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PostMapping("/delete")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "删除停用分类白名单",
-            bizNo = "{{(#req.id) ?: 0}}", success = "删除停用分类白名单",
+            bizNo = "{{(#req.id) ?: 0}}", success = "删除了分类范围白名单【{{(#auditObjectName) ?: '编号' + #req.id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除停用分类白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> delete(@Valid @RequestBody SafetyWhitelistWorkbenchVersionReqVO req) {
+        captureAuditContext(req.getId());
         service.delete(req);
         return success(true);
     }
@@ -125,12 +129,32 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "原子批量删除停用分类白名单",
-            bizNo = "{{(#req.items.![id]) ?: 0}}", success = "原子批量删除停用分类白名单",
+            bizNo = "{{(#req.items.![id]) ?: 0}}", success = "提交批量删除分类范围白名单，对象编号【{{(#req.items.![id]) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "原子批量删除停用分类白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> deleteList(@Valid @RequestBody SafetyWhitelistWorkbenchBatchReqVO req) {
         service.deleteList(req);
         return success(true);
+    }
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = service.get(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getRevision() == null
+                        ? "未设置" : String.valueOf(auditBefore.getRevision()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
     }
 }

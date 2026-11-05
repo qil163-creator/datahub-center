@@ -34,7 +34,7 @@ public class BusinessEntityController {
      * @return 业务实体
      */
     @LogRecord(type = "数据建模-业务实体", subType = "新增业务实体", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "新增业务实体", extra = "BUSINESS_OPERATION",
+            success = "创建了业务实体【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "新增业务实体")
@@ -50,7 +50,7 @@ public class BusinessEntityController {
      * @return 业务实体
      */
     @LogRecord(type = "数据建模-业务实体", subType = "修改业务实体及关系", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改业务实体及关系", extra = "BUSINESS_OPERATION",
+            success = "修改了业务实体【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改业务实体及关系")
@@ -96,7 +96,7 @@ public class BusinessEntityController {
      * @return 业务实体
      */
     @LogRecord(type = "数据建模-业务实体", subType = "删除业务实体", bizNo = "{{(#id) ?: 0}}",
-            success = "删除业务实体", extra = "BUSINESS_OPERATION",
+            success = "删除了业务实体【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务实体")
@@ -114,7 +114,7 @@ public class BusinessEntityController {
      * @return 业务实体
      */
     @LogRecord(type = "数据建模-业务实体", subType = "原子批量删除业务实体", bizNo = "{{(#request.targets.![id]) ?: 0}}",
-            success = "原子批量删除业务实体", extra = "BUSINESS_OPERATION",
+            success = "批量删除了业务实体，编号集合【{{#request.targets.![id]}}】，共【{{#request.targets.size()}}】项，按各项修订校验", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子批量删除业务实体")

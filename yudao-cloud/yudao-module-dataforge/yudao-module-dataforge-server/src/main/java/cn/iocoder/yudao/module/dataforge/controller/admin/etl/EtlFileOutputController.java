@@ -107,7 +107,7 @@ public class EtlFileOutputController {
      */
     @PostMapping("/retry")
     @LogRecord(type = "数据开发-ETL 文件输出对账", subType = "按修订号重试本人已失去租约的文件对账，不强制覆盖或删除文件", bizNo = "{{(#request.id) ?: 0}}",
-            success = "按修订号重试本人已失去租约的文件对账，不强制覆盖或删除文件", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 文件台账【{{(#request.id) ?: '未设置'}}】发起了失效租约后的对账重试，期望修订【{{(#request.expectedRevision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按修订号重试本人已失去租约的文件对账，不强制覆盖或删除文件")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') && (@ss.hasPermission('dataforge:etl:run') || @ss.hasPermission('dataforge:etl:file-cleanup'))")
@@ -124,7 +124,7 @@ public class EtlFileOutputController {
      */
     @PostMapping("/retire")
     @LogRecord(type = "数据开发-ETL 文件输出对账", subType = "明确确认后申请清理本人已发布文件，后台在到期且身份可证明时执行", bizNo = "{{(#request.id) ?: 0}}",
-            success = "明确确认后申请清理本人已发布文件，后台在到期且身份可证明时执行", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 文件台账【{{(#request.id) ?: '未设置'}}】提交了退役申请，期望修订【{{(#request.expectedRevision) ?: '未设置'}}】，最早清理时间【{{(#request.retireAfter) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "明确确认后申请清理本人已发布文件，后台在到期且身份可证明时执行")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') && @ss.hasPermission('dataforge:etl:file-cleanup')")

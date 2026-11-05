@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.apicategory;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -34,7 +35,7 @@ public class ApiCategoryController {
      * @return API分类
      */
     @LogRecord(type = "数据服务-服务分类", subType = "创建服务分类", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建服务分类", extra = "BUSINESS_OPERATION",
+            success = "创建了服务分类【{{#createReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建服务分类")
@@ -50,12 +51,17 @@ public class ApiCategoryController {
      * @return API分类
      */
     @LogRecord(type = "数据服务-服务分类", subType = "更新服务分类", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新服务分类", extra = "BUSINESS_OPERATION",
+            success = "修改了服务分类【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新服务分类")
     @PreAuthorize("@ss.hasPermission('supply:api-category:update')")
     public CommonResult<Boolean> updateApiCategory(@Valid @RequestBody ApiCategorySaveReqVO updateReqVO) {
+        var auditBefore = apiCategoryService.getApiCategory(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getName());
+
         apiCategoryService.updateApiCategory(updateReqVO);
         return success(true);
     }
@@ -67,13 +73,19 @@ public class ApiCategoryController {
      * @return API分类
      */
     @LogRecord(type = "数据服务-服务分类", subType = "更新服务分类状态", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新服务分类状态", extra = "BUSINESS_OPERATION",
+            success = "将服务分类【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#reqVO.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新服务分类状态")
     @PreAuthorize("@ss.hasPermission('supply:api-category:update')")
     public CommonResult<Boolean> updateApiCategoryStatus(
             @Valid @RequestBody ApiCategoryUpdateStatusReqVO reqVO) {
+        var auditBefore = apiCategoryService.getApiCategory(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+        LogRecordContext.putVariable("auditBeforeStatus", auditBefore == null ? "未知" : String.valueOf(auditBefore.getStatus()));
+
         apiCategoryService.updateApiCategoryStatus(reqVO.getId(), reqVO.getStatus());
         return success(true);
     }
@@ -85,13 +97,18 @@ public class ApiCategoryController {
      * @return API分类
      */
     @LogRecord(type = "数据服务-服务分类", subType = "删除服务分类", bizNo = "{{(#id) ?: 0}}",
-            success = "删除服务分类", extra = "BUSINESS_OPERATION",
+            success = "删除了服务分类【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除服务分类")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('supply:api-category:delete')")
     public CommonResult<Boolean> deleteApiCategory(@RequestParam("id") Long id) {
+        var auditBefore = apiCategoryService.getApiCategory(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         apiCategoryService.deleteApiCategory(id);
         return success(true);
     }

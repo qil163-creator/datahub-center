@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.rule;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.rule.vo.*;
@@ -71,7 +72,7 @@ public class SafetyRuleWorkbenchController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "新建展示脱敏规则并关联分类",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "新建展示脱敏规则并关联分类",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了展示脱敏规则【{{(#request.ruleName) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "新建展示脱敏规则并关联分类")
     @PreAuthorize("@ss.hasPermission('governance:rule:create')")
@@ -84,11 +85,12 @@ public class SafetyRuleWorkbenchController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "修改展示脱敏规则",
-            bizNo = "{{(#request.id) ?: 0}}", success = "修改展示脱敏规则",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改了展示脱敏规则，原名称【{{(#auditObjectName) ?: '编号' + #request.id}}】，提交名称【{{(#request.ruleName) ?: '未设置'}}】，目标状态【{{(#request.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody SafetyRuleWorkbenchSaveReqVO request) {
+        captureAuditContext(request.getId());
         workbench.update(request);
         return success(true);
     }
@@ -98,11 +100,12 @@ public class SafetyRuleWorkbenchController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "修改展示脱敏规则状态",
-            bizNo = "{{(#request.id) ?: 0}}", success = "修改展示脱敏规则状态",
+            bizNo = "{{(#request.id) ?: 0}}", success = "调整了展示脱敏规则【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#request.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改展示脱敏规则状态")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
     public CommonResult<Boolean> changeStatus(@Valid @RequestBody SafetyRuleWorkbenchStatusReqVO request) {
+        captureAuditContext(request.getId());
         workbench.changeStatus(request);
         return success(true);
     }
@@ -112,11 +115,12 @@ public class SafetyRuleWorkbenchController {
      */
     @PostMapping("/delete")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "删除展示脱敏规则并解除自身分类关联",
-            bizNo = "{{(#request.id) ?: 0}}", success = "删除展示脱敏规则并解除自身分类关联",
+            bizNo = "{{(#request.id) ?: 0}}", success = "删除了展示脱敏规则【{{(#auditObjectName) ?: '编号' + #request.id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除展示脱敏规则并解除自身分类关联")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
     public CommonResult<Boolean> delete(@Valid @RequestBody SafetyRuleWorkbenchVersionReqVO request) {
+        captureAuditContext(request.getId());
         workbench.delete(request);
         return success(true);
     }
@@ -126,12 +130,32 @@ public class SafetyRuleWorkbenchController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "批量删除展示脱敏规则",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "批量删除展示脱敏规则",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除展示脱敏规则，对象编号【{{(#request.items.![id]) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")
     public CommonResult<Boolean> deleteList(@Valid @RequestBody SafetyRuleWorkbenchBatchReqVO request) {
         workbench.deleteList(request);
         return success(true);
+    }
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = workbench.get(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getRuleName() == null
+                        ? "编号" + id : auditBefore.getRuleName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getRuleVersionId() == null
+                        ? "未设置" : String.valueOf(auditBefore.getRuleVersionId()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
     }
 }

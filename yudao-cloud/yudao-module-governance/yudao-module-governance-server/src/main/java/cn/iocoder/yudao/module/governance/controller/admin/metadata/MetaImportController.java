@@ -42,7 +42,7 @@ public class MetaImportController {
      */
     @PostMapping("/excel")
     @LogRecord(type = "数据治理-元数据导入", subType = "导入元数据字典（处理结果见导入回执）",
-            bizNo = "{{(#datasourceId) ?: 0}}", success = "导入元数据字典（处理结果见导入回执）",
+            bizNo = "{{(#datasourceId) ?: 0}}", success = "提交了数据源【{{(#datasourceId) ?: '未设置'}}】的Excel元数据字典导入，逐表处理结果见导入回执",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "导入 Excel 数据字典（走与直连采集同一套 diff 引擎）")
     @Parameter(name = "datasourceId", description = "数据源编号（无直连场景登记逻辑数据源）", required = true)
@@ -95,7 +95,7 @@ public class MetaImportController {
      */
     @PostMapping("/register-table")
     @LogRecord(type = "数据治理-元数据导入", subType = "手工登记单张表（origin=手工）",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "手工登记单张表（origin=手工）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "登记了数据源【{{(#reqVO.datasourceId) ?: '未设置'}}】的表【{{(#reqVO.dbName) ?: '未设置'}}】.{{(#reqVO.tableName) ?: '未设置'}}，元数据表编号【{{(#_ret.data) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手工登记单张表（origin=手工）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")

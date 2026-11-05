@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenerateReqVO;
@@ -86,7 +87,7 @@ public class FillTaskController {
      */
     @PostMapping("/generate")
     @LogRecord(type = "数据开发-在线填报采集任务", subType = "手工生成/补生成任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "手工生成/补生成任务", extra = "BUSINESS_OPERATION",
+            success = "为采集计划【{{(#reqVO.planId) ?: '未设置'}}】发起了任务生成，指定生成时点【{{(#reqVO.generateTime) ?: '未设置'}}】，任务编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手工生成/补生成任务", description = "一次性任务重新生成；调度停机后按历史生成时点补生成周期任务")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:create')")
@@ -102,12 +103,23 @@ public class FillTaskController {
      */
     @PostMapping("/urge")
     @LogRecord(type = "数据开发-在线填报采集任务", subType = "任务级一键催办", bizNo = "{{(#id) ?: 0}}",
-            success = "任务级一键催办", extra = "BUSINESS_OPERATION",
+            success = "对填报采集任务【{{(#operateName) ?: '未设置'}}】发起了催办，通知处理数【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务级一键催办", description = "对全部未完成组织实例发送催办；1 小时频控内的自动跳过")
     @Parameter(name = "id", description = "任务编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:urge')")
     public CommonResult<Integer> urgeTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(workItemService.urgeByTask(id));
     }
 

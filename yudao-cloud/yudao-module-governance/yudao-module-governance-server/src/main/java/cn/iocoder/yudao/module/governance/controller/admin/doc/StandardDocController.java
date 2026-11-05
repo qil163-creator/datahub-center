@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.doc;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -63,7 +64,7 @@ public class StandardDocController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "创建标准文件登记信息",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建标准文件登记信息",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了标准文件【{{(#createReqVO.nameCn) ?: '未设置'}}】，编码【{{(#createReqVO.stdCode) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:create')")
@@ -76,7 +77,7 @@ public class StandardDocController {
      */
     @PostMapping("/registration/create")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "登记标准文件，类目、标准编号和原文必填",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "登记标准文件，类目、标准编号和原文必填",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了标准文件【{{(#createReqVO.nameCn) ?: '未设置'}}】，编码【{{(#createReqVO.stdCode) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "登记标准文件，类目、标准编号和原文必填")
     @PreAuthorize("@ss.hasPermission('governance:doc:create')")
@@ -89,11 +90,12 @@ public class StandardDocController {
      */
     @PutMapping("/registration/update")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "更新标准文件登记工作台元信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新标准文件登记工作台元信息",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准文件登记工作台元信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
     public CommonResult<Boolean> updateRegisteredDoc(@Valid @RequestBody StandardDocSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         docService.updateRegisteredDoc(updateReqVO);
         return success(true);
     }
@@ -105,11 +107,12 @@ public class StandardDocController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "更新标准文件登记信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新标准文件登记信息",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
     public CommonResult<Boolean> updateDoc(@Valid @RequestBody StandardDocSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         docService.updateDoc(updateReqVO);
         return success(true);
     }
@@ -121,12 +124,13 @@ public class StandardDocController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "删除标准文件登记信息",
-            bizNo = "{{(#id) ?: 0}}", success = "删除标准文件登记信息",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了标准文件【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除标准文件登记信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:doc:delete')")
     public CommonResult<Boolean> deleteDoc(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         docService.deleteDoc(id);
         return success(true);
     }
@@ -137,7 +141,7 @@ public class StandardDocController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "批量删除标准文件登记信息",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除标准文件登记信息",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准文件，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:delete')")
@@ -218,7 +222,7 @@ public class StandardDocController {
      */
     @PutMapping("/publish-version")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "生成标准文件版本快照",
-            bizNo = "{{(#id) ?: 0}}", success = "生成标准文件版本快照",
+            bizNo = "{{(#id) ?: 0}}", success = "为标准文件【{{(#auditObjectName) ?: '编号' + #id}}】生成了版本快照【{{(#_ret.data) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "生成标准文件版本快照")
     @Parameter(name = "id", description = "标准文件编号", required = true)
@@ -227,6 +231,7 @@ public class StandardDocController {
     public CommonResult<Integer> publishDocVersion(
             @RequestParam("id") Long id,
             @RequestParam(value = "changeSummary", required = false) String changeSummary) {
+        captureAuditContext(id);
         return success(docService.publishDocVersion(id, changeSummary));
     }
 
@@ -260,4 +265,22 @@ public class StandardDocController {
                 rows);
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = docService.getDoc(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getNameCn() == null
+                        ? "编号" + id : auditBefore.getNameCn());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

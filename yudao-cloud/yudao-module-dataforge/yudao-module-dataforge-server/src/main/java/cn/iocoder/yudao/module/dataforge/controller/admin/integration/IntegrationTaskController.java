@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.integration;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.integration.vo.IntegrationModels.*;
@@ -111,7 +112,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/category/create")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "新增共享集成类目", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "新增共享集成类目", extra = "BUSINESS_OPERATION",
+            success = "创建了集成类目【{{(#req.name) ?: '未设置'}}】，父类目【{{(#req.parentId) ?: '未设置'}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "新增共享集成类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
@@ -127,11 +128,22 @@ public class IntegrationTaskController {
      */
     @PutMapping("/category/update")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "修改共享集成类目并防止循环引用", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改共享集成类目并防止循环引用", extra = "BUSINESS_OPERATION",
+            success = "修改了集成类目【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，父类目【{{(#req.parentId) ?: '未设置'}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改共享集成类目并防止循环引用")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> updateCategory(@RequestBody @Valid CategorySaveReq req) {
+        String operateName = "编号" + req.getId();
+        try {
+            var operateObject = service.categories().stream().filter(item -> java.util.Objects.equals(item.getId(), req.getId())).findFirst().orElse(null);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.saveCategory(req, true);
         return success(true);
     }
@@ -144,11 +156,22 @@ public class IntegrationTaskController {
      */
     @DeleteMapping("/category/delete")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "删除无子类目且无任务引用的共享类目", bizNo = "{{(#id) ?: 0}}",
-            success = "删除无子类目且无任务引用的共享类目", extra = "BUSINESS_OPERATION",
+            success = "删除了集成类目【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除无子类目且无任务引用的共享类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
     public CommonResult<Boolean> deleteCategory(@RequestParam Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = service.categories().stream().filter(item -> java.util.Objects.equals(item.getId(), id)).findFirst().orElse(null);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.deleteCategory(id);
         return success(true);
     }
@@ -186,7 +209,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "新建集成任务基础信息", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "新建集成任务基础信息", extra = "BUSINESS_OPERATION",
+            success = "创建了集成任务【{{(#req.name) ?: '未设置'}}】，执行引擎【{{(#req.engine) ?: '未设置'}}】，处理模式【{{(#req.mode) ?: '未设置'}}】，所属类目【{{(#req.categoryId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "新建集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
@@ -202,11 +225,22 @@ public class IntegrationTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "修改集成任务基础信息", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改集成任务基础信息", extra = "BUSINESS_OPERATION",
+            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，执行引擎【{{(#req.engine) ?: '未设置'}}】，处理模式【{{(#req.mode) ?: '未设置'}}】，所属类目【{{(#req.categoryId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> update(@RequestBody @Valid SaveReq req) {
+        String operateName = "编号" + req.getId();
+        try {
+            var operateObject = service.get(req.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.update(req);
         return success(true);
     }
@@ -219,11 +253,22 @@ public class IntegrationTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "删除已下线且关闭调度的集成任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除已下线且关闭调度的集成任务", extra = "BUSINESS_OPERATION",
+            success = "删除了集成任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除已下线且关闭调度的集成任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
     public CommonResult<Boolean> delete(@RequestParam Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = service.get(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.delete(id);
         return success(true);
     }
@@ -236,11 +281,22 @@ public class IntegrationTaskController {
      */
     @PostMapping("/clone")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "克隆集成定义为未上线的新任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "克隆集成定义为未上线的新任务", extra = "BUSINESS_OPERATION",
+            success = "克隆了集成任务【{{(#operateName) ?: '未设置'}}】，新集成任务编号【{{(#_ret.data) ?: '未设置'}}】，保持未上线", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "克隆集成定义为未上线的新任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
     public CommonResult<Long> cloneTask(@RequestParam Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = service.get(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(service.cloneTask(id));
     }
 
@@ -252,11 +308,24 @@ public class IntegrationTaskController {
      */
     @PutMapping("/status")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "切换集成任务上下线状态", bizNo = "{{(#req.id) ?: 0}}",
-            success = "切换集成任务上下线状态", extra = "BUSINESS_OPERATION",
+            success = "将集成任务【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#req.status) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换集成任务上下线状态")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> status(@RequestBody @Valid StatusReq req) {
+        String operateName = "编号" + req.getId();
+        LogRecordContext.putVariable("operateStatus", "未读取");
+        try {
+            var operateObject = service.get(req.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+                LogRecordContext.putVariable("operateStatus", operateObject.getStatus());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.status(req);
         return success(true);
     }
@@ -269,11 +338,22 @@ public class IntegrationTaskController {
      */
     @PutMapping("/schedule")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "保存调度周期或切换调度；开启要求绑定本平台可执行流程", bizNo = "{{(#req.id) ?: 0}}",
-            success = "保存调度周期或切换调度；开启要求绑定本平台可执行流程", extra = "BUSINESS_OPERATION",
+            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】的调度设置，调度开关【{{(#req.scheduleStatus) ?: '未设置'}}】，Cron【{{(#req.cronExpression) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存调度周期或切换调度；开启要求绑定本平台可执行流程")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
     public CommonResult<Boolean> schedule(@RequestBody @Valid ScheduleReq req) {
+        String operateName = "编号" + req.getId();
+        try {
+            var operateObject = service.get(req.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.schedule(req);
         return success(true);
     }
@@ -325,11 +405,22 @@ public class IntegrationTaskController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置", bizNo = "{{(#id) ?: 0}}",
-            success = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置", extra = "BUSINESS_OPERATION",
+            success = "提交了集成任务【{{(#operateName) ?: '未设置'}}】的执行请求，执行编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
     public CommonResult<Long> run(@RequestParam Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = service.get(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(service.run(id));
     }
 
@@ -341,22 +432,44 @@ public class IntegrationTaskController {
      */
     @PostMapping("/stop")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "请求停止本平台正在执行的实例", bizNo = "{{(#id) ?: 0}}",
-            success = "请求停止本平台正在执行的实例", extra = "BUSINESS_OPERATION",
+            success = "对集成任务【{{(#operateName) ?: '未设置'}}】（任务编号【{{(#id) ?: '未设置'}}】）提交了停止请求，等待执行器确认退出", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "请求停止本平台正在执行的实例")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
     public CommonResult<Boolean> stop(@RequestParam Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = service.get(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         service.stop(id);
         return success(true);
     }
     /** 保存流程草稿，或编译并登记到 DolphinScheduler。 */
     @PutMapping("/flow")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "保存集成流程并发布 DS 离线定义", bizNo = "{{(#req.id) ?: 0}}",
-            success = "保存集成流程并发布 DS 离线定义", extra = "BUSINESS_OPERATION",
+            success = "保存了集成任务【{{(#operateName) ?: '未设置'}}】的流程配置，草稿模式【{{(#req.draft) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存集成流程并发布 DS 离线定义")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
-    public CommonResult<TaskResp> saveFlow(@RequestBody @Valid FlowReq req) { return success(service.saveFlow(req)); }
+    public CommonResult<TaskResp> saveFlow(@RequestBody @Valid FlowReq req) {
+        String operateName = "编号" + req.getId();
+        try {
+            var operateObject = service.get(req.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+         return success(service.saveFlow(req)); }
 
     /** 执行与正式保存相同的编译准入检查。 */
     @PostMapping("/check")

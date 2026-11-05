@@ -33,7 +33,7 @@ public class IndicatorModelController {
      * @return 指标模型
      */
     @LogRecord(type = "数据建模-指标模型", subType = "创建指标定义", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建指标定义", extra = "BUSINESS_OPERATION",
+            success = "创建了指标定义【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建指标定义")
@@ -49,7 +49,7 @@ public class IndicatorModelController {
      * @return 指标模型
      */
     @LogRecord(type = "数据建模-指标模型", subType = "更新草稿指标定义", bizNo = "{{(#request.id) ?: 0}}",
-            success = "更新草稿指标定义", extra = "BUSINESS_OPERATION",
+            success = "修改了指标定义【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新草稿指标定义")
@@ -67,7 +67,7 @@ public class IndicatorModelController {
      * @return 指标模型
      */
     @LogRecord(type = "数据建模-指标模型", subType = "删除未被引用的草稿指标", bizNo = "{{(#id) ?: 0}}",
-            success = "删除未被引用的草稿指标", extra = "BUSINESS_OPERATION",
+            success = "删除了指标定义【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未被引用的草稿指标")
@@ -85,7 +85,7 @@ public class IndicatorModelController {
      * @return 指标模型
      */
     @LogRecord(type = "数据建模-指标模型", subType = "启用或停用指标定义", bizNo = "{{(#request.id) ?: 0}}",
-            success = "启用或停用指标定义", extra = "BUSINESS_OPERATION",
+            success = "将指标定义【编号{{#request.id}}】状态设为【{{#request.status}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用指标定义")

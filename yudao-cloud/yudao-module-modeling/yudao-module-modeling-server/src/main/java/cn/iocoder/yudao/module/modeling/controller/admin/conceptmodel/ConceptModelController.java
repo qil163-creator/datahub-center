@@ -33,7 +33,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "创建概念模型草稿", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建概念模型草稿", extra = "BUSINESS_OPERATION",
+            success = "创建了概念模型【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建概念模型草稿")
@@ -49,7 +49,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "修改概念模型及实体关系设计", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改概念模型及实体关系设计", extra = "BUSINESS_OPERATION",
+            success = "修改了概念模型【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改概念模型及实体关系设计")
@@ -66,7 +66,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "启用或停用概念模型", bizNo = "{{(#request.id) ?: 0}}",
-            success = "启用或停用概念模型", extra = "BUSINESS_OPERATION",
+            success = "将概念模型【编号{{#request.id}}】状态设为【{{#request.status}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用概念模型")
@@ -84,7 +84,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "删除概念模型草稿", bizNo = "{{(#id) ?: 0}}",
-            success = "删除概念模型草稿", extra = "BUSINESS_OPERATION",
+            success = "删除了概念模型【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除概念模型草稿")

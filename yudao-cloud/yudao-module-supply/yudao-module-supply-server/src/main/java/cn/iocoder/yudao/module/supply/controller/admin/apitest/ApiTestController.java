@@ -67,7 +67,7 @@ public class ApiTestController {
      * @return API测试发送响应数据
      */
     @LogRecord(type = "数据服务-HTTP 接口测试", subType = "发起真实接口测试请求", bizNo = "{{(#reqVO.apiId) ?: 0}}",
-            success = "发起真实接口测试请求", extra = "BUSINESS_OPERATION",
+            success = "发起了真实接口测试请求，平台API编号【{{#reqVO.apiId}}】，模式【{{#reqVO.mode}}】，请求方式【{{#reqVO.method}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/send")
     @Operation(summary = "发送登记 API 或公开 HTTP 地址的真实测试请求")

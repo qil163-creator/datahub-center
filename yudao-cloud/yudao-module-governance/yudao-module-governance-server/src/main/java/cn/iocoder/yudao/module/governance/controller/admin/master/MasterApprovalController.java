@@ -49,7 +49,7 @@ public class MasterApprovalController {
      */
     @PutMapping("/approve")
     @LogRecord(type = "数据治理-主数据审批", subType = "通过人工审批并应用数据变更",
-            bizNo = "{{(#req.id) ?: 0}}", success = "通过人工审批并应用数据变更",
+            bizNo = "{{(#req.id) ?: 0}}", success = "通过了主数据变更审批【{{(#req.id) ?: 0}}】，审批后状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "通过人工审批并应用数据变更")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:approve')")
@@ -62,7 +62,7 @@ public class MasterApprovalController {
      */
     @PutMapping("/reject")
     @LogRecord(type = "数据治理-主数据审批", subType = "驳回人工审批，正式数据保持原状态",
-            bizNo = "{{(#req.id) ?: 0}}", success = "驳回人工审批，正式数据保持原状态",
+            bizNo = "{{(#req.id) ?: 0}}", success = "驳回了主数据变更审批【{{(#req.id) ?: 0}}】，正式数据保持原状态",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "驳回人工审批，正式数据保持原状态")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:reject')")
@@ -75,7 +75,7 @@ public class MasterApprovalController {
      */
     @PutMapping("/reconcile")
     @LogRecord(type = "数据治理-主数据审批", subType = "同步权威流程状态或标记超时执行待核查",
-            bizNo = "{{(#id) ?: 0}}", success = "同步权威流程状态或标记超时执行待核查",
+            bizNo = "{{(#id) ?: 0}}", success = "同步了主数据变更审批【{{(#id) ?: 0}}】的权威流程状态，当前状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "同步权威流程状态或标记超时执行待核查")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:reconcile')")
@@ -88,7 +88,7 @@ public class MasterApprovalController {
      */
     @PutMapping("/resolve")
     @LogRecord(type = "数据治理-主数据审批", subType = "核查未知结果并记录依据，不重新写入外部数据",
-            bizNo = "{{(#req.id) ?: 0}}", success = "核查未知结果并记录依据，不重新写入外部数据",
+            bizNo = "{{(#req.id) ?: 0}}", success = "核查了主数据变更审批【{{(#req.id) ?: 0}}】的未知执行结果，核查结论【{{(#req.outcome) ?: '未设置'}}】，未重新写入外部数据",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "核查未知结果并记录依据，不重新写入外部数据")
     @PreAuthorize("@ss.hasPermission('governance:master-approval:resolve')")

@@ -132,7 +132,7 @@ public class FileResourceController {
      */
     @PostMapping("/upload")
     @LogRecord(type = "数据开发-外部文件管理", subType = "上传文件到选定连接目录", bizNo = "{{(#connectionId) ?: 0}}",
-            success = "上传文件到选定连接目录", extra = "BUSINESS_OPERATION",
+            success = "向文件连接【{{(#connectionId) ?: '未设置'}}】上传了文件【{{(#file.originalFilename) ?: '未设置'}}】，覆盖已有文件【{{(#overwrite) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "上传文件到选定连接目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:create')")
@@ -151,7 +151,7 @@ public class FileResourceController {
      */
     @PostMapping("/mkdir")
     @LogRecord(type = "数据开发-外部文件管理", subType = "创建远程文件夹", bizNo = "{{(#req.connectionId) ?: 0}}",
-            success = "创建远程文件夹", extra = "BUSINESS_OPERATION",
+            success = "在文件连接【{{(#req.connectionId) ?: '未设置'}}】的目录【{{(#req.path) ?: '未设置'}}】创建了文件夹【{{(#req.name) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建远程文件夹")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:create')")
@@ -168,7 +168,7 @@ public class FileResourceController {
      */
     @PutMapping("/rename")
     @LogRecord(type = "数据开发-外部文件管理", subType = "重命名远程文件或目录", bizNo = "{{(#req.connectionId) ?: 0}}",
-            success = "重命名远程文件或目录", extra = "BUSINESS_OPERATION",
+            success = "将文件连接【{{(#req.connectionId) ?: '未设置'}}】中的对象【{{(#req.path) ?: '未设置'}}】重命名为【{{(#req.name) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "重命名远程文件或目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:update')")
@@ -185,7 +185,7 @@ public class FileResourceController {
      */
     @PostMapping("/delete")
     @LogRecord(type = "数据开发-外部文件管理", subType = "执行远程文件批量删除（逐项结果见业务回执）", bizNo = "{{(#req.connectionId) ?: 0}}",
-            success = "执行远程文件批量删除（逐项结果见业务回执）", extra = "BUSINESS_OPERATION",
+            success = "对文件连接【{{(#req.connectionId) ?: '未设置'}}】执行了逐项删除，已删除【{{(#_ret.data.succeededPaths) ?: '未设置'}}】，失败项数【{{(#_ret.data.failures.size()) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "逐项删除远程文件或目录")
     @PreAuthorize("@ss.hasPermission('dataforge:data-file:delete')")

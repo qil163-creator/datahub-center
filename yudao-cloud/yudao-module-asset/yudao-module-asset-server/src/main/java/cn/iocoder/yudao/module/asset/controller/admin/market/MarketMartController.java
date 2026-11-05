@@ -57,7 +57,7 @@ public class MarketMartController {
      * 保存市场展示配置并沿资产目录原状态机发布。
      */
     @LogRecord(type = "数据资产-数据集市", subType = "保存市场展示配置并沿资产目录原状态机发布", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "保存市场展示配置并沿资产目录原状态机发布", extra = "BUSINESS_OPERATION",
+            success = "将资产【{{#reqVO.name}}】（编号{{#reqVO.assetId}}）发布到集市类目【{{#reqVO.marketCategoryId}}】，校验展示修订【{{#reqVO.expectedListingRevision}}】及目录修订【{{#reqVO.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "保存市场展示配置并沿资产目录原状态机发布")
@@ -92,7 +92,7 @@ public class MarketMartController {
      * 设置当前用户收藏状态，重复设置保持幂等。
      */
     @LogRecord(type = "数据资产-数据集市", subType = "设置当前用户收藏状态，重复设置保持幂等", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "设置当前用户收藏状态，重复设置保持幂等", extra = "BUSINESS_OPERATION",
+            success = "将资产【编号{{#reqVO.assetId}}】的个人收藏状态设为【{{#reqVO.favorite}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/favorite")
     @Operation(summary = "设置当前用户收藏状态，重复设置保持幂等")

@@ -63,7 +63,7 @@ public class ApiLogController {
      * @return API日志
      */
     @LogRecord(type = "数据服务-调用记录", subType = "删除调用记录", bizNo = "{{(#id) ?: 0}}",
-            success = "删除调用记录", extra = "BUSINESS_OPERATION",
+            success = "删除了API调用记录【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除调用记录")

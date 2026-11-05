@@ -47,7 +47,7 @@ public class EtlRecordController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-ETL 流程日志", subType = "删除执行记录（含节点记录）", bizNo = "{{(#id) ?: 0}}",
-            success = "删除执行记录（含节点记录）", extra = "BUSINESS_OPERATION",
+            success = "删除了 ETL 执行记录【{{(#id) ?: '未设置'}}】及其节点执行记录", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除执行记录（含节点记录）")
     @Parameter(name = "id", description = "编号", required = true)

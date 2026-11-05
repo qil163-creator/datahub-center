@@ -42,7 +42,7 @@ public class AssetTermController {
      * termId 是治理业务术语编号；为空表示解绑。
      */
     @LogRecord(type = "数据资产-资产字段关联治理术语", subType = "资产字段绑定/解除治理业务术语", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "资产字段绑定/解除治理业务术语", extra = "BUSINESS_OPERATION",
+            success = "为资产【编号{{#reqVO.assetId}}】的字段【{{#reqVO.metaColumnId}}】{{#reqVO.termId == null ? '解除了业务术语绑定' : '绑定了业务术语'}}，术语编号【{{#reqVO.termId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/bind-column")
     @Operation(summary = "资产字段绑定/解除治理业务术语")

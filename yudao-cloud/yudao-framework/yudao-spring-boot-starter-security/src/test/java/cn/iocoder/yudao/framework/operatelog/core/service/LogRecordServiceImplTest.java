@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.service.ILogRecordService;
+import com.mzt.logapi.context.LogRecordContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,16 +60,37 @@ class LogRecordServiceImplTest {
     @Test
     void existingAnnotationRecordsTheCreatedIdAndDirectActionWithoutBusinessPayload() {
         run((fixture, config) -> {
-            fixture.create("fixture-private-payload");
+            fixture.create("测试对象", "fixture-private-payload");
             assertEquals(1, config.records.size());
             var record = config.records.getFirst();
             assertEquals(9007199254740993L, record.getBizId());
             assertEquals(42L, record.getUserId());
             assertEquals(2, record.getUserType());
-            assertEquals("新增对象", record.getAction());
+            assertEquals("创建了对象【测试对象】", record.getAction());
             assertEquals("/admin-api/fixture/create", record.getRequestUrl());
             assertEquals("audit-fixture", record.getUserAgent());
             assertFalse(record.toString().contains("fixture-private-payload"));
+        });
+    }
+
+    @Test
+    void actionNameAndContentDescribeDifferentLevelsOfDetail() {
+        run((fixture, config) -> {
+            fixture.rename(91L, "原对象", "新对象");
+            var record = config.records.getFirst();
+            assertEquals("修改对象", record.getSubType());
+            assertEquals("修改了对象【原对象】，名称从【原对象】调整为【新对象】", record.getAction());
+            assertNotEquals(record.getSubType(), record.getAction());
+        });
+    }
+
+    @Test
+    void deleteUsesTheNameCapturedBeforeTheBusinessObjectIsRemoved() {
+        run((fixture, config) -> {
+            fixture.delete(92L, "待删除对象");
+            var record = config.records.getFirst();
+            assertEquals("删除对象", record.getSubType());
+            assertEquals("删除了对象【待删除对象】", record.getAction());
         });
     }
 
@@ -178,9 +200,27 @@ class LogRecordServiceImplTest {
         Fixture(ILogRecordService recorder) { this.recorder = recorder; }
 
         @com.mzt.logapi.starter.annotation.LogRecord(type = "测试对象", subType = "新增对象",
-                bizNo = "{{#_ret.data}}", success = "新增对象", extra = "BUSINESS_OPERATION",
+                bizNo = "{{#_ret.data}}", success = "创建了对象【{{#name}}】", extra = "BUSINESS_OPERATION",
                 successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
-        public CommonResult<Long> create(String privatePayload) { return CommonResult.success(9007199254740993L); }
+        public CommonResult<Long> create(String name, String privatePayload) {
+            return CommonResult.success(9007199254740993L);
+        }
+
+        @com.mzt.logapi.starter.annotation.LogRecord(type = "测试对象", subType = "修改对象", bizNo = "{{#id}}",
+                success = "修改了对象【{{#beforeName}}】，名称从【{{#beforeName}}】调整为【{{#newName}}】",
+                extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+        public CommonResult<Boolean> rename(Long id, String oldName, String newName) {
+            LogRecordContext.putVariable("beforeName", oldName);
+            return CommonResult.success(true);
+        }
+
+        @com.mzt.logapi.starter.annotation.LogRecord(type = "测试对象", subType = "删除对象", bizNo = "{{#id}}",
+                success = "删除了对象【{{#deletedName}}】", extra = "BUSINESS_OPERATION",
+                successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+        public CommonResult<Boolean> delete(Long id, String oldName) {
+            LogRecordContext.putVariable("deletedName", oldName);
+            return CommonResult.success(true);
+        }
 
         @com.mzt.logapi.starter.annotation.LogRecord(type = "测试对象", subType = "修改对象",
                 bizNo = "{{(#id) ?: 0}}", success = "修改对象", extra = "BUSINESS_OPERATION",

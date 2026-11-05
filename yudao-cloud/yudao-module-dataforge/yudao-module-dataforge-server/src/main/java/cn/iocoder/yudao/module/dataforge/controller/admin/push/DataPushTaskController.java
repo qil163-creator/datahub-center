@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.push;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.push.vo.*;
@@ -38,7 +39,7 @@ public class DataPushTaskController {
      */
     @PostMapping("/resolve-command")
     @LogRecord(type = "数据开发-数据推送任务", subType = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）", extra = "BUSINESS_OPERATION",
+            success = "人工核查了推送实例【{{(#request.recordId) ?: '未设置'}}】，核查结论【{{(#request.outcome) ?: '未设置'}}】，确认执行停止【{{(#request.confirmedStopped) ?: '未设置'}}】，确认输出核查【{{(#request.outputReviewed) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知推送（仅未生效或完整补偿，停用排期且不改水位）")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:resolve')")
@@ -55,7 +56,7 @@ public class DataPushTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据推送任务", subType = "创建推送任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建推送任务", extra = "BUSINESS_OPERATION",
+            success = "创建了推送任务【{{(#createReqVO.name) ?: '未设置'}}】，推送模式【{{(#createReqVO.pushMode) ?: '未设置'}}】，源数据源【{{(#createReqVO.sourceDatabaseId) ?: '未设置'}}】，批量大小【{{(#createReqVO.batchSize) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
@@ -72,12 +73,23 @@ public class DataPushTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据推送任务", subType = "更新推送任务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新推送任务", extra = "BUSINESS_OPERATION",
+            success = "修改了推送任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，推送模式【{{(#updateReqVO.pushMode) ?: '未设置'}}】，源数据源【{{(#updateReqVO.sourceDatabaseId) ?: '未设置'}}】，批量大小【{{(#updateReqVO.batchSize) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:update')")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
     public CommonResult<Boolean> updateTask(@Valid @RequestBody DataPushTaskSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = taskService.getTask(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.updateTask(updateReqVO);
         return success(true);
     }
@@ -90,11 +102,22 @@ public class DataPushTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据推送任务", subType = "删除推送任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除推送任务", extra = "BUSINESS_OPERATION",
+            success = "删除了推送任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除推送任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:delete')")
     public CommonResult<Boolean> deleteTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.deleteTask(id);
         return success(true);
     }
@@ -133,11 +156,22 @@ public class DataPushTaskController {
      */
     @PutMapping("/release")
     @LogRecord(type = "数据开发-数据推送任务", subType = "发布任务", bizNo = "{{(#id) ?: 0}}",
-            success = "发布任务", extra = "BUSINESS_OPERATION",
+            success = "发布了推送任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:release')")
     public CommonResult<Boolean> releaseTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.releaseTask(id);
         return success(true);
     }
@@ -150,11 +184,22 @@ public class DataPushTaskController {
      */
     @PutMapping("/cancel-release")
     @LogRecord(type = "数据开发-数据推送任务", subType = "取消发布", bizNo = "{{(#id) ?: 0}}",
-            success = "取消发布", extra = "BUSINESS_OPERATION",
+            success = "取消发布了推送任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:release')")
     public CommonResult<Boolean> cancelTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.cancelTask(id);
         return success(true);
     }
@@ -167,11 +212,22 @@ public class DataPushTaskController {
      */
     @PutMapping("/hand-run")
     @LogRecord(type = "数据开发-数据推送任务", subType = "提交数据推送手动执行请求", bizNo = "{{(#id) ?: 0}}",
-            success = "提交数据推送手动执行请求", extra = "BUSINESS_OPERATION",
+            success = "提交了推送任务的手工运行请求【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:run')")
     public CommonResult<Boolean> handRun(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.handRun(id);
         return success(true);
     }
@@ -184,11 +240,22 @@ public class DataPushTaskController {
      */
     @PutMapping("/stop")
     @LogRecord(type = "数据开发-数据推送任务", subType = "提交数据推送停止执行请求", bizNo = "{{(#id) ?: 0}}",
-            success = "提交数据推送停止执行请求", extra = "BUSINESS_OPERATION",
+            success = "提交了推送任务的停止请求【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止正在运行的任务")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:run')")
     public CommonResult<Boolean> stopTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.stopTask(id);
         return success(true);
     }
@@ -284,12 +351,23 @@ public class DataPushTaskController {
      */
     @PostMapping("/copy")
     @LogRecord(type = "数据开发-数据推送任务", subType = "复制推送任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "复制推送任务", extra = "BUSINESS_OPERATION",
+            success = "复制了推送任务【{{(#operateName) ?: '未设置'}}】，新任务编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "复制推送任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
     public CommonResult<Long> copyTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(taskService.copyTask(id));
     }
 

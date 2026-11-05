@@ -111,7 +111,7 @@ public class FillWorkItemController {
      */
     @PutMapping("/assignees")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "调整填报人（发起者/授权管理员：新增或移除）", bizNo = "{{(#reqVO.workItemId) ?: 0}}",
-            success = "调整填报人（发起者/授权管理员：新增或移除）", extra = "BUSINESS_OPERATION",
+            success = "调整了填报工作项【{{(#reqVO.workItemId) ?: '未设置'}}】的填报人，新增用户编号【{{(#reqVO.addUserIds) ?: '未设置'}}】，移除用户编号【{{(#reqVO.removeUserIds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "调整填报人（发起者/授权管理员：新增或移除）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:assignee')")
@@ -128,7 +128,7 @@ public class FillWorkItemController {
      */
     @PostMapping("/transfer")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "填报职责转派（填报人本人发起，限同组织）", bizNo = "{{(#reqVO.workItemId) ?: 0}}",
-            success = "填报职责转派（填报人本人发起，限同组织）", extra = "BUSINESS_OPERATION",
+            success = "将填报工作项【{{(#reqVO.workItemId) ?: '未设置'}}】的填报职责转派给用户【{{(#reqVO.targetUserId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "填报职责转派（填报人本人发起，限同组织）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:transfer')")
@@ -145,7 +145,7 @@ public class FillWorkItemController {
      */
     @PostMapping("/urge")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "催办单个组织实例", bizNo = "{{(#id) ?: 0}}",
-            success = "催办单个组织实例", extra = "BUSINESS_OPERATION",
+            success = "对填报工作项【{{(#id) ?: '未设置'}}】发起了单组织催办", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "催办单个组织实例", description = "通知当前有效填报人；1 小时内重复催办被拒绝")
     @Parameter(name = "id", description = "工作项编号", required = true)
@@ -199,7 +199,7 @@ public class FillWorkItemController {
      */
     @PatchMapping("/{id}/operations")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clien", bizNo = "{{(#id) ?: 0}}",
-            success = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clientOpId 幂等）", extra = "BUSINESS_OPERATION",
+            success = "修改了填报工作项【{{(#id) ?: '未设置'}}】的草稿，提交前版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】，操作数【{{(#reqVO.operations.size()) ?: '未设置'}}】，操作类型【{{(#reqVO.operations.![opType]) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "应用一批草稿操作（SET_CELL/ADD_ROW/REMOVE_ROW，单事务原子 + clientOpId 幂等）")
     @Parameter(name = "id", description = "工作项编号", required = true)
@@ -220,7 +220,7 @@ public class FillWorkItemController {
      */
     @PostMapping("/{id}/submit")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "提交填报数据", bizNo = "{{(#id) ?: 0}}",
-            success = "提交填报数据", extra = "BUSINESS_OPERATION",
+            success = "提交了填报工作项【{{(#id) ?: '未设置'}}】，提交草稿版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】，提交类型【{{(#reqVO.submissionType) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "提交填报数据",
             description = "冻结草稿（状态+版本 CAS）→ 服务端强校验 → 不可变快照 → 可靠启动 BPM；校验失败返回问题清单")

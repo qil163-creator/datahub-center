@@ -55,7 +55,7 @@ public class FillCorrectionController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-在线填报数据更正", subType = "发起数据更正", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "发起数据更正", extra = "BUSINESS_OPERATION",
+            success = "针对填报提交【{{(#createReqVO.submissionId) ?: '未设置'}}】发起了数据更正，更正编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发起数据更正", description = "仅最新已合并快照可更正；实例转入整改中，重新提交后走新 BPM 审批并幂等覆盖")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-correction:create')")
@@ -71,7 +71,7 @@ public class FillCorrectionController {
      */
     @PutMapping("/cancel")
     @LogRecord(type = "数据开发-在线填报数据更正", subType = "取消更正（仅草拟中且尚未重新提交）", bizNo = "{{(#id) ?: 0}}",
-            success = "取消更正（仅草拟中且尚未重新提交）", extra = "BUSINESS_OPERATION",
+            success = "取消了尚未重新提交的数据更正【{{(#id) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消更正（仅草拟中且尚未重新提交）")
     @Parameter(name = "id", description = "更正实例编号", required = true)

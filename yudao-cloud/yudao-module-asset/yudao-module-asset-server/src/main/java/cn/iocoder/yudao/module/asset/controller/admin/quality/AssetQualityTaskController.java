@@ -30,7 +30,7 @@ public class AssetQualityTaskController {
      * 创建资产质量任务。
      */
     @LogRecord(type = "数据资产-资产质量任务", subType = "创建资产质量任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建资产质量任务", extra = "BUSINESS_OPERATION",
+            success = "创建了资产质量任务【{{#reqVO.taskName}}】，任务编号【{{#_ret.data}}】，资产【{{#reqVO.assetId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建资产质量任务")
@@ -43,7 +43,7 @@ public class AssetQualityTaskController {
      * 更新资产质量任务。
      */
     @LogRecord(type = "数据资产-资产质量任务", subType = "更新资产质量任务", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新资产质量任务", extra = "BUSINESS_OPERATION",
+            success = "修改了资产质量任务【{{#reqVO.taskName}}】（编号{{#reqVO.id}}），资产【{{#reqVO.assetId}}】，调度类型【{{#reqVO.scheduleType}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新资产质量任务")
@@ -57,7 +57,7 @@ public class AssetQualityTaskController {
      * 删除资产质量任务。
      */
     @LogRecord(type = "数据资产-资产质量任务", subType = "删除资产质量任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除资产质量任务", extra = "BUSINESS_OPERATION",
+            success = "删除了资产质量任务【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除资产质量任务")
@@ -84,7 +84,7 @@ public class AssetQualityTaskController {
      *  @return 治理质量任务实例编号
      */
     @LogRecord(type = "数据资产-资产质量任务", subType = "执行资产质量任务", bizNo = "{{(#id) ?: 0}}",
-            success = "执行资产质量任务", extra = "BUSINESS_OPERATION",
+            success = "发起了资产质量任务【编号{{#id}}】的执行，执行记录【{{#_ret.data}}】，完成状态以执行结果为准", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/execute")
     @Operation(summary = "执行资产质量任务")

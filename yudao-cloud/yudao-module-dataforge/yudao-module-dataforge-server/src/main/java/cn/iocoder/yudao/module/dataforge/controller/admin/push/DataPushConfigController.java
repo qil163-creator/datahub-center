@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.push;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.push.vo.DataPushConfigPageReqVO;
@@ -37,7 +38,7 @@ public class DataPushConfigController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据推送配置", subType = "创建推送配置", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建推送配置", extra = "BUSINESS_OPERATION",
+            success = "创建了推送配置【{{(#createReqVO.name) ?: '未设置'}}】，通道类型【{{(#createReqVO.channelType) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建推送配置")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
@@ -53,11 +54,22 @@ public class DataPushConfigController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据推送配置", subType = "更新推送配置", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新推送配置", extra = "BUSINESS_OPERATION",
+            success = "修改了推送配置【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，通道类型【{{(#updateReqVO.channelType) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送配置")
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:update')")
     public CommonResult<Boolean> updateConfig(@Valid @RequestBody DataPushConfigSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = configService.getConfig(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         configService.updateConfig(updateReqVO);
         return success(true);
     }
@@ -70,12 +82,23 @@ public class DataPushConfigController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据推送配置", subType = "删除推送配置", bizNo = "{{(#id) ?: 0}}",
-            success = "删除推送配置", extra = "BUSINESS_OPERATION",
+            success = "删除了推送配置【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除推送配置")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:delete')")
     public CommonResult<Boolean> deleteConfig(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = configService.getConfig(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         configService.deleteConfig(id);
         return success(true);
     }
@@ -129,12 +152,23 @@ public class DataPushConfigController {
      */
     @PostMapping("/copy")
     @LogRecord(type = "数据开发-数据推送配置", subType = "复制推送配置", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "复制推送配置", extra = "BUSINESS_OPERATION",
+            success = "复制了推送配置【{{(#operateName) ?: '未设置'}}】，新配置编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "复制推送配置")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:data-push:create')")
     public CommonResult<Long> copyConfig(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = configService.getConfig(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(configService.copyConfig(id));
     }
 

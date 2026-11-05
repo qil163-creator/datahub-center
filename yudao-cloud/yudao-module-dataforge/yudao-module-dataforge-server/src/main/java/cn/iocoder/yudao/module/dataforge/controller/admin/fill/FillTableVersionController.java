@@ -41,7 +41,7 @@ public class FillTableVersionController {
      */
     @PostMapping("/publish")
     @LogRecord(type = "数据开发-在线填报模板版本", subType = "发布模板版本", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "发布模板版本", extra = "BUSINESS_OPERATION",
+            success = "发布了填报表【{{(#reqVO.tableId) ?: '未设置'}}】的模板版本【{{(#_ret.data) ?: '未设置'}}】，合并策略【{{(#reqVO.mergeStrategy) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布模板版本", description = "从填报表当前字段配置固化不可变版本，模板进入审批流工作模式")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
@@ -87,7 +87,7 @@ public class FillTableVersionController {
      */
     @PutMapping("/disable")
     @LogRecord(type = "数据开发-在线填报模板版本", subType = "停用模板版本", bizNo = "{{(#id) ?: 0}}",
-            success = "停用模板版本", extra = "BUSINESS_OPERATION",
+            success = "停用了填报模板版本【{{(#id) ?: '未设置'}}】，不再用于新增采集任务", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停用模板版本", description = "仅禁止新任务引用，不影响进行中任务")
     @Parameter(name = "id", description = "版本编号", required = true)

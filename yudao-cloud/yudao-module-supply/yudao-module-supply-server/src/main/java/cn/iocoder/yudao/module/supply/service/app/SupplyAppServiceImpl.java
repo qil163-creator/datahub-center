@@ -456,7 +456,7 @@ public class SupplyAppServiceImpl implements SupplyAppService {
         }
         // 与控制操作复用落库核对；客户端成功后再读取权威授权状态，不能按本地表单推断有效。
         assertPersistedGrant(updated, appApiMapper.selectGrantControlById(grant.getId()));
-        auditAdminUpdate(actor, grant, updated);
+        auditAdminUpdate(actor, grant, updated, app.getName(), api.getName());
     }
 
     /**
@@ -465,8 +465,10 @@ public class SupplyAppServiceImpl implements SupplyAppService {
      * @param actor 操作人编号
      * @param before 变更前状态
      * @param after 变更后状态
+     * @param appName 应用名称
+     * @param apiName API 名称
      */
-    private void auditAdminUpdate(long actor, AppApiDO before, AppApiDO after) {
+    private void auditAdminUpdate(long actor, AppApiDO before, AppApiDO after, String appName, String apiName) {
         ILogRecordService recorder = operationLogs.getObject();
         String traceId = TracerUtils.getTraceId();
         var extra = new LinkedHashMap<String, Object>();
@@ -479,9 +481,20 @@ public class SupplyAppServiceImpl implements SupplyAppService {
         extra.put("after", adminUpdateSnapshot(after));
         extra.put("reason", "管理员明确修改普通独立授权的期限和描述");
         extra.put("result", "SUCCESS");
+        String oldValidity = Integer.valueOf(1).equals(before.getForeverFlag()) ? "永久有效"
+                : before.getStartDate() + " 至 " + before.getEndDate();
+        String newValidity = Integer.valueOf(1).equals(after.getForeverFlag()) ? "永久有效"
+                : after.getStartDate() + " 至 " + after.getEndDate();
+        String content = "修改了应用【" + (appName == null ? "编号" + after.getAppId() : appName)
+                + "】对 API【" + (apiName == null ? "编号" + after.getApiId() : apiName) + "】的授权；有效期"
+                + (oldValidity.equals(newValidity) ? "【" + newValidity + "】"
+                : "从【" + oldValidity + "】调整为【" + newValidity + "】");
+        if (!java.util.Objects.equals(before.getDescription(), after.getDescription())) {
+            content += "；更新了授权说明";
+        }
         LogRecord record = LogRecord.builder().operator(String.valueOf(actor))
                 .type("数据服务应用授权").subType("修改普通管理员授权").bizNo(String.valueOf(after.getId()))
-                .action("修改应用 API 授权的有效期和描述").extra(JsonUtils.toJsonString(extra)).build();
+                .action(content).extra(JsonUtils.toJsonString(extra)).build();
         // 仅提交成功后调用已有操作日志组件；不持锁执行 RPC，不把失败或回滚记为成功。
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             /**

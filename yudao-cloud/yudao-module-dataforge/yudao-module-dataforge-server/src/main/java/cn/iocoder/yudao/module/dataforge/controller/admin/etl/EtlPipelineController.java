@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaResult;
@@ -116,7 +117,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/version/restore")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "恢复历史发布配置为新草稿，保留现有发布版本和调度", bizNo = "{{(#req.versionId) ?: 0}}",
-            success = "恢复历史发布配置为新草稿，保留现有发布版本和调度", extra = "BUSINESS_OPERATION",
+            success = "将 ETL 发布版本【{{(#req.versionId) ?: '未设置'}}】恢复为新草稿，要求当前修订【{{(#req.expectedRevision) ?: '未设置'}}】，新草稿修订【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "恢复历史发布配置为新草稿，保留现有发布版本和调度")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save') and @ss.hasPermission('dataforge:etl:query')")
@@ -282,7 +283,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/retry-quality-registration")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "人工重试治理登记，不重跑 ETL", bizNo = "{{(#batchId) ?: 0}}",
-            success = "人工重试治理登记，不重跑 ETL", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 目标批次【{{(#batchId) ?: '未设置'}}】发起了治理登记重试，不重新执行数据处理", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工重试治理登记，不重跑 ETL")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run') and @ss.hasPermission('dataforge:etl:query')")
@@ -312,7 +313,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/quality-work-order")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "为内联质量报告创建治理工单，超时可查询报告确认关联", bizNo = "{{(#request.batchId) ?: 0}}",
-            success = "为内联质量报告创建治理工单，超时可查询报告确认关联", extra = "BUSINESS_OPERATION",
+            success = "为 ETL 目标批次【{{(#request.batchId) ?: '未设置'}}】创建了治理工单，工单编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "为内联质量报告创建治理工单，超时可查询报告确认关联")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query') and @ss.hasPermission('governance:quality-audit-log:query') and @ss.hasPermission('governance:quality-work-order:create')")
@@ -332,7 +333,7 @@ public class EtlPipelineController {
     @PostMapping("/save")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false, responseEnable = false)
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "保存流程（新建或更新）", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "保存流程（新建或更新）", extra = "BUSINESS_OPERATION",
+            success = "{{#saveReqVO.id == null ? '创建了' : '修改了'}} ETL 流程【{{(#saveReqVO.name) ?: '未设置'}}】，任务类型【{{(#saveReqVO.taskType) ?: '未设置'}}】，连接环境【{{(#saveReqVO.environmentId) ?: '未设置'}}】，提交修订【{{(#saveReqVO.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存流程（新建或更新）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -348,12 +349,23 @@ public class EtlPipelineController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "删除流程", bizNo = "{{(#id) ?: 0}}",
-            success = "删除流程", extra = "BUSINESS_OPERATION",
+            success = "删除了 ETL 流程【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除流程")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:delete')")
     public CommonResult<Boolean> deletePipeline(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         pipelineService.deletePipeline(id);
         return success(true);
     }
@@ -395,13 +407,24 @@ public class EtlPipelineController {
      */
     @PutMapping("/release")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）", bizNo = "{{(#id) ?: 0}}",
-            success = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）", extra = "BUSINESS_OPERATION",
+            success = "发布了 ETL 流程【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】），发布草稿修订【{{(#revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布当前草稿版本（运行使用发布快照；一次性任务立即执行）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:release')")
     public CommonResult<Boolean> releasePipeline(@RequestParam("id") Long id,
             @RequestParam("revision") Integer revision) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         pipelineService.releasePipeline(id, revision);
         return success(true);
     }
@@ -414,12 +437,23 @@ public class EtlPipelineController {
      */
     @PutMapping("/cancel-release")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "任务下线（调度开启中不可下线）", bizNo = "{{(#id) ?: 0}}",
-            success = "任务下线（调度开启中不可下线）", extra = "BUSINESS_OPERATION",
+            success = "下线了 ETL 流程【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】），停止使用其发布配置", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务下线（调度开启中不可下线）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:release')")
     public CommonResult<Boolean> cancelPipeline(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         pipelineService.cancelPipeline(id);
         return success(true);
     }
@@ -433,7 +467,7 @@ public class EtlPipelineController {
      */
     @PutMapping("/schedule")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "开启/关闭调度（仅周期任务，需先上线）", bizNo = "{{(#id) ?: 0}}",
-            success = "开启/关闭调度（仅周期任务，需先上线）", extra = "BUSINESS_OPERATION",
+            success = "修改了 ETL 流程的调度开关【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】），调度启用【{{(#enable) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "开启/关闭调度（仅周期任务，需先上线）")
     @Parameter(name = "id", description = "编号", required = true)
@@ -441,6 +475,17 @@ public class EtlPipelineController {
     @PreAuthorize("@ss.hasPermission('dataforge:etl:release')")
     public CommonResult<Boolean> updateScheduleStatus(@RequestParam("id") Long id,
             @RequestParam("enable") Boolean enable) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         pipelineService.updateScheduleStatus(id, enable);
         return success(true);
     }
@@ -453,12 +498,23 @@ public class EtlPipelineController {
      */
     @PostMapping("/copy")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "克隆流程（复制画布与配置，新流程为未上线状态）", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "克隆流程（复制画布与配置，新流程为未上线状态）", extra = "BUSINESS_OPERATION",
+            success = "克隆了 ETL 流程【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】），新流程编号【{{(#_ret.data) ?: '未设置'}}】，新流程保持未上线", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "克隆流程（复制画布与配置，新流程为未上线状态）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
     public CommonResult<Long> copyPipeline(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(pipelineService.copyPipeline(id));
     }
 
@@ -470,12 +526,23 @@ public class EtlPipelineController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "提交 ETL 手动执行请求", bizNo = "{{(#id) ?: 0}}",
-            success = "提交 ETL 手动执行请求", extra = "BUSINESS_OPERATION",
+            success = "提交了 ETL 流程的手工运行请求【{{(#operateName) ?: '未设置'}}】（流程编号【{{(#id) ?: '未设置'}}】），执行记录编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次，返回执行记录编号")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<Long> runPipeline(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = pipelineService.getPipeline(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(pipelineService.runPipeline(id));
     }
 
@@ -487,7 +554,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/stop")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "提交 ETL 停止执行请求", bizNo = "{{(#recordId) ?: 0}}",
-            success = "提交 ETL 停止执行请求", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 执行实例【{{(#recordId) ?: '未设置'}}】提交了停止请求，等待执行器退出", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止执行")
     @Parameter(name = "recordId", description = "执行记录编号", required = true)
@@ -505,13 +572,24 @@ public class EtlPipelineController {
      */
     @PostMapping("/run-command")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "持久受理手动执行（使用稳定请求标识重放回执）", bizNo = "{{(#request.pipelineId) ?: 0}}",
-            success = "持久受理手动执行（使用稳定请求标识重放回执）", extra = "BUSINESS_OPERATION",
+            success = "提交了 ETL 流程【{{(#operateName) ?: '未设置'}}】的持久运行命令，要求发布修订【{{(#request.expectedDefinitionRevision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理手动执行（使用稳定请求标识重放回执）")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false, responseEnable = false)
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
     public CommonResult<cn.iocoder.yudao.module.dataforge.service.execution.RunReceipt> runCommand(
             @Valid @RequestBody EtlRunCommandReqVO request) {
+        String operateName = "编号" + request.getPipelineId();
+        try {
+            var operateObject = pipelineService.getPipeline(request.getPipelineId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(pipelineService.runPipelineCommand(request.getPipelineId(), request.getRequestId(),
                 request.getExpectedDefinitionRevision(), request.getParameters()));
     }
@@ -540,7 +618,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/stop-command")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "持久受理停止意图（回执不表示执行已退出）", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "持久受理停止意图（回执不表示执行已退出）", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 执行实例【{{(#request.recordId) ?: '未设置'}}】提交了持久停止命令", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理停止意图（回执不表示执行已退出）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -557,7 +635,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/resolve-command")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "凭状态版本与退出、输出证据人工核查运行结果", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "凭状态版本与退出、输出证据人工核查运行结果", extra = "BUSINESS_OPERATION",
+            success = "人工核查了 ETL 执行实例【{{(#request.recordId) ?: '未设置'}}】，期望状态版本【{{(#request.expectedVersion) ?: '未设置'}}】，核查结论【{{(#request.outcome) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "凭状态版本与退出、输出证据人工核查运行结果")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:resolve')")
@@ -574,7 +652,7 @@ public class EtlPipelineController {
      */
     @PostMapping("/resolve-unknown")
     @LogRecord(type = "数据开发-ETL 生产流程", subType = "兼容人工核查入口（同样要求状态版本与完整证据）", bizNo = "{{(#reqVO.recordId) ?: 0}}",
-            success = "兼容人工核查入口（同样要求状态版本与完整证据）", extra = "BUSINESS_OPERATION",
+            success = "人工核查了 ETL 执行实例【{{(#reqVO.recordId) ?: '未设置'}}】，期望状态版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】，核查结论【{{(#reqVO.outcome) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "兼容人工核查入口（同样要求状态版本与完整证据）")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:resolve')")

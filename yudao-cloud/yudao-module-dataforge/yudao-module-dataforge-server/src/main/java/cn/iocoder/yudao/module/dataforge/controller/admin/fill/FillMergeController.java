@@ -66,7 +66,7 @@ public class FillMergeController {
      */
     @PutMapping("/retry")
     @LogRecord(type = "数据开发-在线填报合并记录", subType = "重试失败的合并批次", bizNo = "{{(#id) ?: 0}}",
-            success = "重试失败的合并批次", extra = "BUSINESS_OPERATION",
+            success = "对填报合并批次【{{(#id) ?: '未设置'}}】提交了失败重试请求", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "重试失败的合并批次", description = "置回待执行，由合并 Job 拾取；不要求重新审批")
     @Parameter(name = "id", description = "批次编号", required = true)

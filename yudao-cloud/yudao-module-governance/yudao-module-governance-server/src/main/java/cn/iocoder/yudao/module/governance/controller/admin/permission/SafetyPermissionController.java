@@ -55,7 +55,7 @@ public class SafetyPermissionController {
      */
     @PostMapping("/save")
     @LogRecord(type = "数据治理-数据权限", subType = "保存表与字段权限配置",
-            bizNo = "{{(#saveReqVO.databaseId) ?: 0}}", success = "保存表与字段权限配置",
+            bizNo = "{{(#saveReqVO.databaseId) ?: 0}}", success = "保存了数据源【{{(#saveReqVO.databaseId) ?: '未设置'}}】表【{{(#saveReqVO.schemaName) ?: '未设置'}}】.{{(#saveReqVO.tableName) ?: '未设置'}}的表与字段授权，角色编号【{{(#saveReqVO.rolePermissionConfigs.![roleId]) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存表与字段权限配置")
     @PreAuthorize("@ss.hasPermission('governance:safety-permission:update')")
@@ -84,7 +84,7 @@ public class SafetyPermissionController {
      */
     @PostMapping("/bind-legacy")
     @LogRecord(type = "数据治理-数据权限", subType = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并",
-            bizNo = "{{(#request.databaseId) ?: 0}}", success = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并",
+            bizNo = "{{(#request.databaseId) ?: 0}}", success = "将数据源【{{(#request.databaseId) ?: '未设置'}}】角色【{{(#request.roleId) ?: '未设置'}}】的历史策略绑定到精确表【{{(#request.schemaName) ?: '未设置'}}】.{{(#request.tableName) ?: '未设置'}}",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "核验后将历史策略绑定到精确物理模式和表，不覆盖或自动合并")
     @PreAuthorize("@ss.hasPermission('governance:safety-permission:update')")

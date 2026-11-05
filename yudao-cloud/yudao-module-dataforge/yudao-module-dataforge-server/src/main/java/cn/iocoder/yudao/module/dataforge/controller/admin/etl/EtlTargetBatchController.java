@@ -53,7 +53,7 @@ public class EtlTargetBatchController {
      */
     @PostMapping("/archive")
     @LogRecord(type = "数据开发-ETL 目标批次", subType = "归档已完成运行", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "归档已完成运行", extra = "BUSINESS_OPERATION",
+            success = "归档了 ETL 执行实例【{{(#request.recordId) ?: '未设置'}}】，证据保留天数【{{(#request.retentionDays) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "归档已完成运行", description = "未关闭工单和未确认提交阻断归档；保留全部审计，不物理删除目标与证据")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -70,7 +70,7 @@ public class EtlTargetBatchController {
      */
     @PostMapping("/restore-archive")
     @LogRecord(type = "数据开发-ETL 目标批次", subType = "在证据保留期内恢复归档运行", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "在证据保留期内恢复归档运行", extra = "BUSINESS_OPERATION",
+            success = "恢复了 ETL 执行实例【{{(#request.recordId) ?: '未设置'}}】的归档记录，继续使用尚在保留期内的证据", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "在证据保留期内恢复归档运行")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -87,7 +87,7 @@ public class EtlTargetBatchController {
      */
     @PostMapping("/replay")
     @LogRecord(type = "数据开发-ETL 目标批次", subType = "按治理源端整改提交发起完整批次回放", bizNo = "{{(#request.workOrderId) ?: 0}}",
-            success = "按治理源端整改提交发起完整批次回放", extra = "BUSINESS_OPERATION",
+            success = "依据治理工单【{{(#request.workOrderId) ?: '未设置'}}】和整改提交【{{(#request.submissionId) ?: '未设置'}}】发起了完整批次回放，快照模式【{{(#request.snapshotMode) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按治理源端整改提交发起完整批次回放", description = "冻结所选版本、复核全部原目标，保留原检测证据；不接受任意目标或自定义 SQL")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -117,7 +117,7 @@ public class EtlTargetBatchController {
      */
     @PostMapping("/retry-recheck")
     @LogRecord(type = "数据开发-ETL 目标批次", subType = "恢复回放复检证据投递", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "恢复回放复检证据投递", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 回放实例【{{(#request.recordId) ?: '未设置'}}】发起了复检证据投递重试", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "恢复回放复检证据投递", description = "只重报现有回放结果，不重复执行回放")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")
@@ -164,7 +164,7 @@ public class EtlTargetBatchController {
      */
     @PostMapping("/retry")
     @LogRecord(type = "数据开发-ETL 目标批次", subType = "人工恢复目标回执或质量登记对账", bizNo = "{{(#request.batchId) ?: 0}}",
-            success = "人工恢复目标回执或质量登记对账", extra = "BUSINESS_OPERATION",
+            success = "对 ETL 目标批次【{{(#request.batchId) ?: '未设置'}}】发起了目标回执和质量登记对账恢复", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工恢复目标回执或质量登记对账", description = "复用原批次与原实例，不把检测失败改为通过；操作原因持久审计")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:run')")

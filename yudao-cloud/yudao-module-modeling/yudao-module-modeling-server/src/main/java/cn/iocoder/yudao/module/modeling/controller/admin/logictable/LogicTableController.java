@@ -79,7 +79,7 @@ public class LogicTableController {
      * @return 逻辑表
      */
     @LogRecord(type = "数据建模-逻辑表", subType = "启用或停用逻辑表", bizNo = "{{(#id) ?: 0}}",
-            success = "启用或停用逻辑表", extra = "BUSINESS_OPERATION",
+            success = "将逻辑表【编号{{#id}}】设为【{{#enabled == 1 ? '启用' : '停用'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-enabled")
     @Operation(summary = "启用或停用逻辑表")
@@ -111,7 +111,7 @@ public class LogicTableController {
      * @return 逻辑表
      */
     @LogRecord(type = "数据建模-逻辑表", subType = "删除逻辑表（支持批量）", bizNo = "{{(#ids) ?: 0}}",
-            success = "删除逻辑表（支持批量）", extra = "BUSINESS_OPERATION",
+            success = "批量删除了逻辑表，编号集合【{{#ids}}】，共【{{#ids.size()}}】项", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除逻辑表（支持批量）")

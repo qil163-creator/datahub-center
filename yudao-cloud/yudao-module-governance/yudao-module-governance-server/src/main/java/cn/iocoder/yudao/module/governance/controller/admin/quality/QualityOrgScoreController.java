@@ -49,7 +49,7 @@ public class QualityOrgScoreController {
      */
     @PostMapping("/calculate")
     @LogRecord(type = "数据治理-数据质量-质量评分", subType = "计算评分（依赖周期内该规则集下已执行的检测结果）",
-            bizNo = "{{(#ruleSetId) ?: 0}}", success = "计算评分（依赖周期内该规则集下已执行的检测结果）",
+            bizNo = "{{(#ruleSetId) ?: 0}}", success = "计算了规则集【{{(#ruleSetId) ?: '未设置'}}】在【{{(#periodStart) ?: '未设置'}}】至【{{(#periodEnd) ?: '未设置'}}】的质量评分，生成评分数【{{(#_ret.data) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "计算评分（依赖周期内该规则集下已执行的检测结果）")
     @PreAuthorize("@ss.hasPermission('governance:quality-org-score:create')")

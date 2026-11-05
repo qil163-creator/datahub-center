@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.standardcodeset;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetImportExcelVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetImportRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeset.vo.StandardCodeSetPageReqVO;
@@ -76,12 +77,13 @@ public class StandardCodeSetController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-标准码", subType = "切换标准启用状态",
-            bizNo = "{{(#id) ?: 0}}", success = "切换标准启用状态",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了标准码表【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> updateStatus(@RequestParam Integer id, @RequestParam Short status,
             @RequestParam Long revision) {
+        captureAuditContext(id);
         standardCodeSetService.updateStatus(id, status, revision);
         return success(true);
     }
@@ -98,7 +100,7 @@ public class StandardCodeSetController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-标准码", subType = "创建数据标准--标准码",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建数据标准--标准码",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了标准码表【{{(#createReqVO.name) ?: '未设置'}}】，编码【{{(#createReqVO.type) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:create')")
@@ -113,11 +115,12 @@ public class StandardCodeSetController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准码", subType = "更新数据标准--标准码",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新数据标准--标准码",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准码表，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.type) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
     public CommonResult<Boolean> updateStandardCodeSet(@Valid @RequestBody StandardCodeSetSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         standardCodeSetService.updateStandardCodeSet(updateReqVO);
         return success(true);
     }
@@ -129,12 +132,13 @@ public class StandardCodeSetController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-标准码", subType = "删除数据标准--标准码",
-            bizNo = "{{(#id) ?: 0}}", success = "删除数据标准--标准码",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了标准码表【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据标准--标准码")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
     public CommonResult<Boolean> deleteStandardCodeSet(@RequestParam("id") Integer id) {
+        captureAuditContext(id);
         standardCodeSetService.deleteStandardCodeSet(id);
         return success(true);
     }
@@ -145,7 +149,7 @@ public class StandardCodeSetController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准码", subType = "批量删除数据标准--标准码",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除数据标准--标准码",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准码表，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")
@@ -215,7 +219,7 @@ public class StandardCodeSetController {
      */
     @PostMapping("/import")
     @LogRecord(type = "数据治理-标准码", subType = "导入码表与码值（处理结果见导入回执）",
-            bizNo = "0", success = "导入码表与码值（处理结果见导入回执）",
+            bizNo = "0", success = "提交了码表与码值的Excel导入，允许更新已有记录【{{(#updateSupport) ?: '未设置'}}】，逐行处理结果见导入回执",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "导入码表/码值")
     @Parameters({
@@ -249,4 +253,24 @@ public class StandardCodeSetController {
         ExcelUtils.write(response, "数据标准--标准码.xls", "数据", StandardCodeSetRespVO.class, voList);
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Integer id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = standardCodeSetService.getStandardCodeSet(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getRevision() == null
+                        ? "未设置" : String.valueOf(auditBefore.getRevision()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

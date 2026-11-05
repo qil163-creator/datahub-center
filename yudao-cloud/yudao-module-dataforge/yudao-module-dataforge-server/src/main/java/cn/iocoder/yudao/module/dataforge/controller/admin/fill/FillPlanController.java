@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.fill;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanPageReqVO;
@@ -40,7 +41,7 @@ public class FillPlanController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "创建采集计划", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建采集计划", extra = "BUSINESS_OPERATION",
+            success = "创建了采集计划【{{(#createReqVO.name) ?: '未设置'}}】，模板版本【{{(#createReqVO.tableVersionId) ?: '未设置'}}】，周期类型【{{(#createReqVO.periodType) ?: '未设置'}}】，发布审批开关【{{(#createReqVO.publishApprovalEnabled) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建采集计划")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:create')")
@@ -56,11 +57,22 @@ public class FillPlanController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "更新采集计划", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新采集计划", extra = "BUSINESS_OPERATION",
+            success = "修改了采集计划【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，模板版本【{{(#updateReqVO.tableVersionId) ?: '未设置'}}】，周期类型【{{(#updateReqVO.periodType) ?: '未设置'}}】，发布审批开关【{{(#updateReqVO.publishApprovalEnabled) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新采集计划", description = "启用中的计划不允许变更模板版本与周期类型")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:update')")
     public CommonResult<Boolean> updatePlan(@Valid @RequestBody FillPlanSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = planService.getPlan(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         planService.updatePlan(updateReqVO);
         return success(true);
     }
@@ -73,12 +85,23 @@ public class FillPlanController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "删除采集计划（仅草稿/停用状态）", bizNo = "{{(#id) ?: 0}}",
-            success = "删除采集计划（仅草稿/停用状态）", extra = "BUSINESS_OPERATION",
+            success = "删除了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除采集计划（仅草稿/停用状态）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:delete')")
     public CommonResult<Boolean> deletePlan(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = planService.getPlan(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         planService.deletePlan(id);
         return success(true);
     }
@@ -118,12 +141,23 @@ public class FillPlanController {
      */
     @PutMapping("/publish")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "发布（启用）采集计划", bizNo = "{{(#id) ?: 0}}",
-            success = "发布（启用）采集计划", extra = "BUSINESS_OPERATION",
+            success = "启用了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布（启用）采集计划", description = "完整性校验并登记目标表写入；一次性计划发布即生成任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:publish')")
     public CommonResult<Boolean> publishPlan(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = planService.getPlan(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         planService.publishPlan(id);
         return success(true);
     }
@@ -136,12 +170,23 @@ public class FillPlanController {
      */
     @PutMapping("/disable")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "停用采集计划", bizNo = "{{(#id) ?: 0}}",
-            success = "停用采集计划", extra = "BUSINESS_OPERATION",
+            success = "停用了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停用采集计划", description = "停止未来任务生成；已生成任务不受影响")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:publish')")
     public CommonResult<Boolean> disablePlan(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = planService.getPlan(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         planService.disablePlan(id);
         return success(true);
     }

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -39,7 +40,7 @@ public class QualityRepairOrderController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "创建修复工单",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建修复工单",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了质量修复工单【{{(#createReqVO.orderTitle) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建修复工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:create')")
@@ -52,11 +53,12 @@ public class QualityRepairOrderController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "更新修复工单",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新修复工单",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了质量修复工单，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.orderTitle) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新修复工单")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> updateRepairOrder(@Valid @RequestBody QualityRepairOrderSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         repairOrderService.updateRepairOrder(updateReqVO);
         return success(true);
     }
@@ -66,12 +68,13 @@ public class QualityRepairOrderController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "删除修复工单",
-            bizNo = "{{(#id) ?: 0}}", success = "删除修复工单",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了质量修复工单【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除修复工单")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:delete')")
     public CommonResult<Boolean> deleteRepairOrder(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         repairOrderService.deleteRepairOrder(id);
         return success(true);
     }
@@ -115,12 +118,13 @@ public class QualityRepairOrderController {
      */
     @PutMapping("/approve")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "审批修复工单（通过/拒绝）",
-            bizNo = "{{(#id) ?: 0}}", success = "审批修复工单（通过/拒绝）",
+            bizNo = "{{(#id) ?: 0}}", success = "审批了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，审批结论【{{(#approveStatus) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批修复工单（通过/拒绝）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:approve')")
     public CommonResult<Boolean> approveRepairOrder(@RequestParam("id") Long id,
             @RequestParam("approveStatus") String approveStatus) {
+        captureAuditContext(id);
         repairOrderService.approveRepairOrder(id, approveStatus);
         return success(true);
     }
@@ -130,12 +134,13 @@ public class QualityRepairOrderController {
      */
     @PostMapping("/execute")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "执行修复（真实回源执行修复SQL）",
-            bizNo = "{{(#id) ?: 0}}", success = "执行修复（真实回源执行修复SQL）",
+            bizNo = "{{(#id) ?: 0}}", success = "发起了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】的回源修复，具体执行结果见修复回执",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "执行修复（真实回源执行修复SQL）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:execute')")
     public CommonResult<Boolean> executeRepairOrder(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         repairOrderService.executeRepairOrder(id);
         return success(true);
     }
@@ -145,11 +150,12 @@ public class QualityRepairOrderController {
      */
     @PostMapping("/resubmit")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "撤销未执行修复单的旧审批并重新送审",
-            bizNo = "{{(#id) ?: 0}}", success = "撤销未执行修复单的旧审批并重新送审",
+            bizNo = "{{(#id) ?: 0}}", success = "将修复工单【{{(#auditObjectName) ?: '编号' + #id}}】重新送审，旧审批已撤销",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤销未执行修复单的旧审批并重新送审")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> resubmitRepairOrder(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         repairOrderService.resubmitRepairOrder(id);
         return success(true);
     }
@@ -159,14 +165,35 @@ public class QualityRepairOrderController {
      */
     @PutMapping("/verify")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "验证修复结果（验证通过/验证未通过）",
-            bizNo = "{{(#id) ?: 0}}", success = "验证修复结果（验证通过/验证未通过）",
+            bizNo = "{{(#id) ?: 0}}", success = "核验了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，验证结论【{{(#verifyStatus) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "验证修复结果（验证通过/验证未通过）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")
     public CommonResult<Boolean> verifyRepairOrder(@RequestParam("id") Long id,
             @RequestParam("verifyStatus") String verifyStatus) {
+        captureAuditContext(id);
         repairOrderService.verifyRepairOrder(id, verifyStatus);
         return success(true);
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = repairOrderService.getRepairOrder(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getOrderTitle() == null
+                        ? "编号" + id : auditBefore.getOrderTitle());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getApproveStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getApproveStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getContentVersion() == null
+                        ? "未设置" : String.valueOf(auditBefore.getContentVersion()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

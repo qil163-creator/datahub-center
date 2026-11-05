@@ -31,7 +31,7 @@ public class MarketCommentController {
      * 发表评价。
      */
     @LogRecord(type = "数据资产-数据集市资源评价", subType = "发表评价", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "发表评价", extra = "BUSINESS_OPERATION",
+            success = "为资产【编号{{#reqVO.assetId}}】创建了评价【{{#_ret.data}}】，评价等级【{{#reqVO.level}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "发表评价")
@@ -44,7 +44,7 @@ public class MarketCommentController {
      * 修改自己的评价。
      */
     @LogRecord(type = "数据资产-数据集市资源评价", subType = "修改自己的评价", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "修改自己的评价", extra = "BUSINESS_OPERATION",
+            success = "修改了资产评价【编号{{#reqVO.id}}】，资产【{{#reqVO.assetId}}】，评价等级【{{#reqVO.level}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改自己的评价")
@@ -58,7 +58,7 @@ public class MarketCommentController {
      * 删除自己的评价。
      */
     @LogRecord(type = "数据资产-数据集市资源评价", subType = "删除自己的评价", bizNo = "{{(#id) ?: 0}}",
-            success = "删除自己的评价", extra = "BUSINESS_OPERATION",
+            success = "删除了本人资产评价【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除自己的评价")
@@ -72,7 +72,7 @@ public class MarketCommentController {
      * 资产方回复评价。
      */
     @LogRecord(type = "数据资产-数据集市资源评价", subType = "资产方回复评价", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "资产方回复评价", extra = "BUSINESS_OPERATION",
+            success = "回复了资产评价【编号{{#reqVO.id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/reply")
     @Operation(summary = "资产方回复评价")

@@ -49,7 +49,7 @@ public class StandardCodeMappingController {
      */
     @PostMapping("/mapping-create")
     @LogRecord(type = "数据治理-码值映射", subType = "创建关联配置",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建关联配置",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "为码表【{{(#request.codeSetId) ?: '未设置'}}】创建了码值映射【{{(#_ret.data) ?: 0}}】，目标码值编号【{{(#request.codeItemId) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
@@ -62,7 +62,7 @@ public class StandardCodeMappingController {
      */
     @PutMapping("/mapping-update")
     @LogRecord(type = "数据治理-码值映射", subType = "更新关联配置",
-            bizNo = "{{(#request.id) ?: 0}}", success = "更新关联配置",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改了码表【{{(#request.codeSetId) ?: '未设置'}}】的码值映射【{{(#request.id) ?: 0}}】，目标码值编号【{{(#request.codeItemId) ?: '未设置'}}】，提交修订【{{(#request.revision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
@@ -76,7 +76,7 @@ public class StandardCodeMappingController {
      */
     @DeleteMapping("/mapping-delete")
     @LogRecord(type = "数据治理-码值映射", subType = "删除关联配置",
-            bizNo = "{{(#id) ?: 0}}", success = "删除关联配置",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了码表【{{(#codeSetId) ?: '未设置'}}】的码值映射【{{(#id) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")

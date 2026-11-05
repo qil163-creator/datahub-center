@@ -50,7 +50,7 @@ public class AssetSensitiveListController {
      * 创建敏感清单记录，默认禁用。
      */
     @LogRecord(type = "数据资产-资产敏感清单", subType = "创建敏感清单记录，默认禁用", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建敏感清单记录，默认禁用", extra = "BUSINESS_OPERATION",
+            success = "创建了敏感清单项【编号{{#_ret.data}}】，资产【{{#req.assetId}}】，字段【{{#req.columnId}}】，分类【{{#req.categoryId}}】，初始状态为禁用", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建敏感清单记录，默认禁用")
@@ -63,7 +63,7 @@ public class AssetSensitiveListController {
      * 修改禁用状态的敏感清单记录。
      */
     @LogRecord(type = "数据资产-资产敏感清单", subType = "修改禁用状态的敏感清单记录", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改禁用状态的敏感清单记录", extra = "BUSINESS_OPERATION",
+            success = "修改了敏感清单项【编号{{#req.id}}】，资产【{{#req.assetId}}】，字段【{{#req.columnId}}】，分类【{{#req.categoryId}}】，校验修订【{{#req.revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改禁用状态的敏感清单记录")
@@ -77,7 +77,7 @@ public class AssetSensitiveListController {
      * 按修订号启用或禁用敏感清单记录。
      */
     @LogRecord(type = "数据资产-资产敏感清单", subType = "按修订号启用或禁用敏感清单记录", bizNo = "{{(#req.id) ?: 0}}",
-            success = "按修订号启用或禁用敏感清单记录", extra = "BUSINESS_OPERATION",
+            success = "将敏感清单项【编号{{#req.id}}】设为【{{#req.status == 0 ? '启用' : '禁用'}}】，校验修订【{{#req.revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/change-status")
     @Operation(summary = "按修订号启用或禁用敏感清单记录")
@@ -91,7 +91,7 @@ public class AssetSensitiveListController {
      * 删除禁用状态的敏感清单记录。
      */
     @LogRecord(type = "数据资产-资产敏感清单", subType = "删除禁用状态的敏感清单记录", bizNo = "{{(#id) ?: 0}}",
-            success = "删除禁用状态的敏感清单记录", extra = "BUSINESS_OPERATION",
+            success = "删除了已禁用敏感清单项【编号{{#id}}】，校验修订【{{#revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除禁用状态的敏感清单记录")
@@ -108,7 +108,7 @@ public class AssetSensitiveListController {
      * 原子校验所选范围并批量删除禁用项，返回跳过的启用项。
      */
     @LogRecord(type = "数据资产-资产敏感清单", subType = "原子校验所选范围并批量删除禁用项，返回跳过的启用项", bizNo = "{{(#_ret.data.deletedIds) ?: 0}}",
-            success = "原子校验所选范围并批量删除禁用项，返回跳过的启用项", extra = "BUSINESS_OPERATION",
+            success = "批量删除了敏感清单项，实际删除编号集合【{{#_ret.data.deletedIds}}】，删除【{{#_ret.data.deletedIds.size()}}】项，启用项不记作删除成功", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delete-list")
     @Operation(summary = "原子校验所选范围并批量删除禁用项，返回跳过的启用项")

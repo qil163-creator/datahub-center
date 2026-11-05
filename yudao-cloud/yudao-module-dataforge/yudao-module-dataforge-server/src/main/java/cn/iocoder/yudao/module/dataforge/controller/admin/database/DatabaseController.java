@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.database;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -44,7 +45,7 @@ public class DatabaseController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "创建数据库信息", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数据库信息", extra = "BUSINESS_OPERATION",
+            success = "创建了数据源【{{(#createReqVO.name) ?: '未设置'}}】，数据库类型【{{(#createReqVO.databaseType) ?: '未设置'}}】，用途【{{(#createReqVO.usageType) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:create')")
@@ -61,12 +62,23 @@ public class DatabaseController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "更新数据库信息", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新数据库信息", extra = "BUSINESS_OPERATION",
+            success = "修改了数据源【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，数据库类型【{{(#updateReqVO.databaseType) ?: '未设置'}}】，用途【{{(#updateReqVO.usageType) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
     @ApiAccessLog(requestEnable = false, responseEnable = false)
     public CommonResult<Boolean> updateDatabase(@Valid @RequestBody DatabaseSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = databaseService.getDatabase(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         databaseService.updateDatabase(updateReqVO);
         return success(true);
     }
@@ -79,12 +91,23 @@ public class DatabaseController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "删除数据库信息", bizNo = "{{(#id) ?: 0}}",
-            success = "删除数据库信息", extra = "BUSINESS_OPERATION",
+            success = "删除了数据源【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库信息")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
     public CommonResult<Boolean> deleteDatabase(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = databaseService.getDatabase(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         databaseService.deleteDatabase(id);
         return success(true);
     }
@@ -98,11 +121,24 @@ public class DatabaseController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "批量删除数据库信息", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除数据库信息", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据源【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")
     public CommonResult<Boolean> deleteDatabaseList(@RequestParam("ids") List<Long> ids) {
+        var operateNames = new java.util.ArrayList<String>();
+        for (Long operateId : ids) {
+            try {
+                var operateObject = databaseService.getDatabase(operateId);
+                if (operateObject != null) {
+                    operateNames.add(java.util.Objects.toString(operateObject.getName(), "编号" + operateId) + "（编号" + operateId + "）");
+                }
+            } catch (RuntimeException ignored) {
+                // 仅尽力读取日志名称，业务批量入口继续负责缺失对象的处理。
+            }
+        }
+        LogRecordContext.putVariable("operateNames", operateNames);
+
         databaseService.deleteDatabaseListByIds(ids);
         return success(true);
     }

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.databasetype;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -50,7 +51,7 @@ public class DatabaseTypeController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "创建数据库类型定义", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数据库类型定义", extra = "BUSINESS_OPERATION",
+            success = "创建了数据库类型【{{(#createReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#createReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#createReqVO.categoryCode) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:create')")
@@ -66,22 +67,46 @@ public class DatabaseTypeController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "更新数据库类型定义", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新数据库类型定义", extra = "BUSINESS_OPERATION",
+            success = "修改了数据库类型【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#updateReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
     public CommonResult<Boolean> updateDatabaseType(@Valid @RequestBody DatabaseTypeSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = databaseTypeService.getDatabaseType(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTypeName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         databaseTypeService.updateDatabaseType(updateReqVO);
         return success(true);
     }
 
     @PutMapping("/update-status")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "更新数据库类型状态", bizNo = "{{(#request.id) ?: 0}}",
-            success = "更新数据库类型状态", extra = "BUSINESS_OPERATION",
+            success = "将数据库类型【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#request.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库类型状态")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
     public CommonResult<Boolean> updateDatabaseTypeStatus(@Valid @RequestBody DatabaseTypeStatusReqVO request) {
+        String operateName = "编号" + request.getId();
+        LogRecordContext.putVariable("operateStatus", "未读取");
+        try {
+            var operateObject = databaseTypeService.getDatabaseType(request.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTypeName(), operateName);
+                LogRecordContext.putVariable("operateStatus", operateObject.getStatus());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         databaseTypeService.updateDatabaseTypeStatus(request);
         return success(true);
     }
@@ -94,12 +119,23 @@ public class DatabaseTypeController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "删除数据库类型定义", bizNo = "{{(#id) ?: 0}}",
-            success = "删除数据库类型定义", extra = "BUSINESS_OPERATION",
+            success = "删除了数据库类型【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库类型定义")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:delete')")
     public CommonResult<Boolean> deleteDatabaseType(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = databaseTypeService.getDatabaseType(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTypeName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         databaseTypeService.deleteDatabaseType(id);
         return success(true);
     }
@@ -113,11 +149,24 @@ public class DatabaseTypeController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-数据库类型定义", subType = "批量删除数据库类型定义", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除数据库类型定义", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据库类型【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:delete')")
     public CommonResult<Boolean> deleteDatabaseTypeList(@RequestParam("ids") List<Long> ids) {
+        var operateNames = new java.util.ArrayList<String>();
+        for (Long operateId : ids) {
+            try {
+                var operateObject = databaseTypeService.getDatabaseType(operateId);
+                if (operateObject != null) {
+                    operateNames.add(java.util.Objects.toString(operateObject.getTypeName(), "编号" + operateId) + "（编号" + operateId + "）");
+                }
+            } catch (RuntimeException ignored) {
+                // 仅尽力读取日志名称，业务批量入口继续负责缺失对象的处理。
+            }
+        }
+        LogRecordContext.putVariable("operateNames", operateNames);
+
         databaseTypeService.deleteDatabaseTypeListByIds(ids);
         return success(true);
     }

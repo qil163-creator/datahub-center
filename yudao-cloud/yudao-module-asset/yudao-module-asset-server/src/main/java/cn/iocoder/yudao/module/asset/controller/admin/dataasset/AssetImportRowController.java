@@ -33,7 +33,7 @@ public class AssetImportRowController {
      * 以修订号维护本地迁入行并记录前后变更。
      */
     @LogRecord(type = "数据资产-迁入资产数据维护", subType = "以修订号维护本地迁入行并记录前后变更", bizNo = "{{(#req.id) ?: 0}}",
-            success = "以修订号维护本地迁入行并记录前后变更", extra = "BUSINESS_OPERATION",
+            success = "维护了迁入资产【编号{{#req.id}}】的数据行【{{#req.rowId}}】，校验修订【{{#req.revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/update")
     @Operation(summary = "以修订号维护本地迁入行并记录前后变更")

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.dataquery;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryFileRespVO;
@@ -38,7 +39,7 @@ public class DataQueryFileController {
      * 创建目录或 SQL 脚本。
      */
     @LogRecord(type = "数据资产-数据查询文件目录", subType = "创建目录或 SQL 脚本", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            success = "创建了查询目录或脚本【{{#reqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建目录或 SQL 脚本")
@@ -51,12 +52,17 @@ public class DataQueryFileController {
      * 更新目录或 SQL 脚本。
      */
     @LogRecord(type = "数据资产-数据查询文件目录", subType = "更新目录或 SQL 脚本", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            success = "修改了查询目录或脚本【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#reqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新目录或 SQL 脚本")
     @PreAuthorize("@ss.hasPermission('asset:data-query:save')")
     public CommonResult<Boolean> updateFile(@Valid @RequestBody DataQueryFileSaveReqVO reqVO) {
+        var auditBefore = dataQueryFileService.getFile(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+
         dataQueryFileService.updateFile(reqVO);
         return success(true);
     }
@@ -65,13 +71,18 @@ public class DataQueryFileController {
      * 删除目录或 SQL 脚本。
      */
     @LogRecord(type = "数据资产-数据查询文件目录", subType = "删除目录或 SQL 脚本", bizNo = "{{(#id) ?: 0}}",
-            success = "删除目录或 SQL 脚本", extra = "BUSINESS_OPERATION",
+            success = "删除了查询目录或脚本【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除目录或 SQL 脚本")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('asset:data-query:delete')")
     public CommonResult<Boolean> deleteFile(@RequestParam("id") Long id) {
+        var auditBefore = dataQueryFileService.getFile(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         dataQueryFileService.deleteFile(id);
         return success(true);
     }

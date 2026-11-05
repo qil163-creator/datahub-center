@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterColumnVO;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterModelRespVO;
@@ -39,7 +40,7 @@ public class MasterModelController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-主数据模型", subType = "保存主数据模型草稿（不创建物理表）",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "保存主数据模型草稿（不创建物理表）",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了主数据模型【{{(#createReqVO.tableCn) ?: '未设置'}}】，编码【{{(#createReqVO.tableName) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存主数据模型草稿（不创建物理表）")
     @PreAuthorize("@ss.hasPermission('governance:master-model:create')")
@@ -52,11 +53,12 @@ public class MasterModelController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-主数据模型", subType = "保存主数据模型修改（结构变更保存为草稿）",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "保存主数据模型修改（结构变更保存为草稿）",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了主数据模型，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.tableCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.tableName) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存主数据模型修改（结构变更保存为草稿）")
     @PreAuthorize("@ss.hasPermission('governance:master-model:update')")
     public CommonResult<Boolean> updateModel(@Valid @RequestBody MasterModelSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         modelService.updateModel(updateReqVO);
         return success(true);
     }
@@ -168,12 +170,13 @@ public class MasterModelController {
      */
     @PutMapping("/cancel-release")
     @LogRecord(type = "数据治理-主数据模型", subType = "下线主数据模型（保留物理表和数据）",
-            bizNo = "{{(#id) ?: 0}}", success = "下线主数据模型（保留物理表和数据）",
+            bizNo = "{{(#id) ?: 0}}", success = "下线了主数据模型【{{(#auditObjectName) ?: '编号' + #id}}】，保留物理表与数据",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "下线主数据模型（保留物理表和数据）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:master-model:release')")
     public CommonResult<Boolean> cancelReleaseModel(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         modelService.cancelReleaseModel(id);
         return success(true);
     }
@@ -214,4 +217,24 @@ public class MasterModelController {
         return success(modelService.getTableColumns(databaseId, tableName));
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = modelService.getModel(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getTableCn() == null
+                        ? "编号" + id : auditBefore.getTableCn());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+                LogRecordContext.putVariable("auditBeforeRevision", auditBefore.getVersion() == null
+                        ? "未设置" : String.valueOf(auditBefore.getVersion()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

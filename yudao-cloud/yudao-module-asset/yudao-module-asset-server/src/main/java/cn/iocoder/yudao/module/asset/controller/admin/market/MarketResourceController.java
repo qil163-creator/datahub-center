@@ -70,7 +70,7 @@ public class MarketResourceController {
      * 绑定资源可交付 API。
      */
     @LogRecord(type = "数据资产-集市共享资源", subType = "绑定资源可交付 API", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "绑定资源可交付 API", extra = "BUSINESS_OPERATION",
+            success = "为共享资产【编号{{#reqVO.assetId}}】绑定了可交付API【{{#reqVO.apiId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/bind-api")
     @Operation(summary = "绑定资源可交付 API")

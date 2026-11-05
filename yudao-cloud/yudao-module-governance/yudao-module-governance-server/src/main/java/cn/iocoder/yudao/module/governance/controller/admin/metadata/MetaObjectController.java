@@ -50,7 +50,7 @@ public class MetaObjectController {
      */
     @PutMapping("/confirm-delete-db")
     @LogRecord(type = "数据治理-元数据对象", subType = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）",
-            bizNo = "{{(#id) ?: 0}}", success = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）",
+            bizNo = "{{(#id) ?: 0}}", success = "确认删除了元数据库【{{(#id) ?: 0}}】及其待删除表字段，保留历史与快照",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留）")
     @Parameter(name = "id", description = "库元数据编号", required = true, example = "1")
@@ -66,7 +66,7 @@ public class MetaObjectController {
      */
     @PutMapping("/publish-db")
     @LogRecord(type = "数据治理-元数据对象", subType = "库级批量发布（发布本库全部正常且校验通过且未发布的表）",
-            bizNo = "{{(#id) ?: 0}}", success = "库级批量发布（发布本库全部正常且校验通过且未发布的表）",
+            bizNo = "{{(#id) ?: 0}}", success = "提交了元数据库【{{(#id) ?: 0}}】的库级批量发布，处理结果见本次发布回执",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "库级批量发布（发布本库全部正常且校验通过且未发布的表）")
     @Parameter(name = "id", description = "库元数据编号", required = true, example = "1")

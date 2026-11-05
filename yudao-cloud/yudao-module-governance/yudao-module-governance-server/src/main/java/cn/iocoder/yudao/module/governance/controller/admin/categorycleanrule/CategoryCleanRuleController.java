@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -43,7 +44,7 @@ public class CategoryCleanRuleController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-清洗规则类目", subType = "创建清洗规则类目",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建清洗规则类目",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了清洗规则类目【{{(#createReqVO.categoryName) ?: '未设置'}}】，编码【{{(#createReqVO.categoryCode) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建清洗规则类目")
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:create')")
@@ -58,11 +59,12 @@ public class CategoryCleanRuleController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-清洗规则类目", subType = "更新清洗规则类目",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新清洗规则类目",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了清洗规则类目，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.categoryName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则类目")
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:update')")
     public CommonResult<Boolean> updateCategoryCleanRule(@Valid @RequestBody CategoryCleanRuleSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         categoryCleanRuleService.updateCategoryCleanRule(updateReqVO);
         return success(true);
     }
@@ -74,12 +76,13 @@ public class CategoryCleanRuleController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-清洗规则类目", subType = "删除清洗规则类目",
-            bizNo = "{{(#id) ?: 0}}", success = "删除清洗规则类目",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了清洗规则类目【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除清洗规则类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:delete')")
     public CommonResult<Boolean> deleteCategoryCleanRule(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         categoryCleanRuleService.deleteCategoryCleanRule(id);
         return success(true);
     }
@@ -130,4 +133,22 @@ public class CategoryCleanRuleController {
                 BeanUtils.toBean(list, CategoryCleanRuleRespVO.class));
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = categoryCleanRuleService.getCategoryCleanRule(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getCategoryName() == null
+                        ? "编号" + id : auditBefore.getCategoryName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

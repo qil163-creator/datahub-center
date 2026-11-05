@@ -51,7 +51,7 @@ public class AssetEtlBatchBindingController {
      * 绑定明确批次并追加关联修订历史。
      */
     @LogRecord(type = "数据资产-资产 ETL 批次关联", subType = "绑定明确批次并追加关联修订历史", bizNo = "{{(#request.assetId) ?: 0}}",
-            success = "绑定明确批次并追加关联修订历史", extra = "BUSINESS_OPERATION",
+            success = "将资产【编号{{#request.assetId}}】绑定到ETL成果批次【{{#request.batchId}}】，原关联修订【{{#request.expectedRevision}}】，新修订【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/bind")
     @Operation(summary = "绑定明确批次并追加关联修订历史")

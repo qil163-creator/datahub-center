@@ -113,7 +113,7 @@ public class DevRecordController {
      */
     @PutMapping("/stop")
     @LogRecord(type = "数据开发-数据开发任务实例", subType = "停止运行中的任务实例", bizNo = "{{(#id) ?: 0}}",
-            success = "停止运行中的任务实例", extra = "BUSINESS_OPERATION",
+            success = "对开发任务执行实例【{{(#id) ?: '未设置'}}】提交了停止请求", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止运行中的任务实例")
     @Parameter(name = "id", description = "编号", required = true)
@@ -145,7 +145,7 @@ public class DevRecordController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据开发任务实例", subType = "删除任务实例", bizNo = "{{(#id) ?: 0}}",
-            success = "删除任务实例", extra = "BUSINESS_OPERATION",
+            success = "删除了开发任务执行实例【{{(#id) ?: '未设置'}}】及其执行记录", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除任务实例")
     @Parameter(name = "id", description = "编号", required = true)
@@ -163,7 +163,7 @@ public class DevRecordController {
      */
     @PostMapping("/resolve-unknown")
     @LogRecord(type = "数据开发-数据开发任务实例", subType = "记录未知实例的人工核查结论", bizNo = "{{(#req.id) ?: 0}}",
-            success = "记录未知实例的人工核查结论", extra = "BUSINESS_OPERATION",
+            success = "人工核查了开发实例【{{(#req.id) ?: '未设置'}}】，状态从【{{(#req.expectedStatus) ?: '未设置'}}】收敛为【{{(#req.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "记录未知实例的人工核查结论")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
@@ -181,7 +181,7 @@ public class DevRecordController {
      */
     @PostMapping("/resolve-quality")
     @LogRecord(type = "数据开发-数据开发任务实例", subType = "核实原质检已结束，将未知质量保守收敛为失败", bizNo = "{{(#req.id) ?: 0}}",
-            success = "核实原质检已结束，将未知质量保守收敛为失败", extra = "BUSINESS_OPERATION",
+            success = "核查了开发实例【{{(#req.id) ?: '未设置'}}】的未知质量状态【{{(#req.expectedStatus) ?: '未设置'}}】，按保守策略收敛为失败", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "核实原质检已结束，将未知质量保守收敛为失败")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")

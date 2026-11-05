@@ -32,7 +32,7 @@ public class MasterCatalogController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-主数据目录", subType = "创建主数据目录节点",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建主数据目录节点",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了主数据目录【{{(#createReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:create')")
@@ -45,7 +45,7 @@ public class MasterCatalogController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-主数据目录", subType = "更新主数据目录节点",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新主数据目录节点",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了主数据目录【{{(#updateReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新主数据目录节点")
     @PreAuthorize("@ss.hasPermission('governance:master-catalog:update')")
@@ -59,7 +59,7 @@ public class MasterCatalogController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-主数据目录", subType = "删除主数据目录节点",
-            bizNo = "{{(#id) ?: 0}}", success = "删除主数据目录节点",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了主数据目录，编号【{{(#id) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除主数据目录节点")
     @Parameter(name = "id", description = "编号", required = true)

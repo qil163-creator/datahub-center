@@ -36,7 +36,7 @@ public class AssetTagController {
      * 创建资产标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "创建资产标签", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建资产标签", extra = "BUSINESS_OPERATION",
+            success = "创建了资产标签【{{#reqVO.name}}】，编号【{{#_ret.data}}】，类目【{{#reqVO.categoryId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建资产标签")
@@ -49,7 +49,7 @@ public class AssetTagController {
      * 更新资产标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "更新资产标签", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新资产标签", extra = "BUSINESS_OPERATION",
+            success = "修改了资产标签【{{#reqVO.name}}】（编号{{#reqVO.id}}），类目【{{#reqVO.categoryId}}】，校验修订【{{#reqVO.revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新资产标签")
@@ -63,7 +63,7 @@ public class AssetTagController {
      * 启用/停用资产标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "启用/停用资产标签", bizNo = "{{(#id) ?: 0}}",
-            success = "启用/停用资产标签", extra = "BUSINESS_OPERATION",
+            success = "将资产标签【编号{{#id}}】设为【{{#status == 0 ? '启用' : '停用'}}】，校验修订【{{#revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用/停用资产标签")
@@ -79,7 +79,7 @@ public class AssetTagController {
      * 删除资产标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "删除资产标签", bizNo = "{{(#id) ?: 0}}",
-            success = "删除资产标签", extra = "BUSINESS_OPERATION",
+            success = "删除了资产标签【编号{{#id}}】，校验修订【{{#revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除资产标签")
@@ -94,7 +94,7 @@ public class AssetTagController {
      * 按修订号原子批量删除禁用且无引用的标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "按修订号原子批量删除禁用且无引用的标签", bizNo = "{{(#req.items.![id]) ?: 0}}",
-            success = "按修订号原子批量删除禁用且无引用的标签", extra = "BUSINESS_OPERATION",
+            success = "批量删除了禁用且无引用的资产标签，编号集合【{{#req.items.![id]}}】，共【{{#req.items.size()}}】项", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/delete-list")
     @Operation(summary = "按修订号原子批量删除禁用且无引用的标签")
@@ -118,7 +118,7 @@ public class AssetTagController {
      * 维护范围内按修订号移除单条资产标签关联。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "维护范围内按修订号移除单条资产标签关联", bizNo = "{{(#relationId) ?: 0}}",
-            success = "维护范围内按修订号移除单条资产标签关联", extra = "BUSINESS_OPERATION",
+            success = "移除了资产标签关联【编号{{#relationId}}】，校验关联修订【{{#revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/unbind")
     @Operation(summary = "维护范围内按修订号移除单条资产标签关联")
@@ -174,7 +174,7 @@ public class AssetTagController {
      * 全量覆盖资产标签。
      */
     @LogRecord(type = "数据资产-资产标签", subType = "全量覆盖资产标签", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "全量覆盖资产标签", extra = "BUSINESS_OPERATION",
+            success = "覆盖了资产【编号{{#reqVO.assetId}}】的标签关联，标签编号集合【{{#reqVO.tagIds}}】，目录修订【{{#reqVO.catalogRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/bind")
     @Operation(summary = "全量覆盖资产标签")

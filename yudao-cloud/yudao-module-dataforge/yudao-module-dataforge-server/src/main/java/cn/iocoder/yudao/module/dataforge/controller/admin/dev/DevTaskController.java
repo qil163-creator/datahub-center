@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.dev;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -64,7 +65,7 @@ public class DevTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据开发任务", subType = "创建开发任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建开发任务", extra = "BUSINESS_OPERATION",
+            success = "创建了开发任务【{{(#createReqVO.name) ?: '未设置'}}】，任务类型【{{(#createReqVO.taskType) ?: '未设置'}}】，数据源【{{(#createReqVO.databaseId) ?: '未设置'}}】，超时秒数【{{(#createReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建开发任务")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -80,11 +81,22 @@ public class DevTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据开发任务", subType = "保存开发任务并立即生成当前运行版本", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "保存开发任务并立即生成当前运行版本", extra = "BUSINESS_OPERATION",
+            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，任务类型【{{(#updateReqVO.taskType) ?: '未设置'}}】，数据源【{{(#updateReqVO.databaseId) ?: '未设置'}}】，超时秒数【{{(#updateReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存开发任务并立即生成当前运行版本")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody DevTaskSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = taskService.getTask(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.updateTask(updateReqVO);
         return success(true);
     }
@@ -97,12 +109,23 @@ public class DevTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据开发任务", subType = "删除开发任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除开发任务", extra = "BUSINESS_OPERATION",
+            success = "删除了开发任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除开发任务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:delete')")
     public CommonResult<Boolean> deleteTask(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.deleteTask(id);
         return success(true);
     }
@@ -199,12 +222,25 @@ public class DevTaskController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据开发-数据开发任务", subType = "更新已保存任务的启用状态", bizNo = "{{(#id) ?: 0}}",
-            success = "更新已保存任务的启用状态", extra = "BUSINESS_OPERATION",
+            success = "将开发任务【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新已保存任务的启用状态")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
     public CommonResult<Boolean> updateTaskStatus(@RequestParam("id") Long id,
             @RequestParam("status") Integer status) {
+        String operateName = "编号" + id;
+        LogRecordContext.putVariable("operateStatus", "未读取");
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+                LogRecordContext.putVariable("operateStatus", operateObject.getStatus());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.updateTaskStatus(id, status);
         return success(true);
     }
@@ -217,11 +253,22 @@ public class DevTaskController {
      */
     @PutMapping("/update-schedule")
     @LogRecord(type = "数据开发-数据开发任务", subType = "更新任务调度设置", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新任务调度设置", extra = "BUSINESS_OPERATION",
+            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】的调度，开关【{{(#reqVO.scheduleStatus) ?: '未设置'}}】，Cron【{{(#reqVO.cronExpression) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新任务调度设置")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
     public CommonResult<Boolean> updateTaskSchedule(@Valid @RequestBody DevTaskScheduleReqVO reqVO) {
+        String operateName = "编号" + reqVO.getId();
+        try {
+            var operateObject = taskService.getTask(reqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         taskService.updateTaskSchedule(reqVO);
         return success(true);
     }
@@ -234,12 +281,23 @@ public class DevTaskController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据开发-数据开发任务", subType = "手动运行任务（生成执行实例）", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "手动运行任务（生成执行实例）", extra = "BUSINESS_OPERATION",
+            success = "提交了开发任务【{{(#operateName) ?: '未设置'}}】的手工运行请求，生成实例【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动运行任务（生成执行实例）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
     public CommonResult<Long> runTask(@Valid @RequestBody DevTaskRunReqVO reqVO) {
+        String operateName = "编号" + reqVO.getId();
+        try {
+            var operateObject = taskService.getTask(reqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         return success(taskService.runTask(reqVO));
     }
 
@@ -285,7 +343,7 @@ public class DevTaskController {
      */
     @PutMapping("/version/rollback")
     @LogRecord(type = "数据开发-数据开发任务", subType = "回滚到指定版本", bizNo = "{{(#versionId) ?: 0}}",
-            success = "回滚到指定版本", extra = "BUSINESS_OPERATION",
+            success = "将开发任务回滚到历史版本【{{(#versionId) ?: '未设置'}}】，要求当前修订为【{{(#expectedRevision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "回滚到指定版本")
     @Parameter(name = "versionId", description = "版本编号", required = true)

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.market;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.*;
@@ -63,7 +64,7 @@ public class MarketCategoryController {
      * 新增集市类目。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "新增集市类目", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "新增集市类目", extra = "BUSINESS_OPERATION",
+            success = "创建了集市类目【{{#req.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "新增集市类目")
@@ -76,12 +77,17 @@ public class MarketCategoryController {
      * 修改集市类目。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "修改集市类目", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改集市类目", extra = "BUSINESS_OPERATION",
+            success = "修改了集市类目【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#req.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:update')")
     public CommonResult<Boolean> update(@Valid @RequestBody MarketCategorySaveReqVO req) {
+        var auditBefore = service.get(req.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + req.getId() : auditBefore.getName());
+
         service.update(req);
         return success(true);
     }
@@ -90,12 +96,18 @@ public class MarketCategoryController {
      * 启用或停用集市类目。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "启用或停用集市类目", bizNo = "{{(#req.id) ?: 0}}",
-            success = "启用或停用集市类目", extra = "BUSINESS_OPERATION",
+            success = "将集市类目【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#req.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:update')")
     public CommonResult<Boolean> status(@Valid @RequestBody MarketCategoryStatusReqVO req) {
+        var auditBefore = service.get(req.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + req.getId() : auditBefore.getName());
+        LogRecordContext.putVariable("auditBeforeStatus", auditBefore == null ? "未知" : String.valueOf(auditBefore.getStatus()));
+
         service.updateStatus(req.getId(), req.getStatus());
         return success(true);
     }
@@ -104,12 +116,17 @@ public class MarketCategoryController {
      * 删除无引用的集市类目。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "删除无引用的集市类目", bizNo = "{{(#id) ?: 0}}",
-            success = "删除无引用的集市类目", extra = "BUSINESS_OPERATION",
+            success = "删除了集市类目【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除无引用的集市类目")
     @PreAuthorize("@ss.hasPermission('asset:market-category:delete')")
     public CommonResult<Boolean> delete(@RequestParam("id") @Positive Long id) {
+        var auditBefore = service.get(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         service.delete(List.of(id));
         return success(true);
     }
@@ -118,7 +135,7 @@ public class MarketCategoryController {
      * 原子删除无引用的集市类目集合。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "原子删除无引用的集市类目集合", bizNo = "{{(#ids) ?: 0}}",
-            success = "原子删除无引用的集市类目集合", extra = "BUSINESS_OPERATION",
+            success = "批量删除了无引用集市类目，编号集合【{{#ids}}】，共【{{#ids.size()}}】项", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子删除无引用的集市类目集合")

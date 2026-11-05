@@ -30,7 +30,7 @@ public class MarketDemandController {
      * 创建数据需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "创建数据需求", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数据需求", extra = "BUSINESS_OPERATION",
+            success = "创建了数据需求【{{#reqVO.title}}】，编号【{{#_ret.data}}】，需求类型【{{#reqVO.demandType}}】，发布标识【{{#reqVO.publish}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建数据需求")
@@ -43,7 +43,7 @@ public class MarketDemandController {
      * 修改数据需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "修改数据需求", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "修改数据需求", extra = "BUSINESS_OPERATION",
+            success = "修改了数据需求【{{#reqVO.title}}】（编号{{#reqVO.id}}），需求类型【{{#reqVO.demandType}}】，发布标识【{{#reqVO.publish}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改数据需求")
@@ -57,7 +57,7 @@ public class MarketDemandController {
      * 删除草稿需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "删除草稿需求", bizNo = "{{(#id) ?: 0}}",
-            success = "删除草稿需求", extra = "BUSINESS_OPERATION",
+            success = "删除了草稿数据需求【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除草稿需求")
@@ -71,7 +71,7 @@ public class MarketDemandController {
      * 发布到需求大厅。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "发布到需求大厅", bizNo = "{{(#id) ?: 0}}",
-            success = "发布到需求大厅", extra = "BUSINESS_OPERATION",
+            success = "将数据需求【编号{{#id}}】发布到了需求大厅", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "发布到需求大厅")
@@ -85,7 +85,7 @@ public class MarketDemandController {
      * 关闭、撤销或驳回需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "关闭、撤销或驳回需求", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "关闭、撤销或驳回需求", extra = "BUSINESS_OPERATION",
+            success = "关闭了数据需求【编号{{#reqVO.id}}】，目标状态【{{#reqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/close")
     @Operation(summary = "关闭、撤销或驳回需求")
@@ -119,7 +119,7 @@ public class MarketDemandController {
      * 响应需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "响应需求", bizNo = "{{(#reqVO.demandId) ?: 0}}",
-            success = "响应需求", extra = "BUSINESS_OPERATION",
+            success = "响应了数据需求【编号{{#reqVO.demandId}}】，生成响应记录【{{#_ret.data}}】，响应类型【{{#reqVO.replyType}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/reply")
     @Operation(summary = "响应需求")
@@ -132,7 +132,7 @@ public class MarketDemandController {
      * 把已有资产匹配到需求。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "把已有资产匹配到需求", bizNo = "{{(#reqVO.demandId) ?: 0}}",
-            success = "把已有资产匹配到需求", extra = "BUSINESS_OPERATION",
+            success = "为数据需求【编号{{#reqVO.demandId}}】匹配了资产【{{#reqVO.assetId}}】，匹配记录【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/match")
     @Operation(summary = "把已有资产匹配到需求")
@@ -145,7 +145,7 @@ public class MarketDemandController {
      * 需求方确认匹配。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "需求方确认匹配", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "需求方确认匹配", extra = "BUSINESS_OPERATION",
+            success = "确认了需求匹配记录【编号{{#reqVO.id}}】，匹配状态【{{#reqVO.status}}】，创建申请标识【{{#reqVO.createApply}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/match/confirm")
     @Operation(summary = "需求方确认匹配")
@@ -159,7 +159,7 @@ public class MarketDemandController {
      * 验收已交付需求，已匹配不等于已解决。
      */
     @LogRecord(type = "数据资产-供需对接", subType = "验收已交付需求，已匹配不等于已解决", bizNo = "{{(#id) ?: 0}}",
-            success = "验收已交付需求，已匹配不等于已解决", extra = "BUSINESS_OPERATION",
+            success = "验收了已交付的数据需求【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/accept")
     @Operation(summary = "验收已交付需求，已匹配不等于已解决")

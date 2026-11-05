@@ -60,7 +60,7 @@ public class MetaFileController {
      */
     @PutMapping("/update-biz")
     @LogRecord(type = "数据治理-文件元数据", subType = "更新文件业务属性",
-            bizNo = "{{(#req.id) ?: 0}}", success = "更新文件业务属性",
+            bizNo = "{{(#req.id) ?: 0}}", success = "维护了文件元数据【{{(#req.id) ?: 0}}】，业务名称【{{(#req.businessName) ?: '未设置'}}】，提交业务修订【{{(#req.bizRevision) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新文件业务属性")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:update')")
@@ -74,7 +74,7 @@ public class MetaFileController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-文件元数据", subType = "删除文件元数据，不删除远端文件",
-            bizNo = "{{(#id) ?: 0}}", success = "删除文件元数据，不删除远端文件",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了文件元数据，编号【{{(#id) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除文件元数据，不删除远端文件")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:delete')")
@@ -88,7 +88,7 @@ public class MetaFileController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-文件元数据", subType = "批量删除文件元数据，不删除远端文件",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除文件元数据，不删除远端文件",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除文件元数据，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除文件元数据，不删除远端文件")
     @PreAuthorize("@ss.hasPermission('governance:meta-file:delete')")

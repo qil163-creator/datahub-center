@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.whitelist;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -47,7 +48,7 @@ public class SafetyWhitelistController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "创建脱敏白名单",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建脱敏白名单",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了脱敏白名单【{{(#createReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:create')")
@@ -62,11 +63,12 @@ public class SafetyWhitelistController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "更新脱敏白名单",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新脱敏白名单",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了脱敏白名单，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> updateWhitelist(@Valid @RequestBody SafetyWhitelistSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         whitelistService.updateWhitelist(updateReqVO);
         return success(true);
     }
@@ -78,12 +80,13 @@ public class SafetyWhitelistController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "删除脱敏白名单",
-            bizNo = "{{(#id) ?: 0}}", success = "删除脱敏白名单",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了脱敏白名单【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除脱敏白名单")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
     public CommonResult<Boolean> deleteWhitelist(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         whitelistService.deleteWhitelist(id);
         return success(true);
     }
@@ -94,7 +97,7 @@ public class SafetyWhitelistController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-脱敏白名单", subType = "批量删除脱敏白名单",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除脱敏白名单",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除脱敏白名单，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除脱敏白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")
@@ -155,12 +158,13 @@ public class SafetyWhitelistController {
      */
     @PutMapping("/submit")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "提交审批（草稿/已驳回 → 审批中）",
-            bizNo = "{{(#id) ?: 0}}", success = "提交审批（草稿/已驳回 → 审批中）",
+            bizNo = "{{(#id) ?: 0}}", success = "提交了脱敏白名单【{{(#auditObjectName) ?: '编号' + #id}}】的审批申请",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "提交审批（草稿/已驳回 → 审批中）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
     public CommonResult<Boolean> submitWhitelist(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         whitelistService.submitWhitelist(id);
         return success(true);
     }
@@ -170,13 +174,14 @@ public class SafetyWhitelistController {
      */
     @PutMapping("/approve")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "审批通过（审批中 → 已通过，并自动启用）",
-            bizNo = "{{(#id) ?: 0}}", success = "审批通过（审批中 → 已通过，并自动启用）",
+            bizNo = "{{(#id) ?: 0}}", success = "通过了脱敏白名单【{{(#auditObjectName) ?: '编号' + #id}}】的审批并启用",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批通过（审批中 → 已通过，并自动启用）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:approve')")
     public CommonResult<Boolean> approveWhitelist(@RequestParam("id") Long id,
             @RequestParam(value = "opinion", required = false) String opinion) {
+        captureAuditContext(id);
         whitelistService.approveWhitelist(id, opinion);
         return success(true);
     }
@@ -186,13 +191,14 @@ public class SafetyWhitelistController {
      */
     @PutMapping("/reject")
     @LogRecord(type = "数据治理-脱敏白名单", subType = "审批驳回（审批中 → 已驳回，并停用）",
-            bizNo = "{{(#id) ?: 0}}", success = "审批驳回（审批中 → 已驳回，并停用）",
+            bizNo = "{{(#id) ?: 0}}", success = "驳回了脱敏白名单【{{(#auditObjectName) ?: '编号' + #id}}】的审批并停用",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批驳回（审批中 → 已驳回，并停用）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:whitelist:approve')")
     public CommonResult<Boolean> rejectWhitelist(@RequestParam("id") Long id,
             @RequestParam(value = "opinion", required = false) String opinion) {
+        captureAuditContext(id);
         whitelistService.rejectWhitelist(id, opinion);
         return success(true);
     }
@@ -226,4 +232,22 @@ public class SafetyWhitelistController {
         return success(whitelistService.getWhitelistSubjectListByWhitelistId(whitelistId));
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = whitelistService.getWhitelist(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getStatus() == null
+                        ? "未设置" : String.valueOf(auditBefore.getStatus()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

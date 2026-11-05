@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorytag;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -33,7 +34,7 @@ public class CategoryTagController {
      * 创建标签类目。
      */
     @LogRecord(type = "数据资产-标签类目", subType = "创建标签类目", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建标签类目", extra = "BUSINESS_OPERATION",
+            success = "创建了标签类目【{{#reqVO.categoryName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建标签类目")
@@ -46,12 +47,17 @@ public class CategoryTagController {
      * 更新标签类目。
      */
     @LogRecord(type = "数据资产-标签类目", subType = "更新标签类目", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新标签类目", extra = "BUSINESS_OPERATION",
+            success = "修改了标签类目【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#reqVO.categoryName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新标签类目")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:update')")
     public CommonResult<Boolean> updateCategoryTag(@Valid @RequestBody CategoryTagSaveReqVO reqVO) {
+        var auditBefore = categoryTagService.getCategoryTag(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getCategoryName() == null || auditBefore.getCategoryName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getCategoryName());
+
         categoryTagService.updateCategoryTag(reqVO);
         return success(true);
     }
@@ -60,13 +66,18 @@ public class CategoryTagController {
      * 删除标签类目。
      */
     @LogRecord(type = "数据资产-标签类目", subType = "删除标签类目", bizNo = "{{(#id) ?: 0}}",
-            success = "删除标签类目", extra = "BUSINESS_OPERATION",
+            success = "删除了标签类目【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除标签类目")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('asset:category-tag:delete')")
     public CommonResult<Boolean> deleteCategoryTag(@RequestParam("id") Long id) {
+        var auditBefore = categoryTagService.getCategoryTag(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getCategoryName() == null || auditBefore.getCategoryName().isBlank()
+                        ? "编号" + id : auditBefore.getCategoryName());
+
         categoryTagService.deleteCategoryTag(id);
         return success(true);
     }

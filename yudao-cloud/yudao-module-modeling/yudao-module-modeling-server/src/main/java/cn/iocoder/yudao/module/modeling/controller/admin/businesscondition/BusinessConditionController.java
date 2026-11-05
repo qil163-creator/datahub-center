@@ -38,7 +38,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "创建业务限定定义", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建业务限定定义", extra = "BUSINESS_OPERATION",
+            success = "创建了业务限定【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建业务限定定义")
@@ -54,7 +54,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "修改未启用的业务限定", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改未启用的业务限定", extra = "BUSINESS_OPERATION",
+            success = "修改了业务限定【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改未启用的业务限定")
@@ -72,7 +72,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "删除未启用的业务限定", bizNo = "{{(#id) ?: 0}}",
-            success = "删除未启用的业务限定", extra = "BUSINESS_OPERATION",
+            success = "删除了业务限定【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未启用的业务限定")
@@ -90,7 +90,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "启用或停用业务限定", bizNo = "{{(#request.id) ?: 0}}",
-            success = "启用或停用业务限定", extra = "BUSINESS_OPERATION",
+            success = "将业务限定【编号{{#request.id}}】状态设为【{{#request.status}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用业务限定")

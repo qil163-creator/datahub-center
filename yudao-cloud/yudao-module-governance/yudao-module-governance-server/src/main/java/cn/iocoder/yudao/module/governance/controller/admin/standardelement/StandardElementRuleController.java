@@ -49,7 +49,7 @@ public class StandardElementRuleController {
      */
     @PostMapping("/rule-create")
     @LogRecord(type = "数据治理-数据元关联规则", subType = "创建关联配置",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建关联配置",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了数据元关联规则【{{(#request.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -62,7 +62,7 @@ public class StandardElementRuleController {
      */
     @PutMapping("/rule-update")
     @LogRecord(type = "数据治理-数据元关联规则", subType = "更新关联配置",
-            bizNo = "{{(#request.id) ?: 0}}", success = "更新关联配置",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改了数据元关联规则【{{(#request.name) ?: '未设置'}}】，目标状态【{{(#request.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -76,7 +76,7 @@ public class StandardElementRuleController {
      */
     @DeleteMapping("/rule-delete")
     @LogRecord(type = "数据治理-数据元关联规则", subType = "删除关联配置",
-            bizNo = "{{(#id) ?: 0}}", success = "删除关联配置",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了标准数据元【{{(#elementId) ?: '未设置'}}】的关联规则【{{(#id) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除关联配置")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")

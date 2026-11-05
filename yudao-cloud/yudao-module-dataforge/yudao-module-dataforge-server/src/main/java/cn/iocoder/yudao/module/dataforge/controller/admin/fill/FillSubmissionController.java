@@ -52,7 +52,7 @@ public class FillSubmissionController {
      */
     @PutMapping("/withdraw")
     @LogRecord(type = "数据开发-在线填报提交快照", subType = "撤回审批中的提交（仅实际提交人）", bizNo = "{{(#id) ?: 0}}",
-            success = "撤回审批中的提交（仅实际提交人）", extra = "BUSINESS_OPERATION",
+            success = "撤回了本人提交的填报审批【{{(#id) ?: '未设置'}}】，返回可编辑状态", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤回审批中的提交（仅实际提交人）",
             description = "先经 BPM 成功终止流程实例；保留原快照，实例转入整改中")

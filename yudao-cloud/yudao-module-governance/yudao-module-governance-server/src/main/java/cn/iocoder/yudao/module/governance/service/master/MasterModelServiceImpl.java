@@ -1033,8 +1033,17 @@ public class MasterModelServiceImpl implements MasterModelService {
         extra.put("result", result);
         extra.put("reason", action);
         extra.put("correlation", TracerUtils.getTraceId());
+        String resultText = switch (result) {
+            case "APPLIED" -> "已生效";
+            case "NOT_APPLIED" -> "未生效";
+            case "UNKNOWN" -> "待核查";
+            default -> result;
+        };
         LogRecord record = LogRecord.builder().type("主数据模型").subType(action).bizNo(String.valueOf(before.getId()))
-                .action(action + "，结果：" + result).extra(JsonUtils.toJsonString(extra)).build();
+                .action(action + "，主数据模型【" + StrUtil.blankToDefault(before.getTableCn(), before.getTableName())
+                        + "】；版本【" + Objects.toString(before.getVersion(), "未发布") + "】→【"
+                        + Objects.toString(afterVersion, "未发布") + "】；结果：" + resultText)
+                .extra(JsonUtils.toJsonString(extra)).build();
         Runnable write = () -> {
             try {
                 logRecordService.record(record);

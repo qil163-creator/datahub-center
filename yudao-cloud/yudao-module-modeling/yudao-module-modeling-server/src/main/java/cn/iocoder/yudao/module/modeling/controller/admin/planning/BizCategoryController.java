@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.modeling.controller.admin.planning.vo.bizcategory.*;
@@ -33,7 +34,7 @@ public class BizCategoryController {
      * @return 业务分类
      */
     @LogRecord(type = "数据建模-业务分类", subType = "创建业务分类", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建业务分类", extra = "BUSINESS_OPERATION",
+            success = "创建了业务分类【{{#createReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建业务分类")
@@ -49,12 +50,17 @@ public class BizCategoryController {
      * @return 业务分类
      */
     @LogRecord(type = "数据建模-业务分类", subType = "更新业务分类", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新业务分类", extra = "BUSINESS_OPERATION",
+            success = "修改了业务分类【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新业务分类")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
     public CommonResult<Boolean> updateBizCategory(@Valid @RequestBody BizCategorySaveReqVO updateReqVO) {
+        var auditBefore = bizCategoryService.getBizCategory(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getName());
+
         bizCategoryService.updateBizCategory(updateReqVO);
         return success(true);
     }
@@ -66,13 +72,19 @@ public class BizCategoryController {
      * @return 业务分类
      */
     @LogRecord(type = "数据建模-业务分类", subType = "更新业务分类状态", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新业务分类状态", extra = "BUSINESS_OPERATION",
+            success = "将业务分类【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#reqVO.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新业务分类状态")
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:update')")
     public CommonResult<Boolean> updateBizCategoryStatus(
             @Valid @RequestBody BizCategoryUpdateStatusReqVO reqVO) {
+        var auditBefore = bizCategoryService.getBizCategory(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+        LogRecordContext.putVariable("auditBeforeStatus", auditBefore == null ? "未知" : String.valueOf(auditBefore.getStatus()));
+
         bizCategoryService.updateBizCategoryStatus(reqVO.getId(), reqVO.getStatus());
         return success(true);
     }
@@ -84,13 +96,18 @@ public class BizCategoryController {
      * @return 业务分类
      */
     @LogRecord(type = "数据建模-业务分类", subType = "删除业务分类", bizNo = "{{(#id) ?: 0}}",
-            success = "删除业务分类", extra = "BUSINESS_OPERATION",
+            success = "删除了业务分类【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除业务分类")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('modeling:biz-category:delete')")
     public CommonResult<Boolean> deleteBizCategory(@RequestParam("id") Long id) {
+        var auditBefore = bizCategoryService.getBizCategory(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         bizCategoryService.deleteBizCategory(id);
         return success(true);
     }

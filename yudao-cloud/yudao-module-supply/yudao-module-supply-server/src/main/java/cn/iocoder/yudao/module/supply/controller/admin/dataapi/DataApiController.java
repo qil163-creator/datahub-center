@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.supply.controller.admin.dataapi;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -36,7 +37,7 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "创建 API 服务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建 API 服务", extra = "BUSINESS_OPERATION",
+            success = "创建了API服务【{{#createReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建 API 服务")
@@ -52,12 +53,17 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "更新 API 服务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新 API 服务", extra = "BUSINESS_OPERATION",
+            success = "修改了API服务【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:update')")
     public CommonResult<Boolean> updateDataApi(@Valid @RequestBody DataApiSaveReqVO updateReqVO) {
+        var auditBefore = dataApiService.getDataApiEntity(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getName());
+
         dataApiService.updateDataApi(updateReqVO);
         return success(true);
     }
@@ -69,12 +75,17 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "上线/下线 API 服务", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "上线/下线 API 服务", extra = "BUSINESS_OPERATION",
+            success = "将API服务【{{#auditObjectName}}】状态设为【{{#reqVO.status == 1 ? '上线' : '下线'}}】，原控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "上线/下线 API 服务")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
     public CommonResult<Boolean> updateDataApiStatus(@Valid @RequestBody DataApiUpdateStatusReqVO reqVO) {
+        var auditBefore = dataApiService.getDataApiEntity(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+
         dataApiService.updateDataApiStatus(reqVO.getId(), reqVO.getStatus(), reqVO.getExpectedRowVersion());
         return success(true);
     }
@@ -86,13 +97,18 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "删除 API 服务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除 API 服务", extra = "BUSINESS_OPERATION",
+            success = "删除了API服务【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除 API 服务")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('supply:data-api:delete')")
     public CommonResult<Boolean> deleteDataApi(@RequestParam("id") Long id) {
+        var auditBefore = dataApiService.getDataApiEntity(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         dataApiService.deleteDataApi(id);
         return success(true);
     }
@@ -236,12 +252,17 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "发布当前草稿为不可变快照", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "发布当前草稿为不可变快照", extra = "BUSINESS_OPERATION",
+            success = "发布了API服务【{{#auditObjectName}}】（编号{{#reqVO.id}}），生成发布快照【{{#_ret.data}}】，发布前控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/publish")
     @Operation(summary = "发布当前草稿为不可变快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:publish')")
     public CommonResult<Long> publishDataApi(@Valid @RequestBody DataApiPublishReqVO reqVO) {
+        var auditBefore = dataApiService.getDataApiEntity(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+
         return success(dataApiService.publishDataApi(reqVO.getId(), reqVO.getExpectedRowVersion()));
     }
 
@@ -252,12 +273,17 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "回滚到既有发布快照", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "回滚到既有发布快照", extra = "BUSINESS_OPERATION",
+            success = "将API服务【{{#auditObjectName}}】（编号{{#reqVO.id}}）回滚到发布快照【{{#reqVO.releaseId}}】，原控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/rollback")
     @Operation(summary = "回滚到既有发布快照")
     @PreAuthorize("@ss.hasPermission('supply:data-api:rollback')")
     public CommonResult<Boolean> rollbackDataApi(@Valid @RequestBody DataApiRollbackReqVO reqVO) {
+        var auditBefore = dataApiService.getDataApiEntity(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+
         dataApiService.rollbackDataApi(reqVO.getId(), reqVO.getReleaseId(), reqVO.getExpectedRowVersion());
         return success(true);
     }

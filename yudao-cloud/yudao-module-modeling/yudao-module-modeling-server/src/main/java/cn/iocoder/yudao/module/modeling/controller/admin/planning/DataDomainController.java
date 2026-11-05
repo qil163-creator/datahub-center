@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -45,7 +46,7 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "创建数据板块", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数据板块", extra = "BUSINESS_OPERATION",
+            success = "创建了数据板块【{{#createReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建数据板块")
@@ -61,12 +62,17 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "更新数据板块", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新数据板块", extra = "BUSINESS_OPERATION",
+            success = "修改了数据板块【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.name}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新数据板块")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:update')")
     public CommonResult<Boolean> updateDataDomain(@Valid @RequestBody DataDomainSaveReqVO updateReqVO) {
+        var auditBefore = dataDomainService.getDataDomain(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getName());
+
         dataDomainService.updateDataDomain(updateReqVO);
         return success(true);
     }
@@ -78,13 +84,19 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "更新数据板块状态", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新数据板块状态", extra = "BUSINESS_OPERATION",
+            success = "将数据板块【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#reqVO.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新数据板块状态")
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:update')")
     public CommonResult<Boolean> updateDataDomainStatus(
             @Valid @RequestBody DataDomainUpdateStatusReqVO reqVO) {
+        var auditBefore = dataDomainService.getDataDomain(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getName());
+        LogRecordContext.putVariable("auditBeforeStatus", auditBefore == null ? "未知" : String.valueOf(auditBefore.getStatus()));
+
         dataDomainService.updateDataDomainStatus(reqVO.getId(), reqVO.getStatus());
         return success(true);
     }
@@ -96,13 +108,18 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "删除数据板块", bizNo = "{{(#id) ?: 0}}",
-            success = "删除数据板块", extra = "BUSINESS_OPERATION",
+            success = "删除了数据板块【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数据板块")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('modeling:data-domain:delete')")
     public CommonResult<Boolean> deleteDataDomain(@RequestParam("id") Long id) {
+        var auditBefore = dataDomainService.getDataDomain(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getName() == null || auditBefore.getName().isBlank()
+                        ? "编号" + id : auditBefore.getName());
+
         dataDomainService.deleteDataDomain(id);
         return success(true);
     }
@@ -114,7 +131,7 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "更新板块六类逻辑表命名规则", bizNo = "{{(#request.id) ?: 0}}",
-            success = "更新板块六类逻辑表命名规则", extra = "BUSINESS_OPERATION",
+            success = "更新了数据板块【{{#request.id}}】的逻辑表命名规则，共【{{#request.namingRules.size()}}】类规则", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-naming-rules")
     @Operation(summary = "更新板块六类逻辑表命名规则")
@@ -132,7 +149,7 @@ public class DataDomainController {
      * @return 数据域
      */
     @LogRecord(type = "数据建模-数据板块", subType = "批量删除数据板块", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除数据板块", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据板块，编号集合【{{#ids}}】，共【{{#ids.size()}}】项", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete-list")
     @Operation(summary = "批量删除数据板块")

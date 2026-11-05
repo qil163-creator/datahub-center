@@ -80,7 +80,7 @@ public class MasterDataController {
      */
     @PostMapping("/submit")
     @LogRecord(type = "数据治理-主数据记录维护", subType = "提交主数据变更",
-            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交主数据变更",
+            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交了模型【{{(#reqVO.modelId) ?: '未设置'}}】的主数据【{{(#reqVO.operation) ?: '未设置'}}】变更，变更单编号【{{(#_ret.data.id) ?: 0}}】，受理状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "幂等提交主数据变更，审批通过后生效")
     @PreAuthorize("(#reqVO.operation == 'CREATE' and @ss.hasPermission('governance:master-data:create')) or "
@@ -106,7 +106,7 @@ public class MasterDataController {
      */
     @PostMapping("/add")
     @LogRecord(type = "数据治理-主数据记录维护", subType = "提交主数据新增变更",
-            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交主数据新增变更",
+            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交了模型【{{(#reqVO.modelId) ?: '未设置'}}】的主数据新增变更，变更单编号【{{(#_ret.data.id) ?: 0}}】，受理状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量新增主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:create')")
@@ -119,7 +119,7 @@ public class MasterDataController {
      */
     @PostMapping("/update")
     @LogRecord(type = "数据治理-主数据记录维护", subType = "提交主数据修改变更",
-            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交主数据修改变更",
+            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交了模型【{{(#reqVO.modelId) ?: '未设置'}}】的主数据修改变更，变更单编号【{{(#_ret.data.id) ?: 0}}】，受理状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按主键批量更新主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:update')")
@@ -132,7 +132,7 @@ public class MasterDataController {
      */
     @PostMapping("/delete")
     @LogRecord(type = "数据治理-主数据记录维护", subType = "提交主数据删除变更",
-            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交主数据删除变更",
+            bizNo = "{{(#_ret.data.id) ?: 0}}", success = "提交了模型【{{(#reqVO.modelId) ?: '未设置'}}】的主数据删除变更，变更单编号【{{(#_ret.data.id) ?: 0}}】，受理状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按主键批量删除主数据记录")
     @PreAuthorize("@ss.hasPermission('governance:master-data:delete')")

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.system;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -46,7 +47,7 @@ public class SystemSourceController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-来源系统", subType = "创建来源系统", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建来源系统", extra = "BUSINESS_OPERATION",
+            success = "创建了来源系统【{{(#createReqVO.name) ?: '未设置'}}】，系统类型【{{(#createReqVO.type) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:create')")
@@ -62,11 +63,22 @@ public class SystemSourceController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-来源系统", subType = "更新来源系统", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新来源系统", extra = "BUSINESS_OPERATION",
+            success = "修改了来源系统【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，系统类型【{{(#updateReqVO.type) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:update')")
     public CommonResult<Boolean> updateSystemSource(@Valid @RequestBody SystemSourceSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = systemSourceService.getSystemSource(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         systemSourceService.updateSystemSource(updateReqVO);
         return success(true);
     }
@@ -79,12 +91,23 @@ public class SystemSourceController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-来源系统", subType = "删除来源系统", bizNo = "{{(#id) ?: 0}}",
-            success = "删除来源系统", extra = "BUSINESS_OPERATION",
+            success = "删除了来源系统【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除来源系统")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:delete')")
     public CommonResult<Boolean> deleteSystemSource(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = systemSourceService.getSystemSource(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         systemSourceService.deleteSystemSource(id);
         return success(true);
     }
@@ -98,11 +121,24 @@ public class SystemSourceController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-来源系统", subType = "批量删除来源系统", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除来源系统", extra = "BUSINESS_OPERATION",
+            success = "批量删除了来源系统【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:delete')")
     public CommonResult<Boolean> deleteSystemSourceList(@RequestParam("ids") List<Long> ids) {
+        var operateNames = new java.util.ArrayList<String>();
+        for (Long operateId : ids) {
+            try {
+                var operateObject = systemSourceService.getSystemSource(operateId);
+                if (operateObject != null) {
+                    operateNames.add(java.util.Objects.toString(operateObject.getName(), "编号" + operateId) + "（编号" + operateId + "）");
+                }
+            } catch (RuntimeException ignored) {
+                // 仅尽力读取日志名称，业务批量入口继续负责缺失对象的处理。
+            }
+        }
+        LogRecordContext.putVariable("operateNames", operateNames);
+
         systemSourceService.deleteSystemSourceListByIds(ids);
         return success(true);
     }

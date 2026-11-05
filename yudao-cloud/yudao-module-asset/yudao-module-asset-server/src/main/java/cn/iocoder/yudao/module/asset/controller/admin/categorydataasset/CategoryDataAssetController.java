@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorydataasset;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -42,7 +43,7 @@ public class CategoryDataAssetController {
      *  @return 编号
      */
     @LogRecord(type = "数据资产-数据资产类目管理", subType = "创建数据资产类目管理", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数据资产类目管理", extra = "BUSINESS_OPERATION",
+            success = "创建了数据资产类目【{{#createReqVO.categoryName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建数据资产类目管理")
@@ -57,12 +58,17 @@ public class CategoryDataAssetController {
      *  @param updateReqVO 更新信息
      */
     @LogRecord(type = "数据资产-数据资产类目管理", subType = "更新数据资产类目管理", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新数据资产类目管理", extra = "BUSINESS_OPERATION",
+            success = "修改了数据资产类目【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.categoryName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新数据资产类目管理")
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:update')")
     public CommonResult<Boolean> updateCategoryDataAsset(@Valid @RequestBody CategoryDataAssetSaveReqVO updateReqVO) {
+        var auditBefore = categoryDataAssetService.getCategoryDataAsset(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getCategoryName() == null || auditBefore.getCategoryName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getCategoryName());
+
         categoryDataAssetService.updateCategoryDataAsset(updateReqVO);
         return success(true);
     }
@@ -73,13 +79,18 @@ public class CategoryDataAssetController {
      *  @param id 编号
      */
     @LogRecord(type = "数据资产-数据资产类目管理", subType = "删除数据资产类目管理", bizNo = "{{(#id) ?: 0}}",
-            success = "删除数据资产类目管理", extra = "BUSINESS_OPERATION",
+            success = "删除了数据资产类目【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数据资产类目管理")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('asset:category-data-asset:delete')")
     public CommonResult<Boolean> deleteCategoryDataAsset(@RequestParam("id") Long id) {
+        var auditBefore = categoryDataAssetService.getCategoryDataAsset(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getCategoryName() == null || auditBefore.getCategoryName().isBlank()
+                        ? "编号" + id : auditBefore.getCategoryName());
+
         categoryDataAssetService.deleteCategoryDataAsset(id);
         return success(true);
     }

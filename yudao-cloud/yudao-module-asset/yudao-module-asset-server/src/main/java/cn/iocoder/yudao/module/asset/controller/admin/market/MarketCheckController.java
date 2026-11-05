@@ -65,7 +65,7 @@ public class MarketCheckController {
      * 保存审批意见；来源工单不授予真实数据权限，本地申请复用原审批链。
      */
     @LogRecord(type = "数据资产-服务审批", subType = "保存服务审批意见", bizNo = "{{(#req.origin == 'NATIVE' ? #req.id : 0) ?: 0}}",
-            success = "保存服务审批意见", extra = "BUSINESS_OPERATION",
+            success = "保存了来源【{{#req.origin}}】的服务审批意见，工单【{{#req.id}}】，审批状态【{{#req.status}}】，校验修订【{{#req.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/check")
     @Operation(summary = "保存审批意见；来源工单不授予真实数据权限，本地申请复用原审批链")

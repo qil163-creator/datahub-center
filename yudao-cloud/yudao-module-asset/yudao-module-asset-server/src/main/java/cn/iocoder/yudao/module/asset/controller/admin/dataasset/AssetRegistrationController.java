@@ -41,7 +41,7 @@ public class AssetRegistrationController {
      * 从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用。
      */
     @LogRecord(type = "数据资产-资产注册", subType = "从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用", extra = "BUSINESS_OPERATION",
+            success = "注册了【{{#_ret.data.size()}}】项数据资产，资产类型【{{#req.assetType}}】，生成编号集合【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/register-generic")
     @Operation(summary = "从真实提供方注册 API 或文件资产，尚未验证的交付保持不可用")

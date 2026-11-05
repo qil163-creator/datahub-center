@@ -53,7 +53,7 @@ public class DataApiOperationController {
      * @return 数据 API操作响应数据
      */
     @LogRecord(type = "数据服务-数据服务写操作台账", subType = "记录未知写操作核查证据；不会重试或释放业务键", bizNo = "{{(#request.id) ?: 0}}",
-            success = "记录未知写操作核查证据；不会重试或释放业务键", extra = "BUSINESS_OPERATION",
+            success = "记录了API写操作【编号{{#request.id}}】的核查结论【{{#request.decision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/resolve")
     @Operation(summary = "记录未知写操作核查证据；不会重试或释放业务键")

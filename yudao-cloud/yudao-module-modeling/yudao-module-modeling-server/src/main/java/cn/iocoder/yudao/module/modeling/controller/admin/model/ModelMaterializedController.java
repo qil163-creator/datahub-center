@@ -108,7 +108,7 @@ public class ModelMaterializedController {
      * @return 模型物化
      */
     @LogRecord(type = "数据建模-模型物化发布", subType = "首次发布模型", bizNo = "{{(#reqVO.modelId) ?: 0}}",
-            success = "首次发布模型", extra = "BUSINESS_OPERATION",
+            success = "提交了模型【编号{{#reqVO.modelId}}】的首次物化发布，数据源【{{#reqVO.datasourceId}}】，模式【{{#reqVO.publishMode}}】，发布记录【{{#_ret.data}}】，完成状态以部署记录为准", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/publish")
     @Operation(summary = "首次发布模型")
@@ -124,7 +124,7 @@ public class ModelMaterializedController {
      * @return 模型物化
      */
     @LogRecord(type = "数据建模-模型物化发布", subType = "重新发布模型", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "重新发布模型", extra = "BUSINESS_OPERATION",
+            success = "提交了物化记录【编号{{#reqVO.id}}】的重新发布，模式【{{#reqVO.publishMode}}】，返回记录【{{#_ret.data}}】，完成状态以部署记录为准", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/republish")
     @Operation(summary = "重新发布模型")
@@ -140,7 +140,7 @@ public class ModelMaterializedController {
      * @return 模型物化
      */
     @LogRecord(type = "数据建模-模型物化发布", subType = "对账未知部署或恢复已过期执行；不执行新的DDL", bizNo = "{{(#id) ?: 0}}",
-            success = "对账未知部署或恢复已过期执行；不执行新的DDL", extra = "BUSINESS_OPERATION",
+            success = "核查了模型物化记录【编号{{#id}}】的部署结果，当前状态【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/reconcile")
     @Operation(summary = "对账未知部署或恢复已过期执行；不执行新的DDL")

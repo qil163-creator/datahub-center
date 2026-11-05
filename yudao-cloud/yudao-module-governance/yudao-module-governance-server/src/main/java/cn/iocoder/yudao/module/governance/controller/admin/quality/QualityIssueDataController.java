@@ -61,7 +61,7 @@ public class QualityIssueDataController {
      */
     @PostMapping("/row-action")
     @LogRecord(type = "数据治理-数据质量-问题数据", subType = "忽略问题行或添加备注",
-            bizNo = "{{(#request.auditLogId) ?: 0}}", success = "忽略问题行或添加备注",
+            bizNo = "{{(#request.auditLogId) ?: 0}}", success = "处理了检测报告【{{(#request.auditLogId) ?: '未设置'}}】的问题行，处理动作【{{(#request.action) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "忽略问题行或添加备注")
     @PreAuthorize("@ss.hasPermission('governance:quality-issue-data:update')")
@@ -112,7 +112,7 @@ public class QualityIssueDataController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-数据质量-问题数据", subType = "更新问题数据处理状态",
-            bizNo = "{{(#id) ?: 0}}", success = "更新问题数据处理状态",
+            bizNo = "{{(#id) ?: 0}}", success = "将质量问题数据【{{(#id) ?: 0}}】的处理状态设为【{{(#issueStatus) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新问题数据处理状态")
     @PreAuthorize("@ss.hasPermission('governance:quality-issue-data:update')")
@@ -127,7 +127,7 @@ public class QualityIssueDataController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-数据质量-问题数据", subType = "删除问题数据",
-            bizNo = "{{(#id) ?: 0}}", success = "删除问题数据",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了质量问题数据，编号【{{(#id) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除问题数据")
     @Parameter(name = "id", description = "编号", required = true)

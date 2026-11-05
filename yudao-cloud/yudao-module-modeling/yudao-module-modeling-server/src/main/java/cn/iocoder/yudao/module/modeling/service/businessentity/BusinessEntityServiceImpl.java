@@ -327,7 +327,9 @@ public class BusinessEntityServiceImpl implements BusinessEntityService {
         extra.put("result", "SUCCESS");
         extra.put("correlation", TracerUtils.getTraceId());
         var record = LogRecord.builder().type("业务实体").subType(action).bizNo(String.valueOf(before.getId()))
-                .action(action + "业务实体").extra(JsonUtils.toJsonString(extra)).build();
+                .action(action + "了业务实体【" + before.getName() + "】；状态从【"
+                        + (CommonStatusEnum.isEnable(before.getStatus()) ? "上线" : "下线") + "】调整为【" + action + "】")
+                .extra(JsonUtils.toJsonString(extra)).build();
         // 复用操作日志组件，在本地事务提交后派发，不在持锁期间调用日志 RPC。
         Runnable write = () -> {
             try {

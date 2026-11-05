@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.controller.admin.filltable;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.*;
@@ -42,7 +43,7 @@ public class FillTableController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "创建填报表", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建填报表", extra = "BUSINESS_OPERATION",
+            success = "创建了填报表【{{(#createReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#createReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{{(#createReqVO.databaseId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建填报表")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:create')")
@@ -58,11 +59,22 @@ public class FillTableController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "更新填报表（已发布需先取消发布）", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新填报表（已发布需先取消发布）", extra = "BUSINESS_OPERATION",
+            success = "修改了填报表【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#updateReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{{(#updateReqVO.databaseId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新填报表（已发布需先取消发布）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
     public CommonResult<Boolean> updateFillTable(@Valid @RequestBody FillTableSaveReqVO updateReqVO) {
+        String operateName = "编号" + updateReqVO.getId();
+        try {
+            var operateObject = fillTableService.getFillTable(updateReqVO.getId());
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTableCnName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         fillTableService.updateFillTable(updateReqVO);
         return success(true);
     }
@@ -75,12 +87,23 @@ public class FillTableController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "删除填报表（级联删除字段配置）", bizNo = "{{(#id) ?: 0}}",
-            success = "删除填报表（级联删除字段配置）", extra = "BUSINESS_OPERATION",
+            success = "删除了填报表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除填报表（级联删除字段配置）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:delete')")
     public CommonResult<Boolean> deleteFillTable(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = fillTableService.getFillTable(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTableCnName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         fillTableService.deleteFillTable(id);
         return success(true);
     }
@@ -120,12 +143,23 @@ public class FillTableController {
      */
     @PutMapping("/release")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "发布填报表（在目标数据源创建物理表）", bizNo = "{{(#id) ?: 0}}",
-            success = "发布填报表（在目标数据源创建物理表）", extra = "BUSINESS_OPERATION",
+            success = "发布了填报表并申请建立目标物理表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布填报表（在目标数据源创建物理表）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
     public CommonResult<Boolean> releaseFillTable(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = fillTableService.getFillTable(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTableCnName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         fillTableService.releaseFillTable(id);
         return success(true);
     }
@@ -138,12 +172,23 @@ public class FillTableController {
      */
     @PutMapping("/cancel")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）", bizNo = "{{(#id) ?: 0}}",
-            success = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）", extra = "BUSINESS_OPERATION",
+            success = "停用了填报模板并保留物理表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
     public CommonResult<Boolean> cancelFillTable(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = fillTableService.getFillTable(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getTableCnName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+
         fillTableService.cancelFillTable(id);
         return success(true);
     }

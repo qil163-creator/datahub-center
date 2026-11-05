@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -41,7 +42,7 @@ public class MetaCollectTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "创建元数据采集任务",
-            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建元数据采集任务",
+            bizNo = "{{(#_ret.data) ?: 0}}", success = "创建了元数据采集任务【{{(#createReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建元数据采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:create')")
@@ -54,11 +55,12 @@ public class MetaCollectTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "更新元数据采集任务",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "更新元数据采集任务",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了元数据采集任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新元数据采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:update')")
     public CommonResult<Boolean> updateTask(@Valid @RequestBody MetaCollectTaskSaveReqVO updateReqVO) {
+        captureAuditContext(updateReqVO.getId());
         taskService.updateTask(updateReqVO);
         return success(true);
     }
@@ -68,12 +70,13 @@ public class MetaCollectTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "删除元数据采集任务",
-            bizNo = "{{(#id) ?: 0}}", success = "删除元数据采集任务",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除元数据采集任务")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:delete')")
     public CommonResult<Boolean> deleteTask(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         taskService.deleteTask(id);
         return success(true);
     }
@@ -106,7 +109,7 @@ public class MetaCollectTaskController {
      */
     @PutMapping("/update-enabled")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "任务上下线（发布/取消发布任务）",
-            bizNo = "{{(#id) ?: 0}}", success = "任务上下线（发布/取消发布任务）",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#enabled) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务上下线（发布/取消发布任务）")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
@@ -114,6 +117,7 @@ public class MetaCollectTaskController {
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:update')")
     public CommonResult<Boolean> updateEnabled(@RequestParam("id") Long id,
             @RequestParam("enabled") Integer enabled) {
+        captureAuditContext(id);
         taskService.updateEnabled(id, enabled);
         return success(true);
     }
@@ -123,7 +127,7 @@ public class MetaCollectTaskController {
      */
     @PutMapping("/update-schedule-enabled")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "调度启停",
-            bizNo = "{{(#id) ?: 0}}", success = "调度启停",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的调度开关，目标调度状态【{{(#scheduleEnabled) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "调度启停")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
@@ -131,6 +135,7 @@ public class MetaCollectTaskController {
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:update')")
     public CommonResult<Boolean> updateScheduleEnabled(@RequestParam("id") Long id,
             @RequestParam("scheduleEnabled") Integer scheduleEnabled) {
+        captureAuditContext(id);
         taskService.updateScheduleEnabled(id, scheduleEnabled);
         return success(true);
     }
@@ -140,12 +145,13 @@ public class MetaCollectTaskController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "手动执行一次采集",
-            bizNo = "{{(#id) ?: 0}}", success = "手动执行一次采集",
+            bizNo = "{{(#id) ?: 0}}", success = "发起了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的一次手动采集",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次采集")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:run')")
     public CommonResult<Boolean> runOnce(@RequestParam("id") Long id) {
+        captureAuditContext(id);
         taskService.runOnce(id);
         return success(true);
     }
@@ -179,7 +185,7 @@ public class MetaCollectTaskController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "批量删除采集任务",
-            bizNo = "{{(#ids) ?: 0}}", success = "批量删除采集任务",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除元数据采集任务，对象编号【{{(#ids) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:delete')")
@@ -188,4 +194,22 @@ public class MetaCollectTaskController {
         return success(true);
     }
 
+
+    /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
+    private void captureAuditContext(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        LogRecordContext.putVariable("auditBeforeStatus", "未设置");
+        LogRecordContext.putVariable("auditBeforeRevision", "未设置");
+        try {
+            var auditBefore = taskService.getTask(id);
+            if (auditBefore != null) {
+                LogRecordContext.putVariable("auditObjectName", auditBefore.getName() == null
+                        ? "编号" + id : auditBefore.getName());
+                LogRecordContext.putVariable("auditBeforeStatus", auditBefore.getEnabled() == null
+                        ? "未设置" : String.valueOf(auditBefore.getEnabled()));
+            }
+        } catch (RuntimeException auditReadFailure) {
+            // 补充审计信息失败时，仍由原写入方法给出业务校验与异常结果。
+        }
+    }
 }

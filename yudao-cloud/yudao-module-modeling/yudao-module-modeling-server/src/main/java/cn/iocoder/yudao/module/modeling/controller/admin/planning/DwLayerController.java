@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.planning;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -48,7 +49,7 @@ public class DwLayerController {
      * @return 数仓分层
      */
     @LogRecord(type = "数据建模-数仓分层", subType = "创建数仓分层", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建数仓分层", extra = "BUSINESS_OPERATION",
+            success = "创建了数仓分层【{{#createReqVO.layerName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建数仓分层")
@@ -64,12 +65,17 @@ public class DwLayerController {
      * @return 数仓分层
      */
     @LogRecord(type = "数据建模-数仓分层", subType = "更新数仓分层", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "更新数仓分层", extra = "BUSINESS_OPERATION",
+            success = "修改了数仓分层【{{#auditObjectName}}】，名称由【{{#auditObjectName}}】改为【{{#updateReqVO.layerName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "更新数仓分层")
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:update')")
     public CommonResult<Boolean> updateDwLayer(@RequestBody DwLayerSaveReqVO updateReqVO) {
+        var auditBefore = dwLayerService.getDwLayer(updateReqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getLayerName() == null || auditBefore.getLayerName().isBlank()
+                        ? "编号" + updateReqVO.getId() : auditBefore.getLayerName());
+
         dwLayerService.updateDwLayer(updateReqVO);
         return success(true);
     }
@@ -81,12 +87,18 @@ public class DwLayerController {
      * @return 数仓分层
      */
     @LogRecord(type = "数据建模-数仓分层", subType = "更新数仓分层状态", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "更新数仓分层状态", extra = "BUSINESS_OPERATION",
+            success = "将数仓分层【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#reqVO.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新数仓分层状态")
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:update')")
     public CommonResult<Boolean> updateDwLayerStatus(@Valid @RequestBody DwLayerUpdateStatusReqVO reqVO) {
+        var auditBefore = dwLayerService.getDwLayer(reqVO.getId());
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getLayerName() == null || auditBefore.getLayerName().isBlank()
+                        ? "编号" + reqVO.getId() : auditBefore.getLayerName());
+        LogRecordContext.putVariable("auditBeforeStatus", auditBefore == null ? "未知" : String.valueOf(auditBefore.getStatus()));
+
         dwLayerService.updateDwLayerStatus(reqVO.getId(), reqVO.getStatus());
         return success(true);
     }
@@ -98,13 +110,18 @@ public class DwLayerController {
      * @return 数仓分层
      */
     @LogRecord(type = "数据建模-数仓分层", subType = "删除数仓分层", bizNo = "{{(#id) ?: 0}}",
-            success = "删除数仓分层", extra = "BUSINESS_OPERATION",
+            success = "删除了数仓分层【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除数仓分层")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('modeling:dwlayer:delete')")
     public CommonResult<Boolean> deleteDwLayer(@RequestParam("id") Long id) {
+        var auditBefore = dwLayerService.getDwLayer(id);
+        LogRecordContext.putVariable("auditObjectName",
+                auditBefore == null || auditBefore.getLayerName() == null || auditBefore.getLayerName().isBlank()
+                        ? "编号" + id : auditBefore.getLayerName());
+
         dwLayerService.deleteDwLayer(id);
         return success(true);
     }

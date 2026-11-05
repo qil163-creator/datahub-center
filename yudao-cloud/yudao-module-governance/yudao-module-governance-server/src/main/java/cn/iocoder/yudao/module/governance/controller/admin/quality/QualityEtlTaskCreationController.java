@@ -29,7 +29,7 @@ public class QualityEtlTaskCreationController {
      */
     @PostMapping("/create-for-etl")
     @LogRecord(type = "数据治理-ETL 目标检测任务生成", subType = "提交创建质量检测任务（含幂等回执）",
-            bizNo = "{{(#_ret.data.taskId) ?: 0}}", success = "提交创建质量检测任务（含幂等回执）",
+            bizNo = "{{(#_ret.data.taskId) ?: 0}}", success = "受理了质量检测任务【{{(#request.taskName) ?: '未设置'}}】的创建请求，检查对象编号【{{(#_ret.data.checkObjectId) ?: '未设置'}}】，幂等回放【{{(#_ret.data.replayed) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建目标检查对象和 SQL 任务并保留幂等回执；不启动检测")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:create') && @ss.hasPermission('governance:quality-task:query') && @ss.hasPermission('governance:quality-check-object:create') && @ss.hasPermission('governance:quality-rule:query')")

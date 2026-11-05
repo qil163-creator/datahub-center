@@ -93,7 +93,7 @@ public class DataAssetController {
      * 批量编目数据资产。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "批量编目数据资产", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "批量编目数据资产", extra = "BUSINESS_OPERATION",
+            success = "批量编目了【{{#_ret.data.size()}}】项数据资产，生成资产编号集合【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/batch-register")
     @Operation(summary = "批量编目数据资产")
@@ -107,7 +107,7 @@ public class DataAssetController {
      * 维护数据资产。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "维护数据资产", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "维护数据资产", extra = "BUSINESS_OPERATION",
+            success = "维护了数据资产【{{#reqVO.assetName}}】（编号{{#reqVO.id}}），类目【{{#reqVO.categoryId}}】，共享属性【{{#reqVO.shareAttribute}}】，校验目录修订【{{#reqVO.expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "维护数据资产")
@@ -132,7 +132,7 @@ public class DataAssetController {
      * 维护资产字段的业务与标准属性。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "维护资产字段的业务与标准属性", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "维护资产字段的业务与标准属性", extra = "BUSINESS_OPERATION",
+            success = "维护了资产【编号{{#reqVO.assetId}}】的字段【编号{{#reqVO.id}}】，业务名【{{#reqVO.businessName}}】，标准数据元【{{#reqVO.standardElementId}}】，校验修订【{{#reqVO.revision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-column")
     @Operation(summary = "维护资产字段的业务与标准属性")
@@ -147,7 +147,7 @@ public class DataAssetController {
      * 刷新资产引用的元数据定版与运行指标。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "刷新资产引用的元数据定版与运行指标", bizNo = "{{(#id) ?: 0}}",
-            success = "刷新资产引用的元数据定版与运行指标", extra = "BUSINESS_OPERATION",
+            success = "刷新了数据资产【编号{{#id}}】引用的元数据定版及运行指标", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/refresh")
     @Operation(summary = "刷新资产引用的元数据定版与运行指标")
@@ -161,7 +161,7 @@ public class DataAssetController {
      * 发布数据资产。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "发布数据资产", bizNo = "{{(#id) ?: 0}}",
-            success = "发布数据资产", extra = "BUSINESS_OPERATION",
+            success = "发布了数据资产【编号{{#id}}】的最新已审核目录版本", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "发布数据资产")
@@ -175,7 +175,7 @@ public class DataAssetController {
      * 停止新申请并保留既有授权。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "停止新申请并保留既有授权", bizNo = "{{(#id) ?: 0}}",
-            success = "停止新申请并保留既有授权", extra = "BUSINESS_OPERATION",
+            success = "停止了数据资产【编号{{#id}}】的新申请，既有授权继续保留", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/unpublish")
     @Operation(summary = "停止新申请并保留既有授权")
@@ -189,7 +189,7 @@ public class DataAssetController {
      * 停止供数并持久触发全部存量授权撤销。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "停止供数并持久触发全部存量授权撤销", bizNo = "{{(#req.assetId) ?: 0}}",
-            success = "停止供数并持久触发全部存量授权撤销", extra = "BUSINESS_OPERATION",
+            success = "提交了数据资产【编号{{#req.assetId}}】的停止供数请求，并持久触发存量授权撤销，完成状态以交付回执为准", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/stop-supply")
     @Operation(summary = "停止供数并持久触发全部存量授权撤销")
@@ -203,7 +203,7 @@ public class DataAssetController {
      * 重查未知回执或明确拒绝后受控重投。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "处置目录交付", bizNo = "{{(#req.assetId) ?: 0}}",
-            success = "处置目录交付", extra = "BUSINESS_OPERATION",
+            success = "处置了资产【编号{{#req.assetId}}】的目录交付【编号{{#req.deliveryId}}】，是否受控重投【{{#req.retryRejected}}】，完成状态以交付回执为准", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-delivery/handle")
     @Operation(summary = "重查未知回执或明确拒绝后受控重投")
@@ -217,7 +217,7 @@ public class DataAssetController {
      * false 表示元数据解绑已排队，目录保留到回执确认后再次完成删除。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "提交数据资产退役删除请求（完成状态以业务回执为准）", bizNo = "{{(#id) ?: 0}}",
-            success = "提交数据资产退役删除请求（完成状态以业务回执为准）", extra = "BUSINESS_OPERATION",
+            success = "提交了数据资产【编号{{#id}}】的退役删除请求，本次已完成删除【{{#_ret.data}}】，未完成时等待元数据解绑回执", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未发布的数据资产")
@@ -264,7 +264,7 @@ public class DataAssetController {
      * 创建未挂接技术资源的政务目录草稿。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "创建未挂接技术资源的政务目录草稿", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建未挂接技术资源的政务目录草稿", extra = "BUSINESS_OPERATION",
+            success = "创建了数据资产目录草稿【{{#reqVO.assetName}}】，编号【{{#_ret.data}}】，类目【{{#reqVO.categoryId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/draft")
     @Operation(summary = "创建未挂接技术资源的政务目录草稿")
@@ -278,7 +278,7 @@ public class DataAssetController {
      * 挂接技术资源。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "挂接技术资源", bizNo = "{{(#reqVO.assetId) ?: 0}}",
-            success = "挂接技术资源", extra = "BUSINESS_OPERATION",
+            success = "为数据资产【编号{{#reqVO.assetId}}】挂接了元数据表【{{#reqVO.metaTableId}}】，关联编号【{{#_ret.data}}】，主关联标识【{{#reqVO.primaryFlag}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/tech-link")
     @Operation(summary = "挂接技术资源")
@@ -301,7 +301,7 @@ public class DataAssetController {
      * 提交目录版本审核。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "提交目录版本审核", bizNo = "{{(#assetId) ?: 0}}",
-            success = "提交目录版本审核", extra = "BUSINESS_OPERATION",
+            success = "提交了数据资产【编号{{#assetId}}】的目录审核，生成目录版本【{{#_ret.data}}】，提交前修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/catalog-version/submit")
     @Operation(summary = "提交目录版本审核")
@@ -316,7 +316,7 @@ public class DataAssetController {
      * 审核目录版本。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "审核目录版本", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "审核目录版本", extra = "BUSINESS_OPERATION",
+            success = "审核了目录版本【编号{{#reqVO.id}}】，审核状态【{{#reqVO.status}}】（3通过、其他退回）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-version/check")
     @Operation(summary = "审核目录版本")
@@ -330,7 +330,7 @@ public class DataAssetController {
      * 发布已审核通过的目录版本。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "发布已审核通过的目录版本", bizNo = "{{(#id) ?: 0}}",
-            success = "发布已审核通过的目录版本", extra = "BUSINESS_OPERATION",
+            success = "发布了已审核目录版本【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/catalog-version/publish")
     @Operation(summary = "发布已审核通过的目录版本")
@@ -367,7 +367,7 @@ public class DataAssetController {
      * 提交校核工单。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "提交校核工单", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "提交校核工单", extra = "BUSINESS_OPERATION",
+            success = "为数据资产【编号{{#reqVO.assetId}}】提交了校核工单【{{#_ret.data}}】，目录版本【{{#reqVO.catalogVersionId}}】，问题类型【{{#reqVO.issueType}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/ticket")
     @Operation(summary = "提交校核工单")
@@ -380,7 +380,7 @@ public class DataAssetController {
      * 认领校核工单。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "认领校核工单", bizNo = "{{(#id) ?: 0}}",
-            success = "认领校核工单", extra = "BUSINESS_OPERATION",
+            success = "认领了资产校核工单【编号{{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/claim")
     @Operation(summary = "认领校核工单")
@@ -394,7 +394,7 @@ public class DataAssetController {
      * 反馈校核处理结果。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "反馈校核处理结果", bizNo = "{{(#id) ?: 0}}",
-            success = "反馈校核处理结果", extra = "BUSINESS_OPERATION",
+            success = "反馈了资产校核工单【编号{{#id}}】的处理结果", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/feedback")
     @Operation(summary = "反馈校核处理结果")
@@ -409,7 +409,7 @@ public class DataAssetController {
      * 复核校核工单。
      */
     @LogRecord(type = "数据资产-数据资产", subType = "复核校核工单", bizNo = "{{(#id) ?: 0}}",
-            success = "复核校核工单", extra = "BUSINESS_OPERATION",
+            success = "复核了资产校核工单【编号{{#id}}】，复核通过【{{#pass}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/ticket/review")
     @Operation(summary = "复核校核工单")
