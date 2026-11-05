@@ -184,7 +184,8 @@ function blankRule(inputField = '') {
     wholeWord: false,
     emptyReplacement: false,
     replacementField: '',
-    sourceField: inputField,
+    // 参考界面获取字段后，替换字段留空待用户选择。
+    sourceField: '',
     targetField: inputField,
   };
 }

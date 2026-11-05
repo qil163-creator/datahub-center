@@ -66,12 +66,20 @@
   text-align: center;
 }
 
-:is(.qi-rule-reference.qi-transform-config[data-tool-code='string-operation'], .qi-rule-reference.qi-transform-config[data-tool-code='string-replace']) .qi-transform-table .qi-reference-fields-table .qi-reference-empty {
+:is(
+  .qi-rule-reference.qi-transform-config[data-tool-code='string-operation'],
+  .qi-rule-reference.qi-transform-config[data-tool-code='string-replace'],
+  .qi-rule-reference.qi-transform-config[data-tool-code='set-field-value']
+) .qi-transform-table .qi-reference-fields-table .qi-reference-empty {
   padding-bottom: 12px;
   vertical-align: bottom;
 }
 
-:is(.qi-rule-reference.qi-transform-config[data-tool-code='string-operation'], .qi-rule-reference.qi-transform-config[data-tool-code='string-replace']) .qi-reference-fields-table .qi-reference-empty::before {
+:is(
+  .qi-rule-reference.qi-transform-config[data-tool-code='string-operation'],
+  .qi-rule-reference.qi-transform-config[data-tool-code='string-replace'],
+  .qi-rule-reference.qi-transform-config[data-tool-code='set-field-value']
+) .qi-reference-fields-table .qi-reference-empty::before {
   margin-bottom: 36px;
 }
 

@@ -157,4 +157,12 @@ describe('字符串和字段赋值配置', () => {
     expect(host.querySelector('.qi-reference-empty')!.textContent).toBe('暂无记录');
     expect(host.querySelector('.qi-reference-empty')!.getAttribute('colspan')).toBe('4');
   });
+
+  it('字段赋值新增行的替换字段默认留空，需要用户选择后才能通过校验', async () => {
+    const state = mount('set-field-value', { rules: [{ targetField: 'name', sourceField: 'city' }] });
+    [...host.querySelectorAll('button')].find((button) => button.textContent?.includes('新增'))!.click();
+    await nextTick();
+    expect(state.config.rules).toHaveLength(2);
+    expect(state.config.rules[1]).toMatchObject({ targetField: '', sourceField: '' });
+  });
 });

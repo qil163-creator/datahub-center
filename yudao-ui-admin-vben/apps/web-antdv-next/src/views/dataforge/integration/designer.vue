@@ -234,9 +234,12 @@ const editable = computed(
 const currentComponent = computed(() => componentOf(editingCode.value));
 /** 参考界面中“获取字段”按钮位于“保存”之后的节点。 */
 const getFieldsAfterSave = computed(() =>
-  ['dedup-records', 'string-operation', 'string-replace'].includes(
-    editingCode.value,
-  ),
+  [
+    'dedup-records',
+    'set-field-value',
+    'string-operation',
+    'string-replace',
+  ].includes(editingCode.value),
 );
 const nodeHelp = computed(() => ({
   'sort-records': '按选定字段和排序规则对记录排序，序号越小优先级越高。',
