@@ -273,11 +273,21 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         v-else
         :tree-data="treeData"
         :selected-keys="[String(filters.domainId ?? 'all')]"
-        show-icon
         block-node
         @select="selectDomain"
       >
-        <template #icon><IconifyIcon icon="lucide:folder-closed" /></template>
+        <template #titleRender="node">
+          <span class="flex min-w-0 items-center gap-2">
+            <IconifyIcon
+              aria-hidden="true"
+              class="size-3.5 shrink-0"
+              icon="lucide:folder-closed"
+            />
+            <span class="min-w-0 truncate" :title="String(node.title)">
+              {{ node.title }}
+            </span>
+          </span>
+        </template>
       </Tree>
     </aside>
     <SidebarCollapse :collapsed="sidebarCollapsed" label="实体模型类目" @toggle="sidebarCollapsed = !sidebarCollapsed" />

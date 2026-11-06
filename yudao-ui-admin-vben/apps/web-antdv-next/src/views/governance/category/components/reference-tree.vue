@@ -99,7 +99,6 @@ function isFolder(node: unknown) {
           v-model:expanded-keys="expanded"
           :selected-keys="selected"
           :tree-data="nodes"
-          show-icon
           block-node
           @select="
             (keys) =>
@@ -109,20 +108,19 @@ function isFolder(node: unknown) {
               )
           "
         >
-          <template #icon="node">
-            <img
-              :src="
-                isFolder(node)
-                  ? '/assets/qdata-market/icon-folder.png'
-                  : '/assets/qdata-market/icon-document.png'
-              "
-              class="category-tree-icon"
-              alt=""
-            />
-          </template>
           <template #titleRender="node">
-            <div class="category-tree-title">
-              <span>{{ node.title }}</span><Dropdown
+            <span class="category-tree-title">
+              <img
+                :src="
+                  isFolder(node)
+                    ? '/assets/qdata-market/icon-folder.png'
+                    : '/assets/qdata-market/icon-document.png'
+                "
+                class="category-tree-icon"
+                alt=""
+              />
+              <span class="category-tree-label">{{ node.title }}</span>
+              <Dropdown
                 v-if="
                   canCreate || (node.key !== allKey && (canEdit || canDelete))
                 "
@@ -180,7 +178,7 @@ function isFolder(node: unknown) {
                   </Menu>
                 </template>
               </Dropdown>
-            </div>
+            </span>
           </template>
         </Tree>
       </Spin>

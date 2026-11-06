@@ -6,7 +6,7 @@ import { ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 
-import { Alert, message, Switch, Tag } from 'antdv-next';
+import { message, Switch, Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -15,6 +15,7 @@ import {
   materializeTaskTemplate,
   updateTaskTemplateStatus,
 } from '#/api/governance/quality/template';
+import PageGuide from '#/components/page-guide/index.vue';
 import { $t } from '#/locales';
 
 import TemplateForm from './modules/form.vue';
@@ -139,7 +140,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
 <template>
   <Page auto-content-height>
     <div class="flex h-full min-h-0 flex-col gap-3">
-      <Alert
+      <PageGuide
+        guide-id="governance.quality-task-template.materialization"
         message="海量表逐条建任务不现实：模板把「规则集 + 表范围 + 字段选择策略」写成一条配置，同步后物化成实体任务；生成的任务本身是手动调度，避免海量任务各自注册定时器并发打满引擎。"
         show-icon
         type="info"

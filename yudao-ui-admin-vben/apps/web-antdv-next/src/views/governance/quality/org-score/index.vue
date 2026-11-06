@@ -8,7 +8,6 @@ import { onMounted, reactive, ref } from 'vue';
 import { Page } from '@vben/common-ui';
 
 import {
-  Alert,
   Form,
   FormItem,
   Input,
@@ -24,6 +23,7 @@ import {
   getOrgScorePage,
 } from '#/api/governance/quality/orgscore';
 import { getRuleSetSimpleList } from '#/api/governance/quality/ruleset';
+import PageGuide from '#/components/page-guide/index.vue';
 
 defineOptions({ name: 'GovernanceQualityOrgScore' });
 
@@ -156,7 +156,8 @@ onMounted(async () => {
 <template>
   <Page auto-content-height>
     <div class="flex h-full min-h-0 flex-col gap-3">
-      <Alert
+      <PageGuide
+        guide-id="governance.quality-org-score.prerequisites"
         message="评分计算依赖于已执行的质量检测结果记录，请确保在选择的日期范围内，该规则集下的检测任务已执行完成。"
         show-icon
         type="info"
