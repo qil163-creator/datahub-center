@@ -356,10 +356,13 @@ async function flush() {
   for (let index = 0; index < 12; ++index) await Promise.resolve();
   await nextTick();
 }
-async function mount(row = model) {
+async function mount(
+  data: GovernanceMasterDataApi.Model | GovernanceMasterDataApi.Model[] = model,
+) {
+  const list = Array.isArray(data) ? data : [data];
   vi.mocked(api.getMasterModelPage).mockResolvedValue({
-    list: [row],
-    total: 1,
+    list,
+    total: list.length,
   });
   app = createApp(MasterDataPage);
   app.config.errorHandler = (error) => harness.errors.push(error);
@@ -455,7 +458,9 @@ describe('主数据模型列表', () => {
     expect(
       row.querySelector('[data-slot="statistics"]')?.textContent,
     ).toContain('字段数：- 个');
-    expect(api.getMasterModelDataCount).not.toHaveBeenCalled();
+    expect(row.querySelector('[data-slot="statistics"]')?.textContent).toContain(
+      '0 条',
+    );
   });
 
   it('名称与详情动作都用原始超大编号打开只读详情', async () => {
@@ -552,17 +557,16 @@ describe('主数据模型列表', () => {
     expect(labels('dropDownActions')).toEqual([]);
   });
 
-  it('按需计数请求去重并完整展示超大十进制字符串', async () => {
-    await mount();
+  it('打开列表自动计数，显示读取进度并完整展示超大十进制字符串', async () => {
     const pending = deferred<GovernanceMasterDataApi.ModelDataCount>();
     vi.mocked(api.getMasterModelDataCount).mockReturnValueOnce(pending.promise);
-    const query = button('查询')!;
-    query.click();
-    query.click();
+    await mount();
     expect(api.getMasterModelDataCount).toHaveBeenCalledOnce();
     expect(api.getMasterModelDataCount).toHaveBeenCalledWith(
       '9007199254740995',
     );
+    expect(rowElement().textContent).toContain('读取中…');
+    expect(button('查询')).toBeUndefined();
     pending.resolve({ available: true, dataCount: '9223372036854775807' });
     await flush();
     expect(
@@ -570,15 +574,49 @@ describe('主数据模型列表', () => {
     ).toContain('9223372036854775807 条');
   });
 
+  it('同时最多计数两个模型，并跳过缺少编号或发布状态未就绪的行', async () => {
+    const ids = [model.id!, '2', '3', '4'];
+    const pending = ids.map(() =>
+      deferred<GovernanceMasterDataApi.ModelDataCount>(),
+    );
+    for (const request of pending) {
+      vi.mocked(api.getMasterModelDataCount).mockReturnValueOnce(request.promise);
+    }
+
+    await mount([
+      model,
+      { ...model, id: '5', publishState: 'APPLYING' },
+      { ...model, id: '2' },
+      { ...model, id: undefined },
+      { ...model, id: '3' },
+      { ...model, id: '4', publishState: undefined },
+    ]);
+    expect(vi.mocked(api.getMasterModelDataCount).mock.calls.flat()).toEqual(
+      ids.slice(0, 2),
+    );
+
+    pending[1]!.resolve({ available: true, dataCount: 0 });
+    await flush();
+    expect(vi.mocked(api.getMasterModelDataCount).mock.calls.flat()).toEqual(
+      ids.slice(0, 3),
+    );
+    pending[2]!.resolve({ available: true, dataCount: 0 });
+    await flush();
+    expect(vi.mocked(api.getMasterModelDataCount).mock.calls.flat()).toEqual(ids);
+    for (const request of pending) {
+      request.resolve({ available: true, dataCount: 0 });
+    }
+    await flush();
+  });
+
   it.each(['page', 'session', 'unmount'] as const)(
     '%s 变化后丢弃旧计数结果',
     async (change) => {
-      await mount();
       const pending = deferred<GovernanceMasterDataApi.ModelDataCount>();
       vi.mocked(api.getMasterModelDataCount).mockReturnValueOnce(
         pending.promise,
       );
-      button('查询')!.click();
+      await mount();
       if (change === 'page') {
         harness.options!.gridEvents.pageChange({
           currentPage: 2,
@@ -594,8 +632,9 @@ describe('主数据模型列表', () => {
       pending.resolve({ available: true, dataCount: '9223372036854775807' });
       await flush();
       expect(host.textContent).not.toContain('9223372036854775807');
-      expect(button('查询', host)?.disabled).toBe(
-        change === 'unmount' ? undefined : false,
+      expect(host.textContent?.includes('0 条')).toBe(change !== 'unmount');
+      expect(api.getMasterModelDataCount).toHaveBeenCalledTimes(
+        change === 'unmount' ? 1 : 2,
       );
       expect(api.getMasterModelPage).toHaveBeenCalledTimes(
         change === 'unmount' ? 1 : 2,
@@ -604,12 +643,10 @@ describe('主数据模型列表', () => {
   );
 
   it('计数失败允许重试，缺少主数据查询权限时不发送计数请求', async () => {
-    await mount();
     vi.mocked(api.getMasterModelDataCount).mockRejectedValueOnce(
       new Error('查询失败'),
     );
-    button('查询')!.click();
-    await flush();
+    await mount();
     expect(button('重试')?.disabled).toBe(false);
     button('重试')!.click();
     await flush();
@@ -624,15 +661,13 @@ describe('主数据模型列表', () => {
   });
 
   it('数据量不可用时展示原因和占位符，不伪装为零或反复重试', async () => {
-    await mount();
     vi.mocked(api.getMasterModelDataCount).mockResolvedValueOnce({
       available: false,
       message: '目标表不存在',
     });
-    button('查询')!.click();
-    await flush();
+    await mount();
     const counts = rowElement().querySelector('[data-slot="statistics"]')!;
-    expect(counts.textContent).toContain('数据量： -');
+    expect(counts.textContent).toMatch(/数据量：\s*-/u);
     expect(counts.textContent).not.toContain('0 条');
     expect(counts.querySelector('[title="目标表不存在"]')).not.toBeNull();
     expect(button('查询')).toBeUndefined();

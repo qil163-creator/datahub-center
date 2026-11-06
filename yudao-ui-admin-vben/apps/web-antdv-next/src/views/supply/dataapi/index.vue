@@ -554,8 +554,9 @@ onMounted(() => {
             <div class="dataapi-name-cell">
               <div class="dataapi-name-heading flex flex-wrap items-center gap-1">
                 <IconifyIcon
-                  class="size-4 shrink-0 text-emerald-500"
-                  icon="carbon:api-1"
+                  aria-hidden="true"
+                  class="size-4 shrink-0 rounded-sm bg-indigo-600 p-0.5 text-white"
+                  icon="lucide:braces"
                 />
                 <span
                   class="max-w-full min-w-0 break-words whitespace-normal"

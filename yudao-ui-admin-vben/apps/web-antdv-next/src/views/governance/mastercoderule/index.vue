@@ -15,6 +15,7 @@ import {
   getMasterCodeRulePage,
   updateMasterCodeRuleStatus,
 } from '#/api/governance/mastermanage';
+import PageGuide from '#/components/page-guide/index.vue';
 
 import { useMasterScope } from '../mastercommon/use-master-scope';
 import { useGridColumns, useGridFormSchema } from './data';
@@ -204,7 +205,8 @@ onMounted(refresh);
     <FormDrawer @success="load" />
     <DetailDrawer />
     <div class="flex h-full flex-col gap-4">
-      <Alert
+      <PageGuide
+        guide-id="governance.master-code-rule.auto-code"
         type="info"
         show-icon
         message="编码规则定义了主数据编码的自动生成方式（如 STU-20260413-001）。为模型配置并启用编码规则后，新增数据时系统将自动生成编码，无需手动填写。每个模型仅可启用一条编码规则。"

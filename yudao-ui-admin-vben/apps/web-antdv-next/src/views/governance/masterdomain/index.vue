@@ -15,6 +15,7 @@ import {
   getMasterDomainPage,
   updateMasterDomainStatus,
 } from '#/api/governance/masterdomain';
+import PageGuide from '#/components/page-guide/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 
 import { useMasterScope } from '../mastercommon/use-master-scope';
@@ -178,14 +179,18 @@ onMounted(load);
     <FormModal @success="load" />
     <DetailDrawer />
     <div class="flex h-full flex-col gap-4">
-      <Alert type="info" show-icon>
+      <PageGuide
+        guide-id="governance.master-domain.workflow"
+        type="info"
+        show-icon
+      >
         <template #message>
           主数据域是组织主数据的分类容器（如「人员」「组织」「物资」等）。
           <strong>使用步骤：</strong>
           ① 在此创建域 → ② 到「数据模型」创建模型并定义属性 → ③
           发布模型后到「数据维护」录入数据。
         </template>
-      </Alert>
+      </PageGuide>
       <Alert
         v-if="failed"
         type="error"

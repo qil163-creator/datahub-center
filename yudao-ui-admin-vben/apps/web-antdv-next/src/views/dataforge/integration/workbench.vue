@@ -491,7 +491,7 @@ function past(value?: null | number) {
                 </p>
               </div>
               <div class="qi-guide-actions">
-                <Button @click="guideHidden = true">不再展示</Button>
+                <Button @click="guideHidden = true">不再提示</Button>
                 <Button type="primary" @click="guideClosed = true">关闭</Button>
               </div>
             </section>

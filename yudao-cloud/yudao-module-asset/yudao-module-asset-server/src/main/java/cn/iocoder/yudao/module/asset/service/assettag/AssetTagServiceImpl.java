@@ -267,7 +267,8 @@ public class AssetTagServiceImpl implements AssetTagService {
         });
         Map<String, String> userNames = userNameResolver.resolveByTexts(userTexts);
         tags.forEach(tag -> {
-            tag.setCategoryName(categoryNames.get(tag.getCategoryId()));
+            Long categoryId = tag.getCategoryId();
+            tag.setCategoryName(categoryId == null ? null : categoryNames.get(categoryId));
             tag.setAssetCount(assetCounts.getOrDefault(tag.getId(), 0L));
             tag.setCreatorName(
                     tag.getSourceCreatorName() != null ? tag.getSourceCreatorName() : userNameResolver.nameOf(userNames,

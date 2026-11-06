@@ -557,8 +557,10 @@ onBeforeUnmount(() => {
                 >
                   <span>{{ record.name || '-' }}</span>
                   <TextEllipsisCell
+                    class="category-description"
                     :content="record.description || '-'"
                     :line="2"
+                    :line-height="18"
                     center
                   />
                 </div>

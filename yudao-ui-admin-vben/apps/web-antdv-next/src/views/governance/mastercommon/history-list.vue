@@ -14,6 +14,7 @@ import {
   getMasterApprovalPage,
   getMasterChangeLogPage,
 } from '#/api/governance/mastermanage';
+import PageGuide from '#/components/page-guide/index.vue';
 
 import Detail from '../masterapproval/modules/detail.vue';
 import ChangeDetail from '../masterchangelog/modules/detail.vue';
@@ -226,7 +227,12 @@ onMounted(load);
   <div class="flex h-full min-h-0 flex-col">
     <DetailDrawer @success="load" />
     <ChangeDetailDrawer />
-    <Alert
+    <PageGuide
+      :guide-id="
+        approval
+          ? 'governance.master-approval.workflow'
+          : 'governance.master-change-log.read-only'
+      "
       class="mb-3"
       type="info"
       show-icon

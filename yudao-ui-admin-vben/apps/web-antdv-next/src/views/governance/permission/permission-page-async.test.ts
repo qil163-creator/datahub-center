@@ -20,7 +20,10 @@ const second = { ...first, schemaName: 'b', tableReference: 'b.orders' };
 vi.mock('@vben/common-ui', () => ({ Page: defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }) }));
 vi.mock('@vben/constants', () => ({ CommonStatusEnum: { ENABLE: 0, DISABLE: 1 } }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: defineComponent(() => () => null) }));
-vi.mock('@vben/stores', () => ({ useAccessStore: () => ({ accessToken: 'token' }) }));
+vi.mock('@vben/stores', () => ({
+  useAccessStore: () => ({ accessToken: 'token' }),
+  useUserStore: () => ({ userInfo: { userId: '1' } }),
+}));
 vi.mock('antdv-next', () => {
   const component = defineComponent({ setup: (_, { slots }) => () => h('div', [slots.default?.(), slots.action?.()]) });
   return { Alert: component, Card: component, Tag: component,

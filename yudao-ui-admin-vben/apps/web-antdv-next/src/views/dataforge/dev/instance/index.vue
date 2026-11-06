@@ -37,6 +37,7 @@ import {
   stopDevRecord,
 } from '#/api/dataforge/dev';
 import LogViewer from '#/components/monaco/log-viewer.vue';
+import PageGuide from '#/components/page-guide/index.vue';
 import { $t } from '#/locales';
 import { parseResourceId } from '#/utils/resource-id';
 
@@ -291,7 +292,8 @@ onBeforeUnmount(() => {
     auto-content-height
     content-class="flex min-h-0 flex-col gap-3 overflow-hidden"
   >
-    <Alert
+    <PageGuide
+      guide-id="dataforge-dev-instance"
       class="instance-notice"
       message="执行成功后仍需确认质量验收结果。结果待核查的实例可登记核查结论。"
       type="info"

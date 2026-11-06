@@ -465,7 +465,7 @@ watch(
               通过将数据集成、实时和离线开发任务串联成作业，实现跨任务的依赖控制与流程化调度。支持定时执行、状态监控与日志查看，保障数据处理链路的自动化与稳定运行。
             </p>
           </div>
-          <Button @click="closeBanner(true)">不再展示</Button><Button type="primary" @click="closeBanner()">关闭</Button>
+          <Button @click="closeBanner(true)">不再提示</Button><Button type="primary" @click="closeBanner()">关闭</Button>
         </div>
         <div
           class="qj-layout"

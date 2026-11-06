@@ -223,7 +223,7 @@ export function getMasterModelStatistics(
 export function getMasterModelDataCount(id: GovernanceMasterDataApi.Id) {
   return requestClient.get<GovernanceMasterDataApi.ModelDataCount>(
     '/governance/master-model/data-count',
-    { params: { id } },
+    { params: { id }, silentError: true },
   );
 }
 

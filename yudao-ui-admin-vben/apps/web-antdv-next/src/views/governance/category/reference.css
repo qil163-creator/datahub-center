@@ -31,6 +31,7 @@
 }
 
 .category-tree-icon {
+  flex: none;
   width: 16px;
   height: 16px;
   object-fit: contain;
@@ -44,19 +45,23 @@
 
 .category-tree-title {
   display: flex;
+  gap: 6px;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
+  min-width: 0;
   font-size: 14px;
 }
 
-.category-tree-title > span {
+.category-tree-label {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .category-tree-more {
+  flex: none;
   padding: 0 4px;
   color: #909399;
   cursor: pointer;
@@ -161,6 +166,11 @@
   min-height: 0;
 }
 
+.category-table .ant-table-thead > tr > th,
+.category-table .ant-table-tbody > tr > td {
+  font-size: 12px;
+}
+
 .category-name-cell {
   text-align: left;
 }
@@ -173,14 +183,8 @@
   white-space: normal;
 }
 
-.category-name-cell > p {
-  display: block;
-  margin: 0;
-  font-size: 12px;
-  line-height: 18px;
+.category-name-cell > .category-description {
   color: hsl(var(--muted-foreground));
-  overflow-wrap: anywhere;
-  white-space: normal;
 }
 
 .category-code {

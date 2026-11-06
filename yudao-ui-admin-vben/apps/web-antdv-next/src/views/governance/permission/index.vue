@@ -19,6 +19,7 @@ import {
   savePermissionConfig,
 } from '#/api/governance/permission';
 import { getSimpleRoleList } from '#/api/system/role';
+import PageGuide from '#/components/page-guide/index.vue';
 
 import BatchConfigModal from './components/batch-config-modal.vue';
 import DatabaseTreePanel from './components/database-tree-panel.vue';
@@ -413,14 +414,15 @@ onMounted(initData);
     >
       <Card class="shrink-0" size="small">
         <div class="flex items-start justify-between gap-4">
-          <Alert
+          <PageGuide
+            guide-id="governance.permission.scope"
             class="flex-1"
             show-icon
             type="info"
             message="权限配置说明"
             description="本页面保留数据权限规则的配置基础。当前业务查询、同步、研发和数据服务暂不应用此处规则，保存配置不会限制这些模块的数据访问。系统登录、角色菜单及功能操作权限继续生效。"
           />
-          <div class="flex shrink-0 items-center gap-2">
+          <div class="ml-auto flex shrink-0 items-center gap-2">
             <Tag v-if="dirty" color="warning">有未保存的配置</Tag>
             <Button
               v-access:code="'governance:safety-permission:update'"

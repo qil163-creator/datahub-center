@@ -65,6 +65,8 @@ const dataCounts = ref<
     Partial<GovernanceMasterDataApi.ModelDataCount> & { loading: boolean }
   >
 >({});
+const countRequests = new Set<Promise<GovernanceMasterDataApi.ModelDataCount>>();
+const maxConcurrentCounts = 2;
 let countGeneration = 0;
 const domains = ref<GovernanceMasterDomainApi.Domain[]>([]);
 const domainKeyword = ref('');
@@ -281,6 +283,9 @@ async function load() {
       },
     });
     await gridApi.grid.clearCheckboxRow();
+    if (current()) {
+      for (const model of page.list) void queryDataCount(model);
+    }
   } catch {
     if (current()) failed.value = true;
   } finally {
@@ -332,24 +337,52 @@ function detail(row: GovernanceMasterDataApi.Model) {
 function modelTitle(row: GovernanceMasterDataApi.Model) {
   return `${row.tableCn || '-'}${row.tableName ? ` (${row.tableName})` : ''}`;
 }
+function isCountableModel(row: GovernanceMasterDataApi.Model) {
+  return row.id !== undefined && row.id !== null && isReadyModel(row);
+}
+
 async function queryDataCount(row: GovernanceMasterDataApi.Model) {
-  if (row.id === undefined || loading.value || !canReadDataCount.value) return;
-  const id = String(row.id);
+  const modelId = row.id;
+  if (
+    modelId === undefined ||
+    modelId === null ||
+    !isReadyModel(row) ||
+    !canReadDataCount.value
+  )
+    return;
+  const id = String(modelId);
   if (dataCounts.value[id]?.loading) return;
   const current = scope.begin(`data-count:${id}`);
   const generation = countGeneration;
-  const active = () => current() && generation === countGeneration;
+  const active = () =>
+    current() && generation === countGeneration && canReadDataCount.value;
   dataCounts.value[id] = { loading: true };
+  let request: Promise<GovernanceMasterDataApi.ModelDataCount> | undefined;
   try {
-    const result = await getMasterModelDataCount(row.id);
+    // DB Switch 默认每个用户允许同时执行两次计数，翻页或重试也共用额度。
+    while (active() && countRequests.size >= maxConcurrentCounts) {
+      await Promise.race(countRequests).catch(() => {});
+    }
+    if (!active()) return;
+    request = getMasterModelDataCount(modelId);
+    countRequests.add(request);
+    const result = await request;
     if (active()) dataCounts.value[id] = { ...result, loading: false };
   } catch {
     if (active())
       dataCounts.value[id] = { loading: false, message: '查询失败，请重试' };
   } finally {
-    if (active() && dataCounts.value[id]) dataCounts.value[id].loading = false;
+    if (request) countRequests.delete(request);
   }
 }
+watch(canReadDataCount, (allowed) => {
+  if (allowed) {
+    void load();
+    return;
+  }
+  ++countGeneration;
+  dataCounts.value = {};
+});
 function isDeletableSelection(ids: readonly GovernanceMasterDataApi.Id[]) {
   return ids.every((id) =>
     canDeleteMasterModel(
@@ -523,8 +556,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 <span
                   class="master-model-domain-name"
                   :title="String(node.title)"
-                  >{{ node.title }}</span
                 >
+                  {{ node.title }}
+                </span>
                 <span class="master-sidebar__item-count">{{ node.count }}</span>
               </span>
             </template>
@@ -593,7 +627,12 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                     "
                     @click="detail(row)"
                   >
-                    {{ modelTitle(row) }}
+                    <IconifyIcon
+                      aria-hidden="true"
+                      class="mt-px size-4 shrink-0 rounded-sm bg-sky-700 p-0.5 text-white"
+                      icon="carbon:data-table"
+                    />
+                    <span class="min-w-0">{{ modelTitle(row) }}</span>
                   </button>
                   <Tag
                     :color="status(row)?.color"
@@ -640,48 +679,43 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 <span>字段数：{{ row.fieldCount ?? '-' }} 个</span>
                 <span class="master-model-counts__data">
                   数据量：
+                  <Tooltip
+                    v-if="!canReadDataCount || !isCountableModel(row)"
+                    :title="
+                      canReadDataCount ? '暂无数据量' : '需要主数据查询权限'
+                    "
+                  >
+                    <span>-</span>
+                  </Tooltip>
                   <template
-                    v-if="dataCounts[String(row.id)]?.dataCount != null"
+                    v-else-if="dataCounts[String(row.id)]?.dataCount != null"
                   >
                     {{ dataCounts[String(row.id)]?.dataCount }} 条
                   </template>
+                  <span
+                    v-else-if="
+                      !dataCounts[String(row.id)] ||
+                      dataCounts[String(row.id)]?.loading
+                    "
+                    class="text-muted-foreground"
+                  >
+                    读取中…
+                  </span>
                   <Tooltip
                     v-else
-                    :title="
-                      dataCounts[String(row.id)]?.message ||
-                      (canReadDataCount
-                        ? '按需查询目标表数据量'
-                        : '需要主数据查询权限')
-                    "
+                    :title="dataCounts[String(row.id)]?.message || '暂无数据量'"
                   >
                     <Button
-                      v-if="
-                        canReadDataCount &&
-                        dataCounts[String(row.id)]?.available !== false
-                      "
+                      v-if="dataCounts[String(row.id)]?.available === undefined"
                       type="link"
                       size="small"
                       class="master-model-counts__query"
-                      :loading="dataCounts[String(row.id)]?.loading"
-                      :disabled="
-                        loading ||
-                        row.publishState === 'UNKNOWN' ||
-                        row.publishState === 'APPLYING'
-                      "
                       @click="queryDataCount(row)"
                     >
                       <template #icon>
-                        <IconifyIcon
-                          :icon="
-                            dataCounts[String(row.id)]?.message
-                              ? 'lucide:refresh-cw'
-                              : 'lucide:search'
-                          "
-                        />
+                        <IconifyIcon icon="lucide:refresh-cw" />
                       </template>
-                      {{
-                        dataCounts[String(row.id)]?.message ? '重试' : '查询'
-                      }}
+                      重试
                     </Button>
                     <span v-else>-</span>
                   </Tooltip>
@@ -772,14 +806,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                       }),
                   },
                 ]"
-              >
-                <template #more>
-                  <Button type="link" size="small">
-                    <IconifyIcon icon="lucide:chevron-down" />
-                    更多
-                  </Button>
-                </template>
-              </TableAction>
+              />
             </template>
           </Grid>
         </div>
@@ -870,6 +897,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
 }
 
 .master-model-info__title {
+  display: inline-flex;
+  gap: 6px;
+  align-items: flex-start;
   min-width: 0;
   color: hsl(var(--primary));
   text-align: left;
