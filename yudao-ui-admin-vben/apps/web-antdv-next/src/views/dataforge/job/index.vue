@@ -15,6 +15,7 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
 import {
@@ -538,14 +539,6 @@ watch(
 </Dropdown>
 </template>
             </Tree>
-            <Button
-              v-if="can('create')"
-              class="qj-new-category"
-              type="link"
-              @click="openCategory()"
-              >
-＋ 新增类目
-</Button>
           </aside>
           <SidebarCollapse
             :collapsed="categoryCollapsed"
@@ -675,9 +668,20 @@ watch(
                     }}
 </template>
                     <div v-else-if="column.key === 'info'" class="qj-info">
-                      <button type="button" @click="detail(record)">
-                        {{ record.name }}
-                      </button>
+                      <div class="qj-info-title">
+                        <IconifyIcon
+                          icon="lucide:workflow"
+                          class="qj-info-icon"
+                          aria-hidden="true"
+                        />
+                        <button
+                          type="button"
+                          :title="record.name"
+                          @click="detail(record)"
+                        >
+                          {{ record.name }}
+                        </button>
+                      </div>
                       <p :title="record.description">
                         {{ record.description || '-' }}
                       </p>

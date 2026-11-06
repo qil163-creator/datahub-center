@@ -113,11 +113,6 @@
   white-space: nowrap;
 }
 
-.qj-new-category {
-  align-self: flex-start;
-  margin-top: 12px;
-}
-
 .qj-main {
   display: flex;
   flex-direction: column;
@@ -255,10 +250,29 @@
   color: #999;
 }
 
-.qj-info button {
-  width: 100%;
+.qj-info-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.qj-info-icon {
+  box-sizing: border-box;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  color: #fff;
+  background-color: #6d4bd1;
+  border-radius: 3px;
+}
+
+.qj-info-title button {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
   color: #2f62ff;
   text-align: left;
   white-space: nowrap;

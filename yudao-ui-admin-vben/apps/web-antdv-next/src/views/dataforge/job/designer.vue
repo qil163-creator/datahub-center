@@ -8,7 +8,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
-import { Page } from '@vben/common-ui';
+import { confirm, Page } from '@vben/common-ui';
 
 import {
   Alert,
@@ -283,18 +283,20 @@ function configured(value: Api.Job) {
   draft.value = value.flowJson || draft.value;
   saved.value = draft.value;
 }
-function discard() {
-  if (!dirty.value) return Promise.resolve(true);
-  return new Promise<boolean>((resolve) =>
-    Modal.confirm({
+async function discard() {
+  if (!dirty.value) return true;
+  try {
+    await confirm({
       title: '作业流程尚未保存',
       content: '确认离开并丢弃未保存的修改？',
-      okText: '确认离开',
+      confirmText: '确认离开',
       cancelText: '继续编辑',
-      onOk: () => resolve(true),
-      onCancel: () => resolve(false),
-    }),
-  );
+      icon: 'warning',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 function beforeUnload(event: BeforeUnloadEvent) {
   if (dirty.value) event.preventDefault();
