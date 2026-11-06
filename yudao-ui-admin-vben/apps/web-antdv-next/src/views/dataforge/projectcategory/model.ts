@@ -15,7 +15,6 @@ export const categoryLabels: Record<Api.Kind, string> = {
   development: '数据开发类目',
   integration: '数据集成类目',
   masterPush: '主数据推送类目',
-  push: '数据推送类目',
 };
 
 export function categoryPermission(kind: Api.Kind, action: string) {
@@ -23,7 +22,6 @@ export function categoryPermission(kind: Api.Kind, action: string) {
   const resource = {
     development: 'dev-category',
     integration: 'integration-category',
-    push: 'push-category',
   }[kind];
   return `dataforge:${resource}:${action}`;
 }

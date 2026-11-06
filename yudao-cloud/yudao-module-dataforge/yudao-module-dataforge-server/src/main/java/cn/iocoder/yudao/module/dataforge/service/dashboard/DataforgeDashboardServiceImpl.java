@@ -8,19 +8,14 @@ import cn.iocoder.yudao.module.dataforge.dal.dataobject.database.DatabaseDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.databasetype.DatabaseTypeDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.dev.DevRecordDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.dev.DevTaskDO;
-import cn.iocoder.yudao.module.dataforge.dal.dataobject.push.DataPushTaskDO;
-import cn.iocoder.yudao.module.dataforge.dal.dataobject.push.DataPushTaskLogDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.access.DataAccessMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.access.DataAccessTaskMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.database.DatabaseMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.databasetype.DatabaseTypeMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.dev.DevRecordMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.dev.DevTaskMapper;
-import cn.iocoder.yudao.module.dataforge.dal.mysql.push.DataPushTaskLogMapper;
-import cn.iocoder.yudao.module.dataforge.dal.mysql.push.DataPushTaskMapper;
 import cn.iocoder.yudao.module.dataforge.enums.access.AccessReleaseStatusEnum;
 import cn.iocoder.yudao.module.dataforge.enums.access.AccessRunStatusEnum;
-import cn.iocoder.yudao.module.dataforge.enums.push.PushRunStatusEnum;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -62,12 +57,6 @@ public class DataforgeDashboardServiceImpl implements DataforgeDashboardService 
     @Resource
     private DevRecordMapper devRecordMapper;
 
-    @Resource
-    private DataPushTaskMapper dataPushTaskMapper;
-
-    @Resource
-    private DataPushTaskLogMapper dataPushTaskLogMapper;
-
     /**
      * 获得首页看板汇总：数据源 / 数据同步任务 / 开发任务数量，以及今日执行情况
      *
@@ -85,10 +74,6 @@ public class DataforgeDashboardServiceImpl implements DataforgeDashboardService 
         vo.setAccessReleasedCount(dataAccessMapper.selectCount(
                 DataAccessDO::getStatus, AccessReleaseStatusEnum.RELEASED.getStatus()));
         vo.setTodayAccessRun(buildTodayAccessRun(todayStart));
-        vo.setPushJobCount(dataPushTaskMapper.selectCount());
-        vo.setPushReleasedCount(dataPushTaskMapper.selectCount(
-                DataPushTaskDO::getStatus, DataPushTaskDO.STATUS_RELEASED));
-        vo.setTodayPushRun(buildTodayPushRun(todayStart));
         // 3. 数据开发
         vo.setDevTaskCount(devTaskMapper.selectCount());
         vo.setDevTaskOnlineCount(devTaskMapper.selectCount(DevTaskDO::getStatus, DevTaskDO.STATUS_ONLINE));
@@ -128,17 +113,6 @@ public class DataforgeDashboardServiceImpl implements DataforgeDashboardService 
                 AccessRunStatusEnum.SUCCESS.getStatus(),
                 AccessRunStatusEnum.FAILED.getStatus(),
                 List.of(AccessRunStatusEnum.RUNNING.getStatus(), AccessRunStatusEnum.WAITING.getStatus()));
-    }
-
-    /** 今日数据推送执行：成功 / 失败 / 运行中（含等待中） */
-    private DataforgeDashboardRespVO.RunSummary buildTodayPushRun(LocalDateTime todayStart) {
-        List<DataPushTaskLogDO> logs = dataPushTaskLogMapper.selectList(new LambdaQueryWrapperX<DataPushTaskLogDO>()
-                .select(DataPushTaskLogDO::getRunStatus)
-                .ge(DataPushTaskLogDO::getStartTime, todayStart));
-        return summarize(logs, DataPushTaskLogDO::getRunStatus,
-                PushRunStatusEnum.SUCCESS.getStatus(),
-                PushRunStatusEnum.FAILED.getStatus(),
-                List.of(PushRunStatusEnum.RUNNING.getStatus(), PushRunStatusEnum.WAITING.getStatus()));
     }
 
     /** 今日开发任务执行：SUCCESS / FAILED / RUNNING（STOPPED 只计入总数） */

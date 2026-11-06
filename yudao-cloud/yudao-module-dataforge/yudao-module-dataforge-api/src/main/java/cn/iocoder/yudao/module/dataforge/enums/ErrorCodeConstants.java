@@ -302,46 +302,6 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_PLAN_CATEGORY_HAS_CHILDREN = new ErrorCode(1_500_021_124, "分类下存在子分类，不允许删除");
     ErrorCode FILL_PLAN_CATEGORY_HAS_PLANS = new ErrorCode(1_500_021_125, "分类下存在采集计划，请先调整计划分类");
 
-    // ========== 数据推送 1_500_025_000 ==========
-    ErrorCode DATA_PUSH_CONFIG_NOT_EXISTS = new ErrorCode(1_500_025_000, "推送配置不存在");
-    ErrorCode DATA_PUSH_TASK_NOT_EXISTS = new ErrorCode(1_500_025_001, "推送任务不存在");
-    ErrorCode DATA_PUSH_LOG_NOT_EXISTS = new ErrorCode(1_500_025_002, "推送执行记录不存在");
-    ErrorCode DATA_PUSH_RELEASED_CANNOT_MODIFY = new ErrorCode(1_500_025_003, "任务已发布，请先取消发布");
-    ErrorCode DATA_PUSH_NOT_RELEASED = new ErrorCode(1_500_025_004, "任务尚未发布");
-    ErrorCode DATA_PUSH_CHANNEL_TYPE_INVALID = new ErrorCode(1_500_025_005, "不支持的推送通道类型");
-    ErrorCode DATA_PUSH_CHANNEL_CONFIG_INVALID = new ErrorCode(1_500_025_006, "推送通道配置不完整：{}");
-    ErrorCode DATA_PUSH_SOURCE_DATABASE_NOT_EXISTS = new ErrorCode(1_500_025_007, "源端数据源不存在");
-    ErrorCode DATA_PUSH_TARGET_DATABASE_NOT_EXISTS = new ErrorCode(1_500_025_008, "目标数据源不存在");
-    ErrorCode DATA_PUSH_SQL_INVALID = new ErrorCode(1_500_025_009, "SQL 不合法：{}");
-    ErrorCode DATA_PUSH_INCREMENT_COLUMN_REQUIRED = new ErrorCode(1_500_025_010, "增量推送必须指定增量字段");
-    ErrorCode DATA_PUSH_INCREMENT_COLUMN_NOT_EXISTS = new ErrorCode(1_500_025_011, "增量字段【{}】不存在");
-    ErrorCode DATA_PUSH_TABLE_REQUIRED = new ErrorCode(1_500_025_012, "表模式必须选择源表");
-    ErrorCode DATA_PUSH_CRON_INVALID = new ErrorCode(1_500_025_013,
-            "cron 表达式无效（需为 6 位 Spring cron，例如 0 0 2 * * ?）：{}");
-    ErrorCode DATA_PUSH_RUNNING = new ErrorCode(1_500_025_014,
-            "任务尚在执行或存在未确认结果，请等待结束或核查，禁止重复推送");
-    ErrorCode DATA_PUSH_NOT_RUNNING = new ErrorCode(1_500_025_015, "任务当前没有在运行");
-    ErrorCode DATA_PUSH_CONFIG_IN_USE = new ErrorCode(1_500_025_016, "推送配置已被任务引用，不能删除");
-    ErrorCode DATA_PUSH_MODE_INVALID = new ErrorCode(1_500_025_017, "推送方式仅支持全量或增量");
-    ErrorCode DATA_PUSH_TASK_TYPE_INVALID = new ErrorCode(1_500_025_018, "调度类型仅支持一次性或周期性");
-    ErrorCode DATA_PUSH_TYPE_INVALID = new ErrorCode(1_500_025_019, "推送类型仅支持数据表或自定义 SQL");
-    ErrorCode DATA_PUSH_CONFIG_LOCKED = new ErrorCode(1_500_025_020, "推送配置已被已发布任务引用，请先取消发布相关任务");
-    ErrorCode DATA_PUSH_TABLE_NOT_EXISTS = new ErrorCode(1_500_025_021, "源表【{}】不存在或无法访问");
-    ErrorCode DATA_PUSH_INCREMENT_COLUMN_TYPE_INVALID = new ErrorCode(1_500_025_022,
-            "增量字段【{}】类型不支持（{}），请选择数值或时间类型");
-    ErrorCode DATA_PUSH_EXECUTOR_BUSY = new ErrorCode(1_500_025_023, "推送执行队列已满，请稍后重试");
-    ErrorCode DATA_PUSH_INCREMENT_NOT_ENABLED = new ErrorCode(1_500_025_024, "该任务不是增量推送，没有水位");
-    ErrorCode DATA_PUSH_SOURCE_META_FAILED = new ErrorCode(1_500_025_025, "读取源结构失败：{}");
-    ErrorCode DATA_PUSH_INIT_WATERMARK_INVALID = new ErrorCode(1_500_025_026, "首次起始水位不合法：{}");
-    ErrorCode DATA_PUSH_PREVIEW_FAILED = new ErrorCode(1_500_025_027, "试跑预览失败：{}");
-    ErrorCode DATA_PUSH_CHANNEL_TEST_FAILED = new ErrorCode(1_500_025_030, "推送通道测试失败：{}");
-    ErrorCode DATA_PUSH_REVIEW_REQUIRED = new ErrorCode(1_500_025_031,
-            "仅可核查未知记录；须确认工作者及外部请求终止、目标无生效或已完整补偿，活跃领取未结束时禁止处置");
-    ErrorCode DATA_PUSH_REVIEW_CONFLICT = new ErrorCode(1_500_025_032,
-            "核查记录或请求已变化，请刷新；同一请求编号不能更换内容或操作者");
-
-    ErrorCode DATA_PUSH_CATEGORY_INVALID = new ErrorCode(1_500_025_033, "推送类目操作失败：{}");
-
     // ========== 批量文件入库 1_500_029_000 ==========
     ErrorCode BATCH_FILE_NOT_EXISTS = new ErrorCode(1_500_029_000, "批量文件入库任务不存在");
     ErrorCode BATCH_FILE_CONFIG_INVALID = new ErrorCode(1_500_029_001, "入库配置不合法：{}");

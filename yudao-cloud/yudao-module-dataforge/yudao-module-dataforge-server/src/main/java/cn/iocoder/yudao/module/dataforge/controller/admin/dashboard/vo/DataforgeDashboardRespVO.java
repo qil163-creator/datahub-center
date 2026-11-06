@@ -33,15 +33,6 @@ public class DataforgeDashboardRespVO {
     @Schema(description = "今日数据同步执行统计")
     private RunSummary todayAccessRun;
 
-    @Schema(description = "数据推送任务总数", example = "8")
-    private Long pushJobCount;
-
-    @Schema(description = "已发布的数据推送任务数", example = "6")
-    private Long pushReleasedCount;
-
-    @Schema(description = "今日数据推送执行统计")
-    private RunSummary todayPushRun;
-
     // ==================== 数据开发 ====================
 
     @Schema(description = "开发任务总数", example = "58")

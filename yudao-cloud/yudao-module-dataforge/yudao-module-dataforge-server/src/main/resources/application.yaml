@@ -162,32 +162,6 @@ yudao:
     version: ${yudao.info.version}
   tenant: # 多租户相关配置项
     enable: false
-  dataforge:
-    push:
-      max-log-chars: 32000
-      watermark-max-length: 256
-      max-lob-bytes: 65536
-      max-string-chars: 16384
-      max-batch-bytes: 2097152
-      max-batch-size: 1000
-      log-retain: 50
-      alert-fail-count: 3
-      heartbeat-interval-ms: 30000
-      stale-running-minutes: 10
-      preview-max-rows: 50
-      queue-alert-interval-minutes: 10
-      executor:
-        core-size: 4
-        max-size: 16
-        queue-size: 32
-      http:
-        # 非空时主机必须命中白名单（支持 *.example.com）；命中后允许解析到内网
-        allowed-hosts: []
-        # 白名单为空时是否仍允许私网。生产请保持 false
-        allow-private: false
-        timeout-ms: 30000
-        retry-times: 2
-        retry-interval-ms: 1000
   websocket: # 在线填报多人协同
     enable: true
     path: /dataforge/ws # 网关路由 dataforge-ws 与此保持一致

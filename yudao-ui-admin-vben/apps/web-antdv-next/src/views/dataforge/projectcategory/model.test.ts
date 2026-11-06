@@ -94,9 +94,6 @@ describe('项目类目树与筛选', () => {
     expect(categoryPermission('integration', 'delete')).toBe(
       'dataforge:integration-category:delete',
     );
-    expect(categoryPermission('push', 'query')).toBe(
-      'dataforge:push-category:query',
-    );
     expect(categoryPermission('masterPush', 'delete')).toBe(
       'governance:master-push-category:delete',
     );

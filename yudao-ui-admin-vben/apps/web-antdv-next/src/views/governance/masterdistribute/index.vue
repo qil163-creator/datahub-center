@@ -39,9 +39,9 @@ import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { createObjectRequestGuard } from '#/hooks/object-request-guard';
 import { $t } from '#/locales';
-import { buildCategoryTree } from '#/views/dataforge/datapush/task/category-model';
 
 import { useTreeExpansion } from '../common/use-tree-expansion';
+import { buildCategoryTree } from './category-model';
 import {
   DISTRIBUTE_TYPE_OPTIONS,
   isRunBlocked,

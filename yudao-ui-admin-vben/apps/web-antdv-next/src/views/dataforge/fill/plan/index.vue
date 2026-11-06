@@ -321,8 +321,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
                 auth: ['dataforge:fill-plan:update'],
                 onClick: handleEdit.bind(null, row),
               },
-            ]"
-            :drop-down-actions="[
               {
                 label: '详情',
                 type: 'link',
@@ -330,6 +328,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
                 auth: ['dataforge:fill-plan:query'],
                 onClick: handleDetail.bind(null, row),
               },
+            ]"
+            :drop-down-actions="[
               {
                 label: '调整分类/人员',
                 type: 'link',

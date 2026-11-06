@@ -76,10 +76,9 @@ describe('项目类目管理请求契约', () => {
     );
   });
 
-  it.each([
-    ['push', '/dataforge/push-category'],
-    ['masterPush', '/governance/master-push-category'],
-  ] as const)('%s 类目使用独立接口，读写和批量操作保留长 ID', (kind, base) => {
+  it('主数据推送类目使用独立接口，读写和批量操作保留长 ID', () => {
+    const kind = 'masterPush';
+    const base = '/governance/master-push-category';
     const id = '9007199254740993';
     const parentId = '9007199254740995';
     const body = {
@@ -90,7 +89,7 @@ describe('项目类目管理请求契约', () => {
       status: 0,
       sort: 0,
     };
-    const data = { ...body, kind };
+    const data = { ...body, kind } as const;
     getProjectCategoryList(kind);
     expect(requestClient.get).toHaveBeenCalledWith(
       `${base}/list`,

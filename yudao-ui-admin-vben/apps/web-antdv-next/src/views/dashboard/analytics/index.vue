@@ -56,7 +56,7 @@ const metricItems = computed<MetricCardItem[]>(() => {
       color: CHART_COLORS.blue,
       value: dataforge?.databaseCount,
       unit: '个',
-      hint: `集成任务 ${formatCount(dataforge?.accessJobCount)} · 推送 ${formatCount(dataforge?.pushJobCount)} · 开发任务 ${formatCount(dataforge?.devTaskCount)}`,
+      hint: `集成任务 ${formatCount(dataforge?.accessJobCount)} · 开发任务 ${formatCount(dataforge?.devTaskCount)}`,
       target: DASHBOARD_TARGETS.database,
     },
     {

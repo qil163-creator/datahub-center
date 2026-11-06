@@ -3,7 +3,7 @@ import { requestClient } from '#/api/request';
 export namespace ProjectCategoryApi {
   export type Id = number | string;
   export type Count = number | string;
-  export type Kind = 'development' | 'integration' | 'masterPush' | 'push';
+  export type Kind = 'development' | 'integration' | 'masterPush';
 
   export interface Category {
     id: Id;
@@ -32,11 +32,9 @@ export namespace ProjectCategoryApi {
 }
 
 const base = '/dataforge/project-category';
-const pushBase = '/dataforge/push-category';
 const masterPushBase = '/governance/master-push-category';
 
 function independentBase(kind: ProjectCategoryApi.Kind) {
-  if (kind === 'push') return pushBase;
   if (kind === 'masterPush') return masterPushBase;
   return undefined;
 }

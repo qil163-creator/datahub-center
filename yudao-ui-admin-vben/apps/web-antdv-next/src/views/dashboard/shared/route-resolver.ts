@@ -83,16 +83,6 @@ export const DASHBOARD_TARGETS = {
   database: { names: ['Database'], titles: ['数据库信息', '数据源'] },
   /** 数据同步任务 */
   access: { names: ['DataforgeAccess'], titles: ['数据同步'] },
-  /** 数据推送配置 */
-  dataPushConfig: {
-    names: ['DataforgeDataPushConfig'],
-    titles: ['推送配置'],
-  },
-  /** 数据推送任务 */
-  dataPushTask: {
-    names: ['DataforgeDataPushTask'],
-    titles: ['推送任务'],
-  },
   /** 数据同步执行记录（同页面内 Tab，回到任务列表） */
   accessTask: { names: ['DataforgeAccess'], titles: ['数据同步'] },
   /** 开发工作台 */

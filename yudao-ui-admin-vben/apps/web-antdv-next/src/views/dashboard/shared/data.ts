@@ -193,7 +193,7 @@ function buildChainStages(input: DomainData): ChainStage[] {
       hint:
         dataforge?.accessReleasedCount === undefined
           ? '数据同步 / 采集 / 推送任务'
-          : `已发布同步 ${dataforge.accessReleasedCount} · 推送 ${dataforge.pushReleasedCount ?? 0} · 开发 ${dataforge.devTaskCount ?? 0}`,
+          : `已发布同步 ${dataforge.accessReleasedCount} · 开发 ${dataforge.devTaskCount ?? 0}`,
       target: DASHBOARD_TARGETS.access,
     },
     {
@@ -295,7 +295,6 @@ function buildHealthMetrics(input: DomainData): HealthMetric[] {
   const todayRun = mergeRuns(
     dataforge?.todayDevRun,
     dataforge?.todayAccessRun,
-    dataforge?.todayPushRun,
   );
   const weekCreated = workOrderStats?.trend?.reduce(
     (sum, point) => sum + point.createdCount,
@@ -315,22 +314,8 @@ function buildHealthMetrics(input: DomainData): HealthMetric[] {
       description:
         todayRun === undefined
           ? '任务执行统计不可用'
-          : `成功 ${todayRun.successCount ?? 0} · 失败 ${todayRun.failedCount ?? 0} · 运行中 ${todayRun.runningCount ?? 0}（开发任务 + 数据同步 + 数据推送）`,
+          : `成功 ${todayRun.successCount ?? 0} · 失败 ${todayRun.failedCount ?? 0} · 运行中 ${todayRun.runningCount ?? 0}（开发任务 + 数据同步）`,
       target: DASHBOARD_TARGETS.devInstance,
-    },
-    {
-      key: 'push',
-      title: '数据推送',
-      value:
-        dataforge?.pushJobCount === undefined
-          ? '--'
-          : `${dataforge.pushJobCount} 个`,
-      level: countLevel(dataforge?.todayPushRun?.failedCount),
-      description:
-        dataforge?.pushReleasedCount === undefined
-          ? '数据推送统计不可用'
-          : `已发布 ${dataforge.pushReleasedCount} · 今日执行 ${dataforge.todayPushRun?.totalCount ?? 0} 次（成功 ${dataforge.todayPushRun?.successCount ?? 0} / 失败 ${dataforge.todayPushRun?.failedCount ?? 0}）`,
-      target: DASHBOARD_TARGETS.dataPushTask,
     },
     {
       key: 'apiToday',

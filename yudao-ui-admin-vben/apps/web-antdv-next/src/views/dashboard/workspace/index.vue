@@ -62,12 +62,6 @@ const QUICK_NAV_CANDIDATES: {
     title: '数据同步',
   },
   {
-    color: '#0284c7',
-    icon: 'carbon:send-alt',
-    target: DASHBOARD_TARGETS.dataPushTask,
-    title: '数据推送',
-  },
-  {
     color: '#7c3aed',
     icon: 'carbon:code',
     target: DASHBOARD_TARGETS.devWorkbench,

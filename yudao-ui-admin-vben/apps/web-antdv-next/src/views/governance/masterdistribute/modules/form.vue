@@ -31,10 +31,10 @@ import {
 } from '#/api/governance/masterdistribute';
 import { getMasterPushCategoryTree } from '#/api/governance/masterdistribute/category';
 import { CronTab } from '#/components/cron-tab';
-import { buildCategoryOptions } from '#/views/dataforge/datapush/task/category-model';
 
 import { clearReactiveObject } from '../../common/form-layout';
 import { useMasterScope } from '../../mastercommon/use-master-scope';
+import { buildCategoryOptions } from '../category-model';
 import { DISTRIBUTE_TYPE_OPTIONS, TASK_TYPE_OPTIONS } from '../data';
 import {
   defaultApiConfig,

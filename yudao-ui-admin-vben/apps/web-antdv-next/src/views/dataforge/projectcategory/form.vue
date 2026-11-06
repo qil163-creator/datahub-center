@@ -74,10 +74,10 @@ const options = computed(() =>
   categoryParentOptions(parents.value, editId.value),
 );
 const nameLimit = computed(() =>
-  props.kind === 'push' || props.kind === 'masterPush' ? 128 : 50,
+  props.kind === 'masterPush' ? 128 : 50,
 );
 const descriptionLimit = computed(() =>
-  props.kind === 'push' || props.kind === 'masterPush' ? 500 : 256,
+  props.kind === 'masterPush' ? 500 : 256,
 );
 const rules = computed(() => ({
   parentId: [{ required: true, message: '请选择上级类目' }],

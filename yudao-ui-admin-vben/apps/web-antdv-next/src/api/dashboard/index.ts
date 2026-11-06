@@ -75,9 +75,6 @@ export namespace DashboardApi {
     accessJobCount?: number;
     accessReleasedCount?: number;
     todayAccessRun?: RunSummary;
-    pushJobCount?: number;
-    pushReleasedCount?: number;
-    todayPushRun?: RunSummary;
     devTaskCount?: number;
     devTaskOnlineCount?: number;
     todayDevRun?: RunSummary;
