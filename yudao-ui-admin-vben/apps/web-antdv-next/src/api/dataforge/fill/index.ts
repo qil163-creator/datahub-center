@@ -586,23 +586,6 @@ export function getTableVersionListByTable(tableId: number | string) {
   );
 }
 
-/** 发布模板版本 */
-export function publishTableVersion(data: {
-  businessKeyFields?: string[];
-  mergeStrategy: string;
-  tableId: number;
-}) {
-  return requestClient.post<number>(
-    '/dataforge/fill-table-version/publish',
-    data,
-  );
-}
-
-/** 停用模板版本（仅禁止新任务引用） */
-export function disableTableVersion(id: number) {
-  return requestClient.put(`/dataforge/fill-table-version/disable?id=${id}`);
-}
-
 // ==================== Excel 导入导出 ====================
 
 /** 下载 Excel 填报模板（按模板版本生成，含必填标记与字典下拉） */

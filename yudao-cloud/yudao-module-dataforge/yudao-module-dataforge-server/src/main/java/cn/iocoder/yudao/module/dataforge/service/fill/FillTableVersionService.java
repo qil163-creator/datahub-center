@@ -1,7 +1,8 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
-import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTableVersionPublishReqVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTableVersionDO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableColumnDO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableDO;
 
 import java.util.List;
 
@@ -13,14 +14,14 @@ import java.util.List;
 public interface FillTableVersionService {
 
     /**
-     * 从填报表当前字段配置固化一个不可变模板版本
-     *
-     * 固化内容：字段结构（fieldCode/类型/字典/必填）、目标映射（数据源/表/列映射）、
-     * 基础校验规则、合并策略与业务键、内容哈希；发布后模板进入审批流工作模式
-     *
-     * @return 版本编号
+     * 在目标表建表前，根据本次发布的字段配置构建不可变快照。
      */
-    Long publishVersion(FillTableVersionPublishReqVO reqVO);
+    FillTableVersionDO buildReleaseSnapshot(FillTableDO table, List<FillTableColumnDO> columns);
+
+    /**
+     * 目标表创建成功后，同一事务内保存快照并发布填报表。
+     */
+    void completeTableRelease(FillTableVersionDO snapshot);
 
     /**
      * 获得模板版本（不存在抛异常）
@@ -36,10 +37,5 @@ public interface FillTableVersionService {
      * 获得填报表的版本列表（按版本号倒序）
      */
     List<FillTableVersionDO> getTableVersionListByTableId(Long tableId);
-
-    /**
-     * 停用模板版本（仅禁止新任务引用，不影响进行中任务）
-     */
-    void disableTableVersion(Long id);
 
 }

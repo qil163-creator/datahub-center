@@ -136,16 +136,16 @@ public class FillTableController {
     }
 
     /**
-     * 发布填报表（在目标数据源创建物理表）。
+     * 发布填报表，创建或校验目标物理表。
      *
      * @param id 记录编号
      * @return 填报表
      */
     @PutMapping("/release")
-    @LogRecord(type = "数据开发-数据填报-填报表", subType = "发布填报表（在目标数据源创建物理表）", bizNo = "{{(#id) ?: 0}}",
-            success = "发布了填报表并申请建立目标物理表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+    @LogRecord(type = "数据开发-数据填报-填报表", subType = "发布填报表", bizNo = "{{(#id) ?: 0}}",
+            success = "发布了填报表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
-    @Operation(summary = "发布填报表（在目标数据源创建物理表）")
+    @Operation(summary = "发布填报表", description = "目标物理表不存在时创建，已存在时校验表结构")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:release')")
     public CommonResult<Boolean> releaseFillTable(@RequestParam("id") Long id) {

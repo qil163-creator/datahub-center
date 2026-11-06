@@ -15,6 +15,12 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface FillTableMapper extends BaseMapperX<FillTableDO> {
 
+    default FillTableDO selectByIdForUpdate(Long id) {
+        return selectOne(new LambdaQueryWrapperX<FillTableDO>()
+                .eq(FillTableDO::getId, id)
+                .last("FOR UPDATE"));
+    }
+
     /**
      * 按查询条件分页读取填报表。
      *

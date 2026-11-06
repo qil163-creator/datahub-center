@@ -27,7 +27,6 @@ import {
 import Columns from './modules/columns.vue';
 import Detail from './modules/detail.vue';
 import Form from './modules/form.vue';
-import Versions from './modules/versions.vue';
 
 defineOptions({ name: 'DataforgeFillTable' });
 
@@ -41,11 +40,6 @@ const [ColumnsModal, columnsModalApi] = useVbenModal({
   destroyOnClose: true,
 });
 
-const [VersionsModal, versionsModalApi] = useVbenModal({
-  connectedComponent: Versions,
-  destroyOnClose: true,
-});
-
 const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
   destroyOnClose: true,
@@ -53,11 +47,6 @@ const [DetailModal, detailModalApi] = useVbenModal({
 
 function handleDetail(row: DataforgeFillTableApi.FillTable) {
   detailModalApi.setData({ id: row.id }).open();
-}
-
-/** 模板版本管理（发布/停用不可变版本） */
-function handleVersions(row: DataforgeFillTableApi.FillTable) {
-  versionsModalApi.setData(row).open();
 }
 
 function handleRefresh() {
@@ -77,12 +66,11 @@ function handleColumns(row: DataforgeFillTableApi.FillTable) {
   columnsModalApi.setData(row).open();
 }
 
-/** 发布：在目标数据源创建物理表 */
 async function handleRelease(row: DataforgeFillTableApi.FillTable) {
   const hideLoading = message.loading({ content: '正在发布...', duration: 0 });
   try {
     await releaseFillTable(row.id!);
-    message.success('发布成功，物理表已创建');
+    message.success('发布成功');
     handleRefresh();
   } finally {
     hideLoading();
@@ -161,7 +149,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
     <FormModal @success="handleRefresh" />
     <DetailModal />
     <ColumnsModal />
-    <VersionsModal />
     <Grid table-title="填报表">
       <template #toolbar-tools>
         <TableAction
@@ -200,6 +187,20 @@ const [Grid, gridApi] = useVbenVxeGrid({
               ifShow: row.status !== 1,
               onClick: handleEdit.bind(null, row),
             },
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['dataforge:fill-table:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
+              label: '下载模板',
+              type: 'link',
+              icon: ACTION_ICON.DOWNLOAD,
+              auth: ['dataforge:fill-table:query'],
+              onClick: handleDownloadTemplate.bind(null, row),
+            },
           ]"
           :drop-down-actions="[
             {
@@ -208,13 +209,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               icon: ACTION_ICON.EDIT,
               auth: ['dataforge:fill-table:query'],
               onClick: handleColumns.bind(null, row),
-            },
-            {
-              label: '模板版本',
-              type: 'link',
-              icon: ACTION_ICON.BOOK,
-              auth: ['dataforge:fill-table:query'],
-              onClick: handleVersions.bind(null, row),
             },
             {
               label: row.status === 1 ? '取消发布' : '发布',
@@ -226,24 +220,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
                 title:
                   row.status === 1
                     ? `确认取消发布「${row.tableEngName}」吗？仅停用模板，物理表与已合并数据保留。`
-                    : `确认发布「${row.tableEngName}」吗？将在目标数据源创建物理表（含来源追踪系统列）。`,
+                    : `确认发布「${row.tableEngName}」吗？目标表不存在时将创建，已存在时将校验表结构。`,
                 confirm:
                   row.status === 1
                     ? handleCancel.bind(null, row)
                     : handleRelease.bind(null, row),
               },
-            },
-            {
-              label: '详情',
-              icon: ACTION_ICON.VIEW,
-              auth: ['dataforge:fill-table:query'],
-              onClick: handleDetail.bind(null, row),
-            },
-            {
-              label: '下载模板',
-              icon: ACTION_ICON.DOWNLOAD,
-              auth: ['dataforge:fill-table:query'],
-              onClick: handleDownloadTemplate.bind(null, row),
             },
             {
               label: $t('common.delete'),

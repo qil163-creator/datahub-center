@@ -135,6 +135,7 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_TABLE_IMPORT_DATA_INVALID = new ErrorCode(1_500_015_014, "导入数据校验失败：{}");
     ErrorCode FILL_TABLE_COLUMN_RULE_INVALID = new ErrorCode(1_500_015_015, "字段校验规则无效：{}");
     ErrorCode FILL_TABLE_COLUMN_DICT_INVALID = new ErrorCode(1_500_015_016, "字典类型【{}】不存在或没有可用的字典项");
+    ErrorCode FILL_TABLE_TARGET_SCHEMA_MISMATCH = new ErrorCode(1_500_015_017, "目标表【{}】与填报配置不一致：{}");
 
     // ========== 文件管理 1_500_016_000 ==========
 
@@ -236,9 +237,6 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_TABLE_VERSION_NOT_EXISTS = new ErrorCode(1_500_021_000, "模板版本不存在");
     ErrorCode FILL_TABLE_VERSION_DISABLED = new ErrorCode(1_500_021_001, "模板版本已停用，不能被新任务引用");
     ErrorCode FILL_TABLE_FIELD_CODE_MISSING = new ErrorCode(1_500_021_002, "字段【{}】缺少字段码，请先保存字段配置");
-    ErrorCode FILL_MERGE_STRATEGY_INVALID = new ErrorCode(1_500_021_003, "合并策略不合法：{}");
-    ErrorCode FILL_BUSINESS_KEY_REQUIRED = new ErrorCode(1_500_021_004, "UPSERT 合并策略必须配置业务键字段");
-    ErrorCode FILL_BUSINESS_KEY_FIELD_INVALID = new ErrorCode(1_500_021_005, "业务键字段【{}】不在模板字段中");
     // ----- 采集计划 -----
     ErrorCode FILL_PLAN_NOT_EXISTS = new ErrorCode(1_500_021_010, "采集计划不存在");
     ErrorCode FILL_PLAN_STATUS_INVALID = new ErrorCode(1_500_021_011, "采集计划当前状态不允许该操作");

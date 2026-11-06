@@ -3,18 +3,21 @@ package cn.iocoder.yudao.module.dataforge.service.filltable;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.dbswitch.common.util.SqlTypeSemantics;
+import cn.iocoder.yudao.framework.dbswitch.core.database.AbstractDatabase;
+import cn.iocoder.yudao.framework.dbswitch.core.model.BasicTableMetadata;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnMetaData;
 import cn.iocoder.yudao.framework.dbswitch.core.service.IMetaDataByJdbcService;
-import cn.iocoder.yudao.framework.dbswitch.core.service.impl.MetaDataByJdbcServiceImpl;
 import cn.iocoder.yudao.framework.dbswitch.core.util.GenerateSqlUtils;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillMergeServiceImpl;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillTableVersionService;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.FillTablePageReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.FillTableRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.filltable.vo.FillTableSaveReqVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.database.DatabaseDO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTableVersionDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableColumnDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.database.DatabaseMapper;
@@ -72,6 +75,8 @@ public class FillTableServiceImpl implements FillTableService {
      */
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-z][a-z0-9_]*$");
 
+    private static final Pattern TYPE_DIMENSIONS = Pattern.compile("\\(\\s*(\\d+)\\s*(?:,\\s*(\\d+)\\s*)?\\)");
+
     private static final int RELEASED = 1;
 
     private static final int UNRELEASED = 0;
@@ -86,6 +91,9 @@ public class FillTableServiceImpl implements FillTableService {
 
     @Resource
     private FillTableColumnMapper columnMapper;
+
+    @Resource
+    private FillTableVersionService tableVersionService;
 
     @Resource
     private DatabaseMapper databaseMapper;
@@ -226,7 +234,7 @@ public class FillTableServiceImpl implements FillTableService {
     // ==================== 发布 / 取消发布 ====================
 
     /**
-     * 发布：按字段配置在目标数据源建物理表
+     * 发布：按同一份字段配置构建快照，并创建或校验目标物理表。
      *
      * @param id 记录编号
      */
@@ -237,6 +245,7 @@ public class FillTableServiceImpl implements FillTableService {
         if (CollUtil.isEmpty(columns)) {
             throw exception(FILL_TABLE_NO_COLUMN);
         }
+        FillTableVersionDO snapshot = tableVersionService.buildReleaseSnapshot(fillTable, columns);
         List<ColumnDescription> columnDescriptions = new ArrayList<>();
         List<String> pkNames = new ArrayList<>();
         for (FillTableColumnDO column : columns) {
@@ -256,21 +265,85 @@ public class FillTableServiceImpl implements FillTableService {
         columnDescriptions.add(buildSystemColumn(FillMergeServiceImpl.SYS_COL_ROW_ID,
                 ColumnMetaData.TYPE_STRING, 64, "来源行标识（系统列）"));
         AccessDatabaseResolver.ConnectionInfo conn = resolveConnection(fillTable);
-        // UUID 主键由应用生成字符串，DDL 不使用数据库自增
-        List<String> ddlList = GenerateSqlUtils.getDDLCreateTableSQL(
-                dbSwitchRuntime.products().metadata(conn.getProductType()), columnDescriptions, pkNames,
-                conn.getSchema(), fillTable.getTableEngName(), fillTable.getTableCnName(),
-                false, null);
         IMetaDataByJdbcService metaDataService = dbSwitchRuntime.jdbcMetadata(conn.getProductType());
-        for (String sql : ddlList) {
-            metaDataService.executeSql(conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), sql);
+        String tableName = fillTable.getTableEngName();
+        AbstractDatabase dialect = dbSwitchRuntime.products().metadata(conn.getProductType());
+        var existingTable = metaDataService.queryTableList(
+                        conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), conn.getSchema()).stream()
+                .filter(table -> tableName.equals(table.getTableName()))
+                .findFirst();
+        if (existingTable.isPresent()) {
+            if (existingTable.get().isViewTable()) {
+                throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "同名对象是视图");
+            }
+            BasicTableMetadata actual = metaDataService.queryTableColumnsAndKeys(
+                    conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), conn.getSchema(), tableName);
+            validateTargetSchema(tableName, dialect, columnDescriptions, pkNames, actual);
+        } else {
+            // UUID 主键由应用生成字符串，DDL 不使用数据库自增。
+            List<String> ddlList = GenerateSqlUtils.getDDLCreateTableSQL(
+                    dialect, columnDescriptions, pkNames, conn.getSchema(), tableName,
+                    fillTable.getTableCnName(), false, null);
+            for (String sql : ddlList) {
+                metaDataService.executeSql(conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), sql);
+            }
         }
-        fillTableMapper.updateById(FillTableDO.builder()
-                .id(id)
-                .status(RELEASED)
-                .releaseTime(java.time.LocalDateTime.now())
-                .releaseUserId(SecurityFrameworkUtils.getLoginUserId())
-                .build());
+        tableVersionService.completeTableRelease(snapshot);
+    }
+
+    private void validateTargetSchema(String tableName, AbstractDatabase dialect, List<ColumnDescription> expected,
+                                      List<String> primaryKeys, BasicTableMetadata actual) {
+        Map<String, ColumnDescription> actualColumns = convertMap(actual.columns(), ColumnDescription::getFieldName);
+        for (ColumnDescription column : expected) {
+            String name = column.getFieldName();
+            ColumnDescription target = actualColumns.remove(name);
+            if (target == null) {
+                throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "缺少字段【" + name + "】");
+            }
+            if (!matchesTargetColumn(dialect, column, target, primaryKeys)) {
+                throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "字段【" + name + "】的类型或约束不同");
+            }
+        }
+        if (!actualColumns.isEmpty()) {
+            throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "存在未配置的字段【"
+                    + String.join("、", actualColumns.keySet()) + "】");
+        }
+        if (!primaryKeys.equals(actual.primaryKeys())) {
+            throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "主键字段不同");
+        }
+    }
+
+    private boolean matchesTargetColumn(AbstractDatabase dialect, ColumnDescription expected,
+                                        ColumnDescription actual, List<String> primaryKeys) {
+        String name = expected.getFieldName();
+        String definition = dialect.getFieldDefinition(expected.getMetaData(), primaryKeys, false, false, false).strip();
+        String identifier = dialect.quoteIdentifier(name);
+        if (!definition.startsWith(identifier)) {
+            return false;
+        }
+        String declaredType = definition.substring(identifier.length()).strip();
+        boolean notNull = declaredType.endsWith(" NOT NULL");
+        if (notNull) {
+            declaredType = declaredType.substring(0, declaredType.length() - " NOT NULL".length()).stripTrailing();
+        }
+        boolean nullable = !notNull && !primaryKeys.contains(name);
+        String type = SqlTypeSemantics.canonicalName(declaredType);
+        if (!type.equals(SqlTypeSemantics.canonicalName(SqlTypeSemantics.metadataTypeName(actual)))
+                || nullable != actual.isNullable() || actual.isAutoIncrement()) {
+            return false;
+        }
+        // JDBC 对字符类型报告长度，对定点数报告总精度和小数位，对时间类型报告小数位。
+        var dimensions = TYPE_DIMENSIONS.matcher(declaredType);
+        if (!dimensions.find()) {
+            return true;
+        }
+        int size = Integer.parseInt(dimensions.group(1));
+        if ("time".equals(type) || "timestamp".equals(type)) {
+            return size == actual.getScaleSize();
+        }
+        return size == actual.getPrecisionSize()
+                && (!"decimal".equals(type) || actual.getScaleSize()
+                == (dimensions.group(2) == null ? 0 : Integer.parseInt(dimensions.group(2))));
     }
 
     /**

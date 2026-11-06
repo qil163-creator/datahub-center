@@ -5,12 +5,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTableVersionPublishReqVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTableVersionDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableColumnDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.filltable.FillTableDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillTableVersionMapper;
-import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableColumnMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableMapper;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillMergeStrategyEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillWorkflowModeEnum;
@@ -25,7 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -34,8 +32,7 @@ import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
 /**
  * 在线填报-模板版本 Service 实现类
  *
- * 版本发布只固化元数据，不创建目标物理表；物理表的创建/校验由任务发布环节
- * 按 targetMapping 执行（复用现有 DBSwitch 建表能力）
+ * 填报表发布时固化配置，供采集计划和填报任务使用。
  *
  * @author Li
  */
@@ -54,11 +51,10 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
 
     private static final Integer VERSION_STATUS_DISABLED = 2;
 
-    @Resource
-    private FillTableMapper fillTableMapper;
+    private static final Integer TABLE_STATUS_RELEASED = 1;
 
     @Resource
-    private FillTableColumnMapper columnMapper;
+    private FillTableMapper fillTableMapper;
 
     @Resource
     private DictDataApi dictDataApi;
@@ -66,91 +62,79 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
     @Resource
     private FillTableVersionMapper versionMapper;
 
-    /**
-     * 从填报表当前字段配置固化一个不可变模板版本
-     *
-     *  固化内容：字段结构（fieldCode/类型/字典/必填）、目标映射（数据源/表/列映射）、
-     *  基础校验规则、合并策略与业务键、内容哈希；发布后模板进入审批流工作模式
-     *
-     * @param reqVO 请求参数
-     * @return 生成或保存的记录编号
-     */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Long publishVersion(FillTableVersionPublishReqVO reqVO) {
-        // 1. 校验模板与字段配置
-        FillTableDO table = fillTableMapper.selectById(reqVO.getTableId());
-        if (table == null) {
-            throw exception(FILL_TABLE_NOT_EXISTS);
-        }
-        List<FillTableColumnDO> columns = columnMapper.selectListByTableId(reqVO.getTableId());
-        if (CollUtil.isEmpty(columns)) {
-            throw exception(FILL_TABLE_NO_COLUMN);
-        }
+    public FillTableVersionDO buildReleaseSnapshot(FillTableDO table, List<FillTableColumnDO> columns) {
         columns.forEach(column -> {
             if (StrUtil.isBlank(column.getFieldCode())) {
                 throw exception(FILL_TABLE_FIELD_CODE_MISSING, column.getCnName());
             }
         });
 
-        // 2. 校验合并策略与业务键
-        FillMergeStrategyEnum strategy = FillMergeStrategyEnum.of(reqVO.getMergeStrategy());
-        if (strategy == null) {
-            throw exception(FILL_MERGE_STRATEGY_INVALID, reqVO.getMergeStrategy());
-        }
-        Set<String> fieldCodes = columns.stream()
-                .map(FillTableColumnDO::getFieldCode).collect(Collectors.toSet());
-        if (strategy == FillMergeStrategyEnum.UPSERT) {
-            if (CollUtil.isEmpty(reqVO.getBusinessKeyFields())) {
-                throw exception(FILL_BUSINESS_KEY_REQUIRED);
-            }
-            reqVO.getBusinessKeyFields().forEach(key -> {
-                if (!fieldCodes.contains(key)) {
-                    throw exception(FILL_BUSINESS_KEY_FIELD_INVALID, key);
-                }
-            });
-        }
-
-        // 3. 固化 schema
+        // 按组织和期次替换，支持在原填报范围内更正提交。
+        String mergeStrategy = FillMergeStrategyEnum.REPLACE_SCOPE.getStrategy();
         String fieldSchemaJson = JsonUtils.toJsonString(buildFieldSchema(columns));
         String targetMappingJson = JsonUtils.toJsonString(buildTargetMapping(table, columns));
         String validationSchemaJson = JsonUtils.toJsonString(buildValidationSchema(columns));
         // 公式定义由模板设计器（阶段 2）维护，发布时先固化空结构
         String formulaSchemaJson = "{\"engineVersion\":\"1.0\",\"formulas\":[]}";
-        String businessKeyFields = CollUtil.isEmpty(reqVO.getBusinessKeyFields())
-                ? null : String.join(",", reqVO.getBusinessKeyFields());
         String contentHash = DigestUtil.sha256Hex(fieldSchemaJson + "|" + targetMappingJson + "|"
-                + validationSchemaJson + "|" + strategy.getStrategy() + "|" + StrUtil.nullToEmpty(businessKeyFields));
+                + validationSchemaJson + "|" + mergeStrategy + "|");
 
-        // 4. 生成版本号并落库
-        FillTableVersionDO latest = versionMapper.selectLatestByTableId(reqVO.getTableId());
-        FillTableVersionDO version = FillTableVersionDO.builder()
-                .tableId(reqVO.getTableId())
-                .versionNo(latest == null ? 1 : latest.getVersionNo() + 1)
+        return FillTableVersionDO.builder()
+                .tableId(table.getId())
                 .name(table.getTableCnName())
                 .status(VERSION_STATUS_RELEASED)
                 .fieldSchema(fieldSchemaJson)
                 .formulaSchema(formulaSchemaJson)
                 .validationSchema(validationSchemaJson)
                 .targetMapping(targetMappingJson)
-                .mergeStrategy(strategy.getStrategy())
-                .businessKeyFields(businessKeyFields)
+                .mergeStrategy(mergeStrategy)
                 .contentHash(contentHash)
                 .univerSdkVersion(UNIVER_SDK_VERSION)
                 .adapterProtocolVersion(ADAPTER_PROTOCOL_VERSION)
                 .snapshotSchemaVersion(SNAPSHOT_SCHEMA_VERSION)
-                .releaseUserId(SecurityFrameworkUtils.getLoginUserId())
-                .releaseTime(LocalDateTime.now())
                 .build();
-        versionMapper.insert(version);
+    }
 
-        // 5. 模板指向当前版本并进入审批流工作模式（新任务禁止直写正式表）
-        FillTableDO update = new FillTableDO();
-        update.setId(table.getId());
-        update.setCurrentVersionId(version.getId());
-        update.setWorkflowMode(FillWorkflowModeEnum.APPROVAL_FLOW.getMode());
-        fillTableMapper.updateById(update);
-        return version.getId();
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void completeTableRelease(FillTableVersionDO snapshot) {
+        Long tableId = snapshot.getTableId();
+        FillTableDO table = fillTableMapper.selectByIdForUpdate(tableId);
+        if (table == null) {
+            throw exception(FILL_TABLE_NOT_EXISTS);
+        }
+        if (TABLE_STATUS_RELEASED.equals(table.getStatus()) && table.getCurrentVersionId() != null) {
+            return;
+        }
+        FillTableVersionDO latest = versionMapper.selectLatestByTableId(tableId);
+        LocalDateTime releaseTime = LocalDateTime.now();
+        Long releaseUserId = SecurityFrameworkUtils.getLoginUserId();
+        Long versionId;
+        if (latest != null && VERSION_STATUS_RELEASED.equals(latest.getStatus())
+                && Objects.equals(latest.getContentHash(), snapshot.getContentHash())
+                && Objects.equals(latest.getName(), snapshot.getName())
+                && Objects.equals(latest.getFormulaSchema(), snapshot.getFormulaSchema())
+                && Objects.equals(latest.getUniverSdkVersion(), snapshot.getUniverSdkVersion())
+                && Objects.equals(latest.getAdapterProtocolVersion(), snapshot.getAdapterProtocolVersion())
+                && Objects.equals(latest.getSnapshotSchemaVersion(), snapshot.getSnapshotSchemaVersion())) {
+            versionId = latest.getId();
+        } else {
+            snapshot.setVersionNo(latest == null ? 1 : latest.getVersionNo() + 1);
+            snapshot.setReleaseTime(releaseTime);
+            snapshot.setReleaseUserId(releaseUserId);
+            versionMapper.insert(snapshot);
+            versionId = snapshot.getId();
+        }
+
+        fillTableMapper.updateById(FillTableDO.builder()
+                .id(tableId)
+                .status(TABLE_STATUS_RELEASED)
+                .releaseTime(releaseTime)
+                .releaseUserId(releaseUserId)
+                .currentVersionId(versionId)
+                .workflowMode(FillWorkflowModeEnum.APPROVAL_FLOW.getMode())
+                .build());
     }
 
     /**
@@ -192,20 +176,6 @@ public class FillTableVersionServiceImpl implements FillTableVersionService {
     @Override
     public List<FillTableVersionDO> getTableVersionListByTableId(Long tableId) {
         return versionMapper.selectListByTableId(tableId);
-    }
-
-    /**
-     * 停用模板版本（仅禁止新任务引用，不影响进行中任务）
-     *
-     * @param id 记录编号
-     */
-    @Override
-    public void disableTableVersion(Long id) {
-        FillTableVersionDO version = getTableVersion(id);
-        FillTableVersionDO update = new FillTableVersionDO();
-        update.setId(version.getId());
-        update.setStatus(VERSION_STATUS_DISABLED);
-        versionMapper.updateById(update);
     }
 
     // ---------------------------------------------------------------- schema 构建
