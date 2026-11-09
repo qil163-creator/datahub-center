@@ -607,6 +607,7 @@ CREATE TABLE IF NOT EXISTS "system_notify_message" (
     "template_params" varchar NOT NULL,
     "read_status" bit NOT NULL,
     "read_time" varchar,
+    "idempotency_key" varchar(128),
     "creator" varchar DEFAULT '',
     "create_time" datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updater" varchar DEFAULT '',

@@ -1,4 +1,4 @@
--- Included migrations through: 0265
+-- Included migrations through: 0267
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -11724,11 +11724,11 @@ COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."ev
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."receiver_user_id" IS '接收人用户编号';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."time_slice" IS '去重时间片';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."payload_summary" IS '提醒内容摘要';
-COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."send_status" IS '投递状态：PENDING待发送、SENDING已认领、SENT已确认、FAILED明确未发送可重试、UNKNOWN结果不明且禁止自动重发';
-COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."retry_count" IS '已重试次数';
+COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."send_status" IS '投递状态：PENDING待发送、SENDING已认领、SENT已确认、FAILED明确未发送、UNKNOWN结果不明；FAILED/UNKNOWN 按幂等键自动重试，共 8 次后转 EXHAUSTED 待人工核验';
+COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."retry_count" IS '自动投递已失败次数（FAILED 与 UNKNOWN 共用），达到 8 次转 EXHAUSTED；人工授权重试时清零';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."next_retry_time" IS '下次允许重试时间';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."claim_token" IS '通知投递认领令牌；完成状态更新仅允许当前令牌持有者写入';
-COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."lease_until" IS '上海本地时间戳通知认领租约截止时间；租约到期仅收敛为UNKNOWN，不自动重新发送';
+COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."lease_until" IS '上海本地时间戳通知认领租约截止时间；租约到期收敛为 UNKNOWN，退避后按同一幂等键重试';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."last_error" IS '最近一次投递失败原因';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."creator" IS '创建者';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."create_time" IS '创建时间';
@@ -11737,11 +11737,68 @@ COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."up
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."deleted" IS '逻辑删除：0未删除、1已删除';
 COMMENT ON COLUMN "datahub-center"."dh_governance_quality_work_order_notify"."tenant_id" IS '租户编号';
 CREATE INDEX IF NOT EXISTS idx_quality_work_order_notify_dispatch
-  ON "datahub-center"."dh_governance_quality_work_order_notify" ("tenant_id", "next_retry_time", "id")
-  WHERE "deleted" = 0 AND "send_status" IN ('PENDING', 'FAILED');
+  ON "datahub-center"."dh_governance_quality_work_order_notify" ("next_retry_time", "id")
+  WHERE "deleted" = 0 AND "send_status" IN ('PENDING', 'FAILED', 'UNKNOWN');
 CREATE INDEX IF NOT EXISTS idx_quality_work_order_notify_expired_claim
   ON "datahub-center"."dh_governance_quality_work_order_notify" ("tenant_id", "lease_until", "id")
   WHERE "deleted" = 0 AND "send_status" = 'SENDING';
+
+-- ----------------------------
+-- 表结构： dh_governance_quality_expiry_failure（例外到期处理失败账本，0267）
+-- ----------------------------
+CREATE SEQUENCE IF NOT EXISTS "datahub-center".dh_governance_quality_expiry_failure_seq;
+
+CREATE TABLE IF NOT EXISTS "datahub-center".dh_governance_quality_expiry_failure (
+    id int8 NOT NULL DEFAULT nextval('"datahub-center".dh_governance_quality_expiry_failure_seq'::regclass),
+    submission_id int8 NOT NULL,
+    work_order_id int8 NOT NULL,
+    status varchar(16) NOT NULL,
+    attempt_count int4 NOT NULL DEFAULT 0,
+    last_error varchar(512),
+    first_failed_at timestamp(6),
+    last_failed_at timestamp(6),
+    next_attempt_at timestamp(6),
+    resolution_action varchar(32),
+    resolution_reason varchar(500),
+    resolved_by int8,
+    resolved_at timestamp(6),
+    version int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_quality_expiry_failure PRIMARY KEY (id),
+    CONSTRAINT ck_quality_expiry_failure_status CHECK (status IN ('RETRYING', 'EXHAUSTED', 'RESOLVED')),
+    CONSTRAINT ck_quality_expiry_failure_attempts CHECK (attempt_count >= 0)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_quality_expiry_failure_submission
+    ON "datahub-center".dh_governance_quality_expiry_failure (submission_id) WHERE deleted = 0;
+CREATE INDEX IF NOT EXISTS idx_quality_expiry_failure_status
+    ON "datahub-center".dh_governance_quality_expiry_failure (status, last_failed_at) WHERE deleted = 0;
+
+COMMENT ON TABLE "datahub-center".dh_governance_quality_expiry_failure IS '数据质量-例外到期处理失败账本';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.id IS '账本编号';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.submission_id IS '例外提交编号（每个提交一条有效账本）';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.work_order_id IS '原工单编号';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.status IS '状态：RETRYING退避重试中、EXHAUSTED次数耗尽待人工、RESOLVED已关闭';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.attempt_count IS '自动处理已失败次数，达到 5 次转 EXHAUSTED，人工授权重试时清零';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.last_error IS '最近一次失败的安全摘要，不含驱动或厂商原文';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.first_failed_at IS '本轮首次失败时间';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.last_failed_at IS '最近一次失败时间';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.next_attempt_at IS '下次允许自动处理时间：5 分钟 × 2^(次数-1)，封顶 6 小时';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.resolution_action IS '处置动作：SUCCEEDED自动成功、RETRY_AUTHORIZED人工授权重试';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.resolution_reason IS '人工授权理由';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.resolved_by IS '最近一次人工处置操作人';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.resolved_at IS '最近一次关闭或人工处置时间';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.version IS 'CAS 版本，防止旧页面覆盖新状态';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.creator IS '创建者';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.create_time IS '创建时间';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.updater IS '更新者';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.update_time IS '更新时间';
+COMMENT ON COLUMN "datahub-center".dh_governance_quality_expiry_failure.deleted IS '逻辑删除：0未删除、1已删除';
+
 
 -- ----------------------------
 -- 数据记录： dh_governance_quality_work_order_issue
@@ -21338,9 +21395,11 @@ CREATE TABLE "datahub-center"."system_notify_message" (
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted" int2 NOT NULL DEFAULT 0,
-  "tenant_id" int8 NOT NULL DEFAULT 0
+  "tenant_id" int8 NOT NULL DEFAULT 0,
+  "idempotency_key" varchar(128) COLLATE "pg_catalog"."default"
 )
 ;
+COMMENT ON COLUMN "datahub-center"."system_notify_message"."idempotency_key" IS '调用方幂等键；非空时唯一，同一键只创建一条站内信，重复调用返回已有消息编号';
 COMMENT ON COLUMN "datahub-center"."system_notify_message"."id" IS '用户ID';
 COMMENT ON COLUMN "datahub-center"."system_notify_message"."user_id" IS '用户id';
 COMMENT ON COLUMN "datahub-center"."system_notify_message"."user_type" IS '用户类型';
@@ -29466,6 +29525,8 @@ CREATE INDEX "idx_system_notify_message_01" ON "datahub-center"."system_notify_m
 -- 表主键结构： system_notify_message
 -- ----------------------------
 ALTER TABLE "datahub-center"."system_notify_message" ADD CONSTRAINT "pk_system_notify_message" PRIMARY KEY ("id");
+CREATE UNIQUE INDEX "uk_system_notify_message_idempotency_key" ON "datahub-center"."system_notify_message" ("idempotency_key")
+  WHERE "idempotency_key" IS NOT NULL AND "deleted" = 0;
 
 -- ----------------------------
 -- 表主键结构： system_notify_template

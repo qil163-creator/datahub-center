@@ -169,5 +169,6 @@ public interface ErrorCodeConstants {
 
     // ========== 站内信发送 1-002-028-000 ==========
     ErrorCode NOTIFY_SEND_TEMPLATE_PARAM_MISS = new ErrorCode(1_002_028_000, "模板参数({})缺失");
+    ErrorCode NOTIFY_SEND_IDEMPOTENCY_CONFLICT = new ErrorCode(1_002_028_001, "幂等键已用于其他接收人或模板，拒绝复用");
 
 }

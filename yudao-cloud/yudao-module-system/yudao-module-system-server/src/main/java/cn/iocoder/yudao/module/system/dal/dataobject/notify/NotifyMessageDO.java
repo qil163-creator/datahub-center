@@ -96,4 +96,9 @@ public class NotifyMessageDO extends BaseDO {
      */
     private LocalDateTime readTime;
 
+    /**
+     * 调用方幂等键；非空时全局唯一，同一键只创建一条站内信
+     */
+    private String idempotencyKey;
+
 }

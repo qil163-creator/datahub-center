@@ -65,9 +65,14 @@ class QualityWorkOrderStatisticsSecurityTest {
     static class Config {
         @Bean(name = "ss") Gate gate() { return new Gate(); }
         @Bean QualityWorkOrderService service() { return mock(QualityWorkOrderService.class); }
-        @Bean QualityWorkOrderController controller(QualityWorkOrderService service) {
+        @Bean QualityExceptionExpiryFailureService expiryFailureService() {
+            return mock(QualityExceptionExpiryFailureService.class);
+        }
+        @Bean QualityWorkOrderController controller(QualityWorkOrderService service,
+                QualityExceptionExpiryFailureService expiryFailureService) {
             var controller = new QualityWorkOrderController();
             ReflectionTestUtils.setField(controller, "workOrderService", service);
+            ReflectionTestUtils.setField(controller, "expiryFailureService", expiryFailureService);
             return controller;
         }
     }

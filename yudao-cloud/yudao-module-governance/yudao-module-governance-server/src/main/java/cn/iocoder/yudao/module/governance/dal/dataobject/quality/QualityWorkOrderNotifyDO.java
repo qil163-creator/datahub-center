@@ -28,6 +28,15 @@ public class QualityWorkOrderNotifyDO extends BaseDO {
 
     public static final String STATUS_UNKNOWN = "UNKNOWN";
 
+    /** 自动投递次数耗尽（死信），等待人工核验已送达/未送达并按需授权重试 */
+    public static final String STATUS_EXHAUSTED = "EXHAUSTED";
+
+    /** 自动投递最大次数；FAILED 与 UNKNOWN 共用计数 */
+    public static final int MAX_AUTO_ATTEMPTS = 8;
+
+    /** 通知服务幂等键前缀；同一投递记录的所有尝试使用同一键，远端只创建一条站内信 */
+    public static final String IDEMPOTENCY_KEY_PREFIX = "governance:quality-work-order-notify:";
+
     public static final String RESOLUTION_UNRESOLVED = "UNRESOLVED";
 
     public static final String RESOLUTION_MANUAL_DELIVERED = "MANUAL_DELIVERED";

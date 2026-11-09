@@ -39,7 +39,7 @@ public interface QualityWorkOrderNotifyMapper extends BaseMapperX<QualityWorkOrd
             + "resolution_version=#{newVersion},resolution_reason=#{reason},operator_message_id=#{operatorMessageId},"
             + "resolved_by=#{actorUserId},resolved_at=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),"
             + "updater=#{actorUserId},update_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai')"
-            + " WHERE id=#{id} AND deleted=0 AND send_status='UNKNOWN'"
+            + " WHERE id=#{id} AND deleted=0 AND send_status IN ('UNKNOWN','EXHAUSTED')"
             + " AND COALESCE(resolution_version,0)=#{expectedVersion} AND COALESCE(resolution_status,'UNRESOLVED')='UNRESOLVED'")
     int resolveUnknown(@Param("id") Long id,
             @Param("expectedVersion") int expectedVersion, @Param("newVersion") int newVersion,
@@ -52,10 +52,10 @@ public interface QualityWorkOrderNotifyMapper extends BaseMapperX<QualityWorkOrd
     @Update("UPDATE dh_governance_quality_work_order_notify SET resolution_status='RETRY_AUTHORIZED',"
             + "manual_retry_count=COALESCE(manual_retry_count,0)+1,"
             + "resolution_version=#{newVersion},resolution_reason=#{reason},resolved_by=#{actorUserId},"
-            + "resolved_at=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),send_status='FAILED',"
+            + "resolved_at=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),send_status='FAILED',retry_count=0,"
             + "next_retry_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),last_error='人工授权重试',"
             + "updater=#{actorUserId},update_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai')"
-            + " WHERE id=#{id} AND deleted=0 AND send_status='UNKNOWN'"
+            + " WHERE id=#{id} AND deleted=0 AND send_status IN ('UNKNOWN','EXHAUSTED')"
             + " AND resolution_status='MANUAL_NOT_DELIVERED' AND resolution_version=#{expectedVersion}"
             + " AND COALESCE(manual_retry_count,0)<8")
     int authorizeRetry(@Param("id") Long id,
@@ -81,7 +81,9 @@ public interface QualityWorkOrderNotifyMapper extends BaseMapperX<QualityWorkOrd
     @Select("WITH picked AS ("
             + " SELECT id FROM dh_governance_quality_work_order_notify"
             + " WHERE deleted=0"
-            + " AND send_status IN ('PENDING','FAILED')"
+            // 通知服务按幂等键去重，结果未知（UNKNOWN）也可用同一键安全重试；人工已核验的 UNKNOWN 不再自动领取
+            + " AND (send_status IN ('PENDING','FAILED')"
+            + " OR (send_status='UNKNOWN' AND COALESCE(resolution_status,'UNRESOLVED')='UNRESOLVED'))"
             + " AND next_retry_time<=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai') AND retry_count<8"
             + " ORDER BY id FOR UPDATE SKIP LOCKED LIMIT #{limit}"
             + ") UPDATE dh_governance_quality_work_order_notify AS n"
@@ -108,7 +110,10 @@ public interface QualityWorkOrderNotifyMapper extends BaseMapperX<QualityWorkOrd
      * 按业务条件更新质量工单通知的mark已过期领取未知状态或数据，返回受影响行数。
      */
     @Update("UPDATE dh_governance_quality_work_order_notify"
-            + " SET send_status='UNKNOWN',claim_token=NULL,lease_until=NULL,last_error='投递租约过期，结果未知',"
+            + " SET send_status=CASE WHEN retry_count+1>=8 THEN 'EXHAUSTED' ELSE 'UNKNOWN' END,"
+            + " retry_count=retry_count+1,"
+            + " next_retry_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai')+interval '5 minutes',"
+            + " claim_token=NULL,lease_until=NULL,last_error='投递租约过期，结果未知，将按幂等键重试',"
             + " update_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),updater='system'"
             + " WHERE deleted=0 AND send_status='SENDING'"
             + " AND lease_until<=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai')")
@@ -118,9 +123,10 @@ public interface QualityWorkOrderNotifyMapper extends BaseMapperX<QualityWorkOrd
      * 按业务条件更新质量工单通知的结束领取状态或数据，返回受影响行数。
      */
     @Update("UPDATE dh_governance_quality_work_order_notify"
-            + " SET send_status=#{status},claim_token=NULL,lease_until=NULL,"
-            + " retry_count=retry_count+CASE WHEN #{status}='FAILED' THEN 1 ELSE 0 END,"
-            + " next_retry_time=CASE WHEN #{status}='FAILED'"
+            + " SET send_status=CASE WHEN #{status} IN ('FAILED','UNKNOWN') AND retry_count+1>=8"
+            + " THEN 'EXHAUSTED' ELSE #{status} END,claim_token=NULL,lease_until=NULL,"
+            + " retry_count=retry_count+CASE WHEN #{status} IN ('FAILED','UNKNOWN') THEN 1 ELSE 0 END,"
+            + " next_retry_time=CASE WHEN #{status} IN ('FAILED','UNKNOWN')"
             + " THEN (clock_timestamp() AT TIME ZONE 'Asia/Shanghai')+make_interval(secs=>#{retryDelaySeconds}) ELSE next_retry_time END,"
             + " last_error=#{lastError},update_time=(clock_timestamp() AT TIME ZONE 'Asia/Shanghai'),updater='system'"
             + " WHERE id=#{id} AND deleted=0"

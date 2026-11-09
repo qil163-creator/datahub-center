@@ -92,6 +92,9 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
     private QualityWorkOrderNotifyMapper notifyMapper;
 
     @Resource
+    private cn.iocoder.yudao.module.governance.dal.mysql.quality.QualityExceptionExpiryFailureMapper expiryFailureMapper;
+
+    @Resource
     private QualityWorkOrderNotifyReviewMapper notifyReviewMapper;
 
     @Resource
@@ -1224,7 +1227,7 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
             throw exception(QUALITY_WORK_ORDER_VERSION_CONFLICT);
         }
         int currentVersion = notify.getResolutionVersion() == null ? 0 : notify.getResolutionVersion();
-        if (!QualityWorkOrderNotifyDO.STATUS_UNKNOWN.equals(notify.getSendStatus())
+        if (!isManuallyReviewable(notify.getSendStatus())
                 || !QualityWorkOrderNotifyDO.RESOLUTION_UNRESOLVED.equals(
                 notify.getResolutionStatus() == null ? QualityWorkOrderNotifyDO.RESOLUTION_UNRESOLVED : notify.getResolutionStatus())
                 || currentVersion != reqVO.getExpectedResolutionVersion()) {
@@ -1314,12 +1317,13 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 || !QualityWorkOrderNotifyReviewDO.ACTION_MARK_NOT_DELIVERED.equals(decision.getActionType())
                 || !Objects.equals(decision.getResultingResolutionVersion(), reqVO.getExpectedResolutionVersion())
                 || currentVersion != reqVO.getExpectedResolutionVersion()
-                || !QualityWorkOrderNotifyDO.STATUS_UNKNOWN.equals(notify.getSendStatus())
+                || !isManuallyReviewable(notify.getSendStatus())
                 || !QualityWorkOrderNotifyDO.RESOLUTION_MANUAL_NOT_DELIVERED.equals(notify.getResolutionStatus())) {
             throw exception(QUALITY_WORK_ORDER_VERSION_CONFLICT);
         }
-        if ((notify.getRetryCount() != null && notify.getRetryCount() >= 8)
-                || (notify.getManualRetryCount() != null && notify.getManualRetryCount() >= 8)) {
+        // 自动次数耗尽（EXHAUSTED）正是人工授权重试的场景；授权后自动计数清零，人工授权次数独立封顶
+        if (notify.getManualRetryCount() != null
+                && notify.getManualRetryCount() >= QualityWorkOrderNotifyDO.MAX_AUTO_ATTEMPTS) {
             throw exception(QUALITY_WORK_ORDER_STATUS_INVALID);
         }
         int nextVersion = currentVersion + 1;
@@ -1621,7 +1625,8 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 enqueueNotify(order, "DEADLINE", order.getOwnerUserId());
             }
         }
-        // 进程若在远端调用前后崩溃，租约过期只能说明结果未知；绝不把它重新投递。
+        // 进程若在远端调用前后崩溃，租约过期只能说明结果未知；通知服务按幂等键去重，
+        // 因此稍后用同一键重试不会重复创建站内信，次数耗尽后进入 EXHAUSTED 等待人工处置。
         notifyMapper.markExpiredClaimsUnknown();
         for (QualityWorkOrderNotifyDO notify : notifyMapper.claimRetryable(30,
                 NOTIFY_CLAIM_LEASE_SECONDS)) {
@@ -1953,6 +1958,8 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 transaction.executeWithoutResult(tx -> {
                     try {
                         expireException(candidate, now);
+                        // 与到期动作同事务关闭失败账本；没有账本时不产生写入
+                        expiryFailureMapper.markSucceeded(candidate.getId(), now);
                     } catch (RuntimeException | Error ex) {
                         callbackFailure.set(ex);
                         throw ex;
@@ -2003,11 +2010,14 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 }
                 // 回调未抛错却收到异常（开启/提交），或回滚覆盖了原异常，均不能继续下一项。
                 if (transactionFailure != null || callbackFailure.get() != ex) {
+                    // 事务完成异常：不再经同一事务管理器追加写入；停批并报“待核查”，下轮重新处理（到期动作幂等）。
                     var unsafe = new IllegalStateException(
                             "例外到期事务完成异常，停止本批，提交结果待核查，异常提交=" + failedSubmissions);
                     failures.forEach(unsafe::addSuppressed);
                     throw unsafe;
                 }
+                // 普通失败已完整回滚：持久化逐单失败，退避后自动重试，次数耗尽转人工；账本写入失败不掩盖原失败。
+                recordExpiryFailure(transaction, candidate, ex, now, contextual);
             }
             if (TransactionSynchronizationManager.isActualTransactionActive()
                     || TransactionSynchronizationManager.isSynchronizationActive() != synchronizationActive
@@ -2037,6 +2047,19 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
     /**
      * 使其到期例外。
      */
+    private void recordExpiryFailure(TransactionTemplate transaction, QualityWorkOrderSubmissionDO candidate,
+            RuntimeException failure, LocalDateTime now, RuntimeException contextual) {
+        // 在独立短事务中记录逐单失败；本方法自身失败只作为附加诊断，不改变原失败的处理路径。
+        try {
+            transaction.executeWithoutResult(tx -> expiryFailureMapper.recordFailure(candidate.getId(),
+                    candidate.getWorkOrderId(), QualityExceptionExpiryFailureService.safeSummary(failure), now,
+                    cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityExceptionExpiryFailureDO.MAX_ATTEMPTS));
+        } catch (RuntimeException ledgerFailure) {
+            // 账本写入失败随批次汇总异常一起上报（被抑制异常），不改变原失败的处理路径
+            contextual.addSuppressed(ledgerFailure);
+        }
+    }
+
     private void expireException(QualityWorkOrderSubmissionDO candidate, LocalDateTime now) {
         QualityWorkOrderDO order = workOrderMapper.selectByIdForUpdate(candidate.getWorkOrderId());
         if (order == null || !QualityWorkOrderDO.CLOSE_EXCEPTION.equals(order.getCloseType())
@@ -2409,6 +2432,12 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
     /**
      * 认领持久化通知并发送，记录结果及后续重试信息。
      */
+    /** 结果未知或自动投递次数耗尽的通知才进入人工核验 */
+    private static boolean isManuallyReviewable(String sendStatus) {
+        return QualityWorkOrderNotifyDO.STATUS_UNKNOWN.equals(sendStatus)
+                || QualityWorkOrderNotifyDO.STATUS_EXHAUSTED.equals(sendStatus);
+    }
+
     private void sendNotify(QualityWorkOrderNotifyDO notify) {
         String status;
         String error = null;
@@ -2416,6 +2445,8 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
             NotifySendSingleToUserReqDTO reqDTO = new NotifySendSingleToUserReqDTO();
             reqDTO.setUserId(notify.getReceiverUserId());
             reqDTO.setTemplateCode("quality_work_order");
+            // 同一投递记录的所有尝试共用幂等键：远端最多创建一条站内信，结果未知时可安全重试
+            reqDTO.setIdempotencyKey(QualityWorkOrderNotifyDO.IDEMPOTENCY_KEY_PREFIX + notify.getId());
             reqDTO.setTemplateParams(Map.of(
                     "orderName", StrUtil.blankToDefault(notify.getPayloadSummary(), ""),
                     "eventType", notify.getEventType()));
@@ -2424,7 +2455,8 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 status = QualityWorkOrderNotifyDO.STATUS_UNKNOWN;
                 error = "通知服务未返回响应，投递结果未知";
             } else if (response.isError()) {
-                // 只有提供方源码中明确发生在 insert 前的拒绝码可安全重试，其余错误可能晚于远端提交。
+                // 明确发生在 insert 前的拒绝码记为 FAILED（确定未创建）；其余错误可能晚于远端提交，记为 UNKNOWN。
+                // 两者都按幂等键自动重试：远端已创建时重试只返回原消息编号，不会重复通知。
                 if (Objects.equals(response.getCode(),
                         cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.NOTICE_NOT_FOUND.getCode())) {
                     status = QualityWorkOrderNotifyDO.STATUS_FAILED;
@@ -2448,7 +2480,7 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 status = QualityWorkOrderNotifyDO.STATUS_SENT;
             }
         } catch (Exception ex) {
-            // RPC 异常可能发生在远端提交之后；不能假定没有创建消息并自动重发。
+            // RPC 异常可能发生在远端提交之后：记为 UNKNOWN，稍后用同一幂等键重试（远端去重，不会重复创建）。
             status = QualityWorkOrderNotifyDO.STATUS_UNKNOWN;
             error = "远端通知调用异常，投递结果未知";
             if (ex instanceof InterruptedException) {

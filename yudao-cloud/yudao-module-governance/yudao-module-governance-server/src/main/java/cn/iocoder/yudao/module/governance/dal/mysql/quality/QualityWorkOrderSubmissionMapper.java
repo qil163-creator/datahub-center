@@ -64,6 +64,10 @@ public interface QualityWorkOrderSubmissionMapper extends BaseMapperX<QualityWor
                 .notExists("SELECT 1 FROM dh_governance_quality_work_order_action a "
                         + "WHERE a.work_order_id = dh_governance_quality_work_order_submission.work_order_id "
                         + "AND a.action_type = 'EXCEPTION_EXPIRED' AND a.deleted = 0")
+                // 失败账本：耗尽待人工或仍在退避期的提交不占本批名额
+                .notExists("SELECT 1 FROM dh_governance_quality_expiry_failure f "
+                        + "WHERE f.submission_id = dh_governance_quality_work_order_submission.id AND f.deleted = 0 "
+                        + "AND (f.status = 'EXHAUSTED' OR (f.status = 'RETRYING' AND f.next_attempt_at > {0}))", now)
                 .orderByAsc(QualityWorkOrderSubmissionDO::getId)
                 .last("LIMIT " + Math.max(1, Math.min(limit, 50))));
     }

@@ -20,4 +20,14 @@ public class NotifySendSingleToUserReqDTO {
     private String templateCode;
     @Schema(description = "邮件模板参数")
     private Map<String, Object> templateParams;
+
+    /**
+     * 调用方幂等键（可选）。同一键只创建一条站内信，重复调用返回已创建的消息编号，
+     * 因此调用方在结果未知时可以用同一键安全重试。建议使用 “服务:业务:记录编号” 形式，全局唯一。
+     */
+    @Schema(description = "调用方幂等键（可选）；同一键只创建一条站内信，重复调用返回已有消息编号",
+            example = "governance:quality-work-order-notify:1024")
+    @jakarta.validation.constraints.Size(max = 128, message = "幂等键长度不能超过 128")
+    @jakarta.validation.constraints.Pattern(regexp = "[A-Za-z0-9:._-]*", message = "幂等键只能包含字母、数字及 : . _ -")
+    private String idempotencyKey;
 }

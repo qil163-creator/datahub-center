@@ -69,6 +69,37 @@ public class NotifyMessageServiceImplTest extends BaseDbUnitTest {
     }
 
     @Test
+    public void testCreateNotifyMessage_sameIdempotencyKeyCreatesOnce() {
+        Long userId = randomLongId();
+        Integer userType = UserTypeEnum.ADMIN.getValue();
+        NotifyTemplateDO template = randomPojo(NotifyTemplateDO.class);
+        Map<String, Object> templateParams = randomTemplateParams();
+
+        Long first = notifyMessageService.createNotifyMessage(userId, userType, template, "内容",
+                templateParams, "governance:quality-work-order-notify:1");
+        Long second = notifyMessageService.createNotifyMessage(userId, userType, template, "内容",
+                templateParams, "governance:quality-work-order-notify:1");
+
+        assertEquals(first, second);
+        assertEquals(1L, notifyMessageMapper.selectCount(NotifyMessageDO::getIdempotencyKey,
+                "governance:quality-work-order-notify:1"));
+        assertEquals(first, notifyMessageService
+                .getNotifyMessageByIdempotencyKey("governance:quality-work-order-notify:1").getId());
+    }
+
+    @Test
+    public void testCreateNotifyMessage_idempotencyKeyReusedForAnotherRecipientIsRejected() {
+        NotifyTemplateDO template = randomPojo(NotifyTemplateDO.class);
+        notifyMessageService.createNotifyMessage(1L, UserTypeEnum.ADMIN.getValue(), template, "内容",
+                randomTemplateParams(), "reused-key");
+
+        cn.iocoder.yudao.framework.test.core.util.AssertUtils.assertServiceException(
+                () -> notifyMessageService.createNotifyMessage(2L, UserTypeEnum.ADMIN.getValue(), template, "内容",
+                        randomTemplateParams(), "reused-key"),
+                cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.NOTIFY_SEND_IDEMPOTENCY_CONFLICT);
+    }
+
+    @Test
     public void testGetNotifyMessagePage() {
         // mock 数据
         NotifyMessageDO dbNotifyMessage = randomPojo(NotifyMessageDO.class, o -> { // 等会查询到

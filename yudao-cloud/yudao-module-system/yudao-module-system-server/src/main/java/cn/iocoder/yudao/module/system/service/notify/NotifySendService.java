@@ -47,6 +47,15 @@ public interface NotifySendService {
     Long sendSingleNotify( Long userId, Integer userType,
                            String templateCode, Map<String, Object> templateParams);
 
+    /**
+     * 发送单条站内信，支持调用方幂等键：同一键只创建一条，重复调用返回已有消息编号
+     *
+     * @param idempotencyKey 调用方幂等键，可为空
+     * @return 站内信编号；模板已停用时返回 null（未创建）
+     */
+    Long sendSingleNotify(Long userId, Integer userType, String templateCode,
+                          Map<String, Object> templateParams, String idempotencyKey);
+
     default void sendBatchNotify(List<String> mobiles, List<Long> userIds, Integer userType,
                                  String templateCode, Map<String, Object> templateParams) {
         throw new UnsupportedOperationException("暂时不支持该操作，感兴趣可以实现该功能哟！");

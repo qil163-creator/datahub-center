@@ -19,14 +19,16 @@ public class NotifyMessageSendApiImpl implements NotifyMessageSendApi {
 
     @Override
     public CommonResult<Long> sendSingleMessageToAdmin(NotifySendSingleToUserReqDTO reqDTO) {
-        return success(notifySendService.sendSingleNotifyToAdmin(reqDTO.getUserId(),
-                reqDTO.getTemplateCode(), reqDTO.getTemplateParams()));
+        return success(notifySendService.sendSingleNotify(reqDTO.getUserId(),
+                cn.iocoder.yudao.framework.common.enums.UserTypeEnum.ADMIN.getValue(),
+                reqDTO.getTemplateCode(), reqDTO.getTemplateParams(), reqDTO.getIdempotencyKey()));
     }
 
     @Override
     public CommonResult<Long> sendSingleMessageToMember(NotifySendSingleToUserReqDTO reqDTO) {
-        return success(notifySendService.sendSingleNotifyToMember(reqDTO.getUserId(),
-                reqDTO.getTemplateCode(), reqDTO.getTemplateParams()));
+        return success(notifySendService.sendSingleNotify(reqDTO.getUserId(),
+                cn.iocoder.yudao.framework.common.enums.UserTypeEnum.MEMBER.getValue(),
+                reqDTO.getTemplateCode(), reqDTO.getTemplateParams(), reqDTO.getIdempotencyKey()));
     }
 
 }

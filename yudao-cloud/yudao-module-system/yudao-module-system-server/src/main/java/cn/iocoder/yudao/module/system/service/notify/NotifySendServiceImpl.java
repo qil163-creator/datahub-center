@@ -44,6 +44,23 @@ public class NotifySendServiceImpl implements NotifySendService {
 
     @Override
     public Long sendSingleNotify(Long userId, Integer userType, String templateCode, Map<String, Object> templateParams) {
+        return sendSingleNotify(userId, userType, templateCode, templateParams, null);
+    }
+
+    @Override
+    public Long sendSingleNotify(Long userId, Integer userType, String templateCode,
+                                 Map<String, Object> templateParams, String idempotencyKey) {
+        // 已用该幂等键创建过：直接返回原消息，不受模板后来停用、参数变化影响（保证重试结果稳定）
+        if (cn.hutool.core.util.StrUtil.isNotBlank(idempotencyKey)) {
+            var existing = notifyMessageService.getNotifyMessageByIdempotencyKey(idempotencyKey);
+            if (existing != null) {
+                if (!Objects.equals(existing.getUserId(), userId) || !Objects.equals(existing.getUserType(), userType)
+                        || !Objects.equals(existing.getTemplateCode(), templateCode)) {
+                    throw exception(cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.NOTIFY_SEND_IDEMPOTENCY_CONFLICT);
+                }
+                return existing.getId();
+            }
+        }
         // 校验模版
         NotifyTemplateDO template = validateNotifyTemplate(templateCode);
         if (Objects.equals(template.getStatus(), CommonStatusEnum.DISABLE.getStatus())) {
@@ -55,7 +72,8 @@ public class NotifySendServiceImpl implements NotifySendService {
 
         // 发送站内信
         String content = notifyTemplateService.formatNotifyTemplateContent(template.getContent(), templateParams);
-        return notifyMessageService.createNotifyMessage(userId, userType, template, content, templateParams);
+        return notifyMessageService.createNotifyMessage(userId, userType, template, content, templateParams,
+                idempotencyKey);
     }
 
     @VisibleForTesting

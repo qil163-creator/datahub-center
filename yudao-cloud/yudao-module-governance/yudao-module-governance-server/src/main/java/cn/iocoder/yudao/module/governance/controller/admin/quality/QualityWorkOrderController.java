@@ -11,6 +11,9 @@ import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderStatisticsRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderNotifyPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderNotifyRespVO;
+import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityExpiryFailureRetryReqVO;
+import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityExpiryFailureRespVO;
+import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityExpiryFailurePageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderNotifyReviewReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.workorder.QualityWorkOrderNotifyRetryReqVO;
 import cn.iocoder.yudao.module.governance.service.quality.QualityWorkOrderService;
@@ -36,6 +39,9 @@ public class QualityWorkOrderController {
 
     @Resource
     private QualityWorkOrderService workOrderService;
+
+    @Resource
+    private cn.iocoder.yudao.module.governance.service.quality.QualityExceptionExpiryFailureService expiryFailureService;
 
     /**
      * 创建问题工单。
@@ -299,6 +305,31 @@ public class QualityWorkOrderController {
     public CommonResult<QualityWorkOrderNotifyRespVO> authorizeNotifyRetry(
             @Valid @RequestBody QualityWorkOrderNotifyRetryReqVO reqVO) {
         return success(workOrderService.authorizeNotifyRetry(reqVO));
+    }
+
+    /**
+     * 例外到期处理失败账本分页（退避重试中 / 次数耗尽待人工 / 已关闭）。
+     */
+    @GetMapping("/expiry-failure/page")
+    @Operation(summary = "例外到期处理失败账本分页")
+    @PreAuthorize("@ss.hasPermission('governance:quality-work-order:coordinate')")
+    public CommonResult<PageResult<QualityExpiryFailureRespVO>> getExpiryFailurePage(
+            @Valid QualityExpiryFailurePageReqVO reqVO) {
+        return success(expiryFailureService.getPage(reqVO));
+    }
+
+    /**
+     * 人工排查后授权例外到期处理重试。
+     */
+    @PostMapping("/expiry-failure/retry")
+    @LogRecord(type = "数据治理-数据质量-问题工单", subType = "授权例外到期处理重试",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "授权重试了例外到期处理失败记录【{{(#reqVO.id) ?: '未设置'}}】，账本版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @Operation(summary = "授权例外到期处理重试", description = "清零自动处理次数并立即到期；到期动作已生效时下一轮自动跳过，不会重复创建复核单")
+    @PreAuthorize("@ss.hasPermission('governance:quality-work-order:coordinate')")
+    public CommonResult<QualityExpiryFailureRespVO> authorizeExpiryRetry(
+            @Valid @RequestBody QualityExpiryFailureRetryReqVO reqVO) {
+        return success(expiryFailureService.authorizeRetry(reqVO));
     }
 
     /**

@@ -73,6 +73,7 @@ class QualityWorkOrderAcceptanceTest {
     @Mock private NotifyMessageSendApi notifyMessageSendApi;
     @Mock private org.springframework.transaction.PlatformTransactionManager transactionManager;
     @Mock private QualityExceptionExpiryScanService exceptionExpiryScanService;
+    @Mock private cn.iocoder.yudao.module.governance.dal.mysql.quality.QualityExceptionExpiryFailureMapper expiryFailureMapper;
     @InjectMocks private QualityWorkOrderServiceImpl service;
     private static final LocalDateTime RECHECK_START = LocalDateTime.of(2026, 9, 23, 10, 0);
     private String fixtureDatasourceType = "THIRD_PARTY";

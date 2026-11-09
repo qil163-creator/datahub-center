@@ -31,6 +31,21 @@ public interface NotifyMessageService {
                              NotifyTemplateDO template, String templateContent, Map<String, Object> templateParams);
 
     /**
+     * 按幂等键创建站内信：同一键只创建一条，重复调用（含并发）返回已有消息编号。
+     * 已有消息的接收人或模板与本次不一致时拒绝，防止幂等键被误用。
+     *
+     * @param idempotencyKey 调用方幂等键，为空时等同普通创建
+     * @return 站内信编号
+     */
+    Long createNotifyMessage(Long userId, Integer userType, NotifyTemplateDO template, String templateContent,
+                             Map<String, Object> templateParams, String idempotencyKey);
+
+    /**
+     * 按幂等键查询已创建的站内信
+     */
+    NotifyMessageDO getNotifyMessageByIdempotencyKey(String idempotencyKey);
+
+    /**
      * 获得站内信分页
      *
      * @param pageReqVO 分页查询

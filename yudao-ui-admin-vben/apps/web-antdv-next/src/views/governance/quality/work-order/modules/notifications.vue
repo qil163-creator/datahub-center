@@ -81,9 +81,14 @@ const statuses: Record<string, { color: string; label: string }> = {
   PENDING: { color: 'default', label: '待投递' },
   SENDING: { color: 'processing', label: '发送中' },
   SENT: { color: 'success', label: '已获发送回执' },
-  FAILED: { color: 'error', label: '明确未发送，等待重试' },
-  UNKNOWN: { color: 'warning', label: '发送结果未知' },
+  FAILED: { color: 'error', label: '明确未发送，等待自动重试' },
+  UNKNOWN: { color: 'warning', label: '结果未知，将按幂等键自动重试' },
+  EXHAUSTED: { color: 'error', label: '自动投递次数耗尽，待人工核验' },
 };
+/** 结果未知或自动投递次数耗尽的通知才进入人工核验 */
+function isManuallyReviewable(status?: string) {
+  return status === 'UNKNOWN' || status === 'EXHAUSTED';
+}
 const resolutions: Record<string, string> = {
   UNRESOLVED: '尚未人工核验',
   MANUAL_DELIVERED: '人工确认已送达（未系统核验）',
@@ -100,8 +105,8 @@ const columns = [
 const canReview = computed(
   () =>
     canProcess.value &&
-    detail.value?.sendStatus === 'UNKNOWN' &&
-    (detail.value.resolutionStatus ?? 'UNRESOLVED') === 'UNRESOLVED',
+    isManuallyReviewable(detail.value?.sendStatus) &&
+    (detail.value?.resolutionStatus ?? 'UNRESOLVED') === 'UNRESOLVED',
 );
 const retryDecision = computed(() =>
   detail.value?.reviews?.find(
@@ -113,8 +118,8 @@ const retryDecision = computed(() =>
 const canRetry = computed(
   () =>
     canProcess.value &&
-    detail.value?.sendStatus === 'UNKNOWN' &&
-    detail.value.resolutionStatus === 'MANUAL_NOT_DELIVERED' &&
+    isManuallyReviewable(detail.value?.sendStatus) &&
+    detail.value?.resolutionStatus === 'MANUAL_NOT_DELIVERED' &&
     detail.value.manualRetryCount < 8 &&
     !!retryDecision.value,
 );
@@ -123,7 +128,7 @@ function row(record: object) {
 }
 function resolutionLabel(record: WorkOrderNotify) {
   if (
-    record.sendStatus === 'UNKNOWN' &&
+    isManuallyReviewable(record.sendStatus) &&
     record.resolutionStatus === 'UNRESOLVED' &&
     record.resolutionVersion > 0
   )
@@ -441,11 +446,14 @@ onBeforeUnmount(reset);
           }}（仅为参考，未自动核验）
         </p>
         <p>
-          失败自动重试 {{ detail.retryCount }} 次 · 人工授权重试
+          自动投递失败 {{ detail.retryCount }} / 8 次 · 人工授权重试
           {{ detail.manualRetryCount }} / 8 次
         </p>
         <p
-          v-if="detail.sendStatus === 'UNKNOWN' && detail.manualRetryCount >= 8"
+          v-if="
+            isManuallyReviewable(detail.sendStatus) &&
+            detail.manualRetryCount >= 8
+          "
         >
           已达到 8 次人工重试上限，不能再次授权重投，请联系运维处理。
         </p>

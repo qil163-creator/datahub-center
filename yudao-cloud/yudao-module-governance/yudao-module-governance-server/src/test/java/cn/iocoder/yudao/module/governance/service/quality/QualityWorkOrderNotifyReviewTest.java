@@ -115,6 +115,25 @@ class QualityWorkOrderNotifyReviewTest {
     }
 
     @Test
+    void exhaustedNotifyEntersTheSameManualReviewAndRetryFlow() {
+        // 自动投递 8 次耗尽：自动计数已满，但人工核验未送达后仍可授权重试（授权时自动计数清零）
+        notify.setSendStatus(QualityWorkOrderNotifyDO.STATUS_EXHAUSTED);
+        notify.setRetryCount(QualityWorkOrderNotifyDO.MAX_AUTO_ATTEMPTS);
+        QualityWorkOrderNotifyReviewReqVO review = new QualityWorkOrderNotifyReviewReqVO();
+        review.setId(51L); review.setExpectedResolutionVersion(0); review.setRequestId("exhausted-check");
+        review.setOutcome("NOT_DELIVERED"); review.setReason("模板已修复，确认之前未送达");
+        var reviewed = service.reviewNotify(review);
+        assertThat(reviewed.getResolutionStatus()).isEqualTo("MANUAL_NOT_DELIVERED");
+
+        QualityWorkOrderNotifyRetryReqVO retry = new QualityWorkOrderNotifyRetryReqVO();
+        retry.setId(51L); retry.setDecisionId(reviewed.getReviews().get(0).getId());
+        retry.setExpectedResolutionVersion(1); retry.setRequestId("exhausted-retry");
+        retry.setReason("模板修复后授权重投");
+        assertThat(service.authorizeNotifyRetry(retry).getResolutionStatus()).isEqualTo("RETRY_AUTHORIZED");
+        verify(notifyMapper).authorizeRetry(eq(51L), eq(1), eq(2), anyString(), eq(4L));
+    }
+
+    @Test
     void manualDeliveredCannotAuthorizeRetryAndStaleVersionCannotOverride() {
         QualityWorkOrderNotifyReviewReqVO review = new QualityWorkOrderNotifyReviewReqVO();
         review.setId(51L); review.setExpectedResolutionVersion(0); review.setRequestId("manual-check-2");

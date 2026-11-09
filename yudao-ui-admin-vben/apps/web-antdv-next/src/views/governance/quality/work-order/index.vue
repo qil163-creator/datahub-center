@@ -23,6 +23,7 @@ import {
 import { getSimpleUserList } from '#/api/system/user';
 import { $t } from '#/locales';
 
+import WorkOrderExpiryFailures from './modules/expiry-failures.vue';
 import WorkOrderForm from './modules/form.vue';
 import { CLOSE_LABELS } from './modules/resolution-state';
 import WorkOrderResolution from './modules/resolution.vue';
@@ -51,6 +52,7 @@ const viewOptions = [
   { label: '工单统计', value: 'stats' },
 ];
 const formRef = ref<InstanceType<typeof WorkOrderForm>>();
+const expiryFailuresRef = ref<InstanceType<typeof WorkOrderExpiryFailures>>();
 const resolutionRef = ref<InstanceType<typeof WorkOrderResolution>>();
 
 /** 系统用户（转办下拉用） */
@@ -318,6 +320,11 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: '例外到期处理失败',
+              auth: ['governance:quality-work-order:coordinate'],
+              onClick: () => expiryFailuresRef?.open(),
+            },
+            {
               label: $t('common.create'),
               type: 'primary',
               icon: ACTION_ICON.ADD,
@@ -532,6 +539,7 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
       </template>
     </TodoGrid>
     <WorkOrderStatistics v-else />
+    <WorkOrderExpiryFailures ref="expiryFailuresRef" />
 
     <WorkOrderForm ref="formRef" @saved="handleRefresh" />
     <WorkOrderResolution ref="resolutionRef" @saved="handleRefresh" />

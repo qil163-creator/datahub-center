@@ -38,6 +38,51 @@ public class NotifyMessageServiceImpl implements NotifyMessageService {
     }
 
     @Override
+    public Long createNotifyMessage(Long userId, Integer userType, NotifyTemplateDO template, String templateContent,
+                                    Map<String, Object> templateParams, String idempotencyKey) {
+        if (cn.hutool.core.util.StrUtil.isBlank(idempotencyKey)) {
+            return createNotifyMessage(userId, userType, template, templateContent, templateParams);
+        }
+        NotifyMessageDO existing = notifyMessageMapper.selectByIdempotencyKey(idempotencyKey);
+        if (existing != null) {
+            return assertSameRecipient(existing, userId, userType, template);
+        }
+        NotifyMessageDO message = new NotifyMessageDO().setUserId(userId).setUserType(userType)
+                .setTemplateId(template.getId()).setTemplateCode(template.getCode())
+                .setTemplateType(template.getType()).setTemplateNickname(template.getNickname())
+                .setTemplateContent(templateContent).setTemplateParams(templateParams).setReadStatus(false)
+                .setIdempotencyKey(idempotencyKey);
+        try {
+            notifyMessageMapper.insert(message);
+            return message.getId();
+        } catch (org.springframework.dao.DuplicateKeyException race) {
+            // 并发重复调用由唯一索引裁决，失败方读取先提交者的结果
+            NotifyMessageDO winner = notifyMessageMapper.selectByIdempotencyKey(idempotencyKey);
+            if (winner == null) {
+                throw race;
+            }
+            return assertSameRecipient(winner, userId, userType, template);
+        }
+    }
+
+    @Override
+    public NotifyMessageDO getNotifyMessageByIdempotencyKey(String idempotencyKey) {
+        return cn.hutool.core.util.StrUtil.isBlank(idempotencyKey) ? null
+                : notifyMessageMapper.selectByIdempotencyKey(idempotencyKey);
+    }
+
+    private static Long assertSameRecipient(NotifyMessageDO existing, Long userId, Integer userType,
+                                            NotifyTemplateDO template) {
+        if (!java.util.Objects.equals(existing.getUserId(), userId)
+                || !java.util.Objects.equals(existing.getUserType(), userType)
+                || !java.util.Objects.equals(existing.getTemplateCode(), template.getCode())) {
+            throw cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception(
+                    cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.NOTIFY_SEND_IDEMPOTENCY_CONFLICT);
+        }
+        return existing.getId();
+    }
+
+    @Override
     public PageResult<NotifyMessageDO> getNotifyMessagePage(NotifyMessagePageReqVO pageReqVO) {
         return notifyMessageMapper.selectPage(pageReqVO);
     }

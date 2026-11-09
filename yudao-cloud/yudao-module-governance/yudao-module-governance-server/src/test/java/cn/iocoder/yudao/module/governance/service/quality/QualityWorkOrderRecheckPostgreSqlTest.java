@@ -96,7 +96,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         cn.iocoder.yudao.module.governance.support.SingleTenantPostgreSqlFixture.copyCurrentTables(db, schema,
                 List.of("work_order", "work_order_issue", "issue_data", "work_order_submission", "work_order_action",
                         "work_order_notify", "task_instance", "audit_log", "work_order_recheck", "work_order_notify_review",
-                        "exception_expiry_cursor").stream().map(suffix -> PREFIX + suffix).toList());
+                        "exception_expiry_cursor", "expiry_failure").stream().map(suffix -> PREFIX + suffix).toList());
         db.update("INSERT INTO " + PREFIX + "work_order(id,order_name,task_id,owner_user_id,lock_version,order_status,current_submission_id) VALUES (8,'复检测试',3,4,1,'PENDING_RECHECK',11)");
         db.update("INSERT INTO " + PREFIX + "work_order_submission(id,work_order_id,revision,submission_type,payload_hash,submitted_by,submitted_at,status,request_key) VALUES(11,8,1,'SOURCE_FIX',repeat('b',64),4,now()-interval '1 hour','ACTIVE','wo:8:sub:1')");
         TenantContextHolder.clear();
@@ -476,7 +476,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"BUSINESS", "PARAM_MISSING", "GENERIC_ERROR", "TRANSPORT", "EMPTY_RECEIPT", "ZERO_RECEIPT", "NEGATIVE_RECEIPT"})
-    void notifyFailureKeepsCommittedIntentAndOnlyRetriesKnownNoSend(String failure) {
+    void notifyFailureKeepsCommittedIntentAndRetriesWithSameIdempotencyKey(String failure) {
         db.update("UPDATE " + PREFIX + "work_order SET order_status='PENDING_CONFIRMATION',confirmation_pending_type='EXPLAIN' WHERE id=8");
         when(first.guard.requireUserId()).thenReturn(9L);
         var req = command("notify-failure-" + failure, 1); req.setConfirmAction("RETURN"); req.setReason("补充材料");
@@ -507,13 +507,23 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         boolean knownNoSend = "BUSINESS".equals(failure) || "PARAM_MISSING".equals(failure) || "EMPTY_RECEIPT".equals(failure);
         String expected = knownNoSend ? "FAILED" : "UNKNOWN";
         assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo(expected);
-        assertThat(db.queryForObject("SELECT retry_count FROM " + PREFIX + "work_order_notify", Integer.class))
-                .isEqualTo(knownNoSend ? 1 : 0);
+        // FAILED 与 UNKNOWN 都计入自动重试次数并退避；退避期内第二次扫描不再发送
+        assertThat(db.queryForObject("SELECT retry_count FROM " + PREFIX + "work_order_notify", Integer.class)).isEqualTo(1);
         db.update("UPDATE " + PREFIX + "work_order_notify SET next_retry_time=now()-interval '1 second'");
         first.service.dispatchDueNotifies();
-        verify(first.notifications, times(knownNoSend ? 1 : 0)).sendSingleMessageToAdmin(any());
-        assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class))
-                .isEqualTo(knownNoSend ? "SENT" : "UNKNOWN");
+        // 通知服务按幂等键去重：结果未知也可安全重试，远端已创建时只会返回原消息编号
+        verify(first.notifications, times(1)).sendSingleMessageToAdmin(any());
+        assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("SENT");
+        var firstAttempt = org.mockito.ArgumentCaptor.forClass(
+                cn.iocoder.yudao.module.system.api.notify.dto.NotifySendSingleToUserReqDTO.class);
+        var retryAttempt = org.mockito.ArgumentCaptor.forClass(
+                cn.iocoder.yudao.module.system.api.notify.dto.NotifySendSingleToUserReqDTO.class);
+        verify(second.notifications).sendSingleMessageToAdmin(firstAttempt.capture());
+        verify(first.notifications).sendSingleMessageToAdmin(retryAttempt.capture());
+        Long notifyId = db.queryForObject("SELECT id FROM " + PREFIX + "work_order_notify", Long.class);
+        assertThat(firstAttempt.getValue().getIdempotencyKey())
+                .isEqualTo("governance:quality-work-order-notify:" + notifyId)
+                .isEqualTo(retryAttempt.getValue().getIdempotencyKey());
     }
 
     @Test void twoApplicationInstancesReplayOneRequestIntoOneDurableRun() throws Exception {
@@ -557,15 +567,37 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("SENT");
     }
 
-    @Test void lostNotifyResponseIsUnknownAndNeverAutomaticallyRetried() {
+    @Test void lostNotifyResponseIsUnknownThenRetriedWithTheSameIdempotencyKey() {
         db.update("INSERT INTO " + PREFIX + "work_order_notify(work_order_id,event_type,receiver_user_id,time_slice,send_status,next_retry_time) VALUES(8,'RETURN',4,'response-lost','PENDING',now()-interval '1 minute')");
         when(first.notifications.sendSingleMessageToAdmin(any())).thenThrow(new IllegalStateException("远端可能已创建消息，回执丢失"));
         first.service.dispatchDueNotifies();
         assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("UNKNOWN");
-        db.update("UPDATE " + PREFIX + "work_order_notify SET next_retry_time=now()-interval '1 day'");
         second.service.dispatchDueNotifies();
         verify(second.notifications, never()).sendSingleMessageToAdmin(any());
-        verify(first.notifications, times(1)).sendSingleMessageToAdmin(any());
+        db.update("UPDATE " + PREFIX + "work_order_notify SET next_retry_time=now()-interval '1 day'");
+        second.service.dispatchDueNotifies();
+        var lost = org.mockito.ArgumentCaptor.forClass(
+                cn.iocoder.yudao.module.system.api.notify.dto.NotifySendSingleToUserReqDTO.class);
+        var retried = org.mockito.ArgumentCaptor.forClass(
+                cn.iocoder.yudao.module.system.api.notify.dto.NotifySendSingleToUserReqDTO.class);
+        verify(first.notifications, times(1)).sendSingleMessageToAdmin(lost.capture());
+        verify(second.notifications, times(1)).sendSingleMessageToAdmin(retried.capture());
+        assertThat(retried.getValue().getIdempotencyKey()).isNotBlank().isEqualTo(lost.getValue().getIdempotencyKey());
+        assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("SENT");
+    }
+
+    @Test void exhaustedNotifyStopsAutomaticDeliveryAndAwaitsManualReview() {
+        db.update("INSERT INTO " + PREFIX + "work_order_notify(work_order_id,event_type,receiver_user_id,time_slice,send_status,retry_count,next_retry_time) VALUES(8,'RETURN',4,'exhausted','FAILED',7,now()-interval '1 minute')");
+        when(second.notifications.sendSingleMessageToAdmin(any())).thenReturn(CommonResult.error(
+                cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.NOTICE_NOT_FOUND));
+        second.service.dispatchDueNotifies();
+        assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("EXHAUSTED");
+        assertThat(db.queryForObject("SELECT retry_count FROM " + PREFIX + "work_order_notify", Integer.class)).isEqualTo(8);
+        db.update("UPDATE " + PREFIX + "work_order_notify SET next_retry_time=now()-interval '1 day'");
+        first.service.dispatchDueNotifies();
+        second.service.dispatchDueNotifies();
+        verify(second.notifications, times(1)).sendSingleMessageToAdmin(any());
+        verifyNoInteractions(first.notifications);
     }
 
     @Test void ignoredNotifyCompletionWriteFailsAndDoesNotLeaveRetryableIntent() {
@@ -584,15 +616,18 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         verify(second.notifications, never()).sendSingleMessageToAdmin(any());
     }
 
-    @Test void expiredUnfinishedClaimBecomesUnknownAndIsNeverAutomaticallyRetried() {
+    @Test void expiredUnfinishedClaimBecomesUnknownAndIsRetriedOnlyAfterBackoff() {
         db.update("INSERT INTO " + PREFIX + "work_order_notify(work_order_id,event_type,receiver_user_id,time_slice,send_status,claim_token,lease_until,next_retry_time) VALUES(8,'RETURN',4,'expired-claim','SENDING','orphaned-claim',now()-interval '1 second',now()-interval '1 minute')");
         second.service.dispatchDueNotifies();
         assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("UNKNOWN");
         assertThat(db.queryForObject("SELECT claim_token IS NULL AND lease_until IS NULL FROM " + PREFIX + "work_order_notify", Boolean.class)).isTrue();
+        assertThat(db.queryForObject("SELECT retry_count FROM " + PREFIX + "work_order_notify", Integer.class)).isEqualTo(1);
+        // 租约过期的同一次扫描不立即重发，避免与仍在运行的旧工作者撞车
         verifyNoInteractions(second.notifications);
         db.update("UPDATE " + PREFIX + "work_order_notify SET next_retry_time=now()-interval '1 day'");
         first.service.dispatchDueNotifies();
-        verifyNoInteractions(first.notifications);
+        verify(first.notifications, times(1)).sendSingleMessageToAdmin(any());
+        assertThat(db.queryForObject("SELECT send_status FROM " + PREFIX + "work_order_notify", String.class)).isEqualTo("SENT");
     }
 
     @Test void notificationDispatchWorksWithoutTenantContext() {
@@ -689,6 +724,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(count("work_order_issue")).isEqualTo(2); assertThat(count("work_order_notify")).isZero();
         verifyNoInteractions(node.notifications);
         db.execute("DROP TRIGGER expiry_result_fault ON " + PREFIX + "work_order_action");
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); new Node(true).target.expireExceptions(now); assertExpiredFollowUp();
         assertThat(db.queryForObject("SELECT expiry_result_version FROM " + PREFIX + "work_order_action", Integer.class)).isEqualTo(1);
     }
@@ -1100,6 +1136,67 @@ class QualityWorkOrderRecheckPostgreSqlTest {
                 id, id * 10, id, id * 10 + 1);
     }
 
+    /** 模拟失败账本的退避时间已过；失败项会在下一轮扫描重新处理 */
+    private void elapseExpiryBackoff() {
+        db.update("UPDATE " + PREFIX + "expiry_failure SET next_attempt_at=NULL WHERE status='RETRYING'");
+    }
+
+    private String ledgerStatus(long submissionId) {
+        return db.queryForObject("SELECT status FROM " + PREFIX + "expiry_failure WHERE submission_id=? AND deleted=0",
+                String.class, submissionId);
+    }
+
+    @Test void expiryFailureIsPersistedWithBackoffAndDoesNotBlockOtherItems() {
+        var now = expiredExceptionFixture(); addExpiredParent(100, now);
+        expiryFaultOnParents("work_order", "ERROR", "8");
+        var node = new Node(true);
+        assertThat(catchThrowable(() -> node.target.expireExceptions(now))).isInstanceOf(IllegalStateException.class);
+        assertExpiredParents(List.of(100L));
+        assertThat(ledgerStatus(11)).isEqualTo("RETRYING");
+        assertThat(db.queryForObject("SELECT attempt_count FROM " + PREFIX + "expiry_failure WHERE submission_id=11", Integer.class)).isEqualTo(1);
+        assertThat(db.queryForObject("SELECT next_attempt_at > ? FROM " + PREFIX + "expiry_failure WHERE submission_id=11", Boolean.class, now)).isTrue();
+        // 安全摘要不落驱动/数据库原文
+        assertThat(db.queryForObject("SELECT last_error FROM " + PREFIX + "expiry_failure WHERE submission_id=11", String.class))
+                .doesNotContain("fixture-only-sensitive-detail");
+        // 退避期内不再尝试：不报错、不占批次
+        assertThat(catchThrowable(() -> node.target.expireExceptions(now))).isNull();
+        assertThat(db.queryForObject("SELECT attempt_count FROM " + PREFIX + "expiry_failure WHERE submission_id=11", Integer.class)).isEqualTo(1);
+        db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
+        node.target.expireExceptions(now);
+        assertExpiredParents(List.of(8L, 100L));
+        assertThat(ledgerStatus(11)).isEqualTo("RESOLVED");
+        assertThat(db.queryForObject("SELECT resolution_action FROM " + PREFIX + "expiry_failure WHERE submission_id=11", String.class)).isEqualTo("SUCCEEDED");
+    }
+
+    @Test void expiryFailureExhaustsAfterMaxAttemptsAndOnlyManualRetryResumes() {
+        var now = expiredExceptionFixture();
+        expiryFaultOnParents("work_order", "ERROR", "8");
+        var node = new Node(true);
+        for (int attempt = 1; attempt <= cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityExceptionExpiryFailureDO.MAX_ATTEMPTS; attempt++) {
+            elapseExpiryBackoff();
+            assertThat(catchThrowable(() -> node.target.expireExceptions(now))).isInstanceOf(IllegalStateException.class);
+        }
+        assertThat(ledgerStatus(11)).isEqualTo("EXHAUSTED");
+        db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
+        // 耗尽后即使故障已消除也不自动处理，等待人工排查后授权
+        node.target.expireExceptions(now);
+        assertExpiredParents(List.of());
+        Long ledgerId = db.queryForObject("SELECT id FROM " + PREFIX + "expiry_failure WHERE submission_id=11", Long.class);
+        Integer version = db.queryForObject("SELECT version FROM " + PREFIX + "expiry_failure WHERE submission_id=11", Integer.class);
+        var failures = (cn.iocoder.yudao.module.governance.dal.mysql.quality.QualityExceptionExpiryFailureMapper)
+                ReflectionTestUtils.getField(node.target, "expiryFailureMapper");
+        assertThat(failures.authorizeRetry(ledgerId, version - 1, "旧页面版本", 4L, now)).isZero();
+        assertThat(failures.authorizeRetry(ledgerId, version, "已修复责任人配置", 4L, now)).isEqualTo(1);
+        assertThat(ledgerStatus(11)).isEqualTo("RETRYING");
+        node.target.expireExceptions(now);
+        assertExpiredParents(List.of(8L));
+        assertThat(ledgerStatus(11)).isEqualTo("RESOLVED");
+        // 再次扫描不会重复创建复核单
+        elapseExpiryBackoff(); node.target.expireExceptions(now); assertExpiredParents(List.of(8L));
+    }
+
     private void expiryFaultOnParents(String table, String mode, String parentIds) {
         // parentIds 仅来自本测试固定整数常量，不接收用户输入。
         String condition = switch (table) {
@@ -1145,6 +1242,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
                 .contains(firstFails ? "[11]" : "[100]").doesNotContain("fixture-only-sensitive-detail");
         verifyNoInteractions(node.notifications);
         db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + parts[0]);
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); second.target.expireExceptions(now);
         assertExpiredParents(List.of(8L, 100L, 101L));
         assertThat(count("work_order")).isEqualTo(6);
@@ -1158,6 +1256,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(failure).isInstanceOf(IllegalStateException.class).hasMessageContaining("[11, 101]");
         assertThat(failure.getCause()).isNull(); assertThat(failure.getSuppressed()).hasSize(2);
         db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); assertExpiredParents(List.of(8L, 100L, 101L));
     }
 
@@ -1174,10 +1273,16 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         // 新节点必须接着处理第 21 条，不能继续被同一页永久故障挡住。
         new Node(true).target.expireExceptions(now);
         assertExpiredParents(List.of(119L));
+        // 失败账本：退避期内失败项不再占批次，扫描正常结束；退避到期后重新尝试并再次报告失败
+        assertThat(catchThrowable(() -> new Node(true).target.expireExceptions(now))).isNull();
+        assertThat(db.queryForObject("SELECT count(*) FROM " + PREFIX + "expiry_failure WHERE status='RETRYING'", Integer.class)).isEqualTo(20);
+        elapseExpiryBackoff();
         Throwable retry = catchThrowable(() -> new Node(true).target.expireExceptions(now));
         assertThat(retry).isInstanceOf(IllegalStateException.class);
         assertThat(retry.getSuppressed()).hasSize(20);
+        assertThat(db.queryForObject("SELECT min(attempt_count) FROM " + PREFIX + "expiry_failure", Integer.class)).isEqualTo(2);
         db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
         new Node(true).target.expireExceptions(now);
         assertThat(count("work_order_action")).isEqualTo(21);
         assertThat(count("work_order")).isEqualTo(42);
@@ -1193,6 +1298,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         // 明确验证限制：本轮不绕过整页故障去处理第 21 条，更不伪称解决持久饥饿。
         assertThat(count("work_order_action")).isZero();
         db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); assertThat(count("work_order_action")).isEqualTo(1);
         node.target.expireExceptions(now); assertThat(count("work_order_action")).isEqualTo(21);
     }
@@ -1246,6 +1352,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(count("work_order_action")).isEqualTo(21);
         assertThat(db.queryForObject("SELECT through_submission_id FROM " + PREFIX + "exception_expiry_cursor", Long.class))
                 .isEqualTo(120L);
+        elapseExpiryBackoff();
         Throwable retry = catchThrowable(() -> new Node(true).target.expireExceptions(now));
         assertThat(retry).isInstanceOf(IllegalStateException.class); assertThat(retry.getSuppressed()).hasSize(1);
         assertThat(retry.getMessage()).contains("异常提交=[11]");
@@ -1762,6 +1869,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertExpiredParents(List.of());
         ReflectionTestUtils.setField(node.target, "transactionManager", node.transactions);
         db.execute("DROP TRIGGER expiry_batch_fault ON " + PREFIX + "work_order");
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); assertExpiredParents(List.of(8L, 100L, 101L));
     }
 
@@ -1896,6 +2004,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(status()).isEqualTo("PROCESSED");
         verifyNoInteractions(node.notifications);
         db.execute("DROP TRIGGER expiry_fault ON " + PREFIX + parts[0]);
+        elapseExpiryBackoff();
         node.target.expireExceptions(now);
         second.target.expireExceptions(now);
         assertExpiredFollowUp();
@@ -2066,6 +2175,7 @@ class QualityWorkOrderRecheckPostgreSqlTest {
         assertThat(count("work_order")).isEqualTo(1); assertThat(count("work_order_action")).isZero();
         assertThat(count("work_order_issue")).isEqualTo(2); assertThat(count("work_order_notify")).isZero();
         db.execute("DROP TRIGGER expiry_partial ON " + PREFIX + "work_order_issue");
+        elapseExpiryBackoff();
         node.target.expireExceptions(now); assertExpiredFollowUp();
     }
 
@@ -3343,7 +3453,8 @@ class QualityWorkOrderRecheckPostgreSqlTest {
                     "submissionMapper", QualityWorkOrderSubmissionMapper.class, "actionMapper", QualityWorkOrderActionMapper.class,
                     "recheckMapper", QualityWorkOrderRecheckMapper.class, "instanceMapper", QualityTaskInstanceMapper.class,
                     "auditLogMapper", QualityAuditLogMapper.class, "notifyMapper", QualityWorkOrderNotifyMapper.class,
-                    "workOrderIssueMapper", QualityWorkOrderIssueMapper.class, "issueDataMapper", QualityIssueDataMapper.class);
+                    "workOrderIssueMapper", QualityWorkOrderIssueMapper.class, "issueDataMapper", QualityIssueDataMapper.class,
+                    "expiryFailureMapper", cn.iocoder.yudao.module.governance.dal.mysql.quality.QualityExceptionExpiryFailureMapper.class);
             mappers.values().forEach(config::addMapper);
             config.addMapper(QualityExceptionExpiryCursorMapper.class);
             var sessions = new SqlSessionTemplate(new MybatisSqlSessionFactoryBuilder().build(config));
