@@ -237,12 +237,6 @@ function openCompare(row: Api.Snapshot) {
     query: { snapshotId: String(row.id) },
   });
 }
-function editTable() {
-  void router.push({
-    name: 'GovernanceMetaTableEdit',
-    params: { id: id.value },
-  });
-}
 const fieldColumns = computed(() =>
   props.finalized
     ? [
@@ -365,15 +359,12 @@ const technicalFields = computed(() =>
           </section>
           <section class="metadata-panel metadata-detail-body">
             <Tabs
+              class="metadata-detail-tabs"
+              :class="{ 'metadata-detail-tabs--base': activeTab === 'base' }"
               :active-key="activeTab"
               @change="(key) => (activeTab = String(key ?? 'fields'))"
             >
               <TabPane key="fields" tab="字段列表">
-                <div class="metadata-detail-tools">
-                  <Button size="small" aria-label="刷新字段" @click="load">
-                    <IconifyIcon :icon="metadataIcon('refresh')" />
-                  </Button>
-                </div>
                 <Table
                   class="metadata-detail-table"
                   :columns="fieldColumns"
@@ -382,7 +373,7 @@ const technicalFields = computed(() =>
                   row-key="id"
                   :scroll="{ x: finalized ? 1000 : 1840 }"
                   size="small"
-                  :pagination="finalized ? false : fieldPagination"
+                  :pagination="fieldPagination"
                 >
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.key === 'comment'">
@@ -455,22 +446,8 @@ const technicalFields = computed(() =>
                     <template v-else>{{ text ?? '-' }}</template>
                   </template>
                 </Table>
-                <ListPagination
-                  v-if="!finalized"
-                  :current="fieldPage"
-                  :page-size="fieldPageSize"
-                  :page-size-options="[10, 20, 50, 100]"
-                  :total="fields.length"
-                  aria-label="字段列表分页"
-                  @change="changeFieldPage"
-                />
               </TabPane>
               <TabPane v-if="!finalized" key="versions" tab="版本与变更">
-                <div class="metadata-detail-tools">
-                  <Button size="small" aria-label="刷新版本" @click="load">
-                    <IconifyIcon :icon="metadataIcon('refresh')" />
-                  </Button>
-                </div>
                 <Table
                   class="metadata-detail-table"
                   :columns="versionColumns"
@@ -526,14 +503,6 @@ const technicalFields = computed(() =>
                     <template v-else>{{ text || '-' }}</template>
                   </template>
                 </Table>
-                <ListPagination
-                  :current="versionPage"
-                  :page-size="versionPageSize"
-                  :page-size-options="[10, 20, 50, 100]"
-                  :total="snapshots.length"
-                  aria-label="版本与变更分页"
-                  @change="changeVersionPage"
-                />
               </TabPane>
               <TabPane key="base" tab="基本信息">
                 <h3 class="metadata-section">基础信息</h3>
@@ -605,16 +574,26 @@ const technicalFields = computed(() =>
                     {{ detail.businessLeaderPhone || '-' }}
                   </DescriptionsItem>
                 </Descriptions>
-                <div v-if="canEdit" class="metadata-detail-tools">
-                  <Button @click="editTable">
-                    <template #icon>
-                      <IconifyIcon :icon="metadataIcon('edit')" />
-                    </template>
-                    修改业务信息
-                  </Button>
-                </div>
               </TabPane>
             </Tabs>
+            <ListPagination
+              v-if="activeTab === 'fields'"
+              :current="fieldPage"
+              :page-size="fieldPageSize"
+              :page-size-options="[10, 20, 50, 100]"
+              :total="fields.length"
+              aria-label="字段列表分页"
+              @change="changeFieldPage"
+            />
+            <ListPagination
+              v-else-if="!finalized && activeTab === 'versions'"
+              :current="versionPage"
+              :page-size="versionPageSize"
+              :page-size-options="[10, 20, 50, 100]"
+              :total="snapshots.length"
+              aria-label="版本与变更分页"
+              @change="changeVersionPage"
+            />
           </section>
         </template>
         <Empty v-else-if="!loading && !failed" description="暂无元数据" />
@@ -650,8 +629,22 @@ const technicalFields = computed(() =>
 }
 
 .metadata-detail-body {
+  display: flex;
   flex: 1 0 auto;
+  flex-direction: column;
   min-height: 480px;
+}
+
+.metadata-detail-tabs {
+  flex: 1 0 auto;
+}
+
+.metadata-detail-tabs--base :deep(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.metadata-detail-tabs--base :deep(.metadata-section:first-child) {
+  margin-top: 0;
 }
 
 .metadata-detail-tools {

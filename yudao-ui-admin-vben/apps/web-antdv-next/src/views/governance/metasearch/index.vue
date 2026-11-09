@@ -2,12 +2,16 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { MetaSearchHit } from '#/api/governance/metaobject';
 
-import { Page, useVbenModal } from '@vben/common-ui';
+import { useRouter } from 'vue-router';
+
+import { useAccess } from '@vben/access';
+import { Page } from '@vben/common-ui';
 
 import { Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import { searchMetaObject } from '#/api/governance/metaobject';
+import { parseResourceId } from '#/utils/resource-id';
 
 import {
   CHANGE_OBJECT_TYPE_OPTIONS,
@@ -15,20 +19,16 @@ import {
   optionLabel,
   PUBLISH_STATUS_OPTIONS,
 } from '../metaobject/data';
-import Detail from '../metaobject/modules/detail.vue';
 
 defineOptions({ name: 'GovernanceMetaSearch' });
 
-const [DetailModal, detailModalApi] = useVbenModal({
-  connectedComponent: Detail,
-  destroyOnClose: true,
-});
+const router = useRouter();
+const { hasAccessByCodes } = useAccess();
 
 function handleDetail(row: MetaSearchHit) {
-  if (!row.tableId) {
-    return;
-  }
-  detailModalApi.setData({ id: row.tableId, tableName: row.tableName }).open();
+  const id = parseResourceId(row.tableId);
+  if (!id || !hasAccessByCodes(['governance:meta-table:query'])) return;
+  void router.push({ name: 'GovernanceMetaSearchDetail', params: { id } });
 }
 
 const [Grid] = useVbenVxeGrid({
@@ -126,7 +126,6 @@ const [Grid] = useVbenVxeGrid({
 
 <template>
   <Page auto-content-height>
-    <DetailModal />
     <Grid table-title="元数据检索">
       <template #objectType="{ row }">
         {{ optionLabel(CHANGE_OBJECT_TYPE_OPTIONS, row.objectType) }}

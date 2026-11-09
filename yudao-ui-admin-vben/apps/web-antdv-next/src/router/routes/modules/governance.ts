@@ -15,6 +15,30 @@ const routes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'metasearch/detail/:id',
+        name: 'GovernanceMetaSearchDetail',
+        component: () => import('#/views/governance/metasearch/detail.vue'),
+        meta: {
+          title: '元数据检索详情',
+          activePath: '/govern/metadata/metasearch',
+          hideInMenu: true,
+          keepAlive: false,
+        },
+        beforeEnter(to) {
+          if (!parseResourceId(to.params.id))
+            return { path: '/404', replace: true };
+          const access = useAccessStore();
+          if (
+            !access.accessToken ||
+            access.loginExpired ||
+            !parseResourceId(useUserStore().userInfo?.userId) ||
+            !access.accessCodes.includes('governance:meta-table:query')
+          )
+            return { path: '/403', replace: true };
+          return true;
+        },
+      },
+      {
         path: 'masterdata/detail/:id',
         name: 'GovernanceMasterModelDetail',
         component: () => import('#/views/governance/masterdata/detail.vue'),

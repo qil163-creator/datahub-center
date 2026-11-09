@@ -8,6 +8,7 @@ import {
   createApp,
   defineComponent,
   h,
+  KeepAlive,
   nextTick,
   reactive,
   shallowRef,
@@ -88,13 +89,19 @@ vi.mock('#/adapter/vxe-table', () => ({
 const harness = vi.hoisted(() => ({
   state: undefined as
     | undefined
-    | { accessToken: string; finalized: boolean; refreshToken: string },
+    | {
+        accessToken: string;
+        finalized: boolean;
+        refreshToken: string;
+        shown: boolean;
+      },
 }));
 vi.mock('@vben/stores', () => {
   harness.state = reactive({
     accessToken: 'session-a',
     refreshToken: '',
     finalized: false,
+    shown: true,
   });
   return { useAccessStore: () => harness.state };
 });
@@ -164,7 +171,7 @@ function rows() {
   ];
 }
 function pager() {
-  const node = activePanel().querySelector<HTMLElement>('[data-native-pager]');
+  const node = host.querySelector<HTMLElement>('[data-native-pager]');
   expect(node).not.toBeNull();
   return node!;
 }
@@ -186,10 +193,10 @@ async function selectPageSize(size: number) {
   select.dispatchEvent(new Event('change', { bubbles: true }));
   await flush();
 }
-async function refresh(label: string) {
-  activePanel()
-    .querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
-    .click();
+async function refresh() {
+  harness.state!.shown = false;
+  await flush();
+  harness.state!.shown = true;
   await flush();
 }
 
@@ -199,6 +206,7 @@ beforeEach(async () => {
     accessToken: 'session-a',
     refreshToken: '',
     finalized: false,
+    shown: true,
   });
   vi.mocked(getMetaTableDetail).mockImplementation(async (id) => ({
     id,
@@ -216,7 +224,11 @@ beforeEach(async () => {
         name: 'GovernanceMetaTableDetailPage',
         component: defineComponent({
           setup: () => () =>
-            h(DetailPage, { finalized: harness.state!.finalized }),
+            h(KeepAlive, () =>
+              harness.state!.shown
+                ? h(DetailPage, { finalized: harness.state!.finalized })
+                : null,
+            ),
         }),
       },
     ],
@@ -300,7 +312,7 @@ describe('元数据详情统一项目分页', () => {
     await nextPage();
     vi.mocked(getMetaColumnList).mockResolvedValue(fields(15));
     vi.mocked(getMetaSnapshotList).mockResolvedValue(snapshots(15));
-    await refresh('刷新版本');
+    await refresh();
     expect(pager().dataset.current).toBe('2');
     expect(rows()).toHaveLength(5);
     expect(rows()[0]?.textContent).toContain('V1.0.011');
@@ -309,7 +321,8 @@ describe('元数据详情统一项目分页', () => {
     expect(rows()[0]?.textContent).toContain('field-011');
     vi.mocked(getMetaColumnList).mockResolvedValue([]);
     vi.mocked(getMetaSnapshotList).mockResolvedValue([]);
-    await refresh('刷新字段');
+    await selectTab('版本与变更');
+    await refresh();
     for (const label of ['字段列表', '版本与变更']) {
       await selectTab(label);
       expect(pager().dataset.current).toBe('1');
@@ -334,7 +347,7 @@ describe('元数据详情统一项目分页', () => {
           resolveOld = resolve;
         }),
     );
-    await refresh('刷新版本');
+    await refresh();
     vi.mocked(getMetaColumnList).mockResolvedValue(fields(1, nextId));
     vi.mocked(getMetaSnapshotList).mockResolvedValue(snapshots(1, nextId));
     await open(nextId);
@@ -349,7 +362,7 @@ describe('元数据详情统一项目分页', () => {
     }
   });
 
-  it('定版详情继续展示完整只读字段，不引入原本没有的分页或版本页签', async () => {
+  it('定版详情使用底部分页并保留只读字段列，不显示版本页签', async () => {
     harness.state!.finalized = true;
     vi.mocked(getFinalizedMetaTable).mockResolvedValue({
       table: { id: initialId, tableName: '定版表' },
@@ -357,8 +370,25 @@ describe('元数据详情统一项目分页', () => {
       snapshot: { id: '9007199254743993', structVersion: 'V1.0.1' },
     });
     await open();
-    expect(rows()).toHaveLength(25);
-    expect(host.querySelector('[data-native-pager]')).toBeNull();
+    expect(rows()).toHaveLength(10);
+    expect(pager().dataset.total).toBe('25');
+    expect(pager().dataset.current).toBe('1');
+    expect(pager().dataset.size).toBe('10');
+    expect(
+      [...activePanel().querySelectorAll('.ant-table-thead th')].map((node) =>
+        node.textContent?.trim(),
+      ),
+    ).toEqual(['字段名称', '字段注释', '数据类型', '是否必填', '默认值']);
+    expect(activePanel().querySelector('.metadata-link')).toBeNull();
+    await nextPage();
+    expect(pager().dataset.current).toBe('2');
+    expect(rows()[0]?.textContent).toContain('field-011');
+    await selectPageSize(20);
+    expect(pager().dataset.current).toBe('1');
+    expect(rows()).toHaveLength(20);
+    await nextPage();
+    expect(rows()).toHaveLength(5);
+    expect(rows()[0]?.textContent).toContain('field-021');
     expect(host.querySelector('.ant-pagination')).toBeNull();
     expect(host.textContent).not.toContain('版本与变更');
   });

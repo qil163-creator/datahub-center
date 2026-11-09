@@ -1,4 +1,4 @@
-import type { RouteLocationNormalized } from 'vue-router';
+import type { NavigationGuard, RouteLocationNormalized } from 'vue-router';
 
 import { createMemoryHistory, createRouter } from 'vue-router';
 
@@ -22,7 +22,8 @@ function visit(id: unknown) {
   const guard = detail.beforeEnter;
   if (typeof guard !== 'function')
     throw new Error('主数据模型详情缺少路由守卫');
-  return guard(
+  const runGuard: NavigationGuard = guard;
+  return runGuard(
     { params: { id } } as unknown as RouteLocationNormalized,
     {} as RouteLocationNormalized,
     vi.fn(),

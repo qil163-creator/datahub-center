@@ -172,8 +172,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               auth: ['governance:level:update'],
               onClick: handleEdit.bind(null, row),
             },
-          ]"
-          :drop-down-actions="[
             {
               label: $t('common.detail'),
               type: 'link',

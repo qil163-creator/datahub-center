@@ -426,8 +426,8 @@ export function getMetaChangePage(params: PageParam) {
 /** 检索命中 */
 export interface MetaSearchHit {
   objectType?: number;
-  objectId?: number;
-  tableId?: number;
+  objectId?: GovernanceMetaObjectApi.Id;
+  tableId?: GovernanceMetaObjectApi.Id;
   dbName?: string;
   tableName?: string;
   columnName?: string;
