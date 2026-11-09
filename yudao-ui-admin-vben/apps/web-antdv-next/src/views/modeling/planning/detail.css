@@ -124,7 +124,7 @@
 
 .planning-detail-tabs > .ant-tabs-nav {
   min-height: 46px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .planning-detail-tabs > .ant-tabs-nav .ant-tabs-tab {

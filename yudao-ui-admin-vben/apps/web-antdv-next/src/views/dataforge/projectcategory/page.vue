@@ -31,6 +31,7 @@ import {
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
+import CategoryDetail from './detail.vue';
 import CategoryForm from './form.vue';
 import {
   branchKeys,
@@ -75,6 +76,7 @@ const filter = reactive({
 });
 const applied = reactive({ ...filter });
 const form = ref<InstanceType<typeof CategoryForm>>();
+const detail = ref<InstanceType<typeof CategoryDetail>>();
 let inactive = false;
 
 type Confirmation =
@@ -168,7 +170,7 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
       {
         field: 'actions',
         title: '操作',
-        width: 260,
+        width: 340,
         fixed: 'right',
         showOverflow: false,
         slots: { default: 'actions' },
@@ -277,6 +279,7 @@ function invalidate() {
   expanded.value = false;
   confirmation.value = undefined;
   form.value?.close();
+  detail.value?.close();
 }
 
 async function load() {
@@ -314,6 +317,11 @@ function toggleExpand() {
 function openForm(data: { id?: Api.Id; parentId?: Api.Id } = {}) {
   if (inactive || !canQuery.value || busy.value) return;
   void form.value?.open(data);
+}
+
+function openDetail(row: Api.Category) {
+  if (inactive || !canQuery.value || busy.value) return;
+  void detail.value?.open({ id: row.id });
 }
 
 function askDelete(row?: Api.Category) {
@@ -480,10 +488,9 @@ onActivated(() => {
           </Button>
           <Button type="primary" @click="toggleExpand">
             <template #icon>
-              <ReferenceIcon
-                :name="expanded ? 'collapse' : 'expand'"
-              /> </template
-            >{{ expanded ? '折叠' : '展开' }}
+              <ReferenceIcon :name="expanded ? 'collapse' : 'expand'" />
+            </template>
+            {{ expanded ? '折叠' : '展开' }}
           </Button>
           <Tooltip title="显示/隐藏查询">
             <Button
@@ -524,6 +531,14 @@ onActivated(() => {
       <template #actions="{ row }">
         <div class="qpc-row-actions">
           <Button
+            v-if="canQuery"
+            type="link"
+            :disabled="busy"
+            @click="openDetail(row)"
+          >
+            <template #icon><ReferenceIcon name="query" /></template>详情
+          </Button>
+          <Button
             v-if="can('update')"
             type="link"
             :disabled="busy"
@@ -552,6 +567,7 @@ onActivated(() => {
       </template>
     </Grid>
     <CategoryForm ref="form" :kind="kind" @saved="load" />
+    <CategoryDetail ref="detail" :kind="kind" />
     <Modal
       :open="!!confirmation"
       title="系统提示"

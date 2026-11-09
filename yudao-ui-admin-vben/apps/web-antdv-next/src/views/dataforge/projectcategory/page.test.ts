@@ -30,6 +30,8 @@ const harness = vi.hoisted(() => ({
   removeList: vi.fn(),
   status: vi.fn(),
   openForm: vi.fn(),
+  openDetail: vi.fn(),
+  closeDetail: vi.fn(),
   warning: vi.fn(),
 }));
 vi.mock('@vben/stores', () => {
@@ -156,6 +158,14 @@ vi.mock('#/api/dataforge/projectcategory', () => ({
   deleteProjectCategory: harness.remove,
   deleteProjectCategoryList: harness.removeList,
   updateProjectCategoryStatus: harness.status,
+}));
+vi.mock('./detail.vue', () => ({
+  default: defineComponent({
+    setup: (_, { expose }) => {
+      expose({ open: harness.openDetail, close: harness.closeDetail });
+      return () => null;
+    },
+  }),
 }));
 vi.mock('./form.vue', () => ({
   default: defineComponent({
@@ -293,7 +303,18 @@ function toolbarButton(label: string) {
 }
 beforeEach(() => {
   vi.clearAllMocks();
-  Object.assign(harness.access!, { accessToken: 'one', refreshToken: '' });
+  Object.assign(harness.access!, {
+    accessToken: 'one',
+    refreshToken: '',
+    accessCodes: [
+      ...['integration', 'dev'].flatMap((kind) =>
+        ['query', 'create', 'update', 'delete'].map(
+          (action) => `dataforge:${kind}-category:${action}`,
+        ),
+      ),
+      'governance:master-push-category:query',
+    ],
+  });
   harness.list.mockResolvedValue([row]);
   harness.get.mockResolvedValue(row);
   harness.remove.mockResolvedValue(true);
@@ -308,6 +329,23 @@ afterEach(() => {
 });
 
 describe('项目类目列表', () => {
+  it.each([
+    ['integration', 'dataforge:integration-category:query'],
+    ['development', 'dataforge:dev-category:query'],
+    ['masterPush', 'governance:master-push-category:query'],
+  ] as const)('%s 仅有查询权限时仍可查看只读详情', async (kind, permission) => {
+    harness.access!.accessCodes = [permission];
+    mount(kind);
+    await flush();
+    const actions = host.querySelector('.qpc-row-actions')!;
+    const buttons = [...actions.querySelectorAll<HTMLButtonElement>('button')];
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['详情']);
+    buttons[0]!.click();
+    await flush();
+    expect(harness.openDetail).toHaveBeenCalledExactlyOnceWith({ id });
+    expect(harness.openForm).not.toHaveBeenCalled();
+  });
+
   it('原生表单仍支持输入类目名称后按 Enter 查询', async () => {
     harness.list.mockResolvedValueOnce([
       row,

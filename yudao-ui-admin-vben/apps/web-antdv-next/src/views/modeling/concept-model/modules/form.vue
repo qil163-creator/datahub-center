@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VbenFormSchema } from '#/adapter/form';
 import type { ConceptModelApi } from '#/api/modeling/concept-model';
 
 import { computed, ref } from 'vue';
@@ -64,6 +65,19 @@ const request = useModelingRequest(
   },
 );
 
+function subjectDependencies(): VbenFormSchema['dependencies'] {
+  return {
+    triggerFields: ['dataDomainId'],
+    resolve: ({ values }) => ({
+      componentProps: {
+        options: subjectChoices.value.filter(
+          (item) => item.dataDomainId === String(values.dataDomainId),
+        ),
+      },
+    }),
+  };
+}
+
 const [Form, formApi] = useVbenForm({
   commonConfig: { componentProps: { class: 'w-full' }, labelWidth: 100 },
   wrapperClass: 'grid-cols-1 md:grid-cols-2',
@@ -106,16 +120,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'subjectDomainId',
       label: '主题域',
       component: 'Select',
-      dependencies: {
-        triggerFields: ['dataDomainId'],
-        resolve: ({ values }) => ({
-          componentProps: {
-            options: subjectChoices.value.filter(
-              (item) => item.dataDomainId === String(values.dataDomainId),
-            ),
-          },
-        }),
-      },
+      dependencies: subjectDependencies(),
       componentProps: {
         options: [],
         allowClear: true,
@@ -208,6 +213,7 @@ async function loadOptions(current: () => boolean) {
     },
     {
       fieldName: 'subjectDomainId',
+      dependencies: subjectDependencies(),
       componentProps: {
         options: subjects.filter(
           (item) => item.dataDomainId === String(values.dataDomainId),

@@ -113,6 +113,7 @@ function back() {
                 <TabPane key="entities" tab="业务实体">
                   <EntityTable
                     :data-domain-id="detail.dataDomainId"
+                    :show-search="false"
                     :subject-domain-id="detail.id"
                   />
                 </TabPane>

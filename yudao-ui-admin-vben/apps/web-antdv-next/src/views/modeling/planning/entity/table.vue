@@ -34,10 +34,14 @@ import EntityForm from './form.vue';
 import { ENTITY_STATUSES, ENTITY_SUBTYPES, ENTITY_TYPES } from './state';
 import { normalizeEntityTree } from './tree-state';
 
-const props = defineProps<{
-  dataDomainId?: BusinessEntityApi.Id;
-  subjectDomainId?: BusinessEntityApi.Id;
-}>();
+const props = withDefaults(
+  defineProps<{
+    dataDomainId?: BusinessEntityApi.Id;
+    showSearch?: boolean;
+    subjectDomainId?: BusinessEntityApi.Id;
+  }>(),
+  { dataDomainId: undefined, showSearch: true, subjectDomainId: undefined },
+);
 const { hasAccessByCodes } = useAccess();
 const access = useAccessStore();
 const keyword = ref('');
@@ -97,7 +101,7 @@ const statuses = [
   { value: 1, label: ENTITY_STATUSES[1] },
 ];
 const [Grid, gridApi] = useVbenVxeGrid<BusinessEntityApi.Entity>({
-  formOptions: {
+  formOptions: props.showSearch ? {
     submitOnEnter: true,
     wrapperClass: 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3',
     schema: [
@@ -144,7 +148,7 @@ const [Grid, gridApi] = useVbenVxeGrid<BusinessEntityApi.Entity>({
       await gridApi.formApi.reset();
       reset();
     },
-  },
+  } : undefined,
   gridOptions: {
     data: [],
     border: false,
@@ -172,7 +176,7 @@ const [Grid, gridApi] = useVbenVxeGrid<BusinessEntityApi.Entity>({
       layouts: ['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'FullJump'],
     },
     toolbarConfig: {
-      search: true,
+      search: props.showSearch,
       refresh: true,
       refreshOptions: { queryMethod: () => load() },
       custom: true,

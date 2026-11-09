@@ -133,38 +133,45 @@ function create(parent?: ModelingSubjectDomainApi.SubjectDomain) {
     .open();
 }
 const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
-  formOptions: {
-    submitOnEnter: true,
-    schema: [
-      {
-        fieldName: 'name',
-        label: '主题域信息',
-        component: 'Input',
-        componentProps: { allowClear: true, placeholder: '请输入名称或英文名' },
-      },
-      {
-        fieldName: 'parentId',
-        label: '上级主题域',
-        component: 'Select',
-        componentProps: () => ({
-          allowClear: true,
-          showSearch: true,
-          optionFilterProp: 'label',
-          options: parents.value,
-          placeholder: '请选择上级主题域',
-        }),
-      },
-    ],
-    handleSubmit: async (values) => {
-      name.value = values.name ?? '';
-      parentId.value = values.parentId;
-      await load(true);
-    },
-    handleReset: async () => {
-      await gridApi.formApi.reset();
-      resetSearch();
-    },
-  },
+  ...(props.embedded
+    ? {}
+    : {
+        formOptions: {
+          submitOnEnter: true,
+          schema: [
+            {
+              fieldName: 'name',
+              label: '主题域信息',
+              component: 'Input',
+              componentProps: {
+                allowClear: true,
+                placeholder: '请输入名称或英文名',
+              },
+            },
+            {
+              fieldName: 'parentId',
+              label: '上级主题域',
+              component: 'Select',
+              componentProps: () => ({
+                allowClear: true,
+                showSearch: true,
+                optionFilterProp: 'label',
+                options: parents.value,
+                placeholder: '请选择上级主题域',
+              }),
+            },
+          ],
+          handleSubmit: async (values) => {
+            name.value = values.name ?? '';
+            parentId.value = values.parentId;
+            await load(true);
+          },
+          handleReset: async () => {
+            await gridApi.formApi.reset();
+            resetSearch();
+          },
+        },
+      }),
   gridOptions: {
     showHeaderOverflow: 'tooltip',
     data: [],
@@ -191,7 +198,7 @@ const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
       total: 0,
     },
     toolbarConfig: {
-      search: true,
+      search: !props.embedded,
       refresh: true,
       refreshOptions: { queryMethod: () => load() },
       custom: true,
@@ -530,9 +537,9 @@ onDeactivated(() => {
                 allow-clear
                 placeholder="请输入数据板块名称"
               >
-                <template #prefix
-                  ><IconifyIcon icon="lucide:search"
-                /></template>
+                <template #prefix>
+                  <IconifyIcon icon="lucide:search" />
+                </template>
               </Input>
               <TreeToolbar
                 compact
@@ -607,8 +614,9 @@ onDeactivated(() => {
                   :disabled="!selectedDomain"
                   @click="create()"
                 >
-                  <IconifyIcon icon="lucide:plus" />新增 </Button
-                ><Button @click="expand">
+                  <IconifyIcon icon="lucide:plus" />新增
+                </Button>
+                <Button v-if="!embedded" @click="expand">
                   <IconifyIcon
                     :icon="
                       isExpanded ? 'lucide:list-minus' : 'lucide:list-plus'
@@ -627,8 +635,9 @@ onDeactivated(() => {
                   <span class="subject-domain-icon" aria-hidden="true">
                     <IconifyIcon icon="lucide:shapes" />
                   </span>
-                  <span>{{ row.name }}（{{ row.code }}）</span></button
-                ><span class="planning-muted">{{ row.code }}</span>
+                  <span>{{ row.name }}（{{ row.code }}）</span>
+                </button>
+                <span class="planning-muted">{{ row.code }}</span>
               </div>
             </template>
             <template #status="{ row }">
@@ -646,16 +655,16 @@ onDeactivated(() => {
             </template>
             <template #leader="{ row }">
               <div class="planning-info">
-                <span>{{ row.leaderName || userName(row.leaderUserId) }}</span
-                ><span>{{
+                <span>{{ row.leaderName || userName(row.leaderUserId) }}</span>
+                <span>{{
                   row.leaderPhone || userPhone(row.leaderUserId)
                 }}</span>
               </div>
             </template>
             <template #creator="{ row }">
               <div class="planning-info">
-                <span>{{ row.creatorName || userName(row.creator) }}</span
-                ><span>{{ row.creatorPhone || userPhone(row.creator) }}</span>
+                <span>{{ row.creatorName || userName(row.creator) }}</span>
+                <span>{{ row.creatorPhone || userPhone(row.creator) }}</span>
               </div>
             </template>
             <template #actions="{ row }">

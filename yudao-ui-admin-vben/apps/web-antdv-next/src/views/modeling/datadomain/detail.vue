@@ -103,7 +103,7 @@ function back() {
                   <SubjectTable embedded :data-domain-id="detail.id" />
                 </TabPane>
                 <TabPane key="entities" tab="业务实体">
-                  <EntityTable :data-domain-id="detail.id" />
+                  <EntityTable :data-domain-id="detail.id" :show-search="false" />
                 </TabPane>
                 <TabPane key="rules" tab="命名规则">
                   <NamingRules

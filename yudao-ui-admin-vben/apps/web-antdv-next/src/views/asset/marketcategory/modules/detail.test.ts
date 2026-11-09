@@ -23,7 +23,7 @@ const mock = vi.hoisted(() => ({
   list: vi.fn(),
   options: undefined as
     | undefined
-    | { onOpenChange: (open: boolean) => Promise<void> },
+    | { centered: boolean; onOpenChange: (open: boolean) => Promise<void> },
   setState: vi.fn(),
   close: vi.fn(),
 }));
@@ -45,11 +45,11 @@ vi.mock('#/api/asset/marketcategory', () => ({
   getMarketCategoryList: mock.list,
 }));
 vi.mock('@vben/common-ui', () => ({
-  useVbenDrawer: (options: NonNullable<typeof mock.options>) => {
+  useVbenModal: (options: NonNullable<typeof mock.options>) => {
     mock.options = options;
     return [
       (_: unknown, { slots, attrs }: SetupContext) =>
-        h('aside', attrs, slots.default?.()),
+        h('section', attrs, slots.default?.()),
       {
         getData: () => mock.data,
         setState: mock.setState,
@@ -131,6 +131,7 @@ afterEach(() => {
 });
 describe('market category readonly detail', () => {
   it('loads authoritative detail and a complete parent list with exact long ids', async () => {
+    expect(mock.options?.centered).toBe(true);
     await mock.options!.onOpenChange(true);
     expect(mock.get).toHaveBeenCalledWith('9223372036854775807');
     expect(mock.list).toHaveBeenCalledWith();

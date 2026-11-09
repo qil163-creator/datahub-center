@@ -11,7 +11,7 @@ import {
 } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { message, Switch } from 'antdv-next';
@@ -66,7 +66,7 @@ const [FormModal, formModalApi] = useVbenModal({
   destroyOnClose: true,
 });
 
-const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
+const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
   destroyOnClose: true,
 });
@@ -103,7 +103,7 @@ function edit(row: AssetMarketCategoryApi.MarketCategory) {
 }
 function detail(row: AssetMarketCategoryApi.MarketCategory) {
   if (inactive || !canQuery.value || !parseResourceId(row.id)) return;
-  detailDrawerApi.setData({ id: row.id }).open();
+  detailModalApi.setData({ id: row.id }).open();
 }
 function toggleExpand() {
   expanded.value = !expanded.value;
@@ -266,7 +266,7 @@ function invalidate() {
   displayedRows = [];
   void gridApi.grid?.loadData([]);
   void formModalApi.close();
-  void detailDrawerApi.close();
+  void detailModalApi.close();
 }
 watch(
   scope,
@@ -292,7 +292,7 @@ onBeforeUnmount(invalidate);
 <template>
   <Page auto-content-height data-testid="market-category-page">
     <FormModal @success="refresh" />
-    <DetailDrawer />
+    <DetailModal />
     <Grid class="market-category-grid" table-title="集市类目列表">
       <template #toolbar-tools>
         <TableAction

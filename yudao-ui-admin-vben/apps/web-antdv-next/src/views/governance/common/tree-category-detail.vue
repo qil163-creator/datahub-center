@@ -60,6 +60,7 @@ const fields = computed<DetailFieldItem[]>(() => [
 ]);
 
 const [Modal, modalApi] = useVbenModal({
+  centered: true,
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(isOpen: boolean) {
@@ -86,7 +87,7 @@ const [Modal, modalApi] = useVbenModal({
 <template>
   <Modal
     :title="`${payload?.title ?? '类目'}详情${detail.categoryName ? ` - ${detail.categoryName}` : ''}`"
-    class="w-[960px]"
+    class="w-[960px] max-w-[calc(100vw-32px)]"
   >
     <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
   </Modal>

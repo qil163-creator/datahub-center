@@ -620,7 +620,7 @@ onBeforeUnmount(() => {
                 </button>
               </Popover>
             </div>
-            <Spin :spinning="loading || saving">
+            <Spin class="qd-logic-detail-fields" :spinning="loading || saving">
               <div class="qd-logic-detail-table-scroll">
                 <table
                   class="qd-logic-detail-table"

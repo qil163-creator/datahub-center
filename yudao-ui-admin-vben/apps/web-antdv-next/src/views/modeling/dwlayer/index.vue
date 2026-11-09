@@ -531,9 +531,6 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
           </footer>
         </article>
       </div>
-      <p v-if="!failed && !loading" class="warehouse-summary">
-        共 {{ layers.length }} 个分层，当前显示 {{ visibleLayers.length }} 个
-      </p>
     </div>
     <CategoryDrawer class="w-[960px] max-w-full">
       <div class="category-drawer-toolbar">
@@ -865,13 +862,6 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
   padding: 45px 20px;
   background: hsl(var(--card));
   border-radius: 4px;
-}
-
-.warehouse-summary {
-  margin: 0;
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-  text-align: right;
 }
 
 .category-drawer-toolbar {

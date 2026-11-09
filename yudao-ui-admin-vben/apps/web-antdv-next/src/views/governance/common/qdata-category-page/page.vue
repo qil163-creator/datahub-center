@@ -13,6 +13,7 @@ import {
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -22,6 +23,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
+import CategoryDetail from './detail.vue';
 import CategoryForm from './form.vue';
 import {
   branchKeys,
@@ -60,6 +62,7 @@ const filter = reactive({
 });
 const applied = reactive({ ...filter });
 const form = ref<InstanceType<typeof CategoryForm>>();
+const detail = ref<InstanceType<typeof CategoryDetail>>();
 let inactive = false;
 const confirmation = ref<
   | { action: 'delete'; batch: boolean; ids: (number | string)[] }
@@ -144,7 +147,7 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryRow>({
       {
         field: 'actions',
         title: '操作',
-        width: 260,
+        width: 320,
         fixed: 'right',
         showOverflow: false,
         slots: { default: 'actions' },
@@ -250,6 +253,7 @@ function invalidate() {
   expanded.value = false;
   confirmation.value = undefined;
   form.value?.close();
+  detail.value?.close();
 }
 
 async function load() {
@@ -294,6 +298,10 @@ function openForm(
     !busy.value
   )
     void form.value?.open(data);
+}
+
+function openDetail(row: CategoryRow) {
+  if (!inactive && can('query') && !busy.value) void detail.value?.open(row.id);
 }
 
 function askDelete(row?: CategoryRow) {
@@ -414,70 +422,87 @@ onActivated(() => {
             <template #icon><ReferenceIcon name="delete" /></template>删除
           </Button>
           <Button type="primary" @click="toggleExpand">
-            <template #icon
-              ><ReferenceIcon
-                :name="expanded ? 'collapse' : 'expand'" /></template
-            >{{ expanded ? '折叠' : '展开' }}
+            <template #icon>
+<ReferenceIcon
+                :name="expanded ? 'collapse' : 'expand'"
+/>
+</template>{{ expanded ? '折叠' : '展开' }}
           </Button>
-          <Tooltip title="显示/隐藏查询"
-            ><Button
+          <Tooltip title="显示/隐藏查询">
+<Button
               aria-label="显示/隐藏查询"
               @click="showFilter = !showFilter"
-              ><ReferenceIcon name="search" /></Button
-          ></Tooltip>
-          <Tooltip title="刷新"
-            ><Button aria-label="刷新" :loading="loading" @click="load"
-              ><ReferenceIcon name="refresh" /></Button
-          ></Tooltip>
-          <Tooltip title="列设置"
-            ><Button aria-label="列设置" @click="gridApi.grid?.openCustom()"
-              ><ReferenceIcon name="columns" /></Button
-          ></Tooltip>
+              >
+<ReferenceIcon name="search" />
+</Button>
+</Tooltip>
+          <Tooltip title="刷新">
+<Button aria-label="刷新" :loading="loading" @click="load">
+<ReferenceIcon name="refresh" />
+</Button>
+</Tooltip>
+          <Tooltip title="列设置">
+<Button aria-label="列设置" @click="gridApi.grid?.openCustom()">
+<ReferenceIcon name="columns" />
+</Button>
+</Tooltip>
         </div>
       </template>
-      <template #status="{ row }"
-        ><Switch
+      <template #status="{ row }">
+<Switch
           :checked="row.status === 0"
           :disabled="!can('update') || busy"
           :aria-label="`${row.name}状态`"
           @change="askStatus(row)"
-      /></template>
-      <template #description="{ row }"
-        ><TextEllipsisCell
+      />
+</template>
+      <template #description="{ row }">
+<TextEllipsisCell
           class="qpc-description-cell"
           :content="row.description || '-'"
           :line="2"
           center
-      /></template>
+      />
+</template>
       <template #actions="{ row }">
         <div class="qpc-row-actions">
+          <Button
+            v-if="can('query')"
+            type="link"
+            :disabled="busy"
+            @click="openDetail(row)"
+          >
+            <template #icon><IconifyIcon icon="lucide:eye" /></template>详情
+          </Button>
           <Button
             v-if="can('update')"
             type="link"
             :disabled="busy"
             @click="openForm({ id: row.id })"
-            ><template #icon><ReferenceIcon name="edit" /></template
-            >修改</Button
-          >
+            >
+<template #icon><ReferenceIcon name="edit" /></template>修改
+</Button>
           <Button
             v-if="can('create')"
             type="link"
             :disabled="busy"
             @click="openForm({ parentId: row.id })"
-            ><template #icon><ReferenceIcon name="add" /></template>新增</Button
-          >
+            >
+<template #icon><ReferenceIcon name="add" /></template>新增
+</Button>
           <Button
             v-if="can('delete')"
             type="link"
             danger
             :disabled="busy || row.status === 0"
             @click="askDelete(row)"
-            ><template #icon><ReferenceIcon name="delete" /></template
-            >删除</Button
-          >
+            >
+<template #icon><ReferenceIcon name="delete" /></template>删除
+</Button>
         </div>
       </template>
     </Grid>
+    <CategoryDetail ref="detail" :adapter="adapter" />
     <CategoryForm ref="form" :adapter="adapter" @saved="load" />
     <Modal
       :open="!!confirmation"

@@ -52,6 +52,7 @@ const mock = vi.hoisted(() => ({
   detailData: vi.fn(),
   detailOpen: vi.fn(),
   detailClose: vi.fn(),
+  modalCount: 0,
 }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => mock.access,
@@ -67,26 +68,19 @@ vi.mock('@vben/common-ui', () => ({
   Page: (_: unknown, { attrs, slots }: SetupContext) =>
     h('main', attrs, slots.default?.()),
   confirm: mock.confirm,
-  useVbenModal: () => [
-    () => null,
-    {
-      setData: (data: unknown) => {
-        mock.formData(data);
-        return { open: mock.formOpen };
+  useVbenModal: () => {
+    const isDetail = mock.modalCount++ === 1;
+    return [
+      () => null,
+      {
+        setData: (data: unknown) => {
+          (isDetail ? mock.detailData : mock.formData)(data);
+          return { open: isDetail ? mock.detailOpen : mock.formOpen };
+        },
+        close: isDetail ? mock.detailClose : mock.formClose,
       },
-      close: mock.formClose,
-    },
-  ],
-  useVbenDrawer: () => [
-    () => null,
-    {
-      setData: (data: unknown) => {
-        mock.detailData(data);
-        return { open: mock.detailOpen };
-      },
-      close: mock.detailClose,
-    },
-  ],
+    ];
+  },
 }));
 vi.mock('antdv-next', () => ({
   Switch: (props: { loading?: boolean }) =>
@@ -164,6 +158,7 @@ let state: {
 };
 beforeEach(() => {
   vi.resetAllMocks();
+  mock.modalCount = 0;
   mock.access = reactive({
     accessToken: 'session-a',
     refreshToken: '',

@@ -5,7 +5,7 @@ import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-
 import { computed, onBeforeUnmount, onDeactivated, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
@@ -85,14 +85,15 @@ function reset() {
   parentName.value = '';
   loadError.value = '';
 }
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Modal, modalApi] = useVbenModal({
+  centered: true,
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(open: boolean) {
     reset();
-    drawerApi.setState({ loading: false });
+    modalApi.setState({ loading: false });
     if (!open) return;
-    const data = drawerApi.getData() as
+    const data = modalApi.getData() as
       | undefined
       | { id?: AssetMarketCategoryApi.Id };
     const id = parseResourceId(data?.id);
@@ -101,7 +102,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       return;
     }
     const ticket = request.next();
-    drawerApi.setState({ loading: true });
+    modalApi.setState({ loading: true });
     try {
       const [value, parents] = await Promise.all([
         getMarketCategory(id),
@@ -120,24 +121,24 @@ const [Drawer, drawerApi] = useVbenDrawer({
       if (ticket.isCurrent())
         loadError.value = '类目详情读取失败，请关闭后重试。';
     } finally {
-      if (ticket.isCurrent()) drawerApi.setState({ loading: false });
+      if (ticket.isCurrent()) modalApi.setState({ loading: false });
     }
   },
 });
 function close() {
   reset();
-  drawerApi.setState({ loading: false });
-  void drawerApi.close();
+  modalApi.setState({ loading: false });
+  void modalApi.close();
 }
 watch(scope, close, { flush: 'sync' });
 onDeactivated(close);
 onBeforeUnmount(reset);
 </script>
 <template>
-  <Drawer
+  <Modal
     :title="`集市类目详情${detail?.name ? ` - ${detail.name}` : ''}`"
-    class="w-[960px] max-w-full"
-    data-testid="market-category-detail-drawer"
+    class="w-[960px] max-w-[calc(100vw-32px)]"
+    data-testid="market-category-detail-modal"
   >
     <Alert
       v-if="loadError"
@@ -147,5 +148,5 @@ onBeforeUnmount(reset);
       class="mx-4 mb-4"
     />
     <DetailFieldForm v-if="detail && canQuery" :fields="fields" class="mx-4" />
-  </Drawer>
+  </Modal>
 </template>
