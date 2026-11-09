@@ -9,6 +9,9 @@ import cn.iocoder.yudao.module.supply.dal.dataobject.dataapi.DataApiDO;
 import cn.iocoder.yudao.module.supply.dal.mysql.dataapi.DataApiMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyApiBindingRespDTO;
+import cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyApiCallStatReqDTO;
+import cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyApiCallStatRespDTO;
+import cn.iocoder.yudao.module.supply.dal.mysql.apilog.ApiLogMapper;
 import cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyPublishedApiDocumentRespDTO;
 import cn.iocoder.yudao.module.supply.service.dataapi.DataApiService;
 import cn.iocoder.yudao.module.supply.service.dataapi.SupplyApiBindingService;
@@ -98,6 +101,25 @@ public class SupplyDataApiApiImpl implements SupplyDataApiApi {
     public CommonResult<List<SupplyApiBindingRespDTO>> listTableQueryBindings(Long databaseId) {
         // 列表仅供选择候选；批准前必须按编号获取已核验的完整绑定。
         return success(convertList(dataApiService.listOnlineTableQueryApis(databaseId), bindingService::describe));
+    }
+
+
+    @Resource
+    private ApiLogMapper apiLogMapper;
+
+    /**
+     * 按 API 统计开放网关真实调用。
+     *
+     * @param reqVO 请求参数
+     * @return 每个有调用记录的 API 的统计
+     */
+    @Override
+    public CommonResult<List<SupplyApiCallStatRespDTO>> listApiCallStatistics(SupplyApiCallStatReqDTO reqVO) {
+        List<Long> apiIds = reqVO.getApiIds().stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (apiIds.isEmpty()) {
+            return success(List.of());
+        }
+        return success(apiLogMapper.selectCallStatistics(apiIds, reqVO.getSince()));
     }
 
 }

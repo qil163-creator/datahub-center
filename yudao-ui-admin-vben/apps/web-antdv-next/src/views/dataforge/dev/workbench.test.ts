@@ -161,6 +161,14 @@ vi.mock('./modules/instance-modal.vue', () => ({
     },
   }),
 }));
+vi.mock('./modules/backfill-modal.vue', () => ({
+  default: defineComponent({
+    setup: (_, { expose }) => {
+      expose({ open: vi.fn(), close: vi.fn() });
+      return () => null;
+    },
+  }),
+}));
 vi.mock('./modules/schedule-form.vue', () => ({
   default: defineComponent({
     setup: (_, { expose }) => {

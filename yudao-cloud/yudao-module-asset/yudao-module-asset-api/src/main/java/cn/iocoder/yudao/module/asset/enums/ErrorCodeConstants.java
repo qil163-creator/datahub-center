@@ -177,4 +177,7 @@ public interface ErrorCodeConstants {
     ErrorCode ASSET_SENSITIVE_COLUMN_INVALID = new ErrorCode(1_500_029_023, "所选字段不属于当前资产");
     ErrorCode ASSET_SENSITIVE_CATEGORY_INVALID = new ErrorCode(1_500_029_024, "所选分类不存在、已禁用或不是可选叶分类");
     ErrorCode ASSET_SENSITIVE_INPUT_INVALID = new ErrorCode(1_500_029_025, "敏感清单输入或修订号不合法");
+
+    // ========== 资产运营 1_500_033_000 ==========
+    ErrorCode ASSET_OPERATION_REFRESHING = new ErrorCode(1_500_033_000, "资产运营指标正在计算中，请稍后再试");
 }

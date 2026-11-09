@@ -14,7 +14,7 @@
 | `dataforge-server` | `etlPipelineJob` | ETL 排期、派发、租约恢复；质量报告、目标提交/质检和回放复检对账；持久积压指标采样 | `0 * * * * ?` |
 | `dataforge-server` | `etlFileRecoveryJob` | 单平台扫描已知文件意图后逐项核验执行人；失租约且文件锁可取得后核对同对象，并处理显式申请的到期本人发布文件及锚点清理，默认KEEP不按年龄删除；最多20项/次、10次自动重试，未知身份转人工；不重跑图、不强制覆盖目标 | 建议 `0 * * * * ?` |
 | `dataforge-server` | `jobManagementCoordinatorJob` | 作业平台 Quartz 槽位原子受理、三串行策略队列与真实父子恢复；到期和队列阶段各至多二十作业、每作业五槽或五次派发，单轮对账每作业至多十实例，每作业最多一百待结束请求；未知触发不重投 | 建议 `0/5 * * * * ?` |
-| `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
+| `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入、补数据批次逐日推进及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
 | `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务 | `0 * * * * ?` |
 | `dataforge-server` | `fillOutboxRelayJob` | 在线填报事件投递 | `0 * * * * ?` |
 | `dataforge-server` | `fillMergeJob` | 在线填报合并执行及重试 | `0 * * * * ?` |
@@ -33,6 +33,7 @@
 | `governance-server` | `qualityWorkOrderNotifyJob` | 质量工单通知派发；按工单原子认领，发送租约过期归为 UNKNOWN，禁止自动重发未知结果 | `0 0/5 * * * ?` |
 | `asset-server` | `marketApplyExpireJob` | 集市申请到期及交付重试 | `0 0 * * * ?` |
 | `asset-server` | `assetCatalogReconcileJob` | 单平台重试目录挂接回执与停供撤权，失败进入人工处置；撤权实际交付由 marketApplyExpireJob 继续处理 | 建议 `0 * * * * ?` |
+| `asset-server` | `assetOperationMetricJob` | 每日计算资产运营指标快照（近 30 天使用、热度、价值评估与运营建议），同日重跑整体替换，快照保留 400 天 | 建议 `0 20 1 * * ?` |
 | `supply-server` | `supplyGrantReconcileJob` | 授权操作状态对账 | `0 0/5 * * * ?` |
 | `supply-server` | `supplyApiOperationReconcileJob` | 单平台有界扫描失联开放写操作，转为UNKNOWN待核查，不重试SQL | 建议 `0 * * * * ?` |
 | `supply-server` | `supplyQuotaExpiryJob` | 单平台释放过期读请求额度预占，最多1000条；旧工作者无法确认或返回数据 | 建议 `0 * * * * ?` |

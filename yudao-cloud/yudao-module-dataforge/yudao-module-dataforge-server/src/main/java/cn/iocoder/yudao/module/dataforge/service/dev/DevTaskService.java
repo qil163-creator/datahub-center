@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.dev;
 
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.dev.DevTaskVersionDO;
+
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.dev.DevRecordDO;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -112,6 +114,26 @@ public interface DevTaskService {
      * 手动运行任务（生成执行实例）
      */
     Long runTask(DevTaskRunReqVO reqVO);
+
+    /**
+     * 补数据发起前按“执行一次”的同等护栏校验当前登录人，返回将被批次冻结的当前保存版本。
+     *
+     * @param taskId 任务编号
+     * @return 当前保存版本
+     */
+    DevTaskVersionDO validateBackfill(Long taskId);
+
+    /**
+     * 补数据推进时按冻结版本登记一个业务日期的运行意图（无登录上下文，使用版本持久化的执行身份）。
+     * 任务当前版本已不是冻结版本时抛出 {@code DEV_BACKFILL_VERSION_CHANGED}。
+     *
+     * @param taskId 任务编号
+     * @param versionId 冻结版本
+     * @param runKey 运行幂等键
+     * @param businessDate 业务日期
+     * @return 运行实例编号
+     */
+    Long enqueueBackfill(Long taskId, Long versionId, String runKey, java.time.LocalDate businessDate);
 
     /** 纯读检查当前本人保存的开发版本及完整运行护栏，不创建记录或外部定义。 */
     cn.iocoder.yudao.module.dataforge.model.dev.DevJobNode previewJobNode(Long taskId);

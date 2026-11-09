@@ -97,6 +97,9 @@ public class DevRecordDO extends BaseDO {
 
     public static final String TRIGGER_SCHEDULE = "SCHEDULE";
 
+    /** 补数据批次按业务日期逐日登记的运行 */
+    public static final String TRIGGER_BACKFILL = "BACKFILL";
+
     /**
      * 主键
      */

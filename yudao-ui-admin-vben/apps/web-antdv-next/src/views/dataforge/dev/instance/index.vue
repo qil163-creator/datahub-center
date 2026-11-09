@@ -43,6 +43,7 @@ import { parseResourceId } from '#/utils/resource-id';
 
 import {
   DEV_RECORD_STATUS_OPTIONS,
+  DEV_TRIGGER_TYPE_OPTIONS,
   formatDuration,
   optionColor,
   optionLabel,
@@ -320,7 +321,7 @@ onBeforeUnmount(() => {
       </template>
       <template #triggerType="{ row }">
         <Tag :color="row.triggerType === 'SCHEDULE' ? 'processing' : 'default'">
-          {{ row.triggerType === 'SCHEDULE' ? '调度' : '手动' }}
+          {{ optionLabel(DEV_TRIGGER_TYPE_OPTIONS, row.triggerType) }}
         </Tag>
       </template>
       <template #status="{ row }">

@@ -28,6 +28,8 @@ export const DEV_RECORD_STATUS_OPTIONS = [
 export const DEV_TRIGGER_TYPE_OPTIONS = [
   { label: '手动', value: 'MANUAL' },
   { label: '调度', value: 'SCHEDULE' },
+  { label: '补数据', value: 'BACKFILL' },
+  { label: '作业', value: 'JOB' },
 ];
 
 export function optionLabel(
