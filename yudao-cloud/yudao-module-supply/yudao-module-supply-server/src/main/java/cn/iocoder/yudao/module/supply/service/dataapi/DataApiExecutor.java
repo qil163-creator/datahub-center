@@ -24,6 +24,7 @@ import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.apilog.ApiLogDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO;
 import cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedSelectGuard;
+import cn.iocoder.yudao.framework.dbswitch.core.util.QueryTimeoutConnection;
 import cn.iocoder.yudao.module.supply.service.app.grant.EffectiveGrantSnapshot;
 import cn.iocoder.yudao.module.supply.service.app.grant.SupplyGrantReadService;
 import cn.iocoder.yudao.module.supply.dal.dataobject.dataapi.DataApiDO;
@@ -81,6 +82,9 @@ public class DataApiExecutor {
     private static final int LIST_MAX_ROWS = 1000;
 
     private static final int FORWARD_TIMEOUT_SECONDS = 10;
+
+    /** 并发租约在最长执行时间之外的余量，覆盖结果处理、日志与网络往返 */
+    private static final int CONCURRENCY_LEASE_MARGIN_SECONDS = 30;
 
     private static final int FORWARD_MAX_BODY_LENGTH = 1024 * 1024;
 
@@ -184,6 +188,7 @@ public class DataApiExecutor {
         long start = System.currentTimeMillis();
         String rejectStage = "EXECUTE";
         cn.iocoder.yudao.module.supply.api.app.dto.SupplyQuotaDTO.Receipt quotaReceipt = null;
+        List<SupplyApiRedisStore.ConcurrencyLease> leases = new ArrayList<>(2);
         try {
             if (executeMode.readOnly() || DataApiReadOnlyGuard.isQueryApi(api)) {
                 DataApiReadOnlyGuard.assertConfigurationAllowed(api, executeMode);
@@ -199,6 +204,8 @@ public class DataApiExecutor {
                     checkRateLimit(api, appId);
                     rejectStage = "BREAKER";
                     checkBreaker(api, appId);
+                    rejectStage = "CONCURRENCY";
+                    acquireConcurrency(api, appId, leases);
                 }
             }
             rejectStage = "GRANT";
@@ -354,7 +361,9 @@ public class DataApiExecutor {
                 } catch (Exception ignored) { /* 已确认不回退；未知回执由查询和租约巡检收敛。 */ }
             }
             long duration = System.currentTimeMillis() - start;
-            String errorInfo = safeExecutionError(ex, rejectStage);
+            boolean timedOut = "EXECUTE".equals(rejectStage) && QueryTimeoutConnection.isQueryTimeout(ex);
+            String errorInfo = timedOut ? "查询超时（超过 " + queryTimeoutSeconds(api) + " 秒），已取消执行"
+                    : safeExecutionError(ex, rejectStage);
             saveLog(api, params, callerIp, duration, 0, errorInfo, writeLog, appId,
                     executeMode, testRunNo, configHash, rejectStage);
             if (checkGuard && "EXECUTE".equals(rejectStage)) {
@@ -363,10 +372,85 @@ public class DataApiExecutor {
                 } catch (Exception ignored) { /* 不覆盖原失败。 */ }
                 sendAlarm(api, errorInfo);
             }
+            if (timedOut) {
+                throw exception(DATA_API_QUERY_TIMEOUT, queryTimeoutSeconds(api));
+            }
             if (ex instanceof cn.iocoder.yudao.framework.common.exception.ServiceException serviceException) {
                 throw serviceException;
             }
             throw exception(DATA_API_EXECUTE_FAILED, "执行未完成，请通过调用记录核查");
+        } finally {
+            releaseConcurrency(leases);
+        }
+    }
+
+    // ==================== 并发与超时 ====================
+
+    /**
+     * 生效的查询超时：接口配置优先，否则平台默认；均不超过平台上限。
+     *
+     * @param api 本次使用的 API 定义
+     * @return 超时秒数
+     */
+    int queryTimeoutSeconds(DataApiDO api) {
+        int max = Math.max(1, dataApiProperties.getMaxQueryTimeoutSeconds());
+        Integer configured = api.getTimeoutSeconds();
+        int value = configured != null && configured > 0 ? configured : dataApiProperties.getDefaultQueryTimeoutSeconds();
+        return Math.min(Math.max(1, value), max);
+    }
+
+    /** 转发超时：接口配置了超时则沿用（不超过执行器上限 120 秒），否则保持 10 秒默认值 */
+    private int forwardTimeoutSeconds(DataApiDO api) {
+        return api.getTimeoutSeconds() != null && api.getTimeoutSeconds() > 0
+                ? Math.min(queryTimeoutSeconds(api), 120) : FORWARD_TIMEOUT_SECONDS;
+    }
+
+    /**
+     * 申请接口级与应用级并发租约；任一达到上限即拒绝，已获得的租约由调用方 finally 释放。
+     * 租约时长覆盖最长执行时间并留余量，进程崩溃时占位会自动过期回收。
+     */
+    private void acquireConcurrency(DataApiDO api, Long appId, List<SupplyApiRedisStore.ConcurrencyLease> leases) {
+        Integer apiLimit = api.getMaxConcurrency();
+        int appLimit = dataApiProperties.getAppMaxConcurrency();
+        boolean limitApi = api.getId() != null && apiLimit != null && apiLimit > 0;
+        boolean limitApp = appId != null && appLimit > 0;
+        if (!limitApi && !limitApp) {
+            return;
+        }
+        long leaseMillis = (Math.max(queryTimeoutSeconds(api), forwardTimeoutSeconds(api)) + CONCURRENCY_LEASE_MARGIN_SECONDS)
+                * 1000L;
+        try {
+            if (limitApi) {
+                var lease = redisStore.acquireConcurrency("api:" + api.getId(), apiLimit, leaseMillis);
+                if (lease == null) {
+                    throw exception(DATA_API_CONCURRENCY_LIMITED, "接口上限 " + apiLimit);
+                }
+                leases.add(lease);
+            }
+            if (limitApp) {
+                var lease = redisStore.acquireConcurrency("app:" + appKey(appId), appLimit, leaseMillis);
+                if (lease == null) {
+                    throw exception(DATA_API_CONCURRENCY_LIMITED, "应用上限 " + appLimit);
+                }
+                leases.add(lease);
+            }
+        } catch (cn.iocoder.yudao.framework.common.exception.ServiceException rejected) {
+            throw rejected;
+        } catch (RuntimeException storeFailure) {
+            // 并发控制存储不可用时拒绝执行，不能在失去保护的情况下放行
+            log.warn("[acquireConcurrency][API({}) 并发控制存储不可用]", api.getId());
+            throw exception(DATA_API_EXECUTE_FAILED, "并发控制暂不可用，请稍后重试");
+        }
+    }
+
+    /** 释放本次请求持有的全部并发租约；释放失败时租约到期自动回收 */
+    private void releaseConcurrency(List<SupplyApiRedisStore.ConcurrencyLease> leases) {
+        for (var lease : leases) {
+            try {
+                redisStore.releaseConcurrency(lease);
+            } catch (RuntimeException ex) {
+                log.warn("[releaseConcurrency][并发租约释放失败，将于到期后自动回收：{}]", lease.key());
+            }
         }
     }
 
@@ -719,7 +803,8 @@ public class DataApiExecutor {
         var boundPlan = cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan.parse(conn.getProductType(),
                 String.join(";\n", statements));
         cn.iocoder.yudao.framework.dbswitch.core.service.PostgresDmlTargetGuard.validatePlan(boundPlan, targets);
-        return new PreparedWrite(conn, boundPlan, prepared.binds, multi, List.copyOf(targets));
+        return new PreparedWrite(conn, boundPlan, prepared.binds, multi, List.copyOf(targets),
+                queryTimeoutSeconds(api));
     }
 
     /**
@@ -737,7 +822,7 @@ public class DataApiExecutor {
         JdbcSelectResult execution = dbSwitchRuntime.jdbcMetadata(conn.getProductType()).executeAuthorizedDmlPlan(
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), prepared.plan(), prepared.binds(),
                 prepared.targets(), ignored -> {
-                });
+                }, prepared.queryTimeoutSeconds());
         if (!Boolean.TRUE.equals(execution.getSuccess())) {
             throw exception(DATA_API_CONFIG_INVALID, execution.getTransactionOutcome()
                     == JdbcSelectResult.TransactionOutcome.UNKNOWN
@@ -788,7 +873,8 @@ public class DataApiExecutor {
     private record PreparedWrite(SupplyDatabaseResolver.ConnectionInfo connection,
                                  cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan plan,
                                  List<Object> binds, boolean multi,
-                                 List<cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedDmlTarget> targets) {
+                                 List<cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedDmlTarget> targets,
+                                 int queryTimeoutSeconds) {
 
     }
 
@@ -882,7 +968,7 @@ public class DataApiExecutor {
             // 每次执行都重新解析并校验全部地址，并把连接绑定到这些地址（DNS 重绑定无法在校验后换目标）；
             // 不跟随重定向、不走代理、不携带平台身份与 Cookie。
             response = SafeHttpExecutor.execute(new SafeHttpExecutor.Request(url, get ? "GET" : "POST",
-                    headers, payload, FORWARD_TIMEOUT_SECONDS, false, SafeHttpExecutor.publicOnly()));
+                    headers, payload, forwardTimeoutSeconds(api), false, SafeHttpExecutor.publicOnly()));
         } catch (SafeHttpExecutor.SafeHttpException ex) {
             throw exception(DATA_API_EXECUTE_FAILED, "转发失败：" + ex.getMessage());
         }
@@ -1061,7 +1147,7 @@ public class DataApiExecutor {
         IMetaDataByJdbcService metaDataService = dbSwitchRuntime.jdbcMetadata(conn.getProductType());
         JdbcSelectResult jdbc = metaDataService.pageDataBySql(
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(),
-                sql, binds, page, limit, null);
+                sql, binds, page, limit, null, queryTimeoutSeconds(api));
         if (jdbc == null || Boolean.FALSE.equals(jdbc.getSuccess())) {
             throw exception(DATA_API_EXECUTE_FAILED,
                     jdbc == null ? "分页查询失败" : StrUtil.blankToDefault(jdbc.getErrorMsg(), "分页查询失败"));

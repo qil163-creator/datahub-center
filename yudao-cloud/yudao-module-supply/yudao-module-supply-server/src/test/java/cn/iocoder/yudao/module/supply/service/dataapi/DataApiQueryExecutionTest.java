@@ -28,7 +28,7 @@ class DataApiQueryExecutionTest {
         var jdbc = new JdbcSelectResult();
         jdbc.setSuccess(true);
         jdbc.setRowData(List.of(Map.of("id", 7)));
-        when(metadata.pageDataBySql(anyString(), anyString(), anyString(), anyString(), anyList(), anyInt(), anyInt(), isNull()))
+        when(metadata.pageDataBySql(anyString(), anyString(), anyString(), anyString(), anyList(), anyInt(), anyInt(), isNull(), anyInt()))
                 .thenReturn(jdbc);
         var service = draftService(runtime);
         var request = templateRequest("SELECT id FROM public.example "
@@ -36,7 +36,7 @@ class DataApiQueryExecutionTest {
         assertEquals(List.of(Map.of("id", 7)), service.testDataApi(request, "127.0.0.1").getRows());
         verify(metadata).pageDataBySql(eq("jdbc:test"), eq("test"), eq(""),
                 argThat(sql -> sql.contains("WHERE name=?") && !sql.contains("<if") && !sql.contains("#{")),
-                eq(List.of("测站' OR 1=1 --")), eq(1), eq(10), isNull());
+                eq(List.of("测站' OR 1=1 --")), eq(1), eq(10), isNull(), eq(30));
     }
 
     @Test void expandedDynamicWriteIsRejectedBeforeJdbcEvenForQueryType() {
@@ -51,6 +51,7 @@ class DataApiQueryExecutionTest {
 
     @Test void queryKeepsSqlBindingsAndRowsWhileApplyingApplicationQuota() throws Exception {
         var executor = new DataApiExecutor();
+        ReflectionTestUtils.setField(executor, "dataApiProperties", new SupplyDataApiProperties());
         var resolver = mock(SupplyDatabaseResolver.class);
         var runtime = mock(DbSwitchRuntime.class);
         var metadata = mock(MetaDataByJdbcServiceImpl.class);
@@ -63,13 +64,13 @@ class DataApiQueryExecutionTest {
         ReflectionTestUtils.setField(executor, "dbSwitchRuntime", runtime);
         var jdbc = new JdbcSelectResult();
         jdbc.setSuccess(true); jdbc.setRowData(List.of(Map.of("id", 7, "payload", "原始值")));
-        when(metadata.pageDataBySql(anyString(), anyString(), anyString(), anyString(), anyList(), anyInt(), anyInt(), isNull()))
+        when(metadata.pageDataBySql(anyString(), anyString(), anyString(), anyString(), anyList(), anyInt(), anyInt(), isNull(), anyInt()))
                 .thenReturn(jdbc);
         var api = DataApiDO.builder().databaseId(10L).build();
         String sql = "SELECT id,payload FROM public.example WHERE id=?";
         var result = executor.queryDatabase(api, sql, List.of(7), 1, 20,
                 new DataApiExecutor.ExecuteContext(9L, false, 5));
-        verify(metadata).pageDataBySql("jdbc:test", "test", "", sql, List.of(7), 1, 5, null);
+        verify(metadata).pageDataBySql("jdbc:test", "test", "", sql, List.of(7), 1, 5, null, 30);
         assertEquals(List.of(Map.of("id", 7, "payload", "原始值")), result.getRows());
     }
 

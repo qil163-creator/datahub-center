@@ -211,6 +211,16 @@ public interface IMetaDataByJdbcService {
             String sql, List<Object> params, Integer page, Integer limit, DataSecurityParam dataSecurityParam);
 
     /**
+     * 为查询 SQL 应用分页边界并读取结果；数据查询与 count 查询各自受 JDBC 查询超时约束。
+     * 超时由驱动取消语句，异常链中可用 {@code QueryTimeoutConnection.isQueryTimeout} 识别。
+     *
+     * @param queryTimeoutSeconds 每条语句的超时秒数，小于 1 表示不限制
+     */
+    JdbcSelectResult pageDataBySql(String jdbcUrl, String username, String password,
+            String sql, List<Object> params, Integer page, Integer limit, DataSecurityParam dataSecurityParam,
+            int queryTimeoutSeconds);
+
+    /**
      * 执行给定 SQL 并返回当前操作结果。
      */
     JdbcSelectResult executeBySql(String jdbcUrl, String dbType, String username, String password,

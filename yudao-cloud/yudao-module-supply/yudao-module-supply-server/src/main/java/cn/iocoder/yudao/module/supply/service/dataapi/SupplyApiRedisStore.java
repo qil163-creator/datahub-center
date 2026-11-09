@@ -28,6 +28,22 @@ public class SupplyApiRedisStore {
             return current
             """, Long.class);
 
+    /**
+     * 并发租约：先清理已过期租约（崩溃节点遗留的占位），未达上限才登记本次令牌。
+     * 使用 Redis 服务器时钟，避免各节点时钟偏差影响过期判断。
+     */
+    private static final DefaultRedisScript<Long> ACQUIRE_CONCURRENCY_SCRIPT = new DefaultRedisScript<>("""
+            local t = redis.call('time')
+            local now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
+            redis.call('zremrangebyscore', KEYS[1], '-inf', now)
+            if redis.call('zcard', KEYS[1]) >= tonumber(ARGV[2]) then
+                return 0
+            end
+            redis.call('zadd', KEYS[1], now + tonumber(ARGV[3]), ARGV[1])
+            redis.call('pexpire', KEYS[1], tonumber(ARGV[3]))
+            return 1
+            """, Long.class);
+
     private final StringRedisTemplate stringRedisTemplate;
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -83,6 +99,46 @@ public class SupplyApiRedisStore {
             return false;
         }
         return incrementRate(appKey, apiId, windowMillis) <= limit;
+    }
+
+    /**
+     * 申请一个并发租约。达到上限时返回 null；租约在 {@code leaseMillis} 后自动失效，
+     * 防止进程崩溃后占位永久不释放，因此租约时长必须覆盖单次执行的最长时间。
+     *
+     * @param scope 并发范围（如 api:1、app:key）
+     * @param limit 上限
+     * @param leaseMillis 租约时长
+     * @return 已获得的租约；达到上限时为 null
+     */
+    public ConcurrencyLease acquireConcurrency(String scope, int limit, long leaseMillis) {
+        if (limit < 1 || leaseMillis < 1) {
+            throw new IllegalArgumentException("concurrency limit and lease must be positive");
+        }
+        String key = key("concurrency", scope);
+        String token = java.util.UUID.randomUUID().toString();
+        Long acquired = stringRedisTemplate.execute(ACQUIRE_CONCURRENCY_SCRIPT, List.of(key),
+                token, String.valueOf(limit), String.valueOf(leaseMillis));
+        return Long.valueOf(1L).equals(acquired) ? new ConcurrencyLease(key, token) : null;
+    }
+
+    /**
+     * 释放并发租约；释放失败只影响该占位提前释放，租约到期后自动回收。
+     *
+     * @param lease 租约
+     */
+    public void releaseConcurrency(ConcurrencyLease lease) {
+        if (lease != null) {
+            stringRedisTemplate.opsForZSet().remove(lease.key(), lease.token());
+        }
+    }
+
+    /**
+     * 并发租约句柄。
+     *
+     * @param key Redis 键
+     * @param token 本次请求令牌
+     */
+    public record ConcurrencyLease(String key, String token) {
     }
 
     /**

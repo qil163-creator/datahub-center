@@ -591,8 +591,17 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
     @Override
     public JdbcSelectResult pageDataBySql(String jdbcUrl, String username, String password,
             String sql, List<Object> params, Integer page, Integer limit, DataSecurityParam dataSecurityParam) {
+        return pageDataBySql(jdbcUrl, username, password, sql, params, page, limit, dataSecurityParam, 0);
+    }
+
+    @Override
+    public JdbcSelectResult pageDataBySql(String jdbcUrl, String username, String password,
+            String sql, List<Object> params, Integer page, Integer limit, DataSecurityParam dataSecurityParam,
+            int queryTimeoutSeconds) {
         try (Connection connection = workloadProvider.open(database.preparePageQueryJdbcUrl(jdbcUrl), username, password)) {
-            return database.pageDataBySql(connection, sql, params, page, limit, dataSecurityParam);
+            return database.pageDataBySql(
+                    cn.iocoder.yudao.framework.dbswitch.core.util.QueryTimeoutConnection.wrap(connection, queryTimeoutSeconds),
+                    sql, params, page, limit, dataSecurityParam);
         } catch (SQLException se) {
             throw new RuntimeException(se);
         }
@@ -614,7 +623,7 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
             List<Object> bindings, Integer openTrans, int rowCount, DataSecurityParam dataSecurityParam,
             java.util.function.IntConsumer beforeStep) {
         return executePlanInternal(jdbcUrl, username, password, plan, bindings, openTrans, rowCount,
-                dataSecurityParam, beforeStep, ignored -> {
+                dataSecurityParam, beforeStep, 0, ignored -> {
                 });
     }
 
@@ -626,10 +635,23 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
             SqlScriptPlan plan, List<Object> bindings,
             List<cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedDmlTarget> targets,
             java.util.function.IntConsumer beforeStep) {
+        return executeAuthorizedDmlPlan(jdbcUrl, username, password, plan, bindings, targets, beforeStep, 0);
+    }
+
+    /**
+     * 同 {@link #executeAuthorizedDmlPlan(String, String, String, SqlScriptPlan, List, List, java.util.function.IntConsumer)}，
+     * 计划中的加锁、校验与每条 DML 语句均受 JDBC 查询超时约束；超时视为执行失败并回滚。
+     *
+     * @param queryTimeoutSeconds 每条语句的超时秒数，小于 1 表示不限制
+     */
+    public JdbcSelectResult executeAuthorizedDmlPlan(String jdbcUrl, String username, String password,
+            SqlScriptPlan plan, List<Object> bindings,
+            List<cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedDmlTarget> targets,
+            java.util.function.IntConsumer beforeStep, int queryTimeoutSeconds) {
         var frozenTargets = List.copyOf(targets);
         cn.iocoder.yudao.framework.dbswitch.core.service.PostgresDmlTargetGuard.validatePlan(plan, frozenTargets);
         return executePlanInternal(jdbcUrl, username, password, plan, bindings, 1, 1,
-                null, beforeStep, connection -> {
+                null, beforeStep, queryTimeoutSeconds, connection -> {
                     try {
                         connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                     } catch (SQLException failure) {
@@ -645,7 +667,8 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
      */
     private JdbcSelectResult executePlanInternal(String jdbcUrl, String username, String password, SqlScriptPlan plan,
             List<Object> bindings, Integer openTrans, int rowCount, DataSecurityParam dataSecurityParam,
-            java.util.function.IntConsumer beforeStep, java.util.function.Consumer<Connection> beforePlan) {
+            java.util.function.IntConsumer beforeStep, int queryTimeoutSeconds,
+            java.util.function.Consumer<Connection> beforePlan) {
         if (plan.product() != this.dbType) {
             throw new IllegalArgumentException("SQL plan product does not match the connection product");
         }
@@ -667,9 +690,11 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
         JdbcSelectResult result = null;
         try (Connection connection = workloadProvider.open(jdbcUrl, username, password)) {
             connection.setAutoCommit(!transaction);
+            Connection bounded = cn.iocoder.yudao.framework.dbswitch.core.util.QueryTimeoutConnection
+                    .wrap(connection, queryTimeoutSeconds);
             try {
-                beforePlan.accept(connection);
-                result = database.executePlan(connection, plan, frozenBindings, rowCount, dataSecurityParam,
+                beforePlan.accept(bounded);
+                result = database.executePlan(bounded, plan, frozenBindings, rowCount, dataSecurityParam,
                         beforeStep);
             } catch (RuntimeException executionFailure) {
                 result = new JdbcSelectResult();

@@ -38,4 +38,19 @@ public class SupplyDataApiProperties {
      */
     private String secretCipher = "SM4";
 
+    /**
+     * 数据 API 查询默认超时秒数：接口未单独配置时使用。
+     */
+    private int defaultQueryTimeoutSeconds = 30;
+
+    /**
+     * 数据 API 查询超时上限秒数：接口配置超过该值时按上限执行。
+     */
+    private int maxQueryTimeoutSeconds = 300;
+
+    /**
+     * 单个应用同时执行中的开放 API 请求上限（全部接口、全部节点合计）；0 表示不限制。
+     */
+    private int appMaxConcurrency = 0;
+
 }

@@ -80,6 +80,16 @@ public class DataApiSaveReqVO {
     @Schema(description = "是否开启熔断：0-否 1-是", example = "0")
     private Integer breakerEnabled;
 
+    @Schema(description = "最大并发：同一时刻最多执行中的请求数（全部节点合计），为空或 0 表示不限制", example = "20")
+    @jakarta.validation.constraints.Min(value = 0, message = "最大并发不能小于 0")
+    @jakarta.validation.constraints.Max(value = 1000, message = "最大并发不能超过 1000")
+    private Integer maxConcurrency;
+
+    @Schema(description = "查询超时秒数，为空时使用平台默认值，不超过平台上限", example = "30")
+    @jakarta.validation.constraints.Min(value = 1, message = "查询超时不能小于 1 秒")
+    @jakarta.validation.constraints.Max(value = 600, message = "查询超时不能超过 600 秒")
+    private Integer timeoutSeconds;
+
     @Schema(description = "熔断阈值：窗口内异常次数", example = "10")
     private Integer breakerErrorCount;
 

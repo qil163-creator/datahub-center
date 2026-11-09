@@ -247,6 +247,16 @@ const infoFields = computed(() => {
       label: '熔断时长（秒）',
       value: row.breakerOpenSeconds,
     },
+    {
+      key: 'maxConcurrency',
+      label: '最大并发',
+      value: row.maxConcurrency ? row.maxConcurrency : '不限制',
+    },
+    {
+      key: 'timeoutSeconds',
+      label: '查询超时（秒）',
+      value: row.timeoutSeconds ?? '平台默认',
+    },
     ...configFields,
     {
       key: 'remark',

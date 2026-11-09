@@ -19,6 +19,7 @@ export const REJECT_STAGE_OPTIONS = [
   { label: 'IP限制', value: 'IP' },
   { label: '调用限流', value: 'RATE' },
   { label: '熔断', value: 'BREAKER' },
+  { label: '并发上限', value: 'CONCURRENCY' },
   { label: '执行', value: 'EXECUTE' },
 ];
 

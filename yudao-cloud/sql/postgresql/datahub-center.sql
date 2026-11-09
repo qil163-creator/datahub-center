@@ -1,4 +1,4 @@
--- Included migrations through: 0267
+-- Included migrations through: 0268
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -15630,7 +15630,9 @@ CREATE TABLE "datahub-center"."dh_supply_api" (
   "draft_revision" int4 NOT NULL DEFAULT 0,
   "draft_json" jsonb,
   "contract_hash" varchar(64) COLLATE "pg_catalog"."default",
-  "row_version" int4 NOT NULL DEFAULT 0
+  "row_version" int4 NOT NULL DEFAULT 0,
+  "max_concurrency" int4,
+  "timeout_seconds" int4
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."category_id" IS '服务分类编号';
@@ -15669,6 +15671,8 @@ COMMENT ON COLUMN "datahub-center"."dh_supply_api"."breaker_enabled" IS '是否�
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."breaker_error_count" IS '熔断阈值：窗口内异常次数';
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."breaker_window_seconds" IS '熔断统计时间窗口（秒）';
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."breaker_open_seconds" IS '熔断时长（秒）';
+COMMENT ON COLUMN "datahub-center"."dh_supply_api"."max_concurrency" IS '最大并发：同一时刻最多执行中的请求数（全部节点、全部调用方合计），为空或 0 不限制';
+COMMENT ON COLUMN "datahub-center"."dh_supply_api"."timeout_seconds" IS '查询超时秒数：每条 SQL 语句的执行上限，为空使用平台默认值，且不超过平台上限';
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."alarm_enabled" IS '是否开启告警通知：0-否 1-是';
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."provider_dept_id" IS '提供部门编号';
 COMMENT ON COLUMN "datahub-center"."dh_supply_api"."resource_ref" IS '目录资源稳定引用，不在 Supply 维护第二套主数据';
@@ -29215,6 +29219,10 @@ CREATE UNIQUE INDEX "uk_dh_supply_api_path_version" ON "datahub-center"."dh_supp
 -- 表主键结构： dh_supply_api
 -- ----------------------------
 ALTER TABLE "datahub-center"."dh_supply_api" ADD CONSTRAINT "dh_supply_api_pkey" PRIMARY KEY ("id");
+ALTER TABLE "datahub-center"."dh_supply_api" ADD CONSTRAINT "ck_supply_api_max_concurrency"
+  CHECK (max_concurrency IS NULL OR max_concurrency BETWEEN 0 AND 1000);
+ALTER TABLE "datahub-center"."dh_supply_api" ADD CONSTRAINT "ck_supply_api_timeout_seconds"
+  CHECK (timeout_seconds IS NULL OR timeout_seconds BETWEEN 1 AND 600);
 
 -- ----------------------------
 -- 表主键结构： dh_supply_api_category

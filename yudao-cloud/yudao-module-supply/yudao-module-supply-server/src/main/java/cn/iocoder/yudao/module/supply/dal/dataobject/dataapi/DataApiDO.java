@@ -186,6 +186,16 @@ public class DataApiDO extends BaseDO {
     private Integer breakerOpenSeconds;
 
     /**
+     * 最大并发：同一时刻最多执行中的请求数（全部节点、全部调用方合计）；为空或 0 表示不限制
+     */
+    private Integer maxConcurrency;
+
+    /**
+     * 查询超时秒数：每条 SQL 语句的执行上限；为空时使用平台默认值，且不超过平台上限
+     */
+    private Integer timeoutSeconds;
+
+    /**
      * 是否开启告警通知：0-否 1-是
      */
     private Integer alarmEnabled;

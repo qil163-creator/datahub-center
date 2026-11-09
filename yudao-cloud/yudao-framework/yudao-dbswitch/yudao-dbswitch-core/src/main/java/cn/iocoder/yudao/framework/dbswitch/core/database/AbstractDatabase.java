@@ -1215,7 +1215,8 @@ public abstract class AbstractDatabase implements IDatabaseInterface {
             jdbcSelectResult.setTotal(total);
             return jdbcSelectResult;
         } catch (Exception e) {
-            throw new RuntimeException("查询失败：" + e.getMessage());
+            // 保留原始异常作为 cause，调用方据此识别查询超时等驱动语义
+            throw new RuntimeException("查询失败：" + e.getMessage(), e);
         } finally {
             if (pageRs != null) {
                 pageRs.close();

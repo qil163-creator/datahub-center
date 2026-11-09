@@ -64,6 +64,13 @@ public final class DataApiContract {
         material.put("cacheSeconds", api.getCacheSeconds());
         material.put("forwardUrl", StrUtil.nullToEmpty(api.getForwardUrl()));
         material.put("forwardMethod", StrUtil.nullToEmpty(api.getForwardMethod()));
+        // 新增的运行保护参数只在设置时计入，未使用的接口摘要保持不变（已有试调凭证继续有效）
+        if (api.getMaxConcurrency() != null) {
+            material.put("maxConcurrency", api.getMaxConcurrency());
+        }
+        if (api.getTimeoutSeconds() != null) {
+            material.put("timeoutSeconds", api.getTimeoutSeconds());
+        }
         return DigestUtil.sha256Hex(JsonUtils.toJsonString(material));
     }
 
@@ -106,6 +113,8 @@ public final class DataApiContract {
         snap.put("breakerErrorCount", api.getBreakerErrorCount());
         snap.put("breakerWindowSeconds", api.getBreakerWindowSeconds());
         snap.put("breakerOpenSeconds", api.getBreakerOpenSeconds());
+        snap.put("maxConcurrency", api.getMaxConcurrency());
+        snap.put("timeoutSeconds", api.getTimeoutSeconds());
         snap.put("resourceRef", api.getResourceRef());
         return snap;
     }
@@ -149,6 +158,8 @@ public final class DataApiContract {
         target.setBreakerErrorCount(intg(snap.get("breakerErrorCount")));
         target.setBreakerWindowSeconds(intg(snap.get("breakerWindowSeconds")));
         target.setBreakerOpenSeconds(intg(snap.get("breakerOpenSeconds")));
+        target.setMaxConcurrency(intg(snap.get("maxConcurrency")));
+        target.setTimeoutSeconds(intg(snap.get("timeoutSeconds")));
         target.setResourceRef(str(snap.get("resourceRef")));
     }
 

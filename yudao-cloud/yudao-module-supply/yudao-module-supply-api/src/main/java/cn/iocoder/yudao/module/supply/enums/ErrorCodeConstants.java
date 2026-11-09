@@ -29,6 +29,8 @@ public interface ErrorCodeConstants {
     ErrorCode DATA_API_EXECUTE_FAILED = new ErrorCode(1_500_040_006, "API 服务执行失败：{}");
     ErrorCode DATA_API_IP_NOT_ALLOWED = new ErrorCode(1_500_040_007, "调用方 IP 不在白名单内");
     ErrorCode DATA_API_RATE_LIMITED = new ErrorCode(1_500_040_008, "请求过于频繁，已触发限流");
+    ErrorCode DATA_API_CONCURRENCY_LIMITED = new ErrorCode(1_500_040_029, "接口并发已达上限（{}），请稍后重试");
+    ErrorCode DATA_API_QUERY_TIMEOUT = new ErrorCode(1_500_040_030, "查询超时（超过 {} 秒），已取消执行");
     ErrorCode DATA_API_PARAM_REQUIRED = new ErrorCode(1_500_040_009, "请求参数【{}】不能为空");
     ErrorCode DATA_API_AUTHORIZED_CANNOT_DELETE = new ErrorCode(1_500_040_010, "API 服务已被应用授权，无法删除");
     ErrorCode DATA_API_CIRCUIT_OPEN = new ErrorCode(1_500_040_011, "接口已熔断，请稍后重试");

@@ -189,6 +189,8 @@ async function open(id?: number | string, defaultCategoryId?: number | string) {
     breakerErrorCount: 10,
     breakerWindowSeconds: 60,
     breakerOpenSeconds: 60,
+    maxConcurrency: undefined,
+    timeoutSeconds: undefined,
     alarmEnabled: 0,
     requestParams: [],
     responseFields: [],
@@ -877,6 +879,39 @@ const getTitle = computed(() =>
                   class="w-24"
                 />
                 <span>秒</span>
+              </div>
+            </div>
+            <div class="form-item">
+              <label class="form-item__label">最大并发</label>
+              <div class="flex items-center gap-2">
+                <InputNumber
+                  v-model:value="form.maxConcurrency"
+                  :max="1000"
+                  :min="0"
+                  :precision="0"
+                  class="w-32"
+                  placeholder="不限制"
+                />
+                <span class="text-xs text-gray-400">
+                  同时执行中的请求上限（全部节点合计），空或 0 不限制
+                </span>
+              </div>
+            </div>
+            <div class="form-item">
+              <label class="form-item__label">查询超时</label>
+              <div class="flex items-center gap-2">
+                <InputNumber
+                  v-model:value="form.timeoutSeconds"
+                  :max="600"
+                  :min="1"
+                  :precision="0"
+                  class="w-32"
+                  placeholder="平台默认"
+                />
+                <span>秒</span>
+                <span class="text-xs text-gray-400">
+                  超时由数据库取消执行；为空使用平台默认值，不超过平台上限
+                </span>
               </div>
             </div>
             <div class="form-item form-item--full">

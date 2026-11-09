@@ -65,6 +65,10 @@ export namespace SupplyDataApiApi {
     breakerErrorCount?: number;
     breakerWindowSeconds?: number;
     breakerOpenSeconds?: number;
+    /** 最大并发（全部节点合计），为空或 0 不限制 */
+    maxConcurrency?: null | number;
+    /** 查询超时秒数，为空使用平台默认值 */
+    timeoutSeconds?: null | number;
     alarmEnabled?: number;
     configType?: string; // TABLE/SQL/FORWARD/ETL_BATCH
     etlBatchId?: Id;

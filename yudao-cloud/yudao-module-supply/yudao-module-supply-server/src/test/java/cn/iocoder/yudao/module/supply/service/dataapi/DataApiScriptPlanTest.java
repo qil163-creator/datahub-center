@@ -34,7 +34,7 @@ class DataApiScriptPlanTest {
 
     @Test void exactPlanAndOrderedParametersExecuteWithoutGovernanceRewrites() {
         Fixture fixture = new Fixture();
-        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any()))
+        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any(), anyInt()))
                 .thenAnswer(call -> {
                     SqlScriptPlan plan = call.getArgument(3);
                     assertEquals(List.of("left;right", 7), call.getArgument(4));
@@ -46,7 +46,7 @@ class DataApiScriptPlanTest {
                 });
         fixture.execute("insert into example(value,district_code) values (#{value},'370102'); update example set value='literal;value' where id=#{id};",
                 Map.of("value", "left;right", "id", 7));
-        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any());
+        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any(), eq(30));
     }
 
     @Test void unsupportedLaterStatementPreventsAllExecution() {
@@ -70,12 +70,12 @@ class DataApiScriptPlanTest {
         Fixture fixture = new Fixture();
         fixture.api.setApiType("update");
         fixture.api.setSqlText("update example set value=#{value} where id=7");
-        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any()))
+        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), any(), anyList(), anyList(), any(), anyInt()))
                 .thenReturn(success());
         ReflectionTestUtils.invokeMethod(fixture.executor, "executeSql", fixture.api, Map.of("value", "left;right"),
                 1, 10, new DataApiExecutor.ExecuteContext(7L, false));
         var planned = org.mockito.ArgumentCaptor.forClass(SqlScriptPlan.class);
-        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), planned.capture(), eq(List.of("left;right")), eq(List.of(new RestrictedDmlTarget(1,"public","example"))), any());
+        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(), anyString(), anyString(), planned.capture(), eq(List.of("left;right")), eq(List.of(new RestrictedDmlTarget(1,"public","example"))), any(), anyInt());
         assertTrue(planned.getValue().steps().getFirst().sql().contains("\"public\".\"example\""));
         assertFalse(planned.getValue().steps().getFirst().sql().contains("district_code"));
         verify(fixture.runtime).jdbcMetadata(ProductTypeEnum.POSTGRESQL);
@@ -83,11 +83,11 @@ class DataApiScriptPlanTest {
 
     @Test void decimalNullAndLosslessIdBindingsRemainExact() {
         Fixture fixture = new Fixture();
-        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(),anyString(),anyString(),any(),anyList(),anyList(),any())).thenReturn(success());
+        when(fixture.metadata.executeAuthorizedDmlPlan(anyString(),anyString(),anyString(),any(),anyList(),anyList(),any(),anyInt())).thenReturn(success());
         var decimal = new java.math.BigDecimal("12345678901234567890.12345678901234567890");
         Map<String,Object> parameters = new java.util.LinkedHashMap<>(); parameters.put("amount",decimal);parameters.put("id",9007199254740993L);parameters.put("value",null);
         fixture.execute("UPDATE example SET amount=#{amount} WHERE id=#{id};UPDATE example SET value=#{value} WHERE id=#{id}",parameters);
-        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(),anyString(),anyString(),any(),eq(java.util.Arrays.asList(decimal,9007199254740993L,null,9007199254740993L)),anyList(),any());
+        verify(fixture.metadata).executeAuthorizedDmlPlan(anyString(),anyString(),anyString(),any(),eq(java.util.Arrays.asList(decimal,9007199254740993L,null,9007199254740993L)),anyList(),any(),anyInt());
     }
 
     @Test void approximateNumbersAndStaleConfigurationNeverReachExecution() {
@@ -135,6 +135,8 @@ class DataApiScriptPlanTest {
             when(runtime.products()).thenReturn(cn.iocoder.yudao.framework.dbswitch.spi.DbSwitchProductRegistry.discover());
             ReflectionTestUtils.setField(executor, "databaseResolver", resolver);
             ReflectionTestUtils.setField(executor, "dbSwitchRuntime", runtime);
+            ReflectionTestUtils.setField(executor, "dataApiProperties",
+                    new cn.iocoder.yudao.module.supply.framework.config.SupplyDataApiProperties());
         }
         void execute(String script, Map<String, Object> parameters) {
             ReflectionTestUtils.invokeMethod(executor, "executeMultiSql", api, script, parameters,
