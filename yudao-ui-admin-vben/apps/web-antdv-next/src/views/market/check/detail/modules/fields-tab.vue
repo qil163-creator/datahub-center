@@ -7,7 +7,7 @@ import { computed, ref, watch } from 'vue';
 
 import { Button, CheckboxGroup, Dropdown, Input, Table, Tag } from 'antdv-next';
 
-import ReferencePagination from '#/views/dataforge/batchfile/modules/pagination.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 import gridIcon from '#/views/governance/metadata-common/reference-assets/icons/grid.png';
 import refreshIcon from '#/views/governance/metadata-common/reference-assets/icons/refresh.png';
 
@@ -20,7 +20,6 @@ const props = defineProps<{
   columns: DisplayColumn[];
   columnWidths?: Record<string, number>;
   loading?: boolean;
-  referencePagination?: boolean;
   timePrecision?: 'minute';
 }>();
 const emit = defineEmits<{ refresh: [] }>();
@@ -28,20 +27,15 @@ const keyword = ref('');
 const settingsOpen = ref(false);
 const page = ref(1);
 const pageSize = ref(10);
-const pagination = computed<TablePaginationConfig>(() =>
-  props.referencePagination
-    ? { current: page.value, pageSize: pageSize.value, position: ['none'] }
-    : {
-        defaultPageSize: 10,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total: number) => `共 ${total} 条`,
-      },
-);
-function tableChanged(value: TablePaginationConfig) {
-  if (!props.referencePagination) return;
-  page.value = value.current ?? 1;
-  pageSize.value = value.pageSize ?? 10;
+const pagination = computed<TablePaginationConfig>(() => ({
+  current: page.value,
+  pageSize: pageSize.value,
+  placement: ['none'],
+  onChange: pageChanged,
+}));
+function pageChanged(current: number, size: number) {
+  page.value = current;
+  pageSize.value = size;
 }
 watch(
   () => props.active,
@@ -119,7 +113,7 @@ const rows = computed(() => {
     : props.columns;
 });
 watch(rows, () => {
-  if (props.referencePagination) page.value = 1;
+  page.value = 1;
 });
 function fieldText(row: DisplayColumn, key: unknown) {
   if (key === 'businessName')
@@ -181,7 +175,6 @@ function fieldText(row: DisplayColumn, key: unknown) {
       "
       :scroll="{ x: scrollWidth }"
       size="small"
-      @change="tableChanged"
     >
       <template #bodyCell="{ column, record }">
         <Tag
@@ -200,11 +193,13 @@ function fieldText(row: DisplayColumn, key: unknown) {
         <span v-else>{{ fieldText(record as DisplayColumn, column.key) }}</span>
       </template>
     </Table>
-    <ReferencePagination
-      v-if="referencePagination"
-      v-model:page="page"
-      v-model:page-size="pageSize"
+    <ListPagination
+      :current="page"
+      :page-size="pageSize"
+      :page-size-options="[10, 20, 50, 100]"
       :total="rows.length"
+      aria-label="审批资产字段分页"
+      @change="pageChanged"
     />
   </div>
 </template>

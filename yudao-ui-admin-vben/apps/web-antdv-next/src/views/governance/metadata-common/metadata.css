@@ -130,7 +130,7 @@
 .metadata-detail {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   height: 100%;
   min-height: 0;
 }
@@ -138,6 +138,19 @@
 .metadata-panel {
   padding: 15px;
   background: hsl(var(--card));
+}
+
+.metadata-detail .metadata-panel {
+  padding: 20px;
+}
+
+.metadata-detail .ant-descriptions-view {
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.metadata-detail .ant-tabs-nav {
+  margin-bottom: 20px;
 }
 
 .metadata-grid-shell,
@@ -149,7 +162,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .metadata-detail__title h2 {

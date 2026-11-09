@@ -18,6 +18,9 @@ vi.mock('@vben/access', () => ({
 }));
 vi.mock('#/api/governance/level', () => ({ getSimpleLevelList: mock.levels }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: { render: () => null } }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: { render: () => null },
+}));
 vi.mock('./column-form.vue', () => ({ default: { render: () => null } }));
 vi.mock('./term-bind-form.vue', () => ({ default: { render: () => null } }));
 vi.mock('@vben/common-ui', () => ({

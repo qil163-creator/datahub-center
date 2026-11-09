@@ -2,7 +2,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-height: 100%;
   padding: 15px;
   font-family:
@@ -22,7 +22,7 @@
 
 .qd-logic-detail-summary,
 .qd-logic-detail-panel {
-  padding: 14px;
+  padding: 20px;
   background: #fff;
   border-radius: var(--radius);
 }
@@ -37,7 +37,7 @@
   gap: 8px;
   align-items: center;
   min-height: 28px;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .qd-logic-detail-id {
@@ -72,8 +72,10 @@
       1fr
     );
   margin: 0;
+  overflow: hidden;
   border-top: 1px solid #f0f2f8;
   border-left: 1px solid #f0f2f8;
+  border-radius: var(--radius);
 }
 
 .qd-logic-detail-info dt,

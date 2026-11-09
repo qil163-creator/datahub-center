@@ -23,6 +23,7 @@ import {
   getSafetyRule,
   getSafetyRuleSensitiveRows,
 } from '#/api/governance/rule/workbench';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import {
   createLatestWins,
   parseResourceId,
@@ -82,7 +83,6 @@ const total = ref(0);
 const guard = createLatestWins();
 const tableGuard = createLatestWins();
 const emptyImage = '/assets/qdata-map/empty-search.png';
-const returnIcon = '/assets/qdata-market/icon-return.png';
 const columns: SafetyColumn[] = [
   { key: 'id', title: '编号', width: 60, align: 'center', sorter: true },
   { key: 'assetName', title: '资产名称/描述', minWidth: 180, align: 'left' },
@@ -269,9 +269,7 @@ onBeforeUnmount(() => {
             ><strong>{{ row.ruleName }}</strong
             ><Tag class="category-soft-tag">
               {{ row.status === 0 ? '启用' : '禁用' }} </Tag
-            ><Button type="primary" size="small" @click="back">
-              <img :src="returnIcon" class="safety-rule-return" alt="" />返回
-            </Button>
+            ><DetailBackButton @click="back" />
           </header>
           <table>
             <tbody>

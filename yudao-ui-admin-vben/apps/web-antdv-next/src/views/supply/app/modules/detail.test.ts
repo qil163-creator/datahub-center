@@ -41,8 +41,8 @@ const harness = vi.hoisted(() => ({
     | {
         accessCodes: string[];
         accessToken: string;
-        userInfo: { userId: string };
         refreshToken: string;
+        userInfo: { userId: string };
       },
 }));
 vi.mock('@vben/stores', () => {
@@ -64,6 +64,9 @@ vi.mock('@vben/access', () => ({
   }),
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({ name: 'ListPaginationStub', render: () => null }),
+}));
 vi.mock('@vben/common-ui', () => {
   const usePopup = (options: ModalOptions) => {
     const index = harness.modals.length;
@@ -541,6 +544,10 @@ async function transition(kind: Transition) {
       harness.state!.accessCodes = ['supply:app:query'];
       break;
     }
+    case 'refreshSession': {
+      harness.state!.refreshToken = '2';
+      break;
+    }
     case 'session': {
       harness.state!.accessToken = '2';
       break;
@@ -552,10 +559,6 @@ async function transition(kind: Transition) {
     }
     case 'user': {
       harness.state!.userInfo = { userId: '10' };
-      break;
-    }
-    case 'refreshSession': {
-      harness.state!.refreshToken = '2';
       break;
     }
   }

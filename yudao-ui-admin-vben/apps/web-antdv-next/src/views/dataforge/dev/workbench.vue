@@ -60,6 +60,7 @@ import {
   updateDevTask,
   updateDevTaskStatus,
 } from '#/api/dataforge/dev';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import {
   resolveSqlLanguage,
   setColumnLoader,
@@ -1716,14 +1717,21 @@ onBeforeUnmount(() => {
                         <img :src="editorAsset('ai')" alt="" />AI助手
                       </Button>
                     </Tooltip>
-                    <Button
-                      v-if="taskId !== undefined"
-                      class="dev-workbench__return"
-                      type="text"
-                      @click="returnToTasks"
-                    >
-                      返回列表
-                    </Button>
+                    <template v-if="taskId !== undefined">
+                      <DetailBackButton
+                        v-if="readOnly"
+                        class="ml-auto"
+                        @click="returnToTasks"
+                      />
+                      <Button
+                        v-else
+                        class="dev-workbench__return"
+                        type="text"
+                        @click="returnToTasks"
+                      >
+                        返回列表
+                      </Button>
+                    </template>
                   </header>
                   <div class="dev-workbench__canvas dev-workbench__editing">
                     <Splitter
@@ -1897,9 +1905,10 @@ onBeforeUnmount(() => {
                     </template>
                     重新加载
                   </Button>
-                  <Button v-if="taskId !== undefined" @click="returnToTasks">
-                    返回列表
-                  </Button>
+                  <template v-if="taskId !== undefined">
+                    <DetailBackButton v-if="readOnly" @click="returnToTasks" />
+                    <Button v-else @click="returnToTasks">返回列表</Button>
+                  </template>
                   <div v-if="canManage" class="flex gap-2">
                     <Button
                       type="primary"
@@ -2635,7 +2644,7 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid #e6e7ed;
 }
 
-.dev-workbench__toolbar :deep(.ant-btn) {
+.dev-workbench__toolbar :deep(.ant-btn:not(.detail-back-button)) {
   display: inline-flex;
   gap: 8px;
   align-items: center;
@@ -2788,7 +2797,7 @@ onBeforeUnmount(() => {
     overflow-x: auto;
   }
 
-  .dev-workbench__toolbar :deep(.ant-btn) {
+  .dev-workbench__toolbar :deep(.ant-btn:not(.detail-back-button)) {
     margin-right: 4px;
   }
 }

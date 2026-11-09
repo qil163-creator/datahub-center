@@ -3,9 +3,9 @@ import type { MarketCheckApi } from '#/api/asset/market/check';
 
 import { computed } from 'vue';
 
-import { Button, Tag } from 'antdv-next';
+import { Tag } from 'antdv-next';
 
-import backIcon from '#/views/governance/metadata-common/reference-assets/icons/back.png';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ownershipIcon from '#/views/market/check/reference-assets/ownership.png';
 
 import { marketCheckTime } from '../../data';
@@ -56,9 +56,7 @@ const rowCount = computed(() =>
           {{ statusLabel }}
         </Tag>
       </h1>
-      <Button size="small" @click="emit('back')">
-        <img :src="backIcon" alt="" />返回
-      </Button>
+      <DetailBackButton @click="emit('back')" />
     </header>
     <div class="check-summary__grid">
       <div class="check-summary__field">
@@ -144,16 +142,6 @@ const rowCount = computed(() =>
   margin: 0;
   line-height: 24px;
   border-radius: calc(var(--radius) - 2px);
-}
-
-.check-summary__heading :deep(.ant-btn) {
-  display: inline-flex;
-  gap: 3px;
-  align-items: center;
-}
-
-.check-summary__heading :deep(.ant-btn) img {
-  object-fit: contain;
 }
 
 .check-summary__grid {

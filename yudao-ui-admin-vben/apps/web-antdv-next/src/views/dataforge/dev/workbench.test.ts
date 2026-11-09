@@ -502,7 +502,7 @@ describe('研发页面模式和交互边界', () => {
     harness.tabClose?.('task-9007199254740993');
     await flush();
     expect(host.querySelector('[data-editor]')).toBeNull();
-    const back = button('返回列表');
+    const back = button('返回');
     expect(back).toBeDefined();
     expect(back?.disabled).toBe(false);
     back?.click();

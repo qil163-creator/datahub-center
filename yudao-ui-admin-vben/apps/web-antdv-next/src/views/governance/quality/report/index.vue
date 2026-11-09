@@ -6,8 +6,9 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 
-import { Alert, Button } from 'antdv-next';
+import { Alert } from 'antdv-next';
 
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { parseResourceId } from '#/utils/resource-id';
 
 import ReportDetail from './modules/report-detail.vue';
@@ -40,7 +41,7 @@ function back() {
 <template>
   <Page auto-content-height content-class="quality-report-page">
     <Alert v-if="invalidId" message="报告编号无效" type="error">
-      <template #action><Button @click="back">返回列表</Button></template>
+      <template #action><DetailBackButton @click="back" /></template>
     </Alert>
     <ReportDetail
       v-else-if="instanceId"

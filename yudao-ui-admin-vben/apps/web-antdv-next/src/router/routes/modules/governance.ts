@@ -15,6 +15,30 @@ const routes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'masterdata/detail/:id',
+        name: 'GovernanceMasterModelDetail',
+        component: () => import('#/views/governance/masterdata/detail.vue'),
+        meta: {
+          title: '主数据模型详情',
+          activePath: '/govern/master/masterdata',
+          hideInMenu: true,
+          keepAlive: false,
+        },
+        beforeEnter(to) {
+          if (!parseResourceId(to.params.id))
+            return { path: '/404', replace: true };
+          const access = useAccessStore();
+          if (
+            !access.accessToken ||
+            access.loginExpired ||
+            !parseResourceId(useUserStore().userInfo?.userId) ||
+            !access.accessCodes.includes('governance:master-model:query')
+          )
+            return { path: '/403', replace: true };
+          return true;
+        },
+      },
+      {
         path: 'rule/detail/:id',
         name: 'GovernanceSafetyRuleDetail',
         component: () => import('#/views/governance/rule/detail/index.vue'),

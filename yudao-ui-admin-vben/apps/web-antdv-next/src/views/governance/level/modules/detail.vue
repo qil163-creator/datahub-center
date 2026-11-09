@@ -4,7 +4,7 @@ import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-
 
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 
 import { getLevel } from '#/api/governance/level';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -21,7 +21,7 @@ const detailRequest = useObjectRequest(
   () => '',
   () => {
     detail.value = undefined;
-    drawerApi.setState({ loading: false });
+    modalApi.setState({ loading: false });
   },
 );
 
@@ -49,36 +49,42 @@ const fields = computed<DetailFieldItem[]>(() => {
   ];
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Modal, modalApi] = useVbenModal({
+  class: 'top-[6vh] w-[800px]',
+  bordered: false,
+  closeOnClickModal: false,
+  fullscreenButton: false,
+  headerClass: 'px-6 pt-6 pb-2',
+  contentClass: 'px-6 py-0',
+  footerClass: 'px-6 py-5',
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(isOpen: boolean) {
     const current = detailRequest.begin();
     detail.value = undefined;
     if (!isOpen) {
-      drawerApi.setState({ loading: false });
+      modalApi.setState({ loading: false });
       return;
     }
-    const data = drawerApi.getData() as { id?: number };
+    const data = modalApi.getData() as { id?: number };
     if (!data?.id) {
       return;
     }
-    drawerApi.setState({ loading: true });
+    modalApi.setState({ loading: true });
     try {
       const result = await getLevel(data.id);
       if (current()) detail.value = result;
     } finally {
-      if (current()) drawerApi.setState({ loading: false });
+      if (current()) modalApi.setState({ loading: false });
     }
   },
 });
 </script>
 
 <template>
-  <Drawer
+  <Modal
     :title="`数据分级详情${detail?.safetyName ? ` - ${detail.safetyName}` : ''}`"
-    class="w-[960px] max-w-full"
   >
-    <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
-  </Drawer>
+    <DetailFieldForm :fields="fields" label-width="110px" />
+  </Modal>
 </template>

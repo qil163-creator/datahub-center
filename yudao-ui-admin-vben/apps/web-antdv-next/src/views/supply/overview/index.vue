@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import type { SupplyApiLogApi } from '#/api/supply/apilog';
 
-import { computed, onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue';
+import {
+  computed,
+  onActivated,
+  onDeactivated,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
@@ -25,14 +33,15 @@ const canQuery = computed(() => hasAccessByCodes(['supply:api-log:query']));
 const overview = ref<SupplyApiLogApi.Overview>();
 const loading = ref(false);
 const failed = ref(false);
-const updatedAt = ref('');
-const scope = computed(() => JSON.stringify([
-  access.accessToken,
-  access.refreshToken,
-  access.accessCodes,
-  user.userInfo?.userId,
-  user.userRoles,
-]));
+const scope = computed(() =>
+  JSON.stringify([
+    access.accessToken,
+    access.refreshToken,
+    access.accessCodes,
+    user.userInfo?.userId,
+    user.userRoles,
+  ]),
+);
 const overviewItems = computed(() => buildOverviewItems(overview.value));
 const trendList = computed(() => overview.value?.trend ?? []);
 const todayRankList = computed(() => buildRankList(overview.value?.todayRank));
@@ -52,7 +61,6 @@ async function loadOverview() {
     const result = await getApiLogOverview();
     if (id !== requestId) return;
     overview.value = result;
-    updatedAt.value = new Date().toLocaleString('zh-CN', { hour12: false });
   } catch {
     if (id === requestId) failed.value = true;
   } finally {
@@ -60,14 +68,17 @@ async function loadOverview() {
   }
 }
 
-watch(scope, () => {
-  requestId++;
-  overview.value = undefined;
-  updatedAt.value = '';
-  failed.value = false;
-  loading.value = false;
-  if (mounted && active) void loadOverview();
-}, { flush: 'sync' });
+watch(
+  scope,
+  () => {
+    requestId++;
+    overview.value = undefined;
+    failed.value = false;
+    loading.value = false;
+    if (mounted && active) void loadOverview();
+  },
+  { flush: 'sync' },
+);
 
 onMounted(() => {
   mounted = true;
@@ -93,17 +104,19 @@ onUnmounted(() => {
 <template>
   <Page content-class="p-5">
     <div class="flex flex-col gap-5">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="text-muted-foreground text-sm">
-          今日、本月及近 N 天按服务端统计日期，近 N 天包含今日
-          <span v-if="updatedAt" class="ml-3">最近成功刷新：{{ updatedAt }}（本地时间）</span>
-        </div>
-        <Button v-if="canQuery" :disabled="!access.accessToken" :loading="loading" @click="loadOverview">刷新</Button>
-      </div>
-      <Alert v-if="!canQuery" type="warning" show-icon message="暂无查看数据概览的权限" />
+      <Alert
+        v-if="!canQuery"
+        type="warning"
+        show-icon
+        message="暂无查看数据概览的权限"
+      />
       <Alert v-else-if="failed" type="warning" show-icon>
         <template #message>
-          {{ overview ? '刷新失败，当前显示上次成功获取的数据。' : '数据加载失败，请重试。' }}
+          {{
+            overview
+              ? '刷新失败，当前显示上次成功获取的数据。'
+              : '数据加载失败，请重试。'
+          }}
           <Button type="link" size="small" @click="loadOverview">重试</Button>
         </template>
       </Alert>
@@ -115,7 +128,11 @@ onUnmounted(() => {
           <RankChart title="本月API调用排行" :list="monthRankList" />
         </div>
       </template>
-      <div v-else-if="loading" role="status" class="text-muted-foreground rounded-lg bg-card p-8 text-center text-sm">
+      <div
+        v-else-if="loading"
+        role="status"
+        class="text-muted-foreground rounded-lg bg-card p-8 text-center text-sm"
+      >
         数据加载中…
       </div>
     </div>

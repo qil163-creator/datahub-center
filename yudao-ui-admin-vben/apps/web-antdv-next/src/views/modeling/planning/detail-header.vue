@@ -4,10 +4,11 @@ import type { ModelingSubjectDomainApi } from '#/api/modeling/subjectdomain';
 
 import { computed } from 'vue';
 
-import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
-import { Button, Descriptions, DescriptionsItem, Tag } from 'antdv-next';
+import { Descriptions, DescriptionsItem, Tag } from 'antdv-next';
+
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import defaultIcon from './reference-assets/domain-icon.png';
 
@@ -69,10 +70,7 @@ const cells = computed(() =>
       <Tag :color="item.status === 0 ? 'success' : 'default'">
         {{ item.status === 0 ? '启用' : '禁用' }}
       </Tag>
-      <Button class="planning-back" @click="$emit('back')">
-        <template #icon><IconifyIcon icon="lucide:undo-2" /></template>
-        返回
-      </Button>
+      <DetailBackButton class="ml-auto shrink-0" @click="$emit('back')" />
     </div>
     <Descriptions
       class="planning-detail-info"

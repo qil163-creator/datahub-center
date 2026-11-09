@@ -11,7 +11,6 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   Descriptions,
   DescriptionsItem,
@@ -192,14 +191,6 @@ onMounted(renderTrends);
 
 <template>
   <div class="space-y-7 py-1" :aria-busy="collecting || loading">
-    <Alert
-      v-if="
-        overview?.collectionStatus && overview.collectionStatus !== 'SUCCESS'
-      "
-      :message="overview.collectionMessage || '本次采集未取得有效结果'"
-      show-icon
-      type="warning"
-    />
     <section aria-labelledby="database-monitor-overview">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3

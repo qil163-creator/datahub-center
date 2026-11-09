@@ -6,8 +6,9 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
 
-import { Alert, Button } from 'antdv-next';
+import { Alert } from 'antdv-next';
 
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { parseResourceId } from '#/utils/resource-id';
 
 import Detail from './modules/detail.vue';
@@ -37,7 +38,7 @@ async function handleBack() {
       type="error"
       show-icon
     >
-      <template #action><Button @click="handleBack">返回</Button></template>
+      <template #action><DetailBackButton @click="handleBack" /></template>
     </Alert>
   </Page>
 </template>

@@ -32,6 +32,7 @@ import {
   modelSaveData,
   saveTableModelDraft,
 } from '#/api/modeling/tablemodel';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ReferencePagination from '#/views/modeling/model-materialized/modules/reference-pagination.vue';
 
 import { assertCurrentDesign } from '../../modelcommon/current-design-state';
@@ -439,9 +440,7 @@ onBeforeUnmount(() => {
           message="模型详情加载失败"
         >
           <template #action>
-            <button class="qd-logic-detail-btn" @click="load">重试</button><button class="qd-logic-detail-btn" @click="emit('back')">
-              返回
-            </button>
+            <button class="qd-logic-detail-btn" @click="load">重试</button><DetailBackButton @click="emit('back')" />
           </template>
         </Alert>
       </div>
@@ -461,9 +460,7 @@ onBeforeUnmount(() => {
                 @click="emit('edit', model)"
               >
                 <QdIcon name="edit" />修改
-</button><button class="qd-logic-detail-btn" @click="emit('back')">
-                <QdIcon name="arrowLeft" />返回
-              </button>
+</button><DetailBackButton @click="emit('back')" />
             </div>
           </div>
           <dl class="qd-logic-detail-info">

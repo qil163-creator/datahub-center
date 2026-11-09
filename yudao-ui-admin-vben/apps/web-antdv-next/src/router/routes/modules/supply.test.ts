@@ -16,6 +16,11 @@ describe('数据服务详情辅助路由', () => {
       activePath: '/supply/data-api',
       title: 'API服务详情',
     },
+    {
+      name: 'SupplyApiLogDetailPage',
+      activePath: '/supply/api-log',
+      title: '调用记录详情',
+    },
   ])('无损保留 $name 编号并高亮对应管理菜单', ({ name, activePath, title }) => {
     const router = createRouter({ history: createMemoryHistory(), routes });
     const id = '9007199254740993';

@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import type { TablePaginationConfig } from 'antdv-next';
+
 import type { DataAssetApi } from '#/api/asset/dataasset';
 
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
@@ -18,6 +20,7 @@ import {
 } from 'antdv-next';
 
 import { getSimpleLevelList } from '#/api/governance/level';
+import ListPagination from '#/components/list-pagination/index.vue';
 
 import { columnDisplayName } from '../../data';
 import ColumnForm from './column-form.vue';
@@ -34,6 +37,8 @@ const emit = defineEmits<{ (e: 'refresh'): void }>();
 const { hasAccessByCodes } = useAccess();
 
 const keyword = ref('');
+const page = ref(1);
+const pageSize = ref(10);
 const levelNames = ref<Record<number, { color?: string; name: string }>>({});
 
 const filteredColumns = computed(() => {
@@ -46,6 +51,32 @@ const filteredColumns = computed(() => {
       column.termName?.toLowerCase().includes(text),
   );
 });
+
+const pagination = computed<TablePaginationConfig>(() => ({
+  current: page.value,
+  pageSize: pageSize.value,
+  placement: ['none'],
+  onChange: changePage,
+}));
+
+function changePage(current: number, size: number) {
+  page.value = current;
+  pageSize.value = size;
+}
+
+watch([() => String(props.assetId), keyword], () => {
+  page.value = 1;
+});
+
+watch(
+  () => filteredColumns.value.length,
+  (total) => {
+    page.value = Math.min(
+      page.value,
+      Math.max(1, Math.ceil(total / pageSize.value)),
+    );
+  },
+);
 
 const baseColumns = [
   { title: '编号', key: 'id', dataIndex: 'id', width: 70 },
@@ -138,12 +169,7 @@ onMounted(async () => {
       :columns="tableColumns"
       :data-source="filteredColumns"
       :loading="loading"
-      :pagination="{
-        defaultPageSize: 10,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total: number) => `共 ${total} 条`,
-      }"
+      :pagination="pagination"
       :scroll="{ x: 1500 }"
       :row-key="
         (row: DataAssetApi.MetadataColumn) =>
@@ -286,6 +312,14 @@ onMounted(async () => {
         </template>
       </template>
     </Table>
+    <ListPagination
+      :current="page"
+      :page-size="pageSize"
+      :page-size-options="[10, 20, 50, 100]"
+      :total="filteredColumns.length"
+      aria-label="资产字段分页"
+      @change="changePage"
+    />
   </div>
 </template>
 

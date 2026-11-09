@@ -51,7 +51,7 @@
   background: white;
 }
 
-.qo-workbench button,
+.qo-workbench button:not(.detail-back-button),
 .qo-modal button {
   font: inherit;
 }

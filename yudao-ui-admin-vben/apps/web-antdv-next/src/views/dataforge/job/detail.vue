@@ -13,10 +13,10 @@ import { formatDate } from '@vben/utils';
 import { Alert, Button, ConfigProvider, Spin } from 'antdv-next';
 
 import { getJob, getJobTaskOptions } from '#/api/dataforge/job';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { useFullSyncScope } from '../fullsync/use-scope';
-import ReferenceIcon from '../integration/modules/reference-icon.vue';
 import JobFlow from './modules/job-flow.vue';
 import JobTaskEditor from './modules/job-task-editor.vue';
 
@@ -130,9 +130,7 @@ watch(
             <div class="qj-detail-heading">
               <span class="qj-detail-id">{{ job.id }}</span><strong>{{ job.name }}</strong><span class="qj-detail-status">{{
                 job.status === 1 ? '已上线' : '未上线'
-              }}</span><Button @click="router.push('/develop/job')">
-                <ReferenceIcon name="back" />返回
-              </Button>
+              }}</span><DetailBackButton @click="router.push('/develop/job')" />
             </div>
             <div class="qj-info-grid">
               <span class="qj-info-label">作业类目</span><span>{{ job.categoryName || '-' }}</span><span class="qj-info-label">执行策略</span><span>{{ strategies[job.strategy] || job.strategy }}</span><span class="qj-info-label">调度状态</span><span>{{ job.scheduleStatus === 1 ? '开启' : '关闭' }}</span>
@@ -173,3 +171,56 @@ watch(
     </Page>
   </ConfigProvider>
 </template>
+
+<style scoped>
+.qj-detail-header,
+.qj-detail-main {
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+
+.qj-detail-header {
+  margin-bottom: 16px;
+}
+
+.qj-detail-main {
+  padding-top: 8px;
+}
+
+.qj-detail-heading {
+  margin-bottom: 20px;
+}
+
+.qj-detail .qj-info-grid,
+.qj-detail .qj-extra-grid {
+  gap: 1px;
+  overflow: hidden;
+  background: hsl(var(--border));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.qj-detail .qj-info-grid > span,
+.qj-detail .qj-extra-grid > span {
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 0;
+}
+
+.qj-detail .qj-info-grid > .qj-info-label,
+.qj-detail .qj-extra-grid > .qj-info-label {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 45%);
+}
+
+@media (width <= 640px) {
+  .qj-detail-header {
+    padding: 16px;
+  }
+
+  .qj-detail-main {
+    padding: 8px 16px 16px;
+  }
+}
+</style>

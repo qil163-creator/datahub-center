@@ -30,9 +30,9 @@ import {
   getWizard,
   LIST_PATH,
 } from '#/api/dataforge/fullsync';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
-import ReferenceIcon from './modules/reference-icon.vue';
 import { useFullSyncScope } from './use-scope';
 
 import './fullsync.css';
@@ -233,9 +233,7 @@ watch(
             <div class="fs-detail-heading">
               <span class="fs-id">{{ task.id }}</span><strong>{{ config.taskName }}</strong><span class="fs-tag blue">{{
                 config.taskStatus === 1 ? '已上线' : '未上线'
-              }}</span><Button class="fs-light-button" @click="router.push(LIST_PATH)">
-                <ReferenceIcon name="back" />返回
-              </Button>
+              }}</span><DetailBackButton @click="router.push(LIST_PATH)" />
             </div>
             <div class="fs-description-grid">
               <div class="fs-description-label">源数据库</div>
@@ -385,3 +383,61 @@ watch(
     </Page>
   </ConfigProvider>
 </template>
+
+<style scoped>
+.fs-page {
+  gap: 16px;
+}
+
+.fs-detail-header,
+.fs-detail-main {
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+
+.fs-detail-main {
+  padding-top: 8px;
+}
+
+.fs-detail-heading {
+  margin-bottom: 20px;
+}
+
+.fs-tabs {
+  margin-bottom: 20px;
+}
+
+.fs-page .fs-description-grid,
+.fs-page .fs-info-grid {
+  gap: 1px;
+  overflow: hidden;
+  background: hsl(var(--border));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.fs-page .fs-description-grid > div,
+.fs-page .fs-info-grid > div {
+  min-width: 0;
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 0;
+}
+
+.fs-page .fs-description-grid > .fs-description-label,
+.fs-page .fs-info-grid > .fs-description-label {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 45%);
+}
+
+@media (width <= 640px) {
+  .fs-detail-header {
+    padding: 16px;
+  }
+
+  .fs-detail-main {
+    padding: 8px 16px 16px;
+  }
+}
+</style>

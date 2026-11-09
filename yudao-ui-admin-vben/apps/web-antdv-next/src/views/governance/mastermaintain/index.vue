@@ -17,6 +17,7 @@ import {
 } from 'antdv-next';
 
 import { getMaintainModel } from '#/api/governance/masterdata';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import { useMasterScope } from '../mastercommon/use-master-scope';
 import DataContent from './modules/data-content.vue';
@@ -74,7 +75,7 @@ watch(modelId, load, { immediate: true });
             <IconifyIcon icon="lucide:refresh-cw" />
           </template>
           重试
-</Button><Button @click="back">返回</Button>
+</Button><DetailBackButton @click="back" />
       </template>
     </Alert>
     <div v-else-if="model" class="metadata-detail">
@@ -83,9 +84,7 @@ watch(modelId, load, { immediate: true });
           <span class="metadata-detail__id">{{ model.id }}</span>
           <h2>{{ model.tableCn || model.tableName }}</h2>
           <span class="metadata-tag metadata-tag--success">已发布</span>
-          <Button size="small" class="metadata-detail__back" @click="back">
-            <IconifyIcon icon="lucide:undo-2" />返回
-          </Button>
+          <DetailBackButton class="ml-auto" @click="back" />
         </div>
         <Descriptions bordered size="small" :column="{ xs: 1, sm: 2, xl: 3 }">
           <DescriptionsItem label="实体模型编码">

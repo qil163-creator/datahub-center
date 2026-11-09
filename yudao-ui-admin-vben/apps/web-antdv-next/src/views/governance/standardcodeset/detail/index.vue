@@ -14,6 +14,7 @@ import { formatDate } from '@vben/utils';
 import { Alert, Button, Spin, Tabs } from 'antdv-next';
 
 import { getStandardCodeSet } from '#/api/governance/standardcodeset';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import AssociationTable from '../../standardcommon/association-table.vue';
@@ -128,12 +129,7 @@ onActivated(() => {
             v-if="codeSet"
             class="standard-status-tag"
             :class="{ disabled: codeSet.status !== 0 }"
-            >{{ codeSet.status === 0 ? '启用' : '停用' }}</span><Button
-            class="standard-detail-back standard-primary-plain"
-            @click="back"
-          >
-            <IconifyIcon icon="lucide:undo-2" />返回
-          </Button>
+            >{{ codeSet.status === 0 ? '启用' : '停用' }}</span><DetailBackButton class="ml-auto" @click="back" />
         </div>
         <dl v-if="codeSet" class="standard-detail-grid">
           <dt>标准数据元类目</dt>

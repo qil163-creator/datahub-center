@@ -55,7 +55,7 @@ const { hasAccessByCodes } = useAccess();
 const canUpdate = computed(() =>
   hasAccessByCodes(['dataforge:database:update']),
 );
-const page = reactive({ pageNo: 1, pageSize: 10 });
+const page = reactive({ pageNo: 1, pageSize: 20 });
 const failed = ref(false);
 const busy = ref(false);
 const listGuard = createLatestWins();
@@ -224,16 +224,14 @@ const [DetailModal, detailApi] = useVbenModal({
 });
 
 const [Grid, gridApi] = useVbenVxeGrid<DatabaseMonitorApi.Rule>({
-  gridClass: 'p-0',
   gridOptions: {
     columns: [
       { field: 'id', title: '编号', width: 100 },
-      { field: 'name', title: '规则名称', minWidth: 180, align: 'left' },
+      { field: 'name', title: '规则名称', minWidth: 180 },
       {
         field: 'description',
         title: '描述',
         minWidth: 240,
-        align: 'left',
         showOverflow: 'tooltip',
       },
       {
@@ -277,15 +275,14 @@ const [Grid, gridApi] = useVbenVxeGrid<DatabaseMonitorApi.Rule>({
         slots: { default: 'actions' },
       },
     ],
+    height: 'auto',
     minHeight: 320,
     rowConfig: { keyField: 'id', isHover: true },
-    stripe: true,
     proxyConfig: { enabled: false },
-    pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
+    pagerConfig: { currentPage: 1, pageSize: 20, total: 0 },
     toolbarConfig: {
       refresh: true,
       refreshOptions: { queryMethod: load },
-      zoom: false,
       custom: true,
     },
   },
@@ -448,8 +445,8 @@ onBeforeUnmount(invalidate);
       message="告警规则加载失败，请点击表格右上角刷新重试。"
       class="mb-3"
     />
-    <Grid>
-      <template #toolbar-actions>
+    <Grid table-title="告警规则列表">
+      <template #toolbar-tools>
         <TableAction
           :actions="[
             {

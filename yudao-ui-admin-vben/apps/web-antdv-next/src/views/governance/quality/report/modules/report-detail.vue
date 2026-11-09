@@ -21,6 +21,7 @@ import { Alert, Button, Spin, Table } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/vxe-table';
 import { getQualityReport } from '#/api/governance/quality/report';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import ProblemData from '../../issue-data/modules/problem-data.vue';
@@ -221,20 +222,14 @@ onActivated(() => {
             <IconifyIcon icon="lucide:refresh-cw" />
           </template>
           重试 </Button
-        ><Button @click="emit('back')">返回</Button>
+        ><DetailBackButton @click="emit('back')" />
       </template>
     </Alert>
     <template v-else-if="report">
       <section class="quality-report-panel">
         <div class="quality-report-section-title">
           <h2>数据质量维度统计</h2>
-          <Button
-            class="quality-report-query"
-            size="small"
-            @click="emit('back')"
-          >
-            返回
-          </Button>
+          <DetailBackButton @click="emit('back')" />
         </div>
         <div class="quality-report-dimensions">
           <p class="quality-report-overall">

@@ -3,27 +3,63 @@ import type { TableColumnsType } from 'antdv-next';
 
 import type { GovernanceMasterDataApi } from '#/api/governance/masterdata';
 
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+import { useAccess } from '@vben/access';
+import { IconifyIcon } from '@vben/icons';
+import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert, Descriptions, DescriptionsItem, Table, Tag } from 'antdv-next';
+import {
+  Alert,
+  Button,
+  Descriptions,
+  DescriptionsItem,
+  Table,
+  TabPane,
+  Tabs,
+  Tag,
+} from 'antdv-next';
 
 import { getMasterModel } from '#/api/governance/masterdata';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
+import { createObjectRequestGuard } from '#/hooks/object-request-guard';
+import { parseResourceId, sameResourceId } from '#/utils/resource-id';
 
-import { useMasterScope } from '../../mastercommon/use-master-scope';
 import { fieldTypeLabel, MODEL_STATUS_OPTIONS } from '../data';
 
-defineOptions({ name: 'GovernanceMasterModelDetail' });
+defineOptions({ name: 'GovernanceMasterModelProfile' });
 
-type Field = GovernanceMasterDataApi.Column & { rowKey: string };
+const props = defineProps<{ modelId?: GovernanceMasterDataApi.Id }>();
+const emit = defineEmits<{ back: [] }>();
+const access = useAccessStore();
+const user = useUserStore();
+const { hasAccessByCodes } = useAccess();
+const modelId = computed(() => parseResourceId(props.modelId));
+const canQuery = computed(
+  () =>
+    !!access.accessToken &&
+    !access.loginExpired &&
+    !!parseResourceId(user.userInfo?.userId) &&
+    hasAccessByCodes(['governance:master-model:query']),
+);
+const identity = computed(() =>
+  JSON.stringify([
+    modelId.value,
+    access.accessToken,
+    access.refreshToken,
+    user.userInfo?.userId,
+    canQuery.value,
+  ]),
+);
+const request = createObjectRequestGuard(() => identity.value);
 const detail = ref<GovernanceMasterDataApi.Model>();
-const failed = ref(false);
-const scope = useMasterScope(() => {
-  reset();
-  void modalApi.close();
-});
+const loading = ref(false);
+const error = ref('');
+const activeTab = ref('fields');
+const pagination = reactive({ current: 1, pageSize: 10 });
+type Field = GovernanceMasterDataApi.Column & { rowKey: string };
 const status = computed(() =>
   MODEL_STATUS_OPTIONS.find((item) => item.value === detail.value?.status),
 );
@@ -33,6 +69,7 @@ const columns = computed<Field[]>(() =>
     rowKey: field.id === undefined ? `field-${index}` : String(field.id),
   })),
 );
+const descriptionColumns = { xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 };
 const fieldColumns: TableColumnsType<Field> = [
   { title: '字段名', dataIndex: 'name', key: 'name', width: 180 },
   {
@@ -82,101 +119,346 @@ function flagLabel(value?: number) {
   return '-';
 }
 
-function reset() {
-  scope.invalidate();
-  detail.value = undefined;
-  failed.value = false;
-  modalApi.setState({ loading: false });
+function changePage(current: number, pageSize: number) {
+  pagination.current = pageSize === pagination.pageSize ? current : 1;
+  pagination.pageSize = pageSize;
 }
 
-const [Modal, modalApi] = useVbenModal<{
-  id?: GovernanceMasterDataApi.Id;
-}>({
-  showConfirmButton: false,
-  cancelText: '关闭',
-  async onOpenChange(open) {
-    reset();
-    if (!open) return;
-    const data = modalApi.getData();
-    if (data?.id === undefined) {
-      failed.value = true;
+async function load() {
+  const current = request.begin();
+  const id = modelId.value;
+  detail.value = undefined;
+  loading.value = false;
+  error.value = '';
+  activeTab.value = 'fields';
+  pagination.current = 1;
+  pagination.pageSize = 10;
+  if (!canQuery.value) {
+    error.value = '无主数据模型查询权限或登录会话已失效。';
+    return;
+  }
+  if (!id) {
+    error.value = '无效的主数据模型编号。';
+    return;
+  }
+  loading.value = true;
+  try {
+    const result = await getMasterModel(id);
+    if (!current()) return;
+    if (!sameResourceId(result?.id, id)) {
+      error.value = '模型详情身份不匹配，请返回列表后重新打开。';
       return;
     }
-    const current = scope.begin('detail');
-    modalApi.setState({ loading: true });
-    try {
-      const result = await getMasterModel(data.id);
-      if (current()) detail.value = result;
-    } catch {
-      if (current()) failed.value = true;
-    } finally {
-      if (current()) modalApi.setState({ loading: false });
-    }
-  },
-});
+    detail.value = result;
+  } catch {
+    if (current()) error.value = '主数据模型详情加载失败，请重试。';
+  } finally {
+    if (current()) loading.value = false;
+  }
+}
+
+watch(identity, () => void load(), { immediate: true, flush: 'sync' });
+onBeforeUnmount(() => request.dispose());
 </script>
 
 <template>
-  <Modal
-    :title="`主数据模型详情${detail?.tableCn ? ` - ${detail.tableCn}` : ''}`"
-    class="w-[1000px] max-w-full"
-  >
-    <Alert
-      v-if="failed"
-      class="mx-4"
-      type="error"
-      show-icon
-      message="主数据模型详情加载失败，请重新打开。"
-    />
-    <div v-else-if="detail" class="mx-4 space-y-5">
-      <Descriptions :column="2" bordered size="small">
-        <DescriptionsItem label="模型名称">
-          {{ detail.tableCn || '-' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="模型编码 / 物理表名">
-          {{ detail.tableName || '-' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="所属主数据域">
-          {{ detail.domainName || '-' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="目标数据源">
-          {{ detail.databaseName || '-' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="发布状态">
-          <Tag :color="status?.color ?? 'default'">
+  <div class="master-model-profile" :aria-busy="loading">
+    <section class="master-model-profile__summary" aria-label="主数据模型概要">
+      <div class="master-model-profile__head">
+        <div class="master-model-profile__identity">
+          <span v-if="detail?.id" class="master-model-profile__id">{{
+            detail.id
+          }}</span>
+          <h1 class="master-model-profile__name">
+            {{ detail?.tableCn || '主数据模型详情' }}
+          </h1>
+          <Tag v-if="detail" :color="status?.color ?? 'default'">
             {{ status?.label ?? `未知状态（${detail.status ?? '-'}）` }}
           </Tag>
-        </DescriptionsItem>
-        <DescriptionsItem label="版本">
-          {{ detail.version === undefined ? '-' : `V${detail.version}` }}
-        </DescriptionsItem>
-        <DescriptionsItem label="创建时间" :span="2">
-          {{ formatDateTime(detail.createTime) || '-' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="模型描述" :span="2">
-          <span class="whitespace-pre-wrap break-words">
-            {{ detail.description || '-' }}
-          </span>
-        </DescriptionsItem>
-      </Descriptions>
-      <div>
-        <div class="mb-3 font-medium">字段定义（{{ columns.length }} 个）</div>
-        <Table
-          :columns="fieldColumns"
-          :data-source="columns"
-          :pagination="false"
-          :scroll="{ x: 840, y: 360 }"
-          row-key="rowKey"
-          size="small"
-        />
+        </div>
+        <DetailBackButton @click="emit('back')" />
       </div>
-    </div>
-  </Modal>
+      <p v-if="loading" role="status">正在加载主数据模型详情…</p>
+      <Alert v-if="error" type="error" :message="error" show-icon>
+        <template v-if="modelId && canQuery" #action>
+          <Button size="small" :loading="loading" @click="load">
+            <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
+            重试
+          </Button>
+        </template>
+      </Alert>
+      <Descriptions
+        v-if="detail"
+        class="master-model-profile__info"
+        :column="descriptionColumns"
+        bordered
+        size="small"
+      >
+        <DescriptionsItem label="模型编码">
+{{
+          detail.tableName || '-'
+        }}
+</DescriptionsItem>
+        <DescriptionsItem label="所属主数据域">
+{{
+          detail.domainName || '-'
+        }}
+</DescriptionsItem>
+        <DescriptionsItem label="目标数据源">
+{{
+          detail.databaseName || '-'
+        }}
+</DescriptionsItem>
+        <DescriptionsItem label="描述" span="filled">
+<span class="whitespace-pre-wrap">{{
+            detail.description || '-'
+          }}</span>
+</DescriptionsItem>
+      </Descriptions>
+    </section>
+    <section
+      v-if="detail"
+      class="master-model-profile__attributes"
+      :class="{
+        'master-model-profile__attributes--info': activeTab === 'info',
+      }"
+      aria-label="主数据模型字段与详细信息"
+    >
+      <Tabs v-model:active-key="activeTab" class="master-model-profile__tabs">
+        <TabPane key="fields" :tab="`字段定义（${columns.length} 个）`">
+          <Table
+            class="master-model-profile__table"
+            :columns="fieldColumns"
+            :data-source="columns"
+            :pagination="{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              placement: ['none'],
+              onChange: changePage,
+            }"
+            :scroll="{ x: 840 }"
+            :styles="{ content: { overflowY: 'auto' } }"
+            row-key="rowKey"
+            size="small"
+          />
+          <ListPagination
+            :current="pagination.current"
+            :page-size="pagination.pageSize"
+            :total="columns.length"
+            @change="changePage"
+          />
+        </TabPane>
+        <TabPane key="info" tab="详细信息">
+          <Descriptions
+            class="master-model-profile__info master-model-profile__details"
+            :column="descriptionColumns"
+            bordered
+            size="small"
+          >
+            <DescriptionsItem label="模型名称">
+{{
+              detail.tableCn || '-'
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="模型编码 / 物理表名">
+{{
+              detail.tableName || '-'
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="所属主数据域">
+{{
+              detail.domainName || '-'
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="目标数据源">
+{{
+              detail.databaseName || '-'
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="发布状态">
+<Tag :color="status?.color ?? 'default'">
+{{
+                status?.label ?? `未知状态（${detail.status ?? '-'}）`
+              }}
+</Tag>
+</DescriptionsItem>
+            <DescriptionsItem label="版本">
+{{
+              detail.version === undefined ? '-' : `V${detail.version}`
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="创建时间" span="filled">
+{{
+              formatDateTime(detail.createTime) || '-'
+            }}
+</DescriptionsItem>
+            <DescriptionsItem label="模型描述" span="filled">
+{{
+              detail.description || '-'
+            }}
+</DescriptionsItem>
+          </Descriptions>
+        </TabPane>
+      </Tabs>
+    </section>
+  </div>
 </template>
 
 <style scoped>
-:deep(.ant-table-thead > tr > th),
-:deep(.ant-table-tbody > tr > td) {
+.master-model-profile {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.master-model-profile__summary,
+.master-model-profile__attributes {
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+
+.master-model-profile__summary {
+  flex-shrink: 0;
+}
+
+.master-model-profile__attributes {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 300px;
+  padding-top: 8px;
+}
+
+.master-model-profile__head,
+.master-model-profile__identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.master-model-profile__head {
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.master-model-profile__identity {
+  min-width: 0;
+}
+
+.master-model-profile__id {
+  padding: 4px 8px;
   font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 10%);
+  border-radius: calc(var(--radius) - 4px);
+}
+
+.master-model-profile__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.master-model-profile__info :deep(.ant-descriptions-item-label) {
+  width: 140px;
+  color: hsl(var(--muted-foreground));
+}
+
+.master-model-profile__info :deep(.ant-descriptions-item-content) {
+  overflow-wrap: anywhere;
+}
+
+.master-model-profile__details :deep(.ant-descriptions-item-content) {
+  white-space: pre-wrap;
+}
+
+.master-model-profile__tabs {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.master-model-profile__tabs :deep(.ant-tabs-body-holder) {
+  flex: 1;
+  min-height: 0;
+}
+
+.master-model-profile__tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 20px;
+}
+
+.master-model-profile__tabs :deep(.ant-tabs-body),
+.master-model-profile__tabs :deep(.ant-tabs-content) {
+  height: 100%;
+}
+
+.master-model-profile__tabs :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.master-model-profile__attributes--info,
+.master-model-profile__attributes--info .master-model-profile__tabs,
+.master-model-profile__attributes--info :deep(.ant-tabs-body-holder) {
+  flex: 1 0 auto;
+}
+
+.master-model-profile__attributes--info :deep(.ant-tabs-body),
+.master-model-profile__attributes--info :deep(.ant-tabs-content) {
+  height: auto;
+}
+
+.master-model-profile__table,
+.master-model-profile__table :deep(.ant-spin),
+.master-model-profile__table :deep(.ant-spin-container),
+.master-model-profile__table :deep(.ant-table),
+.master-model-profile__table :deep(.ant-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.master-model-profile__table :deep(.ant-table-content) {
+  flex: 1;
+  min-height: 0;
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+.master-model-profile__table :deep(.ant-table) {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.master-model-profile__table :deep(.ant-table-thead > tr > th),
+.master-model-profile__table :deep(.ant-table-tbody > tr > td) {
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .master-model-profile__summary,
+  .master-model-profile__attributes {
+    padding: 12px;
+  }
+
+  .master-model-profile__head {
+    align-items: flex-start;
+  }
+
+  .master-model-profile__info :deep(.ant-descriptions-item-label) {
+    width: 100px;
+  }
 }
 </style>

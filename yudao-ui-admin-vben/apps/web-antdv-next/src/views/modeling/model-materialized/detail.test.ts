@@ -1,5 +1,5 @@
 /* eslint-disable vue/one-component-per-file -- 回归用例需要为布局、弹窗和流程组件提供独立测试桩。 */
-import type { App } from 'vue';
+import type { App, SetupContext } from 'vue';
 
 import type { ModelMaterializedApi } from '#/api/modeling/model-materialized';
 
@@ -48,6 +48,8 @@ vi.mock('antdv-next', () => {
   });
   return {
     Alert: container,
+    Button: (_: unknown, { slots }: SetupContext) =>
+      h('button', slots.default?.()),
     Spin: container,
     Modal: defineComponent({
       props: { open: Boolean, title: { type: String, default: '' } },

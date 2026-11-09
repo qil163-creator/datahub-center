@@ -3,7 +3,7 @@ import type { SupplyAppApi } from '#/api/supply/app';
 import type { SupplyDataApiApi } from '#/api/supply/dataapi';
 import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-form.vue';
 
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { confirm, useVbenDrawer, useVbenModal } from '@vben/common-ui';
@@ -39,6 +39,8 @@ import {
   updateAppApi,
 } from '#/api/supply/app';
 import { getDataApiSimpleList } from '#/api/supply/dataapi';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 import { getRangePickerDefaultProps } from '#/utils';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
@@ -62,6 +64,7 @@ const detail = ref<SupplyAppApi.App>({});
 const detailLoading = ref(false);
 const activeTab = ref('auth');
 const authList = ref<SupplyAppApi.AppApi[]>([]);
+const authPage = reactive({ current: 1, pageSize: 10 });
 const authLoading = ref(false);
 const detailError = ref('');
 const authError = ref('');
@@ -80,6 +83,10 @@ const pageGuard = createLatestWins();
 const listGuard = createLatestWins();
 const mutationGuard = createLatestWins();
 let pageTicket: ReturnType<typeof pageGuard.next> | undefined;
+
+function changeAuthPage(current: number, pageSize: number) {
+  Object.assign(authPage, { current, pageSize });
+}
 
 function sourceAppId() {
   return parseResourceId(
@@ -120,6 +127,7 @@ function resetPage() {
   detail.value = {};
   detailLoading.value = false;
   authList.value = [];
+  changeAuthPage(1, 10);
   authLoading.value = false;
   detailError.value = '';
   authError.value = '';
@@ -283,6 +291,7 @@ async function loadAuthList() {
   const current = readyContext();
   if (!current) return;
   const ticket = listGuard.next();
+  authPage.current = 1;
   authList.value = [];
   authError.value = '';
   authLoading.value = true;
@@ -809,9 +818,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
             {{ detail.publicFlag === 1 ? '公开' : '非公开' }}
           </Tag>
         </div>
-        <Button size="small" @click="handleBack">
-          <IconifyIcon class="mr-1" icon="lucide:corner-up-left" />返回
-        </Button>
+        <DetailBackButton @click="handleBack" />
       </div>
       <Alert v-if="detailError" type="error" :message="detailError" />
       <p v-if="embedded && detailLoading" role="status">正在加载应用详情…</p>
@@ -853,7 +860,10 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
       />
     </section>
     <section
-      :class="embedded ? 'app-profile__attributes' : 'mx-4'"
+      :class="[
+        embedded ? 'app-profile__attributes' : 'mx-4',
+        { 'app-profile__attributes--info': embedded && activeTab === 'info' },
+      ]"
       aria-label="应用授权与详细信息"
     >
       <Tabs
@@ -899,14 +909,15 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
             :pagination="
               embedded
                 ? {
-                    defaultPageSize: 10,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['10', '20', '50', '100'],
-                    showTotal: (total: number) => `共 ${total} 条记录`,
+                    current: authPage.current,
+                    pageSize: authPage.pageSize,
+                    placement: ['none'],
+                    onChange: changeAuthPage,
                   }
                 : false
             "
             :scroll="{ x: 'max-content' }"
+            :styles="embedded ? { content: { overflowY: 'auto' } } : undefined"
             :class="{ 'app-profile__table': embedded }"
             row-key="id"
             size="small"
@@ -947,7 +958,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
                         ? '重新启用'
                         : '整体禁用'
                     "
-                    size="small"
+                    size="medium"
                     @change="
                       (checked) => handleControl(authRecord(record), !checked)
                     "
@@ -1003,6 +1014,15 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
               </template>
             </template>
           </Table>
+          <ListPagination
+            v-if="embedded"
+            :current="authPage.current"
+            :page-size="authPage.pageSize"
+            :page-size-options="[10, 20, 50, 100]"
+            :total="authList.length"
+            aria-label="应用授权分页"
+            @change="changeAuthPage"
+          />
         </TabPane>
         <TabPane key="info" tab="详细信息">
           <Descriptions
@@ -1118,16 +1138,16 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
   min-height: 0;
 }
 
 .app-profile__summary,
 .app-profile__attributes {
-  padding: 16px;
-  background: hsl(var(--background));
-  border-radius: 6px;
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .app-profile__summary {
@@ -1138,19 +1158,22 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 300px;
+  padding-top: 8px;
 }
 
 .app-profile__head,
 .app-profile__identity {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
   align-items: center;
 }
 
 .app-profile__head {
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .app-profile__identity {
@@ -1159,33 +1182,29 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
 }
 
 .app-profile__id {
-  padding: 2px 6px;
+  padding: 4px 8px;
   font-size: 12px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: hsl(var(--primary-foreground));
-  background: hsl(var(--primary));
-  border-radius: 2px;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 10%);
+  border-radius: calc(var(--radius) - 4px);
 }
 
 .app-profile__name {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .app-profile__info :deep(.ant-descriptions-item-label) {
-  width: 110px;
+  width: 140px;
   color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 45%);
 }
 
 .app-profile__info :deep(.ant-descriptions-item-content) {
   overflow-wrap: anywhere;
-}
-
-.app-profile__details :deep(.ant-descriptions-view) {
-  border-radius: 0;
 }
 
 .app-profile__details :deep(.ant-descriptions-item-content) {
@@ -1203,6 +1222,10 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   min-height: 0;
 }
 
+.app-profile__tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 20px;
+}
+
 .app-profile__tabs :deep(.ant-tabs-body),
 .app-profile__tabs :deep(.ant-tabs-content) {
   height: 100%;
@@ -1213,6 +1236,17 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+}
+
+.app-profile__attributes--info,
+.app-profile__attributes--info .app-profile__tabs,
+.app-profile__attributes--info :deep(.ant-tabs-body-holder) {
+  flex: 1 0 auto;
+}
+
+.app-profile__attributes--info :deep(.ant-tabs-body),
+.app-profile__attributes--info :deep(.ant-tabs-content) {
+  height: auto;
 }
 
 .app-profile__toolbar {
@@ -1239,17 +1273,36 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
 }
 
 .app-profile__table :deep(.ant-table-container) {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-profile__table :deep(.ant-table-content) {
+  flex: 1;
+  min-height: 0;
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+.app-profile__table :deep(.ant-table-content::-webkit-scrollbar) {
+  width: 6px;
+  height: 6px;
+}
+
+.app-profile__table :deep(.ant-table-content::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.app-profile__table :deep(.ant-table-content::-webkit-scrollbar-thumb) {
+  background: hsl(var(--muted-foreground) / 20%);
+  border-radius: 999px;
 }
 
 .app-profile__table :deep(.ant-table) {
   border: 1px solid hsl(var(--border));
-  border-radius: 6px;
-}
-
-.app-profile__table :deep(.ant-pagination) {
-  flex-shrink: 0;
-  margin-bottom: 0;
+  border-radius: var(--radius);
 }
 
 @media (max-width: 640px) {
@@ -1263,7 +1316,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   }
 
   .app-profile__info :deep(.ant-descriptions-item-label) {
-    width: 80px;
+    width: 100px;
   }
 }
 </style>

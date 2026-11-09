@@ -7,6 +7,8 @@ import { formatDate } from '@vben/utils';
 
 import { Button, Empty } from 'antdv-next';
 
+import DetailBackButton from '#/components/detail-back-button/index.vue';
+
 import {
   cronSummary,
   labelOf,
@@ -91,9 +93,7 @@ function edgePosition(edge: { source: string; target: string }) {
             task.status === 1 ? '已上线' : '未上线'
           }}</span>
         </div>
-        <Button size="small" @click="$emit('back')">
-          <ReferenceIcon name="back" />返回
-        </Button>
+        <DetailBackButton @click="$emit('back')" />
       </div>
       <table class="qi-info-table qi-summary-table">
         <tbody>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TablePaginationConfig } from 'antdv-next';
+
 import type { GovernanceMetaObjectApi as Api } from '#/api/governance/metaobject';
 
 import { computed, onActivated, onDeactivated, ref, watch } from 'vue';
@@ -31,13 +33,14 @@ import {
   getMetaSnapshotList,
   getMetaTableDetail,
 } from '#/api/governance/metaobject';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { metadataTime } from '../metadata-common/helpers';
 import { metadataIcon } from '../metadata-common/icons';
 import { displayComment, formatSize, formatTime } from './data';
 import ColumnBizForm from './modules/column-biz-form.vue';
-import LegacyDetail from './modules/detail.vue';
 
 import '../metadata-common/metadata.css';
 
@@ -55,7 +58,9 @@ const failed = ref(false);
 const activeTab = ref('fields');
 const selectedField = ref<Api.MetaColumn>();
 const fieldPage = ref(1);
+const fieldPageSize = ref(10);
 const versionPage = ref(1);
+const versionPageSize = ref(10);
 let active = true;
 const request = useObjectRequest(
   () => `${props.finalized}/${id.value}`,
@@ -64,8 +69,44 @@ const request = useObjectRequest(
     fields.value = [];
     snapshots.value = [];
     selectedField.value = undefined;
+    fieldPage.value = 1;
+    fieldPageSize.value = 10;
+    versionPage.value = 1;
+    versionPageSize.value = 10;
   },
 );
+function changeFieldPage(page: number, pageSize: number) {
+  fieldPage.value = page;
+  fieldPageSize.value = pageSize;
+}
+function changeVersionPage(page: number, pageSize: number) {
+  versionPage.value = page;
+  versionPageSize.value = pageSize;
+}
+const fieldPagination = computed<TablePaginationConfig>(() => ({
+  current: fieldPage.value,
+  pageSize: fieldPageSize.value,
+  placement: ['none'],
+  onChange: changeFieldPage,
+}));
+const versionPagination = computed<TablePaginationConfig>(() => ({
+  current: versionPage.value,
+  pageSize: versionPageSize.value,
+  placement: ['none'],
+  onChange: changeVersionPage,
+}));
+watch([() => fields.value.length, fieldPageSize], ([total, pageSize]) => {
+  fieldPage.value = Math.min(
+    fieldPage.value,
+    Math.max(1, Math.ceil(total / pageSize)),
+  );
+});
+watch([() => snapshots.value.length, versionPageSize], ([total, pageSize]) => {
+  versionPage.value = Math.min(
+    versionPage.value,
+    Math.max(1, Math.ceil(total / pageSize)),
+  );
+});
 const canEdit = computed(
   () =>
     !props.finalized &&
@@ -74,10 +115,6 @@ const canEdit = computed(
 );
 const [ColumnModal, columnApi] = useVbenModal({
   connectedComponent: ColumnBizForm,
-  destroyOnClose: true,
-});
-const [MaintenanceModal, maintenanceApi] = useVbenModal({
-  connectedComponent: LegacyDetail,
   destroyOnClose: true,
 });
 
@@ -268,7 +305,7 @@ const technicalFields = computed(() =>
 
 <template>
   <Page auto-content-height content-class="metadata-page">
-    <ColumnModal @success="load" /><MaintenanceModal @success="load" />
+    <ColumnModal @success="load" />
     <Spin :spinning="loading" :classes="{ root: 'metadata-detail-spin' }">
       <div class="metadata-detail">
         <Alert
@@ -282,8 +319,9 @@ const technicalFields = computed(() =>
               <template #icon>
                 <IconifyIcon :icon="metadataIcon('refresh')" />
               </template>
-              重试 </Button
-            ><Button @click="back">返回</Button>
+              重试
+            </Button>
+            <DetailBackButton @click="back" />
           </template>
         </Alert>
         <template v-if="detail">
@@ -298,19 +336,19 @@ const technicalFields = computed(() =>
                     ? 'metadata-tag--success'
                     : 'metadata-tag--error'
                 "
-                >{{ detail.publishStatus === 1 ? '已发布' : '未发布' }}</span
-              ><Button class="metadata-detail__back" size="small" @click="back">
-                <IconifyIcon :icon="metadataIcon('back')" />返回
-              </Button>
+              >
+                {{ detail.publishStatus === 1 ? '已发布' : '未发布' }}
+              </span>
+              <DetailBackButton class="ml-auto" @click="back" />
             </div>
             <Descriptions bordered size="small" :column="3">
               <DescriptionsItem label="来源系统">
-                {{ detail.sourceSystemName || '-' }} </DescriptionsItem
-              ><DescriptionsItem label="数据库类型">
-                <span class="metadata-tag">{{
-                  detail.dbType || '-'
-                }}</span> </DescriptionsItem
-              ><DescriptionsItem label="版本号">
+                {{ detail.sourceSystemName || '-' }}
+              </DescriptionsItem>
+              <DescriptionsItem label="数据库类型">
+                <span class="metadata-tag">{{ detail.dbType || '-' }}</span>
+              </DescriptionsItem>
+              <DescriptionsItem label="版本号">
                 {{
                   version(
                     finalized ? detail.finalizedVersion : detail.structVersion,
@@ -318,8 +356,9 @@ const technicalFields = computed(() =>
                 }}
               </DescriptionsItem>
               <DescriptionsItem label="所属库名">
-                {{ detail.dbName || '-' }} </DescriptionsItem
-              ><DescriptionsItem label="表注释" :span="2">
+                {{ detail.dbName || '-' }}
+              </DescriptionsItem>
+              <DescriptionsItem label="表注释" :span="2">
                 {{ displayComment(detail) }}
               </DescriptionsItem>
             </Descriptions>
@@ -343,17 +382,7 @@ const technicalFields = computed(() =>
                   row-key="id"
                   :scroll="{ x: finalized ? 1000 : 1840 }"
                   size="small"
-                  :pagination="
-                    finalized
-                      ? false
-                      : {
-                          current: fieldPage,
-                          pageSize: 10,
-                          showSizeChanger: false,
-                          showTotal: (total: number) => `共 ${total} 条`,
-                          onChange: (page: number) => (fieldPage = page),
-                        }
-                  "
+                  :pagination="finalized ? false : fieldPagination"
                 >
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.key === 'comment'">
@@ -365,8 +394,9 @@ const technicalFields = computed(() =>
                         class="metadata-link"
                         @click="selectedField = record"
                       >
-                        {{ text }}</button
-                      ><span v-else>{{ text }}</span>
+                        {{ text }}
+                      </button>
+                      <span v-else>{{ text }}</span>
                     </template>
                     <template
                       v-else-if="
@@ -379,7 +409,8 @@ const technicalFields = computed(() =>
                         :class="
                           finalized ? '' : 'metadata-tag metadata-tag--error'
                         "
-                        >{{
+                      >
+                        {{
                           column.key === 'required'
                             ? required(record.nullableFlag)
                             : yes(
@@ -387,8 +418,8 @@ const technicalFields = computed(() =>
                                   ? record.pkFlag
                                   : record.fkFlag,
                               )
-                        }}</span
-                      >
+                        }}
+                      </span>
                     </template>
                     <template
                       v-else-if="
@@ -407,8 +438,9 @@ const technicalFields = computed(() =>
                         <template #icon>
                           <IconifyIcon :icon="metadataIcon('detail')" />
                         </template>
-                        详情 </Button
-                      ><Button
+                        详情
+                      </Button>
+                      <Button
                         v-if="canEdit"
                         type="link"
                         size="small"
@@ -423,6 +455,15 @@ const technicalFields = computed(() =>
                     <template v-else>{{ text ?? '-' }}</template>
                   </template>
                 </Table>
+                <ListPagination
+                  v-if="!finalized"
+                  :current="fieldPage"
+                  :page-size="fieldPageSize"
+                  :page-size-options="[10, 20, 50, 100]"
+                  :total="fields.length"
+                  aria-label="字段列表分页"
+                  @change="changeFieldPage"
+                />
               </TabPane>
               <TabPane v-if="!finalized" key="versions" tab="版本与变更">
                 <div class="metadata-detail-tools">
@@ -437,13 +478,7 @@ const technicalFields = computed(() =>
                   row-key="id"
                   size="small"
                   :scroll="{ x: 1000 }"
-                  :pagination="{
-                    current: versionPage,
-                    pageSize: 10,
-                    showSizeChanger: false,
-                    showTotal: (total: number) => `共 ${total} 条`,
-                    onChange: (page: number) => (versionPage = page),
-                  }"
+                  :pagination="versionPagination"
                 >
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'createTime'">
@@ -486,81 +521,96 @@ const technicalFields = computed(() =>
                             },
                           },
                         ]"
-                      /> </template
-                    ><template v-else>{{ text || '-' }}</template>
+                      />
+                    </template>
+                    <template v-else>{{ text || '-' }}</template>
                   </template>
                 </Table>
+                <ListPagination
+                  :current="versionPage"
+                  :page-size="versionPageSize"
+                  :page-size-options="[10, 20, 50, 100]"
+                  :total="snapshots.length"
+                  aria-label="版本与变更分页"
+                  @change="changeVersionPage"
+                />
               </TabPane>
               <TabPane key="base" tab="基本信息">
                 <h3 class="metadata-section">基础信息</h3>
                 <Descriptions bordered size="small" :column="3">
                   <DescriptionsItem label="所属分层">
-                    {{ detail.layer || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="所属系统" :span="2">
+                    {{ detail.layer || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="所属系统" :span="2">
                     {{ detail.datasourceName || '-' }}
                   </DescriptionsItem>
                   <DescriptionsItem label="描述" :span="3">
                     {{ detail.businessDefinition || displayComment(detail) }}
                   </DescriptionsItem>
                   <DescriptionsItem label="更新人">
-                    {{ detail.updaterName || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="更新时间">
-                    {{ formatTime(detail.updateTime) }} </DescriptionsItem
-                  ><DescriptionsItem label="创建人">
+                    {{ detail.updaterName || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="更新时间">
+                    {{ formatTime(detail.updateTime) }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="创建人">
                     {{ detail.creatorName || '-' }}
                   </DescriptionsItem>
                   <DescriptionsItem label="创建时间" :span="3">
-                    {{ formatTime(detail.createTime) }} </DescriptionsItem
-                  ><DescriptionsItem label="备注" :span="3">
+                    {{ formatTime(detail.createTime) }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="备注" :span="3">
                     {{ detail.remark || '-' }}
                   </DescriptionsItem>
                 </Descriptions>
                 <h3 class="metadata-section">技术信息</h3>
                 <Descriptions bordered size="small" :column="3">
                   <DescriptionsItem label="数据源名称">
-                    {{ detail.dbName || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="IP">
-                    {{ detail.host || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="端口号">
+                    {{ detail.dbName || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="IP">
+                    {{ detail.host || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="端口号">
                     {{ detail.port || '-' }}
                   </DescriptionsItem>
                   <DescriptionsItem label="账号">
-                    {{ detail.username || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="存储类型">
-                    {{ detail.storageType || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="存储大小">
+                    {{ detail.username || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="存储类型">
+                    {{ detail.storageType || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="存储大小">
                     {{ formatSize(detail.storageSize) }}
                   </DescriptionsItem>
                   <DescriptionsItem label="技术责任人">
-                    {{ detail.techLeaderName || '-' }} </DescriptionsItem
-                  ><DescriptionsItem label="技术责任人电话" :span="2">
+                    {{ detail.techLeaderName || '-' }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="技术责任人电话" :span="2">
                     {{ detail.techLeaderPhone || '-' }}
                   </DescriptionsItem>
                 </Descriptions>
                 <h3 class="metadata-section">业务信息</h3>
                 <Descriptions bordered size="small" :column="3">
                   <DescriptionsItem label="是否主表">
-                    {{ yes(detail.masterFlag) }} </DescriptionsItem
-                  ><DescriptionsItem label="是否临时表">
-                    {{ yes(detail.temporaryFlag) }} </DescriptionsItem
-                  ><DescriptionsItem label="业务责任人">
+                    {{ yes(detail.masterFlag) }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="是否临时表">
+                    {{ yes(detail.temporaryFlag) }}
+                  </DescriptionsItem>
+                  <DescriptionsItem label="业务责任人">
                     {{ detail.businessLeaderName || '-' }}
                   </DescriptionsItem>
                   <DescriptionsItem label="业务责任人电话" :span="3">
                     {{ detail.businessLeaderPhone || '-' }}
                   </DescriptionsItem>
                 </Descriptions>
-                <div v-if="!finalized" class="metadata-detail-tools">
-                  <Button v-if="canEdit" @click="editTable">
+                <div v-if="canEdit" class="metadata-detail-tools">
+                  <Button @click="editTable">
                     <template #icon>
                       <IconifyIcon :icon="metadataIcon('edit')" />
                     </template>
-                    修改业务信息 </Button
-                  ><Button @click="maintenanceApi.setData(detail).open()">
-                    <template #icon>
-                      <IconifyIcon :icon="metadataIcon('compare')" />
-                    </template>
-                    标签与变更记录
+                    修改业务信息
                   </Button>
                 </div>
               </TabPane>
@@ -579,8 +629,8 @@ const technicalFields = computed(() =>
     >
       <div class="metadata-field-detail">
         <div v-for="(item, index) in technicalFields" :key="index">
-          <label>{{ item[0] }}</label
-          ><span>{{ item[1] ?? '-' }}</span>
+          <label>{{ item[0] }}</label>
+          <span>{{ item[1] ?? '-' }}</span>
         </div>
       </div>
       <div class="metadata-detail-tools">
@@ -600,7 +650,7 @@ const technicalFields = computed(() =>
 }
 
 .metadata-detail-body {
-  flex: 1;
+  flex: 1 0 auto;
   min-height: 480px;
 }
 

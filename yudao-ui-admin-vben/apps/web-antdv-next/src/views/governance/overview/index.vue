@@ -8,10 +8,7 @@ import type { DashboardApi } from '#/api/dashboard';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { IconifyIcon } from '@vben/icons';
-import { formatDate } from '@vben/utils';
-
-import { Button, Card, Progress, Tooltip } from 'antdv-next';
+import { Card, Progress } from 'antdv-next';
 
 import {
   getDashboardGovernanceSummary,
@@ -54,7 +51,6 @@ const TREND_DAYS = 30;
 const { navTo } = useDashboardNav();
 
 const loading = ref(true);
-const updatedAt = ref('');
 const governance = ref<DashboardApi.GovernanceSummary>();
 const safety = ref<DashboardApi.SafetySummary>();
 const qualityTrend = ref<DashboardApi.QualityTrendPoint[]>();
@@ -344,7 +340,6 @@ async function loadData() {
     safety.value = safetyRes;
     qualityTrend.value = qualityTrendRes;
     workOrderStats.value = workOrderRes;
-    updatedAt.value = formatDate(new Date(), 'HH:mm:ss');
   } finally {
     loading.value = false;
   }
@@ -355,24 +350,6 @@ onMounted(loadData);
 
 <template>
   <div class="flex flex-col gap-5 p-5">
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-lg font-semibold">治理总览</h2>
-        <p class="text-muted-foreground mt-1 text-xs">
-          汇总元数据、数据标准、数据质量、数据安全与主数据的治理指标
-          <template v-if="updatedAt">· 更新于 {{ updatedAt }}</template>
-        </p>
-      </div>
-      <Tooltip title="刷新全部统计">
-        <Button :loading="loading" @click="loadData">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" class="size-4" />
-          </template>
-          刷新
-        </Button>
-      </Tooltip>
-    </div>
-
     <MetricCards :items="metricItems" :loading="loading" @navigate="navTo" />
 
     <Card title="治理健康度">

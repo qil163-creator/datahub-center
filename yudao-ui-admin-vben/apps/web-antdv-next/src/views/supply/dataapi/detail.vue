@@ -2,18 +2,16 @@
 import type { SupplyApiCategoryApi } from '#/api/supply/apicategory';
 import type { SupplyDataApiApi } from '#/api/supply/dataapi';
 
-import { computed, h, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, h, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
   Alert,
-  Button,
   Descriptions,
   DescriptionsItem,
   Table,
@@ -24,6 +22,8 @@ import {
 
 import { getApiCategoryList } from '#/api/supply/apicategory';
 import { getDataApi } from '#/api/supply/dataapi';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
@@ -90,6 +90,16 @@ const responseRows = computed(() =>
     _key: `${id.value}:field:${index}:${item.name ?? ''}`,
   })),
 );
+const requestPage = reactive({ current: 1, pageSize: 10 });
+const responsePage = reactive({ current: 1, pageSize: 10 });
+
+function changeRequestPage(current: number, pageSize: number) {
+  Object.assign(requestPage, { current, pageSize });
+}
+
+function changeResponsePage(current: number, pageSize: number) {
+  Object.assign(responsePage, { current, pageSize });
+}
 const requestColumns = [
   { title: '参数名称', dataIndex: 'name', key: 'name', width: 180 },
   { title: '参数类型', key: 'paramType', width: 100 },
@@ -250,7 +260,7 @@ const infoFields = computed(() => {
     {
       key: 'maxConcurrency',
       label: '最大并发',
-      value: row.maxConcurrency ? row.maxConcurrency : '不限制',
+      value: row.maxConcurrency || '不限制',
     },
     {
       key: 'timeoutSeconds',
@@ -290,6 +300,8 @@ function resetDetail() {
   categories.value = [];
   categoryState.value = 'unavailable';
   activeTab.value = 'params';
+  changeRequestPage(1, 10);
+  changeResponsePage(1, 10);
 }
 
 async function loadCategories(isCurrent: () => boolean) {
@@ -384,9 +396,7 @@ onBeforeUnmount(() => {
               未发布草稿
             </Tag>
           </div>
-          <Button size="small" @click="handleBack">
-            <IconifyIcon class="mr-1" icon="lucide:corner-up-left" />返回
-          </Button>
+          <DetailBackButton @click="handleBack" />
         </div>
         <Alert v-if="error" type="error" :message="error" show-icon />
         <p v-if="loading" role="status">正在加载API详情…</p>
@@ -437,6 +447,7 @@ onBeforeUnmount(() => {
       <section
         v-if="detail"
         class="api-profile__attributes"
+        :class="{ 'api-profile__attributes--info': activeTab === 'info' }"
         aria-label="API参数与详细信息"
       >
         <Tabs v-model:active-key="activeTab" class="api-profile__tabs">
@@ -446,12 +457,13 @@ onBeforeUnmount(() => {
               :columns="requestColumns"
               :data-source="requestRows"
               :pagination="{
-                defaultPageSize: 10,
-                showSizeChanger: true,
-                pageSizeOptions: ['10', '20', '50', '100'],
-                showTotal: (total: number) => `共 ${total} 项`,
+                current: requestPage.current,
+                pageSize: requestPage.pageSize,
+                placement: ['none'],
+                onChange: changeRequestPage,
               }"
               :scroll="{ x: 980 }"
+              :styles="{ content: { overflowY: 'auto' } }"
               row-key="_key"
               size="small"
             >
@@ -471,6 +483,14 @@ onBeforeUnmount(() => {
                 <template v-else>{{ text ?? '-' }}</template>
               </template>
             </Table>
+            <ListPagination
+              :current="requestPage.current"
+              :page-size="requestPage.pageSize"
+              :page-size-options="[10, 20, 50, 100]"
+              :total="requestRows.length"
+              aria-label="请求参数分页"
+              @change="changeRequestPage"
+            />
           </TabPane>
           <TabPane key="fields" tab="返回字段">
             <Table
@@ -478,12 +498,13 @@ onBeforeUnmount(() => {
               :columns="responseColumns"
               :data-source="responseRows"
               :pagination="{
-                defaultPageSize: 10,
-                showSizeChanger: true,
-                pageSizeOptions: ['10', '20', '50', '100'],
-                showTotal: (total: number) => `共 ${total} 项`,
+                current: responsePage.current,
+                pageSize: responsePage.pageSize,
+                placement: ['none'],
+                onChange: changeResponsePage,
               }"
               :scroll="{ x: 1720 }"
+              :styles="{ content: { overflowY: 'auto' } }"
               row-key="_key"
               size="small"
             >
@@ -503,6 +524,14 @@ onBeforeUnmount(() => {
                 <template v-else>{{ text ?? '-' }}</template>
               </template>
             </Table>
+            <ListPagination
+              :current="responsePage.current"
+              :page-size="responsePage.pageSize"
+              :page-size-options="[10, 20, 50, 100]"
+              :total="responseRows.length"
+              aria-label="返回字段分页"
+              @change="changeResponsePage"
+            />
           </TabPane>
           <TabPane key="info" tab="详细信息">
             <Descriptions
@@ -542,16 +571,16 @@ onBeforeUnmount(() => {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
   min-height: 0;
 }
 
 .api-profile__summary,
 .api-profile__attributes {
-  padding: 16px;
-  background: hsl(var(--background));
-  border-radius: 6px;
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .api-profile__summary {
@@ -562,19 +591,22 @@ onBeforeUnmount(() => {
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 300px;
+  padding-top: 8px;
 }
 
 .api-profile__head,
 .api-profile__identity {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
   align-items: center;
 }
 
 .api-profile__head {
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .api-profile__identity {
@@ -583,33 +615,29 @@ onBeforeUnmount(() => {
 }
 
 .api-profile__id {
-  padding: 2px 6px;
+  padding: 4px 8px;
   font-size: 12px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: hsl(var(--primary-foreground));
-  background: hsl(var(--primary));
-  border-radius: 2px;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 10%);
+  border-radius: calc(var(--radius) - 4px);
 }
 
 .api-profile__name {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .api-profile__info :deep(.ant-descriptions-item-label) {
-  width: 110px;
+  width: 140px;
   color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 45%);
 }
 
 .api-profile__info :deep(.ant-descriptions-item-content) {
   overflow-wrap: anywhere;
-}
-
-.api-profile__details :deep(.ant-descriptions-view) {
-  border-radius: 0;
 }
 
 .api-profile__details :deep(.ant-descriptions-item-content) {
@@ -629,6 +657,10 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 
+.api-profile__tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 20px;
+}
+
 .api-profile__tabs :deep(.ant-tabs-body),
 .api-profile__tabs :deep(.ant-tabs-content) {
   height: 100%;
@@ -641,6 +673,17 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 
+.api-profile__attributes--info,
+.api-profile__attributes--info .api-profile__tabs,
+.api-profile__attributes--info :deep(.ant-tabs-body-holder) {
+  flex: 1 0 auto;
+}
+
+.api-profile__attributes--info :deep(.ant-tabs-body),
+.api-profile__attributes--info :deep(.ant-tabs-content) {
+  height: auto;
+}
+
 .api-profile__table :deep(.ant-spin),
 .api-profile__table :deep(.ant-spin-container),
 .api-profile__table :deep(.ant-table) {
@@ -651,17 +694,40 @@ onBeforeUnmount(() => {
 }
 
 .api-profile__table :deep(.ant-table-container) {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.api-profile__table :deep(.ant-table-content) {
+  flex: 1;
+  min-height: 0;
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+.api-profile__table :deep(.ant-table-content::-webkit-scrollbar) {
+  width: 6px;
+  height: 6px;
+}
+
+.api-profile__table :deep(.ant-table-content::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.api-profile__table :deep(.ant-table-content::-webkit-scrollbar-thumb) {
+  background: hsl(var(--muted-foreground) / 20%);
+  border-radius: 999px;
+}
+
+.api-profile__table :deep(.ant-table-tbody > tr.ant-table-placeholder > td) {
+  border-bottom: 0;
 }
 
 .api-profile__table :deep(.ant-table) {
   border: 1px solid hsl(var(--border));
-  border-radius: 6px;
-}
-
-.api-profile__table :deep(.ant-pagination) {
-  flex-shrink: 0;
-  margin-bottom: 0;
+  border-radius: var(--radius);
 }
 
 @media (max-width: 640px) {
@@ -675,7 +741,7 @@ onBeforeUnmount(() => {
   }
 
   .api-profile__info :deep(.ant-descriptions-item-label) {
-    width: 80px;
+    width: 100px;
   }
 }
 </style>

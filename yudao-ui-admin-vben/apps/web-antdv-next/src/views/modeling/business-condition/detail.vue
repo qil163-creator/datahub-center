@@ -24,6 +24,7 @@ import {
 } from 'antdv-next';
 
 import { getBusinessCondition } from '#/api/modeling/business-condition';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { useMetricOptions } from '../indicator-model/modules/use-metric-options';
@@ -143,13 +144,7 @@ onActivated(() => {
                   {{ detail.status === 'ACTIVE' ? '启用' : '禁用' }}
                 </Tag>
               </div>
-              <Button
-                size="small"
-                class="condition-back"
-                @click="router.push(CONDITION_LIST_PATH)"
-              >
-                <QdIcon name="arrowLeft" />返回
-              </Button>
+              <DetailBackButton @click="router.push(CONDITION_LIST_PATH)" />
             </div>
             <Descriptions
               bordered
@@ -250,13 +245,7 @@ onActivated(() => {
           </section>
         </template>
       </Spin>
-      <Button
-        v-if="!detail"
-        class="condition-empty-back"
-        @click="router.push(CONDITION_LIST_PATH)"
-      >
-        返回列表
-      </Button>
+      <DetailBackButton v-if="!detail" class="condition-empty-back" @click="router.push(CONDITION_LIST_PATH)" />
     </Page>
   </ConfigProvider>
 </template>
@@ -268,7 +257,7 @@ onActivated(() => {
 }
 
 .condition-summary {
-  padding: 14px;
+  padding: 20px;
   color: #515a6e;
   background: #fff;
   border-radius: var(--radius);
@@ -279,7 +268,7 @@ onActivated(() => {
   gap: 15px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .condition-title {
@@ -314,15 +303,6 @@ onActivated(() => {
   border-radius: 0;
 }
 
-.condition-back {
-  height: 24px;
-  font-size: 12px;
-  color: #4266f4;
-  background: #ebeffd;
-  border-color: #cad4ff;
-  border-radius: calc(var(--radius) - 2px);
-}
-
 .condition-summary-table :deep(.ant-descriptions-item-label) {
   width: 130px;
   color: #a1a1a1;
@@ -336,8 +316,9 @@ onActivated(() => {
 
 .condition-summary-table :deep(.ant-descriptions-view),
 .condition-basic-table :deep(.ant-descriptions-view) {
+  overflow: hidden;
   border-color: #eceef4;
-  border-radius: 0;
+  border-radius: var(--radius);
 }
 
 .condition-summary-table :deep(.ant-descriptions-item-content) {
@@ -364,15 +345,15 @@ onActivated(() => {
 
 .condition-detail-content {
   min-height: 650px;
-  padding: 8px 14px 20px;
-  margin-top: 15px;
+  padding: 20px;
+  margin-top: 16px;
   color: #515a6e;
   background: #fff;
   border-radius: var(--radius);
 }
 
 .condition-detail-content :deep(.ant-tabs-nav) {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .condition-detail-content :deep(.ant-tabs-tab) {

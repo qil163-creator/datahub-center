@@ -17,6 +17,7 @@ import {
   previewMarketAsset,
 } from '#/api/asset/market';
 import { getMyAssetApiDocument } from '#/api/asset/my-assets';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import {
   createLatestWins,
@@ -259,15 +260,7 @@ function assetImage(name: string) {
               {{ authorizationLabel }}
             </Tag>
           </h1>
-          <Button size="small" @click="emit('back')">
-            <template #icon>
-              <img
-                :src="assetImage('icon-return')"
-                alt=""
-                aria-hidden="true"
-              />
-</template>返回
-          </Button>
+          <DetailBackButton @click="emit('back')" />
         </header>
         <div class="mart-detail__grid">
           <div class="mart-detail__field">
@@ -509,12 +502,6 @@ function assetImage(name: string) {
   background: hsl(var(--primary) / 10%);
   border: 0;
   border-radius: calc(var(--radius) - 2px);
-}
-
-.mart-detail__heading :deep(.ant-btn img) {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
 }
 
 .mart-detail__grid {

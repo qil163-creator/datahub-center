@@ -53,7 +53,7 @@ type Row = DatabaseMonitorApi.Alarm | DatabaseMonitorApi.Log;
 const access = useAccessStore();
 const alarm = computed(() => props.mode === 'alarm');
 const failed = ref(false);
-const page = reactive({ pageNo: 1, pageSize: 10 });
+const page = reactive({ pageNo: 1, pageSize: 20 });
 const listGuard = createLatestWins();
 const detailGuard = createLatestWins();
 const operationGuard = createLatestWins();
@@ -113,18 +113,16 @@ const [HandleModal, handleApi] = useVbenModal({
 });
 
 const columns: VxeTableGridOptions<Row>['columns'] = [
-  { field: 'id', title: '编号', width: 125, align: 'left' },
+  { field: 'id', title: '编号', width: 125 },
   {
     field: alarm.value ? 'ruleName' : 'taskName',
     title: '任务名称',
     minWidth: 190,
-    align: 'left',
   },
   {
     field: 'description',
     title: '描述',
     minWidth: 280,
-    align: 'left',
     showOverflow: 'tooltip',
   },
   ...(alarm.value
@@ -187,18 +185,16 @@ const columns: VxeTableGridOptions<Row>['columns'] = [
 ];
 
 const [Grid, gridApi] = useVbenVxeGrid<Row>({
-  gridClass: 'p-0',
   gridOptions: {
     columns,
+    height: 'auto',
     minHeight: 320,
     rowConfig: { keyField: 'id', isHover: true },
-    stripe: true,
     proxyConfig: { enabled: false },
-    pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
+    pagerConfig: { currentPage: 1, pageSize: 20, total: 0 },
     toolbarConfig: {
       refresh: true,
       refreshOptions: { queryMethod: load },
-      zoom: false,
       custom: true,
     },
   },
@@ -307,7 +303,7 @@ onBeforeUnmount(invalidate);
       message="记录加载失败，请点击表格右上角刷新重试。"
       class="mb-3"
     />
-    <Grid>
+    <Grid :table-title="alarm ? '告警记录列表' : '读写日志列表'">
       <template #source="{ row }">
         <Tag v-if="'sourceModule' in row" color="blue">
           {{
@@ -320,9 +316,9 @@ onBeforeUnmount(invalidate);
         </Tag>
       </template>
       <template #trigger="{ row }">
-        <span v-if="'metric' in row"
-          >{{ metricLabel(row.metric) }}：{{ triggerCondition(row) }}</span
-        >
+        <span v-if="'metric' in row">
+          {{ metricLabel(row.metric) }}：{{ triggerCondition(row) }}
+        </span>
       </template>
       <template #value="{ row }">
         <span v-if="'metric' in row">{{
@@ -487,9 +483,9 @@ onBeforeUnmount(invalidate);
       class="w-[560px]"
     >
       <p class="mb-4">{{ actionTarget?.ruleName }}</p>
-      <label for="database-alarm-remark" class="mb-2 block"
-        >处置说明 <span class="text-red-500">*</span></label
-      >
+      <label for="database-alarm-remark" class="mb-2 block">
+        处置说明 <span class="text-red-500">*</span>
+      </label>
       <Input.TextArea
         id="database-alarm-remark"
         v-model:value="remark"

@@ -9,6 +9,10 @@ import ApiDocument from './api-document.vue';
 import FieldsTab from './fields-tab.vue';
 import PreviewTab from './preview-tab.vue';
 
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({ render: () => null }),
+}));
+
 vi.mock('#/components/text-ellipsis-cell', () => ({
   TextEllipsisCell: defineComponent({
     props: { content: { type: String, default: '' } },
@@ -142,19 +146,37 @@ describe('审批详情 API 文档', () => {
     await mount(ApiDocument, {
       document: {
         requestParams: [
-          { name: 'required', required: true, type: 'String', description: '必填说明', example: 0 },
+          {
+            name: 'required',
+            required: true,
+            type: 'String',
+            description: '必填说明',
+            example: 0,
+          },
           { name: 'optional', required: false },
           { name: 'unknown' },
         ],
-        responseFields: [{ name: 'RVNM', description: '河流名称', type: 'VARCHAR' }],
+        responseFields: [
+          { name: 'RVNM', description: '河流名称', type: 'VARCHAR' },
+        ],
       },
     });
     const rows = host.querySelectorAll('.test-row');
-    expect(rows[0]?.querySelector('[data-column="nullable"]')?.textContent).toBe('否');
-    expect(rows[1]?.querySelector('[data-column="nullable"]')?.textContent).toBe('是');
-    expect(rows[2]?.querySelector('[data-column="nullable"]')?.textContent).toBe('-');
-    expect(rows[0]?.querySelector('[data-column="example"]')?.textContent).toBe('0');
-    expect(rows[0]?.querySelector('[data-column="description"]')?.textContent).toBe('必填说明');
+    expect(
+      rows[0]?.querySelector('[data-column="nullable"]')?.textContent,
+    ).toBe('否');
+    expect(
+      rows[1]?.querySelector('[data-column="nullable"]')?.textContent,
+    ).toBe('是');
+    expect(
+      rows[2]?.querySelector('[data-column="nullable"]')?.textContent,
+    ).toBe('-');
+    expect(rows[0]?.querySelector('[data-column="example"]')?.textContent).toBe(
+      '0',
+    );
+    expect(
+      rows[0]?.querySelector('[data-column="description"]')?.textContent,
+    ).toBe('必填说明');
     expect(rows[3]?.textContent).toContain('RVNM河流名称VARCHAR');
   });
 });

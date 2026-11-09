@@ -53,7 +53,7 @@
   align-items: center;
 }
 
-.qdata-fullsync .ant-btn {
+.qdata-fullsync .ant-btn:not(.detail-back-button) {
   display: inline-flex;
   gap: 5px;
   align-items: center;
@@ -257,8 +257,11 @@
 }
 
 .fs-detail-heading > .ant-btn {
-  height: 28px;
   margin-left: auto;
+}
+
+.fs-detail-heading > .ant-btn:not(.detail-back-button) {
+  height: 28px;
   font-size: 12px;
 }
 

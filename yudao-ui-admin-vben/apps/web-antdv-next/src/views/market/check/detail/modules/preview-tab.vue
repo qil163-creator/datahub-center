@@ -17,7 +17,7 @@ import {
   Tooltip,
 } from 'antdv-next';
 
-import ReferencePagination from '#/views/dataforge/batchfile/modules/pagination.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 import queryIcon from '#/views/governance/metadata-common/reference-assets/icons/query.png';
 import resetIcon from '#/views/governance/metadata-common/reference-assets/icons/reset.png';
 
@@ -30,7 +30,6 @@ import {
 
 const props = defineProps<{
   preview?: MarketCheckApi.Preview;
-  referencePagination?: boolean;
 }>();
 const filters = ref<SnapshotFilter[]>([]);
 const appliedFilters = ref<SnapshotFilter[]>([]);
@@ -38,22 +37,12 @@ const relation = ref<'AND' | 'OR'>('AND');
 const appliedRelation = ref<'AND' | 'OR'>('AND');
 const pageNo = ref(1);
 const pageSize = ref(10);
-const pagination = computed<TablePaginationConfig>(() =>
-  props.referencePagination
-    ? { current: pageNo.value, pageSize: pageSize.value, position: ['none'] }
-    : {
-        current: pageNo.value,
-        pageSize: pageSize.value,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total: number) => `共 ${total} 条`,
-        onChange: pageChanged,
-      },
-);
-function tableChanged(value: TablePaginationConfig) {
-  if (props.referencePagination)
-    pageChanged(value.current ?? 1, value.pageSize ?? 10);
-}
+const pagination = computed<TablePaginationConfig>(() => ({
+  current: pageNo.value,
+  pageSize: pageSize.value,
+  placement: ['none'],
+  onChange: pageChanged,
+}));
 const columns = computed(() =>
   (props.preview?.columns ?? []).map((column) => ({
     key: column.name,
@@ -219,7 +208,6 @@ watch(() => props.preview, reset);
       :pagination="pagination"
       :scroll="{ x: Math.max(columns.length * 220, 700) }"
       row-key="key"
-      @change="tableChanged"
     >
       <template #bodyCell="{ column, record }">
         <Tooltip :title="snapshotCellText(record.values[String(column.key)])">
@@ -227,11 +215,13 @@ watch(() => props.preview, reset);
         </Tooltip>
       </template>
     </Table>
-    <ReferencePagination
-      v-if="referencePagination"
-      v-model:page="pageNo"
-      v-model:page-size="pageSize"
+    <ListPagination
+      :current="pageNo"
+      :page-size="pageSize"
+      :page-size-options="[10, 20, 50, 100]"
       :total="rows.length"
+      aria-label="审批数据预览分页"
+      @change="pageChanged"
     />
   </div>
 </template>

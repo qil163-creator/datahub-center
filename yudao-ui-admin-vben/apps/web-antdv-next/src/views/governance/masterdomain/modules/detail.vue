@@ -4,7 +4,7 @@ import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-
 
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
 import { formatDateTime } from '@vben/utils';
 
@@ -21,7 +21,7 @@ const detail = ref<GovernanceMasterDomainApi.Domain>();
 const failed = ref(false);
 const scope = useMasterScope(() => {
   detail.value = undefined;
-  void drawerApi.close();
+  void modalApi.close();
 });
 const fields = computed<DetailFieldItem[]>(() => [
   { key: 'id', label: '编号', value: detail.value?.id },
@@ -77,30 +77,35 @@ const fields = computed<DetailFieldItem[]>(() => [
     value: formatDateTime(detail.value?.updateTime),
   },
 ]);
-const [Drawer, drawerApi] = useVbenDrawer<{
+const [Modal, modalApi] = useVbenModal<{
   id?: GovernanceMasterDomainApi.Id;
 }>({
-  class: 'w-[960px] max-w-full',
-  placement: 'right',
+  class: 'top-[6vh] w-[800px]',
+  bordered: false,
+  closeOnClickModal: false,
+  fullscreenButton: false,
+  headerClass: 'px-6 pt-6 pb-2',
+  contentClass: 'px-6 py-0',
+  footerClass: 'px-6 py-5',
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(open) {
     scope.invalidate();
     detail.value = undefined;
     failed.value = false;
-    drawerApi.setState({ loading: false });
+    modalApi.setState({ loading: false });
     if (!open) return;
-    const data = drawerApi.getData();
+    const data = modalApi.getData();
     if (data?.id === undefined) return;
     const current = scope.begin('detail');
-    drawerApi.setState({ loading: true });
+    modalApi.setState({ loading: true });
     try {
       const result = await getMasterDomain(data.id);
       if (current()) detail.value = result;
     } catch {
       if (current()) failed.value = true;
     } finally {
-      if (current()) drawerApi.setState({ loading: false });
+      if (current()) modalApi.setState({ loading: false });
     }
   },
 });
@@ -112,14 +117,14 @@ function formatStatus(status?: number) {
 </script>
 
 <template>
-  <Drawer :title="`主数据域详情 - ${detail?.name ?? ''}`">
+  <Modal :title="`主数据域详情 - ${detail?.name ?? ''}`">
     <Alert
       v-if="failed"
-      class="mx-4 mb-4"
+      class="mb-4"
       type="error"
       show-icon
       message="主数据域详情加载失败，请重新打开。"
     />
-    <DetailFieldForm v-else :fields="fields" class="mx-4" />
-  </Drawer>
+    <DetailFieldForm v-else :fields="fields" label-width="110px" />
+  </Modal>
 </template>

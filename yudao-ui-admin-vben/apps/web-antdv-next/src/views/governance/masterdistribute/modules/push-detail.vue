@@ -28,6 +28,7 @@ import {
   getPushModel,
   updateMasterDistribute,
 } from '#/api/governance/masterdistribute';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import { useMasterScope } from '../../mastercommon/use-master-scope';
 import {
@@ -253,7 +254,7 @@ const logColumns = [
           <IconifyIcon icon="lucide:refresh-cw" />
         </template>
         重试 </Button
-      ><Button @click="emit('back')">返回</Button>
+      ><DetailBackButton @click="emit('back')" />
     </template>
   </Alert>
   <div v-else-if="detail" class="metadata-detail">
@@ -264,13 +265,7 @@ const logColumns = [
         <span class="metadata-tag">{{
           detail.status === 1 ? '启用' : '禁用'
         }}</span
-        ><Button
-          size="small"
-          class="metadata-detail__back"
-          @click="emit('back')"
-        >
-          <IconifyIcon icon="lucide:undo-2" />返回
-        </Button>
+        ><DetailBackButton class="ml-auto" @click="emit('back')" />
       </div>
       <Descriptions bordered size="small" :column="{ xs: 1, sm: 2, xl: 3 }">
         <DescriptionsItem label="实体模型编码">

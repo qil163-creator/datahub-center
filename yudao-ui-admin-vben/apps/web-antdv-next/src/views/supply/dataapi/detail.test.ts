@@ -22,8 +22,8 @@ const harness = vi.hoisted(() => ({
     | {
         accessCodes: string[];
         accessToken: string;
-        userInfo: { userId: string };
         refreshToken: string;
+        userInfo: { userId: string };
       },
 }));
 
@@ -57,6 +57,9 @@ vi.mock('@vben/hooks', () => ({
   useTabs: () => ({ closeCurrentTab: harness.closeCurrentTab }),
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({ name: 'ListPaginationStub', render: () => null }),
+}));
 vi.mock('#/api/supply/dataapi', () => ({ getDataApi: vi.fn() }));
 vi.mock('#/api/supply/apicategory', () => ({ getApiCategoryList: vi.fn() }));
 vi.mock('#/utils', () => ({ getRangePickerDefaultProps: () => ({}) }));
@@ -94,6 +97,7 @@ vi.mock('antdv-next', () => {
           h('div', [props.label, '：', slots.default?.()]),
     }),
     Empty: Container,
+    Pagination: Container,
     Spin: Container,
     Table: defineComponent({
       props: {

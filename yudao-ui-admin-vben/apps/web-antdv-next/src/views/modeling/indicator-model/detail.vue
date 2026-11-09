@@ -16,6 +16,7 @@ import { Alert, Button, Spin, TabPane, Tabs, Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getIndicator, getIndicatorPage } from '#/api/modeling/indicator-model';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import domainIcon from '#/views/modeling/logictable/assets/data-section-default-icon-small.svg';
 import { QdIcon } from '#/views/modeling/logictable/icons';
@@ -241,15 +242,13 @@ onActivated(() => {
         <section class="indicator-summary">
           <header>
             <h1>
-              <span class="indicator-id">{{ detail.id }}</span
-              >{{ detail.name
-              }}<Tag :color="detail.status === 'ACTIVE' ? 'success' : 'error'">
+              <span class="indicator-id">{{ detail.id }}</span>
+              {{ detail.name }}
+              <Tag :color="detail.status === 'ACTIVE' ? 'success' : 'error'">
                 {{ detail.status === 'ACTIVE' ? '启用' : '禁用' }}
               </Tag>
             </h1>
-            <Button size="small" @click="router.push(listPath)">
-              <QdIcon name="back" />返回
-            </Button>
+            <DetailBackButton @click="router.push(listPath)" />
           </header>
           <table class="indicator-description">
             <tbody>
@@ -258,9 +257,9 @@ onActivated(() => {
                 <td>{{ detail.code }}</td>
                 <th>归属信息</th>
                 <td>
-                  <span class="indicator-belonging"
-                    ><img :src="domainIcon" alt="" />{{ belonging }}</span
-                  >
+                  <span class="indicator-belonging">
+                    <img :src="domainIcon" alt="" />{{ belonging }}
+                  </span>
                 </td>
                 <th>{{ kind === 'atomic' ? '来源主表' : '原子指标' }}</th>
                 <td>
@@ -305,17 +304,20 @@ onActivated(() => {
                 v-if="relatedError"
                 type="error"
                 message="关联派生指标加载失败，请重新选择页签重试。"
-              /><RelatedGrid class="metric-related-grid">
+              />
+              <RelatedGrid class="metric-related-grid">
                 <template #name="{ row }">
                   <div>{{ row.name }} ({{ row.code }})</div>
                   <div class="indicator-muted">
                     {{ row.description }}
-                  </div> </template
-                ><template #status="{ row }">
+                  </div>
+                </template>
+                <template #status="{ row }">
                   <Tag :color="row.status === 'ACTIVE' ? 'success' : 'default'">
                     {{ row.status === 'ACTIVE' ? '启用' : '禁用' }}
-                  </Tag> </template
-                ><template #actions="{ row }">
+                  </Tag>
+                </template>
+                <template #actions="{ row }">
                   <TableAction
                     :actions="[
                       {
@@ -327,8 +329,9 @@ onActivated(() => {
                       },
                     ]"
                   />
-                </template> </RelatedGrid
-              ><Button
+                </template>
+              </RelatedGrid>
+              <Button
                 v-if="(detail.derivedIndicatorCount ?? 0) > 100"
                 size="small"
                 @click="
@@ -351,8 +354,9 @@ onActivated(() => {
                     <th>数据时效</th>
                     <td>
                       <Tag v-if="detail.dataFreshness" color="success">
-                        {{ freshnessLabel }} </Tag
-                      ><span v-else>-</span>
+                        {{ freshnessLabel }}
+                      </Tag>
+                      <span v-else>-</span>
                     </td>
                     <th>数据类型</th>
                     <td>{{ detail.resultDataType || '-' }}</td>
@@ -438,13 +442,13 @@ onActivated(() => {
 .indicator-detail-spin :deep(.ant-spin-container) {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
   min-height: 100%;
 }
 
 .indicator-summary,
 .indicator-details {
-  padding: 15px;
+  padding: 20px;
   font-size: 14px;
   color: var(--metric-text, #515a6e);
   background: var(--metric-surface, #fff);
@@ -455,7 +459,7 @@ onActivated(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .indicator-summary h1 {
@@ -498,8 +502,12 @@ onActivated(() => {
 
 .indicator-description {
   width: 100%;
+  overflow: hidden;
   table-layout: fixed;
-  border-collapse: collapse;
+  border-spacing: 0;
+  border-collapse: separate;
+  border: 1px solid var(--metric-border, #f0f2f7);
+  border-radius: var(--radius);
 }
 
 .indicator-description th,
@@ -508,7 +516,16 @@ onActivated(() => {
   padding: 8px 10px;
   text-align: left;
   overflow-wrap: anywhere;
-  border: 1px solid var(--metric-border, #f0f2f7);
+  border-right: 1px solid var(--metric-border, #f0f2f7);
+  border-bottom: 1px solid var(--metric-border, #f0f2f7);
+}
+
+.indicator-description tr > :last-child {
+  border-right: 0;
+}
+
+.indicator-description tr:last-child > * {
+  border-bottom: 0;
 }
 
 .indicator-description th {
@@ -524,7 +541,7 @@ onActivated(() => {
 }
 
 .indicator-details :deep(.ant-tabs-nav) {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .indicator-details :deep(.ant-tabs-tab) {

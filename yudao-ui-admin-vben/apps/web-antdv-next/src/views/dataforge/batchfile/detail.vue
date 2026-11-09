@@ -12,6 +12,7 @@ import { formatDate } from '@vben/utils';
 import { Alert, Button, Modal, Spin } from 'antdv-next';
 
 import { getBatchFile } from '#/api/dataforge/batchfile';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import { formatSize } from '#/views/dataforge/datafile/data';
 
@@ -149,9 +150,7 @@ watch(
           <div class="bf-detail-heading">
             <span v-if="task" class="bf-id">{{ task.id }}</span><span>{{ task?.taskName || '批量文件入库任务' }}</span><span v-if="task" class="bf-tag blue">{{
               task.online ? '已上线' : '未上线'
-            }}</span><Button class="bf-light-button" @click="router.push(LIST_PATH)">
-<ReferenceIcon name="back" />返回
-</Button>
+            }}</span><DetailBackButton @click="router.push(LIST_PATH)" />
           </div>
           <div v-if="task" class="bf-description-grid">
             <div class="bf-description-label">文件数量</div>
@@ -406,6 +405,44 @@ watch(
 </template>
 
 <style scoped>
+.bf-page .bf-detail-header,
+.bf-page .bf-main-panel {
+  padding: 20px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+
+.bf-page .bf-main-panel {
+  padding-top: 8px;
+}
+
+.bf-detail-heading {
+  margin-bottom: 20px;
+}
+
+.bf-tabs {
+  margin-bottom: 20px;
+}
+
+.bf-page .bf-description-grid {
+  gap: 1px;
+  overflow: hidden;
+  background: hsl(var(--border));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.bf-page .bf-description-grid > div {
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 0;
+}
+
+.bf-page .bf-description-grid > .bf-description-label {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 45%);
+}
+
 .bf-fixed-actions-table {
   min-width: 1000px;
 }
@@ -424,5 +461,15 @@ watch(
 th.bf-sticky-actions {
   z-index: 2;
   background: hsl(var(--accent));
+}
+
+@media (width <= 640px) {
+  .bf-page .bf-detail-header {
+    padding: 16px;
+  }
+
+  .bf-page .bf-main-panel {
+    padding: 8px 16px 16px;
+  }
 }
 </style>

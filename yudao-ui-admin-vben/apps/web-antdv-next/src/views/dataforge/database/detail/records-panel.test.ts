@@ -114,7 +114,7 @@ describe('database record panels', () => {
     expect(getDatabaseMonitorLogPage).toHaveBeenCalledWith({
       databaseId: '9007199254740993',
       pageNo: 1,
-      pageSize: 10,
+      pageSize: 20,
     });
     expect(
       harness.actions

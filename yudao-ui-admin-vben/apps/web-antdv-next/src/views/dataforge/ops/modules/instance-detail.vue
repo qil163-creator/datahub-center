@@ -8,6 +8,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Alert, Button, Input, Spin } from 'antdv-next';
 
 import { getOpsInstanceLog } from '#/api/dataforge/ops';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import {
@@ -115,9 +116,7 @@ const date = displayDate;
         <div>
           <b>{{ record.id }}</b><strong>{{ record.taskName }}</strong><StatusBadge :status="record.status" :queue-state="record.queueState" :queue-reason="record.queueReason" detail />
         </div>
-        <Button size="small" @click="$emit('back')">
-          <ReferenceIcon name="back" />返回
-        </Button>
+        <DetailBackButton @click="$emit('back')" />
       </div>
       <table class="qo-info-table qo-detail-summary">
         <tbody>

@@ -131,6 +131,9 @@ vi.mock('@vben/access', () => ({
   }),
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({ name: 'ListPaginationStub', render: () => null }),
+}));
 vi.mock('antdv-next', () => {
   const Container = defineComponent({
     setup:

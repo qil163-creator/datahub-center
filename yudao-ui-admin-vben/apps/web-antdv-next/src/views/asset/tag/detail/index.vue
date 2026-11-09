@@ -37,6 +37,7 @@ import {
   getAssetTagLinkedAssets,
   unbindAssetTag,
 } from '#/api/asset/tag';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ListPagination from '#/components/list-pagination/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import {
@@ -51,7 +52,6 @@ import { tagAsset, tagDate, tagNumber } from '../data';
 import '../reference.css';
 
 defineOptions({ name: 'AssetTagDetail' });
-const returnIcon = '/assets/qdata-market/icon-return.png';
 const route = useRoute();
 const router = useRouter();
 const tabs = useTabs();
@@ -323,9 +323,7 @@ onBeforeUnmount(() => {
                   {{ tag.status === 0 ? '启用' : '禁用' }}
                 </Tag>
               </div>
-              <Button type="primary" ghost size="small" @click="back">
-                <img :src="returnIcon" alt="" />返回
-              </Button>
+              <DetailBackButton @click="back" />
             </header>
             <Descriptions :column="3" bordered size="small">
               <DescriptionsItem label="标签类目">
@@ -524,11 +522,6 @@ onBeforeUnmount(() => {
   font-size: 16px;
   font-weight: 600;
   color: hsl(var(--foreground));
-}
-
-.tag-summary header img {
-  width: 12px;
-  height: 12px;
 }
 
 .tag-summary__number {

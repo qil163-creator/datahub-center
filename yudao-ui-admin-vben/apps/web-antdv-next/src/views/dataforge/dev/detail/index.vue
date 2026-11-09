@@ -23,6 +23,7 @@ import { getDatabaseSimpleList } from '#/api/dataforge/database';
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
 import { getDevDirList, getDevTask } from '#/api/dataforge/dev';
 import { getSimpleUserList } from '#/api/system/user';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
 import { resolveDirectoryName, resolveUserName } from '../list-model';
@@ -176,10 +177,7 @@ onBeforeUnmount(() => guard.invalidate());
       >
         <div class="mb-5 flex items-center justify-between gap-3">
           <h1 class="m-0 text-lg font-semibold">数据开发详情</h1>
-          <Button size="small" @click="back">
-            <template #icon><IconifyIcon icon="lucide:undo-2" /></template>
-            返回
-          </Button>
+          <DetailBackButton @click="back" />
         </div>
         <Alert
           v-if="!taskId || !canQuery"
@@ -225,10 +223,7 @@ onBeforeUnmount(() => guard.invalidate());
           presentation="page"
         >
           <template #headingExtra>
-            <Button size="small" @click="back">
-              <template #icon><IconifyIcon icon="lucide:undo-2" /></template>
-              返回
-            </Button>
+            <DetailBackButton @click="back" />
           </template>
         </TaskDetailView>
       </template>

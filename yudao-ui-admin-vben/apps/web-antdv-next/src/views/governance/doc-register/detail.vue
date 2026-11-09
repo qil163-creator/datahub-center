@@ -22,6 +22,7 @@ import {
 } from 'antdv-next';
 
 import { getDoc } from '#/api/governance/doc';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { DictTag } from '#/components/dict-tag';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -123,12 +124,12 @@ onActivated(() => {
 });
 </script>
 <template>
-  <Page>
+  <Page content-class="doc-register-detail">
     <FormModal @success="load" />
     <PreviewModal />
     <VersionModal />
     <div class="mb-3 flex justify-end">
-      <Button @click="router.push(backPath)">返回列表</Button>
+      <DetailBackButton @click="router.push(backPath)" />
     </div>
     <Alert v-if="!id" type="error" message="标准编号无效" />
     <Alert
@@ -141,8 +142,8 @@ onActivated(() => {
     </Alert>
     <Spin v-else :spinning="loading">
       <template v-if="detail">
-        <Card class="mb-3">
-          <div class="mb-4 flex flex-wrap items-center gap-3">
+        <Card class="doc-register-detail__card mb-4">
+          <div class="mb-5 flex flex-wrap items-center gap-3">
             <span class="bg-primary/10 text-primary rounded px-2 py-1">{{
               detail.id
             }}</span>
@@ -203,7 +204,7 @@ onActivated(() => {
             </DescriptionsItem>
           </Descriptions>
         </Card>
-        <Card>
+        <Card class="doc-register-detail__card">
           <Tabs v-model:active-key="tab">
             <TabPane key="model" tab="逻辑模型">
               <RelatedList
@@ -284,3 +285,32 @@ onActivated(() => {
     </Spin>
   </Page>
 </template>
+
+<style scoped>
+.doc-register-detail__card {
+  border: 0;
+  border-radius: var(--radius);
+}
+
+.doc-register-detail__card :deep(.ant-card-body) {
+  padding: 20px;
+}
+
+.doc-register-detail__card :deep(.ant-descriptions-view) {
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.doc-register-detail__card :deep(.ant-descriptions-item-label) {
+  width: 140px;
+  color: hsl(var(--muted-foreground));
+}
+
+.doc-register-detail__card :deep(.ant-descriptions-item-content) {
+  overflow-wrap: anywhere;
+}
+
+.doc-register-detail__card :deep(.ant-tabs-nav) {
+  margin-bottom: 20px;
+}
+</style>

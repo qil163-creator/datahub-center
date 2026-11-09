@@ -4,7 +4,7 @@ import type { GovernanceMasterDomainApi } from '#/api/governance/masterdomain';
 import { onMounted, reactive, ref } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
 
 import { Alert, message, Modal } from 'antdv-next';
@@ -38,7 +38,7 @@ const scope = useMasterScope(() => {
   gridApi.setGridOptions({ data: [] });
   void search();
 });
-const [DetailDrawer, detailDrawerApi] = useVbenDrawer<{
+const [DetailModal, detailModalApi] = useVbenModal<{
   id?: GovernanceMasterDomainApi.Id;
 }>({
   connectedComponent: DomainDetail,
@@ -133,7 +133,7 @@ function edit(row?: GovernanceMasterDomainApi.Domain) {
   formModalApi.setData(row ?? {}).open();
 }
 function detail(row: GovernanceMasterDomainApi.Domain) {
-  detailDrawerApi.setData({ id: row.id }).open();
+  detailModalApi.setData({ id: row.id }).open();
 }
 function remove(row: GovernanceMasterDomainApi.Domain) {
   const authorized = scope.begin('confirmation');
@@ -177,7 +177,7 @@ onMounted(load);
 <template>
   <Page auto-content-height>
     <FormModal @success="load" />
-    <DetailDrawer />
+    <DetailModal />
     <div class="flex h-full flex-col gap-4">
       <PageGuide
         guide-id="governance.master-domain.workflow"

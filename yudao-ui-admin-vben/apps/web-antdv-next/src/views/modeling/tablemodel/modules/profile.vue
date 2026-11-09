@@ -42,6 +42,7 @@ import {
   modelSaveData,
   saveTableModelDraft,
 } from '#/api/modeling/tablemodel';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import { assertCurrentDesign } from '../../modelcommon/current-design-state';
 import {
@@ -430,7 +431,7 @@ function text(value?: null | number | string) {
           </template>
           重试
         </Button>
-        <Button class="ml-2" size="small" @click="emit('back')">返回</Button>
+        <DetailBackButton class="ml-2" @click="emit('back')" />
       </template>
     </Alert>
   </div>
@@ -446,9 +447,7 @@ function text(value?: null | number | string) {
             {{ model.enabled === 1 ? '启用' : '禁用' }}
           </Tag>
         </div>
-        <Button size="small" @click="emit('back')">
-          <IconifyIcon class="mr-1" icon="lucide:corner-up-left" />返回
-        </Button>
+        <DetailBackButton @click="emit('back')" />
       </div>
       <div class="model-profile__info">
         <div class="label">英文名称</div>

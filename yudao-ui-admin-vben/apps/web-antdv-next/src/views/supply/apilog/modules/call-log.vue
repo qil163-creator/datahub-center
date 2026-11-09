@@ -4,9 +4,9 @@ import type { SupplyApiCategoryApi } from '#/api/supply/apicategory';
 import type { SupplyApiLogApi } from '#/api/supply/apilog';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
-import { useVbenDrawer } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { handleTree } from '@vben/utils';
 
@@ -17,13 +17,14 @@ import { getApiCategoryList } from '#/api/supply/apicategory';
 import { deleteApiLog, getApiLogPage } from '#/api/supply/apilog';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { $t } from '#/locales';
+import { parseResourceId } from '#/utils/resource-id';
 
 import { useGridColumns, useGridFormSchema } from '../data';
-import Detail from './detail.vue';
 
 defineOptions({ name: 'SupplyApiCallLog' });
 
 const { hasAccessByCodes } = useAccess();
+const router = useRouter();
 const canQueryCategories = computed(() =>
   hasAccessByCodes(['supply:api-category:query']),
 );
@@ -113,15 +114,13 @@ function handleRefresh() {
   gridApi.query();
 }
 
-const [DetailDrawer, detailDrawerApi] = useVbenDrawer<{
-  id?: SupplyApiLogApi.Id;
-}>({
-  connectedComponent: Detail,
-  destroyOnClose: true,
-});
-
 function handleDetail(row: SupplyApiLogApi.ApiLog) {
-  detailDrawerApi.setData({ id: row.id }).open();
+  const id = parseResourceId(row.id);
+  if (!id) {
+    message.warning('调用记录编号无效');
+    return;
+  }
+  void router.push({ name: 'SupplyApiLogDetailPage', params: { id } });
 }
 
 async function handleDelete(row: SupplyApiLogApi.ApiLog) {
@@ -310,8 +309,6 @@ onBeforeUnmount(() => {
         </Grid>
       </div>
     </div>
-
-    <DetailDrawer />
   </div>
 </template>
 

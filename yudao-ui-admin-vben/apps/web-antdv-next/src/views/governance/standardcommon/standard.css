@@ -256,7 +256,7 @@
 
 .standard-detail-header,
 .standard-detail-body {
-  padding: 14px;
+  padding: 20px;
   background: #fff;
   border-radius: var(--radius);
 }
@@ -270,7 +270,7 @@
   gap: 8px;
   align-items: center;
   min-height: 32px;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .standard-detail-title strong {
@@ -304,6 +304,8 @@
       1fr
     );
   margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
 }
 
 .standard-detail-grid dt,
@@ -335,7 +337,7 @@
 }
 
 .qdata-standard .standard-detail-tabs .ant-tabs-nav {
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 
 .qdata-standard .standard-detail-tabs .ant-tabs-tab {

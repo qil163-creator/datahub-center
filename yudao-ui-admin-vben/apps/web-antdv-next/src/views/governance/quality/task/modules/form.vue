@@ -38,6 +38,7 @@ import {
 } from '#/api/governance/quality/task';
 import { getSimpleUserList } from '#/api/system/user';
 import { CronTab } from '#/components/cron-tab';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import {
@@ -251,7 +252,7 @@ onMounted(load);
           <IconifyIcon icon="lucide:refresh-cw" />
         </template>
         重试
-</Button><Button @click="emit('back')">返回列表</Button>
+</Button><DetailBackButton v-if="readonly" @click="emit('back')" /><Button v-else @click="emit('back')">返回列表</Button>
     </template>
   </Alert>
   <template v-else>
@@ -262,7 +263,7 @@ onMounted(load);
         <span
           class="q-tag"
           :class="{ 'q-tag-success': model.taskStatus === 0 }"
-          >{{ model.taskStatus === 0 ? '上线' : '下线' }}</span><Button class="q-query" @click="emit('back')">返回</Button>
+          >{{ model.taskStatus === 0 ? '上线' : '下线' }}</span><DetailBackButton @click="emit('back')" />
       </div>
       <Descriptions bordered size="small" :column="{ xs: 1, sm: 2, xl: 3 }">
         <DescriptionsItem label="所属类目">

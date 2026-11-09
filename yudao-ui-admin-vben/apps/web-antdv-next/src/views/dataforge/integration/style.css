@@ -43,7 +43,7 @@
   object-fit: contain;
 }
 
-.qi-workbench button,
+.qi-workbench button:not(.detail-back-button),
 .qi-modal button {
   font: inherit;
 }
@@ -1788,7 +1788,7 @@
   border-color: #2f62ff;
 }
 
-.qi-workbench .ant-btn {
+.qi-workbench .ant-btn:not(.detail-back-button) {
   box-shadow: none;
 }
 

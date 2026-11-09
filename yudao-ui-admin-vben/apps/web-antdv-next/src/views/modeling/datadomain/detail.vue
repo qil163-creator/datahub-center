@@ -13,6 +13,7 @@ import { Button, ConfigProvider, Spin, TabPane, Tabs } from 'antdv-next';
 
 import { getDataDomain } from '#/api/modeling/datadomain';
 import { getSubjectDomainList } from '#/api/modeling/subjectdomain';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import { parseResourceId } from '#/utils/resource-id';
 
@@ -119,7 +120,7 @@ function back() {
           </div>
           <div v-else-if="!loading" class="planning-detail-error">
             {{ id ? '暂无可访问的数据板块' : '无效的数据板块编号'
-            }}<Button type="link" @click="back">返回</Button>
+            }}<DetailBackButton @click="back" />
           </div>
         </Spin>
       </Page>

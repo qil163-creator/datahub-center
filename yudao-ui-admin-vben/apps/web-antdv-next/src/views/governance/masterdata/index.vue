@@ -36,6 +36,7 @@ import {
 import { getMasterDomainSimpleList } from '#/api/governance/masterdomain';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
+import { parseResourceId } from '#/utils/resource-id';
 
 import { useTreeExpansion } from '../common/use-tree-expansion';
 import MasterWorkspace from '../mastercommon/master-workspace.vue';
@@ -46,7 +47,6 @@ import {
   useGridFormSchema,
 } from './data';
 import { canDeleteMasterModel } from './model-delete';
-import ModelDetail from './modules/model-detail.vue';
 import ModelForm from './modules/model-form.vue';
 
 defineOptions({ name: 'GovernanceMasterData' });
@@ -134,10 +134,6 @@ const scope = useMasterScope(() => {
 });
 const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: ModelForm,
-  destroyOnClose: true,
-});
-const [DetailModal, detailModalApi] = useVbenModal({
-  connectedComponent: ModelDetail,
   destroyOnClose: true,
 });
 const cards = computed(() => [
@@ -327,12 +323,13 @@ function edit(row?: GovernanceMasterDataApi.Model) {
   formModalApi.setData({ id: row?.id, domainId: selectedDomain.value }).open();
 }
 function detail(row: GovernanceMasterDataApi.Model) {
+  const id = parseResourceId(row.id);
   if (
-    row.id === undefined ||
+    !id ||
     !hasAccessByCodes(['governance:master-model:query'])
   )
     return;
-  detailModalApi.setData({ id: row.id }).open();
+  void router.push({ name: 'GovernanceMasterModelDetail', params: { id } });
 }
 function modelTitle(row: GovernanceMasterDataApi.Model) {
   return `${row.tableCn || '-'}${row.tableName ? ` (${row.tableName})` : ''}`;
@@ -503,7 +500,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
     content-class="flex min-h-0 flex-col overflow-hidden"
   >
     <FormModal @success="refresh" />
-    <DetailModal />
     <MasterWorkspace>
       <template #sidebar>
         <aside class="master-sidebar master-model-sidebar">

@@ -18,12 +18,12 @@ import {
   getModelMaterializedByModel,
   getModelMaterializedLogPage,
 } from '#/api/modeling/model-materialized';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import sectionIcon from '../logictable/assets/data-section-default-icon-small.svg';
 import { LOGIC_TABLE_PAGES } from '../logictable/config';
 import { QdIcon } from '../logictable/icons';
 import { useModelingRequest } from '../modelcommon/use-modeling-request';
-import backIcon from './assets/icon-fhs.svg';
 import materializeIcon from './assets/icon-wh.svg';
 import FieldDetailModal from './modules/field-detail-modal.vue';
 import PublishModal from './modules/publish-modal.vue';
@@ -41,7 +41,6 @@ import './detail.css';
 defineOptions({ name: 'ModelingMaterializedDetail' });
 
 type FieldRow = ModelingModelApi.ModelField & { key: string };
-const backMask = { maskImage: `url("${backIcon}")` };
 const materializeMask = { maskImage: `url("${materializeIcon}")` };
 
 const route = useRoute();
@@ -310,18 +309,7 @@ watch([activeTab, logsPage, logsPageSize], () => {
                 class="qd-materialized-detail-status"
                 :data-status="status"
                 >{{ statusLabel }}</span>
-              <button
-                type="button"
-                class="qd-btn qd-btn--primary is-plain qd-materialized-detail-back"
-                @click="back"
-              >
-                <span
-                  class="qd-materialized-detail-glyph"
-                  :style="backMask"
-                  aria-hidden="true"
-                ></span>
-                返回
-              </button>
+              <DetailBackButton class="ml-auto shrink-0" @click="back" />
             </div>
             <table class="qd-materialized-summary-table">
               <colgroup>

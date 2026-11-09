@@ -32,6 +32,7 @@ import {
   getDatabaseMonitorTrend,
 } from '#/api/dataforge/database/monitor';
 import { ConnectionIcon } from '#/components/connection-icon';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
 import { hasDatabaseMetadata } from '../connection-capabilities';
@@ -207,7 +208,7 @@ onBeforeUnmount(() => {
           show-icon
           type="warning"
         />
-        <Button class="mt-4" @click="back">返回连接管理</Button>
+        <DetailBackButton class="mt-4" @click="back" />
       </div>
       <template v-else>
         <section class="bg-card rounded-lg p-5" aria-label="连接信息">
@@ -235,10 +236,7 @@ onBeforeUnmount(() => {
                 {{ statusLabel }}
               </Tag>
             </div>
-            <Button size="small" @click="back">
-              <template #icon><IconifyIcon icon="lucide:undo-2" /></template>
-              返回
-            </Button>
+            <DetailBackButton @click="back" />
           </div>
           <Skeleton v-if="loading" active :paragraph="{ rows: 4 }" />
           <Alert v-else-if="error" :message="error" show-icon type="error">

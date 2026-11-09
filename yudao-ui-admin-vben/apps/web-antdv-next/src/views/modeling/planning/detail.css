@@ -5,7 +5,7 @@
 .planning-detail-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -23,7 +23,7 @@
 }
 
 .planning-detail-summary {
-  padding: 16px;
+  padding: 20px;
 }
 
 .planning-detail-title {
@@ -32,7 +32,7 @@
   gap: 8px;
   align-items: center;
   min-height: 32px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .planning-detail-title h1 {
@@ -85,7 +85,7 @@
 
 .planning-detail-info .ant-descriptions-view {
   overflow: hidden;
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: var(--radius);
 }
 
 .planning-detail-info .ant-descriptions-item-label {
@@ -119,12 +119,12 @@
 }
 
 .planning-detail-panel {
-  padding: 0 16px 16px;
+  padding: 20px;
 }
 
 .planning-detail-tabs > .ant-tabs-nav {
   min-height: 46px;
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 
 .planning-detail-tabs > .ant-tabs-nav .ant-tabs-tab {

@@ -19,6 +19,7 @@ import {
   getQualityTaskPage,
   updateQualityTaskStatus,
 } from '#/api/governance/quality/task';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -267,7 +268,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
     />
     <Alert v-else-if="view !== 'list'" type="error" message="任务编号无效">
       <template #action>
-        <Button @click="back">返回列表</Button>
+        <DetailBackButton v-if="view === 'detail'" @click="back" /><Button v-else @click="back">返回列表</Button>
       </template>
     </Alert>
     <template v-else>

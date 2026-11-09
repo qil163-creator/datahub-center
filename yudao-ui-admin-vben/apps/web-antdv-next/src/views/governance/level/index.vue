@@ -4,7 +4,7 @@ import type { SafetyLevelApi } from '#/api/governance/level';
 
 import { ref } from 'vue';
 
-import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
 
 import { message } from 'antdv-next';
 
@@ -21,7 +21,7 @@ const [FormModal, formModalApi] = useVbenModal({
   destroyOnClose: true,
 });
 
-const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
+const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
   destroyOnClose: true,
 });
@@ -42,7 +42,7 @@ function handleEdit(row: SafetyLevelApi.Level) {
 }
 
 function handleDetail(row: SafetyLevelApi.Level) {
-  detailDrawerApi.setData(row).open();
+  detailModalApi.setData(row).open();
 }
 
 /** 删除数据分级 */
@@ -131,7 +131,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
 <template>
   <Page auto-content-height>
     <FormModal @success="handleRefresh" />
-    <DetailDrawer />
+    <DetailModal />
     <Grid table-title="数据分级列表">
       <template #toolbar-tools>
         <TableAction

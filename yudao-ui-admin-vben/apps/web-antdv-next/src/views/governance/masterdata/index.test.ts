@@ -50,10 +50,7 @@ const harness = vi.hoisted(() => ({
   rows: [] as GovernanceMasterDataApi.Model[],
   confirmations: [] as Confirmation[],
   options: undefined as GridOptions | undefined,
-  modalIndex: 0,
   formSetData: vi.fn(),
-  detailSetData: vi.fn(),
-  detailOpen: vi.fn(),
   clearCheckboxRow: vi.fn(),
   setLoading: vi.fn(),
   success: vi.fn(),
@@ -90,10 +87,9 @@ vi.mock('@vben/common-ui', () => ({
         h('main', slots.default?.()),
   }),
   useVbenModal: () => {
-    const detail = harness.modalIndex++ === 1;
     const modalApi = {
-      open: detail ? harness.detailOpen : vi.fn(),
-      setData: detail ? harness.detailSetData : harness.formSetData,
+      open: vi.fn(),
+      setData: harness.formSetData,
     };
     modalApi.setData.mockReturnValue(modalApi);
     return [defineComponent(() => () => null), modalApi];
@@ -108,7 +104,6 @@ vi.mock('../mastercommon/master-workspace.vue', () => ({
   }),
 }));
 vi.mock('./modules/model-form.vue', () => ({ default: {} }));
-vi.mock('./modules/model-detail.vue', () => ({ default: {} }));
 vi.mock('#/api/governance/masterdomain', () => ({
   getMasterDomainSimpleList: vi.fn(async () => []),
 }));
@@ -322,7 +317,6 @@ beforeEach(() => {
   );
   harness.rows = reactive([]);
   harness.confirmations = [];
-  harness.modalIndex = 0;
   harness.errors = [];
   vi.mocked(api.getMasterModelPage).mockResolvedValue({
     list: [model],
@@ -463,19 +457,21 @@ describe('主数据模型列表', () => {
     );
   });
 
-  it('名称与详情动作都用原始超大编号打开只读详情', async () => {
+  it('名称与详情动作都用原始超大编号进入独立详情页', async () => {
     await mount();
     rowElement()
       .querySelector<HTMLButtonElement>('.master-model-info__title')!
       .click();
     button('详情')!.click();
-    expect(harness.detailSetData).toHaveBeenNthCalledWith(1, {
-      id: '9007199254740995',
+    expect(harness.routePush).toHaveBeenNthCalledWith(1, {
+      name: 'GovernanceMasterModelDetail',
+      params: { id: '9007199254740995' },
     });
-    expect(harness.detailSetData).toHaveBeenNthCalledWith(2, {
-      id: '9007199254740995',
+    expect(harness.routePush).toHaveBeenNthCalledWith(2, {
+      name: 'GovernanceMasterModelDetail',
+      params: { id: '9007199254740995' },
     });
-    expect(harness.detailOpen).toHaveBeenCalledTimes(2);
+    expect(harness.routePush).toHaveBeenCalledTimes(2);
     expect(harness.formSetData).not.toHaveBeenCalled();
   });
 

@@ -17,6 +17,7 @@ import {
 } from 'antdv-next';
 
 import { getMetaFile } from '#/api/governance/metafile';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { metadataSize, metadataTime } from '../metadata-common/helpers';
@@ -72,9 +73,8 @@ watch(id, load, { immediate: true });
           <h2>{{ detail?.name || '文件元数据详情' }}</h2>
           <span class="metadata-tag">{{
             detail?.fileType?.toUpperCase() || '-'
-          }}</span><Button
-            class="metadata-detail__back"
-            size="small"
+          }}</span><DetailBackButton
+            class="ml-auto"
             @click="
               router.push({
                 path: String(
@@ -83,9 +83,7 @@ watch(id, load, { immediate: true });
                 query: { kind: 'file' },
               })
             "
-          >
-            返回
-          </Button>
+          />
         </div>
         <Descriptions bordered size="small" :column="3">
           <DescriptionsItem label="来源系统">

@@ -7,7 +7,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
@@ -32,6 +31,7 @@ import {
   refreshDataAsset,
   unpublishDataAsset,
 } from '#/api/asset/dataasset';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 import ApplyForm from '#/views/asset/market/modules/apply-form.vue';
 
@@ -395,9 +395,7 @@ onUnmounted(() => {
                 </Menu>
               </template>
             </Dropdown>
-            <Button size="small" @click="handleBack">
-              <template #icon><IconifyIcon icon="lucide:undo-2" /></template>返回
-            </Button>
+            <DetailBackButton @click="handleBack" />
           </div>
         </div>
         <Descriptions :column="3" bordered size="small" :colon="false">

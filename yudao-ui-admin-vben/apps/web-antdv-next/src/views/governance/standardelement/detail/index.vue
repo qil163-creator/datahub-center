@@ -24,6 +24,7 @@ import { getDoc } from '#/api/governance/doc';
 import { getStandardCodeSet } from '#/api/governance/standardcodeset';
 import { getStandardElement } from '#/api/governance/standardelement';
 import { useDescription } from '#/components/description';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import AssociationTable from '../../standardcommon/association-table.vue';
@@ -240,12 +241,7 @@ watch(
           >
             {{ element.status === 0 ? '启用' : '禁用' }}
           </span>
-          <Button
-            class="standard-primary-plain standard-detail-back"
-            @click="handleBack"
-          >
-            <IconifyIcon icon="lucide:undo-2" />返回
-          </Button>
+          <DetailBackButton class="ml-auto" @click="handleBack" />
         </div>
         <dl class="standard-detail-grid">
           <dt>英文名称</dt>

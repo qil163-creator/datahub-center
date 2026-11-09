@@ -1,4 +1,4 @@
-import type { App } from 'vue';
+import type { App, SetupContext } from 'vue';
 
 import type { TableModelApi } from '#/api/modeling/tablemodel';
 
@@ -91,6 +91,8 @@ vi.mock('antdv-next', () => {
   });
   return {
     Alert: plain,
+    Button: (_: unknown, { slots }: SetupContext) =>
+      h('button', slots.default?.()),
     Checkbox: plain,
     ConfigProvider: plain,
     Input: plain,

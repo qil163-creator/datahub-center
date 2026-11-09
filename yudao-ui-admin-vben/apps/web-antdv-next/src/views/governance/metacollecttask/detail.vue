@@ -19,6 +19,7 @@ import {
 
 import { getMetaCollectInstancePage } from '#/api/governance/metacollectinstance';
 import { getMetaCollectTask } from '#/api/governance/metacollecttask';
+import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import {
@@ -160,9 +161,8 @@ watch(
                 ? 'metadata-tag--success'
                 : 'metadata-tag--error'
             "
-            >{{ detail?.enabled === 1 ? '上线' : '下线' }}</span><Button
-            class="metadata-detail__back"
-            size="small"
+            >{{ detail?.enabled === 1 ? '上线' : '下线' }}</span><DetailBackButton
+            class="ml-auto"
             @click="
               router.push(
                 String(
@@ -170,9 +170,7 @@ watch(
                 ),
               )
             "
-          >
-            <MetadataIcon name="back" />返回
-          </Button>
+            />
         </div>
         <Descriptions bordered size="small" :column="3">
           <DescriptionsItem label="来源系统">
