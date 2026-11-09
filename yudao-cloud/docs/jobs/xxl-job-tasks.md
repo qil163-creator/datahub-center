@@ -14,7 +14,7 @@
 | `dataforge-server` | `etlPipelineJob` | ETL 排期、派发、租约恢复；质量报告、目标提交/质检和回放复检对账；持久积压指标采样 | `0 * * * * ?` |
 | `dataforge-server` | `etlFileRecoveryJob` | 单平台扫描已知文件意图后逐项核验执行人；失租约且文件锁可取得后核对同对象，并处理显式申请的到期本人发布文件及锚点清理，默认KEEP不按年龄删除；最多20项/次、10次自动重试，未知身份转人工；不重跑图、不强制覆盖目标 | 建议 `0 * * * * ?` |
 | `dataforge-server` | `jobManagementCoordinatorJob` | 作业平台 Quartz 槽位原子受理、三串行策略队列与真实父子恢复；到期和队列阶段各至多二十作业、每作业五槽或五次派发，单轮对账每作业至多十实例，每作业最多一百待结束请求；未知触发不重投 | 建议 `0/5 * * * * ?` |
-| `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
+| `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入、补数据批次逐日推进及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
 | `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务 | `0 * * * * ?` |
 | `dataforge-server` | `fillOutboxRelayJob` | 在线填报事件投递 | `0 * * * * ?` |
 | `dataforge-server` | `fillMergeJob` | 在线填报合并执行及重试 | `0 * * * * ?` |

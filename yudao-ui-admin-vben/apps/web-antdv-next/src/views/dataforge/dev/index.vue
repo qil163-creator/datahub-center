@@ -76,6 +76,7 @@ import {
   resolveUserName,
   TASK_STATUS_OPTIONS,
 } from './list-model';
+import BackfillModal from './modules/backfill-modal.vue';
 import DirForm from './modules/dir-form.vue';
 import InstanceModal from './modules/instance-modal.vue';
 import ScheduleForm from './modules/schedule-form.vue';
@@ -110,6 +111,7 @@ const dirForm = ref<InstanceType<typeof DirForm>>();
 const taskInfo = ref<InstanceType<typeof TaskInfo>>();
 const scheduleForm = ref<InstanceType<typeof ScheduleForm>>();
 const instanceModal = ref<InstanceType<typeof InstanceModal>>();
+const backfillModal = ref<InstanceType<typeof BackfillModal>>();
 const workspaceTaskId = ref<DataforgeDevApi.Id>();
 const dirs = ref<DataforgeDevApi.Dir[]>([]);
 const dirKeyword = ref('');
@@ -1092,6 +1094,20 @@ onBeforeUnmount(() => {
                           执行一次
                         </Menu.Item>
                         <Menu.Item
+                          v-if="!isRealtime && canRun && hasNativeAccess(row)"
+                          :disabled="
+                            !row.currentVersionId ||
+                            row.status !== 1 ||
+                            isNativeProgramNotReady(row)
+                          "
+                          @click="backfillModal?.open(row)"
+                        >
+                          <template #icon>
+                            <IconifyIcon icon="lucide:history" />
+                          </template>
+                          补数据
+                        </Menu.Item>
+                        <Menu.Item
                           :disabled="!row.latestRecord || !hasNativeAccess(row)"
                           @click="
                             instanceModal?.open(row.id!, row.latestRecord?.id)
@@ -1128,6 +1144,10 @@ onBeforeUnmount(() => {
   <TaskInfo ref="taskInfo" :workload-mode="props.workloadMode" @saved="saved" />
   <ScheduleForm ref="scheduleForm" @saved="refresh" />
   <InstanceModal ref="instanceModal" />
+  <BackfillModal
+    ref="backfillModal"
+    @open-record="(taskId, recordId) => instanceModal?.open(taskId, recordId)"
+  />
 </template>
 
 <style scoped>

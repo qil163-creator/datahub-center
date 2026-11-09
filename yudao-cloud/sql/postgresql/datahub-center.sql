@@ -1,4 +1,4 @@
--- Included migrations through: 0268
+-- Included migrations through: 0269
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -7187,7 +7187,7 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."task_id" IS '任�
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."task_name" IS '任务名称（冗余）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."database_id" IS '数据源编号';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."datasource_name" IS '数据源名称（冗余）';
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."trigger_type" IS '触发方式：MANUAL-手动 SCHEDULE-调度';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."trigger_type" IS '触发方式：MANUAL-手动 SCHEDULE-调度 BACKFILL-补数据 JOB-作业';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."status" IS '执行状态：RUNNING/SUCCESS/FAILED/STOPPED';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."start_time" IS '开始时间';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."end_time" IS '结束时间';
@@ -7198,6 +7198,122 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."affected_rows" IS 
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."ds_instance_id" IS 'DolphinScheduler 工作流实例编号（集群任务用）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."log" IS '执行日志';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."creator" IS '创建者';
+
+-- ----------------------------
+-- 表结构： dh_dataforge_dev_backfill / dh_dataforge_dev_backfill_item（补数据批次与日期明细，0269）
+-- ----------------------------
+CREATE SEQUENCE IF NOT EXISTS "datahub-center".dh_dataforge_dev_backfill_seq;
+
+CREATE TABLE IF NOT EXISTS "datahub-center".dh_dataforge_dev_backfill (
+    id int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_dev_backfill_seq'::regclass),
+    task_id int8 NOT NULL,
+    task_name varchar(100),
+    version_id int8 NOT NULL,
+    execution_user_id int8 NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    date_order varchar(8) NOT NULL DEFAULT 'ASC',
+    failure_policy varchar(16) NOT NULL DEFAULT 'STOP',
+    status varchar(16) NOT NULL DEFAULT 'RUNNING',
+    total_count int4 NOT NULL DEFAULT 0,
+    success_count int4 NOT NULL DEFAULT 0,
+    failed_count int4 NOT NULL DEFAULT 0,
+    cancelled_count int4 NOT NULL DEFAULT 0,
+    cancel_requested bool NOT NULL DEFAULT false,
+    request_id varchar(100) NOT NULL,
+    remark varchar(255),
+    last_error varchar(512),
+    finish_time timestamp(6),
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_dataforge_dev_backfill PRIMARY KEY (id),
+    CONSTRAINT ck_dev_backfill_range CHECK (start_date <= end_date AND end_date - start_date < 366),
+    CONSTRAINT ck_dev_backfill_order CHECK (date_order IN ('ASC', 'DESC')),
+    CONSTRAINT ck_dev_backfill_policy CHECK (failure_policy IN ('STOP', 'CONTINUE')),
+    CONSTRAINT ck_dev_backfill_status CHECK (status IN ('RUNNING', 'SUCCESS', 'FAILED', 'CANCELLED'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_dev_backfill_request
+    ON "datahub-center".dh_dataforge_dev_backfill (request_id) WHERE deleted = 0;
+-- 同一任务同时只有一个进行中的补数据批次。
+CREATE UNIQUE INDEX IF NOT EXISTS uk_dev_backfill_running_task
+    ON "datahub-center".dh_dataforge_dev_backfill (task_id) WHERE deleted = 0 AND status = 'RUNNING';
+CREATE INDEX IF NOT EXISTS idx_dev_backfill_task
+    ON "datahub-center".dh_dataforge_dev_backfill (task_id, id DESC) WHERE deleted = 0;
+
+COMMENT ON TABLE "datahub-center".dh_dataforge_dev_backfill IS '数据开发-补数据批次（历史业务日期区间逐日重跑）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.id IS '批次编号';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.task_id IS '开发任务编号';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.task_name IS '任务名称（冗余）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.version_id IS '发起时冻结的任务保存版本；任务版本变更后批次终止';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.execution_user_id IS '冻结版本的执行身份，推进时按此身份复核权限';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.start_date IS '起始业务日期（含）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.end_date IS '截止业务日期（含），单批次最多 366 天';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.date_order IS '日期顺序：ASC从早到晚、DESC从晚到早';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.failure_policy IS '失败策略：STOP失败即停止并取消剩余日期、CONTINUE继续后续日期';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.status IS '状态：RUNNING进行中、SUCCESS全部成功、FAILED存在失败日期或被终止、CANCELLED已取消';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.total_count IS '日期总数';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.success_count IS '成功日期数（运行成功且质量通过或未配置）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.failed_count IS '失败日期数';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.cancelled_count IS '取消日期数';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.cancel_requested IS '是否已请求取消；已提交日期等待引擎终态后批次转 CANCELLED';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.request_id IS '发起请求标识（幂等）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.remark IS '备注';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.last_error IS '最近一次失败或终止原因';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.finish_time IS '结束时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.creator IS '创建者';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.create_time IS '创建时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.updater IS '更新者';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.update_time IS '更新时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill.deleted IS '逻辑删除：0未删除、1已删除';
+
+CREATE SEQUENCE IF NOT EXISTS "datahub-center".dh_dataforge_dev_backfill_item_seq;
+
+CREATE TABLE IF NOT EXISTS "datahub-center".dh_dataforge_dev_backfill_item (
+    id int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_dev_backfill_item_seq'::regclass),
+    backfill_id int8 NOT NULL,
+    task_id int8 NOT NULL,
+    seq int4 NOT NULL,
+    business_date date NOT NULL,
+    status varchar(16) NOT NULL DEFAULT 'PENDING',
+    record_id int8,
+    last_error varchar(512),
+    start_time timestamp(6),
+    end_time timestamp(6),
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_dataforge_dev_backfill_item PRIMARY KEY (id),
+    CONSTRAINT ck_dev_backfill_item_status CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED', 'CANCELLED'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_dev_backfill_item_date
+    ON "datahub-center".dh_dataforge_dev_backfill_item (backfill_id, business_date) WHERE deleted = 0;
+CREATE INDEX IF NOT EXISTS idx_dev_backfill_item_status
+    ON "datahub-center".dh_dataforge_dev_backfill_item (backfill_id, status, seq) WHERE deleted = 0;
+
+COMMENT ON TABLE "datahub-center".dh_dataforge_dev_backfill_item IS '数据开发-补数据批次日期明细';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.id IS '明细编号';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.backfill_id IS '补数据批次编号';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.task_id IS '开发任务编号（冗余）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.seq IS '执行顺序，从 1 开始';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.business_date IS '业务日期';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.status IS '状态：PENDING待执行、RUNNING已登记运行、SUCCESS成功、FAILED失败、CANCELLED已取消';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.record_id IS '运行实例编号（dh_dataforge_dev_record，运行键 BACKFILL:<批次>:<yyyyMMdd>）';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.last_error IS '失败或取消原因';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.start_time IS '登记运行时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.end_time IS '结束时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.creator IS '创建者';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.create_time IS '创建时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.updater IS '更新者';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.update_time IS '更新时间';
+COMMENT ON COLUMN "datahub-center".dh_dataforge_dev_backfill_item.deleted IS '逻辑删除：0未删除、1已删除';
+
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."create_time" IS '创建时间';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."updater" IS '最后更新者';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_dev_record"."update_time" IS '最后更新时间';

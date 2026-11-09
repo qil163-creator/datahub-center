@@ -231,6 +231,12 @@ public interface ErrorCodeConstants {
     ErrorCode DEV_PROGRAM_CONFIG_INVALID = new ErrorCode(1_500_020_031, "任务程序配置无效：{}");
     ErrorCode DEV_NATIVE_RUNTIME_NOT_READY = new ErrorCode(1_500_020_032,
             "该任务的原生引擎执行尚未接通，可先保存草稿；不能通过普通 SQL 通道执行");
+    // ----- 补数据 -----
+    ErrorCode DEV_BACKFILL_NOT_EXISTS = new ErrorCode(1_500_020_040, "补数据批次不存在");
+    ErrorCode DEV_BACKFILL_RANGE_INVALID = new ErrorCode(1_500_020_041, "补数据日期区间无效：{}");
+    ErrorCode DEV_BACKFILL_ALREADY_RUNNING = new ErrorCode(1_500_020_042, "该任务已有进行中的补数据批次，请等待完成或先取消");
+    ErrorCode DEV_BACKFILL_NOT_RUNNING = new ErrorCode(1_500_020_043, "补数据批次已结束，无法取消");
+    ErrorCode DEV_BACKFILL_VERSION_CHANGED = new ErrorCode(1_500_020_044, "任务保存版本已变更，补数据批次按冻结版本终止");
 
     // ========== 在线填报 1_500_021_000 ==========
     // ----- 模板版本 -----

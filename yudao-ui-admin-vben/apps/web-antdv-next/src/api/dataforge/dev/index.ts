@@ -435,6 +435,99 @@ export function runDevTask(data: {
   );
 }
 
+// ==================== 补数据 ====================
+
+export namespace DataforgeDevBackfillApi {
+  export type Status = 'CANCELLED' | 'FAILED' | 'RUNNING' | 'SUCCESS';
+  export type ItemStatus =
+    | 'CANCELLED'
+    | 'FAILED'
+    | 'PENDING'
+    | 'RUNNING'
+    | 'SUCCESS';
+
+  export interface Item {
+    businessDate: string;
+    endTime?: string;
+    id: DataforgeDevApi.Id;
+    lastError?: string;
+    recordId?: DataforgeDevApi.Id;
+    seq: number;
+    startTime?: string;
+    status: ItemStatus;
+  }
+
+  export interface Backfill {
+    cancelRequested?: boolean;
+    cancelledCount: number;
+    createTime?: string;
+    creator?: string;
+    dateOrder: 'ASC' | 'DESC';
+    endDate: string;
+    failedCount: number;
+    failurePolicy: 'CONTINUE' | 'STOP';
+    finishTime?: string;
+    id: DataforgeDevApi.Id;
+    items?: Item[];
+    lastError?: string;
+    remark?: string;
+    startDate: string;
+    status: Status;
+    successCount: number;
+    taskId: DataforgeDevApi.Id;
+    taskName?: string;
+    totalCount: number;
+    versionId: DataforgeDevApi.Id;
+  }
+
+  export interface CreateReq {
+    dateOrder: 'ASC' | 'DESC';
+    endDate: string;
+    failurePolicy: 'CONTINUE' | 'STOP';
+    remark?: string;
+    startDate: string;
+    taskId: DataforgeDevApi.Id;
+  }
+}
+
+/** 发起补数据：按业务日期区间逐日重跑当前保存版本 */
+export function createDevBackfill(
+  data: DataforgeDevBackfillApi.CreateReq & { requestId: string },
+) {
+  return requestClient.post<DataforgeDevApi.Id>(
+    '/dataforge/dev-backfill/create',
+    data,
+  );
+}
+
+/** 取消补数据批次 */
+export function cancelDevBackfill(id: DataforgeDevApi.Id) {
+  return requestClient.put<boolean>(
+    `/dataforge/dev-backfill/cancel?id=${encodeURIComponent(String(id))}`,
+  );
+}
+
+/** 补数据批次详情（含日期明细） */
+export function getDevBackfill(id: DataforgeDevApi.Id) {
+  return requestClient.get<DataforgeDevBackfillApi.Backfill>(
+    '/dataforge/dev-backfill/get',
+    { params: { id } },
+  );
+}
+
+/** 补数据批次分页 */
+export function getDevBackfillPage(params: {
+  pageNo: number;
+  pageSize: number;
+  status?: DataforgeDevBackfillApi.Status;
+  taskId?: DataforgeDevApi.Id;
+}) {
+  return requestClient.get<PageResult<DataforgeDevBackfillApi.Backfill>>(
+    '/dataforge/dev-backfill/page',
+    { params },
+  );
+}
+
 // ==================== 元数据 ====================
 
 export function getDevTableColumns(

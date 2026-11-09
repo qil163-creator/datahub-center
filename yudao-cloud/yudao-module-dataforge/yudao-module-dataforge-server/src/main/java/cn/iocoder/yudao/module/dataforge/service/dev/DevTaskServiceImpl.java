@@ -903,17 +903,7 @@ public class DevTaskServiceImpl implements DevTaskService {
      * @return 入队当前数值
      */
     private Long enqueueCurrent(DevTaskDO task, String trigger, String runKey, java.time.LocalDate businessDate) {
-        validateRunnable(task);
-        DevTaskVersionDO version = requireCurrentVersion(task);
-        DevTaskSnapshot snapshot = DevTaskSnapshot.read(version.getSnapshotJson());
-        requireInteractiveExecutionAccess(snapshot.getTask());
-        executionAccessService.requireUserPermission(snapshot.getTask().getExecutionUserId(),
-                ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
-        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
-            nativeRuntimeSupport.requireActor(snapshot.getTask(), SecurityFrameworkUtils.getLoginUserId());
-            nativeRuntimeSupport.requireActor(snapshot.getTask(), snapshot.getTask().getExecutionUserId());
-            nativeRuntimeSupport.requireFrozen(snapshot);
-        }
+        DevTaskVersionDO version = requireInteractiveRun(task);
         // 与启停、保存和删除共用任务行锁；权限与受管环境预检已在事务外完成。
         return transactionTemplate.execute(status -> {
             DevTaskDO current = taskMapper.selectForUpdate(task.getId());
@@ -925,6 +915,56 @@ public class DevTaskServiceImpl implements DevTaskService {
                 throw exception(DEV_TASK_REVISION_CONFLICT);
             }
             return dsSubmitter.enqueue(current, version, trigger, runKey, businessDate);
+        });
+    }
+
+    /** 交互式运行（执行一次、发起补数据）的共同护栏：任务已上线、登录人即执行身份、运行权限与原生运行时。 */
+    private DevTaskVersionDO requireInteractiveRun(DevTaskDO task) {
+        validateRunnable(task);
+        DevTaskVersionDO version = requireCurrentVersion(task);
+        DevTaskSnapshot snapshot = DevTaskSnapshot.read(version.getSnapshotJson());
+        requireInteractiveExecutionAccess(snapshot.getTask());
+        executionAccessService.requireUserPermission(snapshot.getTask().getExecutionUserId(),
+                ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
+        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
+            nativeRuntimeSupport.requireActor(snapshot.getTask(), SecurityFrameworkUtils.getLoginUserId());
+            nativeRuntimeSupport.requireActor(snapshot.getTask(), snapshot.getTask().getExecutionUserId());
+            nativeRuntimeSupport.requireFrozen(snapshot);
+        }
+        return version;
+    }
+
+    @Override
+    public DevTaskVersionDO validateBackfill(Long taskId) {
+        return requireInteractiveRun(validateTaskExists(taskId));
+    }
+
+    @Override
+    public Long enqueueBackfill(Long taskId, Long versionId, String runKey, java.time.LocalDate businessDate) {
+        DevTaskDO candidate = validateTaskExists(taskId);
+        validateRunnable(candidate);
+        if (!Objects.equals(candidate.getCurrentVersionId(), versionId)) {
+            throw exception(DEV_BACKFILL_VERSION_CHANGED);
+        }
+        DevTaskVersionDO version = requireCurrentVersion(candidate);
+        DevTaskSnapshot snapshot = DevTaskSnapshot.read(version.getSnapshotJson());
+        // 推进无登录上下文：与周期触发一致，按冻结版本持久化的执行身份复核权限与原生运行时。
+        executionAccessService.requireUserPermission(snapshot.getTask().getExecutionUserId(),
+                ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
+        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
+            nativeRuntimeSupport.requireActor(snapshot.getTask(), snapshot.getTask().getExecutionUserId());
+            nativeRuntimeSupport.requireFrozen(snapshot);
+        }
+        return transactionTemplate.execute(status -> {
+            DevTaskDO current = taskMapper.selectForUpdate(taskId);
+            if (current == null) {
+                throw exception(DEV_TASK_NOT_EXISTS);
+            }
+            validateRunnable(current);
+            if (!Objects.equals(current.getCurrentVersionId(), versionId)) {
+                throw exception(DEV_BACKFILL_VERSION_CHANGED);
+            }
+            return dsSubmitter.enqueue(current, version, DevRecordDO.TRIGGER_BACKFILL, runKey, businessDate);
         });
     }
 
