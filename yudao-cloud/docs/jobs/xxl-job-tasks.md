@@ -33,6 +33,7 @@
 | `governance-server` | `qualityWorkOrderNotifyJob` | 质量工单通知派发；按工单原子认领，发送租约过期归为 UNKNOWN，禁止自动重发未知结果 | `0 0/5 * * * ?` |
 | `asset-server` | `marketApplyExpireJob` | 集市申请到期及交付重试 | `0 0 * * * ?` |
 | `asset-server` | `assetCatalogReconcileJob` | 单平台重试目录挂接回执与停供撤权，失败进入人工处置；撤权实际交付由 marketApplyExpireJob 继续处理 | 建议 `0 * * * * ?` |
+| `asset-server` | `assetOperationMetricJob` | 每日计算资产运营指标快照（近 30 天使用、热度、价值评估与运营建议），同日重跑整体替换，快照保留 400 天 | 建议 `0 20 1 * * ?` |
 | `supply-server` | `supplyGrantReconcileJob` | 授权操作状态对账 | `0 0/5 * * * ?` |
 | `supply-server` | `supplyApiOperationReconcileJob` | 单平台有界扫描失联开放写操作，转为UNKNOWN待核查，不重试SQL | 建议 `0 * * * * ?` |
 | `supply-server` | `supplyQuotaExpiryJob` | 单平台释放过期读请求额度预占，最多1000条；旧工作者无法确认或返回数据 | 建议 `0 * * * * ?` |
