@@ -62,6 +62,4 @@ public class SupplyAppRespVO {
 
     private Integer credentialRevision;
 
-    private String signProtocol;
-
 }

@@ -32,4 +32,10 @@ public class SupplyDataApiProperties {
      */
     private boolean resultCacheEnabled = false;
 
+    /**
+     * 应用密钥落库加密算法：SM4（默认，国密 SM4-GCM）或 AES（AES-256-GCM）。只影响新写入的密文；
+     * 读取按密文前缀自动选择算法，切换后已有密文仍可解密。由 SupplyAppSecretCipher 读取。
+     */
+    private String secretCipher = "SM4";
+
 }

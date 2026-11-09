@@ -1,7 +1,6 @@
 package cn.iocoder.yudao.module.supply.service.dataapi;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SmUtil;
 import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecuteRespVO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO;
@@ -22,12 +21,10 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -37,10 +34,9 @@ import static cn.iocoder.yudao.module.supply.enums.dataapi.ErrorCodeConstants.OP
 /**
  * 数据服务对外网关：定位 API、认证应用并执行。
  *
- * <p>签名认证使用国密 SM3。签名串严格为
- * {@code HTTP_METHOD + "_" + API_PATH + "_" + AppKey + "_" + Timestamp + "_" + Nonce}，
- * 请求头中的 {@code X-Sign} 为 {@code SM3(AppSecret + 签名串)}。时间戳允许前后十分钟，
- * Nonce 在 Redis 中保留一分钟，确保多节点网关不能重复使用同一随机数。</p>
+ * <p>签名认证只使用 {@link DataApiSignature} 定义的 HMAC-SM3 协议，覆盖 method、规范路径、
+ * 规范化查询串、请求体摘要、AppKey、毫秒时间戳、Nonce 与 Content-Type。时间戳允许前后十分钟，
+ * Nonce 在 Redis 中按应用隔离保留至时间窗结束，确保多节点网关不能重复使用同一随机数。</p>
  */
 @Slf4j
 @Service
@@ -53,10 +49,6 @@ public class DataApiGatewayService {
     public static final String HEADER_NONCE = "X-Nonce";
 
     public static final String HEADER_SIGN = "X-Sign";
-
-    public static final String HEADER_SIGN_VERSION = DataApiSignatureV2.HEADER_SIGN_VERSION;
-
-    public static final String HEADER_KEY_VERSION = DataApiSignatureV2.HEADER_KEY_VERSION;
 
     static final long SIGN_TIMESTAMP_VALID_MS = 10 * 60 * 1000L;
 
@@ -139,7 +131,6 @@ public class DataApiGatewayService {
             runtime = publishedRuntime(api);
             if (DataApiOperationService.requiresOperation(runtime)) {
                 if (app == null || !DataApiDO.AUTH_TYPE_SIGN.equalsIgnoreCase(runtime.getAuthType())
-                        || !DataApiSignatureV2.VERSION.equalsIgnoreCase(header(safeHeaders, HEADER_SIGN_VERSION))
                         || runtime.getActiveReleaseId() == null) {
                     throw exception(OPERATION_SIGN_REQUIRED);
                 }
@@ -217,25 +208,6 @@ public class DataApiGatewayService {
             validateSign(api, app, version, httpMethod, rawQuery, rawBody, safeHeaders);
         }
         return app;
-    }
-
-    /**
-     * 确认签名协议允许。
-     *
-     * @param app 调用应用信息
-     * @param v2 版本2
-     */
-    private void assertSignProtocolAllowed(SupplyAppDO app, boolean v2) {
-        String protocol = StrUtil.blankToDefault(app.getSignProtocol(), SupplyAppDO.SIGN_PROTOCOL_BOTH);
-        if (v2) {
-            if (SupplyAppDO.SIGN_PROTOCOL_LEGACY.equalsIgnoreCase(protocol)) {
-                throw exception(DATA_API_SIGN_PROTOCOL_NOT_ALLOWED);
-            }
-            return;
-        }
-        if (SupplyAppDO.SIGN_PROTOCOL_V2.equalsIgnoreCase(protocol)) {
-            throw exception(DATA_API_SIGN_PROTOCOL_NOT_ALLOWED);
-        }
     }
 
     /**
@@ -341,7 +313,6 @@ public class DataApiGatewayService {
             return "EXECUTE";
         }
         if (code.equals(DATA_API_AUTH_FAILED.getCode())
-                || code.equals(DATA_API_SIGN_PROTOCOL_NOT_ALLOWED.getCode())
                 || code.equals(OPERATION_SIGN_REQUIRED.getCode())) {
             return "AUTH";
         }
@@ -387,46 +358,30 @@ public class DataApiGatewayService {
             throw exception(DATA_API_AUTH_FAILED,
                     "签名认证需携带请求头 " + HEADER_TIMESTAMP + "、" + HEADER_NONCE + "、" + HEADER_SIGN);
         }
-        boolean v2 = DataApiSignatureV2.VERSION.equalsIgnoreCase(header(headers, HEADER_SIGN_VERSION));
-        assertSignProtocolAllowed(app, v2);
         long now = clock.millis();
-        long timestampMillis;
-        if (v2) {
-            DataApiSignatureV2.validateTimestamp(timestamp);
-            timestampMillis = Long.parseLong(timestamp);
-            if (timestampMillis < now - SIGN_TIMESTAMP_VALID_MS
-                    || timestampMillis >= now + SIGN_TIMESTAMP_VALID_MS) {
-                throw exception(DATA_API_AUTH_FAILED, "时间戳已过期（有效期 10 分钟）");
-            }
-            byte[] body = rawBody == null ? new byte[0] : rawBody.getBytes(StandardCharsets.UTF_8);
-            String expected = DataApiSignatureV2.sign(
-                    SupplyAppSecretCipher.decrypt(app.getSecret()),
-                    StrUtil.blankToDefault(httpMethod, api.getMethod()),
-                    buildGatewayPath(version, api.getPath()),
-                    rawQuery, body, app.getAppKey(), timestamp, nonce,
-                    header(headers, "Content-Type"),
-                    header(headers, HEADER_KEY_VERSION));
-            if (!DataApiSignatureV2.matches(expected, sign)) {
-                throw exception(DATA_API_AUTH_FAILED, "签名不正确");
-            }
-        } else {
-            long ts;
-            try {
-                ts = Long.parseLong(timestamp);
-            } catch (NumberFormatException ex) {
-                throw exception(DATA_API_AUTH_FAILED, "时间戳格式不正确");
-            }
-            timestampMillis = normalizeTimestampMillis(ts);
-            if (timestampMillis < now - SIGN_TIMESTAMP_VALID_MS
-                    || timestampMillis > now + SIGN_TIMESTAMP_VALID_MS) {
-                throw exception(DATA_API_AUTH_FAILED, "时间戳已过期（有效期 10 分钟）");
-            }
-            String expected = sign(app.getAppKey(), SupplyAppSecretCipher.decrypt(app.getSecret()),
-                    StrUtil.blankToDefault(api.getMethod(), httpMethod),
-                    buildGatewayPath(version, api.getPath()), timestamp, nonce);
-            if (!constantTimeEquals(expected, sign)) {
-                throw exception(DATA_API_AUTH_FAILED, "签名不正确");
-            }
+        DataApiSignature.validateTimestamp(timestamp);
+        long timestampMillis = Long.parseLong(timestamp);
+        if (timestampMillis < now - SIGN_TIMESTAMP_VALID_MS
+                || timestampMillis >= now + SIGN_TIMESTAMP_VALID_MS) {
+            throw exception(DATA_API_AUTH_FAILED, "时间戳已过期（有效期 10 分钟）");
+        }
+        byte[] body = rawBody == null ? new byte[0] : rawBody.getBytes(StandardCharsets.UTF_8);
+        String plainSecret;
+        try {
+            plainSecret = SupplyAppSecretCipher.decrypt(app.getSecret());
+        } catch (RuntimeException ex) {
+            // 密文格式不受支持、主密钥不一致或被篡改：按认证失败处理，不暴露原因细节。
+            log.warn("[validateSign][应用({}) 密钥无法解密，请重置应用密钥]", app.getId());
+            throw exception(DATA_API_AUTH_FAILED, "应用密钥不可用，请联系管理员重置");
+        }
+        String expected = DataApiSignature.sign(
+                plainSecret,
+                StrUtil.blankToDefault(httpMethod, api.getMethod()),
+                buildGatewayPath(version, api.getPath()),
+                rawQuery, body, app.getAppKey(), timestamp, nonce,
+                header(headers, "Content-Type"));
+        if (!DataApiSignature.matches(expected, sign)) {
+            throw exception(DATA_API_AUTH_FAILED, "签名不正确");
         }
         reserveNonce(app, nonce, timestampMillis, now);
     }
@@ -470,60 +425,6 @@ public class DataApiGatewayService {
     }
 
     /**
-     * 签名数据 API网关。
-     *
-     * @param appKey 应用标识
-     * @param appSecret 应用密钥
-     * @param method HTTP 方法
-     * @param apiPath API路径
-     * @param timestamp 时间戳
-     * @param nonce 随机数
-     * @return 计算后的摘要或签名字符串
-     */
-    public static String sign(String appKey, String appSecret, String method,
-            String apiPath, String timestamp, String nonce) {
-        String signature = signatureString(method, apiPath, appKey, timestamp, nonce);
-        return SmUtil.sm3(canonicalValue(appSecret) + signature);
-    }
-
-    /**
-     * 签名数据 API网关。
-     *
-     * @param appKey 应用标识
-     * @param appSecret 应用密钥
-     * @param method HTTP 方法
-     * @param apiPath API路径
-     * @param queryString 查询字符串
-     * @param body 请求体
-     * @param timestamp 时间戳
-     * @param nonce 随机数
-     * @return 计算后的摘要或签名字符串
-     */
-    public static String sign(String appKey, String appSecret, String method,
-            String apiPath, String queryString, String body,
-            String timestamp, String nonce) {
-        // 查询串和请求体不属于约定签名串，保留参数只是兼容管理端旧的调试请求结构。
-        return sign(appKey, appSecret, method, apiPath, timestamp, nonce);
-    }
-
-    /** 返回协议约定的签名串，便于客户端联调和单元测试复用。 */
-    public static String signatureString(String method, String apiPath, String appKey,
-            String timestamp, String nonce) {
-        return canonicalValue(method).toUpperCase(Locale.ROOT) + "_"
-                + normalizePath(apiPath) + "_"
-                + canonicalValue(appKey) + "_"
-                + canonicalValue(timestamp) + "_"
-                + canonicalValue(nonce);
-    }
-
-    /** 保留旧调试工具方法名，但返回当前协议的精确签名串。 */
-    public static String canonicalRequest(String version, String method, String apiPath,
-            String queryString, String body, String appKey,
-            String timestamp, String nonce) {
-        return signatureString(method, apiPath, appKey, timestamp, nonce);
-    }
-
-    /**
      * 构造网关路径。
      *
      * @param version 版本
@@ -532,45 +433,6 @@ public class DataApiGatewayService {
      */
     public static String buildGatewayPath(String version, String path) {
         return "/services/" + StrUtil.nullToEmpty(version) + StrUtil.nullToEmpty(path);
-    }
-
-    /**
-     * 规范化路径。
-     *
-     * @param path 路径
-     * @return 规范化路径文本
-     */
-    private static String normalizePath(String path) {
-        String value = StrUtil.blankToDefault(path, "/");
-        int queryIndex = value.indexOf('?');
-        if (queryIndex >= 0) {
-            value = value.substring(0, queryIndex);
-        }
-        return value.startsWith("/") ? value : "/" + value;
-    }
-
-    /**
-     * 将空字符串值统一为规范表示。
-     *
-     * @param value 待处理的值
-     * @return 将空字符串值统一为规范表示文本
-     */
-    private static String canonicalValue(String value) {
-        return value == null ? "" : value;
-    }
-
-    /**
-     * 兼容秒级和毫秒级 Unix 时间戳，但签名串始终使用请求头中的原始文本。
-     */
-    private static long normalizeTimestampMillis(long timestamp) {
-        if (Math.abs(timestamp) < 100_000_000_000L) {
-            try {
-                return Math.multiplyExact(timestamp, 1000L);
-            } catch (ArithmeticException ex) {
-                return timestamp;
-            }
-        }
-        return timestamp;
     }
 
     /**
@@ -593,21 +455,6 @@ public class DataApiGatewayService {
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
-    }
-
-    /**
-     * 以固定时间比较摘要，避免逐字符短路比较泄露匹配前缀。
-     *
-     * @param expected 预期值
-     * @param actual 实际值
-     * @return 处理是否成功
-     */
-    private static boolean constantTimeEquals(String expected, String actual) {
-        if (actual == null) {
-            return false;
-        }
-        return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8),
-                actual.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8));
     }
 
 }

@@ -279,11 +279,9 @@ export function signDataApi(data: {
   appSecret: string;
   body?: string;
   contentType?: string;
-  keyVersion?: string;
   method: string;
   nonce: string;
   queryString?: string;
-  signVersion?: string;
   timestamp: string;
 }) {
   return requestClient.post<string>('/supply/data-api/sign', data);

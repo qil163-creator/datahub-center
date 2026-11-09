@@ -106,7 +106,6 @@ public class SupplyAppServiceImpl implements SupplyAppService {
         app.setAppKey(IdUtil.fastSimpleUUID());
         String plainSecret = generateSecret();
         app.setSecret(SupplyAppSecretCipher.encrypt(plainSecret));
-        app.setSignProtocol(SupplyAppDO.SIGN_PROTOCOL_V2);
         if (app.getPublicFlag() == null) {
             app.setPublicFlag(1);
         }
@@ -138,7 +137,6 @@ public class SupplyAppServiceImpl implements SupplyAppService {
         // AppKey、秘钥不随保存修改
         app.setAppKey(null);
         app.setSecret(null);
-        app.setSignProtocol(null);
         appMapper.updateById(app);
     }
 

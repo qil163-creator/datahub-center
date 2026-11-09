@@ -32,20 +32,13 @@ public class DataApiSignReqVO {
     @NotEmpty(message = "Nonce 不能为空")
     private String nonce;
 
-    @Schema(description = "原始查询串（当前 SM3 协议不纳入签名，仅用于联调记录）",
-            example = "pageNo=1&pageSize=20")
+    @Schema(description = "原始查询串（规范化后纳入签名）", example = "pageNo=1&pageSize=20")
     private String queryString;
 
-    @Schema(description = "原始请求体（v1 不纳入签名；v2 按原始字节哈希）")
+    @Schema(description = "原始请求体（按原始 UTF-8 字节计算 SM3 摘要后纳入签名）")
     private String body;
 
-    @Schema(description = "签名协议版本：v1 或不传为旧协议，v2 为 HMAC-SM3", example = "v2")
-    private String signVersion;
-
-    @Schema(description = "凭证版本", example = "1")
-    private String keyVersion;
-
-    @Schema(description = "Content-Type（v2 纳入签名）", example = "application/json")
+    @Schema(description = "Content-Type（规范化后纳入签名）", example = "application/json")
     private String contentType;
 
 }

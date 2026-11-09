@@ -10,7 +10,7 @@ import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecute
 import cn.iocoder.yudao.module.supply.service.dataapi.DataApiGatewayService;
 import cn.iocoder.yudao.module.supply.service.dataapi.DataApiJsonBody;
 import cn.iocoder.yudao.module.supply.service.dataapi.DataApiQueryCodec;
-import cn.iocoder.yudao.module.supply.service.dataapi.DataApiSignatureV2;
+import cn.iocoder.yudao.module.supply.service.dataapi.DataApiSignature;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -36,8 +36,8 @@ import static cn.iocoder.yudao.module.supply.service.dataapi.DataApiGatewayServi
  *
  * 调用地址：GET/POST /supply/gateway/services/{version}{path}
  * 认证方式：NONE 不需要请求头；APPKEY 只需 X-AppKey；SIGN 需要 X-AppKey、X-Timestamp、
- * X-Nonce、X-Sign。v1 签名串为 HTTP_METHOD_API_PATH_AppKey_Timestamp_Nonce；
- * v2（X-Sign-Version=v2）使用 HMAC-SM3，覆盖 path/query/body。
+ * X-Nonce、X-Sign，签名协议为唯一的 HMAC-SM3（见 {@link DataApiSignature}），覆盖 method、
+ * path、query、body 摘要、时间戳与 Nonce。query 与 JSON body 不得出现同名参数。
  *
  * @author Li
  */
@@ -77,48 +77,34 @@ public class GatewayController {
         String marker = "/services/" + version;
         int index = uri.indexOf(marker);
         String path = index >= 0 ? uri.substring(index + marker.length()) : "";
-        if (rawBody != null && rawBody.getBytes(StandardCharsets.UTF_8).length > DataApiSignatureV2.MAX_BODY_BYTES) {
+        if (rawBody != null && rawBody.getBytes(StandardCharsets.UTF_8).length > DataApiSignature.MAX_BODY_BYTES) {
             throw exception(DATA_API_REQUEST_INVALID, "请求体超过大小限制");
         }
-        boolean v2 = DataApiSignatureV2.VERSION.equalsIgnoreCase(request.getHeader(HEADER_SIGN_VERSION));
-        Map<String, Object> params;
-        if (v2) {
-            params = mergeV2Params(request.getQueryString(), rawBody);
-        } else {
-            params = new LinkedHashMap<>();
-            request.getParameterMap().forEach((key, values) -> {
-                if (values != null && values.length > 0) {
-                    params.put(key, values[0]);
-                }
-            });
-            if (StrUtil.isNotBlank(rawBody)) {
-                params.putAll(DataApiJsonBody.parseObject(rawBody));
-            }
-        }
+        Map<String, Object> params = mergeParams(request.getQueryString(), rawBody);
         Integer pageNo = extractInt(params.remove("pageNo"));
         Integer pageSize = extractInt(params.remove("pageSize"));
         Map<String, String> headers = new LinkedHashMap<>();
         for (String name : List.of(HEADER_APP_KEY, HEADER_TIMESTAMP, HEADER_NONCE, HEADER_SIGN,
-                HEADER_SIGN_VERSION, HEADER_KEY_VERSION, "Content-Type")) {
+                "Content-Type")) {
             headers.put(name, request.getHeader(name));
         }
-        log.info("[gateway][traceId={} version={} path={} method={} appKeyPresent={} v2={}]",
+        log.info("[gateway][traceId={} version={} path={} method={} appKeyPresent={}]",
                 traceId, version, path, request.getMethod(),
-                StrUtil.isNotBlank(headers.get(HEADER_APP_KEY)), v2);
+                StrUtil.isNotBlank(headers.get(HEADER_APP_KEY)));
         return success(gatewayService.invoke(version, path, request.getMethod(), params,
                 pageNo, pageSize, ServletUtils.getClientIP(request), request.getQueryString(),
                 rawBody, headers));
     }
 
     /**
-     * 合并版本2参数。
+     * 合并查询串与 JSON 请求体参数；同名参数存在歧义，直接拒绝。
      *
      * @param rawQuery 原始查询字符串
      * @param rawBody 原始请求体
      * @return 处理后的键值映射
      */
-    private Map<String, Object> mergeV2Params(String rawQuery, String rawBody) {
-        Map<String, Object> query = DataApiSignatureV2.toParamMap(DataApiQueryCodec.parse(rawQuery));
+    private Map<String, Object> mergeParams(String rawQuery, String rawBody) {
+        Map<String, Object> query = DataApiSignature.toParamMap(DataApiQueryCodec.parse(rawQuery));
         Map<String, Object> body = DataApiJsonBody.parseObject(rawBody);
         for (String key : body.keySet()) {
             if (query.containsKey(key)) {

@@ -37,7 +37,7 @@ public interface ErrorCodeConstants {
     ErrorCode DATA_API_TYPE_NOT_SUPPORTED = new ErrorCode(1_500_040_014, "当前配置方式不支持该接口类型：{}");
     ErrorCode DATA_API_READONLY_REQUIRED = new ErrorCode(1_500_040_015, "当前执行仅允许只读查询：{}");
     ErrorCode DATA_API_PERMISSION_SUBJECT_INVALID = new ErrorCode(1_500_040_016, "授权主体不合法");
-    ErrorCode DATA_API_SIGN_PROTOCOL_NOT_ALLOWED = new ErrorCode(1_500_040_017, "该应用不允许此签名协议");
+    // 1_500_040_017 原为“签名协议不允许”，签名统一为单一 HMAC-SM3 协议后退役，不得复用。
     ErrorCode DATA_API_REQUEST_INVALID = new ErrorCode(1_500_040_018, "请求内容不合法：{}");
     ErrorCode DATA_API_PUBLISH_CONFLICT = new ErrorCode(1_500_040_019, "发布冲突，请刷新后重试");
     ErrorCode DATA_API_RELEASE_NOT_EXISTS = new ErrorCode(1_500_040_020, "发布快照不存在");

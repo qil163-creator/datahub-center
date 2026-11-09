@@ -2,7 +2,7 @@
 ALTER TABLE dh_supply_app ADD COLUMN name varchar(100), ADD COLUMN app_type varchar(32),
  ADD COLUMN icon text, ADD COLUMN app_key varchar(100), ADD COLUMN secret text,
  ADD COLUMN public_flag int, ADD COLUMN description text, ADD COLUMN remark text,
- ADD COLUMN sign_protocol varchar(16), ADD COLUMN owning_dept_id bigint,
+ ADD COLUMN owning_dept_id bigint,
  ADD COLUMN system_code varchar(100), ADD COLUMN owner_user_id bigint, ADD COLUMN purpose text,
  ADD COLUMN environment varchar(100), ADD COLUMN credential_revision int, ADD COLUMN row_version int,
  ADD COLUMN create_time timestamp, ADD COLUMN update_time timestamp,

@@ -67,11 +67,6 @@ public class SupplyAppDO extends BaseDO {
      */
     private String remark;
 
-    /**
-     * 签名协议：LEGACY 仅 v1、V2 仅 v2、BOTH 按请求头选择且不自动降级
-     */
-    private String signProtocol;
-
     private Long owningDeptId;
 
     private String systemCode;
@@ -88,11 +83,5 @@ public class SupplyAppDO extends BaseDO {
     private Integer credentialRevision;
 
     private Integer rowVersion;
-
-    public static final String SIGN_PROTOCOL_LEGACY = "LEGACY";
-
-    public static final String SIGN_PROTOCOL_V2 = "V2";
-
-    public static final String SIGN_PROTOCOL_BOTH = "BOTH";
 
 }

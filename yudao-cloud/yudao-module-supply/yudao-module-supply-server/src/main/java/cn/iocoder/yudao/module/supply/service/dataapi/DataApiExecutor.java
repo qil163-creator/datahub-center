@@ -2,13 +2,12 @@ package cn.iocoder.yudao.module.supply.service.dataapi;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.util.http.SafeHttpExecutor;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
 import cn.iocoder.yudao.framework.dbswitch.core.model.JdbcSelectResult;
@@ -43,8 +42,6 @@ import java.sql.Timestamp;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,7 +58,7 @@ import static cn.iocoder.yudao.module.supply.enums.grant.ErrorCodeConstants.GRAN
  * TABLE 单表向导式：按请求参数拼装等值 WHERE 条件查询；
  * SQL 脚本式：#{参数名} 占位符替换为预编译参数，支持 &lt;where&gt;/&lt;if&gt; 动态条件标签，
  *            支持 QUERY/INSERT/UPDATE/DELETE/MULTI（多脚本事务）接口类型；
- * FORWARD 第三方转发：Hutool HTTP 转发请求，透传参数与响应。
+ * FORWARD 第三方转发：经 {@link SafeHttpExecutor} 转发，连接固定到本次已校验的公网地址，透传参数与响应。
  *
  * 附加能力：结果缓存（查询类）、熔断降级（异常数策略）、IP 黑白名单、限流、
  *          返回字段数据模型（隐藏/映射/拼接/替换/截取/分割/时间格式化/脱敏）、失败告警（站内信）。
@@ -83,7 +80,7 @@ public class DataApiExecutor {
 
     private static final int LIST_MAX_ROWS = 1000;
 
-    private static final int FORWARD_TIMEOUT_MS = 10_000;
+    private static final int FORWARD_TIMEOUT_SECONDS = 10;
 
     private static final int FORWARD_MAX_BODY_LENGTH = 1024 * 1024;
 
@@ -875,34 +872,45 @@ public class DataApiExecutor {
         }
         validateForwardUrl(api.getForwardUrl(), dataApiProperties);
         String method = StrUtil.blankToDefault(api.getForwardMethod(), api.getMethod());
-        HttpRequest request = "GET".equalsIgnoreCase(method)
-                ? HttpRequest.get(api.getForwardUrl()).form(new LinkedHashMap<>(params))
-                : HttpRequest.post(api.getForwardUrl()).body(JSONUtil.toJsonStr(params));
-        request.setFollowRedirects(false);
-        try (HttpResponse response = request.timeout(FORWARD_TIMEOUT_MS).execute(true)) {
-            if (!response.isOk()) {
-                throw exception(DATA_API_EXECUTE_FAILED,
-                        "转发响应异常 HTTP " + response.getStatus());
-            }
-            String body = readForwardBody(response);
-            DataApiExecuteRespVO result = new DataApiExecuteRespVO();
-            // 尽力解析为行数据，无法解析时原样返回
-            if (JSONUtil.isTypeJSONArray(body)) {
-                result.setRows(toRows(JSONUtil.parseArray(body)));
-            } else if (JSONUtil.isTypeJSONObject(body)) {
-                JSONObject json = JSONUtil.parseObj(body);
-                Object data = json.get("data");
-                if (data instanceof cn.hutool.json.JSONArray array) {
-                    result.setRows(toRows(array));
-                } else {
-                    result.setRows(List.of(new LinkedHashMap<>(json)));
-                }
-            } else {
-                result.setRaw(body);
-                result.setRows(List.of());
-            }
-            return result;
+        boolean get = "GET".equalsIgnoreCase(method);
+        String url = get ? appendQuery(api.getForwardUrl(), params) : api.getForwardUrl();
+        List<SafeHttpExecutor.Header> headers = get ? List.of()
+                : List.of(new SafeHttpExecutor.Header("Content-Type", "application/json;charset=UTF-8"));
+        byte[] payload = get ? null : JSONUtil.toJsonStr(params).getBytes(StandardCharsets.UTF_8);
+        SafeHttpExecutor.Result response;
+        try {
+            // 每次执行都重新解析并校验全部地址，并把连接绑定到这些地址（DNS 重绑定无法在校验后换目标）；
+            // 不跟随重定向、不走代理、不携带平台身份与 Cookie。
+            response = SafeHttpExecutor.execute(new SafeHttpExecutor.Request(url, get ? "GET" : "POST",
+                    headers, payload, FORWARD_TIMEOUT_SECONDS, false, SafeHttpExecutor.publicOnly()));
+        } catch (SafeHttpExecutor.SafeHttpException ex) {
+            throw exception(DATA_API_EXECUTE_FAILED, "转发失败：" + ex.getMessage());
         }
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw exception(DATA_API_EXECUTE_FAILED, "转发响应异常 HTTP " + response.statusCode());
+        }
+        byte[] responseBytes = response.body();
+        if (response.truncated() || responseBytes.length > FORWARD_MAX_BODY_LENGTH) {
+            throw exception(DATA_API_EXECUTE_FAILED, "转发响应超过允许大小");
+        }
+        String body = new String(responseBytes, StandardCharsets.UTF_8);
+        DataApiExecuteRespVO result = new DataApiExecuteRespVO();
+        // 尽力解析为行数据，无法解析时原样返回
+        if (JSONUtil.isTypeJSONArray(body)) {
+            result.setRows(toRows(JSONUtil.parseArray(body)));
+        } else if (JSONUtil.isTypeJSONObject(body)) {
+            JSONObject json = JSONUtil.parseObj(body);
+            Object data = json.get("data");
+            if (data instanceof cn.hutool.json.JSONArray array) {
+                result.setRows(toRows(array));
+            } else {
+                result.setRows(List.of(new LinkedHashMap<>(json)));
+            }
+        } else {
+            result.setRaw(body);
+            result.setRows(List.of());
+        }
+        return result;
     }
 
     /**
@@ -982,26 +990,28 @@ public class DataApiExecutor {
     }
 
     /**
-     * 读取转发请求体。
+     * 把业务参数按 application/x-www-form-urlencoded 规则追加到 GET 转发地址的查询串。
      *
-     * @param response 响应对象
-     * @return 转发请求体文本
+     * @param forwardUrl 转发地址
+     * @param params 业务参数
+     * @return 带查询串的地址
      */
-    private String readForwardBody(HttpResponse response) throws Exception {
-        try (InputStream input = response.bodyStream();
-             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[8192];
-            int total = 0;
-            int read;
-            while ((read = input.read(buffer)) >= 0) {
-                total += read;
-                if (total > FORWARD_MAX_BODY_LENGTH) {
-                    throw exception(DATA_API_EXECUTE_FAILED, "转发响应超过允许大小");
-                }
-                output.write(buffer, 0, read);
-            }
-            return output.toString(StandardCharsets.UTF_8);
+    static String appendQuery(String forwardUrl, Map<String, Object> params) {
+        okhttp3.HttpUrl base = okhttp3.HttpUrl.parse(forwardUrl);
+        if (base == null) {
+            throw exception(DATA_API_CONFIG_INVALID, "转发地址格式不合法");
         }
+        okhttp3.HttpUrl.Builder builder = base.newBuilder();
+        if (params != null) {
+            params.forEach((name, value) -> {
+                if (value instanceof Iterable<?> values) {
+                    values.forEach(item -> builder.addQueryParameter(name, item == null ? "" : String.valueOf(item)));
+                } else if (value != null) {
+                    builder.addQueryParameter(name, String.valueOf(value));
+                }
+            });
+        }
+        return builder.build().toString();
     }
 
     /**

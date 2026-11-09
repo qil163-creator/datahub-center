@@ -788,23 +788,18 @@ public class DataApiServiceImpl implements DataApiService {
     }
 
     /**
-     * 在线签名。v1 保持旧协议；v2 使用 HMAC-SM3。
+     * 在线签名：按唯一的 HMAC-SM3 协议计算签名，供第三方联调对照。
      *
      * @param reqVO 请求参数
-     * @return 计算后的摘要或签名字符串
+     * @return 计算后的签名字符串
      */
     @Override
     public String sign(DataApiSignReqVO reqVO) {
-        if (DataApiSignatureV2.VERSION.equalsIgnoreCase(reqVO.getSignVersion())) {
-            byte[] body = reqVO.getBody() == null ? new byte[0]
-                    : reqVO.getBody().getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            return DataApiSignatureV2.sign(reqVO.getAppSecret(), reqVO.getMethod(), reqVO.getApiPath(),
-                    reqVO.getQueryString(), body, reqVO.getAppKey(), reqVO.getTimestamp(),
-                    reqVO.getNonce(), reqVO.getContentType(), reqVO.getKeyVersion());
-        }
-        return DataApiGatewayService.sign(reqVO.getAppKey(), reqVO.getAppSecret(), reqVO.getMethod(),
-                reqVO.getApiPath(), reqVO.getQueryString(), reqVO.getBody(),
-                reqVO.getTimestamp(), reqVO.getNonce());
+        byte[] body = reqVO.getBody() == null ? new byte[0]
+                : reqVO.getBody().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return DataApiSignature.sign(reqVO.getAppSecret(), reqVO.getMethod(), reqVO.getApiPath(),
+                reqVO.getQueryString(), body, reqVO.getAppKey(), reqVO.getTimestamp(),
+                reqVO.getNonce(), reqVO.getContentType());
     }
 
 }

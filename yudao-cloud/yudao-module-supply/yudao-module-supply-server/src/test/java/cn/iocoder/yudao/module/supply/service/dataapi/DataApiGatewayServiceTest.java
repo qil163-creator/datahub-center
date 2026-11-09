@@ -53,44 +53,55 @@ class DataApiGatewayServiceTest {
     }
 
     @Test
-    void signatureShouldFollowSm3Protocol() {
-        String signature = DataApiGatewayService.sign("app-1", "secret", "get",
-                "/services/v1/orders", "1720000000000", "nonce-1");
-
-        String signatureString = "GET_/services/v1/orders_app-1_1720000000000_nonce-1";
-        assertThat(DataApiGatewayService.signatureString("get", "/services/v1/orders",
-                "app-1", "1720000000000", "nonce-1")).isEqualTo(signatureString);
-        assertThat(signature).isEqualTo(SmUtil.sm3("secret" + signatureString));
-    }
-
-    @Test
-    void v2MustNotFallBackToLegacySignature() {
+    void signatureCoversQueryAndBody() {
         byte[] body = "{\"id\":1}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        String v2 = DataApiSignatureV2.sign("secret", "POST", "/services/v1/orders",
-                "a=1", body, "app-1", "1720000000000", "nonce-1", "application/json", "1");
-        String v1 = DataApiGatewayService.sign("app-1", "secret", "POST",
-                "/services/v1/orders", "a=1", "{\"id\":1}", "1720000000000", "nonce-1");
-        assertThat(v2).isNotEqualTo(v1);
+        String baseline = DataApiSignature.sign("secret", "POST", "/services/v1/orders",
+                "a=1", body, "app-1", "1720000000000", "nonce-1", "application/json");
+
+        assertThat(DataApiSignature.sign("secret", "POST", "/services/v1/orders",
+                "a=2", body, "app-1", "1720000000000", "nonce-1", "application/json"))
+                .isNotEqualTo(baseline);
+        assertThat(DataApiSignature.sign("secret", "POST", "/services/v1/orders",
+                "a=1", "{\"id\":2}".getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                "app-1", "1720000000000", "nonce-1", "application/json"))
+                .isNotEqualTo(baseline);
     }
 
     @Test
-    void queryAndBodyMustNotChangeTheAgreedSignatureString() {
-        String baseline = DataApiGatewayService.sign("app-1", "secret", "POST",
-                "/services/v1/orders", "a=1", "{\"id\":1}",
-                "1720000000000", "nonce-1");
+    void retiredUnderscoreSm3SignatureIsRejected() {
+        try (GatewayFixture fixture = new GatewayFixture()) {
+            String timestamp = String.valueOf(fixture.now);
+            // 已退役的旧协议：SM3(secret + METHOD_PATH_AppKey_Timestamp_Nonce)。平台只认 HMAC-SM3，不得降级接受。
+            String retired = SmUtil.sm3("secret" + "GET_/services/v1/orders_app-1_" + timestamp + "_nonce-1");
+            Map<String, String> headers = Map.of(
+                    DataApiGatewayService.HEADER_APP_KEY, "app-1",
+                    DataApiGatewayService.HEADER_TIMESTAMP, timestamp,
+                    DataApiGatewayService.HEADER_NONCE, "nonce-1",
+                    DataApiGatewayService.HEADER_SIGN, retired);
 
-        assertThat(DataApiGatewayService.sign("app-1", "secret", "POST",
-                "/services/v1/orders", "a=2", "{\"id\":2}",
-                "1720000000000", "nonce-1")).isEqualTo(baseline);
+            assertThatThrownBy(() -> fixture.service.invoke("v1", "/orders", "GET", Map.of(), null, null,
+                    "127.0.0.1", "", null, headers))
+                    .isInstanceOf(ServiceException.class)
+                    .hasMessageContaining("签名不正确");
+            org.mockito.Mockito.verifyNoInteractions(fixture.redisStore);
+        }
     }
 
     @Test
-    void canonicalRequestShouldReturnTheExactProtocolString() {
-        String canonical = DataApiGatewayService.canonicalRequest("v1", "POST",
-                "/services/v1/orders", "a=1", "body", "app-1",
-                "1720000000000", "nonce-1");
+    void secondPrecisionTimestampIsRejected() {
+        try (GatewayFixture fixture = new GatewayFixture()) {
+            String seconds = String.valueOf(fixture.now / 1000);
+            Map<String, String> headers = Map.of(
+                    DataApiGatewayService.HEADER_APP_KEY, "app-1",
+                    DataApiGatewayService.HEADER_TIMESTAMP, seconds,
+                    DataApiGatewayService.HEADER_NONCE, "nonce-1",
+                    DataApiGatewayService.HEADER_SIGN, "00");
 
-        assertThat(canonical).isEqualTo("POST_/services/v1/orders_app-1_1720000000000_nonce-1");
+            assertThatThrownBy(() -> fixture.service.invoke("v1", "/orders", "GET", Map.of(), null, null,
+                    "127.0.0.1", "", null, headers))
+                    .isInstanceOf(ServiceException.class)
+                    .hasMessageContaining("毫秒");
+        }
     }
 
     @Test
@@ -111,60 +122,96 @@ class DataApiGatewayServiceTest {
     }
 
     @Test
+    void forwardGetQueryIsEncodedAndKeepsExistingQuery() {
+        java.util.LinkedHashMap<String, Object> params = new java.util.LinkedHashMap<>();
+        params.put("name", "张 三&x=1");
+        params.put("ids", List.of(1, 2));
+        params.put("skip", null);
+
+        assertThat(DataApiExecutor.appendQuery("https://example.com/api?fixed=1", params))
+                .isEqualTo("https://example.com/api?fixed=1&name=%E5%BC%A0%20%E4%B8%89%26x%3D1&ids=1&ids=2");
+        assertThatThrownBy(() -> DataApiExecutor.appendQuery("not a url", Map.of()))
+                .isInstanceOf(ServiceException.class);
+    }
+
+    @Test
     void sameNonceIsRejectedAndUsesRemainingWindowTtl() {
-        DataApiMapper dataApiMapper = org.mockito.Mockito.mock(DataApiMapper.class);
-        SupplyAppMapper appMapper = org.mockito.Mockito.mock(SupplyAppMapper.class);
-        AppApiMapper appApiMapper = org.mockito.Mockito.mock(AppApiMapper.class);
-        SupplyApiRedisStore redisStore = org.mockito.Mockito.mock(SupplyApiRedisStore.class);
-        DataApiExecutor executor = org.mockito.Mockito.mock(DataApiExecutor.class);
-        DataApiGatewayService service = new DataApiGatewayService();
-        ReflectionTestUtils.setField(service, "dataApiMapper", dataApiMapper);
-        ReflectionTestUtils.setField(service, "appMapper", appMapper);
-        ReflectionTestUtils.setField(service, "appApiMapper", appApiMapper);
-        ReflectionTestUtils.setField(service, "redisStore", redisStore);
-        ReflectionTestUtils.setField(service, "dataApiExecutor", executor);
-        long now = 1_720_000_000_000L;
-        service.setClock(Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC));
+        try (GatewayFixture fixture = new GatewayFixture()) {
+            org.mockito.Mockito.when(fixture.redisStore.reserveNonce(
+                    org.mockito.ArgumentMatchers.eq("app-1"), org.mockito.ArgumentMatchers.eq("nonce-1"),
+                    org.mockito.ArgumentMatchers.anyLong()))
+                    .thenReturn(true)
+                    .thenReturn(false);
 
-        DataApiDO api = DataApiDO.builder()
-                .id(1L).status(DataApiDO.STATUS_ONLINE)
-                .path("/orders").version("v1").method("GET")
-                .apiType(DataApiDO.API_TYPE_QUERY).authType(DataApiDO.AUTH_TYPE_SIGN)
-                .configType(DataApiDO.CONFIG_TYPE_SQL).build();
-        SupplyAppDO app = SupplyAppDO.builder()
-                .id(2L).appKey("app-1").secret("secret")
-                .signProtocol(SupplyAppDO.SIGN_PROTOCOL_BOTH).build();
-        when(dataApiMapper.selectListByPathAndVersion("/orders", "v1")).thenReturn(List.of(api));
-        when(appMapper.selectByAppKey("app-1")).thenReturn(app);
-        when(appApiMapper.selectByAppIdAndApiId(2L, 1L)).thenReturn(AppApiDO.builder()
-                .appId(2L).apiId(1L).foreverFlag(1).build());
-        when(executor.execute(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any(),
-                anyBoolean(), any())).thenReturn(new cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecuteRespVO());
-        org.mockito.Mockito.when(redisStore.reserveNonce(
-                org.mockito.ArgumentMatchers.eq("app-1"), org.mockito.ArgumentMatchers.eq("nonce-1"),
-                org.mockito.ArgumentMatchers.anyLong()))
-                .thenReturn(true)
-                .thenReturn(false);
+            String timestamp = String.valueOf(fixture.now);
+            String sign = DataApiSignature.sign("secret", "GET", "/services/v1/orders", "", new byte[0],
+                    "app-1", timestamp, "nonce-1", null);
+            Map<String, String> headers = Map.of(
+                    DataApiGatewayService.HEADER_APP_KEY, "app-1",
+                    DataApiGatewayService.HEADER_TIMESTAMP, timestamp,
+                    DataApiGatewayService.HEADER_NONCE, "nonce-1",
+                    DataApiGatewayService.HEADER_SIGN, sign);
+            fixture.service.invoke("v1", "/orders", "GET", Map.of(), null, null, "127.0.0.1", "", null, headers);
+            assertThatThrownBy(() -> fixture.service.invoke("v1", "/orders", "GET", Map.of(), null, null,
+                    "127.0.0.1", "", null, headers))
+                    .isInstanceOf(ServiceException.class)
+                    .hasMessageContaining("Nonce");
+            org.mockito.Mockito.verify(fixture.redisStore, org.mockito.Mockito.times(2))
+                    .reserveNonce(
+                            org.mockito.ArgumentMatchers.eq("app-1"),
+                            org.mockito.ArgumentMatchers.eq("nonce-1"),
+                            org.mockito.ArgumentMatchers.eq(DataApiGatewayService.SIGN_TIMESTAMP_VALID_MS
+                                    + DataApiGatewayService.CLOCK_SKEW_MARGIN_MS));
+        }
+    }
 
-        String timestamp = String.valueOf(now);
-        String sign = DataApiGatewayService.sign("app-1", "secret", "GET",
-                "/services/v1/orders", timestamp, "nonce-1");
-        Map<String, String> headers = Map.of(
-                DataApiGatewayService.HEADER_APP_KEY, "app-1",
-                DataApiGatewayService.HEADER_TIMESTAMP, timestamp,
-                DataApiGatewayService.HEADER_NONCE, "nonce-1",
-                DataApiGatewayService.HEADER_SIGN, sign);
-        service.invoke("v1", "/orders", "GET", Map.of(), null, null, "127.0.0.1", "", null, headers);
-        assertThatThrownBy(() -> service.invoke("v1", "/orders", "GET", Map.of(), null, null,
-                "127.0.0.1", "", null, headers))
-                .isInstanceOf(ServiceException.class)
-                .hasMessageContaining("Nonce");
-        org.mockito.Mockito.verify(redisStore, org.mockito.Mockito.times(2))
-                .reserveNonce(
-                        org.mockito.ArgumentMatchers.eq("app-1"),
-                        org.mockito.ArgumentMatchers.eq("nonce-1"),
-                        org.mockito.ArgumentMatchers.eq(DataApiGatewayService.SIGN_TIMESTAMP_VALID_MS
-                                + DataApiGatewayService.CLOCK_SKEW_MARGIN_MS));
+    /** 已上线 SIGN 查询接口 + 已授权应用（密钥明文 "secret"，以 SM4 密文落库）的最小网关夹具。 */
+    private static final class GatewayFixture implements AutoCloseable {
+
+        private static final String MASTER = "gateway-test-master";
+
+        private final org.mockito.MockedStatic<cn.hutool.extra.spring.SpringUtil> spring =
+                org.mockito.Mockito.mockStatic(cn.hutool.extra.spring.SpringUtil.class);
+
+        final long now = 1_720_000_000_000L;
+        final SupplyApiRedisStore redisStore = org.mockito.Mockito.mock(SupplyApiRedisStore.class);
+        final DataApiGatewayService service = new DataApiGatewayService();
+
+        GatewayFixture() {
+            DataApiMapper dataApiMapper = org.mockito.Mockito.mock(DataApiMapper.class);
+            SupplyAppMapper appMapper = org.mockito.Mockito.mock(SupplyAppMapper.class);
+            AppApiMapper appApiMapper = org.mockito.Mockito.mock(AppApiMapper.class);
+            DataApiExecutor executor = org.mockito.Mockito.mock(DataApiExecutor.class);
+            ReflectionTestUtils.setField(service, "dataApiMapper", dataApiMapper);
+            ReflectionTestUtils.setField(service, "appMapper", appMapper);
+            ReflectionTestUtils.setField(service, "appApiMapper", appApiMapper);
+            ReflectionTestUtils.setField(service, "redisStore", redisStore);
+            ReflectionTestUtils.setField(service, "dataApiExecutor", executor);
+            ReflectionTestUtils.setField(service, "apiLogMapper",
+                    org.mockito.Mockito.mock(cn.iocoder.yudao.module.supply.dal.mysql.apilog.ApiLogMapper.class));
+            service.setClock(Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC));
+            DataApiDO api = DataApiDO.builder()
+                    .id(1L).status(DataApiDO.STATUS_ONLINE)
+                    .path("/orders").version("v1").method("GET")
+                    .apiType(DataApiDO.API_TYPE_QUERY).authType(DataApiDO.AUTH_TYPE_SIGN)
+                    .configType(DataApiDO.CONFIG_TYPE_SQL).build();
+            spring.when(() -> cn.hutool.extra.spring.SpringUtil.getProperty("mybatis-plus.encryptor.password"))
+                    .thenReturn(MASTER);
+            SupplyAppDO app = SupplyAppDO.builder().id(2L).appKey("app-1")
+                    .secret(SupplyAppSecretCipher.encrypt("secret", "SM4", MASTER)).build();
+            when(dataApiMapper.selectListByPathAndVersion("/orders", "v1")).thenReturn(List.of(api));
+            when(appMapper.selectByAppKey("app-1")).thenReturn(app);
+            when(appApiMapper.selectByAppIdAndApiId(2L, 1L)).thenReturn(AppApiDO.builder()
+                    .appId(2L).apiId(1L).foreverFlag(1).build());
+            when(executor.execute(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any(),
+                    anyBoolean(), any())).thenReturn(
+                    new cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecuteRespVO());
+        }
+
+        @Override
+        public void close() {
+            spring.close();
+        }
     }
 
 }

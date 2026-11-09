@@ -1,4 +1,4 @@
--- Included migrations through: 0264
+-- Included migrations through: 0265
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -15746,7 +15746,7 @@ CREATE TABLE "datahub-center"."dh_supply_app" (
   "app_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'Web'::character varying,
   "icon" varchar(500) COLLATE "pg_catalog"."default",
   "app_key" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "secret" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "secret" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
   "public_flag" int2 NOT NULL DEFAULT 1,
   "description" varchar(500) COLLATE "pg_catalog"."default",
   "remark" varchar(500) COLLATE "pg_catalog"."default",
@@ -15756,7 +15756,6 @@ CREATE TABLE "datahub-center"."dh_supply_app" (
   "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted" int2 NOT NULL DEFAULT 0,
   "tenant_id" int8 NOT NULL DEFAULT 1,
-  "sign_protocol" varchar(16) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'BOTH'::character varying,
   "owning_dept_id" int8,
   "system_code" varchar(64) COLLATE "pg_catalog"."default",
   "owner_user_id" int8,
@@ -15771,7 +15770,7 @@ COMMENT ON COLUMN "datahub-center"."dh_supply_app"."name" IS '应用名称';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."app_type" IS '应用类型：Web/App/小程序';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."icon" IS '应用图标地址';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."app_key" IS '应用凭证，开放接口通过 X-AppKey 传递';
-COMMENT ON COLUMN "datahub-center"."dh_supply_app"."secret" IS '应用秘钥';
+COMMENT ON COLUMN "datahub-center"."dh_supply_app"."secret" IS '应用秘钥密文：<算法>:<载荷>，算法为 SM4 或 AES（GCM）';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."public_flag" IS '是否公开：0-非公开 1-公开';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."description" IS '描述';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."remark" IS '备注';
@@ -15781,7 +15780,6 @@ COMMENT ON COLUMN "datahub-center"."dh_supply_app"."updater" IS '最后更新者
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."update_time" IS '最后更新时间';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."deleted" IS '逻辑删除标识：0未删除、1已删除';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."tenant_id" IS '租户编号';
-COMMENT ON COLUMN "datahub-center"."dh_supply_app"."sign_protocol" IS '签名协议：LEGACY仅v1、V2仅v2、BOTH按请求头选择且不自动降级';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."owning_dept_id" IS '责任部门编号，来自 System，请求中的部门只是候选';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."system_code" IS '使用部门业务系统编码';
 COMMENT ON COLUMN "datahub-center"."dh_supply_app"."owner_user_id" IS '应用负责人，变更不自动扩大数据授权';

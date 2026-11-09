@@ -27,7 +27,6 @@ export namespace SupplyAppApi {
     environment?: string;
     appStatus?: number;
     credentialRevision?: number;
-    signProtocol?: string;
   }
 
   /** 应用 API 授权 */

@@ -5,7 +5,7 @@ import { computed, h, reactive, ref } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
 
-import { Button, Drawer, Input, message, Select, Table, Tag } from 'antdv-next';
+import { Button, Drawer, Input, message, Table, Tag } from 'antdv-next';
 
 import {
   getDataApi,
@@ -80,8 +80,6 @@ async function open(id: number | string) {
   signForm.appSecret = '';
   signForm.timestamp = '';
   signForm.nonce = '';
-  signForm.signVersion = 'v2';
-  signForm.keyVersion = '1';
   signForm.contentType = api.value.method === 'GET' ? '' : 'application/json';
   signForm.queryString = '';
   signForm.body = '';
@@ -106,14 +104,7 @@ const headerRows = computed(() => {
     rows.push(
       { key: 'X-Timestamp', value: '毫秒时间戳（有效期 10 分钟）' },
       { key: 'X-Nonce', value: '随机数（覆盖整个 10 分钟时间窗，不可重复）' },
-      {
-        key: 'X-Sign-Version',
-        value: needsOperation.value
-          ? '写入必须使用 v2，保护业务操作编号和请求体'
-          : '新接入使用 v2；历史只读客户端可使用 v1',
-      },
-      { key: 'X-Key-Version', value: 'v2 使用 1；需与在线签名工具一致' },
-      { key: 'X-Sign', value: 'v2 为 HMAC-SM3；v1 为 SM3(AppSecret + 签名串)' },
+      { key: 'X-Sign', value: 'HMAC-SM3(AppSecret, 签名原文) 的小写十六进制' },
     );
   }
   return rows;
@@ -722,10 +713,7 @@ function handleExportMarkdown() {
     push();
     if (api.value.authType === 'SIGN') {
       push(
-        '> 新接入使用 v2：HMAC-SM3 覆盖请求方法、路径、规范化查询串、原始请求体哈希、AppKey、时间戳、Nonce、Content-Type 和凭证版本。查询串与请求体必须和实际发送的请求一致。',
-      );
-      push(
-        '> 历史 v1：仅应用允许时可省略 X-Sign-Version；签名串 = HTTP_METHOD + "_" + API_PATH + "_" + AppKey + "_" + Timestamp + "_" + Nonce，X-Sign = SM3(AppSecret + 签名串)。v2 失败不能回退 v1。',
+        '> 签名协议：HMAC-SM3（平台唯一协议）。签名原文依次为 HMAC-SM3、请求方法、API_PATH、规范化查询串（按发送顺序）、原始请求体 SM3 摘要、AppKey、毫秒时间戳、Nonce、Content-Type，每个字段写成"长度:值"并以换行结尾。查询串与请求体必须和实际发送的请求一致，且二者不得出现同名参数。',
       );
       push();
     }
@@ -802,10 +790,8 @@ const signForm = reactive({
   appSecret: '',
   body: '',
   contentType: 'application/json',
-  keyVersion: '1',
   nonce: '',
   queryString: '',
-  signVersion: 'v2' as 'v1' | 'v2',
   timestamp: '',
 });
 const signResult = ref('');
@@ -841,16 +827,11 @@ async function handleSign() {
       apiPath: gatewayPath.value,
       appKey: signForm.appKey,
       appSecret: signForm.appSecret,
-      body: signForm.signVersion === 'v2' ? signForm.body : undefined,
-      contentType:
-        signForm.signVersion === 'v2' ? signForm.contentType : undefined,
-      keyVersion:
-        signForm.signVersion === 'v2' ? signForm.keyVersion : undefined,
+      body: signForm.body,
+      contentType: signForm.contentType,
       method: api.value.method ?? 'POST',
       nonce: signForm.nonce,
-      queryString:
-        signForm.signVersion === 'v2' ? signForm.queryString : undefined,
-      signVersion: signForm.signVersion,
+      queryString: signForm.queryString,
       timestamp: signForm.timestamp,
     });
     message.success('签名生成成功');
@@ -937,32 +918,10 @@ async function handleCopySign() {
         <!-- 在线签名工具 -->
         <div v-if="signVisible" class="doc-sign">
           <div class="doc-sign__rule">
-            {{
-              signForm.signVersion === 'v2'
-                ? 'v2：HMAC-SM3 覆盖方法、路径、查询串、原始请求体、Content-Type、凭证版本等；必须与实际发送内容一致。'
-                : '历史 v1：SM3(AppSecret + METHOD_PATH_AppKey_Timestamp_Nonce)；只供已启用旧协议的应用使用。'
-            }}
-            API_PATH 为 {{ gatewayPath }}
+            HMAC-SM3 覆盖方法、路径、查询串、原始请求体、Content-Type、时间戳与
+            Nonce；必须与实际发送内容一致。API_PATH 为 {{ gatewayPath }}
           </div>
           <div class="doc-sign__grid">
-            <div class="doc-sign__item">
-              <span>X-Sign-Version</span>
-              <Select
-                v-model:value="signForm.signVersion"
-                class="flex-1"
-                :options="[
-                  { label: 'v2（推荐）', value: 'v2' },
-                  { label: 'v1（旧客户端）', value: 'v1' },
-                ]"
-              />
-            </div>
-            <div v-if="signForm.signVersion === 'v2'" class="doc-sign__item">
-              <span>X-Key-Version</span>
-              <Input
-                v-model:value="signForm.keyVersion"
-                placeholder="当前支持 1"
-              />
-            </div>
             <div class="doc-sign__item">
               <span>X-AppKey</span>
               <Input
@@ -1002,30 +961,21 @@ async function handleCopySign() {
                 </Button>
               </div>
             </div>
-            <div
-              v-if="signForm.signVersion === 'v2'"
-              class="doc-sign__item doc-sign__item--full"
-            >
+            <div class="doc-sign__item doc-sign__item--full">
               <span>原始查询串</span>
               <Input
                 v-model:value="signForm.queryString"
                 placeholder="不带 ?，需与实际请求一致"
               />
             </div>
-            <div
-              v-if="signForm.signVersion === 'v2'"
-              class="doc-sign__item doc-sign__item--full"
-            >
+            <div class="doc-sign__item doc-sign__item--full">
               <span>Content-Type</span>
               <Input
                 v-model:value="signForm.contentType"
                 placeholder="需与实际请求头一致"
               />
             </div>
-            <div
-              v-if="signForm.signVersion === 'v2'"
-              class="doc-sign__item doc-sign__item--full"
-            >
+            <div class="doc-sign__item doc-sign__item--full">
               <span>原始请求体</span>
               <Input.TextArea
                 v-model:value="signForm.body"

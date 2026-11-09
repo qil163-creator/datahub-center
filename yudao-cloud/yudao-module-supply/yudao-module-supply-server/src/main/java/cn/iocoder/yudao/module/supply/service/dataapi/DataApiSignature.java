@@ -18,22 +18,20 @@ import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_A
 import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
 
 /**
- * 数据服务签名协议 v2：HMAC-SM3，覆盖 method/path/query/body。
- * 与 v1 的 {@code SM3(secret + 下划线拼接)} 独立，失败不得回退。
+ * 数据服务开放网关唯一签名协议：HMAC-SM3。
+ *
+ * <p>签名原文按固定顺序包含协议标识、HTTP 方法、规范路径、规范化查询串、原始请求体 SM3 摘要、
+ * AppKey、毫秒时间戳、Nonce 与 Content-Type；每个字段以“长度:值\n”拼接，避免字段边界歧义。
+ * {@code X-Sign = hex(HMAC-SM3(AppSecret, 签名原文))}。平台只提供这一种协议，不按请求头协商或降级。</p>
  */
-public final class DataApiSignatureV2 {
+public final class DataApiSignature {
 
-    public static final String VERSION = "v2";
-
-    public static final String HEADER_SIGN_VERSION = "X-Sign-Version";
-
-    public static final String HEADER_KEY_VERSION = "X-Key-Version";
+    /** 签名原文首字段，绑定算法与字段布局；变更布局必须同时更换此标识。 */
+    public static final String PROTOCOL = "HMAC-SM3";
 
     public static final int MAX_BODY_BYTES = 1024 * 1024;
 
     public static final int MAX_NONCE_LENGTH = 64;
-
-    public static final String DEFAULT_KEY_VERSION = "1";
 
     private static final Pattern NONCE_PATTERN = Pattern.compile("[A-Za-z0-9._-]{1,64}");
 
@@ -42,32 +40,29 @@ public final class DataApiSignatureV2 {
     private static final byte[] EMPTY_BODY = new byte[0];
 
     /**
-     * 限制数据 API签名版本2工具的实例化，统一通过静态能力使用。
+     * 限制签名工具的实例化，统一通过静态能力使用。
      */
-    private DataApiSignatureV2() {
+    private DataApiSignature() {
     }
 
     /**
-     * 签名数据 API签名版本2。
+     * 计算请求签名。
      *
-     * @param appSecret 应用密钥
+     * @param appSecret 应用密钥明文
      * @param method HTTP 方法
-     * @param canonicalPath 规范路径
+     * @param canonicalPath 规范路径（/services/{version}{path}）
      * @param rawQuery 原始查询字符串
-     * @param rawBody 原始请求体
+     * @param rawBody 原始请求体字节
      * @param appKey 应用标识
-     * @param timestamp 时间戳
+     * @param timestamp 毫秒时间戳
      * @param nonce 随机数
      * @param contentType 内容类型
-     * @param keyVersion 密钥版本
-     * @return 计算后的摘要或签名字符串
+     * @return 小写十六进制签名
      */
     public static String sign(String appSecret, String method, String canonicalPath, String rawQuery,
-            byte[] rawBody, String appKey, String timestamp, String nonce,
-            String contentType, String keyVersion) {
-        String canonical = canonicalString(method, canonicalPath, rawQuery, rawBody, appKey,
-                timestamp, nonce, contentType, keyVersion);
-        return hmacSm3Hex(appSecret, canonical);
+            byte[] rawBody, String appKey, String timestamp, String nonce, String contentType) {
+        return hmacSm3Hex(appSecret, canonicalString(method, canonicalPath, rawQuery, rawBody, appKey,
+                timestamp, nonce, contentType));
     }
 
     /**
@@ -81,12 +76,10 @@ public final class DataApiSignatureV2 {
      * @param timestamp 时间戳
      * @param nonce 随机数
      * @param contentType 内容类型
-     * @param keyVersion 密钥版本
-     * @return 按协议规定的字段顺序构造签名原文文本
+     * @return 签名原文
      */
     public static String canonicalString(String method, String canonicalPath, String rawQuery,
-            byte[] rawBody, String appKey, String timestamp, String nonce,
-            String contentType, String keyVersion) {
+            byte[] rawBody, String appKey, String timestamp, String nonce, String contentType) {
         LinkedHashMap<String, String> query = DataApiQueryCodec.parse(rawQuery);
         validatePath(canonicalPath);
         validateNonce(nonce);
@@ -96,12 +89,8 @@ public final class DataApiSignatureV2 {
         if (body.length > MAX_BODY_BYTES) {
             throw exception(DATA_API_REQUEST_INVALID, "请求体超过大小限制");
         }
-        String kv = StrUtil.blankToDefault(keyVersion, DEFAULT_KEY_VERSION);
-        if (!DEFAULT_KEY_VERSION.equals(kv)) {
-            throw exception(DATA_API_AUTH_FAILED, "不支持的凭证版本");
-        }
         return join(
-                VERSION,
+                PROTOCOL,
                 canonicalValue(method).toUpperCase(Locale.ROOT),
                 canonicalPath,
                 DataApiQueryCodec.canonicalize(query),
@@ -109,15 +98,14 @@ public final class DataApiSignatureV2 {
                 canonicalValue(appKey),
                 canonicalValue(timestamp),
                 canonicalValue(nonce),
-                DataApiQueryCodec.normalizeContentType(contentType),
-                kv);
+                DataApiQueryCodec.normalizeContentType(contentType));
     }
 
     /**
-     * 计算原始请求体字节的摘要。
+     * 计算原始请求体字节的 SM3 摘要。
      *
      * @param rawBody 原始请求体
-     * @return 计算后的摘要或签名字符串
+     * @return 小写十六进制摘要
      */
     public static String bodyHash(byte[] rawBody) {
         byte[] body = rawBody == null ? EMPTY_BODY : rawBody;
@@ -133,10 +121,10 @@ public final class DataApiSignatureV2 {
      *
      * @param expected 预期值
      * @param actual 实际值
-     * @return 判断结果
+     * @return 是否一致
      */
     public static boolean matches(String expected, String actual) {
-        if (actual == null) {
+        if (expected == null || actual == null) {
             return false;
         }
         // 十六进制大小写统一后用固定时间比较，避免逐字符短路比较泄露已匹配的签名前缀。
@@ -182,7 +170,7 @@ public final class DataApiSignatureV2 {
         // 此处只约束签名字段格式；请求是否过期及 nonce 是否已使用由网关入口校验。
         if (timestamp == null || !timestamp.chars().allMatch(Character::isDigit)
                 || timestamp.length() < 13 || timestamp.length() > 16) {
-            throw exception(DATA_API_AUTH_FAILED, "v2 时间戳必须是十进制毫秒");
+            throw exception(DATA_API_AUTH_FAILED, "时间戳必须是十进制毫秒");
         }
         try {
             Long.parseLong(timestamp);
@@ -195,8 +183,8 @@ public final class DataApiSignatureV2 {
      * 使用 HMAC-SM3 计算签名并输出十六进制字符串。
      *
      * @param secret 密钥
-     * @param canonical 规范
-     * @return 计算后的摘要或签名字符串
+     * @param canonical 签名原文
+     * @return 小写十六进制签名
      */
     public static String hmacSm3Hex(String secret, String canonical) {
         byte[] key = canonicalValue(secret).getBytes(StandardCharsets.UTF_8);
@@ -213,7 +201,7 @@ public final class DataApiSignatureV2 {
      * 将已解析的查询参数转为执行参数映射。
      *
      * @param query 查询
-     * @return 处理后的键值映射
+     * @return 执行参数映射
      */
     public static Map<String, Object> toParamMap(LinkedHashMap<String, String> query) {
         Map<String, Object> params = new LinkedHashMap<>();
@@ -223,9 +211,6 @@ public final class DataApiSignatureV2 {
 
     /**
      * 按长度前缀与换行拼接签名字段，拒绝字段内换行，避免字段边界歧义。
-     *
-     * @param parts 分段
-     * @return 按长度前缀与换行拼接签名字段，拒绝字段内换行，避免字段边界歧义文本
      */
     private static String join(String... parts) {
         // 长度前缀与换行共同确定字段边界，字段包含冒号等分隔字符时也不会形成同一签名串。
@@ -240,12 +225,6 @@ public final class DataApiSignatureV2 {
         return result.toString();
     }
 
-    /**
-     * 将 null 值转换为空字符串，其余内容保持原文。
-     *
-     * @param value 待处理的值
-     * @return 将 null 值转换为空字符串，其余内容保持原文文本
-     */
     private static String canonicalValue(String value) {
         return value == null ? "" : value;
     }

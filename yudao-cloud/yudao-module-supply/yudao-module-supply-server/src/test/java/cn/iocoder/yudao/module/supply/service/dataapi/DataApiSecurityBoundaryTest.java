@@ -187,7 +187,9 @@ class DataApiSecurityBoundaryTest {
 
     @Test
     void secretCipherShouldFailClosedWhenEncryptorConfigMissing() {
-        assertThat(SupplyAppSecretCipher.decrypt("plain-secret")).isEqualTo("plain-secret");
+        assertThatThrownBy(() -> SupplyAppSecretCipher.decrypt("SM4:AAAA"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("mybatis-plus.encryptor.password");
         assertThatThrownBy(() -> SupplyAppSecretCipher.encrypt("plain-secret"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("mybatis-plus.encryptor.password");
