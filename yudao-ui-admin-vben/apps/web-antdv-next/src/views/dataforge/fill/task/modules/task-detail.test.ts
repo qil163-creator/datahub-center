@@ -117,6 +117,7 @@ vi.mock('antdv-next', () => {
 vi.mock('#/api/dataforge/fill', () => ({
   getTaskProgress: vi.fn(),
   getWorkItemListByTask: vi.fn(),
+  switchTaskProcessDefinition: vi.fn(),
   updateWorkItemAssignees: vi.fn(),
   urgeTask: vi.fn(),
   urgeWorkItem: vi.fn(),

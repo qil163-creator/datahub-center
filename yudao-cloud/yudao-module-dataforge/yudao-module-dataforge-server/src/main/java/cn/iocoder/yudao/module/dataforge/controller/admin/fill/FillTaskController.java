@@ -96,6 +96,34 @@ public class FillTaskController {
     }
 
     /**
+     * 把任务冻结的审批流程切换到当前生效版本。
+     *
+     * @param id 记录编号
+     * @return 切换后的流程定义编号
+     */
+    @PutMapping("/switch-process-definition")
+    @LogRecord(type = "数据开发-在线填报采集任务", subType = "切换审批流程版本", bizNo = "{{(#id) ?: 0}}",
+            success = "将填报采集任务【{{(#operateName) ?: '未设置'}}】的审批流程切换到当前版本【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @Operation(summary = "切换到当前审批流程版本",
+            description = "冻结的流程版本被新部署停用后，由管理员确认切换；等待启动审批的提交将立即按新版本重新发起，已发起的审批不受影响")
+    @Parameter(name = "id", description = "任务编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:create')")
+    public CommonResult<String> switchProcessDefinition(@RequestParam("id") Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，不改变原有业务权限、校验和写入结果。
+        }
+        LogRecordContext.putVariable("operateName", operateName);
+        return success(taskService.switchProcessDefinition(id));
+    }
+
+    /**
      * 任务级一键催办。
      *
      * @param id 记录编号

@@ -40,6 +40,19 @@ public interface BpmProcessInstanceApi {
             @RequestParam("processDefinitionKey") String processDefinitionKey,
             @RequestParam("businessKey") String businessKey);
 
+    @GetMapping(PREFIX + "/get-active-definition-id")
+    @Operation(summary = "按流程定义标识查询当前生效的流程定义编号（提供给内部，业务方冻结流程版本用）",
+            description = "不存在或已挂起时返回 null")
+    CommonResult<String> getActiveProcessDefinitionId(
+            @RequestParam("processDefinitionKey") String processDefinitionKey);
+
+    @GetMapping(PREFIX + "/is-participant")
+    @Operation(summary = "判断用户是否为流程实例参与者（提供给内部，业务方收紧审批材料可见范围用）",
+            description = "发起人、任一任务的审批人/拥有人/候选人，以及抄送人均视为参与者；实例不存在返回 false")
+    CommonResult<Boolean> isProcessInstanceParticipant(
+            @RequestParam("processInstanceId") String processInstanceId,
+            @RequestParam("userId") Long userId);
+
     @GetMapping(PREFIX + "/get-status")
     @Operation(summary = "查询流程实例状态（提供给内部，业务方状态对账用）",
             description = "返回 BpmProcessInstanceStatusEnum 的状态值；实例不存在返回 null")

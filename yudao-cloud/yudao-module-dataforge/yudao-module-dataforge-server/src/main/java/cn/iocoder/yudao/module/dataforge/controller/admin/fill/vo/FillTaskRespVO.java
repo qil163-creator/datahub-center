@@ -32,6 +32,10 @@ public class FillTaskRespVO {
     @Schema(description = "BPM 流程定义 Key", example = "dataforge_fill_approval")
     private String processDefinitionKey;
 
+    @Schema(description = "冻结的 BPM 流程定义版本编号；为空表示尚未冻结（首次启动审批时冻结）",
+            example = "dataforge_fill_approval:2:7dc25daf")
+    private String processDefinitionId;
+
     @Schema(description = "数据所属期", example = "2026-08")
     private String periodKey;
 

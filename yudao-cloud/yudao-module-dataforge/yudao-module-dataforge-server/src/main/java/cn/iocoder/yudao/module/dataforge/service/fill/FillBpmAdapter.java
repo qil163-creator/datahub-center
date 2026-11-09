@@ -48,6 +48,8 @@ public class FillBpmAdapter {
         return bpmProcessInstanceApi.createProcessInstance(submission.getSubmitterUserId(),
                         new BpmProcessInstanceCreateReqDTO()
                                 .setProcessDefinitionKey(task.getProcessDefinitionKey())
+                                // 严格按任务冻结的版本发起；该版本已停用时 BPM 拒绝，不回退到当前版本
+                                .setProcessDefinitionId(task.getProcessDefinitionId())
                                 .setBusinessKey(String.valueOf(submission.getId()))
                                 .setVariables(variables))
                 .getCheckedData();
@@ -67,6 +69,21 @@ public class FillBpmAdapter {
     public String findProcessInstanceIdByBusinessKey(String processDefinitionKey, Long submissionId) {
         return bpmProcessInstanceApi.getProcessInstanceIdByBusinessKey(
                 processDefinitionKey, String.valueOf(submissionId)).getCheckedData();
+    }
+
+    /**
+     * 查询流程定义标识当前生效的版本编号（不存在或已挂起返回 null）
+     */
+    public String getActiveProcessDefinitionId(String processDefinitionKey) {
+        return bpmProcessInstanceApi.getActiveProcessDefinitionId(processDefinitionKey).getCheckedData();
+    }
+
+    /**
+     * 判断用户是否为流程实例参与者（发起人、审批人/候选人、抄送人）
+     */
+    public boolean isProcessInstanceParticipant(String processInstanceId, Long userId) {
+        return Boolean.TRUE.equals(bpmProcessInstanceApi
+                .isProcessInstanceParticipant(processInstanceId, userId).getCheckedData());
     }
 
     /**

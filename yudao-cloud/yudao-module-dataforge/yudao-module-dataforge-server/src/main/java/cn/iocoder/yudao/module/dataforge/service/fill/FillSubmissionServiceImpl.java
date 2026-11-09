@@ -268,10 +268,11 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
      */
     @Override
     public FillSubmissionPreviewRespVO getSubmissionPreview(Long submissionId) {
-        // 权限由 dataforge:fill-submission:preview 权限码控制（审批人角色需授予）；
-        // TODO 待 bpm-api 提供"是否流程参与者"查询后收紧为参与者/填报关系校验
+        // 接口权限码 dataforge:fill-submission:preview 之外，再按对象收紧：
+        // 填报关系（有效填报人 / 任务发起人 / 报送组织负责人）或该提交审批流程的参与者（发起人、审批人、候选人、抄送人）
         FillSubmissionDO submission = validateSubmissionExists(submissionId);
         FillWorkItemDO item = workItemMapper.selectById(submission.getWorkItemId());
+        checkPreviewPermission(submission, item, SecurityFrameworkUtils.getLoginUserId());
         FillTaskDO task = taskMapper.selectById(submission.getTaskId());
         FillTableVersionDO version = tableVersionService.getTableVersion(submission.getTableVersionId());
 
@@ -314,6 +315,32 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                     }).toList());
         }
         return respVO;
+    }
+
+    /**
+     * 校验提交快照预览权限：先查本地填报关系，不满足时再向 BPM 查询是否为该提交审批实例的参与者。
+     * BPM 不可用时拒绝访问（fail closed），不放宽为仅凭接口权限码访问。
+     */
+    private void checkPreviewPermission(FillSubmissionDO submission, FillWorkItemDO item, Long userId) {
+        if (userId == null) {
+            throw exception(FILL_SUBMISSION_PREVIEW_DENIED);
+        }
+        if (Objects.equals(submission.getSubmitterUserId(), userId) || workItemService.hasViewPermission(item, userId)) {
+            return;
+        }
+        if (StrUtil.isNotBlank(submission.getProcessInstanceId())) {
+            boolean participant;
+            try {
+                participant = bpmAdapter.isProcessInstanceParticipant(submission.getProcessInstanceId(), userId);
+            } catch (RuntimeException ex) {
+                log.warn("[checkPreviewPermission][提交({}) 查询审批参与者失败，拒绝访问]", submission.getId(), ex);
+                participant = false;
+            }
+            if (participant) {
+                return;
+            }
+        }
+        throw exception(FILL_SUBMISSION_PREVIEW_DENIED);
     }
 
     // ---------------------------------------------------------------- 强校验

@@ -33,6 +33,16 @@ public interface FillTaskService {
     Long manualGenerate(FillTaskGenerateReqVO reqVO);
 
     /**
+     * 冻结任务的审批流程版本（仅当尚未冻结），返回最终冻结的流程定义编号
+     */
+    String freezeProcessDefinition(Long taskId, String processDefinitionKey);
+
+    /**
+     * 把任务冻结的审批流程切换到当前生效版本，并立即重新投递等待中的启动审批事件
+     */
+    String switchProcessDefinition(Long id);
+
+    /**
      * 获得采集任务分页。
      *
      * @param pageReqVO 分页查询条件

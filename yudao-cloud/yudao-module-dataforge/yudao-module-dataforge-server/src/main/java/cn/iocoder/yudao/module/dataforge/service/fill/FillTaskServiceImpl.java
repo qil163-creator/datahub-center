@@ -1,6 +1,9 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillEventOutboxMapper;
+import cn.iocoder.yudao.module.dataforge.enums.fill.FillEventTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenerateReqVO;
@@ -31,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
@@ -73,6 +78,12 @@ public class FillTaskServiceImpl implements FillTaskService {
     @Resource
     private FillNotifyService notifyService;
 
+    @Resource
+    private FillBpmAdapter bpmAdapter;
+
+    @Resource
+    private FillEventOutboxMapper outboxMapper;
+
     /**
      * 按生成时点为计划生成周期任务及其下属组织填报实例与填报人
      *
@@ -99,7 +110,7 @@ public class FillTaskServiceImpl implements FillTaskService {
                 .tableId(plan.getTableId())
                 .tableVersionId(plan.getTableVersionId())
                 .processDefinitionKey(plan.getProcessDefinitionKey())
-                // TODO 阶段 4：通过 BPM 适配器解析并冻结 processDefinitionId，流程升级不影响本任务
+                // processDefinitionId 在本事务提交后冻结（见 registerProcessDefinitionFreeze），不在持锁事务中调用 BPM
                 .periodKey(period.periodKey())
                 .periodStart(period.periodStart())
                 .periodEnd(period.periodEnd())
@@ -164,7 +175,93 @@ public class FillTaskServiceImpl implements FillTaskService {
         countUpdate.setId(task.getId());
         countUpdate.setTotalOrgCount(orgs.size());
         taskMapper.updateById(countUpdate);
+        registerProcessDefinitionFreeze(task.getId(), task.getProcessDefinitionKey());
         return task.getId();
+    }
+
+    /**
+     * 任务生成事务提交后，冻结审批流程当前生效版本；此后流程升级不影响本任务。
+     *
+     * <p>远程查询放在事务提交之后，避免在发布计划等持锁事务中调用 BPM。冻结失败（BPM 不可用、流程未部署）
+     * 不影响任务生成：首个提交启动审批时由投递 Job 再次冻结，同样只写入尚未冻结的任务。</p>
+     */
+    private void registerProcessDefinitionFreeze(Long taskId, String processDefinitionKey) {
+        if (StrUtil.isBlank(processDefinitionKey)) {
+            return;
+        }
+        Runnable freeze = () -> {
+            try {
+                freezeProcessDefinition(taskId, processDefinitionKey);
+            } catch (Exception ex) {
+                log.warn("[registerProcessDefinitionFreeze][任务({}) 冻结审批流程({})版本失败，将在首次启动审批时重试]",
+                        taskId, processDefinitionKey, ex);
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    freeze.run();
+                }
+            });
+        } else {
+            freeze.run();
+        }
+    }
+
+    /**
+     * 冻结任务的审批流程版本（仅当尚未冻结），返回任务最终生效的冻结版本。
+     *
+     * @param taskId 任务编号
+     * @param processDefinitionKey 流程定义标识
+     * @return 冻结的流程定义编号
+     */
+    @Override
+    public String freezeProcessDefinition(Long taskId, String processDefinitionKey) {
+        FillTaskDO current = taskMapper.selectById(taskId);
+        if (current != null && StrUtil.isNotBlank(current.getProcessDefinitionId())) {
+            return current.getProcessDefinitionId();
+        }
+        String activeId = bpmAdapter.getActiveProcessDefinitionId(processDefinitionKey);
+        if (StrUtil.isBlank(activeId)) {
+            throw exception(FILL_TASK_PROCESS_NO_ACTIVE_VERSION, processDefinitionKey);
+        }
+        taskMapper.freezeProcessDefinitionIfAbsent(taskId, activeId);
+        // 并发冻结时以先写入者为准，重新读取最终值
+        FillTaskDO frozen = taskMapper.selectById(taskId);
+        return frozen == null ? activeId : frozen.getProcessDefinitionId();
+    }
+
+    /**
+     * 管理员把任务冻结的审批流程切换到当前生效版本；该任务下因旧版本停用而等待重试的启动审批事件立即重新投递。
+     * 已发起的审批实例不受影响。
+     *
+     * @param id 任务编号
+     * @return 切换后的流程定义编号
+     */
+    @Override
+    public String switchProcessDefinition(Long id) {
+        FillTaskDO task = taskMapper.selectById(id);
+        if (task == null) {
+            throw exception(FILL_TASK_NOT_EXISTS);
+        }
+        if (StrUtil.isBlank(task.getProcessDefinitionKey())) {
+            throw exception(FILL_TASK_PROCESS_NOT_CONFIGURED);
+        }
+        // 远程查询在事务外执行；本地只有一条 CAS 更新与一条重排期更新
+        String activeId = bpmAdapter.getActiveProcessDefinitionId(task.getProcessDefinitionKey());
+        if (StrUtil.isBlank(activeId)) {
+            throw exception(FILL_TASK_PROCESS_NO_ACTIVE_VERSION, task.getProcessDefinitionKey());
+        }
+        if (!activeId.equals(task.getProcessDefinitionId())
+                && taskMapper.switchProcessDefinition(id, task.getProcessDefinitionId(), activeId) == 0) {
+            throw exception(FILL_TASK_STATUS_INVALID);
+        }
+        int rescheduled = outboxMapper.rescheduleFailedByTask(id,
+                FillEventTypeEnum.FILL_BPM_START_REQUESTED.getType(), LocalDateTime.now());
+        log.info("[switchProcessDefinition][任务({}) 审批流程版本 {} -> {}，重新投递启动事件 {} 个]",
+                id, task.getProcessDefinitionId(), activeId, rescheduled);
+        return activeId;
     }
 
     /**

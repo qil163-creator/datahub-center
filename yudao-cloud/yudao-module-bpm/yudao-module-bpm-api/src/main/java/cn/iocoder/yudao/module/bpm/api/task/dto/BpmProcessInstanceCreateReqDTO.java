@@ -16,6 +16,11 @@ public class BpmProcessInstanceCreateReqDTO {
     @NotEmpty(message = "流程定义的标识不能为空")
     private String processDefinitionKey;
 
+    @Schema(description = "指定的流程定义编号（可选）。传入时按该版本发起，必须属于 processDefinitionKey；"
+            + "该版本已挂起时拒绝发起，不回退到当前版本。不传时使用该标识当前生效的版本",
+            example = "dataforge_fill_approval:2:7dc25daf")
+    private String processDefinitionId;
+
     @Schema(description = "变量实例", requiredMode = Schema.RequiredMode.REQUIRED)
     private Map<String, Object> variables;
 

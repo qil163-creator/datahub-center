@@ -33,6 +33,21 @@ public interface FillEventOutboxMapper extends BaseMapperX<FillEventOutboxDO> {
     }
 
     /**
+     * 管理员切换任务审批流程版本后，把该任务下失败待重试的“启动审批”事件改为立即到期，
+     * 由投递 Job 按新版本重新发起；成功、发送中的事件不受影响。
+     *
+     * @param taskId 任务编号
+     * @param eventType 启动审批事件类型
+     * @param now 当前时间
+     * @return 影响行数
+     */
+    @Update("UPDATE dh_dataforge_fill_event_outbox SET next_retry_time = #{now}, update_time = CURRENT_TIMESTAMP "
+            + "WHERE event_type = #{eventType} AND status = 3 AND deleted = 0 AND biz_id IN ("
+            + "SELECT id FROM dh_dataforge_fill_submission WHERE task_id = #{taskId} AND deleted = 0)")
+    int rescheduleFailedByTask(@Param("taskId") Long taskId, @Param("eventType") String eventType,
+            @Param("now") LocalDateTime now);
+
+    /**
      * 投递抢占 CAS：迁移到发送中，防止多实例重复投递
      *
      * @return 影响行数，0 表示被其他实例抢占

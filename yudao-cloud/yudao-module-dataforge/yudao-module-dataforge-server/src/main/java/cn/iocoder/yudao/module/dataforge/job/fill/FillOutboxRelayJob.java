@@ -13,7 +13,10 @@ import cn.iocoder.yudao.module.dataforge.enums.fill.FillApprovalStatusEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillEventTypeEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillOutboxStatusEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillWorkItemStatusEnum;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.module.bpm.enums.ErrorCodeConstants;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillBpmAdapter;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillTaskService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import jakarta.annotation.Resource;
@@ -56,6 +59,9 @@ public class FillOutboxRelayJob {
 
     @Resource
     private FillBpmAdapter bpmAdapter;
+
+    @Resource
+    private FillTaskService fillTaskService;
 
     /**
      * 执行填报发件箱转发任务处理。
@@ -113,7 +119,7 @@ public class FillOutboxRelayJob {
             String processInstanceId = bpmAdapter.findProcessInstanceIdByBusinessKey(
                     task.getProcessDefinitionKey(), submission.getId());
             if (StrUtil.isBlank(processInstanceId)) {
-                processInstanceId = bpmAdapter.startProcess(submission, workItem, task);
+                processInstanceId = startWithFrozenDefinition(submission, workItem, task);
             } else {
                 log.info("[startBpmProcess][提交({}) 已存在流程实例({})，复用不重建]", submissionId, processInstanceId);
             }
@@ -130,6 +136,27 @@ public class FillOutboxRelayJob {
         }
         workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
                 FillWorkItemStatusEnum.WAIT_BPM_START.getStatus(), FillWorkItemStatusEnum.APPROVING.getStatus());
+    }
+
+    /**
+     * 按任务冻结的流程版本启动审批：尚未冻结时先冻结当前生效版本；冻结版本已被新部署挂起时
+     * 不回退到当前版本，保留失败事件并提示管理员在任务上切换版本（切换后事件立即重新投递）。
+     */
+    private String startWithFrozenDefinition(FillSubmissionDO submission, FillWorkItemDO workItem, FillTaskDO task) {
+        if (StrUtil.isNotBlank(task.getProcessDefinitionKey()) && StrUtil.isBlank(task.getProcessDefinitionId())) {
+            task.setProcessDefinitionId(fillTaskService.freezeProcessDefinition(
+                    task.getId(), task.getProcessDefinitionKey()));
+        }
+        try {
+            return bpmAdapter.startProcess(submission, workItem, task);
+        } catch (ServiceException ex) {
+            if (ErrorCodeConstants.PROCESS_DEFINITION_IS_SUSPENDED.getCode().equals(ex.getCode())
+                    || ErrorCodeConstants.PROCESS_DEFINITION_NOT_EXISTS.getCode().equals(ex.getCode())) {
+                throw new IllegalStateException("任务冻结的审批流程版本(" + task.getProcessDefinitionId()
+                        + ")已停用或不存在，请管理员在采集任务上执行“切换到当前流程版本”", ex);
+            }
+            throw ex;
+        }
     }
 
     /**

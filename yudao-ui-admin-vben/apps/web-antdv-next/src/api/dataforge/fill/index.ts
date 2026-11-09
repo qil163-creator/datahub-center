@@ -229,6 +229,8 @@ export namespace DataforgeFillApi {
     tableId: number;
     tableVersionId: number;
     processDefinitionKey?: string;
+    /** 冻结的审批流程版本；为空表示首次启动审批时冻结 */
+    processDefinitionId?: string;
     periodKey: string;
     periodStart?: string;
     periodEnd?: string;
@@ -668,4 +670,11 @@ export function urgeWorkItem(id: number) {
 /** 任务级一键催办，返回实际催办组织数 */
 export function urgeTask(id: number) {
   return requestClient.post<number>(`/dataforge/fill-task/urge?id=${id}`);
+}
+
+/** 把任务冻结的审批流程切换到当前生效版本，返回新的流程定义编号 */
+export function switchTaskProcessDefinition(id: number) {
+  return requestClient.put<string>(
+    `/dataforge/fill-task/switch-process-definition?id=${id}`,
+  );
 }

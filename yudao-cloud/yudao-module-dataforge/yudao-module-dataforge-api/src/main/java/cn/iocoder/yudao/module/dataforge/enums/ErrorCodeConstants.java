@@ -247,6 +247,9 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_TASK_NOT_EXISTS = new ErrorCode(1_500_021_020, "采集任务不存在");
     ErrorCode FILL_TASK_PERIOD_DUPLICATE = new ErrorCode(1_500_021_021, "该计划在所属期【{}】的任务已存在");
     ErrorCode FILL_TASK_STATUS_INVALID = new ErrorCode(1_500_021_022, "采集任务当前状态不允许该操作");
+    ErrorCode FILL_TASK_PROCESS_NOT_CONFIGURED = new ErrorCode(1_500_021_023, "采集任务未配置审批流程");
+    ErrorCode FILL_TASK_PROCESS_NO_ACTIVE_VERSION = new ErrorCode(1_500_021_024,
+            "审批流程【{}】当前没有生效版本，请先在流程管理中部署或激活");
     // ----- 工作项 -----
     ErrorCode FILL_WORK_ITEM_NOT_EXISTS = new ErrorCode(1_500_021_030, "组织填报实例不存在");
     ErrorCode FILL_WORK_ITEM_STATUS_INVALID = new ErrorCode(1_500_021_031, "填报实例当前状态【{}】不允许该操作");
@@ -271,6 +274,8 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_SUBMISSION_NOT_EXISTS = new ErrorCode(1_500_021_060, "提交快照不存在");
     ErrorCode FILL_SUBMISSION_VALIDATE_FAILED = new ErrorCode(1_500_021_061, "提交校验未通过，共 {} 个错误");
     ErrorCode FILL_SUBMISSION_NOT_SUBMITTER = new ErrorCode(1_500_021_062, "只有本次实际提交人才能执行该操作");
+    ErrorCode FILL_SUBMISSION_PREVIEW_DENIED = new ErrorCode(1_500_021_063,
+            "仅该提交的审批流程参与者、填报人、任务发起人或组织负责人可查看");
     // ----- 合并 -----
     ErrorCode FILL_MERGE_BATCH_NOT_EXISTS = new ErrorCode(1_500_021_070, "合并批次不存在");
     ErrorCode FILL_MERGE_BATCH_STATUS_INVALID = new ErrorCode(1_500_021_071, "合并批次当前状态不允许该操作");

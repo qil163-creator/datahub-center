@@ -71,6 +71,11 @@ public interface FillWorkItemService {
     void checkViewPermission(FillWorkItemDO item, Long userId);
 
     /**
+     * 判断查看权限（规则同 {@link #checkViewPermission}），不抛异常
+     */
+    boolean hasViewPermission(FillWorkItemDO item, Long userId);
+
+    /**
      * 校验编辑权限：有效填报人 + 实例处于可编辑状态 + 硬截止未锁定
      */
     void checkEditPermission(FillWorkItemDO item, Long userId);

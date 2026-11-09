@@ -300,19 +300,33 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
      */
     @Override
     public void checkViewPermission(FillWorkItemDO item, Long userId) {
+        if (!hasViewPermission(item, userId)) {
+            throw exception(FILL_WORK_ITEM_NOT_ASSIGNEE);
+        }
+    }
+
+    /**
+     * 判断查看权限：有效填报人 / 任务创建者 / 报送组织负责人。
+     *
+     * @param item 当前条目
+     * @param userId 用户编号
+     * @return 是否可查看
+     */
+    @Override
+    public boolean hasViewPermission(FillWorkItemDO item, Long userId) {
+        if (item == null || userId == null) {
+            return false;
+        }
         FillAssigneeDO assignee = assigneeMapper.selectByWorkItemIdAndUserId(item.getId(), userId);
         if (assignee != null && FillAssigneeStateEnum.VALID.getState().equals(assignee.getState())) {
-            return;
+            return true;
         }
         FillTaskDO task = taskMapper.selectById(item.getTaskId());
         if (task != null && Objects.equals(task.getCreator(), String.valueOf(userId))) {
-            return;
+            return true;
         }
         DeptRespDTO dept = deptApi.getDeptMap(Set.of(item.getReportingOrgId())).get(item.getReportingOrgId());
-        if (dept != null && Objects.equals(dept.getLeaderUserId(), userId)) {
-            return;
-        }
-        throw exception(FILL_WORK_ITEM_NOT_ASSIGNEE);
+        return dept != null && Objects.equals(dept.getLeaderUserId(), userId);
     }
 
     /**

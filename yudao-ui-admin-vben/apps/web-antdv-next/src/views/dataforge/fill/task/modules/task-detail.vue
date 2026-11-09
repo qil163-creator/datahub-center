@@ -23,6 +23,7 @@ import {
 import {
   getTaskProgress,
   getWorkItemListByTask,
+  switchTaskProcessDefinition,
   updateWorkItemAssignees,
   urgeTask,
   urgeWorkItem,
@@ -59,6 +60,11 @@ const [TaskDescriptions, taskDescApi] = useDescription({
       render: (value) => TASK_STATUS_TEXT[Number(value)]?.text ?? value ?? '-',
     },
     { field: 'periodKey', label: '所属期' },
+    {
+      field: 'processDefinitionId',
+      label: '审批流程版本',
+      render: (value) => value || '首次启动审批时冻结',
+    },
     {
       field: 'openTime',
       label: '开放时间',
@@ -296,6 +302,33 @@ async function handleUrgeItem(item: DataforgeFillApi.WorkItem) {
   });
 }
 
+// ---------------------------------------------------------------- 审批流程版本
+const switching = ref(false);
+
+function handleSwitchProcess() {
+  if (!task.value || switching.value) return;
+  const generation = requestGeneration;
+  const taskId = task.value.id;
+  Modal.confirm({
+    content:
+      '冻结的审批流程版本被新部署停用后，本任务的新提交会停在“待启动审批”。切换后，等待中的提交将按当前生效版本重新发起审批；已发起的审批不受影响。',
+    onOk: async () => {
+      if (!isCurrent(generation) || switching.value) return;
+      switching.value = true;
+      try {
+        const definitionId = await switchTaskProcessDefinition(taskId);
+        if (!isCurrent(generation) || !task.value) return;
+        task.value = { ...task.value, processDefinitionId: definitionId };
+        message.success('已切换到当前审批流程版本');
+        await reload();
+      } finally {
+        if (isCurrent(generation)) switching.value = false;
+      }
+    },
+    title: '切换审批流程版本',
+  });
+}
+
 async function handleUrgeAll() {
   if (!task.value || urging.value) return;
   const generation = requestGeneration;
@@ -350,6 +383,16 @@ defineExpose({ open: openDetail });
         </Tag>
       </Space>
       <Space>
+        <Button
+          v-if="task?.processDefinitionKey"
+          v-access:code="'dataforge:fill-task:create'"
+          :loading="switching"
+          size="small"
+          @click="handleSwitchProcess"
+        >
+          <template #icon><IconifyIcon icon="lucide:git-branch" /></template>
+          切换到当前流程版本
+        </Button>
         <Button
           v-access:code="'dataforge:fill-task:urge'"
           :loading="urging"

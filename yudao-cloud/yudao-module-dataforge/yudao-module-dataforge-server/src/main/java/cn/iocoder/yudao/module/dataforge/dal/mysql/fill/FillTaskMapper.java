@@ -16,6 +16,40 @@ import org.apache.ibatis.annotations.Mapper;
 public interface FillTaskMapper extends BaseMapperX<FillTaskDO> {
 
     /**
+     * 首次冻结审批流程版本：仅当任务尚未冻结时写入，已冻结的版本不会被覆盖。
+     *
+     * @param id 任务编号
+     * @param processDefinitionId 流程定义编号
+     * @return 影响行数，0 表示已被冻结（或任务不存在）
+     */
+    default int freezeProcessDefinitionIfAbsent(Long id, String processDefinitionId) {
+        return update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<FillTaskDO>()
+                .set(FillTaskDO::getProcessDefinitionId, processDefinitionId)
+                .eq(FillTaskDO::getId, id)
+                .isNull(FillTaskDO::getProcessDefinitionId));
+    }
+
+    /**
+     * 管理员切换冻结版本：以读取时的旧值做 CAS，防止并发切换互相覆盖。
+     *
+     * @param id 任务编号
+     * @param expected 读取时的冻结版本（可为 null）
+     * @param processDefinitionId 新的流程定义编号
+     * @return 影响行数，0 表示已被并发修改
+     */
+    default int switchProcessDefinition(Long id, String expected, String processDefinitionId) {
+        var wrapper = new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<FillTaskDO>()
+                .set(FillTaskDO::getProcessDefinitionId, processDefinitionId)
+                .eq(FillTaskDO::getId, id);
+        if (expected == null) {
+            wrapper.isNull(FillTaskDO::getProcessDefinitionId);
+        } else {
+            wrapper.eq(FillTaskDO::getProcessDefinitionId, expected);
+        }
+        return update(null, wrapper);
+    }
+
+    /**
      * 按查询条件分页读取填报任务。
      *
      * @param reqVO 请求参数

@@ -820,9 +820,18 @@ public class BpmProcessInstanceServiceImpl implements BpmProcessInstanceService 
     @DataPermission(enable = false) // 关闭数据权限，避免查询不到用户数据。相关案例：https://gitee.com/zhijiantianya/yudao-cloud/issues/ID1UYA
     public String createProcessInstance(Long userId, @Valid BpmProcessInstanceCreateReqDTO createReqDTO) {
         return FlowableUtils.executeAuthenticatedUserId(userId, () -> {
-            // 获得流程定义
-            ProcessDefinition definition = processDefinitionService
-                    .getActiveProcessDefinition(createReqDTO.getProcessDefinitionKey());
+            // 获得流程定义：调用方冻结了具体版本时严格按该版本发起，不回退到当前版本
+            ProcessDefinition definition;
+            if (StrUtil.isNotBlank(createReqDTO.getProcessDefinitionId())) {
+                definition = processDefinitionService.getProcessDefinition(createReqDTO.getProcessDefinitionId());
+                if (definition != null
+                        && !Objects.equals(definition.getKey(), createReqDTO.getProcessDefinitionKey())) {
+                    definition = null;
+                }
+            } else {
+                definition = processDefinitionService
+                        .getActiveProcessDefinition(createReqDTO.getProcessDefinitionKey());
+            }
             // 发起流程
             return createProcessInstance0(userId, definition, createReqDTO.getVariables(),
                     createReqDTO.getBusinessKey(),
