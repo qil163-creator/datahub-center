@@ -536,6 +536,12 @@ onDeactivated(() => {
   --planning-muted: hsl(var(--muted-foreground));
 }
 
+.data-domain-page :deep(.vxe-table--scroll-x-handle),
+.data-domain-page :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+
 :deep(.data-domain-status-switch.ant-switch-small) {
   min-width: 40px;
   height: 20px;

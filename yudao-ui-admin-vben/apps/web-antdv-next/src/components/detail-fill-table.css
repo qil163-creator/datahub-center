@@ -1,0 +1,33 @@
+.detail-fill-table,
+.detail-fill-table .ant-spin,
+.detail-fill-table .ant-spin-container,
+.detail-fill-table .ant-table,
+.detail-fill-table .ant-table-container {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.detail-fill-table .ant-table {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.detail-fill-table .ant-table-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+
+  /* Ant Table sets overflow-y: hidden inline when only scroll.x is supplied. */
+  overflow: auto !important;
+}
+
+.detail-fill-table .ant-table-content:has(.ant-table-placeholder) > table {
+  height: 100%;
+}
+
+.detail-fill-table .ant-table-content:has(.ant-table-placeholder) .ant-table-thead {
+  height: 1px;
+}

@@ -103,7 +103,7 @@ watch(() => [props.kind, props.ownerId, access.accessToken, access.accessCodes],
 
 <template>
   <section class="standard-model-associations">
-    <StandardToolbar v-model:visible-columns="visibleColumns" :columns="definitions" hide-search @refresh="load">
+    <StandardToolbar v-model:visible-columns="visibleColumns" :columns="definitions" hide-search settings-icon="lucide:settings" @refresh="load">
       <template #title><span class="text-muted-foreground">展示当前数据元或代码表关联的逻辑模型及相关字段，便于查看标准在数据建模中的应用情况。</span></template>
     </StandardToolbar>
     <Alert v-if="!canQueryModels" class="mb-3" type="warning" message="暂无逻辑模型查询权限" show-icon />
@@ -118,3 +118,57 @@ watch(() => [props.kind, props.ownerId, access.accessToken, access.accessCodes],
     <StandardPagination v-if="canQueryModels" v-model:page="page" v-model:page-size="pageSize" :total="models.length" />
   </section>
 </template>
+
+<style scoped>
+.standard-model-associations :deep(.standard-toolbar) {
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.standard-model-associations :deep(.standard-toolbar-tools) {
+  gap: 8px;
+}
+
+.standard-model-associations :deep(.standard-toolbar-tools .ant-btn) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.standard-model-associations :deep(.standard-toolbar-tools svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.standard-model-associations :deep(.ant-table-thead > tr > th) {
+  padding: 7px 10px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.standard-model-associations :deep(.ant-table-tbody > tr > td) {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.standard-model-associations :deep(.ant-table-content) {
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+.standard-model-associations :deep(.ant-table-content::-webkit-scrollbar) {
+  width: 6px;
+  height: 6px;
+}
+
+.standard-model-associations :deep(.ant-table-content::-webkit-scrollbar-thumb) {
+  background: hsl(var(--muted-foreground) / 20%);
+  border-radius: 3px;
+}
+
+.standard-model-associations :deep(.ant-table-content::-webkit-scrollbar-track) {
+  background: transparent;
+}
+</style>

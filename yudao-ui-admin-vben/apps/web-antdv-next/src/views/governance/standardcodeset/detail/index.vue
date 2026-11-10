@@ -149,11 +149,19 @@ onActivated(() => {
         </dl>
       </section>
     </Spin>
-    <section v-if="codeSet" class="standard-detail-body">
+    <section
+      v-if="codeSet"
+      class="standard-detail-body"
+      :class="{
+        'standard-code-body--grid': activeTab === 'items',
+        'standard-code-body--paged': ['models', 'assets', 'mapping'].includes(activeTab),
+      }"
+    >
       <Tabs
         v-model:active-key="activeTab"
         :items="tabItems"
         class="standard-detail-tabs"
+        :class="{ 'standard-code-tabs--detail': activeTab === 'detail' }"
       >
         <template #contentRender="{ item }">
           <ItemGrid
@@ -195,14 +203,21 @@ onActivated(() => {
   </Page>
 </template>
 <style scoped>
-.standard-detail-body {
-  flex: none;
-  min-height: 0;
+.standard-detail-body.standard-code-body--grid {
+  padding-bottom: 8px;
+}
+
+.standard-detail-body.standard-code-body--paged {
+  padding-bottom: 16px;
 }
 
 .standard-code-extra {
   grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr);
-  margin-top: 20px;
+  margin-top: 0;
+}
+
+.standard-code-tabs--detail :deep(.ant-tabs-nav) {
+  margin-bottom: 8px;
 }
 
 @media (width <= 800px) {

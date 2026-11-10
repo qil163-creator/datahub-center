@@ -227,9 +227,11 @@ onBeforeUnmount(() => {
 }
 
 .check-detail__content {
+  display: flex;
   flex: 1 0 auto;
+  flex-direction: column;
   min-width: 0;
-  min-height: 700px;
+  min-height: 480px;
   padding: 14px;
   background: hsl(var(--background));
   border-radius: var(--radius);

@@ -45,7 +45,6 @@ watch(() => props.elementId, loadData, { immediate: true });
       </template>
     </Alert>
     <div>
-      <div class="mb-2 text-[15px] font-medium">直接落标表</div>
       <Table
         class="standard-detail-table"
         :columns="directColumns"

@@ -849,6 +849,8 @@ onBeforeUnmount(() => {
           'metadata-profile__attributes': embedded,
           'metadata-profile__attributes--flow':
             embedded && activeTab !== 'columns',
+          'metadata-profile__attributes--paged':
+            embedded && (activeTab === 'columns' || activeTab === 'versions'),
         }"
       >
         <Tabs
@@ -1329,6 +1331,10 @@ onBeforeUnmount(() => {
   padding-top: 8px;
 }
 
+.metadata-profile__attributes--paged {
+  padding-bottom: 16px;
+}
+
 .metadata-profile__tabs {
   display: flex;
   flex: 1;
@@ -1403,8 +1409,13 @@ onBeforeUnmount(() => {
 .metadata-profile__table :deep(.ant-table-content) {
   flex: 1;
   min-height: 0;
+  overflow-y: auto !important;
   scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
   scrollbar-width: thin;
+}
+
+.metadata-profile__table :deep(.ant-table-empty .ant-table-content > table) {
+  height: 100%;
 }
 
 .metadata-profile__table :deep(.ant-table) {

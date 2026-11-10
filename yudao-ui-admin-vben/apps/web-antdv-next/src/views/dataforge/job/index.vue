@@ -755,7 +755,7 @@ watch(
                         <ReferenceIcon name="eye" />详情
 </button><Dropdown :trigger="['click']" :open="moreOpenId === String(record.id)" @open-change="value=>moreOpenId = value ? String(record.id) : ''">
 <button type="button">
-                          <ReferenceIcon name="expand" />更多
+                          <IconifyIcon icon="lucide:ellipsis-vertical" />更多
 </button><template #popupRender>
 <div class="qj-popup" @click="moreOpenId = ''">
                             <button

@@ -151,6 +151,8 @@ const [Grid, gridApi] = useVbenVxeGrid<BusinessEntityApi.Entity>({
   } : undefined,
   gridOptions: {
     data: [],
+    height: 'auto',
+    headerCellConfig: { height: 34 },
     border: false,
     round: false,
     stripe: true,
@@ -173,7 +175,6 @@ const [Grid, gridApi] = useVbenVxeGrid<BusinessEntityApi.Entity>({
       pageSize: 10,
       pageSizes: [10, 20, 50, 100],
       total: 0,
-      layouts: ['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'FullJump'],
     },
     toolbarConfig: {
       search: props.showSearch,
@@ -432,25 +433,31 @@ onDeactivated(() => {
     </div>
     <div class="planning-table">
       <Grid
-        :style="{ '--vxe-ui-font-size-small': '12px' }"
-        table-title="业务实体"
+        :style="{
+          '--vxe-ui-font-size-small': '12px',
+          '--vxe-ui-font-size-mini': '12px',
+        }"
       >
+        <template #toolbar-actions>
+          <Button
+            v-if="hasAccessByCodes(['modeling:business-entity:create'])"
+            type="primary"
+            size="small"
+            @click="formApi.setData({ dataDomainId, subjectDomainId }).open()"
+          >
+            <IconifyIcon icon="lucide:plus" />新增
+          </Button>
+        </template>
         <template #toolbar-tools>
           <div class="planning-toolbar">
-            <Button
-              type="primary"
-              v-if="hasAccessByCodes(['modeling:business-entity:create'])"
-              @click="formApi.setData({ dataDomainId, subjectDomainId }).open()"
-            >
-              <IconifyIcon icon="lucide:plus" />新增
-            </Button>
-            <Button @click="toggleTree">
+            <Button size="small" @click="toggleTree">
               <IconifyIcon
                 :icon="isExpanded ? 'lucide:list-minus' : 'lucide:list-plus'"
               />{{ isExpanded ? '收起' : '展开' }}
             </Button>
             <Button
               v-if="hasAccessByCodes(['modeling:business-entity:publish'])"
+              size="small"
               :disabled="busy || !selected.some((row) => row.status === 1)"
               @click="changeStatus(selected, 0)"
             >
@@ -459,6 +466,7 @@ onDeactivated(() => {
             <Button
               v-if="hasAccessByCodes(['modeling:business-entity:publish'])"
               class="planning-warning"
+              size="small"
               :disabled="busy || !selected.some((row) => row.status === 0)"
               @click="changeStatus(selected, 1)"
             >
@@ -467,6 +475,7 @@ onDeactivated(() => {
             <Button
               v-if="hasAccessByCodes(['modeling:business-entity:delete'])"
               danger
+              size="small"
               :disabled="
                 busy ||
                 !selected.length ||
@@ -612,6 +621,12 @@ onDeactivated(() => {
 </template>
 
 <style scoped>
+.planning-entity-table :deep(.vxe-table--scroll-x-handle),
+.planning-entity-table :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+
 .planning-entity-name {
   display: flex;
   gap: 8px;

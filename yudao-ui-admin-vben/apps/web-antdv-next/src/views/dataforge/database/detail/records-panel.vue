@@ -187,8 +187,9 @@ const columns: VxeTableGridOptions<Row>['columns'] = [
 const [Grid, gridApi] = useVbenVxeGrid<Row>({
   gridOptions: {
     columns,
+    headerCellConfig: { height: 34 },
     height: 'auto',
-    minHeight: 320,
+    minHeight: 412,
     rowConfig: { keyField: 'id', isHover: true },
     proxyConfig: { enabled: false },
     pagerConfig: { currentPage: 1, pageSize: 20, total: 0 },
@@ -196,6 +197,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Row>({
       refresh: true,
       refreshOptions: { queryMethod: load },
       custom: true,
+      zoom: false,
     },
   },
   gridEvents: {
@@ -303,7 +305,10 @@ onBeforeUnmount(invalidate);
       message="记录加载失败，请点击表格右上角刷新重试。"
       class="mb-3"
     />
-    <Grid :table-title="alarm ? '告警记录列表' : '读写日志列表'">
+    <Grid class="database-records-grid">
+      <template #toolbar-actions>
+        <span aria-hidden="true"></span>
+      </template>
       <template #source="{ row }">
         <Tag v-if="'sourceModule' in row" color="blue">
           {{
@@ -497,3 +502,28 @@ onBeforeUnmount(invalidate);
     </HandleModal>
   </div>
 </template>
+
+<style scoped>
+.database-records-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.database-records-grid {
+  flex: 1;
+  min-height: 0;
+}
+
+.database-records-panel :deep(.vxe-toolbar--tools .vxe-button) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+
+.database-records-panel :deep(.vxe-tools--wrapper:not(:empty)) {
+  padding: 0.3em 0;
+}
+</style>

@@ -47,6 +47,27 @@ vi.mock('#/adapter/form', () => ({
     { reset: vi.fn(), validateAndSubmit: vi.fn() },
   ],
 }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({
+    props: {
+      current: { type: Number, default: 1 },
+      pageSize: { type: Number, default: 10 },
+      total: { type: Number, default: 0 },
+    },
+    emits: ['update:current', 'update:pageSize', 'change'],
+    setup: (props, { emit }) => () =>
+      h('nav', { 'data-pager-total': props.total }, [
+        h('button', {
+          'data-page-size-20': '',
+          onClick: () => {
+            emit('update:current', 1);
+            emit('update:pageSize', 20);
+            emit('change', 1, 20);
+          },
+        }, '每页20条'),
+      ]),
+  }),
+}));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => mock.access,
   useUserStore: () => mock.user,
@@ -297,6 +318,20 @@ afterEach(() => {
 });
 
 describe('asset map workspace', () => {
+  it('空结果仍显示分页并支持更改每页数量', async () => {
+    mock.page.mockResolvedValue({ list: [], total: 0 });
+    mount();
+    await flush();
+    const pager = host.querySelector<HTMLElement>('[data-pager-total]');
+    expect(pager?.dataset.pagerTotal).toBe('0');
+    pager!.querySelector<HTMLButtonElement>('[data-page-size-20]')!.click();
+    await flush();
+    expect(mock.page).toHaveBeenLastCalledWith(expect.objectContaining({
+      pageNo: 1,
+      pageSize: 20,
+    }));
+  });
+
   it('opens the map for a signed-in user without query or write permissions', async () => {
     mock.access.accessCodes = [];
     mount();

@@ -1378,7 +1378,6 @@ function syncFilterValues() {
           </Spin>
         </div>
         <ListPagination
-          v-if="pagination.total > 0"
           v-model:current="pagination.pageNo"
           v-model:page-size="pagination.pageSize"
           :total="pagination.total"

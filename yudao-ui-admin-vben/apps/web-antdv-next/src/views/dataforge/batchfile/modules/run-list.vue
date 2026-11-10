@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div>
+  <div class="bf-run-list">
     <Alert
       v-if="failed"
       class="bf-error"
@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
 <ReferenceIcon name="play" />执行一次
 </Button>
 </GridTools>
-    <Spin :spinning="loading">
+    <Spin :spinning="loading" class="bf-run-table">
 <div class="bf-table-wrap">
         <table class="bf-table bf-fixed-actions-table">
           <thead>
@@ -433,6 +433,32 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.bf-run-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bf-run-table,
+.bf-run-table :deep(.ant-spin-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bf-run-table :deep(.bf-table-wrap) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.bf-run-table :deep(.bf-empty) {
+  flex: 1;
+  min-height: 160px;
+}
+
 .bf-fixed-actions-table {
   min-width: 1200px;
 }

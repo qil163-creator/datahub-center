@@ -164,7 +164,14 @@ watch(
           </div>
         </section>
 </Spin>
-      <section v-if="task" class="bf-panel bf-main-panel">
+      <section
+        v-if="task"
+        class="bf-panel bf-main-panel"
+        :class="{
+          'bf-main-panel--runs': tab === 'runs',
+          'bf-main-panel--tables': tab === 'files' || tab === 'targets',
+        }"
+      >
         <nav class="bf-tabs" aria-label="任务详情">
           <button
             v-for="entry in tabs"
@@ -306,6 +313,7 @@ watch(
                 </tr>
               </tbody>
             </table>
+            <EmptyState v-if="!task.targets.length" />
           </div>
 </template>
         <RunList v-if="tab === 'runs'" :task="task" @refresh="load" />
@@ -414,6 +422,37 @@ watch(
 
 .bf-page .bf-main-panel {
   padding-top: 8px;
+}
+
+.bf-page .bf-main-panel--runs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 8px;
+}
+
+.bf-page .bf-main-panel--tables {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bf-main-panel--tables > .bf-table-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid hsl(var(--border));
+}
+
+.bf-main-panel--tables > .bf-table-wrap > .bf-table {
+  flex: none;
+}
+
+.bf-main-panel--tables > .bf-table-wrap :deep(.bf-empty) {
+  flex: 1;
+  min-height: 160px;
 }
 
 .bf-detail-heading {

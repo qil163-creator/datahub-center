@@ -35,6 +35,8 @@ const rows = computed(() => props.domain.namingRules ?? []);
 const [Grid, gridApi] = useVbenVxeGrid<ModelingDataDomainApi.NamingRule>({
   gridOptions: {
     data: [],
+    height: 'auto',
+    headerCellConfig: { height: 34 },
     border: false,
     round: false,
     stripe: true,
@@ -131,7 +133,16 @@ async function save() {
   <div class="planning-rule-section">
     <div class="planning-table planning-rules-list">
 <Grid>
-      <template #toolbar-actions><Button v-if="hasAccessByCodes(['modeling:data-domain:update'])" class="planning-query" @click="modalApi.open()"><IconifyIcon icon="lucide:square-pen" />修改</Button></template>
+      <template #toolbar-actions>
+        <Button
+          v-if="hasAccessByCodes(['modeling:data-domain:update'])"
+          class="planning-query"
+          size="small"
+          @click="modalApi.open()"
+        >
+          <IconifyIcon icon="lucide:square-pen" />修改
+        </Button>
+      </template>
       <template #abbreviation="{ row }"><span v-if="row.tableType.startsWith('FACT')" class="planning-status-label" :class="{ disabled: !row.includeSubjectAbbreviation }">{{ row.includeSubjectAbbreviation ? '是' : '否' }}</span><span v-else>-</span></template>
       <template #preview="{ row }"><span :title="preview(row)">{{ preview(row) }}</span></template>
     </Grid>
@@ -205,3 +216,19 @@ async function save() {
     </Modal>
   </div>
 </template>
+
+<style scoped>
+.planning-rules-list :deep(.vxe-table--scroll-x-handle),
+.planning-rules-list :deep(.vxe-table--scroll-y-handle),
+.planning-rule-scroll {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+
+.planning-rule-section :deep(.vxe-toolbar--tools .vxe-button) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+</style>

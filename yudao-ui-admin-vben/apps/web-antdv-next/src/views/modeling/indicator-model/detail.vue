@@ -106,6 +106,7 @@ const [RelatedGrid, relatedGrid] = useVbenVxeGrid<IndicatorModelApi.Model>({
   gridOptions: {
     data: [],
     height: 'auto',
+    headerCellConfig: { height: 34 },
     border: false,
     stripe: true,
     rowConfig: { keyField: 'id', height: 58 },
@@ -297,7 +298,10 @@ onActivated(() => {
             </tbody>
           </table>
         </section>
-        <section class="indicator-details">
+        <section
+          class="indicator-details"
+          :class="{ 'indicator-details--derived': tab === 'derived' }"
+        >
           <Tabs v-model:active-key="tab">
             <TabPane v-if="kind === 'atomic'" key="derived" tab="派生指标">
               <Alert
@@ -436,14 +440,18 @@ onActivated(() => {
 }
 
 .indicator-detail-spin {
-  min-height: 100%;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .indicator-detail-spin :deep(.ant-spin-container) {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
-  min-height: 100%;
+  min-height: 0;
 }
 
 .indicator-summary,
@@ -460,6 +468,10 @@ onActivated(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+
+.indicator-summary {
+  flex-shrink: 0;
 }
 
 .indicator-summary h1 {
@@ -538,6 +550,27 @@ onActivated(() => {
 .indicator-details {
   flex: 1;
   min-height: 500px;
+}
+
+.indicator-details--derived {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.indicator-details--derived :deep(.ant-tabs),
+.indicator-details--derived :deep(.ant-tabs-body-holder),
+.indicator-details--derived :deep(.ant-tabs-body),
+.indicator-details--derived :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.indicator-details--derived .metric-related-grid {
+  flex: 1;
+  min-height: 0;
 }
 
 .indicator-details :deep(.ant-tabs-nav) {

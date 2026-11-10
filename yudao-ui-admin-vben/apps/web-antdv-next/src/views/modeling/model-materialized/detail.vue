@@ -9,10 +9,11 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictLabel } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Modal, Spin } from 'antdv-next';
+import { Alert, Button, Checkbox, Empty, Modal, Popover, Spin } from 'antdv-next';
 
 import {
   getModelMaterializedByModel,
@@ -381,38 +382,45 @@ watch([activeTab, logsPage, logsPageSize], () => {
               v-if="activeTab === 'fields'"
               role="tabpanel"
               aria-labelledby="materialized-tab-fields"
+              class="qd-materialized-detail-list"
             >
               <div class="qd-materialized-detail-toolbar">
                 <span></span>
                 <div class="qd-materialized-detail-tools">
-                  <button
-                    type="button"
-                    class="qd-btn qd-materialized-icon-button"
+                  <Button
+                    class="qd-materialized-icon-button"
+                    shape="circle"
+                    size="small"
                     aria-label="刷新属性字段"
+                    :disabled="loading"
                     @click="load"
                   >
-                    <QdIcon name="toolbarRefresh" />
-                  </button>
-                  <details class="qd-materialized-column-menu">
-                    <summary
-                      class="qd-btn qd-materialized-icon-button"
-                      aria-label="属性字段列设置"
-                    >
-                      <QdIcon name="menu" />
-                    </summary>
-                    <div>
-                      <label v-for="column in fieldColumns" :key="column.key"><input
-                          type="checkbox"
+                    <IconifyIcon icon="lucide:rotate-cw" />
+                  </Button>
+                  <Popover trigger="click" placement="bottomRight">
+                    <template #content>
+                      <div class="qd-materialized-column-menu">
+                        <Checkbox
+                          v-for="column in fieldColumns"
+                          :key="column.key"
                           :checked="!hiddenFieldColumns.includes(column.key)"
                           @change="toggleColumn(column.key, 'fields')"
-                        />{{ column.title }}</label>
-                    </div>
-                  </details>
+                        >
+                          {{ column.title }}
+                        </Checkbox>
+                      </div>
+                    </template>
+                    <Button class="qd-materialized-icon-button" shape="circle" size="small" aria-label="属性字段列设置">
+                      <IconifyIcon icon="lucide:settings" />
+                    </Button>
+                  </Popover>
                 </div>
               </div>
+              <div class="qd-materialized-detail-table-region">
               <div class="qd-materialized-detail-table-scroll">
                 <table
                   class="qd-materialized-detail-table qd-materialized-fields-table"
+                  :class="{ 'is-empty': !fields.length }"
                 >
                   <colgroup>
                     <col
@@ -474,11 +482,14 @@ watch([activeTab, logsPage, logsPageSize], () => {
                         :colspan="visibleFieldColumns.length + 1"
                         class="qd-materialized-detail-empty"
                       >
-                        暂无属性字段
                       </td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              <div v-if="!fields.length" class="qd-materialized-table-empty">
+                <Empty description="暂无属性字段" />
+              </div>
               </div>
               <ReferencePagination
                 :page-no="fieldsPage"
@@ -496,12 +507,13 @@ watch([activeTab, logsPage, logsPageSize], () => {
               v-else-if="activeTab === 'logs'"
               role="tabpanel"
               aria-labelledby="materialized-tab-logs"
+              class="qd-materialized-detail-list"
             >
               <div class="qd-materialized-detail-toolbar">
-                <button
+                <Button
                   v-if="canPublish && !recoveryAction(detail)"
-                  type="button"
-                  class="qd-btn qd-btn--primary is-plain"
+                  type="primary"
+                  size="small"
                   @click="publish"
                 >
                   <span
@@ -509,38 +521,41 @@ watch([activeTab, logsPage, logsPageSize], () => {
                     :style="materializeMask"
                     aria-hidden="true"
                   ></span>发布模型
-</button><button
+</Button><Button
                   v-else-if="canPublish && recoveryAction(detail)"
-                  type="button"
-                  class="qd-btn qd-btn--primary is-plain"
+                  size="small"
                   @click="recoveryModal?.open(detail)"
                 >
                   核验结果
-</button><span v-else></span>
+</Button><span v-else></span>
                 <div class="qd-materialized-detail-tools">
-                  <button
-                    type="button"
-                    class="qd-btn qd-materialized-icon-button"
+                  <Button
+                    class="qd-materialized-icon-button"
+                    shape="circle"
+                    size="small"
                     aria-label="刷新发布日志"
+                    :disabled="logsLoading"
                     @click="loadLogs"
                   >
-                    <QdIcon name="toolbarRefresh" />
-                  </button>
-                  <details class="qd-materialized-column-menu">
-                    <summary
-                      class="qd-btn qd-materialized-icon-button"
-                      aria-label="发布日志列设置"
-                    >
-                      <QdIcon name="menu" />
-                    </summary>
-                    <div>
-                      <label v-for="column in logColumns" :key="column.key"><input
-                          type="checkbox"
+                    <IconifyIcon icon="lucide:rotate-cw" />
+                  </Button>
+                  <Popover trigger="click" placement="bottomRight">
+                    <template #content>
+                      <div class="qd-materialized-column-menu">
+                        <Checkbox
+                          v-for="column in logColumns"
+                          :key="column.key"
                           :checked="!hiddenLogColumns.includes(column.key)"
                           @change="toggleColumn(column.key, 'logs')"
-                        />{{ column.title }}</label>
-                    </div>
-                  </details>
+                        >
+                          {{ column.title }}
+                        </Checkbox>
+                      </div>
+                    </template>
+                    <Button class="qd-materialized-icon-button" shape="circle" size="small" aria-label="发布日志列设置">
+                      <IconifyIcon icon="lucide:settings" />
+                    </Button>
+                  </Popover>
                 </div>
               </div>
               <div
@@ -553,10 +568,12 @@ watch([activeTab, logsPage, logsPageSize], () => {
                   重新加载
                 </button>
               </div>
-              <Spin v-else :spinning="logsLoading">
+              <Spin v-else class="qd-materialized-detail-logs-spin" :spinning="logsLoading">
+                <div class="qd-materialized-detail-table-region">
                 <div class="qd-materialized-detail-table-scroll">
                   <table
                     class="qd-materialized-detail-table qd-materialized-logs-table"
+                    :class="{ 'is-empty': !logs.length }"
                   >
                     <colgroup>
                       <col
@@ -634,11 +651,14 @@ watch([activeTab, logsPage, logsPageSize], () => {
                           :colspan="visibleLogColumns.length"
                           class="qd-materialized-detail-empty"
                         >
-                          暂无发布日志
                         </td>
                       </tr>
                     </tbody>
                   </table>
+                </div>
+                <div v-if="!logs.length" class="qd-materialized-table-empty">
+                  <Empty description="暂无发布日志" />
+                </div>
                 </div>
               </Spin>
               <ReferencePagination

@@ -127,6 +127,8 @@ const columns = computed<VxeTableGridOptions<RelatedRow>['columns']>(() => [
   {
     title: '操作',
     width: 110,
+    align: 'center',
+    headerAlign: 'center',
     fixed: 'right',
     showOverflow: false,
     slots: { default: 'actions' },
@@ -134,13 +136,23 @@ const columns = computed<VxeTableGridOptions<RelatedRow>['columns']>(() => [
 ]);
 const [Grid, gridApi] = useVbenVxeGrid<RelatedRow>({
   gridOptions: {
+    align: 'left',
+    border: false,
     columns: columns.value,
     data: [],
-    height: 420,
+    headerAlign: 'left',
+    headerCellConfig: { height: 34 },
+    height: 'auto',
+    minHeight: 0,
+    round: false,
     rowConfig: { keyField: 'id', isHover: true },
     proxyConfig: { enabled: false, autoLoad: false },
     pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
-    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load } },
+    toolbarConfig: {
+      refresh: true,
+      refreshOptions: { queryMethod: load },
+      zoom: false,
+    },
   },
   gridEvents: {
     pageChange: ({
@@ -251,16 +263,14 @@ watch(
 <template>
   <ElementModal @success="load" />
   <CodeSetModal @success="load" />
+  <div class="doc-related-list">
   <Alert v-if="!canQuery" type="info" message="暂无该类关联对象的查询权限" />
-  <Grid v-else>
-    <template #toolbar-tools>
-      <Button v-if="canCreate" type="primary" @click="create">
+  <Grid v-else class="doc-related-list__grid">
+    <template #table-title>
+      <Button v-if="canCreate" size="small" type="primary" @click="create">
         <template #icon><IconifyIcon icon="lucide:plus" /></template>
         新增
       </Button>
-    </template>
-    <template #table-title>
-      <span>关联信息</span>
       <Alert v-if="failed" type="error" message="关联对象加载失败">
         <template #action><Button @click="load">重试</Button></template>
       </Alert>
@@ -283,4 +293,53 @@ watch(
       />
     </template>
   </Grid>
+  </div>
 </template>
+
+<style scoped>
+.doc-related-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.doc-related-list__grid {
+  flex: 1;
+  min-height: 0;
+}
+
+.doc-related-list__grid :deep(.vxe-grid) {
+  padding: 0;
+}
+
+.doc-related-list__grid :deep(.vxe-toolbar) {
+  height: 30px;
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.doc-related-list__grid :deep(.vxe-toolbar .vxe-button.is--circle) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+}
+
+.doc-related-list__grid :deep(.vxe-table--border-line) {
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.doc-related-list__grid :deep(.vxe-cell--col-resizable::before) {
+  background-color: transparent;
+}
+
+.doc-related-list__grid :deep(.vxe-cell--col-resizable:hover::before) {
+  background-color: hsl(var(--border));
+}
+
+.doc-related-list__grid :deep(.vxe-header--column .vxe-cell),
+.doc-related-list__grid :deep(.vxe-body--column .vxe-cell) {
+  padding-inline: 10px;
+}
+</style>

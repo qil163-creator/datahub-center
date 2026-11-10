@@ -221,6 +221,7 @@ onBeforeUnmount(() => request.dispose());
       class="master-model-profile__attributes"
       :class="{
         'master-model-profile__attributes--info': activeTab === 'info',
+        'master-model-profile__attributes--paged': activeTab === 'fields',
       }"
       aria-label="主数据模型字段与详细信息"
     >
@@ -334,6 +335,10 @@ onBeforeUnmount(() => request.dispose());
   padding-top: 8px;
 }
 
+.master-model-profile__attributes--paged {
+  padding-bottom: 16px;
+}
+
 .master-model-profile__head,
 .master-model-profile__identity {
   display: flex;
@@ -433,8 +438,13 @@ onBeforeUnmount(() => request.dispose());
 .master-model-profile__table :deep(.ant-table-content) {
   flex: 1;
   min-height: 0;
+  overflow-y: auto !important;
   scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
   scrollbar-width: thin;
+}
+
+.master-model-profile__table :deep(.ant-table-empty .ant-table-content > table) {
+  height: 100%;
 }
 
 .master-model-profile__table :deep(.ant-table) {

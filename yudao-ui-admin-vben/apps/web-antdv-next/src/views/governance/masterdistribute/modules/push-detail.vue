@@ -29,6 +29,7 @@ import {
   updateMasterDistribute,
 } from '#/api/governance/masterdistribute';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import ListPagination from '#/components/list-pagination/index.vue';
 
 import { useMasterScope } from '../../mastercommon/use-master-scope';
 import {
@@ -65,9 +66,14 @@ const mappingError = ref('');
 const scope = useMasterScope(() => {
   detail.value = undefined;
   logs.value = [];
+  logTotal.value = 0;
+  logLoading.value = false;
+  logFailed.value = false;
+  logPage.value = 1;
   void mappingApi.close();
   void logApi.close?.();
   void load();
+  if (tab.value === 'logs') void loadLogs();
 });
 const { hasAccessByCodes } = useAccess();
 const mappingBlockedReason = computed(() => {
@@ -119,11 +125,17 @@ async function loadLogs() {
   } catch {
     if (current()) {
       logs.value = [];
+      logTotal.value = 0;
       logFailed.value = true;
     }
   } finally {
     if (current()) logLoading.value = false;
   }
+}
+function changeLogPage(page: number, pageSize: number) {
+  logPage.value = page;
+  logSize.value = pageSize;
+  void loadLogs();
 }
 function manageLogs() {
   logApi.setData(detail.value).open();
@@ -206,6 +218,9 @@ watch(
     void logApi.close?.();
     detail.value = undefined;
     logs.value = [];
+    logTotal.value = 0;
+    logLoading.value = false;
+    logFailed.value = false;
     tab.value = 'rest';
     logPage.value = 1;
     void load();
@@ -291,8 +306,11 @@ const logColumns = [
         </DescriptionsItem>
       </Descriptions>
     </section>
-    <section class="metadata-panel">
-      <Tabs v-model:active-key="tab">
+    <section
+      class="metadata-panel metadata-push-panel"
+      :class="{ 'metadata-push-panel--table': ['mapping', 'logs'].includes(tab) }"
+    >
+      <Tabs v-model:active-key="tab" class="metadata-push-tabs">
         <TabPane
           key="rest"
           :tab="detail.distributeType === 2 ? 'REST 接收配置' : '推送配置'"
@@ -423,21 +441,7 @@ const logColumns = [
             :row-key="(row) => String(row.id)"
             :loading="logLoading"
             :scroll="{ x: 1400 }"
-            :pagination="{
-              current: logPage,
-              pageSize: logSize,
-              total: logTotal,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-            }"
-            @change="
-              (page) => {
-                logPage = page.current ?? 1;
-                logSize = page.pageSize ?? 10;
-                loadLogs();
-              }
-            "
+            :pagination="false"
           >
             <template #bodyCell="{ column, record, text }">
               <template v-if="column.key === 'runType'">
@@ -464,6 +468,14 @@ const logColumns = [
               </div>
             </template>
           </Table>
+          <ListPagination
+            :current="logPage"
+            :page-size="logSize"
+            :page-size-options="[10, 20, 50, 100]"
+            :total="logTotal"
+            aria-label="推送日志分页"
+            @change="changeLogPage"
+          />
         </TabPane>
         <TabPane key="info" tab="详细信息">
           <Descriptions bordered size="small" :column="{ xs: 1, md: 2 }">
@@ -537,6 +549,53 @@ const logColumns = [
 </template>
 
 <style scoped>
+.metadata-push-panel--table :deep(.ant-table-thead > tr > th) {
+  padding-block: 7px;
+}
+
+.metadata-push-panel--table,
+.metadata-push-panel--table .metadata-push-tabs,
+.metadata-push-panel--table :deep(.ant-tabs-body-holder),
+.metadata-push-panel--table :deep(.ant-tabs-body),
+.metadata-push-panel--table :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-push-panel--table :deep(.ant-tabs-content) {
+  height: 100%;
+}
+
+.metadata-push-panel--table .qdata-master-mapping,
+.metadata-push-panel--table :deep(.ant-table-wrapper),
+.metadata-push-panel--table :deep(.ant-spin),
+.metadata-push-panel--table :deep(.ant-spin-nested-loading),
+.metadata-push-panel--table :deep(.ant-spin-container),
+.metadata-push-panel--table :deep(.ant-table),
+.metadata-push-panel--table :deep(.ant-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-push-panel--table :deep(.ant-table-content) {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto !important;
+}
+
+.metadata-push-panel--table :deep(.ant-table-empty .ant-table-content > table) {
+  height: 100%;
+}
+
+.metadata-push-panel--table :deep(.ant-table-empty .qdata-master-empty) {
+  height: 100%;
+}
+
 .mapping-readonly {
   display: block;
   padding: 5px 10px;

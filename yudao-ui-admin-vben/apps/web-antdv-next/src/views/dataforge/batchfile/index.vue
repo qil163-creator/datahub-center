@@ -554,7 +554,7 @@ watch(
             <ReferenceIcon name="eye" />详情
           </Button>
           <Dropdown :trigger="['click']">
-            <Button type="link"><ReferenceIcon name="down" />更多</Button>
+            <Button type="link"><IconifyIcon icon="lucide:ellipsis-vertical" />更多</Button>
             <template #popupRender>
               <Menu class="batch-file-menu">
                 <MenuItem

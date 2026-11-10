@@ -4,9 +4,19 @@
 
 .planning-detail-content {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  min-height: 0;
+}
+
+.planning-detail-spin,
+.planning-detail-spin > .ant-spin-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .planning-detail-page .ant-spin-nested-loading,
@@ -119,7 +129,48 @@
 }
 
 .planning-detail-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding: 20px;
+}
+
+.planning-detail-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.planning-detail-tabs > .ant-tabs-body-holder,
+.planning-detail-tabs .ant-tabs-body,
+.planning-detail-tabs .ant-tabs-content-active {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.planning-detail-tabs .ant-tabs-content-active > .planning-embedded {
+  flex: 1;
+  min-height: 0;
+}
+
+.planning-detail-tabs .planning-entity-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.planning-detail-tabs .planning-entity-table > .planning-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.planning-detail-tabs .planning-entity-table > .planning-table,
+.planning-detail-tabs .planning-entity-table > .planning-table > div {
+  flex: 1;
+  min-height: 0;
 }
 
 .planning-detail-tabs > .ant-tabs-nav {
@@ -201,13 +252,27 @@
 }
 
 .planning-rule-note {
+  flex-shrink: 0;
   margin-top: 8px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
 
+.planning-detail-tabs .planning-rule-section,
+.planning-rules-list.planning-table {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .planning-rules-list.planning-table {
   padding: 0;
+}
+
+.planning-rules-list > div {
+  flex: 1;
+  min-height: 0;
 }
 
 .planning-rules-list .vxe-body--column {

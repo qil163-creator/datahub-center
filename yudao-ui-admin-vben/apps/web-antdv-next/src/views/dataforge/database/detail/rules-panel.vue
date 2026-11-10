@@ -275,8 +275,9 @@ const [Grid, gridApi] = useVbenVxeGrid<DatabaseMonitorApi.Rule>({
         slots: { default: 'actions' },
       },
     ],
+    headerCellConfig: { height: 34 },
     height: 'auto',
-    minHeight: 320,
+    minHeight: 412,
     rowConfig: { keyField: 'id', isHover: true },
     proxyConfig: { enabled: false },
     pagerConfig: { currentPage: 1, pageSize: 20, total: 0 },
@@ -284,6 +285,7 @@ const [Grid, gridApi] = useVbenVxeGrid<DatabaseMonitorApi.Rule>({
       refresh: true,
       refreshOptions: { queryMethod: load },
       custom: true,
+      zoom: false,
     },
   },
   gridEvents: {
@@ -445,13 +447,14 @@ onBeforeUnmount(invalidate);
       message="告警规则加载失败，请点击表格右上角刷新重试。"
       class="mb-3"
     />
-    <Grid table-title="告警规则列表">
-      <template #toolbar-tools>
+    <Grid class="database-rules-grid">
+      <template #toolbar-actions>
         <TableAction
           :actions="[
             {
               label: '新增',
               type: 'primary',
+              size: 'small',
               icon: ACTION_ICON.ADD,
               auth: ['dataforge:database:update'],
               disabled: busy,
@@ -574,3 +577,28 @@ onBeforeUnmount(invalidate);
     </DetailModal>
   </div>
 </template>
+
+<style scoped>
+.database-rules-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.database-rules-grid {
+  flex: 1;
+  min-height: 0;
+}
+
+.database-rules-panel :deep(.vxe-toolbar--tools .vxe-button) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+
+.database-rules-panel :deep(.vxe-tools--wrapper:not(:empty)) {
+  padding: 0.3em 0;
+}
+</style>

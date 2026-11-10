@@ -117,10 +117,12 @@ watch(
     <StandardToolbar
       v-model:visible-columns="visibleColumns"
       :columns="definitions"
-      title="关联资产"
       hide-search
+      settings-icon="lucide:settings"
       @refresh="load"
-    />
+    >
+      <template #title><span aria-hidden="true"></span></template>
+    </StandardToolbar>
     <Alert
       v-if="failed"
       type="error"
@@ -135,6 +137,7 @@ watch(
       :pagination="false"
       :scroll="{ x: 1400 }"
       row-key="id"
+      size="small"
     >
       <template #bodyCell="{ column, record }">
         <span v-if="column.key === 'columnNames'">{{
@@ -148,8 +151,7 @@ watch(
             record[column.key]
               ? formatDate(record[column.key], 'YYYY-MM-DD HH:mm')
               : '-'
-          }}</span
-        >
+          }}</span>
       </template>
       <template #emptyText>
         <div class="standard-empty">
@@ -167,8 +169,56 @@ watch(
 </template>
 
 <style scoped>
+.standard-association-table :deep(.standard-toolbar) {
+  gap: 8px;
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.standard-association-table :deep(.standard-toolbar-tools) {
+  gap: 8px;
+}
+
+.standard-association-table :deep(.standard-toolbar-tools .ant-btn) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.standard-association-table :deep(.standard-toolbar-tools svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.standard-association-table :deep(.ant-table-thead > tr > th) {
+  padding: 7px 10px;
+  line-height: 20px;
+  background: hsl(var(--muted));
+}
+
 .standard-association-table :deep(.ant-table-thead > tr > th),
 .standard-association-table :deep(.ant-table-tbody > tr > td) {
   font-size: 12px;
+}
+
+.standard-association-table :deep(.ant-table-tbody > tr > td) {
+  padding: 8px 10px;
+}
+
+.standard-association-table :deep(.ant-table-content) {
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+.standard-association-table :deep(.ant-table-content::-webkit-scrollbar) {
+  width: 6px;
+  height: 6px;
+}
+
+.standard-association-table :deep(.ant-table-content::-webkit-scrollbar-thumb) {
+  background: hsl(var(--muted-foreground) / 20%);
+  border-radius: 4px;
 }
 </style>

@@ -2,9 +2,13 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { GovernanceStandardCodeItemApi } from '#/api/governance/standardcodeitem';
 
-import { computed, watch } from 'vue';
+import { watch } from 'vue';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { Plus } from '@vben/icons';
+
+import { Button } from 'antdv-next';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getStandardCodeItemPage } from '#/api/governance/standardcodeitem';
 
 import { useRelatedItemGridColumns } from '../data';
@@ -18,19 +22,20 @@ const emit = defineEmits<{
   relate: [];
 }>();
 
-const tableTitle = computed(() =>
-  props.codeSetName ? `当前码表：${props.codeSetName}` : '码值',
-);
-
 function handleRefresh() {
   gridApi.query();
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
+    align: 'left',
+    border: false,
+    headerAlign: 'left',
+    headerCellConfig: { height: 34 },
     columns: useRelatedItemGridColumns(),
     height: '100%',
     keepSource: true,
+    round: false,
     pagerConfig: {
       enabled: true,
     },
@@ -50,11 +55,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
     },
     rowConfig: {
       keyField: 'id',
+      height: 42,
       isHover: true,
     },
     toolbarConfig: {
       refresh: true,
       search: false,
+      zoom: false,
     },
   } as VxeTableGridOptions<GovernanceStandardCodeItemApi.StandardCodeItem>,
 });
@@ -70,26 +77,61 @@ watch(
 </script>
 
 <template>
-  <div class="h-full min-h-0">
+  <div class="standard-detail-vxe h-full min-h-0">
     <Grid>
-      <template #table-title>
-        <div class="text-base font-medium">
-          {{ tableTitle }}
-        </div>
-      </template>
-      <template #toolbar-tools>
-        <TableAction
-          :actions="[
-            {
-              label: '关联',
-              type: 'primary',
-              icon: ACTION_ICON.ADD,
-              auth: ['governance:standard-element:update'],
-              onClick: () => emit('relate'),
-            },
-          ]"
-        />
+      <template #toolbar-actions>
+        <Button
+          v-access:code="['governance:standard-element:update']"
+          size="small"
+          type="primary"
+          @click="emit('relate')"
+        >
+          <template #icon><Plus :size="12" /></template>
+          关联
+        </Button>
       </template>
     </Grid>
   </div>
 </template>
+
+<style scoped>
+.standard-detail-vxe :deep(.vxe-grid) {
+  padding: 0;
+}
+
+.standard-detail-vxe :deep(.vxe-toolbar) {
+  height: 30px;
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.standard-detail-vxe :deep(.vxe-toolbar .vxe-button.is--circle) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+}
+
+.standard-detail-vxe :deep(.vxe-table--border-line) {
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.standard-detail-vxe :deep(.vxe-cell--col-resizable::before) {
+  background-color: transparent;
+}
+
+.standard-detail-vxe :deep(.vxe-cell--col-resizable:hover::before) {
+  background-color: hsl(var(--border));
+}
+
+.standard-detail-vxe :deep(.vxe-header--column .vxe-cell),
+.standard-detail-vxe :deep(.vxe-body--column .vxe-cell) {
+  padding-inline: 10px;
+}
+
+.standard-detail-vxe :deep(.vxe-table--scroll-x-handle),
+.standard-detail-vxe :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+</style>

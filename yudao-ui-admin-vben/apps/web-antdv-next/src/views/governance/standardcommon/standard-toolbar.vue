@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { IconifyIcon } from '@vben/icons';
+import { Grid, IconifyIcon, RefreshCw, Search, Settings } from '@vben/icons';
 
 import { Button, Checkbox, Popover, Tooltip } from 'antdv-next';
 
 defineProps<{
   columns: { key: string; title: string }[];
   hideSearch?: boolean;
+  settingsIcon?: string;
   title?: string;
 }>();
 const emit = defineEmits<{ refresh: []; search: [] }>();
@@ -26,12 +27,12 @@ function toggle(key: string, checked: boolean) {
     <div class="standard-toolbar-tools">
       <Tooltip v-if="!hideSearch" title="显示/隐藏查询">
         <Button aria-label="显示/隐藏查询" @click="emit('search')">
-          <IconifyIcon icon="lucide:search" />
+          <template #icon><Search /></template>
         </Button>
       </Tooltip>
       <Tooltip title="刷新">
         <Button aria-label="刷新" @click="emit('refresh')">
-          <IconifyIcon icon="lucide:refresh-cw" />
+          <template #icon><RefreshCw /></template>
         </Button>
       </Tooltip>
       <Popover placement="bottomRight" trigger="click">
@@ -48,7 +49,11 @@ function toggle(key: string, checked: boolean) {
           </div>
         </template>
         <Button aria-label="列设置">
-          <IconifyIcon icon="lucide:grid-2x2" />
+          <template #icon>
+            <Settings v-if="settingsIcon === 'lucide:settings'" />
+            <Grid v-else-if="!settingsIcon || settingsIcon === 'lucide:grid-2x2'" />
+            <IconifyIcon v-else :icon="settingsIcon" />
+          </template>
         </Button>
       </Popover>
     </div>

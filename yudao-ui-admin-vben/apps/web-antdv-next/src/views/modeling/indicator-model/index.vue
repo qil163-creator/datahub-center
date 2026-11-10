@@ -33,7 +33,6 @@ import {
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import domainIcon from '#/views/modeling/logictable/assets/data-section-default-icon-small.svg';
-import { QdIcon } from '#/views/modeling/logictable/icons';
 
 import { options, PERIOD_LABELS, STATUS_LABELS, TYPE_LABELS } from './data';
 import IndicatorForm from './modules/form.vue';
@@ -198,7 +197,7 @@ const [Grid, gridApi] = useVbenVxeGrid<IndicatorModelApi.Model>({
         field: 'name',
         title: '原子指标信息',
         align: 'left',
-        width: indicatorType.value === 'ATOMIC' ? 160 : undefined,
+        width: indicatorType.value === 'ATOMIC' ? 320 : undefined,
         minWidth: indicatorType.value === 'ATOMIC' ? undefined : 198,
         slots: { default: 'indicator' },
         showOverflow: false,
@@ -207,7 +206,7 @@ const [Grid, gridApi] = useVbenVxeGrid<IndicatorModelApi.Model>({
         field: 'sourceModelName',
         title: '归属信息',
         align: 'left',
-        width: indicatorType.value === 'ATOMIC' ? 180 : undefined,
+        width: indicatorType.value === 'ATOMIC' ? 400 : undefined,
         minWidth: indicatorType.value === 'ATOMIC' ? undefined : 241,
         slots: { default: 'belonging' },
         showOverflow: false,
@@ -453,8 +452,8 @@ watch(
                     width:
                       indicatorType.value === 'ATOMIC'
                         ? column.field === 'name'
-                          ? 160
-                          : 180
+                          ? 320
+                          : 400
                         : undefined,
                     minWidth:
                       indicatorType.value === 'ATOMIC'
@@ -717,11 +716,7 @@ onActivated(() => {
                 onClick: () => remove([row]),
               },
             ]"
-          >
-            <template #more>
-              <Button type="link"> <QdIcon name="arrowDown" />更多 </Button>
-            </template>
-          </TableAction>
+          />
         </template>
       </Grid>
     </MetricLayout>

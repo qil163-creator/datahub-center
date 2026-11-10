@@ -28,6 +28,8 @@ import {
   snapshotCellText,
 } from '../snapshot-filter';
 
+import '#/components/detail-fill-table.css';
+
 const props = defineProps<{
   preview?: MarketCheckApi.Preview;
 }>();
@@ -203,6 +205,7 @@ watch(() => props.preview, reset);
       class="check-preview__notice"
     />
     <Table
+      class="check-preview__table detail-fill-table"
       :columns="columns"
       :data-source="rows"
       :pagination="pagination"
@@ -228,7 +231,19 @@ watch(() => props.preview, reset);
 
 <style scoped>
 .check-preview {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding-top: 18px;
+}
+
+.check-preview__table {
+  flex: 1;
+}
+
+.check-preview__table :deep(.ant-table-thead > tr > th) {
+  padding-block: 6px;
 }
 
 .check-preview__actions {

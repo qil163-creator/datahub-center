@@ -357,10 +357,16 @@ const technicalFields = computed(() =>
               </DescriptionsItem>
             </Descriptions>
           </section>
-          <section class="metadata-panel metadata-detail-body">
+          <section
+            class="metadata-panel metadata-detail-body"
+            :class="{ 'metadata-detail-body--paged': activeTab === 'fields' || (!finalized && activeTab === 'versions') }"
+          >
             <Tabs
               class="metadata-detail-tabs"
-              :class="{ 'metadata-detail-tabs--base': activeTab === 'base' }"
+              :class="{
+                'metadata-detail-tabs--base': activeTab === 'base',
+                'metadata-detail-tabs--paged': activeTab === 'fields' || (!finalized && activeTab === 'versions'),
+              }"
               :active-key="activeTab"
               @change="(key) => (activeTab = String(key ?? 'fields'))"
             >
@@ -635,8 +641,49 @@ const technicalFields = computed(() =>
   min-height: 480px;
 }
 
+.metadata-panel.metadata-detail-body--paged {
+  padding-bottom: 16px;
+}
+
 .metadata-detail-tabs {
   flex: 1 0 auto;
+}
+
+.metadata-detail-tabs--paged,
+.metadata-detail-tabs--paged :deep(.ant-tabs-body-holder),
+.metadata-detail-tabs--paged :deep(.ant-tabs-body),
+.metadata-detail-tabs--paged :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-detail-tabs--paged :deep(.ant-tabs-content) {
+  height: 100%;
+}
+
+.metadata-detail-tabs--paged :deep(.ant-table-wrapper),
+.metadata-detail-tabs--paged :deep(.ant-spin),
+.metadata-detail-tabs--paged :deep(.ant-spin-nested-loading),
+.metadata-detail-tabs--paged :deep(.ant-spin-container),
+.metadata-detail-tabs--paged :deep(.ant-table),
+.metadata-detail-tabs--paged :deep(.ant-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-detail-tabs--paged :deep(.ant-table-content) {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto !important;
+}
+
+.metadata-detail-tabs--paged :deep(.ant-table-empty .ant-table-content > table) {
+  height: 100%;
 }
 
 .metadata-detail-tabs--base :deep(.ant-tabs-nav) {

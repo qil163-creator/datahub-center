@@ -12,6 +12,16 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock('#/api/dataforge/fill', () => ({ getSubmissionPreview: api.getSubmissionPreview }));
 vi.mock('#/api/system/user', () => ({ getSimpleUserList: api.getSimpleUserList }));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({
+    props: { current: Number, pageSize: Number, total: Number },
+    emits: ['change'],
+    setup: (props, { emit }) => () => h('div', { 'data-pager': `${props.current}/${props.pageSize}/${props.total}` }, [
+      h('button', { 'data-next': '', onClick: () => emit('change', 2, props.pageSize) }, '下一页'),
+      h('button', { 'data-size': '', onClick: () => emit('change', 1, 20) }, '20条/页'),
+    ]),
+  }),
+}));
 vi.mock('@vben/utils', () => ({ formatDateTime: () => '2026-11-01 10:00:00' }));
 vi.mock('antdv-next', () => {
   const Box = defineComponent({ setup: (_props, { slots }) => () => h('div', [slots.default?.()]) });
@@ -75,6 +85,32 @@ async function settle() {
 }
 
 describe('审批人提交快照视图', () => {
+  it('超过一百行时按统一分页展示，切换提交后重置页码和条数', async () => {
+    const rows = Array.from({ length: 121 }, (_, index) => ({
+      rowId: String(index + 1),
+      rowOrder: index + 1,
+      data: { name: `第${index + 1}行` },
+    }));
+    api.getSubmissionPreview.mockImplementation(async (id: number | string) =>
+      snapshot(Number(id), 1, rows),
+    );
+    const state = mount(1);
+    await settle();
+    expect(host.querySelector('[data-pager]')?.getAttribute('data-pager')).toBe('1/100/121');
+    expect(host.querySelectorAll('[data-row]')).toHaveLength(100);
+    (host.querySelector('[data-next]') as HTMLButtonElement).click();
+    await nextTick();
+    expect(host.querySelectorAll('[data-row]')).toHaveLength(21);
+    expect(host.querySelector('[data-row]')?.getAttribute('data-row')).toBe('101');
+    (host.querySelector('[data-size]') as HTMLButtonElement).click();
+    await nextTick();
+    expect(host.querySelectorAll('[data-row]')).toHaveLength(20);
+    state.id = 2;
+    await settle();
+    expect(host.querySelector('[data-pager]')?.getAttribute('data-pager')).toBe('1/100/121');
+    expect(host.querySelector('[data-row]')?.getAttribute('data-row')).toBe('1');
+  });
+
   it('显示提交人姓名、警告，并与上一次提交对比新增、删除和修改', async () => {
     api.getSubmissionPreview.mockImplementation(async (id: number | string) =>
       String(id) === '2'
@@ -90,6 +126,7 @@ describe('审批人提交快照视图', () => {
     expect(host.textContent).toContain('提交时存在 1 条警告');
     expect(host.textContent).toContain('第 1 行【金额】不能大于 10');
     expect(host.textContent).toContain('较上一次提交：新增 1 行，删除 1 行，修改 1 个单元格');
+    expect(host.querySelector('[data-pager]')).toBeNull();
     expect(api.getSubmissionPreview).toHaveBeenCalledWith(2);
     expect(api.getSubmissionPreview).toHaveBeenCalledWith(1);
   });

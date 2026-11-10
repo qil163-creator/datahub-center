@@ -367,8 +367,8 @@ onActivated(() => {
 
 .condition-basic-table :deep(.ant-descriptions-item-label) {
   width: 170px;
-  color: #333;
-  background: #f5f7fa;
+  color: #8c8c8c;
+  background: #fafafa;
 }
 
 .condition-basic-table :deep(.ant-descriptions-row > th),

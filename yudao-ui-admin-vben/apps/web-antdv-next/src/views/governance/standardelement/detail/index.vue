@@ -1,24 +1,15 @@
 <script lang="ts" setup>
 import type { GovernanceStandardElementApi } from '#/api/governance/standardelement';
 
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import {
-  Button,
-  Dropdown,
-  Menu,
-  MenuItem,
-  message,
-  Spin,
-  Tabs,
-} from 'antdv-next';
+import { message, Spin, Tabs } from 'antdv-next';
 
 import { getDoc } from '#/api/governance/doc';
 import { getStandardCodeSet } from '#/api/governance/standardcodeset';
@@ -37,7 +28,6 @@ import {
   formatUserMobile,
   loadElementNameCaches,
 } from '../data';
-import Form from '../modules/form.vue';
 import { useDetailExtraSchema, useDetailSchema } from './data';
 import ImpactPanel from './modules/impact-panel.vue';
 import ItemGrid from './modules/item-grid.vue';
@@ -73,7 +63,6 @@ const loading = ref(false);
 const elementId = ref(0);
 const element = ref<ElementDetailView>({} as ElementDetailView);
 const activeTab = ref('models');
-const extendedTabs = ref(false);
 const detailRequest = useObjectRequest(
   () => String(route.params.id),
   () => {
@@ -81,24 +70,16 @@ const detailRequest = useObjectRequest(
     loading.value = false;
   },
 );
-const tabItems = computed(() => [
+const tabItems = [
   { key: 'models', label: '关联逻辑模型' },
   { key: 'assets', label: '关联资产' },
   { key: 'clean', label: '关联清洗规则' },
   { key: 'audit', label: '关联稽查规则' },
+  { key: 'codeset', label: '关联标准码表' },
+  { key: 'mapping', label: '数据元落标' },
+  { key: 'impact', label: '影响分析' },
   { key: 'detail', label: '详细信息' },
-  ...(extendedTabs.value
-    ? [
-        { key: 'codeset', label: '关联标准码表' },
-        { key: 'mapping', label: '数据元落标' },
-        { key: 'impact', label: '影响分析' },
-      ]
-    : []),
-]);
-function openExtended(tab: string) {
-  extendedTabs.value = true;
-  activeTab.value = tab;
-}
+];
 
 const [ExtraDescriptions] = useDescription({
   bordered: true,
@@ -106,11 +87,6 @@ const [ExtraDescriptions] = useDescription({
   size: 'middle',
   useCard: false,
   schema: [...useDetailSchema(), ...useDetailExtraSchema()],
-});
-
-const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: Form,
-  destroyOnClose: true,
 });
 
 const [RelateModal, relateModalApi] = useVbenModal({
@@ -176,10 +152,6 @@ function handleBack() {
   });
 }
 
-function handleEdit() {
-  formModalApi.setData({ id: elementId.value }).open();
-}
-
 function handleRelate() {
   relateModalApi
     .setData({
@@ -202,6 +174,7 @@ watch(
     activeTab.value =
       typeof requestedTab === 'string' &&
       [
+        'assets',
         'audit',
         'clean',
         'codeset',
@@ -209,14 +182,10 @@ watch(
         'impact',
         'mapping',
         'models',
-        'assets',
         'relation',
       ].includes(requestedTab)
         ? (requestedTab === 'relation' ? 'assets' : requestedTab)
         : 'models';
-    extendedTabs.value = ['codeset', 'impact', 'mapping'].includes(
-      activeTab.value,
-    );
     void loadDetail();
   },
   { immediate: true },
@@ -229,7 +198,7 @@ watch(
     class="qdata-standard"
     content-class="flex min-h-0 flex-col gap-[14px]"
   >
-    <FormModal @success="loadDetail" /><RelateModal @success="loadDetail" />
+    <RelateModal @success="loadDetail" />
     <Spin :spinning="loading" class="shrink-0">
       <section class="standard-detail-header">
         <div class="standard-detail-title">
@@ -273,36 +242,18 @@ watch(
         </dl>
       </section>
     </Spin>
-    <section class="standard-detail-body">
+    <section
+      class="standard-detail-body"
+      :class="{
+        'standard-element-body--grid': activeTab === 'codeset',
+        'standard-element-body--paged': ['models', 'assets', 'clean', 'audit'].includes(activeTab),
+      }"
+    >
       <Tabs
         v-model:active-key="activeTab"
         :items="tabItems"
         class="standard-detail-tabs"
       >
-        <template #rightExtra>
-          <Dropdown>
-            <Button size="small"
-              ><template #icon
-                ><IconifyIcon icon="lucide:ellipsis-vertical" /></template
-              >更多</Button
-            ><template #popupRender>
-              <Menu>
-                <MenuItem @click="openExtended('codeset')">
-                  <template #icon><IconifyIcon icon="lucide:link" /></template>
-                  关联标准码表 </MenuItem
-                ><MenuItem @click="openExtended('mapping')"
-                  ><template #icon
-                    ><IconifyIcon icon="lucide:list-checks" /></template
-                  >数据元落标</MenuItem
-                ><MenuItem @click="openExtended('impact')"
-                  ><template #icon
-                    ><IconifyIcon icon="lucide:git-fork" /></template
-                  >影响分析</MenuItem
-                >
-              </Menu>
-            </template>
-          </Dropdown>
-        </template>
         <template #contentRender="{ item }">
           <RuleBindings
             v-if="item.key === 'clean' && activeTab === 'clean' && element.id"
@@ -349,15 +300,7 @@ watch(
             v-else-if="item.key === 'detail' && activeTab === 'detail'"
             class="standard-extensions"
           >
-            <Button
-              v-access:code="['governance:standard-element:update']"
-              class="mb-4"
-              :disabled="element.lifecycleStatus === 'DEPRECATED'"
-              @click="handleEdit"
-            >
-              <template #icon><IconifyIcon icon="lucide:edit" /></template>
-              修改数据元 </Button
-            ><ExtraDescriptions :data="element" />
+            <ExtraDescriptions :data="element" />
           </div>
         </template>
       </Tabs>
@@ -366,13 +309,17 @@ watch(
 </template>
 
 <style scoped>
+.standard-detail-body.standard-element-body--grid {
+  padding-bottom: 8px;
+}
+
+.standard-detail-body.standard-element-body--paged {
+  padding-bottom: 16px;
+}
+
 .qdata-standard :deep(.standard-detail-table .ant-table-thead > tr > th),
 .qdata-standard :deep(.standard-detail-table .ant-table-tbody > tr > td) {
   font-size: 12px;
 }
 
-.standard-detail-body {
-  flex: none;
-  min-height: 0;
-}
 </style>

@@ -194,15 +194,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
       },
     },
     {
-      fieldName: 'typeName',
-      label: '数据源名称',
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: '请输入数据源名称',
-      },
-    },
-    {
       fieldName: 'categoryCode',
       label: '连接分类',
       component: 'Select',
@@ -210,16 +201,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
         allowClear: true,
         options: getDictOptions(DICT_TYPE.CATEGORY_CODE, 'string'),
         placeholder: '请选择连接分类',
-      }),
-    },
-    {
-      fieldName: 'protocolType',
-      label: '连接协议类型',
-      component: 'Select',
-      componentProps: () => ({
-        allowClear: true,
-        options: protocolOptions(),
-        placeholder: '请选择连接协议类型',
       }),
     },
     {

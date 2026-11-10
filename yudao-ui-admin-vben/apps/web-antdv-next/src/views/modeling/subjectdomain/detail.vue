@@ -98,9 +98,9 @@ function back() {
       <Page
         auto-content-height
         class="planning-page planning-detail-page"
-        content-class="p-0"
+        content-class="flex min-h-0 flex-col p-0"
       >
-        <Spin :spinning="loading">
+        <Spin class="planning-detail-spin" :spinning="loading">
           <div v-if="detail" class="planning-detail-content">
             <DetailHeader
               kind="subject"
@@ -108,7 +108,7 @@ function back() {
               :board="board"
               @back="back"
             />
-            <section class="planning-detail-panel">
+            <section class="planning-detail-panel subject-detail-panel">
               <Tabs active-key="entities" class="planning-detail-tabs">
                 <TabPane key="entities" tab="业务实体">
                   <EntityTable
@@ -132,3 +132,9 @@ function back() {
     </ConfigProvider>
   </div>
 </template>
+
+<style scoped>
+.subject-detail-panel {
+  padding-bottom: 8px;
+}
+</style>

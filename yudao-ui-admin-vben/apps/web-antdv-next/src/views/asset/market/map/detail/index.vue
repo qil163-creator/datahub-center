@@ -585,7 +585,7 @@ onUnmounted(() => {
   margin-bottom: 8px;
 }
 
-.detail-tabs__nav :deep(.ant-tabs-content-holder) {
+.detail-tabs__nav :deep(.ant-tabs-body-holder) {
   display: none;
 }
 

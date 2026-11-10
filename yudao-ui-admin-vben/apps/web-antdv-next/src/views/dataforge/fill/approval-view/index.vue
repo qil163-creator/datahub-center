@@ -18,6 +18,7 @@ import {
 
 import { getSubmissionPreview } from '#/api/dataforge/fill';
 import { getSimpleUserList } from '#/api/system/user';
+import ListPagination from '#/components/list-pagination/index.vue';
 
 import { APPROVAL_STATUS_TEXT } from '../shared';
 import { changedCellCount, diffSnapshots } from './diff';
@@ -38,6 +39,8 @@ const loadFailed = ref('');
 const preview = ref<DataforgeFillApi.SubmissionPreview>();
 const previous = ref<DataforgeFillApi.SubmissionPreview>();
 const submitterName = ref('');
+const pageNo = ref(1);
+const pageSize = ref(100);
 
 interface PreviewField {
   fieldCode: string;
@@ -75,6 +78,18 @@ const dataSource = computed(() =>
     .toSorted((a, b) => Number(a.rowOrder) - Number(b.rowOrder))
     .map((row, index) => ({ ...row, __no: index + 1 })),
 );
+const visibleRows = computed(() =>
+  dataSource.value.length > 100
+    ? dataSource.value.slice(
+        (pageNo.value - 1) * pageSize.value,
+        pageNo.value * pageSize.value,
+      )
+    : dataSource.value,
+);
+function changePage(page: number, size: number) {
+  pageNo.value = page;
+  pageSize.value = size;
+}
 
 // 与上一次提交对比（整改后重新提交时审批人只需关注变化）
 const diff = computed<SnapshotDiff | undefined>(() =>
@@ -143,7 +158,11 @@ async function resolveSubmitter(current: number, userId?: number | string) {
 }
 
 onMounted(load);
-watch(() => props.id, load);
+watch(() => props.id, () => {
+  pageNo.value = 1;
+  pageSize.value = 100;
+  void load();
+});
 </script>
 
 <template>
@@ -229,8 +248,8 @@ watch(() => props.id, load);
 
       <Table
         :columns="columns"
-        :data-source="dataSource"
-        :pagination="dataSource.length > 100 ? { pageSize: 100 } : false"
+        :data-source="visibleRows"
+        :pagination="false"
         :scroll="{ x: 'max-content', y: 480 }"
         bordered
         row-key="rowId"
@@ -247,6 +266,15 @@ watch(() => props.id, load);
           </div>
         </template>
       </Table>
+      <ListPagination
+        v-if="dataSource.length > 100"
+        :current="pageNo"
+        :page-size="pageSize"
+        :page-size-options="[10, 20, 50, 100]"
+        :total="dataSource.length"
+        aria-label="提交快照分页"
+        @change="changePage"
+      />
 
       <p
         v-if="diff && diff.removedRows.length > 0"

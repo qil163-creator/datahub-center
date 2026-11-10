@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, message, Switch } from 'antdv-next';
 
@@ -350,7 +351,7 @@ async function remove(rows = selected.value) {
             ]"
           >
             <template #more>
-              <Button type="link"><MetadataIcon name="more" />更多</Button>
+              <Button type="link"><IconifyIcon icon="lucide:ellipsis-vertical" />更多</Button>
             </template>
           </TableAction>
         </template>

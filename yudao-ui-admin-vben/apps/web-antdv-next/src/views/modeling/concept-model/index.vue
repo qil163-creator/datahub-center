@@ -315,6 +315,12 @@ onActivated(() => {
 </template>
 
 <style scoped>
+.concept-model-page :deep(.vxe-table--scroll-x-handle),
+.concept-model-page :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+
 .concept-model-name {
   display: flex;
   gap: 5px;

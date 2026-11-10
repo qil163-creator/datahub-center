@@ -14,11 +14,30 @@ type SubjectDomainTestInstance = {
   };
 };
 
+type GridState = {
+  data?: { id: string; parentId: string }[];
+  pagerConfig?: {
+    currentPage?: number;
+    enabled?: boolean;
+    pageSize?: number;
+    total?: number;
+  };
+};
+type GridOptions = {
+  gridEvents: {
+    pageChange: (event: { currentPage: number; pageSize: number }) => void;
+  };
+  gridOptions: GridState;
+};
+
 const harness = vi.hoisted(() => ({
   route: {} as { path: string; query: { detailId?: string | string[] } },
   navigate: vi.fn(),
   setSearchValues: vi.fn(),
   setSearchSubmission: vi.fn(),
+  getSubjects: vi.fn(),
+  setGridOptions: vi.fn(),
+  gridOptions: undefined as GridOptions | undefined,
 }));
 vi.mock('vue-router', () => ({ useRoute: () => harness.route, useRouter: () => ({ push: harness.navigate }) }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
@@ -51,11 +70,14 @@ vi.mock('antdv-next', () => ({
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: {},
   TableAction: () => null,
-  useVbenVxeGrid: () => [() => null, { query: vi.fn(), setGridOptions: vi.fn(), formApi: { setValues: harness.setSearchValues, setLatestSubmissionValues: harness.setSearchSubmission } }],
+  useVbenVxeGrid: (options: GridOptions) => {
+    harness.gridOptions = options;
+    return [() => null, { query: vi.fn(), setGridOptions: harness.setGridOptions, formApi: { setValues: harness.setSearchValues, setLatestSubmissionValues: harness.setSearchSubmission } }];
+  },
 }));
 vi.mock('#/api/modeling/subjectdomain', () => ({
   deleteSubjectDomain: vi.fn(),
-  getSubjectDomainList: vi.fn(),
+  getSubjectDomainList: harness.getSubjects,
   updateSubjectDomainStatus: vi.fn(),
 }));
 vi.mock('#/locales', () => ({ $t: (key: string) => key }));
@@ -74,15 +96,57 @@ async function flush() {
   await nextTick();
   await nextTick();
 }
-async function mount() {
+async function mount(props: { dataDomainId?: string; embedded?: boolean } = {}) {
   host = document.createElement('div');
-  app = createApp(SubjectDomains);
+  app = createApp(SubjectDomains, props);
   app.mount(host);
   await flush();
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  harness.gridOptions = undefined;
+  harness.getSubjects.mockResolvedValue([]);
   harness.route = reactive({ path: '/configured/subject-domain', query: {} });
+});
+
+describe('数据板块详情的主题域分页', () => {
+  it('按根主题域分页并保留子主题域，切换页码和页大小后更新结果', async () => {
+    const roots = Array.from({ length: 21 }, (_, index) => ({
+      id: String(index + 1),
+      parentId: '0',
+      createTime: 21 - index,
+    }));
+    harness.getSubjects.mockResolvedValue([
+      ...roots,
+      { id: 'child-1', parentId: '1', createTime: 0 },
+      { id: 'child-21', parentId: '21', createTime: 0 },
+    ]);
+
+    await mount({ dataDomainId: '34', embedded: true });
+    expect(harness.gridOptions?.gridOptions.pagerConfig).toMatchObject({
+      enabled: true,
+      pageSize: 20,
+    });
+    const latest = () => harness.setGridOptions.mock.calls
+      .map(([options]) => options as GridState)
+      .filter((options) => options.data && options.pagerConfig)
+      .at(-1)!;
+    expect(latest().pagerConfig).toMatchObject({ total: 21, currentPage: 1, pageSize: 20 });
+    expect(latest().data?.map((row) => row.id)).toContain('child-1');
+    expect(latest().data?.map((row) => row.id)).not.toContain('child-21');
+    expect(latest().data).toHaveLength(21);
+
+    harness.gridOptions!.gridEvents.pageChange({ currentPage: 2, pageSize: 20 });
+    expect(latest().pagerConfig).toMatchObject({ total: 21, currentPage: 2, pageSize: 20 });
+    expect(latest().data?.map((row) => row.id)).toEqual(['21', 'child-21']);
+    expect(latest().data?.find((row) => row.id === 'child-21')?.parentId).toBe('21');
+
+    harness.gridOptions!.gridEvents.pageChange({ currentPage: 1, pageSize: 10 });
+    expect(latest().pagerConfig).toMatchObject({ total: 21, currentPage: 1, pageSize: 10 });
+    expect(latest().data).toHaveLength(11);
+    expect(latest().data?.map((row) => row.id)).toContain('child-1');
+    expect(latest().data?.map((row) => row.id)).not.toContain('11');
+  });
 });
 afterEach(() => {
   app?.unmount();

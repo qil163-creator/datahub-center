@@ -28,6 +28,7 @@ vi.mock('@vben/access', () => ({
   useAccess: () => ({ hasAccessByCodes: () => true }),
 }));
 vi.mock('@vben/hooks', () => ({ getDictLabel: () => '' }));
+vi.mock('@vben/icons', () => ({ IconifyIcon: () => h('span') }));
 vi.mock('@vben/utils', () => ({
   formatDate: String,
 }));
@@ -48,8 +49,29 @@ vi.mock('antdv-next', () => {
   });
   return {
     Alert: container,
-    Button: (_: unknown, { slots }: SetupContext) =>
-      h('button', slots.default?.()),
+    Button: (_: unknown, { attrs, slots }: SetupContext) =>
+      h('button', attrs, slots.default?.()),
+    Checkbox: defineComponent({
+      props: { checked: Boolean },
+      emits: ['change'],
+      setup(props, { emit, slots }) {
+        return () => h('label', [
+          h('input', {
+            type: 'checkbox',
+            checked: props.checked,
+            onChange: (event: Event) => emit('change', event),
+          }),
+          slots.default?.(),
+        ]);
+      },
+    }),
+    Popover: defineComponent({
+      setup: (_, { slots }) => () => h('div', [slots.default?.(), slots.content?.()]),
+    }),
+    Empty: defineComponent({
+      props: { description: { type: String, default: '' } },
+      setup: (props) => () => h('span', props.description),
+    }),
     Spin: container,
     Modal: defineComponent({
       props: { open: Boolean, title: { type: String, default: '' } },
@@ -166,6 +188,38 @@ afterEach(() => {
 });
 
 describe('发布模型详情', () => {
+  it('字段列设置与刷新保留原有功能', async () => {
+    await mount();
+    const option = [...host.querySelectorAll('label')].find((label) =>
+      label.textContent?.includes('中文名称'),
+    );
+    const checkbox = option?.querySelector<HTMLInputElement>('input');
+    expect(checkbox?.checked).toBe(true);
+    checkbox!.click();
+    await flush();
+    expect(host.querySelector('.qd-materialized-fields-table')?.textContent).not.toContain('中文名称');
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新属性字段"]')!.click();
+    await flush();
+    expect(api.getModelMaterializedByModel).toHaveBeenCalledTimes(2);
+  });
+
+  it('空字段和空日志展示独立空状态，有数据时展示行', async () => {
+    vi.mocked(api.getModelMaterializedByModel).mockResolvedValue({ ...model(), fields: [] });
+    await mount();
+    expect(host.querySelector('.qd-materialized-fields-table.is-empty')).not.toBeNull();
+    expect(host.querySelector('.qd-materialized-table-empty')?.textContent).toContain('暂无属性字段');
+    click('发布日志');
+    await flush();
+    expect(host.querySelector('.qd-materialized-logs-table.is-empty')).not.toBeNull();
+    expect(host.querySelector('.qd-materialized-table-empty')?.textContent).toContain('暂无发布日志');
+    vi.mocked(api.getModelMaterializedLogPage).mockResolvedValue({ list: [{ id: '1', modelName: '已发布' }], total: 1 });
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新发布日志"]')!.click();
+    await flush();
+    expect(host.querySelector('.qd-materialized-logs-table.is-empty')).toBeNull();
+    expect(host.querySelector('.qd-materialized-table-empty')).toBeNull();
+    expect(host.querySelector('.qd-materialized-logs-table')?.textContent).toContain('已发布');
+  });
+
   it('使用无损模型编号与后端冻结字段，并保留字段详情和返回操作', async () => {
     await mount();
     expect(api.getModelMaterializedByModel).toHaveBeenCalledWith(

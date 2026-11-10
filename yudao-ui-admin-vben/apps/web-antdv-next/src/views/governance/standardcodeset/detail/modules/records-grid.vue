@@ -8,7 +8,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
+import { IconifyIcon, Plus } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -233,26 +233,32 @@ watch(treeMode, () => {
 <template>
   <FormModal @success="saved" />
   <StandardToolbar
-    :title="kind === 'items' ? '代码字典' : '代码映射'"
+    class="standard-code-records-toolbar"
     v-model:visible-columns="visibleColumns"
     :columns="definitions"
     hide-search
+    settings-icon="lucide:settings"
     @refresh="load"
   >
-    <Button
-      v-if="can('create')"
-      type="primary"
-      :disabled="!codeSetId"
-      @click="open()"
-    >
-      <IconifyIcon icon="lucide:plus" />新增
-    </Button>
-    <Dropdown v-if="kind === 'items'">
+    <template #title>
       <Button
-        ><template #icon
-          ><IconifyIcon icon="lucide:ellipsis-vertical" /></template
-        >更多</Button
-      ><template #popupRender>
+        v-if="can('create')"
+        type="primary"
+        size="small"
+        :disabled="!codeSetId"
+        @click="open()"
+      >
+        <template #icon><Plus :size="12" /></template>
+        新增
+      </Button>
+      <span v-else aria-hidden="true"></span>
+    </template>
+    <Dropdown v-if="kind === 'items'">
+      <Button size="small">
+        <template #icon><IconifyIcon icon="lucide:ellipsis-vertical" /></template>
+        更多
+      </Button>
+      <template #popupRender>
         <Menu @click="treeMode = !treeMode">
           <MenuItem key="tree">
             <template #icon>
@@ -267,8 +273,9 @@ watch(treeMode, () => {
     </Dropdown>
     <template v-if="treeMode">
       <Checkbox v-model:checked="includeHistory" @change="load">
-        显示历史码值 </Checkbox
-      ><Button
+        显示历史码值
+      </Checkbox>
+      <Button
         v-if="can('delete')"
         danger
         :disabled="!selectedIds.length"
@@ -309,9 +316,8 @@ watch(treeMode, () => {
   >
     <template #emptyText>
       <div class="standard-empty">
-        <img src="/images/quality-reference/empty.png" alt="" /><span
-          >暂无记录</span
-        >
+        <img src="/images/quality-reference/empty.png" alt="" />
+        <span>暂无记录</span>
       </div>
     </template>
     <template #bodyCell="{ column, record }">
@@ -365,6 +371,8 @@ watch(treeMode, () => {
 }
 
 :deep(.standard-code-records .ant-table-thead > tr > th) {
+  padding-block: 7px;
+  line-height: 20px;
   color: hsl(var(--foreground));
   background: hsl(var(--accent));
   border-bottom: 1px solid hsl(var(--border));
@@ -377,6 +385,37 @@ watch(treeMode, () => {
 :deep(.standard-code-records .ant-table-thead > tr > th),
 :deep(.standard-code-records .ant-table-tbody > tr > td) {
   font-size: 12px;
+}
+
+:deep(.standard-code-records-toolbar) {
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+:deep(.standard-code-records-toolbar .standard-toolbar-tools) {
+  gap: 8px;
+}
+
+:deep(.standard-code-records-toolbar .standard-toolbar-tools .ant-btn) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+:deep(.standard-code-records-toolbar .standard-toolbar-tools svg) {
+  width: 12px;
+  height: 12px;
+}
+
+:deep(.standard-code-records .ant-table-tbody > tr > td) {
+  padding-block: 8px;
+  line-height: 24px;
+}
+
+:deep(.standard-code-records .standard-row-actions .ant-btn) {
+  height: 24px;
 }
 
 .standard-row-actions svg {

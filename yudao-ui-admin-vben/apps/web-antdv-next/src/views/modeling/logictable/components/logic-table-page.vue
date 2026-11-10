@@ -21,6 +21,7 @@ import { useAccess } from '@vben/access';
 import { confirm, Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions, useAntdDesignTokens } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -963,7 +964,7 @@ type="link" danger
                                 </div>
                               </template>
                               <Button type="link">
-                                <QdIcon name="arrowDown" /><span>更多</span>
+                                <IconifyIcon icon="lucide:ellipsis-vertical" /><span>更多</span>
                               </Button>
                             </Popover>
                           </template>

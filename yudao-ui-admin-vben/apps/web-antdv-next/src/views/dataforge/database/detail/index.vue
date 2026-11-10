@@ -94,7 +94,11 @@ const usageLabel = computed(() => {
 const columns = { xs: 1, sm: 2, lg: 3 };
 
 function back() {
-  void router.push('/develop/database');
+  void router.push(
+    route.name === 'BasicDataforgeDatabaseDetail'
+      ? '/basic/database'
+      : '/develop/database',
+  );
 }
 
 async function loadMonitor() {
@@ -200,7 +204,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Page content-class="database-detail-content">
+  <Page auto-content-height content-class="database-detail-content">
     <div class="database-detail space-y-4">
       <div v-if="!databaseId || !canQuery" class="bg-card rounded-lg p-5">
         <Alert
@@ -291,9 +295,16 @@ onBeforeUnmount(() => {
           v-if="detail"
           :key="`${sessionKey}/${detail.id}`"
           class="bg-card detail-tabs rounded-lg px-5 pb-5 pt-2"
+          :class="{
+            'detail-tabs--compact': ['logs', 'alarms', 'rules'].includes(activeTab),
+          }"
           aria-label="连接详情"
         >
-          <Tabs v-model:active-key="activeTab" :animated="false">
+          <Tabs
+            v-model:active-key="activeTab"
+            :animated="false"
+            :class="{ 'detail-tabs--records': ['logs', 'alarms', 'rules'].includes(activeTab) }"
+          >
             <TabPane v-if="supportsMetadata" key="monitor" tab="运行监控">
               <Alert
                 v-if="monitorError"
@@ -389,11 +400,31 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .database-detail {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 100%;
 }
 
 .detail-tabs {
+  flex: 1;
   min-height: 480px;
+}
+
+.detail-tabs--compact {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8px;
+}
+
+.database-detail :deep(.detail-tabs--records),
+.database-detail :deep(.detail-tabs--records .ant-tabs-body-holder),
+.database-detail :deep(.detail-tabs--records .ant-tabs-body),
+.database-detail :deep(.detail-tabs--records .ant-tabs-content-active) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .database-detail :deep(.ant-descriptions-item-label) {
@@ -407,6 +438,10 @@ onBeforeUnmount(() => {
 
 .database-detail :deep(.ant-tabs-nav) {
   margin-bottom: 20px;
+}
+
+.database-detail :deep(.detail-tabs--records > .ant-tabs-nav) {
+  margin-bottom: 8px;
 }
 
 @media (width <= 640px) {

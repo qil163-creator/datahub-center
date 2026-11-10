@@ -68,7 +68,7 @@ const name = ref('');
 const parentId = ref<string>();
 const isExpanded = ref(false);
 const pageNo = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(props.embedded ? 20 : 10);
 const rows = ref<ModelingSubjectDomainApi.SubjectDomain[]>([]);
 const allSubjects = ref<ModelingSubjectDomainApi.SubjectDomain[]>([]);
 const busyIds = ref(new Set<string>());
@@ -173,9 +173,10 @@ const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
         },
       }),
   gridOptions: {
+    headerCellConfig: props.embedded ? { height: 34 } : undefined,
     showHeaderOverflow: 'tooltip',
     data: [],
-    height: props.embedded ? undefined : 'auto',
+    height: 'auto',
     minHeight: 0,
     showOverflow: false,
     proxyConfig: { enabled: false },
@@ -191,9 +192,9 @@ const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
       defaultSort: { field: 'createTime', order: 'desc' },
     },
     pagerConfig: {
-      enabled: !props.embedded,
+      enabled: true,
       currentPage: 1,
-      pageSize: 10,
+      pageSize: pageSize.value,
       pageSizes: [10, 20, 50, 100],
       total: 0,
     },
@@ -302,14 +303,14 @@ function renderRows() {
     return descending.value ? -order : order;
   });
   const roots = sorted.filter((row) => !ids.has(String(row.parentId)));
+  pageNo.value = Math.min(
+    pageNo.value,
+    Math.max(1, Math.ceil(roots.length / pageSize.value)),
+  );
   const included = new Set(
-    (props.embedded
-      ? roots
-      : roots.slice(
-          (pageNo.value - 1) * pageSize.value,
-          pageNo.value * pageSize.value,
-        )
-    ).map((row) => String(row.id)),
+    roots
+      .slice((pageNo.value - 1) * pageSize.value, pageNo.value * pageSize.value)
+      .map((row) => String(row.id)),
   );
   let added = true;
   while (added) {
@@ -575,6 +576,7 @@ onDeactivated(() => {
                 :key="String(domain.id)"
                 type="button"
                 class="planning-tree-node"
+                :title="domain.name"
                 :class="{ active: selectedDomain === String(domain.id) }"
                 @click="chooseDomain(domain.id)"
               >
@@ -602,15 +604,29 @@ onDeactivated(() => {
             主题域加载失败。<Button type="link" @click="load()">重试</Button>
           </div>
           <Grid
-            :style="{ '--vxe-ui-font-size-small': '12px' }"
+            :style="{
+              '--vxe-ui-font-size-small': '12px',
+              '--vxe-ui-font-size-mini': '12px',
+            }"
             class="min-h-0 flex-1"
-            table-title="主题域"
+            :table-title="embedded ? undefined : '主题域'"
           >
+            <template #toolbar-actions>
+              <Button
+                v-if="embedded && hasAccessByCodes(['modeling:subject-domain:create'])"
+                type="primary"
+                size="small"
+                :disabled="!selectedDomain"
+                @click="create()"
+              >
+                <IconifyIcon icon="lucide:plus" />新增
+              </Button>
+            </template>
             <template #toolbar-tools>
               <div class="planning-toolbar">
                 <Button
                   type="primary"
-                  v-if="hasAccessByCodes(['modeling:subject-domain:create'])"
+                  v-if="!embedded && hasAccessByCodes(['modeling:subject-domain:create'])"
                   :disabled="!selectedDomain"
                   @click="create()"
                 >
@@ -727,6 +743,12 @@ onDeactivated(() => {
 </template>
 
 <style scoped>
+.subjectdomain-layout :deep(.vxe-table--scroll-x-handle),
+.subjectdomain-layout :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+
 :deep(.subject-domain-status-switch.ant-switch-small) {
   min-width: 40px;
   height: 20px;

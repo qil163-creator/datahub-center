@@ -72,6 +72,10 @@ async function handleRevoke(row: GovernanceStandardElementApi.MappedColumn) {
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
+    align: 'left',
+    border: false,
+    headerAlign: 'left',
+    headerCellConfig: { height: 34 },
     columns: [
       { field: 'columnId', title: '字段编号', minWidth: 90 },
       { field: 'tableName', title: '所属表', minWidth: 160 },
@@ -139,6 +143,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
       },
     ],
     height: '100%',
+    round: false,
     pagerConfig: {
       enabled: false,
     },
@@ -160,6 +165,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     toolbarConfig: {
       refresh: true,
       search: false,
+      zoom: false,
     },
   } as VxeTableGridOptions<GovernanceStandardElementApi.MappedColumn>,
 });
@@ -175,15 +181,16 @@ watch(
 </script>
 
 <template>
-  <div class="h-full min-h-0">
-    <Grid table-title="落标字段列表">
-      <template #toolbar-tools>
+  <div class="standard-detail-vxe h-full min-h-0">
+    <Grid>
+      <template #toolbar-actions>
         <TableAction
           :actions="[
             {
               label: '码值稽核SQL',
               icon: 'lucide:code',
               type: 'primary',
+              size: 'small',
               auth: ['governance:standard-element:query'],
               onClick: handleEnumCheckSql,
             },
@@ -208,3 +215,45 @@ watch(
     </Grid>
   </div>
 </template>
+
+<style scoped>
+.standard-detail-vxe :deep(.vxe-grid) {
+  padding: 0;
+}
+
+.standard-detail-vxe :deep(.vxe-toolbar) {
+  height: 30px;
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.standard-detail-vxe :deep(.vxe-toolbar .vxe-button.is--circle) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+}
+
+.standard-detail-vxe :deep(.vxe-table--border-line) {
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.standard-detail-vxe :deep(.vxe-cell--col-resizable::before) {
+  background-color: transparent;
+}
+
+.standard-detail-vxe :deep(.vxe-cell--col-resizable:hover::before) {
+  background-color: hsl(var(--border));
+}
+
+.standard-detail-vxe :deep(.vxe-header--column .vxe-cell),
+.standard-detail-vxe :deep(.vxe-body--column .vxe-cell) {
+  padding-inline: 10px;
+}
+
+.standard-detail-vxe :deep(.vxe-table--scroll-x-handle),
+.standard-detail-vxe :deep(.vxe-table--scroll-y-handle) {
+  scrollbar-color: #d4d7dc transparent;
+  scrollbar-width: thin;
+}
+</style>

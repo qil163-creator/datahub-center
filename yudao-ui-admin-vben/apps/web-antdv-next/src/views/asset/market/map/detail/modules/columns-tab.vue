@@ -26,6 +26,8 @@ import { columnDisplayName } from '../../data';
 import ColumnForm from './column-form.vue';
 import TermBindForm from './term-bind-form.vue';
 
+import '#/components/detail-fill-table.css';
+
 defineOptions({ name: 'AssetMarketMapColumnsTab' });
 
 const props = defineProps<{
@@ -166,6 +168,7 @@ onMounted(async () => {
       </Dropdown>
     </div>
     <Table
+      class="detail-fill-table"
       :columns="tableColumns"
       :data-source="filteredColumns"
       :loading="loading"
@@ -324,6 +327,13 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.columns-tab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .columns-tab__toolbar {
   display: flex;
   gap: 10px;

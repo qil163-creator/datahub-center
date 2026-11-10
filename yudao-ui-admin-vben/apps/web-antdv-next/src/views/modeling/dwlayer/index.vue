@@ -78,7 +78,7 @@ const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
   destroyOnClose: true,
 });
-const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
+const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
   destroyOnClose: true,
 });
@@ -98,7 +98,7 @@ const requests = useObjectRequest(() => scope.value, resetLayers);
 
 function closeOverlays() {
   formModalApi.close?.();
-  detailDrawerApi.close?.();
+  detailModalApi.close?.();
   categoryDrawerApi.close?.();
 }
 
@@ -237,7 +237,7 @@ function handleEdit(row: FoundationDwLayerApi.DwLayer) {
   formModalApi.setData({ id: row.id }).open();
 }
 function handleDetail(row: FoundationDwLayerApi.DwLayer) {
-  detailDrawerApi.setData({ id: row.id, parentName: parentName(row) }).open();
+  detailModalApi.setData({ id: row.id, parentName: parentName(row) }).open();
 }
 function viewModels(row: FoundationDwLayerApi.DwLayer) {
   if (modelPath.value)
@@ -299,7 +299,7 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
 <template>
   <Page auto-content-height content-class="bg-background-deep">
     <FormModal @success="loadLayers" />
-    <DetailDrawer />
+    <DetailModal />
     <div class="warehouse-page">
       <Architecture />
       <section

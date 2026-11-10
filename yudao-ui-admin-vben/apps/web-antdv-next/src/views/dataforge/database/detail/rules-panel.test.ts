@@ -78,7 +78,7 @@ vi.mock('#/adapter/vxe-table', () => ({
   useVbenVxeGrid: () => [
     (_: unknown, { slots }: SetupContext) =>
       h('div', [
-        slots['toolbar-tools']?.(),
+        slots['toolbar-actions']?.(),
         slots.actions?.({ row: harness.row }),
       ]),
     { setGridOptions: vi.fn(), setLoading: vi.fn() },

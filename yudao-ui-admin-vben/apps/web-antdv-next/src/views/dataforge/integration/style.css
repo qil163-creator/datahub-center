@@ -760,6 +760,11 @@
   background: #f5f7fa;
 }
 
+.qi-detail-table th,
+.qi-detail-table td {
+  border-color: hsl(var(--border));
+}
+
 .qi-summary-table th {
   width: 7.5%;
   color: #9aa1ab;
@@ -802,6 +807,8 @@
 
 .qi-detail-table th {
   width: 10%;
+  color: #8c8c8c;
+  background: #fafafa;
 }
 
 .qi-detail-table td {

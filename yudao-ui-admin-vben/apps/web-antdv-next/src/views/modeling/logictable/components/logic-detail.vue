@@ -10,11 +10,13 @@ import { useRouter } from 'vue-router';
 import { useAccess } from '@vben/access';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions, useAntdDesignTokens } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import {
   Alert,
+  Button,
   Checkbox,
   ConfigProvider,
   Input,
@@ -549,7 +551,14 @@ onBeforeUnmount(() => {
           </dl>
         </section>
         <section class="qd-logic-detail-panel">
-          <nav class="qd-logic-detail-tabs" aria-label="逻辑表详情">
+          <nav
+            class="qd-logic-detail-tabs"
+            :class="{
+              'has-fields-toolbar': activeTab === 'fields',
+              'has-field-groups': activeTab === 'groups',
+            }"
+            aria-label="逻辑表详情"
+          >
             <button
               v-for="tab in tabs"
               :key="tab.key"
@@ -567,18 +576,20 @@ onBeforeUnmount(() => {
             show-icon
           />
           <template v-if="activeTab === 'fields'">
-            <div v-if="!source" class="qd-logic-detail-toolbar">
-              <template v-if="!summary">
-                <button
+            <div class="qd-logic-detail-toolbar">
+              <template v-if="!source && !summary">
+                <Button
                   v-if="hasAccessByCodes(['modeling:model:save'])"
-                  class="qd-logic-detail-btn"
+                  type="primary"
+                  size="small"
                   :disabled="!editable || loading || saving"
                   @click="fieldModal?.open()"
                 >
-                  <QdIcon name="plus" />新增字段
-</button><button
+                  <IconifyIcon icon="lucide:plus" />新增字段
+</Button><Button
                   v-if="hasAccessByCodes(['modeling:model:save'])"
-                  class="qd-logic-detail-btn danger"
+                  danger
+                  size="small"
                   :disabled="!editable || !selected.size || saving"
                   @click="
                     removeFields(
@@ -586,21 +597,28 @@ onBeforeUnmount(() => {
                     )
                   "
                 >
-                  <QdIcon name="delete" />批量删除
-                </button>
+                  <IconifyIcon icon="lucide:trash-2" />批量删除
+                </Button>
 </template><span class="qd-logic-detail-toolbar-spacer"></span><Input
+                v-if="!source"
                 v-model:value="keyword"
                 class="qd-logic-detail-search"
-                placeholder="请输入字段中文/英文名称"
+                placeholder="搜索字段中文/英文名"
+                aria-label="搜索字段"
                 allow-clear
-              /><button
-                class="qd-logic-detail-btn square"
+                size="small"
+              >
+                <template #prefix><IconifyIcon icon="lucide:search" /></template>
+              </Input><Button
+                class="qd-logic-detail-tool"
+                shape="circle"
+                size="small"
                 aria-label="刷新字段"
                 :disabled="loading || saving"
                 @click="load"
               >
-                <QdIcon name="toolbarRefresh" />
-</button><Popover trigger="click" placement="bottomRight">
+                <IconifyIcon icon="lucide:rotate-cw" />
+</Button><Popover trigger="click" placement="bottomRight">
                 <template #content>
                   <div class="qd-logic-detail-columns">
                     <Checkbox
@@ -612,12 +630,14 @@ onBeforeUnmount(() => {
                       {{ column.label }}
                     </Checkbox>
                   </div>
-</template><button
-                  class="qd-logic-detail-btn square"
+</template><Button
+                  class="qd-logic-detail-tool"
+                  shape="circle"
+                  size="small"
                   aria-label="设置表格列"
                 >
-                  <QdIcon name="menu" />
-                </button>
+                  <IconifyIcon icon="lucide:settings" />
+                </Button>
               </Popover>
             </div>
             <Spin class="qd-logic-detail-fields" :spinning="loading || saving">
@@ -746,9 +766,10 @@ onBeforeUnmount(() => {
           </template>
           <template v-else-if="activeTab === 'groups'">
             <div
-              v-for="group in groupedFields"
+              v-for="(group, index) in groupedFields"
               :key="group.key"
               class="qd-logic-detail-group"
+              :class="{ 'is-first': index === 0 }"
             >
               <p>
                 {{ group.title }} ({{ group.fields.length }})
@@ -834,7 +855,7 @@ onBeforeUnmount(() => {
             暂未实现
           </div>
           <template v-else>
-            <Spin :spinning="relatedLoading">
+            <Spin class="qd-logic-detail-related" :spinning="relatedLoading">
               <Alert
                 v-if="relatedDenied"
                 type="info"

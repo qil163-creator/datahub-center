@@ -7,6 +7,25 @@ import { describe, expect, it } from 'vitest';
 import routes from './dataforge-database';
 
 describe('database detail route', () => {
+  it('resolves the basic management detail with its own active menu and lossless ID', () => {
+    const router = createRouter({ history: createMemoryHistory(), routes });
+    const id = '9007199254740993';
+    const resolved = router.resolve({
+      name: 'BasicDataforgeDatabaseDetail',
+      params: { id },
+    });
+    expect(resolved.path).toBe(`/basic/database/detail/${id}`);
+    expect(resolved.params.id).toBe(id);
+    expect(resolved.meta.activePath).toBe('/basic/database');
+    expect(resolved.meta.hideInMenu).toBe(true);
+    const listMenu = { name: '数据连接', path: '/basic/database', parents: ['/basic'] };
+    const { findMenu, rootMenu } = findRootMenuByPath(
+      [{ name: '基础管理', path: '/basic', children: [listMenu] }],
+      resolved.meta.activePath,
+    );
+    expect(findMenu).toBe(listMenu);
+    expect(rootMenu?.path).toBe('/basic');
+  });
   it('resolves a large database ID losslessly and keeps the list menu active', () => {
     const router = createRouter({
       history: createMemoryHistory(),

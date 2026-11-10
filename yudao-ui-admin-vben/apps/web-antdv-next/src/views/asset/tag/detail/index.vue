@@ -50,6 +50,7 @@ import { useBatchConfirm as useOwnedConfirm } from '#/views/dataforge/batchfile/
 import { tagAsset, tagDate, tagNumber } from '../data';
 
 import '../reference.css';
+import '#/components/detail-fill-table.css';
 
 defineOptions({ name: 'AssetTagDetail' });
 const route = useRoute();
@@ -338,7 +339,10 @@ onBeforeUnmount(() => {
             </Descriptions>
           </section>
         </Spin>
-        <section class="tag-detail__body">
+        <section
+          class="tag-detail__body"
+          :class="{ 'tag-detail__body--assets': activeTab === 'assets' }"
+        >
           <Tabs
             v-model:active-key="activeTab"
             :items="[
@@ -380,7 +384,7 @@ onBeforeUnmount(() => {
               </template>
             </Alert>
             <Table
-              class="tag-table tag-detail__assets"
+              class="tag-table tag-detail__assets detail-fill-table"
               :columns="visibleColumns"
               :data-source="rows"
               :loading="assetLoading"
@@ -388,7 +392,7 @@ onBeforeUnmount(() => {
                 (row: AssetTagApi.LinkedAsset) => resourceIdKey(row.relationId)
               "
               :pagination="false"
-              :scroll="{ x: 1350, y: 338 }"
+              :scroll="{ x: 1350 }"
               @change="tableChange"
             >
               <template #bodyCell="{ column, record }">
@@ -481,6 +485,7 @@ onBeforeUnmount(() => {
 }
 
 .tag-detail__assets :deep(.ant-table-thead > tr > th) {
+  padding-block: 6px;
   color: hsl(var(--foreground));
   background: hsl(var(--accent));
   border-bottom: 1px solid hsl(var(--border));
@@ -575,6 +580,15 @@ onBeforeUnmount(() => {
   overflow: auto;
   background: hsl(var(--background));
   border-radius: var(--radius);
+}
+
+.tag-detail__body--assets {
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-detail__body--assets .tag-detail__assets {
+  flex: 1 1 0%;
 }
 
 .tag-detail__body :deep(.ant-tabs-nav) {

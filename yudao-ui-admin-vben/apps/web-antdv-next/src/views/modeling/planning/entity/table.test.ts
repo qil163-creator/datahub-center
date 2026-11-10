@@ -39,6 +39,8 @@ const harness = vi.hoisted(() => ({
   setGridOptions: vi.fn(),
   expand: vi.fn(),
   expandedRecords: vi.fn(),
+  modalSetData: vi.fn(),
+  modalOpen: vi.fn(),
 }));
 
 vi.mock('@vben/access', () => ({
@@ -50,7 +52,7 @@ vi.mock('@vben/access', () => ({
 vi.mock('@vben/stores', () => ({ useAccessStore: () => harness.access }));
 vi.mock('@vben/common-ui', () => ({
   confirm: vi.fn(),
-  useVbenModal: () => [() => null, {}],
+  useVbenModal: () => [() => null, { setData: harness.modalSetData, open: harness.modalOpen }],
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
 vi.mock('@vben/utils', () => ({ formatDateTime: () => '' }));
@@ -83,7 +85,8 @@ vi.mock('#/adapter/vxe-table', () => ({
             ...rows(row.children ?? []),
           ]);
         return h('div', [
-          slots['toolbar-tools']?.(),
+          h('div', { 'data-testid': 'toolbar-actions' }, slots['toolbar-actions']?.()),
+          h('div', { 'data-testid': 'toolbar-tools' }, slots['toolbar-tools']?.()),
           h('div', { 'data-testid': 'rows' }, rows(harness.state.data)),
         ]);
       },
@@ -174,6 +177,7 @@ beforeEach(() => {
   harness.get.mockResolvedValue({ list: [process()], total: 1 });
   harness.expand.mockResolvedValue(undefined);
   harness.expandedRecords.mockReturnValue([]);
+  harness.modalSetData.mockReturnValue({ open: harness.modalOpen });
   harness.setGridOptions.mockImplementation((options: Partial<GridState>) => {
     Object.assign(harness.state, options);
   });
@@ -185,6 +189,32 @@ afterEach(() => {
 });
 
 describe('业务实体包含关系树表', () => {
+  it('将新增放在左侧工具栏，保留紧凑的树操作和批量操作', async () => {
+    harness.access.accessCodes.push(
+      'modeling:business-entity:create',
+      'modeling:business-entity:publish',
+      'modeling:business-entity:delete',
+    );
+    await mount();
+
+    const actions = host.querySelector('[data-testid="toolbar-actions"]')!;
+    const tools = host.querySelector('[data-testid="toolbar-tools"]')!;
+    expect(actions.textContent).toContain('新增');
+    expect(tools.textContent).not.toContain('新增');
+    for (const label of ['新增', '收起', '批量上线', '批量下线', '批量删除']) {
+      expect(button(label).getAttribute('size')).toBe('small');
+    }
+    button('新增').click();
+    expect(harness.modalSetData).toHaveBeenCalledWith({
+      dataDomainId: '9007199254740993',
+      subjectDomainId: '55',
+    });
+    expect(harness.modalOpen).toHaveBeenCalledOnce();
+    expect(button('批量上线').disabled).toBe(true);
+    expect(button('批量下线').disabled).toBe(true);
+    expect(button('批量删除').disabled).toBe(true);
+  });
+
   it('请求树分页接口，并按接口顺序展示流程和无损编号的子事件', async () => {
     await mount();
 

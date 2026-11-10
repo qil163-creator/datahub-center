@@ -5,7 +5,7 @@ import { computed, h, nextTick, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { confirm } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
+import { IconifyIcon, Plus } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -153,21 +153,26 @@ watch(
 );
 </script>
 <template>
-  <div>
+  <div class="standard-rule-bindings">
     <StandardToolbar
-      title="数据规则"
       v-model:visible-columns="visible"
       :columns="definitions"
       hide-search
+      settings-icon="lucide:settings"
       @refresh="load"
     >
-      <Button
-        v-if="can('update')"
-        class="standard-primary-plain"
-        @click="editor?.open()"
-      >
-        ＋ 关联
-      </Button>
+      <template #title>
+        <Button
+          v-if="can('update')"
+          size="small"
+          type="primary"
+          @click="editor?.open()"
+        >
+          <template #icon><Plus :size="12" /></template>
+          关联
+        </Button>
+        <span v-else aria-hidden="true"></span>
+      </template>
     </StandardToolbar>
     <Alert v-if="failed" type="error" message="规则加载失败" show-icon>
       <template #action>
@@ -248,3 +253,50 @@ watch(
     />
   </div>
 </template>
+
+<style scoped>
+.standard-rule-bindings :deep(.standard-toolbar) {
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.standard-rule-bindings :deep(.standard-toolbar-actions) {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.standard-rule-bindings :deep(.standard-toolbar-tools) {
+  gap: 8px;
+}
+
+.standard-rule-bindings :deep(.standard-toolbar-tools .ant-btn) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.standard-rule-bindings :deep(.standard-toolbar-tools svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.standard-detail-table :deep(.ant-table-thead > tr > th) {
+  padding-block: 7px;
+  padding-inline: 10px;
+  font-size: 12px;
+  line-height: 20px;
+  background: hsl(var(--muted));
+}
+
+.standard-detail-table :deep(.ant-table-tbody > tr > td) {
+  padding-inline: 10px;
+  font-size: 12px;
+}
+
+.standard-detail-table :deep(.ant-table-content) {
+  scrollbar-color: #dfe0e3 transparent;
+  scrollbar-width: thin;
+}
+</style>

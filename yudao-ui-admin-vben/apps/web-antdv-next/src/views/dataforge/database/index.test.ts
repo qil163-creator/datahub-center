@@ -14,10 +14,15 @@ const harness = vi.hoisted(() => ({
   gridOptions: {} as any,
   query: vi.fn(),
   reload: vi.fn(),
+  push: vi.fn(),
+  route: { path: '/develop/database' },
   row: { id: '9007199254740993', name: '生产数据连接' },
 }));
 
-vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('vue-router', () => ({
+  useRoute: () => harness.route,
+  useRouter: () => ({ push: harness.push }),
+}));
 vi.mock('@vben/common-ui', () => ({
   confirm: harness.confirm,
   Page: (_: unknown, { slots }: SetupContext) => h('main', slots.default?.()),
@@ -59,7 +64,7 @@ vi.mock('#/adapter/vxe-table', () => ({
       return () =>
         h(
           'div',
-          (props.dropDownActions ?? []).map((item: any) =>
+          [...props.actions, ...props.dropDownActions].map((item: any) =>
             h('button', { onClick: item.onClick }, item.label),
           ),
         );
@@ -115,7 +120,27 @@ function clickDelete() {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  harness.route.path = '/develop/database';
   harness.deleteDatabase.mockResolvedValue(undefined);
+});
+
+describe('数据连接详情入口', () => {
+  it.each([
+    ['/basic/database', 'BasicDataforgeDatabaseDetail'],
+    ['/develop/database', 'DataforgeDatabaseDetail'],
+  ])('从 %s 打开本模块详情并保留无损 ID', async (path, name) => {
+    harness.route.path = path;
+    await mountPage();
+    const button = [...host.querySelectorAll('button')].find(
+      (item) => item.textContent === 'common.detail',
+    );
+    expect(button).toBeDefined();
+    button!.click();
+    expect(harness.push).toHaveBeenCalledWith({
+      name,
+      params: { id: '9007199254740993' },
+    });
+  });
 });
 afterEach(() => {
   app?.unmount();
@@ -173,11 +198,14 @@ describe('新建连接后刷新', () => {
 
       if (settled === 'querySuccess') {
         finish({ list: [], total: 0 });
-        await request;
       } else {
         fail(new Error('列表请求失败'));
-        await expect(request).rejects.toThrow('列表请求失败');
       }
+      const result = await request.then(
+        () => 'resolved',
+        (error: Error) => error.message,
+      );
+      expect(result).toBe(settled === 'querySuccess' ? 'resolved' : '列表请求失败');
       ajax[settled]();
       expect(harness.reload).toHaveBeenCalledOnce();
       expect(harness.reload).toHaveBeenCalledWith();

@@ -305,6 +305,8 @@
     );
   margin: 0;
   overflow: hidden;
+  border-top: 1px solid hsl(var(--border));
+  border-left: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
 
@@ -315,7 +317,8 @@
   padding: 10px;
   margin: 0;
   overflow-wrap: anywhere;
-  border: 1px solid #f5f6f8;
+  border-right: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .standard-detail-grid dt {
@@ -332,8 +335,90 @@
 }
 
 .standard-detail-body {
+  display: flex;
   flex: 1;
-  min-height: 700px;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .ant-tabs-body-holder {
+  flex: 1;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .ant-tabs-body,
+.qdata-standard .standard-detail-tabs .ant-tabs-content {
+  height: 100%;
+}
+
+.qdata-standard .standard-detail-tabs .ant-tabs-content-active {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.qdata-standard .standard-detail-tabs .ant-tabs-content-active > .standard-table,
+.qdata-standard .standard-detail-tabs .ant-tabs-content-active > .standard-association-table,
+.qdata-standard .standard-detail-tabs .ant-tabs-content-active > .standard-model-associations,
+.qdata-standard .standard-detail-tabs .ant-tabs-content-active > .standard-rule-bindings {
+  flex: 1;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .standard-association-table,
+.qdata-standard .standard-detail-tabs .standard-model-associations,
+.qdata-standard .standard-detail-tabs .standard-rule-bindings {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .standard-association-table > .ant-table-wrapper,
+.qdata-standard .standard-detail-tabs .standard-model-associations > .ant-table-wrapper,
+.qdata-standard .standard-detail-tabs .standard-rule-bindings > .ant-table-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .ant-table-wrapper,
+.qdata-standard .standard-detail-tabs .ant-spin,
+.qdata-standard .standard-detail-tabs .ant-spin-nested-loading,
+.qdata-standard .standard-detail-tabs .ant-spin-container,
+.qdata-standard .standard-detail-tabs .ant-table,
+.qdata-standard .standard-detail-tabs .ant-table-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .ant-table-content {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto !important;
+}
+
+.qdata-standard .standard-detail-tabs .ant-table-empty .ant-table-content > table {
+  height: 100%;
+}
+
+.qdata-standard .standard-detail-tabs .ant-table-empty .standard-empty {
+  height: 100%;
+  min-height: 0;
+}
+
+.qdata-standard .standard-detail-tabs .standard-code-records {
+  min-height: 0;
 }
 
 .qdata-standard .standard-detail-tabs .ant-tabs-nav {

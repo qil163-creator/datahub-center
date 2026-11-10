@@ -35,6 +35,7 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { useFullSyncScope } from './use-scope';
 
+import '#/components/detail-fill-table.css';
 import './fullsync.css';
 
 defineOptions({ name: 'DataforgeFullSyncDetail' });
@@ -281,7 +282,7 @@ watch(
           </nav>
           <Table
             v-if="tab === 'mappings'"
-            class="fs-bordered-table"
+            class="fs-bordered-table detail-fill-table"
             :columns="mappingColumns"
             :data-source="mappings"
             row-key="source"
@@ -309,7 +310,7 @@ watch(
           </Table>
           <Table
             v-else-if="tab === 'columns'"
-            class="fs-bordered-table"
+            class="fs-bordered-table detail-fill-table"
             :columns="columnColumns"
             :data-source="config.appendColumns || []"
             :row-key="(_row, index) => String(index)"
@@ -397,6 +398,8 @@ watch(
 }
 
 .fs-detail-main {
+  display: flex;
+  flex-direction: column;
   padding-top: 8px;
 }
 

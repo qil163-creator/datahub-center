@@ -53,6 +53,8 @@ import {
 } from '../../utils/format';
 import { getUserNickname } from '../data';
 
+import '#/components/detail-fill-table.css';
+
 defineOptions({ name: 'SupplyAppDetail' });
 
 const props = defineProps<{
@@ -918,7 +920,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
             "
             :scroll="{ x: 'max-content' }"
             :styles="embedded ? { content: { overflowY: 'auto' } } : undefined"
-            :class="{ 'app-profile__table': embedded }"
+            :class="{ 'app-profile__table detail-fill-table': embedded }"
             row-key="id"
             size="small"
           >
@@ -1163,6 +1165,10 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   padding-top: 8px;
 }
 
+.app-profile__attributes:not(.app-profile__attributes--info) {
+  padding-bottom: 16px;
+}
+
 .app-profile__head,
 .app-profile__identity {
   display: flex;
@@ -1309,6 +1315,10 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
   .app-profile__summary,
   .app-profile__attributes {
     padding: 12px;
+  }
+
+  .app-profile__attributes:not(.app-profile__attributes--info) {
+    padding-bottom: 12px;
   }
 
   .app-profile__head {

@@ -4,7 +4,7 @@ import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
 
 import { computed, onBeforeUnmount, onDeactivated, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
@@ -63,6 +63,7 @@ const [ConnectionDiagnosisModal, diagnosisModalApi] = useVbenModal({
 });
 
 const formDraft = ref<Partial<FoundationDatabaseApi.Database>>();
+const route = useRoute();
 const router = useRouter();
 const access = useAccessStore();
 const user = useUserStore();
@@ -131,7 +132,10 @@ function handleChangeType(draft: Partial<FoundationDatabaseApi.Database>) {
 /** 查看数据源中心--数据库信息详情 */
 function handleDetail(row: FoundationDatabaseApi.Database) {
   router.push({
-    name: 'DataforgeDatabaseDetail',
+    name:
+      route.path === '/basic/database'
+        ? 'BasicDataforgeDatabaseDetail'
+        : 'DataforgeDatabaseDetail',
     params: { id: String(row.id) },
   });
 }

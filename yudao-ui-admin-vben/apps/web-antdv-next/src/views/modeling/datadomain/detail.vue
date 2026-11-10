@@ -92,12 +92,17 @@ function back() {
       <Page
         auto-content-height
         class="planning-page planning-detail-page"
-        content-class="p-0"
+        content-class="flex min-h-0 flex-col p-0"
       >
-        <Spin :spinning="loading">
+        <Spin class="planning-detail-spin" :spinning="loading">
           <div v-if="detail" class="planning-detail-content">
             <DetailHeader kind="domain" :item="detail" @back="back" />
-            <section class="planning-detail-panel">
+            <section
+              class="planning-detail-panel"
+              :class="{
+                'planning-detail-panel--compact': ['subjects', 'entities'].includes(tab),
+              }"
+            >
               <Tabs v-model:active-key="tab" class="planning-detail-tabs">
                 <TabPane key="subjects" tab="主题域">
                   <SubjectTable embedded :data-domain-id="detail.id" />
@@ -127,3 +132,9 @@ function back() {
     </ConfigProvider>
   </div>
 </template>
+
+<style scoped>
+.planning-detail-panel--compact {
+  padding-bottom: 8px;
+}
+</style>

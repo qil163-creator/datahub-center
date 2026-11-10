@@ -42,6 +42,8 @@ import {
   RESULT_FORMAT_OPTIONS,
 } from './data';
 
+import '#/components/detail-fill-table.css';
+
 defineOptions({ name: 'SupplyDataApiDetailPage' });
 
 const route = useRoute();
@@ -453,7 +455,7 @@ onBeforeUnmount(() => {
         <Tabs v-model:active-key="activeTab" class="api-profile__tabs">
           <TabPane key="params" tab="请求参数">
             <Table
-              class="api-profile__table supply-font-table"
+              class="api-profile__table supply-font-table detail-fill-table"
               :columns="requestColumns"
               :data-source="requestRows"
               :pagination="{
@@ -494,7 +496,7 @@ onBeforeUnmount(() => {
           </TabPane>
           <TabPane key="fields" tab="返回字段">
             <Table
-              class="api-profile__table supply-font-table"
+              class="api-profile__table supply-font-table detail-fill-table"
               :columns="responseColumns"
               :data-source="responseRows"
               :pagination="{
@@ -594,6 +596,10 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: 300px;
   padding-top: 8px;
+}
+
+.api-profile__attributes:not(.api-profile__attributes--info) {
+  padding-bottom: 16px;
 }
 
 .api-profile__head,
@@ -734,6 +740,10 @@ onBeforeUnmount(() => {
   .api-profile__summary,
   .api-profile__attributes {
     padding: 12px;
+  }
+
+  .api-profile__attributes:not(.api-profile__attributes--info) {
+    padding-bottom: 12px;
   }
 
   .api-profile__head {

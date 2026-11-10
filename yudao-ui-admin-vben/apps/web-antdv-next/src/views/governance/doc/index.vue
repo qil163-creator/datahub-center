@@ -1,25 +1,30 @@
 <script lang="ts" setup>
 import type { StandardDocApi } from '#/api/governance/doc';
 
-import { onMounted, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictLabel } from '@vben/hooks';
 import { IconifyIcon } from '@vben/icons';
+import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Button, Empty, Input, message, Pagination, Spin } from 'antdv-next';
+import { Button, Empty, Input, message, Spin } from 'antdv-next';
 
 import { getDocPage } from '#/api/governance/doc';
 import { DictTag } from '#/components/dict-tag';
+import ListPagination from '#/components/list-pagination/index.vue';
+import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { getDocFileIconInfo } from './data';
 import Detail from './modules/detail.vue';
 import Preview from './modules/preview.vue';
 
 const { hasAccessByCodes } = useAccess();
+const access = useAccessStore();
+const user = useUserStore();
 
 const loading = ref(false);
 const list = ref<StandardDocApi.Doc[]>([]);
@@ -29,6 +34,14 @@ const queryParams = reactive({
   pageNo: 1,
   pageSize: 10,
   nameCn: '',
+});
+const scope = computed(() =>
+  JSON.stringify([user.userInfo?.userId, user.userRoles, access.accessCodes]),
+);
+const request = useObjectRequest(() => scope.value, () => {
+  list.value = [];
+  total.value = 0;
+  loading.value = false;
 });
 
 const STD_TYPE_TAG_CLASS: Record<string, string> = {
@@ -50,6 +63,7 @@ const [PreviewModal, previewModalApi] = useVbenModal({
 });
 
 async function getList() {
+  const current = request.begin();
   loading.value = true;
   try {
     const data = await getDocPage({
@@ -57,10 +71,12 @@ async function getList() {
       pageSize: queryParams.pageSize,
       nameCn: queryParams.nameCn || undefined,
     });
-    list.value = data.list || [];
-    total.value = data.total || 0;
+    if (current()) {
+      list.value = data.list || [];
+      total.value = data.total || 0;
+    }
   } finally {
-    loading.value = false;
+    if (current()) loading.value = false;
   }
 }
 
@@ -104,9 +120,14 @@ function formatDay(value?: null | number | string) {
   return value ? formatDate(value, 'YYYY-MM-DD') : '-';
 }
 
-onMounted(() => {
-  getList();
-});
+watch(
+  () => `${access.accessToken}/${access.refreshToken}/${scope.value}`,
+  () => {
+    queryParams.pageNo = 1;
+    void getList();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -182,29 +203,29 @@ onMounted(() => {
                 </div>
               </div>
               <div class="flex shrink-0 flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  class="rounded bg-[#e6f4ff] px-3 py-1 text-sm font-medium text-[#2666fb]"
+                <Button
+                  type="link"
+                  size="small"
+                  class="doc-card-action"
                   @click="handlePreview(item)"
                 >
-                  <IconifyIcon
-                    icon="lucide:eye"
-                    class="mr-1 inline-block size-4 align-middle"
-                  />
+                  <template #icon>
+                    <IconifyIcon icon="lucide:eye" class="size-4" />
+                  </template>
                   查看
-                </button>
-                <button
+                </Button>
+                <Button
                   v-if="hasAccessByCodes(['governance:doc:query'])"
-                  type="button"
-                  class="rounded bg-[#e6f4ff] px-3 py-1 text-sm font-medium text-[#2666fb]"
+                  type="link"
+                  size="small"
+                  class="doc-card-action"
                   @click="handleDetail(item)"
                 >
-                  <IconifyIcon
-                    icon="lucide:eye"
-                    class="mr-1 inline-block size-4 align-middle"
-                  />
+                  <template #icon>
+                    <IconifyIcon icon="lucide:eye" class="size-4" />
+                  </template>
                   详情
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -249,18 +270,14 @@ onMounted(() => {
         </div>
       </Spin>
     </div>
-
-    <!-- 分页 -->
-    <div
-      v-if="total > 0"
-      class="bg-card flex justify-end rounded-md px-4 py-2 shadow-sm"
-    >
-      <Pagination
-        v-model:current="queryParams.pageNo"
-        v-model:page-size="queryParams.pageSize"
+    <div class="bg-card rounded-md px-4 py-2 shadow-sm">
+      <ListPagination
+        class="doc-pagination"
+        :current="queryParams.pageNo"
+        :page-size="queryParams.pageSize"
+        :page-size-options="[10, 20, 50, 100]"
         :total="total"
-        :show-size-changer="true"
-        :show-total="(count) => `共 ${count} 条`"
+        aria-label="标准文件检索分页"
         @change="handlePageChange"
       />
     </div>
@@ -268,6 +285,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.doc-pagination {
+  margin-top: 0;
+}
+
+.doc-pagination :deep(.vxe-pager--wrapper) {
+  align-items: center;
+}
+
+.doc-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .doc-search {
   display: flex;
   flex-wrap: wrap;

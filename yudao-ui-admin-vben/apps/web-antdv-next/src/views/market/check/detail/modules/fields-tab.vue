@@ -13,6 +13,8 @@ import refreshIcon from '#/views/governance/metadata-common/reference-assets/ico
 
 import { formatMarketCheckTime, marketCheckTime } from '../../data';
 
+import '#/components/detail-fill-table.css';
+
 type DisplayColumn = MarketCheckApi.Column;
 
 const props = defineProps<{
@@ -165,6 +167,7 @@ function fieldText(row: DisplayColumn, key: unknown) {
       </Dropdown>
     </div>
     <Table
+      class="check-fields__table detail-fill-table"
       :columns="tableColumns"
       :data-source="rows"
       :loading="loading"
@@ -205,6 +208,17 @@ function fieldText(row: DisplayColumn, key: unknown) {
 </template>
 
 <style scoped>
+.check-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.check-fields__table {
+  flex: 1;
+}
+
 .check-fields__toolbar {
   display: flex;
   gap: 10px;

@@ -253,7 +253,7 @@ afterEach(() => {
 });
 
 describe('指标列表交互与请求隔离', () => {
-  it('仅收窄原子指标信息和归属信息列，派生指标保留原有宽度', async () => {
+  it('加宽原子指标信息和归属信息列，派生指标保留原有宽度', async () => {
     const widths = () =>
       harness.columns
         .filter((column) =>
@@ -261,8 +261,8 @@ describe('指标列表交互与请求隔离', () => {
         )
         .map(({ width, minWidth }) => ({ width, minWidth }));
     expect(widths()).toEqual([
-      { width: 160, minWidth: undefined },
-      { width: 180, minWidth: undefined },
+      { width: 320, minWidth: undefined },
+      { width: 400, minWidth: undefined },
     ]);
     app?.unmount();
     app = createApp(IndicatorList, { fixedType: 'DERIVED' });

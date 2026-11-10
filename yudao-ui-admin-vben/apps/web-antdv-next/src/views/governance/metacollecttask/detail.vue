@@ -62,6 +62,7 @@ const [LogModal, logApi] = useVbenModal({
 });
 const {
   Grid,
+  gridApi,
   load: loadInstances,
   error: instanceError,
 } = useMetadataGrid<GovernanceMetaCollectInstanceApi.CollectInstance>(
@@ -98,6 +99,7 @@ const {
   undefined,
   'content',
 );
+gridApi.setGridOptions({ headerCellConfig: { height: 34 }, height: 'auto' });
 async function load() {
   if (!id.value) return;
   const current = request.begin();
@@ -191,7 +193,7 @@ watch(
         </Descriptions>
       </section>
       <section class="metadata-panel flex min-h-0 flex-1 flex-col">
-        <Tabs v-model:active-key="tab">
+        <Tabs v-model:active-key="tab" class="metadata-task-tabs">
           <TabPane key="instances" tab="采集实例">
             <Alert v-if="instanceError" type="error" message="实例读取失败" />
             <div class="metadata-task-instances">
@@ -307,3 +309,34 @@ watch(
     </div>
   </Page>
 </template>
+
+<style scoped>
+.metadata-task-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-task-tabs :deep(.ant-tabs-body-holder) {
+  flex: 1;
+  min-height: 0;
+}
+
+.metadata-task-tabs :deep(.ant-tabs-body),
+.metadata-task-tabs :deep(.ant-tabs-content) {
+  height: 100%;
+}
+
+.metadata-task-tabs :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.metadata-task-instances {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+</style>

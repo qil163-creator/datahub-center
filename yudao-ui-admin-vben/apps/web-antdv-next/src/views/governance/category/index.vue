@@ -15,6 +15,7 @@ import {
 } from 'vue';
 
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
 import {
   Alert,
@@ -631,12 +632,7 @@ onBeforeUnmount(() => {
                     :trigger="['hover']"
                   >
                     <Button type="link">
-                      <i
-                        class="category-icon"
-                        :style="{
-                          maskImage: `url(${categoryIcon('chevron')})`,
-                        }"
-                      ></i>更多
+                      <IconifyIcon icon="lucide:ellipsis-vertical" />更多
 </Button><template #popupRender>
                       <Menu>
                         <MenuItem

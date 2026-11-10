@@ -42,18 +42,43 @@
 }
 
 .qd-logic-detail-fields,
-.qd-logic-detail-fields > .ant-spin-container {
+.qd-logic-detail-fields > .ant-spin-container,
+.qd-logic-detail-related,
+.qd-logic-detail-related > .ant-spin-container {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
 }
 
+.qd-logic-detail-fields {
+  margin-bottom: 8px;
+}
+
 .qd-logic-detail-fields > .ant-spin-container,
-.qd-logic-detail-fields .qd-logic-detail-table-scroll {
+.qd-logic-detail-fields .qd-logic-detail-table-scroll,
+.qd-logic-detail-related > .ant-spin-container,
+.qd-logic-detail-related .qd-logic-detail-table-scroll {
   flex: 1;
   min-height: 0;
+}
+
+.qd-logic-detail-fields .qd-logic-detail-table-scroll,
+.qd-logic-detail-related .qd-logic-detail-table-scroll {
+  display: flex;
+  flex-direction: column;
+}
+
+.qd-logic-detail-fields .qd-logic-detail-table,
+.qd-logic-detail-related .qd-logic-detail-table {
+  flex-shrink: 0;
+}
+
+.qd-logic-detail-fields .qd-logic-detail-empty,
+.qd-logic-detail-related .qd-logic-detail-empty {
+  flex: 1 0 180px;
+  min-height: 180px;
 }
 
 .qd-logic-detail-heading {
@@ -97,8 +122,8 @@
     );
   margin: 0;
   overflow: hidden;
-  border-top: 1px solid #f0f2f8;
-  border-left: 1px solid #f0f2f8;
+  border-top: 1px solid hsl(var(--border));
+  border-left: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
 
@@ -113,8 +138,8 @@
   margin: 0;
   line-height: 24px;
   overflow-wrap: anywhere;
-  border-right: 1px solid #f0f2f8;
-  border-bottom: 1px solid #f0f2f8;
+  border-right: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .qd-logic-detail-info dt {
@@ -182,13 +207,18 @@
   background: hsl(var(--primary));
 }
 
+.qd-logic-detail-tabs.has-fields-toolbar,
+.qd-logic-detail-tabs.has-field-groups {
+  margin-bottom: 6px;
+}
+
 .qd-logic-detail-toolbar {
   display: flex;
   flex-shrink: 0;
   gap: 10px;
   align-items: center;
-  min-height: 44px;
-  margin: 0 0 14px;
+  min-height: 30px;
+  margin: 0 0 8px;
 }
 
 .qd-logic-detail-toolbar-spacer {
@@ -196,7 +226,14 @@
 }
 
 .qd-logic-detail-search {
-  width: 240px;
+  width: 200px;
+}
+
+.qd-logic-detail-toolbar .qd-logic-detail-tool {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  font-size: 12px;
 }
 
 .qd-logic-detail-btn {
@@ -226,14 +263,6 @@
   color: #f28686;
   background: #fef1f1;
   border-color: #fde2e2;
-}
-
-.qd-logic-detail-btn.square {
-  width: 32px;
-  padding: 0;
-  color: #606266;
-  background: #fff;
-  border-color: #e4e7ed;
 }
 
 .qd-logic-detail-btn:disabled {
@@ -277,6 +306,7 @@
 
 .qd-logic-detail-table {
   width: 100%;
+  font-size: 12px;
   color: hsl(var(--foreground));
   table-layout: fixed;
   border-spacing: 0;
@@ -379,6 +409,10 @@
 .qd-logic-detail-group {
   flex-shrink: 0;
   margin-top: 12px;
+}
+
+.qd-logic-detail-group.is-first {
+  margin-top: 0;
 }
 
 .qd-logic-detail-group > p {

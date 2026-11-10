@@ -11,6 +11,7 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { formatDate } from '@vben/utils';
 
 import {
@@ -499,7 +500,7 @@ watch(
                     <ReferenceIcon name="eye" />详情
 </button><Dropdown :trigger="['click']">
                     <button class="fs-link">
-                      <ReferenceIcon name="down" />更多
+                      <IconifyIcon icon="lucide:ellipsis-vertical" />更多
 </button><template #popupRender>
                       <Menu>
                         <MenuItem

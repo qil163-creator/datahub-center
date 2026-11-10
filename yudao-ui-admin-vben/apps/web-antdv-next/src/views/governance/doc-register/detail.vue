@@ -5,7 +5,7 @@ import { computed, onActivated, onDeactivated, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
-import { Page, useVbenModal } from '@vben/common-ui';
+import { Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
@@ -27,10 +27,7 @@ import { DictTag } from '#/components/dict-tag';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { parseDocId } from './data';
-import Form from './modules/form.vue';
-import Preview from './modules/preview.vue';
 import RelatedList from './modules/related-list.vue';
-import StandardVersionModal from './modules/versions.vue';
 
 defineOptions({ name: 'GovernanceStandardDocRegisterDetail' });
 const route = useRoute();
@@ -57,18 +54,6 @@ const request = useObjectRequest(
     loading.value = false;
   },
 );
-const [FormModal, formApi] = useVbenModal({
-  connectedComponent: Form,
-  destroyOnClose: true,
-});
-const [PreviewModal, previewApi] = useVbenModal({
-  connectedComponent: Preview,
-  destroyOnClose: true,
-});
-const [VersionModal, versionApi] = useVbenModal({
-  connectedComponent: StandardVersionModal,
-  destroyOnClose: true,
-});
 const backPath = computed(() => {
   const value = route.query.back;
   return typeof value === 'string' &&
@@ -124,11 +109,8 @@ onActivated(() => {
 });
 </script>
 <template>
-  <Page content-class="doc-register-detail">
-    <FormModal @success="load" />
-    <PreviewModal />
-    <VersionModal />
-    <div class="mb-3 flex justify-end">
+  <Page auto-content-height content-class="doc-register-detail flex flex-col">
+    <div v-if="!detail || !id || !canQuery || failed" class="mb-3 flex justify-end">
       <DetailBackButton @click="router.push(backPath)" />
     </div>
     <Alert v-if="!id" type="error" message="标准编号无效" />
@@ -140,7 +122,7 @@ onActivated(() => {
     <Alert v-else-if="failed" type="error" message="标准详情加载失败">
       <template #action><Button @click="load">重试</Button></template>
     </Alert>
-    <Spin v-else :spinning="loading">
+    <Spin v-else :spinning="loading" class="doc-register-detail__spin">
       <template v-if="detail">
         <Card class="doc-register-detail__card mb-4">
           <div class="mb-5 flex flex-wrap items-center gap-3">
@@ -153,31 +135,7 @@ onActivated(() => {
               :value="detail.implementStatus"
             />
             <div class="ml-auto flex flex-wrap gap-2">
-              <Button
-                :disabled="!detail.fileId && !detail.fileUrl"
-                @click="previewApi.setData(detail).open()"
-              >
-                预览原文
-              </Button>
-              <Button
-                @click="
-                  versionApi
-                    .setData({
-                      objectType: 'DOC',
-                      id: detail.id,
-                      name: detail.nameCn,
-                    })
-                    .open()
-                "
-              >
-                版本快照
-              </Button>
-              <Button
-                v-if="hasAccessByCodes(['governance:doc:update'])"
-                @click="formApi.setData({ id: detail.id }).open()"
-              >
-                修改
-              </Button>
+              <DetailBackButton @click="router.push(backPath)" />
             </div>
           </div>
           <Descriptions bordered size="small" :column="{ xs: 1, md: 2, xl: 3 }">
@@ -204,7 +162,10 @@ onActivated(() => {
             </DescriptionsItem>
           </Descriptions>
         </Card>
-        <Card class="doc-register-detail__card">
+        <Card
+          class="doc-register-detail__card doc-register-detail__tabs-card"
+          :class="{ 'doc-register-detail__tabs-card--table': tab !== 'info' }"
+        >
           <Tabs v-model:active-key="tab">
             <TabPane key="model" tab="逻辑模型">
               <RelatedList
@@ -287,6 +248,41 @@ onActivated(() => {
 </template>
 
 <style scoped>
+.doc-register-detail__spin,
+.doc-register-detail__spin :deep(.ant-spin-container) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.doc-register-detail__spin,
+.doc-register-detail__spin :deep(.ant-spin-container),
+.doc-register-detail__tabs-card {
+  flex: 1;
+}
+
+.doc-register-detail__spin :deep(.ant-spin-container) > .doc-register-detail__card:first-child {
+  flex-shrink: 0;
+}
+
+.doc-register-detail__tabs-card--table {
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.doc-register-detail__tabs-card--table :deep(.ant-card-body),
+.doc-register-detail__tabs-card--table :deep(.ant-tabs),
+.doc-register-detail__tabs-card--table :deep(.ant-tabs-body-holder),
+.doc-register-detail__tabs-card--table :deep(.ant-tabs-body),
+.doc-register-detail__tabs-card--table :deep(.ant-tabs-content-active) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .doc-register-detail__card {
   border: 0;
   border-radius: var(--radius);
@@ -311,6 +307,6 @@ onActivated(() => {
 }
 
 .doc-register-detail__card :deep(.ant-tabs-nav) {
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 </style>

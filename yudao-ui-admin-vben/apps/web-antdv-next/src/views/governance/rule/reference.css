@@ -107,7 +107,13 @@
 
 .safety-rule-info .label {
   width: 200px;
-  background: #f5f7fa;
+  color: #8c8c8c;
+  background: #fafafa;
+}
+
+.safety-rule-info,
+.safety-rule-info td {
+  border-color: hsl(var(--border));
 }
 
 .safety-rule-content .category-results {

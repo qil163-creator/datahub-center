@@ -13,6 +13,7 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -962,7 +963,7 @@ function past(value?: null | number) {
                                   <ReferenceIcon name="eye" />详情
 </Button><Dropdown :trigger="['click']">
                                   <Button type="link">
-                                    <ReferenceIcon name="down" />更多
+                                    <IconifyIcon icon="lucide:ellipsis-vertical" />更多
 </Button><template #popupRender>
                                     <Menu class="qi-more-menu">
                                       <MenuItem

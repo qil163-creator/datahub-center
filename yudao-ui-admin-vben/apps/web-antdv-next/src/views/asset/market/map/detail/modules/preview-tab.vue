@@ -21,6 +21,7 @@ import {
 } from 'antdv-next';
 
 import { previewDataAsset } from '#/api/asset/dataasset';
+import ListPagination from '#/components/list-pagination/index.vue';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
 import {
@@ -31,6 +32,8 @@ import {
 } from '../../data';
 import RowEditor from './row-editor.vue';
 import RowHistory from './row-history.vue';
+
+import '#/components/detail-fill-table.css';
 
 defineOptions({ name: 'AssetMarketMapPreviewTab' });
 const props = defineProps<{
@@ -150,6 +153,11 @@ function removeFilter(index: number) {
 }
 function query() {
   pageNo.value = 1;
+  void load();
+}
+function changePage(page: number, size: number) {
+  pageNo.value = page;
+  pageSize.value = size;
   void load();
 }
 function resetFilters() {
@@ -339,27 +347,14 @@ onUnmounted(() => {
       type="warning"
     />
     <Table
+      class="preview-tab__table detail-fill-table"
       :columns="tableColumns"
       :data-source="rows"
       :loading="loading"
       :row-key="(row) => row.key"
-      :pagination="{
-        current: pageNo,
-        pageSize,
-        total: preview.total ?? rows.length,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (count: number) => `共 ${count} 条`,
-      }"
+      :pagination="false"
       :scroll="{ x: Math.max(tableColumns.length * 180, 800) }"
       size="small"
-      @change="
-        (pagination) => {
-          pageNo = pagination.current ?? 1;
-          pageSize = pagination.pageSize ?? 10;
-          load();
-        }
-      "
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === '__actions'">
@@ -390,10 +385,25 @@ onUnmounted(() => {
         </div>
       </template>
     </Table>
+    <ListPagination
+      :current="pageNo"
+      :page-size="pageSize"
+      :page-size-options="[10, 20, 50, 100]"
+      :total="preview.total ?? rows.length"
+      aria-label="资产预览分页"
+      @change="changePage"
+    />
   </div>
 </template>
 
 <style scoped>
+.preview-tab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .preview-tab__toolbar {
   display: flex;
   gap: 12px;

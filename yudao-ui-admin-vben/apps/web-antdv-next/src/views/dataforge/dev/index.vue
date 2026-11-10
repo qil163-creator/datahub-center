@@ -1039,11 +1039,7 @@ onBeforeUnmount(() => {
                   <Dropdown :trigger="['click']">
                     <Button type="link" size="small">
                       <template #icon>
-                        <img
-                          class="reference-icon"
-                          :src="DEV_REFERENCE_ASSETS.down"
-                          alt=""
-                        />
+                        <IconifyIcon icon="lucide:ellipsis-vertical" />
                       </template>
                       更多
                     </Button>

@@ -940,11 +940,16 @@
 
 .bf-details-grid {
   grid-template-columns: 200px 1fr 200px 1fr;
+  border-color: hsl(var(--border));
+}
+
+.bf-details-grid > div {
+  border-color: hsl(var(--border));
 }
 
 .bf-details-grid > .bf-description-label {
-  color: #535963;
-  background: #f5f7fa;
+  color: #8c8c8c;
+  background: #fafafa;
 }
 
 .bf-tabs {

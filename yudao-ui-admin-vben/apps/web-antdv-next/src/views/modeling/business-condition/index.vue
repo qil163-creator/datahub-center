@@ -25,7 +25,6 @@ import {
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import domainIcon from '#/views/modeling/logictable/assets/data-section-default-icon-small.svg';
-import { QdIcon } from '#/views/modeling/logictable/icons';
 
 import MetricCategoryTree from '../indicator-model/modules/metric-category-tree.vue';
 import { METRIC_ACTION_ICON as ACTION_ICON } from '../indicator-model/modules/metric-icons';
@@ -123,7 +122,7 @@ function createColumns(): VxeTableGridOptions<BusinessConditionApi.Model>['colum
       field: 'sourceModelName',
       title: '归属信息',
       align: 'left',
-      minWidth: 185,
+      minWidth: 400,
       slots: { default: 'belonging' },
       showOverflow: false,
     },
@@ -603,11 +602,7 @@ onActivated(() => {
                 onClick: () => remove([row]),
               },
             ]"
-          >
-            <template #more>
-              <Button type="link"> <QdIcon name="arrowDown" />更多 </Button>
-            </template>
-          </TableAction>
+          />
         </template>
       </Grid>
     </MetricLayout>

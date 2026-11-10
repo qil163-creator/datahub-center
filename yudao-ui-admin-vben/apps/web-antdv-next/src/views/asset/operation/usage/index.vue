@@ -24,6 +24,7 @@ import {
   getAssetOperationPage,
   refreshAssetOperation,
 } from '#/api/asset/operation';
+import ListPagination from '#/components/list-pagination/index.vue';
 
 import {
   ASSET_STATUSES,
@@ -161,13 +162,7 @@ function reset() {
   search();
 }
 
-function onTableChange(
-  pagination: { current?: number; pageSize?: number },
-  _filters: unknown,
-  sorter: any,
-) {
-  pageNo.value = pagination.current ?? 1;
-  pageSize.value = pagination.pageSize ?? pageSize.value;
+function onTableChange(_pagination: unknown, _filters: unknown, sorter: any) {
   const single = Array.isArray(sorter) ? sorter[0] : sorter;
   if (single?.order) {
     sort.field = single.columnKey as AssetOperationApi.SortField;
@@ -176,6 +171,12 @@ function onTableChange(
     sort.field = 'valueScore';
     sort.order = 'desc';
   }
+  void load();
+}
+
+function onPageChange(page: number, size: number) {
+  pageNo.value = page;
+  pageSize.value = size;
   void load();
 }
 
@@ -282,13 +283,7 @@ onMounted(load);
       :columns="columns"
       :data-source="rows"
       :loading="loading"
-      :pagination="{
-        current: pageNo,
-        pageSize,
-        total,
-        showSizeChanger: true,
-        showTotal: (count: number) => `共 ${count} 个资产`,
-      }"
+      :pagination="false"
       :scroll="{ x: 'max-content' }"
       row-key="assetId"
       size="middle"
@@ -400,6 +395,13 @@ onMounted(load);
         </template>
       </template>
     </Table>
+    <ListPagination
+      :current="pageNo"
+      :page-size="pageSize"
+      :total="total"
+      aria-label="资产使用与价值分页"
+      @change="onPageChange"
+    />
     <TrendDrawer ref="trendDrawer" />
   </Page>
 </template>

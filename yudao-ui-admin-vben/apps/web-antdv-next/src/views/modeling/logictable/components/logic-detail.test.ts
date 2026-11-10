@@ -28,6 +28,7 @@ vi.mock('@vben/hooks', () => ({
   getDictOptions: () => [],
   useAntdDesignTokens: () => ({ tokens: { borderRadius: 6 } }),
 }));
+vi.mock('@vben/icons', () => ({ IconifyIcon: () => h('span') }));
 vi.mock('@vben/utils', () => ({ formatDateTime: () => '2026-10-22 10:48' }));
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('#/api/modeling/indicator-model', () => ({
@@ -91,14 +92,29 @@ vi.mock('antdv-next', () => {
   });
   return {
     Alert: plain,
-    Button: (_: unknown, { slots }: SetupContext) =>
-      h('button', slots.default?.()),
-    Checkbox: plain,
+    Button: (_: unknown, { attrs, slots }: SetupContext) =>
+      h('button', attrs, slots.default?.()),
+    Checkbox: defineComponent({
+      props: { checked: Boolean },
+      emits: ['change'],
+      setup(props, { emit, slots }) {
+        return () => h('label', [
+          h('input', {
+            type: 'checkbox',
+            checked: props.checked,
+            onChange: (event: Event) => emit('change', event),
+          }),
+          slots.default?.(),
+        ]);
+      },
+    }),
     ConfigProvider: plain,
     Input: plain,
     message: { success: vi.fn(), warning: vi.fn() },
     Modal: { confirm: vi.fn() },
-    Popover: plain,
+    Popover: defineComponent({
+      setup: (_, { slots }) => () => h('div', [slots.default?.(), slots.content?.()]),
+    }),
     Spin: plain,
     theme: { defaultAlgorithm: undefined },
   };
@@ -160,6 +176,24 @@ afterEach(() => {
 });
 
 describe('逻辑模型详情', () => {
+  it('贴源表字段支持刷新和设置显示列', async () => {
+    vi.mocked(api.getTableModel).mockResolvedValue({ ...model(), tableType: 'SOURCE' });
+    await mount();
+    expect(host.querySelector('[aria-label="设置表格列"]')).not.toBeNull();
+    const option = [...host.querySelectorAll('label')].find((label) =>
+      label.textContent?.includes('字段长度'),
+    );
+    const checkbox = option?.querySelector<HTMLInputElement>('input');
+    expect(checkbox?.checked).toBe(true);
+    checkbox!.click();
+    await flush();
+    expect([...host.querySelectorAll('th')].some((th) => th.textContent?.includes('字段长度'))).toBe(false);
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新字段"]')!.click();
+    await flush();
+    expect(api.getTableModel).toHaveBeenCalledTimes(2);
+    expect(api.getTableModelDesign).toHaveBeenCalledTimes(2);
+  });
+
   it('字段保存成功先刷新头信息，第二次编辑使用下一份快照修订号', async () => {
     let serverRevision = revision;
     vi.mocked(api.getTableModel).mockImplementation(async () => ({ ...model(), revision: serverRevision }));

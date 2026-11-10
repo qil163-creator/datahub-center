@@ -5,7 +5,7 @@ import type { FoundationDwLayerApi } from '#/api/modeling/dwlayer';
 
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
 import { IconifyIcon } from '@vben/icons';
@@ -27,7 +27,7 @@ const requests = useModelingRequest(
   () => {
     detail.value = undefined;
     failed.value = false;
-    drawerApi.setState({ loading: false });
+    modalApi.setState({ loading: false });
   },
 );
 
@@ -91,18 +91,20 @@ async function loadDetail() {
   const current = requests.begin();
   failed.value = false;
   detail.value = undefined;
-  drawerApi.setState({ loading: true });
+  modalApi.setState({ loading: true });
   try {
     const result = await getDwLayer(selectedId.value);
     if (current()) detail.value = result;
   } catch {
     if (current()) failed.value = true;
   } finally {
-    if (current()) drawerApi.setState({ loading: false });
+    if (current()) modalApi.setState({ loading: false });
   }
 }
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Modal, modalApi] = useVbenModal({
+  centered: true,
+  fullscreenButton: false,
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(isOpen: boolean) {
@@ -112,10 +114,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!isOpen) {
       selectedId.value = undefined;
       parentName.value = '';
-      drawerApi.setState({ loading: false });
+      modalApi.setState({ loading: false });
       return;
     }
-    const data = drawerApi.getData() as {
+    const data = modalApi.getData() as {
       id: FoundationDwLayerApi.Id;
       parentName?: string;
     };
@@ -127,7 +129,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 </script>
 
 <template>
-  <Drawer
+  <Modal
     :title="`数仓分层详情${detail?.layerName ? ` · ${detail.layerName}` : ''}`"
     class="w-[800px] max-w-full"
   >
@@ -147,5 +149,5 @@ const [Drawer, drawerApi] = useVbenDrawer({
       </template>
     </Alert>
     <DetailFieldForm v-else-if="detail" :fields="fields" class="mx-2" />
-  </Drawer>
+  </Modal>
 </template>

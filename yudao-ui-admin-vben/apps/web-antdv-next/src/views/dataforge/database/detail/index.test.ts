@@ -11,7 +11,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DatabaseDetail from './index.vue';
 
 const harness = vi.hoisted(() => ({
-  route: { params: { id: '9007199254740993' as unknown } },
+  route: {
+    params: { id: '9007199254740993' as unknown },
+    meta: { activePath: '/develop/database' },
+    name: 'DataforgeDatabaseDetail',
+  },
   access: {
     accessToken: '1',
     refreshToken: undefined as string | undefined,
@@ -191,7 +195,11 @@ function button(text: string) {
 }
 beforeEach(() => {
   vi.resetAllMocks();
-  harness.route = reactive({ params: { id: '9007199254740993' } });
+  harness.route = reactive({
+    params: { id: '9007199254740993' },
+    meta: { activePath: '/develop/database' },
+    name: 'DataforgeDatabaseDetail',
+  });
   harness.access = reactive({
     accessToken: '1',
     refreshToken: undefined as string | undefined,
@@ -208,6 +216,20 @@ afterEach(() => {
 });
 
 describe('database detail identity and state', () => {
+  it.each(['/basic/database', '/develop/database'])(
+    'returns to the originating menu %s',
+    async (activePath) => {
+      harness.route.meta.activePath = activePath;
+      harness.route.name =
+        activePath === '/basic/database'
+          ? 'BasicDataforgeDatabaseDetail'
+          : 'DataforgeDatabaseDetail';
+      await mountPage();
+      button('返回').click();
+      expect(harness.push).toHaveBeenCalledWith(activePath);
+      expect(harness.getDatabase).toHaveBeenCalledWith('9007199254740993');
+    },
+  );
   it('keeps route IDs lossless, shows all five tabs and excludes connection secrets', async () => {
     await mountPage();
     expect(harness.getDatabase).toHaveBeenCalledWith('9007199254740993');
