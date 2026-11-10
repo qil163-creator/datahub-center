@@ -25,7 +25,7 @@ import {
   Tooltip,
 } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getMasterDataPage } from '#/api/governance/masterdata';
 import { submitMasterData } from '#/api/governance/mastermanage';
 

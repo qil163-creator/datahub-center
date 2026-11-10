@@ -5,7 +5,7 @@ import type { GovernanceMetaObjectApi } from '#/api/governance/metaobject';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { Button, Card, Input, Spin, Tooltip, Tree } from 'antdv-next';
+import { Card, Input, Spin, Tree } from 'antdv-next';
 
 import { getMetaObjectTree } from '#/api/governance/metaobject';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
@@ -117,11 +117,6 @@ const handleSelect: NonNullable<TreeProps['onSelect']> = (keys, info) => {
   }
 };
 
-function handleShowAll() {
-  selectedKeys.value = [];
-  emit('select', undefined);
-}
-
 defineExpose({ reload: loadTree });
 
 onMounted(loadTree);
@@ -158,11 +153,6 @@ onMounted(loadTree);
           @toggle-expand="toggleExpand"
           @refresh="loadTree"
         />
-        <Tooltip title="查看全部">
-          <Button @click="handleShowAll">
-            <template #icon><MetadataIcon name="fields" /></template>
-          </Button>
-        </Tooltip>
       </div>
       <div class="subtle-tree-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         <Spin :spinning="treeLoading">

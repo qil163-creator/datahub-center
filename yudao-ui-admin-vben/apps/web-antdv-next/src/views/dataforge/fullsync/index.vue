@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   DatabaseOption,
   Id,
@@ -17,7 +18,6 @@ import { formatDate } from '@vben/utils';
 import {
   Alert,
   Button,
-  Checkbox,
   Dropdown,
   Input,
   Menu,
@@ -26,14 +26,15 @@ import {
   Modal,
   Select,
   Switch,
-  Table,
   Tooltip,
 } from 'antdv-next';
 
 import {
   ACTION_ICON,
   NativeVxeButton,
-} from '#/adapter/vxe-table';
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import {
   deleteWizard,
   getDatabaseOptions,
@@ -76,30 +77,11 @@ const loading = ref(false);
 const failed = ref(false);
 const optionsFailed = ref(false);
 const showSearch = ref(true);
-const tableMaximized = ref(false);
 const busyIds = ref(new Set<string>());
 const { active, scope } = useFullSyncScope();
-watch(active, (isActive) => {
-  if (!isActive) tableMaximized.value = false;
-});
 const request = useObjectRequest(() => scope.value);
 const optionRequest = useObjectRequest(() => scope.value);
 const actionRequest = useObjectRequest(() => scope.value);
-const definitions = [
-  { key: 'id', title: '编号', width: 90 },
-  { key: 'info', title: '任务信息', width: 450 },
-  { key: 'link', title: '数据链路 (源 -> 目标)', width: 235 },
-  { key: 'state', title: '运行状态', width: 145 },
-  { key: 'schedule', title: '策略与调度', width: 340 },
-  { key: 'responsible', title: '责任人', width: 140 },
-  { key: 'creator', title: '创建人', width: 140 },
-  { key: 'createTime', title: '创建时间', width: 180 },
-];
-const visible = ref(definitions.map((entry) => entry.key));
-const columns = computed(() => [
-  ...definitions.filter((entry) => visible.value.includes(entry.key)),
-  { key: 'actions', title: '操作', width: 245, fixed: 'right' as const },
-]);
 const dbName = (id?: Id) =>
   databases.value.find((entry) => String(entry.id) === String(id))?.name ||
   (id ? `数据连接 ${id}` : '-');
@@ -139,6 +121,7 @@ async function load() {
       rows.value = result.list;
       total.value = result.total;
       selected.value = [];
+      void gridApi.grid?.clearCheckboxRow();
     }
   } catch {
     if (current()) failed.value = true;
@@ -175,7 +158,6 @@ function reset() {
   search();
 }
 function openWizard(row?: Wizard) {
-  tableMaximized.value = false;
   void router.push({
     name: 'DataforgeFullSyncWizard',
     params: row ? { id: String(row.id) } : {},
@@ -183,7 +165,6 @@ function openWizard(row?: Wizard) {
   });
 }
 function details(row: Wizard) {
-  tableMaximized.value = false;
   void router.push(`${LIST_PATH}/detail/${encodeURIComponent(String(row.id))}`);
 }
 async function toggle(
@@ -247,6 +228,40 @@ function remove(items: Wizard[]) {
     },
   });
 }
+const [Grid, gridApi] = useVbenVxeGrid<Wizard>({
+  gridOptions: {
+    columns: [
+      { type: 'checkbox', width: 45 },
+      { field: 'id', title: '编号', width: 90 },
+      { field: 'info', title: '任务信息', width: 450, slots: { default: 'info' } },
+      { field: 'link', title: '数据链路 (源 -> 目标)', width: 235, slots: { default: 'link' } },
+      { field: 'state', title: '运行状态', width: 145, slots: { default: 'state' } },
+      { field: 'schedule', title: '策略与调度', width: 340, slots: { default: 'schedule' } },
+      { field: 'responsible', title: '责任人', width: 140, slots: { default: 'responsible' } },
+      { field: 'creator', title: '创建人', width: 140, slots: { default: 'creator' } },
+      { field: 'createTime', title: '创建时间', width: 180, slots: { default: 'createTime' } },
+      { field: 'actions', title: '操作', width: 245, fixed: 'right', showOverflow: false, slots: { default: 'actions' } },
+    ],
+    checkboxConfig: { checkMethod: ({ row }) => editable(row as Wizard) },
+    data: [],
+    loading: false,
+    pagerConfig: { enabled: false },
+    proxyConfig: { enabled: false },
+    rowConfig: { keyField: 'id', isHover: true },
+    scrollbarConfig: { height: 6 },
+    showOverflow: false,
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load }, custom: true, zoom: false },
+  } as VxeTableGridOptions<Wizard>,
+  gridEvents: {
+    checkboxChange: ({ records }: { records: Wizard[] }) => {
+      selected.value = records.map((row) => String(row.id));
+    },
+    checkboxAll: ({ records }: { records: Wizard[] }) => {
+      selected.value = records.map((row) => String(row.id));
+    },
+  },
+});
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
 watch(
   scope,
   () => {
@@ -325,88 +340,27 @@ watch(
 </Button><Button @click="reset">重置</Button>
           </div>
         </form>
-        <section class="fs-panel fs-list-panel" :class="{ 'is-maximized': tableMaximized }">
-          <div class="fs-toolbar">
-            <h2 class="fs-list-title">整库同步任务列表</h2>
-            <div class="fs-toolbar-group">
-              <Button
-                v-if="can('create')"
-                type="primary"
-                @click="openWizard()"
-              >
-                <IconifyIcon :icon="ACTION_ICON.ADD" />新增
-</Button><Button
-                v-if="can('delete')"
-                danger
-                :disabled="!selected.length"
-                @click="
-                  remove(
-                    rows.filter((row) => selected.includes(String(row.id))),
-                  )
-                "
-              >
-                <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
-              </Button>
-              <Tooltip title="显示/隐藏搜索">
-                <NativeVxeButton
-                  aria-label="显示或隐藏搜索"
-                  icon="vxe-icon-search"
-                  circle
-                  :status="showSearch ? 'primary' : undefined"
-                  @click="showSearch = !showSearch"
-                />
-</Tooltip><Tooltip title="刷新">
-                <NativeVxeButton aria-label="刷新列表" icon="vxe-icon-repeat" circle @click="load" />
-</Tooltip><Tooltip :title="tableMaximized ? '还原' : '全屏'">
-                <NativeVxeButton
-                  circle
-                  :icon="tableMaximized ? 'vxe-icon-minimize' : 'vxe-icon-fullscreen'"
-                  :aria-label="tableMaximized ? '还原表格' : '全屏表格'"
-                  :aria-pressed="tableMaximized"
-                  @click="tableMaximized = !tableMaximized"
-                />
-</Tooltip><Dropdown :trigger="['click']">
-                <NativeVxeButton aria-label="设置显示列" icon="vxe-icon-setting" circle />
-<template #popupRender>
-                  <Menu>
-                    <MenuItem v-for="column in definitions" :key="column.key">
-                      <Checkbox
-                        :checked="visible.includes(column.key)"
-                        @change="
-                          (event) => {
-                            visible = event.target.checked
-                              ? [...visible, column.key]
-                              : visible.filter((key) => key !== column.key);
-                          }
-                        "
-                      >
-                        {{ column.title }}
-                      </Checkbox>
-                    </MenuItem>
-                  </Menu>
-                </template>
-              </Dropdown>
-            </div>
-          </div>
-          <Table
-            class="fs-list-table"
-            :columns="columns"
-            :data-source="rows"
-            :loading="loading"
-            :pagination="false"
-            :row-key="(row: Wizard) => String(row.id)"
-            :scroll="{ x: 'max-content' }"
-            :row-selection="{
-              selectedRowKeys: selected,
-              onChange: (keys) => {
-                selected = keys.map(String);
-              },
-              getCheckboxProps: (row: Wizard) => ({ disabled: !editable(row) }),
-            }"
-          >
-            <template #bodyCell="{ column, record: row }">
-              <template v-if="column.key === 'id'">{{ row.id }}</template>
-              <template v-else-if="column.key === 'info'">
+        <section class="fs-panel fs-list-panel">
+          <Grid class="fs-list-grid" table-title="整库同步任务列表" :table-data="rows">
+            <template #toolbar-tools>
+              <TableAction
+                :actions="[
+                  { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create'), onClick: () => openWizard() },
+                  { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: !selected.length, onClick: () => remove(rows.filter((row) => selected.includes(String(row.id)))) },
+                ]"
+              />
+              <NativeVxeButton
+                class="ml-2"
+                aria-label="显示或隐藏搜索"
+                title="搜索"
+                icon="vxe-icon-search"
+                circle
+                :status="showSearch ? 'primary' : undefined"
+                :aria-pressed="showSearch"
+                @click="showSearch = !showSearch"
+              />
+            </template>
+              <template #info="{ row }">
                 <div class="fs-task-title">
                   {{ row.config.taskName
                   }}<span class="fs-tag purple">同步{{
@@ -417,7 +371,7 @@ watch(
                   {{ row.config.description || '-' }}
                 </div>
               </template>
-              <template v-else-if="column.key === 'link'">
+              <template #link="{ row }">
                 <div class="fs-data-link">
                   <Tooltip :title="dbName(row.config.sourceDatabaseId)">
                     <span class="fs-db-name"><ReferenceIcon
@@ -434,7 +388,7 @@ watch(
                   </Tooltip>
                 </div>
               </template>
-              <template v-else-if="column.key === 'state'">
+              <template #state="{ row }">
                 <div class="fs-state">
                   任务状态:
                   <Switch
@@ -464,7 +418,7 @@ watch(
                   />
                 </div>
               </template>
-              <template v-else-if="column.key === 'schedule'">
+              <template #schedule="{ row }">
                 <div>{{ strategy(row.config.executionStrategy) }}</div>
                 <div class="fs-schedule">
                   <ReferenceIcon name="clock" />{{
@@ -474,26 +428,26 @@ watch(
                   }}
                 </div>
               </template>
-              <template v-else-if="column.key === 'responsible'">
+              <template #responsible="{ row }">
                 <div>{{ row.config.responsibleName || '-' }}</div>
                 <div class="fs-second-line">
                   {{ row.config.responsiblePhone || '-' }}
                 </div>
               </template>
-              <template v-else-if="column.key === 'creator'">
+              <template #creator="{ row }">
                 <div>{{ creatorName(row.creator) }}</div>
                 <div v-if="creatorPhone(row.creator)" class="fs-second-line">
                   {{ creatorPhone(row.creator) }}
                 </div>
               </template>
-              <template v-else-if="column.key === 'createTime'">
+              <template #createTime="{ row }">
                 {{
                   row.createTime
                     ? formatDate(row.createTime, 'YYYY-MM-DD HH:mm')
                     : '-'
                 }}
               </template>
-              <template v-else-if="column.key === 'actions'">
+              <template #actions="{ row }">
                 <div class="fs-row-actions">
                   <button
                     v-if="can('update')"
@@ -524,16 +478,17 @@ watch(
                   </Dropdown>
                 </div>
               </template>
-            </template>
-            <template #emptyText><div class="fs-empty">暂无记录</div></template>
-          </Table>
-          <ListPagination
+            <template #empty><div class="fs-empty">暂无记录</div></template>
+            <template #pager>
+              <ListPagination
             :current="pageNo"
             :page-size="pageSize"
             :page-size-options="[10, 20, 50, 100]"
             :total="total"
             @change="(page, size) => { pageNo = page; pageSize = size; load(); }"
-          />
+              />
+            </template>
+          </Grid>
         </section>
       </div>
     </Page>

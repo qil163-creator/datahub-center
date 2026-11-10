@@ -36,6 +36,7 @@ const calls = vi.hoisted(() => ({
 }));
 let session: ReturnType<typeof reactive<{ value: string }>>;
 let permissions: Set<string>;
+vi.mock('#/adapter/business-vxe-table', async () => import('#/views/governance/common/vxe-grid.test-support'));
 vi.mock('#/views/governance/category/use-session', () => ({
   useCategorySession: () => ({
     identity: {
@@ -95,6 +96,7 @@ vi.mock('antdv-next', () => {
     Spin: box,
     Switch: box,
     Table: box,
+    Tooltip: box,
     Tag: box,
     TreeSelect: box,
     theme: { defaultAlgorithm: undefined },

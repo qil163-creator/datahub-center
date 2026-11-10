@@ -20,7 +20,7 @@ import { formatDate } from '@vben/utils';
 
 import { Alert, Button, message, Modal, Switch, Tooltip } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteProjectCategory,
   deleteProjectCategoryList,

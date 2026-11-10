@@ -36,7 +36,7 @@ import {
 } from 'antdv-next';
 import dayjs from 'dayjs';
 
-import { ACTION_ICON, NativeVxeButton, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
 import {
   deleteDevDir,

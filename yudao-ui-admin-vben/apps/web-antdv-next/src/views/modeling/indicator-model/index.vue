@@ -24,7 +24,7 @@ import { formatDateTime } from '@vben/utils';
 import { useMediaQuery } from '@vueuse/core';
 import { Alert, Button, message, Switch, TabPane, Tabs, Tag } from 'antdv-next';
 
-import { TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteIndicator,
   getIndicatorPage,

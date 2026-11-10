@@ -25,7 +25,7 @@ import {
   Tag,
 } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   getDatabaseAlarm,
   getDatabaseAlarmPage,

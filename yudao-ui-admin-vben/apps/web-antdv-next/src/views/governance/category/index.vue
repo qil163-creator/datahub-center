@@ -20,7 +20,6 @@ import { IconifyIcon } from '@vben/icons';
 import {
   Alert,
   Button,
-  CheckboxGroup,
   Dropdown,
   Menu,
   MenuItem,
@@ -29,6 +28,7 @@ import {
   Tag,
 } from 'antdv-next';
 
+import { ACTION_ICON, NativeVxeButton, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   changeCategoryWorkbenchStatus,
   deleteCategoryWorkbench,
@@ -39,7 +39,6 @@ import {
   getCategoryWorkbenchPage,
 } from '#/api/governance/category/workbench';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
-import TableViewport from '#/components/table-viewport/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import {
   createLatestWins,
@@ -92,12 +91,34 @@ const errorText = ref('');
 const optionsError = ref('');
 const sidebarOpen = ref(true);
 const showFilters = ref(true);
-const visibleColumns = ref(CATEGORY_COLUMNS.map((column) => column.key));
-const columns = computed(() =>
-  CATEGORY_COLUMNS.filter((column) =>
-    visibleColumns.value.includes(column.key),
-  ),
-);
+const [Grid, gridApi] = useVbenVxeGrid<Api.Category>({
+  gridOptions: {
+    columns: [
+      { type: 'checkbox', width: 45 },
+      ...CATEGORY_COLUMNS.map((column) => ({
+        field: column.key, title: column.title,
+        width: 'width' in column ? column.width : undefined,
+        minWidth: 'minWidth' in column ? column.minWidth : undefined,
+        align: column.align,
+        fixed: 'fixed' in column ? column.fixed : undefined,
+        sortable: 'sorter' in column && column.sorter,
+        slots: { default: 'body' },
+      })),
+    ],
+    data: [], height: 'auto', pagerConfig: { enabled: false },
+    proxyConfig: { enabled: false }, rowConfig: { keyField: 'id', isHover: true },
+    sortConfig: { remote: true }, showOverflow: false,
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: () => refresh() }, custom: true, zoom: false },
+  },
+  gridEvents: {
+    checkboxChange: ({ records }: { records: Api.Category[] }) => { selectedRowKeys.value = records.map((row) => resourceIdKey(row.id)); },
+    checkboxAll: ({ records }: { records: Api.Category[] }) => { selectedRowKeys.value = records.map((row) => resourceIdKey(row.id)); },
+    sortChange: ({ field, order }: { field: string; order: null | string }) => tableChange(null, null, { columnKey: field, order: order === 'asc' ? 'ascend' : order === 'desc' ? 'descend' : undefined }),
+    cellDblclick: ({ row }: { row: Api.Category }) => open({ mode: 'detail', id: row.id }),
+  },
+});
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
+watch(selectedRowKeys, (value) => { if (!value.length) void gridApi.grid?.clearCheckboxRow(); });
 const filter = reactive<{
   dataLevelId?: Api.Id;
   name?: string;
@@ -447,113 +468,26 @@ onBeforeUnmount(() => {
             />
           </section>
           <section class="category-results">
-            <div class="category-toolbar">
-              <strong>数据分类列表</strong>
-              <div>
-                <Button
-                  v-if="can('create')"
-                  type="primary"
-                  @click="open({ mode: 'create', categoryId: selectedId })"
-                >
-                  <i
-                    class="category-icon"
-                    :style="{ maskImage: `url(${categoryIcon('plus')})` }"
-                  ></i>新增
-</Button><Button
-                  v-if="can('delete')"
-                  danger
-                  :disabled="!selectedRowKeys.length"
-                  @click="remove()"
-                >
-                  <i
-                    class="category-icon"
-                    :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-                  ></i>删除
-</Button><Button
-                  v-if="can('update')"
-                  type="primary"
-                  :disabled="!selectedRowKeys.length"
-                  @click="batchLevel"
-                >
-                  <i
-                    class="category-icon"
-                    :style="{
-                      maskImage:
-                        'url(/assets/qdata-safety-category/assign-level.png)',
-                    }"
-                  ></i>指定分级
-                </Button>
-              </div>
-              <div>
-                <Button
-                  aria-label="显示或隐藏查询"
-                  @click="showFilters = !showFilters"
-                >
-                  <i
-                    class="category-icon"
-                    :style="{ maskImage: `url(${categoryIcon('search')})` }"
-                  ></i>
-</Button><Button aria-label="刷新数据分类" @click="refresh">
-                  <i
-                    class="category-icon"
-                    :style="{ maskImage: `url(${categoryIcon('refresh')})` }"
-                  ></i>
-</Button><Dropdown :trigger="['click']">
-                  <Button aria-label="选择显示列">
-                    <i
-                      class="category-icon"
-                      :style="{
-                        maskImage: `url(${categoryIcon('columns')})`,
-                      }"
-                    ></i>
-</Button><template #popupRender>
-                    <div class="category-column-picker">
-                      <CheckboxGroup
-                        v-model:value="visibleColumns"
-                        :options="
-                          CATEGORY_COLUMNS.map((item) => ({
-                            value: item.key,
-                            label: item.title,
-                          }))
-                        "
-                      />
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-            </div>
             <Alert v-if="errorText" :message="errorText" type="error">
-              <template #action>
-                <Button size="small" @click="loadRows"> 重试 </Button>
-              </template>
+              <template #action><Button size="small" @click="loadRows">重试</Button></template>
             </Alert>
-            <TableViewport
-              class="category-table"
-              :columns="columns"
-              :data-source="rows"
-              :row-key="(row: Api.Category) => resourceIdKey(row.id)"
-              :row-selection="{
-                columnWidth: 45,
-                selectedRowKeys,
-                onChange: (keys: (number | string)[]) =>
-                  (selectedRowKeys = keys.map(String)),
-              }"
-              :loading="loading"
-              :pagination="false"
-              :scroll="{ x: 1785 }"
-              :custom-row="
-                (row: Api.Category) => ({
-                  onDblclick: () => open({ mode: 'detail', id: row.id }),
-                })
-              "
-              @change="tableChange"
-            >
-              <template #bodyCell="{ column, record }">
-                <span v-if="column.key === 'id'">{{
+            <Grid class="category-grid" table-title="数据分类列表" :table-data="rows">
+              <template #toolbar-tools>
+                <TableAction
+:actions="[
+                  { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create'), onClick: () => open({ mode: 'create', categoryId: selectedId }) },
+                  { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: !selectedRowKeys.length, onClick: () => remove() },
+                  { label: '指定分级', type: 'primary', ifShow: can('update'), disabled: !selectedRowKeys.length, onClick: batchLevel },
+                ]"
+/>
+                <NativeVxeButton class="ml-2" aria-label="显示或隐藏查询" title="搜索" icon="vxe-icon-search" circle :status="showFilters ? 'primary' : undefined" :aria-pressed="showFilters" @click="showFilters = !showFilters" />
+              </template>
+              <template #body="{ column, row: record }">
+<span v-if="column.field === 'id'">{{
                   categoryDisplayId(record)
                 }}</span>
                 <div
-                  v-else-if="column.key === 'name'"
+                  v-else-if="column.field === 'name'"
                   class="category-name-cell"
                 >
                   <span>{{ record.name || '-' }}</span>
@@ -566,15 +500,15 @@ onBeforeUnmount(() => {
                   />
                 </div>
                 <span
-                  v-else-if="column.key === 'shortName'"
+                  v-else-if="column.field === 'shortName'"
                   class="category-code"
-                  >{{ record.shortName || '-' }}</span><span v-else-if="column.key === 'categoryName'">{{
+                  >{{ record.shortName || '-' }}</span><span v-else-if="column.field === 'categoryName'">{{
                   categoryDirectoryName(record, options.directories)
                 }}</span><ReferenceLevel
-                  v-else-if="column.key === 'dataLevelId'"
+                  v-else-if="column.field === 'dataLevelId'"
                   v-bind="categoryLevel(record, options.levels)"
                 /><Tag
-                  v-else-if="column.key === 'priority'"
+                  v-else-if="column.field === 'priority'"
                   class="category-soft-tag"
                 >
                   {{
@@ -587,27 +521,27 @@ onBeforeUnmount(() => {
 </Tag><Button
                   type="link"
                   v-else-if="
-                    column.key === 'masking' && categoryConfigured(record)
+                    column.field === 'masking' && categoryConfigured(record)
                   "
                   class="category-tag-link"
                   @click="open({ mode: 'mask-view', id: record.id })"
                 >
                   已配置
-</Button><span v-else-if="column.key === 'masking'">未配置</span><Switch
-                  v-else-if="column.key === 'status'"
+</Button><span v-else-if="column.field === 'masking'">未配置</span><Switch
+                  v-else-if="column.field === 'status'"
                   :checked="record.status === 0"
                   :loading="pending.has(resourceIdKey(record.id))"
                   :disabled="
                     !can('update') || !validCategoryRevision(record.revision)
                   "
                   @change="(checked) => statusChange(record, !!checked)"
-                /><span v-else-if="column.key === 'creatorName'">{{
+                /><span v-else-if="column.field === 'creatorName'">{{
                   record.creatorName || '-'
-                }}</span><span v-else-if="column.key === 'createTime'">{{
+                }}</span><span v-else-if="column.field === 'createTime'">{{
                   categoryTime(record.createTime)
                 }}</span>
                 <div
-                  v-else-if="column.key === 'actions'"
+                  v-else-if="column.field === 'actions'"
                   class="category-row-actions"
                 >
                   <Button
@@ -654,15 +588,10 @@ onBeforeUnmount(() => {
                   </Dropdown>
                 </div>
               </template>
-            </TableViewport>
-            <footer class="category-pagination">
-              <ReferencePagination
-                v-model:page="query.pageNo"
-                v-model:page-size="query.pageSize"
-                :total="total"
-                @change="loadRows"
-              />
-            </footer>
+              <template #pager>
+                <ReferencePagination v-model:page="query.pageNo" v-model:page-size="query.pageSize" :total="total" @change="loadRows" />
+              </template>
+            </Grid>
           </section>
         </main>
       </template>
@@ -677,3 +606,10 @@ onBeforeUnmount(() => {
     </div>
   </Page>
 </template>
+
+<style scoped>
+.category-grid {
+  flex: 1;
+  min-height: 0;
+}
+</style>

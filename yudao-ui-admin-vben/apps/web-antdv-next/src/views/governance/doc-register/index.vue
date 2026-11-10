@@ -21,7 +21,7 @@ import { useAccessStore } from '@vben/stores';
 
 import { Alert, Button, Input, message, Spin, Tree } from 'antdv-next';
 
-import { TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { deleteDoc, getDocCategories, getDocPage } from '#/api/governance/doc';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';

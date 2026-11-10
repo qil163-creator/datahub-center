@@ -52,6 +52,11 @@ export const mock = {
   confirm: vi.fn(),
   destroy: vi.fn(),
   emit: vi.fn(),
+  gridEvents: {} as {
+    cellDblclick: (event: { row: unknown }) => void;
+    checkboxChange: (event: { records: unknown[] }) => void;
+    sortChange: (event: { field: string; order: null | string }) => void;
+  },
 };
 
 vi.mock('#/adapter/form', () => ({
@@ -59,6 +64,18 @@ vi.mock('#/adapter/form', () => ({
     () => null,
     { reset: vi.fn(), validateAndSubmit: vi.fn() },
   ],
+}));
+vi.mock('#/adapter/business-vxe-table', () => ({
+  ACTION_ICON: { ADD: 'add', DELETE: 'delete' },
+  NativeVxeButton: defineComponent({ setup: () => () => null }),
+  TableAction: defineComponent({ setup: () => () => null }),
+  useVbenVxeGrid: (options: { gridEvents: typeof mock.gridEvents }) => {
+    mock.gridEvents = options.gridEvents;
+    return [
+      defineComponent({ setup: () => () => null }),
+      { grid: { clearCheckboxRow: vi.fn() }, setLoading: vi.fn() },
+    ];
+  },
 }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => mock.access,

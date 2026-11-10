@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import TaskList from './index.vue';
 
 const mock = vi.hoisted(() => ({
+  delete: vi.fn(),
   update: vi.fn(),
   schedule: vi.fn(),
   load: vi.fn(),
@@ -28,12 +29,20 @@ vi.mock('#/hooks/use-object-request', () => ({
 vi.mock('#/adapter/component/date-picker', () => ({ RangePicker: () => null }));
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: {},
-  TableAction: () => null,
+  TableAction: defineComponent({
+    props: { actions: { type: Array, default: () => [] } },
+    setup: (props) => () => h('div', (props.actions as Array<{
+      disabled?: boolean; label: string; onClick?: () => void;
+    }>).map((action) => h('button', {
+      disabled: action.disabled,
+      onClick: action.onClick,
+    }, action.label))),
+  }),
 }));
 vi.mock('./data', () => ({ useGridColumns: () => [] }));
 vi.mock('./modules/form.vue', () => ({ default: () => null }));
 vi.mock('#/api/governance/metacollecttask', () => ({
-  deleteMetaCollectTaskList: vi.fn(),
+  deleteMetaCollectTaskList: mock.delete,
   getMetaCollectTaskPage: vi.fn(),
   runMetaCollectTask: vi.fn(),
   updateMetaCollectTaskEnabled: mock.update,
@@ -77,17 +86,18 @@ vi.mock('../metadata-common/use-metadata-grid', () => ({
         () =>
           h(
             'section',
-            mock.rows.map((row) => slots.state?.({ row })),
+            [slots['toolbar-tools']?.(), ...mock.rows.map((row) => slots.state?.({ row }))],
           ),
     }),
     load: mock.load,
-    selected: ref([]),
+    selected: selection,
     error: ref(false),
   }),
 }));
 
 let app: App | undefined;
 let host: HTMLDivElement;
+let selection = ref<Array<{ id: string }>>([]);
 async function flush() {
   for (let index = 0; index < 8; index++) await Promise.resolve();
   await nextTick();
@@ -97,6 +107,8 @@ beforeEach(() => {
   mock.switchChanges = [];
   mock.update.mockResolvedValue(undefined);
   mock.load.mockResolvedValue(undefined);
+  mock.delete.mockResolvedValue(undefined);
+  selection = ref([]);
   host = document.createElement('div');
   app = createApp(TaskList);
   app.mount(host);
@@ -107,6 +119,18 @@ afterEach(() => {
 });
 
 describe('采集任务状态切换', () => {
+  it('批量删除使用选中任务的无损编号并在完成后刷新列表', async () => {
+    const button = [...host.querySelectorAll('button')].find((element) => element.textContent === '删除');
+    expect(button?.disabled).toBe(true);
+    selection.value = [{ id: '9007199254740993' }];
+    await nextTick();
+    expect(button?.disabled).toBe(false);
+    button?.click();
+    await flush();
+    expect(mock.delete).toHaveBeenCalledExactlyOnceWith(['9007199254740993']);
+    expect(mock.load).toHaveBeenCalledOnce();
+  });
+
   it('等待前次状态提交及刷新后才允许切换另一任务，阻止并发请求遗漏刷新', async () => {
     let finish!: () => void;
     mock.update.mockReturnValueOnce(

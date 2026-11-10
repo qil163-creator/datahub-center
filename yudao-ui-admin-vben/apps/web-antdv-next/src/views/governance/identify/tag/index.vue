@@ -10,7 +10,7 @@ import { isEmpty } from '@vben/utils';
 
 import { message, Tag } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getDatabaseSimpleList } from '#/api/dataforge/database';
 import {
   confirmFieldTags,
@@ -189,12 +189,14 @@ onMounted(async () => {
             {
               label: '扫描记录',
               icon: 'lucide:history',
+              type: 'default',
               auth: ['governance:safety-identify:query'],
               onClick: handleRuns,
             },
             {
               label: '人工打标',
               icon: ACTION_ICON.ADD,
+              type: 'default',
               auth: ['governance:safety-identify:confirm'],
               onClick: handleManualTag,
             },
@@ -209,6 +211,7 @@ onMounted(async () => {
             {
               label: '批量驳回',
               icon: 'lucide:x',
+              type: 'primary',
               danger: true,
               auth: ['governance:safety-identify:confirm'],
               disabled: isEmpty(checkedIds),

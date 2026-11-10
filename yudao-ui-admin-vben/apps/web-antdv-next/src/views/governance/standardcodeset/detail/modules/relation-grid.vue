@@ -3,7 +3,7 @@ import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
 import { watch } from 'vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getStandardElementPage } from '#/api/governance/standardelement';
 
 import { useRelationGridColumns } from '../data';

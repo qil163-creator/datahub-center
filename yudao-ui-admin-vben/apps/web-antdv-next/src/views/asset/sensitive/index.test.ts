@@ -35,6 +35,7 @@ const mocks = vi.hoisted(() => ({
   dialogs: [] as Confirm[],
 }));
 
+vi.mock('#/adapter/business-vxe-table', async () => import('#/views/governance/common/vxe-grid.test-support'));
 vi.mock('#/adapter/form', () => ({
   useVbenForm: () => [
     () => null,

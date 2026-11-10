@@ -26,8 +26,8 @@ import {
   Tag,
 } from 'antdv-next';
 
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createDatabaseRule,
   deleteDatabaseRule,

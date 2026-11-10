@@ -19,8 +19,6 @@ import { formatDate } from '@vben/utils';
 import {
   Alert,
   Button,
-  CheckboxGroup,
-  Dropdown,
   message,
   Modal,
   Switch,
@@ -28,6 +26,7 @@ import {
   Tooltip,
 } from 'antdv-next';
 
+import { ACTION_ICON, NativeVxeButton, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import {
   changeSensitiveListStatus,
@@ -37,7 +36,6 @@ import {
   getSensitiveListPage,
 } from '#/api/asset/sensitive';
 import ListPagination from '#/components/list-pagination/index.vue';
-import TableViewport from '#/components/table-viewport/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { createLatestWins } from '#/utils/resource-id';
 
@@ -151,22 +149,29 @@ const baseColumns = [
   },
   { title: '操作', key: 'actions', width: 220, fixed: 'right' as const },
 ];
-const visibleColumns = ref(baseColumns.map((column) => column.key));
-const tableColumns = computed(() =>
-  baseColumns
-    .filter((column) => visibleColumns.value.includes(column.key))
-    .map((column) => {
-      if (column.key !== sortField.value)
-        return { ...column, sortOrder: undefined };
-      return {
-        ...column,
-        sortOrder:
-          sortOrder.value === 'asc'
-            ? ('ascend' as const)
-            : ('descend' as const),
-      };
-    }),
-);
+const [Grid, gridApi] = useVbenVxeGrid<SensitiveListApi.Record>({
+  gridOptions: {
+    columns: [
+      { type: 'checkbox', width: 45 },
+      ...baseColumns.map((column) => ({
+        field: column.key, title: column.title, width: column.width,
+        fixed: 'fixed' in column ? column.fixed : undefined,
+        sortable: 'sorter' in column && column.sorter,
+        slots: { default: 'body' },
+      })),
+    ],
+    data: [], height: 'auto', pagerConfig: { enabled: false }, proxyConfig: { enabled: false },
+    rowConfig: { keyField: 'id', isHover: true }, sortConfig: { remote: true, defaultSort: { field: 'id', order: 'desc' } }, showOverflow: false,
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: () => load() }, custom: true, zoom: false },
+  },
+  gridEvents: {
+    checkboxChange: ({ records }: { records: SensitiveListApi.Record[] }) => handleSelection(records.map((row) => row.id), records),
+    checkboxAll: ({ records }: { records: SensitiveListApi.Record[] }) => handleSelection(records.map((row) => row.id), records),
+    sortChange: ({ field, order }: { field: string; order: null | string }) => handleTableChange({}, null, { field, order: order === 'asc' ? 'ascend' : order === 'desc' ? 'descend' : undefined }),
+  },
+});
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
+watch(selectedIds, (value) => { if (!value.length) void gridApi.grid?.clearCheckboxRow(); });
 function clearSelection() {
   selectedIds.value = [];
   selectedRows.value = [];
@@ -461,52 +466,6 @@ function syncFilterValues() {
         </template>
       </FilterForm>
       <section class="sensitive-main">
-        <div class="sensitive-toolbar">
-          <h2 class="mr-auto text-base font-medium">敏感清单列表</h2>
-          <Button v-if="can('create')" type="primary" @click="create">
-            <template #icon><SourceIcon name="add" /></template>新增
-          </Button>
-          <Button
-            v-if="can('delete')"
-            danger
-            :disabled="selectedIds.length === 0"
-            @click="removeSelected"
-          >
-            <template #icon><SourceIcon name="delete" /></template>删除
-          </Button>
-          <div class="sensitive-toolbar__tools">
-            <Tooltip title="显示或隐藏筛选">
-              <Button
-                aria-label="显示或隐藏筛选"
-                @click="showFilters = !showFilters"
-              >
-                <SourceIcon name="search" />
-              </Button>
-            </Tooltip>
-            <Tooltip title="刷新">
-              <Button aria-label="刷新" @click="load">
-                <SourceIcon name="refresh" />
-              </Button>
-            </Tooltip>
-            <Dropdown :trigger="['click']">
-              <Button aria-label="表格设置">
-                <SourceIcon name="grid" /> </Button
-              ><template #popupRender>
-                <div class="sensitive-columns">
-                  <CheckboxGroup
-                    v-model:value="visibleColumns"
-                    :options="
-                      baseColumns.map((column) => ({
-                        label: column.title,
-                        value: column.key,
-                      }))
-                    "
-                  />
-                </div>
-              </template>
-            </Dropdown>
-          </div>
-        </div>
         <Alert
           v-if="categoryFailed"
           type="warning"
@@ -522,25 +481,21 @@ function syncFilterValues() {
             <Button size="small" @click="load">重试</Button>
           </template>
         </Alert>
-        <TableViewport
-          :columns="tableColumns"
-          :data-source="rows"
-          :loading="loading"
-          :row-key="(row: SensitiveListApi.Record) => String(row.id)"
-          :row-selection="{
-            selectedRowKeys: selectedIds,
-            onChange: handleSelection,
-            preserveSelectedRowKeys: false,
-          }"
-          :scroll="{ x: 1550 }"
-          :pagination="false"
-          @change="handleTableChange"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'id'">
+        <Grid class="sensitive-grid" table-title="敏感清单列表" :table-data="rows">
+          <template #toolbar-tools>
+            <TableAction
+:actions="[
+              { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create'), onClick: create },
+              { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: !selectedIds.length, onClick: removeSelected },
+            ]"
+/>
+            <NativeVxeButton class="ml-2" aria-label="显示或隐藏筛选" title="搜索" icon="vxe-icon-search" circle :status="showFilters ? 'primary' : undefined" :aria-pressed="showFilters" @click="showFilters = !showFilters" />
+          </template>
+          <template #body="{ column, row: record }">
+<template v-if="column.field === 'id'">
               {{ record.sourceRecordId || record.id }}
             </template>
-            <template v-else-if="column.key === 'asset'">
+            <template v-else-if="column.field === 'asset'">
               <div class="sensitive-asset">
                 <div class="sensitive-asset__title">
                   <IconifyIcon
@@ -560,15 +515,15 @@ function syncFilterValues() {
                 </Tooltip>
               </div>
             </template>
-            <template v-else-if="column.key === 'classification'">
+            <template v-else-if="column.field === 'classification'">
               <Tag :bordered="false" color="blue">
                 {{ record.classificationName || '-' }}
               </Tag>
             </template>
-            <template v-else-if="column.key === 'level'">
+            <template v-else-if="column.field === 'level'">
               <LevelBadge :name="record.levelName" :color="record.levelColor" />
             </template>
-            <template v-else-if="column.key === 'status'">
+            <template v-else-if="column.field === 'status'">
               <Switch
                 :checked="record.status === 0"
                 :loading="pending.has(String(record.id))"
@@ -578,13 +533,13 @@ function syncFilterValues() {
                 "
               />
             </template>
-            <template v-else-if="column.key === 'creator'">
+            <template v-else-if="column.field === 'creator'">
               {{ record.creatorName || record.sourceCreatorName || '-' }}
             </template>
-            <template v-else-if="column.key === 'createTime'">
+            <template v-else-if="column.field === 'createTime'">
               {{ formatDate(record.createTime, 'YYYY-MM-DD HH:mm') || '-' }}
             </template>
-            <template v-else-if="column.key === 'actions'">
+            <template v-else-if="column.field === 'actions'">
               <div class="sensitive-actions">
                 <Button
                   v-if="can('update')"
@@ -619,13 +574,10 @@ function syncFilterValues() {
               </div>
             </template>
           </template>
-        </TableViewport>
-        <ListPagination
-          :current="pageNo"
-          :page-size="pageSize"
-          :total="total"
-          @change="changePage"
-        />
+          <template #pager>
+            <ListPagination :current="pageNo" :page-size="pageSize" :total="total" @change="changePage" />
+          </template>
+        </Grid>
       </section>
     </template>
   </Page>
@@ -647,31 +599,9 @@ function syncFilterValues() {
   border-radius: var(--radius);
 }
 
-.sensitive-toolbar {
-  display: flex;
-  flex-shrink: 0;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.sensitive-toolbar__tools {
-  display: flex;
-  gap: 10px;
-}
-
-.sensitive-columns {
-  width: 260px;
-  padding: 16px;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 3px 12px #0002;
-}
-
-.sensitive-columns :deep(.ant-checkbox-group) {
-  display: grid;
-  gap: 10px;
+.sensitive-grid {
+  flex: 1;
+  min-height: 0;
 }
 
 .sensitive-actions {

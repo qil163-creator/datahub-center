@@ -16,6 +16,7 @@ import { Page } from '@vben/common-ui';
 
 import { Button, message, Switch } from 'antdv-next';
 
+import { ACTION_ICON, TableAction } from '#/adapter/business-vxe-table';
 import {
   changeWhitelistWorkbenchStatus,
   deleteWhitelistWorkbench,
@@ -342,31 +343,16 @@ onBeforeUnmount(() => {
           @values="Object.assign(filter, $event)"
           @submit="search"
           @reset="reset"
-        /> </template
-      ><template #actions>
-        <Button
-          v-if="can('create', 'whitelist')"
-          type="primary"
-          @click="edit()"
-        >
-          <i
-            class="category-icon"
-            :style="{ maskImage: `url(${categoryIcon('plus')})` }"
-          ></i
-          >新增 </Button
-        ><Button
-          v-if="can('delete', 'whitelist')"
-          danger
-          :disabled="selected.length === 0"
-          @click="remove()"
-        >
-          <i
-            class="category-icon"
-            :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-          ></i
-          >删除
-        </Button> </template
-      ><template #bodyCell="{ column, record }">
+        />
+</template><template #actions>
+        <TableAction
+:actions="[
+          { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create', 'whitelist'), onClick: () => edit() },
+          { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete', 'whitelist'), disabled: !selected.length, onClick: () => remove() },
+        ]"
+/>
+      </template>
+      <template #bodyCell="{ column, record }">
         <span v-if="column.key === 'id'">{{ whitelistDisplayId(record) }}</span>
         <div
           v-else-if="column.key === 'name'"
@@ -381,16 +367,12 @@ onBeforeUnmount(() => {
         </div>
         <span v-else-if="column.key === 'categoryName'">{{
           record.categoryName || '-'
-        }}</span
-        ><span v-else-if="column.key === 'effectiveCategory'">用户</span
-        ><span
+        }}</span><span v-else-if="column.key === 'effectiveCategory'">用户</span><span
           v-else-if="column.key === 'users'"
           :title="whitelistUserNames(record.users)"
-          >{{ whitelistUserNames(record.users) }}</span
-        ><span v-else-if="column.key === 'period'">{{
+          >{{ whitelistUserNames(record.users) }}</span><span v-else-if="column.key === 'period'">{{
           whitelistPeriod(record)
-        }}</span
-        ><Switch
+        }}</span><Switch
           v-else-if="column.key === 'status'"
           :checked="record.status === 0"
           :disabled="!can('update', 'whitelist') || !whitelistVersion(record)"
@@ -398,8 +380,7 @@ onBeforeUnmount(() => {
           @change="(checked) => changeStatus(record, !!checked)"
         /><span v-else-if="column.key === 'creatorName'">{{
           record.creatorName || '-'
-        }}</span
-        ><span v-else-if="column.key === 'createTime'">{{
+        }}</span><span v-else-if="column.key === 'createTime'">{{
           categoryTime(record.createTime)
         }}</span>
         <div v-else-if="column.key === 'actions'" class="category-row-actions">
@@ -407,9 +388,8 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('detail')})` }"
-            ></i
-            >详情 </Button
-          ><Button
+            ></i>详情
+</Button><Button
             v-if="can('update', 'whitelist')"
             type="link"
             @click="edit(record)"
@@ -417,9 +397,8 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('edit')})` }"
-            ></i
-            >修改 </Button
-          ><Button
+            ></i>修改
+</Button><Button
             v-if="can('delete', 'whitelist')"
             type="link"
             danger
@@ -429,12 +408,11 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-            ></i
-            >删除
+            ></i>删除
           </Button>
         </div>
-      </template> </SafetyWorkbench
-    ><Dialog
+      </template>
+</SafetyWorkbench><Dialog
       v-if="dialog"
       :key="`${dialog.id || 'create'}:${dialog.readonly || false}`"
       v-bind="dialog"

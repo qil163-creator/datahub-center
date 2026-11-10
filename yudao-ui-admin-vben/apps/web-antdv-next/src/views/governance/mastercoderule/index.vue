@@ -7,7 +7,7 @@ import { Page, useVbenDrawer } from '@vben/common-ui';
 
 import { Alert, message, Modal } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getMasterModelSimpleList } from '#/api/governance/masterdata';
 import {
   deleteMasterCodeRule,

@@ -23,7 +23,7 @@ import {
   Tag,
 } from 'antdv-next';
 
-import { TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { QUALITY_STATUS_LABELS } from '#/api/dataforge/dev';
 import {
   deleteEtlRecord,

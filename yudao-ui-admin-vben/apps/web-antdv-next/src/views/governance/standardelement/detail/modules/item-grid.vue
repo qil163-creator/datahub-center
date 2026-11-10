@@ -8,7 +8,7 @@ import { Plus } from '@vben/icons';
 
 import { Button } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getStandardCodeItemPage } from '#/api/governance/standardcodeitem';
 
 import { useRelatedItemGridColumns } from '../data';

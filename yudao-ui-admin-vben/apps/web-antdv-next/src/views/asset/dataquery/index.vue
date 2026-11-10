@@ -32,7 +32,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   DataQueryApi,
   executeDataQuery,
@@ -416,7 +416,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
       custom: true,
       refresh: false,
       search: false,
-      zoom: true,
     },
   } as VxeTableGridOptions<Record<string, any>>,
 });

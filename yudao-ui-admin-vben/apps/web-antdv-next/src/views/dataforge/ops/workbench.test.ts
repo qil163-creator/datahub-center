@@ -14,8 +14,25 @@ import Workbench from './workbench.vue';
 
 vi.mock('@vben/access', () => ({ useAccess: () => ({ hasAccessByCodes: () => true }) }));
 vi.mock('@vben/utils', () => ({ downloadFileFromBlobPart: vi.fn(), formatDate: () => '2026-10-22' }));
-vi.mock('#/adapter/vxe-table', () => ({
-  NativeVxeButton: ref(defineComponent({ setup: () => () => h('button') })),
+const gridHarness = vi.hoisted(() => ({ options: undefined as any, setOptions: vi.fn(), setLoading: vi.fn() }));
+vi.mock('#/adapter/business-vxe-table', () => ({
+  NativeVxeButton: defineComponent({ setup: (_, { slots }) => () => h('button', slots.default?.()) }),
+  useVbenVxeGrid: (options: any) => {
+    gridHarness.options = options.gridOptions;
+    return [defineComponent({
+      props: { tableData: { type: Array as () => any[], default: () => [] }, tableTitle: { type: String, default: '' } },
+      setup: (props, { slots }) => () => h('div', { class: 'qo-table-toolbar' }, [
+        h('h2', { class: 'native-list-title' }, props.tableTitle),
+        slots['toolbar-tools']?.(),
+        h('button', { 'aria-label': '刷新列表', onClick: gridHarness.options.toolbarConfig.refreshOptions.queryMethod }),
+        h('button', { 'aria-label': '列设置' }),
+        ...['idHeader', 'timeHeader', 'startHeader', 'endHeader', 'createdHeader'].map((name) => slots[name]?.()),
+        h('table', [h('tbody', props.tableData.map((row) => h('tr', { class: row.depth ? 'qo-child-row' : '' },
+          ['id', 'instanceName', 'taskName', 'executionType', 'status', 'time', 'startTime', 'endTime', 'duration', 'runCount', 'owner', 'creator', 'created', 'actions'].map((name) => h('td', slots[name]?.({ row }))))))]),
+        slots.pager?.(),
+      ]),
+    }), { grid: {}, setGridOptions: gridHarness.setOptions, setLoading: gridHarness.setLoading }];
+  },
 }));
 vi.mock('#/components/list-pagination/index.vue', () => ({
   default: defineComponent({ setup: () => () => null }),
@@ -105,15 +122,14 @@ describe('实例页面缓存筛选一致性', () => {
     expect(host.querySelector('.select-category')?.getAttribute('data-tree')).toContain('新类目');
     expect(host.querySelector('.select-category')?.getAttribute('data-tree')).not.toContain('过期类目');
   });
-  it('显示各类实例列表标题，支持全屏并在切换页面后还原', async () => {
-    await vi.waitFor(() => expect(host.querySelector('[aria-label="全屏表格"]')).not.toBeNull());
+  it('显示各类实例列表标题和保留的工具按钮', async () => {
+    await vi.waitFor(() => expect(host.querySelector('[aria-label="刷新列表"]')).not.toBeNull());
     expect(host.querySelector('.native-list-title')?.textContent).toBe('数据集成实例列表');
-    host.querySelector<HTMLButtonElement>('[aria-label="全屏表格"]')?.click();
-    await flush();
-    expect(host.querySelector('.qo-table-panel')?.classList.contains('is-maximized')).toBe(true);
-    expect(host.querySelector('[aria-label="还原表格"]')).not.toBeNull();
-    active.value = false; await flush(); active.value = true; await flush();
-    expect(host.querySelector('.qo-table-panel')?.classList.contains('is-maximized')).toBe(false);
+    expect(host.querySelector('[aria-label="全屏表格"]')).toBeNull();
+    expect(host.querySelector('[aria-label="显示或隐藏搜索"]')).not.toBeNull();
+    expect(host.querySelector('[aria-label="列设置"]')).not.toBeNull();
+    expect(gridHarness.options.toolbarConfig).toMatchObject({ refresh: true, custom: true, zoom: false });
+    expect(gridHarness.options.rowConfig.keyField).toBe('key');
     for (const [nextKind, title] of [
       ['DEVELOPMENT', '数据开发实例列表'],
       ['FULL_SYNC', '整库同步实例列表'],
@@ -123,6 +139,18 @@ describe('实例页面缓存筛选一致性', () => {
       await flush();
       expect(host.querySelector('.native-list-title')?.textContent).toBe(title);
     }
+  });
+  it('原生工具栏刷新保留当前类目和服务端排序', async () => {
+    await flush();
+    host.querySelector<HTMLButtonElement>('.select-category')?.click();
+    await flush();
+    host.querySelector<HTMLButtonElement>('[aria-label="按编号排序"]')?.click();
+    await flush();
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新列表"]')?.click();
+    await flush();
+    expect(api.getOpsInstancePage).toHaveBeenLastCalledWith(expect.objectContaining({
+      categoryId: 'source:2', sortField: 'id', sortOrder: 'desc',
+    }));
   });
   it('真实周期类型SCHEDULE在列表显示为定时调度', async () => {
     await flush();

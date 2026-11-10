@@ -8,7 +8,7 @@ import { confirm } from '@vben/common-ui';
 
 import { message, Modal } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   getStandardElementEnumCheckSqls,
   getStandardElementMappedColumns,

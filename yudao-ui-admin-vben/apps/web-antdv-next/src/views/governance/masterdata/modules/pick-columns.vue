@@ -7,8 +7,8 @@ import { useVbenModal } from '@vben/common-ui';
 
 import { message, Tag } from 'antdv-next';
 
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getDatabaseTableList } from '#/api/dataforge/database';
 import { getMasterTableColumns } from '#/api/governance/masterdata';
 

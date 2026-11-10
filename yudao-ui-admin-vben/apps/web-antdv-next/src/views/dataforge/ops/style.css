@@ -291,17 +291,36 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 15px 15px 0;
+  padding: 0;
   background: hsl(var(--card));
   border-radius: var(--radius);
 }
 
-.qo-workbench.is-list .qo-table-panel.is-maximized {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  padding: 15px;
-  border-radius: 0;
+.qo-native-grid {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.qo-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar {
+  height: 6px;
+}
+
+.qo-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qo-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.qo-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 30%);
+}
+
+.qo-native-grid .qo-child-row td {
+  background: hsl(var(--accent-lighter));
 }
 
 .qo-table-toolbar {

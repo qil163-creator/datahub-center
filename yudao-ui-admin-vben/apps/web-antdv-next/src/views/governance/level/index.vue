@@ -8,7 +8,7 @@ import { Page, useVbenModal } from '@vben/common-ui';
 
 import { message } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { deleteLevel, getLevelPage } from '#/api/governance/level';
 import { $t } from '#/locales';
 

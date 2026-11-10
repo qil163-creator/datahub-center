@@ -33,7 +33,7 @@ import {
   Tooltip,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getDocSimpleList } from '#/api/governance/doc';
 import { getStandardElementPage } from '#/api/governance/standardelement';
 import {

@@ -26,6 +26,7 @@ let route: ReturnType<
 >;
 let session: ReturnType<typeof reactive<{ value: string }>>;
 let permissions: Set<string>;
+vi.mock('#/adapter/business-vxe-table', async () => import('#/views/governance/common/vxe-grid.test-support'));
 vi.mock('vue-router', () => ({
   useRoute: () => route,
   useRouter: () => ({ push: calls.push }),

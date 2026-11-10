@@ -125,6 +125,8 @@ const { Grid, gridApi, load, error } =
       Object.assign(filters, { taskName: '', instanceStatus: undefined });
       Object.assign(applied, filters);
     },
+    'fill',
+    true,
   );
 
 gridApi.setGridOptions({
@@ -200,22 +202,6 @@ onDeactivated(() => {
         </template>
       </Alert>
       <Grid class="quality-report-grid" table-title="质量报告列表">
-        <template #toolbar-tools>
-          <Button
-            aria-label="显示或隐藏筛选"
-            class="quality-report-tool"
-            @click="gridApi.toggleSearchForm()"
-          >
-            ⌕
-          </Button>
-          <Button
-            aria-label="刷新报告"
-            class="quality-report-tool"
-            @click="load()"
-          >
-            ⟳
-          </Button>
-        </template>
         <template #name="{ row }">
           <button
             class="quality-report-link"

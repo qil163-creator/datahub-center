@@ -20,7 +20,7 @@ import {
   Tag,
 } from 'antdv-next';
 
-import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteBatchFile,
   executeBatchFile,

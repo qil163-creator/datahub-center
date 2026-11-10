@@ -9,7 +9,7 @@ import { formatDateTime } from '@vben/utils';
 
 import { message, Modal, Segmented, Select, Tag } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   assignWorkOrder,
   claimWorkOrder,

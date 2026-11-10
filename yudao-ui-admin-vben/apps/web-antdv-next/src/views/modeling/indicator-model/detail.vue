@@ -14,7 +14,7 @@ import { formatDateTime } from '@vben/utils';
 
 import { Alert, Button, Spin, TabPane, Tabs, Tag } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getIndicator, getIndicatorPage } from '#/api/modeling/indicator-model';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';

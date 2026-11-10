@@ -10,7 +10,7 @@ import { handleTree } from '@vben/utils';
 
 import { Alert, Button, Descriptions, DescriptionsItem, message, Modal, Tooltip } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { deletePlanCategory, getPlanCategory, getPlanCategoryList } from '#/api/dataforge/fill';
 import { useObjectRequest } from '#/hooks/use-object-request';
 

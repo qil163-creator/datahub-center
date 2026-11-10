@@ -188,124 +188,44 @@
 }
 
 .qj-table-panel {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 15px;
   background: hsl(var(--card));
   border-radius: var(--radius);
 }
 
-.qj-table-panel.is-maximized {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 0;
-}
-
-.qj-table-panel.is-maximized .qj-toolbar {
-  flex: none;
-}
-
-.qj-table-panel.is-maximized > .ant-spin,
-.qj-table-panel.is-maximized .ant-table-wrapper,
-.qj-table-panel.is-maximized .ant-spin-nested-loading,
-.qj-table-panel.is-maximized .ant-spin-container,
-.qj-table-panel.is-maximized .ant-table,
-.qj-table-panel.is-maximized .ant-table-container {
-  display: flex;
+.qj-native-grid {
   flex: 1;
-  flex-direction: column;
+  min-width: 0;
   min-height: 0;
 }
 
-.qj-table-panel.is-maximized .ant-table-content {
-  flex: 1;
-  min-height: 0;
-  overflow: auto !important;
-}
-
-.qj-table-panel.is-maximized .ant-table-empty .ant-table-content > table,
-.qj-table-panel.is-maximized .ant-table-empty .ant-table-placeholder > td {
-  height: 100%;
-}
-
-.qj-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.qj-table-title {
-  flex: 1;
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.qj-toolbar-tools {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-left: auto;
-}
-
-.qj-toolbar .qo-icon {
-  margin-right: 0;
-}
-
-.qj-table-panel .ant-table-container {
-  overflow: hidden;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-}
-
-.qj-table-panel .ant-table-content::-webkit-scrollbar:horizontal {
+.qj-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar {
   height: 6px;
 }
 
-.qj-table-panel .ant-table-content::-webkit-scrollbar-track:horizontal {
+.qj-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.qj-table-panel .ant-table-content::-webkit-scrollbar-thumb:horizontal {
+.qj-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb {
   background: hsl(var(--foreground) / 20%);
   border-radius: 999px;
 }
 
-.qj-table-panel .ant-table-content::-webkit-scrollbar-thumb:horizontal:hover {
+.qj-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--foreground) / 30%);
 }
 
 @supports not selector(::-webkit-scrollbar) {
-  .qj-table-panel .ant-table-content {
+  .qj-native-grid .vxe-table--scroll-x-handle {
     scrollbar-color: hsl(var(--foreground) / 20%) transparent;
     scrollbar-width: thin;
   }
-}
-
-.qj-table-panel .ant-table-thead > tr > th {
-  font-size: 12px;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  background: hsl(var(--accent));
-  border-bottom-color: hsl(var(--border));
-}
-
-.qj-table-panel .ant-table-thead > tr > th:not(:last-child)::before {
-  background: hsl(var(--border));
-}
-
-.qj-table-panel .ant-table-tbody > tr > td {
-  padding-block: 10px;
-  font-size: 12px;
-  color: hsl(var(--foreground));
-  border-bottom-color: hsl(var(--border));
 }
 
 .qj-table-panel small {

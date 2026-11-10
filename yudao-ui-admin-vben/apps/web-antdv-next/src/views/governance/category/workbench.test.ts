@@ -38,6 +38,7 @@ const calls = vi.hoisted(() => ({
 }));
 let identity: ReturnType<typeof reactive<{ value: string }>>;
 let permissions: Set<string>;
+vi.mock('#/adapter/business-vxe-table', async () => import('#/views/governance/common/vxe-grid.test-support'));
 vi.mock('./use-session', () => ({
   useCategorySession: () => ({
     identity: {

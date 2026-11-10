@@ -13,7 +13,7 @@ import { formatDateTime, isEmpty } from '@vben/utils';
 
 import { message, Tag, Tooltip } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteDatabase,
   deleteDatabaseList,

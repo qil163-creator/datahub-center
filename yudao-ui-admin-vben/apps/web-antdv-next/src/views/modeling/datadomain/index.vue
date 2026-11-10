@@ -13,7 +13,7 @@ import { formatDateTime } from '@vben/utils';
 
 import { Button, ConfigProvider, message, Switch } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteDataDomain,
   deleteDataDomainList,

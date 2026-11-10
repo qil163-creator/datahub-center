@@ -7,7 +7,7 @@ import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
 import { onActivated, onDeactivated, onMounted, ref, shallowRef } from 'vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 /** 元数据列表共用分页及请求隔离；切换查询、会话和页面后旧响应不可覆盖新结果。 */
@@ -20,6 +20,7 @@ export function useMetadataGrid<Row extends { id?: MetadataId }>(
   formOptions?: VbenFormProps,
   resetScopeFilters?: () => void,
   layout: 'content' | 'fill' = 'fill',
+  nativeToolbar = false,
 ) {
   const selected = shallowRef<Row[]>([]);
   const error = ref(false);
@@ -65,10 +66,11 @@ export function useMetadataGrid<Row extends { id?: MetadataId }>(
       },
       toolbarConfig: {
         custom: true,
-        customOptions: { icon: 'metadata-grid-custom-icon' },
-        refresh: false,
+        ...(nativeToolbar ? {} : { customOptions: { icon: 'metadata-grid-custom-icon' } }),
+        refresh: nativeToolbar,
+        ...(nativeToolbar ? { refreshOptions: { queryMethod: () => load() } } : {}),
         zoom: false,
-        search: false,
+        search: nativeToolbar,
       },
     },
     gridEvents: {

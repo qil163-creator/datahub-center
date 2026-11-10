@@ -13,7 +13,7 @@ import { useAccessStore } from '@vben/stores';
 
 import { Alert, Button } from 'antdv-next';
 
-import { TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getStandardCodeSetPage } from '#/api/governance/standardcodeset';
 import { getStandardElementPage } from '#/api/governance/standardelement';
 import { getTableModelPage } from '#/api/modeling/tablemodel';

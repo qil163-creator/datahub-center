@@ -17,6 +17,7 @@ import { Page } from '@vben/common-ui';
 
 import { Button, message, Switch, Tag } from 'antdv-next';
 
+import { ACTION_ICON, TableAction } from '#/adapter/business-vxe-table';
 import {
   changeSafetyRuleStatus,
   getSafetyRuleOptions,
@@ -343,25 +344,13 @@ onBeforeUnmount(() => {
           @reset="reset"
         />
       </template>
-      <template #actions>
-        <Button v-if="can('create', 'rule')" type="primary" @click="edit()">
-          <i
-            class="category-icon"
-            :style="{ maskImage: `url(${categoryIcon('plus')})` }"
-          ></i
-          >新增 </Button
-        ><Button
-          v-if="can('delete', 'rule')"
-          danger
-          :disabled="selected.length === 0"
-          @click="remove()"
-        >
-          <i
-            class="category-icon"
-            :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-          ></i
-          >删除
-        </Button>
+<template #actions>
+        <TableAction
+:actions="[
+          { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create', 'rule'), onClick: () => edit() },
+          { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete', 'rule'), disabled: !selected.length, onClick: () => remove() },
+        ]"
+/>
       </template>
       <template #bodyCell="{ column, record }">
         <span v-if="column.key === 'id'">{{ ruleDisplayId(record) }}</span>
@@ -378,19 +367,16 @@ onBeforeUnmount(() => {
         </div>
         <span v-else-if="column.key === 'categoryName'">{{
           record.categoryName || '-'
-        }}</span
-        ><span
+        }}</span><span
           v-else-if="column.key === 'applicationScene'"
           class="safety-scene-tags"
           ><Tag
             v-for="scene in record.applicationScene"
             :key="scene"
             class="category-soft-tag"
-            >{{ SCENE_LABELS[scene] || scene }}</Tag
-          ></span
-        ><Tag v-else-if="column.key === 'maskType'" class="category-soft-tag">
-          展示脱敏 </Tag
-        ><Switch
+            >{{ SCENE_LABELS[scene] || scene }}</Tag></span><Tag v-else-if="column.key === 'maskType'" class="category-soft-tag">
+          展示脱敏
+</Tag><Switch
           v-else-if="column.key === 'status'"
           :checked="record.status === 0"
           :disabled="!can('update', 'rule') || !ruleVersion(record)"
@@ -398,8 +384,7 @@ onBeforeUnmount(() => {
           @change="(checked) => changeStatus(record, !!checked)"
         /><span v-else-if="column.key === 'creatorName'">{{
           record.creatorName || '-'
-        }}</span
-        ><span v-else-if="column.key === 'createTime'">{{
+        }}</span><span v-else-if="column.key === 'createTime'">{{
           categoryTime(record.createTime)
         }}</span>
         <div v-else-if="column.key === 'actions'" class="category-row-actions">
@@ -407,9 +392,8 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('detail')})` }"
-            ></i
-            >详情 </Button
-          ><Button
+            ></i>详情
+</Button><Button
             v-if="can('update', 'rule')"
             type="link"
             @click="edit(record)"
@@ -417,9 +401,8 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('edit')})` }"
-            ></i
-            >修改 </Button
-          ><Button
+            ></i>修改
+</Button><Button
             v-if="can('delete', 'rule')"
             type="link"
             danger
@@ -429,12 +412,11 @@ onBeforeUnmount(() => {
             <i
               class="category-icon"
               :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-            ></i
-            >删除
+            ></i>删除
           </Button>
         </div>
-      </template> </SafetyWorkbench
-    ><RuleForm
+      </template>
+</SafetyWorkbench><RuleForm
       v-if="editing"
       :key="resourceIdKey(editId) || 'create'"
       :id="editId"

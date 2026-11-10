@@ -175,11 +175,11 @@ afterEach(() => {
 });
 
 describe('集成工作台工具栏', () => {
-  it('复用项目 Grid 工具栏，并启用真实表格的刷新、全屏与列设置', async () => {
+  it('复用项目 Grid 工具栏，并保留真实表格的刷新与列设置', async () => {
     await mount();
     expect(host.querySelector('.native-list-title')?.textContent).toBe('离线任务列表');
     expect(host.querySelector('.qi-table-tools')?.textContent).toContain('新增');
-    expect(gridHarness.options.toolbarConfig.zoom).toBe(true);
+    expect(gridHarness.options.toolbarConfig.zoom).toBe(false);
     expect(gridHarness.options.toolbarConfig.custom).toBe(true);
     expect(gridHarness.options.columns.map((column: { field: string }) => column.field)).toEqual([
       'id', 'name', 'categoryName', 'lastRunStatus', 'status', 'executionStrategy', 'ownerName', 'actions',

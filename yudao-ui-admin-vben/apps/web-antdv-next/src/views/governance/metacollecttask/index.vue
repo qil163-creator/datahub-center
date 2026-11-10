@@ -10,7 +10,7 @@ import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, message, Switch } from 'antdv-next';
 
-import { TableAction } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction } from '#/adapter/vxe-table';
 import {
   deleteMetaCollectTaskList,
   getMetaCollectTaskPage,
@@ -44,7 +44,6 @@ const filters = reactive({
   name: '',
   createTime: undefined as [string, string] | undefined,
 });
-const searchVisible = ref(true);
 const busy = ref(new Set<string>());
 const deleting = ref(false);
 const operations = useObjectRequest(
@@ -99,6 +98,8 @@ const { Grid, gridApi, load, selected, error } =
       },
     },
     clearFilters,
+    'fill',
+    true,
   );
 function clearFilters() {
   filters.name = '';
@@ -192,11 +193,7 @@ async function remove(rows = selected.value) {
       </template>
     </Alert>
     <div class="metadata-grid-shell">
-      <Grid
-        class="metadata-grid"
-        table-title="采集任务列表"
-        :show-search-form="searchVisible"
-      >
+      <Grid class="metadata-grid" table-title="采集任务列表">
         <template #toolbar-tools>
           <div class="metadata-toolbar">
             <div class="metadata-toolbar">
@@ -214,27 +211,20 @@ async function remove(rows = selected.value) {
               >
                 ＋ 新增非结构化采集任务
               </Button>
-              <Button
-                v-if="hasAccessByCodes(['governance:meta-collect-task:delete'])"
-                danger
-                :disabled="!selected.length"
-                :loading="deleting"
-                @click="remove()"
-              >
-                <template #icon><MetadataIcon name="delete" /></template>
-                删除
-              </Button>
-            </div>
-
-            <div class="metadata-tools">
-              <Button
-                title="显示/隐藏查询"
-                @click="searchVisible = !searchVisible"
-              >
-                <MetadataIcon name="search" />
-</Button><Button title="刷新" @click="load()">
-                <MetadataIcon name="refresh" />
-              </Button>
+              <TableAction
+                :actions="[
+                  {
+                    label: '删除',
+                    type: 'default',
+                    icon: ACTION_ICON.DELETE,
+                    danger: true,
+                    disabled: !selected.length,
+                    loading: deleting,
+                    auth: ['governance:meta-collect-task:delete'],
+                    onClick: () => remove(),
+                  },
+                ]"
+              />
             </div>
           </div>
         </template>

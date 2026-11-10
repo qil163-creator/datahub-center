@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AssetCategoryTagApi } from '#/api/asset/categorytag';
 import type { AssetTagApi } from '#/api/asset/tag';
 
@@ -22,8 +23,6 @@ import { handleTree } from '@vben/utils';
 import {
   Alert,
   Button,
-  CheckboxGroup,
-  Dropdown,
   Input,
   message,
   Spin,
@@ -32,6 +31,7 @@ import {
   Tree,
 } from 'antdv-next';
 
+import { ACTION_ICON, NativeVxeButton, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import { getCategoryTagList } from '#/api/asset/categorytag';
 import {
@@ -41,7 +41,6 @@ import {
   updateAssetTagStatus,
 } from '#/api/asset/tag';
 import ListPagination from '#/components/list-pagination/index.vue';
-import TableViewport from '#/components/table-viewport/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import {
@@ -166,17 +165,6 @@ watch(treeKeyword, () => {
   if (treeKeyword.value.trim())
     categoryExpandedKeys.value = categoryBranchKeys(categoryTree.value);
 });
-const visibleColumnKeys = ref(tagColumns.map((column) => column.key));
-const columns = computed(() =>
-  tagColumns.filter((column) => visibleColumnKeys.value.includes(column.key)),
-);
-const rowSelection = computed(() => ({
-  selectedRowKeys: selectedRowKeys.value,
-  columnWidth: 46,
-  onChange: (keys: (number | string)[]) => {
-    selectedRowKeys.value = keys.map(String);
-  },
-}));
 const sidebarOpen = ref(true);
 const sidebarWidth = ref(280);
 const showFilters = ref(true);
@@ -230,6 +218,7 @@ async function loadRows() {
   loading.value = true;
   listError.value = '';
   selectedRowKeys.value = [];
+  gridApi.grid?.clearCheckboxRow();
   try {
     const data = await getAssetTagPage({
       pageNo: pagination.pageNo,
@@ -433,11 +422,48 @@ function tableChange(
     typeof key === 'string' &&
     ['assetCount', 'createTime', 'id', 'name'].includes(key)
   ) {
-    query.sortField = key as typeof query.sortField;
-    query.sortOrder = value?.order === 'descend' ? 'desc' : 'asc';
+    query.sortField = value?.order ? key as typeof query.sortField : 'createTime';
+    query.sortOrder = value?.order === 'ascend' ? 'asc' : 'desc';
     search();
   }
 }
+const [Grid, gridApi] = useVbenVxeGrid<AssetTagApi.Tag>({
+  gridOptions: {
+    columns: [
+      { type: 'checkbox', width: 46 },
+      ...tagColumns.map((column) => ({
+        field: column.key,
+        title: column.title,
+        width: column.width,
+        align: 'align' in column ? column.align : undefined,
+        fixed: column.key === 'actions' ? 'right' as const : undefined,
+        sortable: 'sorter' in column && column.sorter,
+        showOverflow: false,
+        slots: { default: column.key },
+      })),
+    ],
+    data: [],
+    height: 'auto',
+    pagerConfig: { enabled: false },
+    proxyConfig: { enabled: false },
+    rowConfig: { keyField: 'id', isHover: true },
+    sortConfig: { remote: true, multiple: false, defaultSort: { field: 'createTime', order: 'desc' } },
+    showOverflow: false,
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: refresh }, custom: true, zoom: false },
+  } as VxeTableGridOptions<AssetTagApi.Tag>,
+  gridEvents: {
+    checkboxChange: ({ records }: { records: AssetTagApi.Tag[] }) => {
+      selectedRowKeys.value = records.map((row) => resourceIdKey(row.id));
+    },
+    checkboxAll: ({ records }: { records: AssetTagApi.Tag[] }) => {
+      selectedRowKeys.value = records.map((row) => resourceIdKey(row.id));
+    },
+    sortChange: ({ field, order }: { field: string; order: null | string }) =>
+      tableChange(undefined, undefined, { columnKey: field, order: order === 'desc' ? 'descend' : order === 'asc' ? 'ascend' : undefined }),
+    cellDblclick: ({ row }: { row: AssetTagApi.Tag }) => openDetail(row),
+  },
+});
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
 function clear() {
   listGuard.invalidate();
   categoryGuard.invalidate();
@@ -531,8 +557,8 @@ function syncFilterValues() {
           <Alert v-if="categoryError" :message="categoryError" type="error">
             <template #action>
               <Button size="small" @click="loadCategories"> 重试 </Button>
-            </template> </Alert
-          ><Spin :spinning="categoryLoading">
+            </template>
+</Alert><Spin :spinning="categoryLoading">
             <Tree
               class="subtle-tree-scrollbar"
               :tree-data="categoryTree"
@@ -542,12 +568,10 @@ function syncFilterValues() {
               @select="selectCategory"
             >
               <template #titleRender="node">
-                <span class="tag-tree-label"
-                  ><img :src="folderIcon" alt="" />{{ node.title }}</span
-                >
+                <span class="tag-tree-label"><img :src="folderIcon" alt="" />{{ node.title }}</span>
               </template>
-            </Tree> </Spin
-          ><button
+            </Tree>
+</Spin><button
             class="tag-sidebar__collapse"
             aria-label="收起标签类目"
             @click="sidebarOpen = false"
@@ -579,178 +603,59 @@ function syncFilterValues() {
             </template>
           </FilterForm>
           <section class="tag-results">
-            <div class="tag-toolbar">
-              <h2 class="text-base font-medium">资产标签列表</h2>
-              <div>
-                <Button v-if="can('create')" type="primary" @click="openCreate">
-                  <span
-                    class="ref-icon"
-                    :style="{ maskImage: `url(${tagAsset('plus.svg')})` }"
-                  ></span
-                  >新增 </Button
-                ><Button
-                  v-if="can('delete')"
-                  danger
-                  :disabled="!selectedRowKeys.length"
-                  @click="remove()"
-                >
-                  <span
-                    class="ref-icon"
-                    :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"
-                  ></span
-                  >删除
-                </Button>
-              </div>
-              <div>
-                <Button
-                  aria-label="显示或隐藏查询"
-                  @click="showFilters = !showFilters"
-                >
-                  <span
-                    class="ref-icon"
-                    :style="{ maskImage: `url(${tagAsset('search.svg')})` }"
-                  ></span> </Button
-                ><Button aria-label="刷新标签" @click="refresh">
-                  <span
-                    class="ref-icon"
-                    :style="{ maskImage: `url(${tagAsset('refresh.svg')})` }"
-                  ></span> </Button
-                ><Dropdown :trigger="['click']">
-                  <Button aria-label="选择显示列">
-                    <span
-                      class="ref-icon"
-                      :style="{
-                        maskImage: `url(${tagAsset('columns.svg')})`,
-                      }"
-                    ></span> </Button
-                  ><template #popupRender>
-                    <div class="tag-column-picker">
-                      <CheckboxGroup
-                        v-model:value="visibleColumnKeys"
-                        :options="
-                          tagColumns.map((column) => ({
-                            label: column.title,
-                            value: column.key,
-                          }))
-                        "
-                      />
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-            </div>
             <Alert v-if="listError" :message="listError" type="error">
               <template #action>
                 <Button size="small" @click="loadRows"> 重试 </Button>
               </template>
             </Alert>
-            <TableViewport
-              class="tag-table"
-              :columns="columns"
-              :data-source="rows"
-              :row-key="(row: AssetTagApi.Tag) => resourceIdKey(row.id)"
-              :row-selection="rowSelection"
-              :loading="loading"
-              :pagination="false"
-              :scroll="{ x: 1500 }"
-              :custom-row="
-                (record: AssetTagApi.Tag) => ({
-                  onDblclick: () => openDetail(record),
-                })
-              "
-              @change="tableChange"
-            >
-              <template #bodyCell="{ column, record }">
-                <span v-if="column.key === 'id'">{{ tagNumber(record) }}</span
-                ><button
-                  v-else-if="column.key === 'name'"
-                  class="tag-name"
-                  @click="openDetail(record)"
-                >
-                  {{ record.name }}</button
-                ><Tag
-                  v-else-if="column.key === 'categoryName'"
-                  class="tag-category"
-                >
-                  {{ record.categoryName || '-' }} </Tag
-                ><TextEllipsisCell
-                  v-else-if="column.key === 'description'"
-                  class="tag-description"
-                  :content="record.description || '-'"
-                  :line="2"
-                  center
-                /><span v-else-if="column.key === 'assetCount'">{{
-                  record.assetCount ?? 0
-                }}</span
-                ><Switch
-                  v-else-if="column.key === 'status'"
-                  :checked="record.status === 0"
-                  :disabled="
-                    !can('update') ||
-                    !validRevision(record) ||
-                    pendingIds.has(resourceIdKey(record.id))
-                  "
-                  @change="(checked) => statusChange(record, !!checked)"
-                /><span v-else-if="column.key === 'creatorName'">{{
-                  record.creatorName ||
-                  record.sourceCreatorName ||
-                  record.creator ||
-                  '-'
-                }}</span
-                ><span v-else-if="column.key === 'createTime'">{{
-                  tagDate(record.createTime)
-                }}</span>
-                <div
-                  v-else-if="column.key === 'actions'"
-                  class="tag-row-actions"
-                >
-                  <Button
-                    v-if="can('update')"
-                    type="link"
-                    :disabled="record.status === 0"
-                    @click="openEdit(record)"
-                  >
-                    <span
-                      class="ref-icon"
-                      :style="{ maskImage: `url(${tagAsset('edit.svg')})` }"
-                    ></span
-                    >修改 </Button
-                  ><Button
-                    v-if="can('delete')"
-                    type="link"
-                    danger
-                    :disabled="record.status === 0"
-                    @click="remove(record)"
-                  >
-                    <span
-                      class="ref-icon"
-                      :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"
-                    ></span
-                    >删除 </Button
-                  ><Button type="link" @click="openDetail(record)">
-                    <span
-                      class="ref-icon"
-                      :style="{ maskImage: `url(${tagAsset('detail.svg')})` }"
-                    ></span
-                    >详情
+            <Grid class="tag-table" table-title="资产标签列表" :table-data="rows">
+              <template #toolbar-tools>
+                <TableAction
+:actions="[
+                  { label: '新增', type: 'primary', icon: ACTION_ICON.ADD, ifShow: can('create'), onClick: openCreate },
+                  { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: !selectedRowKeys.length, onClick: () => remove() },
+                ]"
+/>
+                <NativeVxeButton
+                  class="ml-2"
+                  aria-label="显示或隐藏查询"
+                  title="搜索"
+                  icon="vxe-icon-search"
+                  circle
+                  :status="showFilters ? 'primary' : undefined"
+                  :aria-pressed="showFilters"
+                  @click="showFilters = !showFilters"
+                />
+              </template>
+              <template #id="{ row }">{{ tagNumber(row) }}</template>
+              <template #name="{ row }">
+                <button class="tag-name" @click="openDetail(row)">{{ row.name }}</button>
+              </template>
+              <template #categoryName="{ row }"><Tag class="tag-category">{{ row.categoryName || '-' }}</Tag></template>
+              <template #description="{ row }"><TextEllipsisCell class="tag-description" :content="row.description || '-'" :line="2" center /></template>
+              <template #assetCount="{ row }">{{ row.assetCount ?? 0 }}</template>
+              <template #status="{ row }">
+                <Switch :checked="row.status === 0" :disabled="!can('update') || !validRevision(row) || pendingIds.has(resourceIdKey(row.id))" @change="(checked) => statusChange(row, !!checked)" />
+              </template>
+              <template #creatorName="{ row }">{{ row.creatorName || row.sourceCreatorName || row.creator || '-' }}</template>
+              <template #createTime="{ row }">{{ tagDate(row.createTime) }}</template>
+              <template #actions="{ row }">
+                <div class="tag-row-actions">
+                  <Button v-if="can('update')" type="link" :disabled="row.status === 0" @click="openEdit(row)">
+                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('edit.svg')})` }"></span>修改
+                  </Button>
+                  <Button v-if="can('delete')" type="link" danger :disabled="row.status === 0" @click="remove(row)">
+                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"></span>删除
+                  </Button>
+                  <Button type="link" @click="openDetail(row)">
+                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('detail.svg')})` }"></span>详情
                   </Button>
                 </div>
               </template>
-            </TableViewport>
-            <footer class="tag-pagination">
-              <ListPagination
-                :current="pagination.pageNo"
-                :page-size="pagination.pageSize"
-                :total="pagination.total"
-                @change="
-                  (pageNo: number, pageSize: number) => {
-                    pagination.pageNo = pageNo;
-                    pagination.pageSize = pageSize;
-                    void loadRows();
-                  }
-                "
-              />
-            </footer>
+              <template #pager>
+                <ListPagination :current="pagination.pageNo" :page-size="pagination.pageSize" :total="pagination.total" @change="(pageNo: number, pageSize: number) => { pagination.pageNo = pageNo; pagination.pageSize = pageSize; void loadRows(); }" />
+              </template>
+            </Grid>
           </section>
         </main>
       </div>

@@ -51,7 +51,6 @@ const filter = reactive<{ comment: string; dbId?: Api.Id; tableName: string }>({
   comment: '',
 });
 const applied = ref<Api.TablePageReq>({ pageNo: 1, pageSize: 10 });
-const filterVisible = ref(true);
 const busy = ref(false);
 const canPublish = computed(() =>
   hasAccessByCodes(['governance:meta-table:publish']),
@@ -182,6 +181,8 @@ const { Grid, gridApi, load, selected, error } = useMetadataGrid<Api.MetaTable>(
     dbOptions.value = [];
     applied.value = { pageNo: 1, pageSize: 10 };
   },
+  'fill',
+  true,
 );
 const [ImportModal, importApi] = useVbenModal({
   connectedComponent: ImportForm,
@@ -377,48 +378,39 @@ const sidebarCollapsed = ref(false);
           <Grid
             class="metadata-grid"
             :table-title="finalized ? '定版元数据列表' : '最新元数据列表'"
-            :show-search-form="filterVisible"
           >
             <template #toolbar-tools>
               <div class="metadata-toolbar">
-                <div v-if="!finalized" class="metadata-toolbar">
-                  <Button
-                    v-access:code="['governance:meta-table:publish']"
-                    :disabled="!selected.length || busy"
-                    @click="batch('publish')"
-                  >
-                    <template #icon>
-                      <IconifyIcon :icon="metadataIcon('publish')" />
-                    </template>
-                    发布
-                  </Button>
-                  <Button
-                    v-access:code="['governance:meta-table:publish']"
-                    :disabled="!selected.length || busy"
-                    @click="batch('unpublish')"
-                  >
-                    <template #icon>
-                      <IconifyIcon :icon="metadataIcon('unpublish')" />
-                    </template>
-                    取消发布
-                  </Button>
-                  <Button
-                    v-access:code="['governance:meta-table:update']"
-                    :disabled="!selected.length || busy"
-                    danger
-                    @click="batch('delete')"
-                  >
-                    <template #icon>
-                      <IconifyIcon :icon="metadataIcon('delete')" />
-                    </template>
-                    删除
-                  </Button>
-                </div>
-
                 <div class="metadata-tools">
                   <TableAction
                     v-if="!finalized"
-                    :actions="[]"
+                    :actions="[
+                      {
+                        label: '发布',
+                        type: 'default',
+                        icon: metadataIcon('publish'),
+                        auth: ['governance:meta-table:publish'],
+                        disabled: !selected.length || busy,
+                        onClick: () => batch('publish'),
+                      },
+                      {
+                        label: '取消发布',
+                        type: 'default',
+                        icon: metadataIcon('unpublish'),
+                        auth: ['governance:meta-table:publish'],
+                        disabled: !selected.length || busy,
+                        onClick: () => batch('unpublish'),
+                      },
+                      {
+                        label: '删除',
+                        type: 'default',
+                        danger: true,
+                        icon: metadataIcon('delete'),
+                        auth: ['governance:meta-table:update'],
+                        disabled: !selected.length || busy,
+                        onClick: () => batch('delete'),
+                      },
+                    ]"
                     :drop-down-actions="[
                       {
                         label: '手工登记',
@@ -454,14 +446,6 @@ const sidebarCollapsed = ref(false);
                       },
                     ]"
                   />
-                  <Button
-                    aria-label="显示或隐藏筛选"
-                    @click="filterVisible = !filterVisible"
-                  >
-                    <IconifyIcon :icon="metadataIcon('search')" />
-</Button><Button aria-label="刷新" @click="load()">
-                    <IconifyIcon :icon="metadataIcon('refresh')" />
-                  </Button>
                 </div>
               </div>
             </template>

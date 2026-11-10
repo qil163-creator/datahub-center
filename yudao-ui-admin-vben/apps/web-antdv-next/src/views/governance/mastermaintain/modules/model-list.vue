@@ -38,7 +38,6 @@ const treeSearch = ref('');
 const domains = ref<GovernanceMasterDomainApi.Domain[]>([]);
 const treeFailed = ref(false);
 const treeLoading = ref(false);
-const filterVisible = ref(true);
 const counts = ref<Record<string, GovernanceMasterDataApi.ModelDataCount>>({});
 const scope = useMasterScope(() => {
   domains.value = [];
@@ -208,6 +207,9 @@ const { Grid, gridApi, load, error } =
         reset();
       },
     },
+    undefined,
+    'fill',
+    true,
   );
 function search() {
   Object.assign(applied, filters);
@@ -297,7 +299,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         <Grid
           class="metadata-grid"
           table-title="主数据维护模型"
-          :show-search-form="filterVisible"
         >
           <template #toolbar-tools>
             <div class="metadata-toolbar">
@@ -308,17 +309,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 <Tooltip title="参考功能尚未开放">
                   <span><Button disabled><IconifyIcon icon="lucide:search-check" />查重</Button></span>
                 </Tooltip>
-              </div>
-
-              <div class="metadata-tools">
-                <Button
-                  aria-label="显示查询条件"
-                  @click="filterVisible = !filterVisible"
-                >
-                  <IconifyIcon icon="lucide:search" />
-</Button><Button aria-label="刷新" @click="load()">
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </Button>
               </div>
             </div>
           </template>

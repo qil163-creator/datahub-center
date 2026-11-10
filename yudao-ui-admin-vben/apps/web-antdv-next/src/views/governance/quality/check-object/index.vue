@@ -6,7 +6,7 @@ import { ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteCheckObject,
   getCheckObjectPage,

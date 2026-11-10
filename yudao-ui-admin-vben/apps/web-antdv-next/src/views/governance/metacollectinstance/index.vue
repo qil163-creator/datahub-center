@@ -11,6 +11,7 @@ import { downloadFileFromBlobPart } from '@vben/utils';
 
 import { Alert, Button, message } from 'antdv-next';
 
+import { ACTION_ICON, TableAction } from '#/adapter/business-vxe-table';
 import {
   deleteMetaCollectInstanceList,
   downloadMetaCollectInstanceLog,
@@ -36,7 +37,6 @@ const filters = reactive({
   collectType: undefined as number | undefined,
   createTime: undefined as [string, string] | undefined,
 });
-const searchVisible = ref(true);
 const deleting = ref(false);
 const downloadIds = ref(new Set<string>());
 const operations = useObjectRequest(
@@ -156,6 +156,8 @@ const { Grid, gridApi, load, selected, error } =
       },
     },
     clearFilters,
+    'fill',
+    true,
   );
 watch(
   () => route.query.taskId,
@@ -231,36 +233,22 @@ async function remove() {
       <Grid
         class="metadata-grid"
         table-title="采集实例列表"
-        :show-search-form="searchVisible"
       >
         <template #toolbar-tools>
-          <div class="metadata-toolbar">
-            <div class="metadata-toolbar">
-              <Button
-                v-if="
-                  hasAccessByCodes(['governance:meta-collect-instance:delete'])
-                "
-                danger
-                :disabled="!selected.length"
-                :loading="deleting"
-                @click="remove"
-              >
-                <template #icon><MetadataIcon name="delete" /></template>
-                删除
-              </Button>
-            </div>
-
-            <div class="metadata-tools">
-              <Button
-                title="显示/隐藏查询"
-                @click="searchVisible = !searchVisible"
-              >
-                <MetadataIcon name="search" />
-</Button><Button title="刷新" @click="load()">
-                <MetadataIcon name="refresh" />
-              </Button>
-            </div>
-          </div>
+          <TableAction
+            :actions="[
+              {
+                label: '删除',
+                type: 'default',
+                icon: ACTION_ICON.DELETE,
+                danger: true,
+                auth: ['governance:meta-collect-instance:delete'],
+                disabled: !selected.length,
+                loading: deleting,
+                onClick: remove,
+              },
+            ]"
+          />
         </template>
         <template #taskInfo="{ row }">
           <div class="metadata-info">

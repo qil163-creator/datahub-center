@@ -9,7 +9,7 @@ import { IconifyIcon } from '@vben/icons';
 
 import { Button, Input, message, Switch } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { updateDataDomainNamingRules } from '#/api/modeling/datadomain';
 import { useObjectRequest } from '#/hooks/use-object-request';
 

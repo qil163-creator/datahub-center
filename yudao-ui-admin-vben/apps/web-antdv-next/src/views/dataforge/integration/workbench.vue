@@ -36,7 +36,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { NativeVxeButton, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   cloneIntegration,
   deleteIntegration,
@@ -102,7 +102,6 @@ onActivated(() => {
 });
 onDeactivated(() => {
   active.value = false;
-  if (gridApi.grid?.isMaximized?.()) void gridApi.grid.revert();
 });
 const scope = computed(() =>
   JSON.stringify([
@@ -131,9 +130,6 @@ const contextLoading = ref(false);
 let categoriesLoaded = false;
 const busy = ref(false);
 const detail = ref<Api.Task>();
-watch(detail, (task) => {
-  if (task && gridApi.grid?.isMaximized?.()) void gridApi.grid.revert();
-});
 const currentTask = ref<Api.Task>();
 const categoryOpen = ref(false);
 const categoryAction = ref<'child' | 'delete' | 'edit' | 'sibling'>('child');
@@ -462,7 +458,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Api.Task>({
     rowConfig: { keyField: 'id', isHover: true },
     scrollbarConfig: { height: 6 },
     showOverflow: false,
-    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load }, zoom: true, custom: true },
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load }, zoom: false, custom: true },
   } as VxeTableGridOptions<Api.Task>,
 });
 watch(loading, (value) => gridApi.setLoading(value), { immediate: true });

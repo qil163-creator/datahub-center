@@ -22,7 +22,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   cancelReleaseMasterModel,
   deleteMasterModel,

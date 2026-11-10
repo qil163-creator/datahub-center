@@ -8,7 +8,7 @@ import { Page } from '@vben/common-ui';
 
 import { Card, Col, Row, Statistic, Tag } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteAlert,
   getAlertPage,

@@ -12,7 +12,7 @@ import { handleTree } from '@vben/utils';
 
 import { Input, message, Tag, Tooltip, Tree } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getApiCategoryList } from '#/api/supply/apicategory';
 import { deleteApiLog, getApiLogPage } from '#/api/supply/apilog';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';

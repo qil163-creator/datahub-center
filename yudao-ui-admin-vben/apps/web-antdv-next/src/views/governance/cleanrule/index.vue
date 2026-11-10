@@ -28,7 +28,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getCategoryCleanRuleList } from '#/api/governance/categorycleanrule';
 import {
   deleteCleanRule,

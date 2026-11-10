@@ -16,10 +16,10 @@ import { Page, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Input, message, TextArea, Tooltip } from 'antdv-next';
+import { Alert, Button, Input, message, TextArea } from 'antdv-next';
 
+import { NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   checkMarketCheck,
   getMarketCheckPage,
@@ -197,8 +197,9 @@ const [Grid, gridApi] = useVbenVxeGrid<Row>({
     },
     proxyConfig: { enabled: false, autoLoad: false },
     toolbarConfig: {
-      custom: false,
-      refresh: false,
+      custom: true,
+      refresh: true,
+      refreshOptions: { queryMethod: () => load() },
       zoom: false,
       search: false,
     },
@@ -353,9 +354,6 @@ async function submitReview() {
     }
   }
 }
-function customizeColumns() {
-  gridApi.grid?.openCustom();
-}
 onMounted(() => {
   mounted = true;
   void load();
@@ -401,30 +399,6 @@ function syncFilterValues() {
       </template>
     </FilterForm>
     <section class="check-grid-shell">
-      <div class="check-tools">
-        <h2 class="mr-auto text-base font-medium">审批工单列表</h2>
-        <Tooltip title="显示/隐藏搜索">
-          <Button
-            aria-label="显示或隐藏搜索条件"
-            :aria-pressed="searchVisible"
-            :type="searchVisible ? 'primary' : 'default'"
-            shape="circle"
-            @click="searchVisible = !searchVisible"
-          >
-            <template #icon><IconifyIcon icon="lucide:search" /></template>
-          </Button>
-        </Tooltip>
-        <Tooltip title="刷新">
-          <Button aria-label="刷新审批工单" shape="circle" @click="load()">
-            <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-          </Button>
-        </Tooltip>
-        <Tooltip title="列设置">
-          <Button aria-label="设置表格列" shape="circle" @click="customizeColumns">
-            <template #icon><IconifyIcon icon="lucide:settings-2" /></template>
-          </Button>
-        </Tooltip>
-      </div>
       <Alert
         v-if="listError"
         type="error"
@@ -432,7 +406,18 @@ function syncFilterValues() {
         message="审批工单加载失败，请刷新重试"
         class="check-list-error"
       />
-      <Grid :style="{ '--vxe-ui-font-size-small': '14px' }" class="check-grid">
+      <Grid :style="{ '--vxe-ui-font-size-small': '14px' }" class="check-grid" table-title="审批工单列表">
+        <template #toolbar-tools>
+          <NativeVxeButton
+            aria-label="显示或隐藏搜索条件"
+            :aria-pressed="searchVisible"
+            title="搜索"
+            icon="vxe-icon-search"
+            circle
+            :status="searchVisible ? 'primary' : undefined"
+            @click="searchVisible = !searchVisible"
+          />
+        </template>
         <template #asset="{ row }">
           <button
             type="button"
@@ -552,15 +537,6 @@ function syncFilterValues() {
   padding: 0 14px 14px;
   background: hsl(var(--background));
   border-radius: var(--radius);
-}
-
-.check-tools {
-  display: flex;
-  flex-shrink: 0;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
-  height: 60px;
 }
 
 .check-list-error {

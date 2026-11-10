@@ -15,7 +15,7 @@ const mock = vi.hoisted(() => ({
   setLatestSubmissionValues: vi.fn(),
   formValues: {} as { name?: string },
   grid: {} as { clearCheckboxRow?: () => void },
-  createGrid: vi.fn(),
+  createGrid: vi.fn((_options: unknown) => {}),
 }));
 vi.mock('@vben/stores', () => ({ useAccessStore: () => mock.access }));
 vi.mock('#/adapter/vxe-table', () => ({
@@ -48,13 +48,14 @@ let app: App | undefined;
 let grid: ReturnType<typeof useMetadataGrid<Row>>;
 let host: HTMLDivElement;
 function mount(
-  fetch: () => Promise<Result>,
+  fetch: (page: { pageNo: number; pageSize: number }) => Promise<Result>,
   resetScopeFilters?: () => void,
   layout: 'content' | 'fill' = 'fill',
+  nativeToolbar = false,
 ) {
   app = createApp({
     setup() {
-      grid = useMetadataGrid<Row>([], fetch, undefined, resetScopeFilters, layout);
+      grid = useMetadataGrid<Row>([], fetch, undefined, resetScopeFilters, layout, nativeToolbar);
       return () => h('div');
     },
   });
@@ -77,6 +78,18 @@ afterEach(() => {
 });
 
 describe('元数据列表请求隔离', () => {
+  it('原生工具栏刷新保留当前页并沿用原查询', async () => {
+    const fetch = vi.fn().mockResolvedValue({ list: [], total: 0 });
+    mount(fetch, undefined, 'fill', true);
+    const options = mock.createGrid.mock.lastCall?.[0] as {
+      gridEvents: { pageChange: (event: { currentPage: number; pageSize: number }) => void };
+      gridOptions: { toolbarConfig: { custom: boolean; refresh: boolean; refreshOptions: { queryMethod: (event: object) => Promise<void> }; search: boolean; zoom: boolean } };
+    };
+    expect(options.gridOptions.toolbarConfig).toMatchObject({ custom: true, refresh: true, search: true, zoom: false });
+    options.gridEvents.pageChange({ currentPage: 3, pageSize: 20 });
+    await options.gridOptions.toolbarConfig.refreshOptions.queryMethod({});
+    expect(fetch).toHaveBeenLastCalledWith({ pageNo: 3, pageSize: 20 });
+  });
   it('主列表按可用高度填满且允许内容自然换行', () => {
     mount(async () => ({ list: [], total: 0 }));
     expect(mock.createGrid).toHaveBeenCalledWith(

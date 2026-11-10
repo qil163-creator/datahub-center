@@ -23,7 +23,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { Alert, Button, Input, message, Switch, Tag, Tooltip, Tree } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   cancelMasterDistribute,
   deleteMasterDistribute,
@@ -68,7 +68,6 @@ const user = useUserStore();
 const { hasAccessByCodes } = useAccess();
 const detailId = ref<number | string>();
 const selected = ref<GovernanceMasterDistributeApi.Distribute[]>([]);
-const filterVisible = ref(true);
 const owner = () =>
   JSON.stringify([
     access.accessToken,
@@ -409,7 +408,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
       },
     },
     rowConfig: { keyField: 'id', isHover: true },
-    toolbarConfig: { refresh: true, search: false },
+    toolbarConfig: {
+      custom: true,
+      refresh: true,
+      refreshOptions: { queryMethod: () => handleRefresh() },
+      search: true,
+    },
   } as VxeTableGridOptions<GovernanceMasterDistributeApi.Distribute>,
 });
 
@@ -540,7 +544,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
     <Grid
       class="metadata-grid qdata-push-grid"
       table-title="主数据分发列表"
-      :show-search-form="filterVisible"
     >
       <template #toolbar-tools>
         <div class="metadata-toolbar">
@@ -555,7 +558,8 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                   onClick: handleCreate,
                 },
                 {
-                  label: '删除',
+                  label: '批量删除',
+                  type: 'primary',
                   icon: ACTION_ICON.DELETE,
                   danger: true,
                   auth: ['governance:master-distribute:delete'],
@@ -574,15 +578,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 },
               ]"
             />
-          </div>
-
-          <div class="metadata-tools">
-            <Button
-              aria-label="显示查询条件"
-              @click="filterVisible = !filterVisible"
-            >
-              <IconifyIcon icon="lucide:search" />
-            </Button>
           </div>
         </div>
       </template>

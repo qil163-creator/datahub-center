@@ -243,6 +243,8 @@ const { Grid, gridApi, load, error } = useMetadataGrid<QualityTaskApi.Task>(
     });
     Object.assign(applied, filters);
   },
+  'fill',
+  true,
 );
 gridApi.setGridOptions({
   rowConfig: { keyField: 'id', isHover: true },
@@ -335,15 +337,17 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
               </template>
 </Alert><Grid class="q-grid" table-title="数据质量任务">
               <template #toolbar-tools>
-                <Button
-                  v-if="hasAccessByCodes(['governance:quality-task:create'])"
-                  type="primary"
-                  @click="enter('create')"
-                >
-                  ＋ 新增
-                </Button>
-
-                <Button aria-label="刷新" @click="load()">↻</Button>
+                <TableAction
+                  :actions="[
+                    {
+                      label: '新增',
+                      type: 'primary',
+                      icon: ACTION_ICON.ADD,
+                      auth: ['governance:quality-task:create'],
+                      onClick: () => enter('create'),
+                    },
+                  ]"
+                />
 </template><template #name="{ row }">
                 <button
                   type="button"

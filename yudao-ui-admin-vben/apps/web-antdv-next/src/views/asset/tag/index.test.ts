@@ -69,6 +69,23 @@ it('requests global scoped count sorting instead of sorting the current page', a
     expect.objectContaining({ sortField: 'assetCount', sortOrder: 'desc' }),
   );
 });
+it('routes grid selection, sorting and double-click to the existing list actions', async () => {
+  const s = await mount();
+  const item = row();
+  mock.gridEvents.checkboxChange({ records: [item] });
+  expect(s.selectedRowKeys).toEqual(['9007199254740993']);
+  mock.gridEvents.sortChange({ field: 'assetCount', order: 'desc' });
+  await flush();
+  expect(mock.page).toHaveBeenLastCalledWith(
+    expect.objectContaining({ sortField: 'assetCount', sortOrder: 'desc' }),
+  );
+  expect(s.selectedRowKeys).toEqual([]);
+  mock.gridEvents.cellDblclick({ row: item });
+  expect(mock.push).toHaveBeenCalledWith({
+    name: 'AssetTagDetail',
+    params: { id: '9007199254740993' },
+  });
+});
 it('keeps the latest list and prevents reads without query permission', async () => {
   const s = await mount();
   const old = deferred<{ list: AssetTagApi.Tag[]; total: number }>();

@@ -98,55 +98,6 @@
   font-weight: 600;
 }
 
-.fs-list-page .fs-list-panel.is-maximized {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 0;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .fs-toolbar {
-  flex: none;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .fs-list-table,
-.fs-list-page .fs-list-panel.is-maximized .fs-list-table > .ant-spin,
-.fs-list-page .fs-list-panel.is-maximized .ant-spin-nested-loading,
-.fs-list-page .fs-list-panel.is-maximized .ant-spin-container,
-.fs-list-page .fs-list-panel.is-maximized .ant-table,
-.fs-list-page .fs-list-panel.is-maximized .ant-table-container {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .ant-table-content {
-  flex: 1;
-  min-height: 0;
-  overflow: auto !important;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .ant-table-content > table {
-  height: 100%;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .ant-table-placeholder > td {
-  height: 100%;
-}
-
-.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .fs-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 0;
-}
-
 .fs-list-table .ant-table {
   color: #606266;
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { JobApi as Api } from '#/api/dataforge/job';
 import type { OpsInstanceApi } from '#/api/dataforge/ops';
 
@@ -28,12 +29,11 @@ import {
   message,
   Modal,
   Select,
-  Spin,
   Switch,
-  Table,
   Tree,
 } from 'antdv-next';
 
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   cloneJob,
   createJobCategory,
@@ -88,7 +88,6 @@ const router = useRouter();
 const { hasAccessByCodes } = useAccess();
 const can = (action: string) => hasAccessByCodes([`dataforge:job:${action}`]);
 const active = ref(true);
-const tableMaximized = ref(false);
 const access = useAccessStore();
 const scope = computed(() => `${active.value}/${access.accessToken}/${access.refreshToken}/${access.accessCodes.join(',')}`);
 onActivated(() => {
@@ -96,7 +95,6 @@ onActivated(() => {
 });
 onDeactivated(() => {
   active.value = false;
-  tableMaximized.value = false;
 });
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 function stopRefreshTimer() {
@@ -135,7 +133,6 @@ const page = ref(1);
 const expandedFilter = ref(false);
   const showBanner = ref(localStorage.getItem('dataforge-job-hide-help') !== '1');
   const showFilter = ref(true);
-const hiddenColumns = ref<string[]>([]);
 const moreOpenId = ref('');
 const categoryMenuId = ref('');
 const actionBusy = ref('');
@@ -170,27 +167,6 @@ const statusOptions = [
   { label: '已上线', value: 1 },
 ];
 const runOptions = runStatusOptions;
-const columnDefinitions = [
-  {
-    key: 'id',
-    title: '编号',
-    width: 82,
-    sorter: (a: Api.Job, b: Api.Job) =>
-      String(a.id).localeCompare(String(b.id), undefined, { numeric: true }),
-  },
-  { key: 'info', title: '任务信息', width: 380 },
-  { key: 'category', title: '所属类目', width: 140 },
-  { key: 'recent', title: '最近执行信息', width: 160 },
-  { key: 'control', title: '运行控制', width: 165 },
-  { key: 'schedule', title: '调度与策略', width: 210 },
-  { key: 'owner', title: '责任人', width: 130 },
-  { key: 'creator', title: '创建人', width: 130 },
-  { key: 'created', title: '创建时间', width: 155 },
-  { key: 'actions', title: '操作', width: 240, fixed: 'right' as const },
-];
-const columns = computed(() =>
-  columnDefinitions.filter((item) => !hiddenColumns.value.includes(item.key)),
-);
 function clear() {
   stopRefreshTimer();
   rows.value = [];
@@ -446,11 +422,6 @@ function closeBanner(permanent = false) {
   if (permanent) localStorage.setItem('dataforge-job-hide-help', '1');
   showBanner.value = false;
 }
-function toggleColumn(key: string) {
-  hiddenColumns.value = hiddenColumns.value.includes(key)
-    ? hiddenColumns.value.filter((item) => item !== key)
-    : [...hiddenColumns.value, key];
-}
 watch(categorySearch, (value) => {
   if (value.trim())
     expandedCategories.value = collectExpandableKeys(tree.value);
@@ -465,6 +436,32 @@ watch(
   },
   { immediate: true },
 );
+
+const [Grid, gridApi] = useVbenVxeGrid<Api.Job>({
+  gridOptions: {
+    columns: [
+      { field: 'id', title: '编号', width: 82, sortable: true, sortType: 'string', sortBy: ({ row }: { row: Api.Job }) => String(row.id).padStart(20, '0') },
+      { field: 'name', title: '任务信息', width: 380, align: 'left', slots: { default: 'info' } },
+      { field: 'categoryName', title: '所属类目', width: 140, align: 'left', slots: { default: 'category' } },
+      { field: 'lastRunStatus', title: '最近执行信息', width: 160, align: 'left', slots: { default: 'recent' } },
+      { field: 'status', title: '运行控制', width: 165, align: 'left', slots: { default: 'control' } },
+      { field: 'strategy', title: '调度与策略', width: 210, align: 'left', slots: { default: 'schedule' } },
+      { field: 'ownerName', title: '责任人', width: 130, align: 'left', slots: { default: 'owner' } },
+      { field: 'creatorName', title: '创建人', width: 130, align: 'left', slots: { default: 'creator' } },
+      { field: 'createTime', title: '创建时间', width: 155, slots: { default: 'created' } },
+      { field: 'actions', title: '操作', width: 240, fixed: 'right', slots: { default: 'actions' } },
+    ],
+    data: [],
+    height: 'auto',
+    pagerConfig: { enabled: false },
+    proxyConfig: { enabled: false },
+    rowConfig: { keyField: 'id', isHover: true },
+    scrollbarConfig: { height: 6 },
+    showOverflow: false,
+    toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load }, zoom: false, custom: true },
+  } as VxeTableGridOptions<Api.Job>,
+});
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
 </script>
 
 <template>
@@ -635,80 +632,29 @@ watch(
                 </div>
               </form>
             </section>
-            <section class="qj-table-panel" :class="{ 'is-maximized': tableMaximized }">
-              <div class="qj-toolbar">
-                <h2 class="qj-table-title">作业列表</h2>
-                <div class="qj-toolbar-tools">
-                <Button v-if="can('create')" type="primary" @click="edit()">
-                  <template #icon><IconifyIcon icon="lucide:plus" /></template>
-                  新增
-                </Button>
-                <NativeVxeButton
-                  circle
-                  icon="vxe-icon-search"
-                  :status="showFilter ? 'primary' : undefined"
-                  :aria-pressed="showFilter"
-                  aria-label="显示或隐藏搜索"
-                  title="显示或隐藏搜索"
-                  @click="showFilter = !showFilter"
-                />
-                <NativeVxeButton
-                  circle
-                  icon="vxe-icon-repeat"
-                  aria-label="刷新列表"
-                  title="刷新列表"
-                  :loading="loading"
-                  @click="load"
-                />
-                <NativeVxeButton
-                  circle
-                  :icon="tableMaximized ? 'vxe-icon-minimize' : 'vxe-icon-fullscreen'"
-                  :aria-label="tableMaximized ? '还原表格' : '全屏表格'"
-                  :aria-pressed="tableMaximized"
-                  :title="tableMaximized ? '还原' : '全屏'"
-                  @click="tableMaximized = !tableMaximized"
-                />
-                <Dropdown :trigger="['click']">
-                  <NativeVxeButton circle icon="vxe-icon-setting" aria-label="列设置" title="列设置" />
-                  <template #popupRender>
-<div class="qj-popup qj-columns">
-                      <label
-                        v-for="column in columnDefinitions.filter(
-                          (item) => item.key !== 'actions',
-                        )"
-                        :key="column.key"
-                        ><input
-                          type="checkbox"
-                          :checked="!hiddenColumns.includes(column.key)"
-                          @change="toggleColumn(column.key)"
-                        />{{ column.title }}</label>
-                    </div>
-</template>
-</Dropdown>
-                </div>
-              </div>
+            <section class="qj-table-panel">
               <Alert v-if="failed" type="error" message="作业列表加载失败">
-<template #action>
-<Button type="link" @click="load">重试</Button>
-</template>
-</Alert>
-              <Spin :spinning="loading">
-<Table
-                  :columns="columns"
-                  :data-source="rows"
-                  :row-key="(row: Api.Job) => String(row.id)"
-                  :pagination="false"
-                  :scroll="{ x: 1892 }"
-                  table-layout="fixed"
-                  size="middle"
-                >
-                  <template #bodyCell="{ column, record }">
-                    <template v-if="column.key === 'id'">
-{{
-                      record.id
-                    }}
-</template>
-                    <div v-else-if="column.key === 'info'" class="qj-info">
+                <template #action><Button type="link" @click="load">重试</Button></template>
+              </Alert>
+              <Grid class="qj-native-grid" table-title="作业列表" :table-data="rows">
+                <template #toolbar-tools>
+                  <Button v-if="can('create')" type="primary" @click="edit()">
+                    <template #icon><IconifyIcon icon="lucide:plus" /></template>
+                    新增
+                  </Button>
+                  <NativeVxeButton
+                    circle
+                    class="ml-2"
+                    icon="vxe-icon-search"
+                    :status="showFilter ? 'primary' : undefined"
+                    :aria-pressed="showFilter"
+                    aria-label="显示或隐藏搜索"
+                    title="搜索"
+                    @click="showFilter = !showFilter"
+                  />
+                </template>
+                <template #info="{ row: record }">
+                    <div class="qj-info">
                       <div class="qj-info-title">
                         <IconifyIcon
                           icon="lucide:workflow"
@@ -727,12 +673,10 @@ watch(
                         {{ record.description || '-' }}
                       </p>
                     </div>
-                    <template v-else-if="column.key === 'category'">
-{{
-                      record.categoryName || '-'
-                    }}
-</template>
-                    <div v-else-if="column.key === 'recent'">
+                </template>
+                <template #category="{ row: record }">{{ record.categoryName || '-' }}</template>
+                <template #recent="{ row: record }">
+                    <div>
                       <StatusBadge
                         :status="record.lastRunStatus || 'IDLE'"
                         :queue-state="record.latestRecord?.queueState"
@@ -744,10 +688,9 @@ watch(
                         }}
                         {{ formatDuration(record.lastRunDuration) }}</small><small v-if="record.activeRunCount !== undefined || record.queuedRunCount !== undefined" class="qj-run-counts">活动实例：{{ record.activeRunCount ?? 0 }}，排队：{{ record.queuedRunCount ?? 0 }}</small>
                     </div>
-                    <div
-                      v-else-if="column.key === 'control'"
-                      class="qj-controls"
-                    >
+                </template>
+                <template #control="{ row: record }">
+                    <div class="qj-controls">
                       <label>任务状态:<Switch
                           :checked="record.status === 1"
                           size="small"
@@ -760,7 +703,9 @@ watch(
                           @change="switchSchedule(record)"
                       /></label>
                     </div>
-                    <div v-else-if="column.key === 'schedule'">
+                </template>
+                <template #schedule="{ row: record }">
+                    <div>
                       <span class="qj-strategy">{{
                         strategyOptions.find(
                           (option) => option.value === record.strategy,
@@ -769,23 +714,22 @@ watch(
                         record.cronExpression || '-'
                       }}</small><small v-if="record.scheduleStatus === 1 && record.nextRunTime">下次执行：{{ displayDate(record.nextRunTime) }}</small>
                     </div>
-                    <div v-else-if="column.key === 'owner'">
+                </template>
+                <template #owner="{ row: record }">
+                    <div>
                       {{ record.ownerName || '-'
                       }}<small>{{ record.ownerPhone || '-' }}</small>
                     </div>
-                    <div v-else-if="column.key === 'creator'">
+                </template>
+                <template #creator="{ row: record }">
+                    <div>
                       {{ record.creatorName || '-'
                       }}<small>{{ record.creatorPhone || '' }}</small>
                     </div>
-                    <template v-else-if="column.key === 'created'">
-{{
-                      displayDate(record.createTime)
-                    }}
-</template>
-                    <div
-                      v-else-if="column.key === 'actions'"
-                      class="qj-actions"
-                    >
+                </template>
+                <template #created="{ row: record }">{{ displayDate(record.createTime) }}</template>
+                <template #actions="{ row: record }">
+                    <div class="qj-actions">
                       <button
                         v-if="can('update')"
                         type="button"
@@ -845,9 +789,8 @@ watch(
 </template>
 </Dropdown>
                     </div>
-                  </template>
-                </Table>
-</Spin>
+                </template>
+                <template #pager>
               <ListPagination
                 :current="page"
                 :page-size="pageSize"
@@ -860,6 +803,8 @@ watch(
                   }
                 "
               />
+                </template>
+              </Grid>
             </section>
           </main>
         </div>
