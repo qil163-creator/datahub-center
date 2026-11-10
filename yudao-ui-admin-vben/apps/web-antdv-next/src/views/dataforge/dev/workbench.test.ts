@@ -219,6 +219,11 @@ vi.mock('./modules/task-detail-view.vue', () => ({ default: () => null }));
 vi.mock('./modules/task-type-icon.vue', () => ({ default: () => null }));
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: {},
+  NativeVxeButton: defineComponent({
+    emits: ['click'],
+    setup: (_, { attrs, emit }) => () =>
+      h('button', { ...attrs, onClick: () => emit('click') }),
+  }),
   useVbenVxeGrid: (options: {
     gridOptions: {
       columns: { slots?: { default?: string }; title?: string }[];
@@ -673,6 +678,21 @@ describe('研发页面模式和交互边界', () => {
       expect(host.textContent?.includes('调度状态:')).toBe(
         workloadMode === 'BATCH',
       );
+      const searchToggle = host.querySelector<HTMLButtonElement>(
+        '[aria-label="显示或隐藏筛选"]',
+      );
+      expect(searchToggle?.getAttribute('aria-pressed')).toBe('true');
+      searchToggle?.click();
+      await flush();
+      expect(searchToggle?.getAttribute('aria-pressed')).toBe('false');
+      expect(
+        host.querySelector<HTMLElement>('.development-search')?.style.display,
+      ).toBe('none');
+      searchToggle?.click();
+      await flush();
+      expect(
+        host.querySelector<HTMLElement>('.development-search')?.style.display,
+      ).not.toBe('none');
       button('详情')?.click();
       await flush();
       expect(harness.push).toHaveBeenLastCalledWith({

@@ -15,10 +15,6 @@ import { formatDate } from '@vben/utils';
 import {
   Alert,
   Button,
-  Checkbox,
-  Dropdown,
-  Menu,
-  MenuItem,
   message,
   Modal,
   Table,
@@ -26,9 +22,7 @@ import {
 
 import {
   deleteStandardCodeItem,
-  deleteStandardCodeItemList,
   getStandardCodeItemPage,
-  getStandardCodeItemTree,
 } from '#/api/governance/standardcodeitem';
 import {
   deleteCodeMapping,
@@ -38,7 +32,6 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 
 import StandardPagination from '../../../standardcommon/standard-pagination.vue';
 import StandardToolbar from '../../../standardcommon/standard-toolbar.vue';
-import { buildCodeItemTree } from '../model';
 import ItemForm from './item-form.vue';
 import MappingForm from './mapping-form.vue';
 type Id = ItemApi.Id;
@@ -66,10 +59,6 @@ const pageSize = ref(10);
 const total = ref(0);
 const loading = ref(false);
 const error = ref('');
-const treeMode = ref(false);
-const includeHistory = ref(false);
-const selectedIds = ref<Id[]>([]);
-const expandedKeys = ref<Id[]>([]);
 const sortField = ref<'createTime' | 'id'>('createTime');
 const sortOrder = ref<'asc' | 'desc'>('desc');
 const definitions = computed(() => [
@@ -99,11 +88,8 @@ const columns = computed(() =>
       ...c,
       dataIndex: c.key,
       ellipsis: c.key !== 'actions',
-      sortOrder:
-        !treeMode.value && c.key === sortField.value
-          ? tableSortOrder.value
-          : undefined,
-      sorter: !treeMode.value && c.sorter,
+      sortOrder: c.key === sortField.value ? tableSortOrder.value : undefined,
+      sorter: c.sorter,
     })),
 );
 const request = useObjectRequest(
@@ -111,7 +97,6 @@ const request = useObjectRequest(
   () => {
     rows.value = [];
     total.value = 0;
-    selectedIds.value = [];
   },
 );
 const actionRequest = useObjectRequest(() => scope.value);
@@ -122,7 +107,6 @@ const [FormModal, modalApi] = useVbenModal({
 async function load() {
   const current = request.begin();
   rows.value = [];
-  selectedIds.value = [];
   error.value = '';
   if (!props.codeSetId || !can('query')) {
     total.value = 0;
@@ -131,36 +115,22 @@ async function load() {
   }
   loading.value = true;
   try {
-    if (treeMode.value && props.kind === 'items') {
-      const result = buildCodeItemTree(
-        await getStandardCodeItemTree({
-          codeSetId: props.codeSetId,
-          includeHistory: includeHistory.value,
-        }),
-      );
-      if (current()) {
-        rows.value = result;
-        total.value = result.length;
-        expandedKeys.value = result.map((row) => String(row.id));
-      }
-    } else {
-      const params = {
-        codeSetId: props.codeSetId,
-        pageNo: page.value,
-        pageSize: pageSize.value,
-        sortField: sortField.value,
-        sortOrder: sortOrder.value,
-      };
-      const result = await (props.kind === 'items'
-        ? getStandardCodeItemPage(params)
-        : getCodeMappingPage(params));
-      if (!current()) return;
-      rows.value = result.list;
-      total.value = result.total;
-      if (page.value > 1 && result.list.length === 0 && result.total) {
-        page.value = Math.ceil(result.total / pageSize.value);
-        await load();
-      }
+    const params = {
+      codeSetId: props.codeSetId,
+      pageNo: page.value,
+      pageSize: pageSize.value,
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
+    };
+    const result = await (props.kind === 'items'
+      ? getStandardCodeItemPage(params)
+      : getCodeMappingPage(params));
+    if (!current()) return;
+    rows.value = result.list;
+    total.value = result.total;
+    if (page.value > 1 && result.list.length === 0 && result.total) {
+      page.value = Math.ceil(result.total / pageSize.value);
+      await load();
     }
   } catch {
     if (current()) error.value = '数据加载失败，请重试';
@@ -168,14 +138,13 @@ async function load() {
     if (current()) loading.value = false;
   }
 }
-function open(row?: Row, readonly = false, parentId?: Id) {
+function open(row?: Row, readonly = false) {
   modalApi
     .setData({
       id: row?.id,
       codeSetId: props.codeSetId,
       dictType: props.dictType,
       readonly,
-      parentId,
     })
     .open();
 }
@@ -183,22 +152,19 @@ async function saved() {
   emit('change');
   await load();
 }
-function remove(row?: Row) {
+function remove(row: Row) {
   const current = actionRequest.begin();
   const codeSetId = props.codeSetId;
-  const ids = row?.id === undefined ? [...selectedIds.value] : [row.id];
-  if (!codeSetId || ids.length === 0) return;
+  if (!codeSetId || row.id === undefined) return;
+  const id = row.id;
   Modal.confirm({
-    title: row
-      ? `确定删除此${props.kind === 'items' ? '代码' : '代码映射'}吗？`
-      : `确定删除选中的 ${ids.length} 个码值吗？`,
+    title: `确定删除此${props.kind === 'items' ? '代码' : '代码映射'}吗？`,
     okText: '确定',
     cancelText: '取消',
     async onOk() {
       if (!current() || !can('delete')) return;
-      if (props.kind === 'mapping') await deleteCodeMapping(codeSetId, ids[0]!);
-      else if (row) await deleteStandardCodeItem(ids[0]!);
-      else await deleteStandardCodeItemList(ids);
+      if (props.kind === 'mapping') await deleteCodeMapping(codeSetId, id);
+      else await deleteStandardCodeItem(id);
       if (current()) {
         message.success('删除成功');
         await saved();
@@ -225,10 +191,6 @@ watch(
   },
   { immediate: true },
 );
-watch(treeMode, () => {
-  page.value = 1;
-  void load();
-});
 </script>
 <template>
   <FormModal @success="saved" />
@@ -253,38 +215,6 @@ watch(treeMode, () => {
       </Button>
       <span v-else aria-hidden="true"></span>
     </template>
-    <Dropdown v-if="kind === 'items'">
-      <Button size="small">
-        <template #icon><IconifyIcon icon="lucide:ellipsis-vertical" /></template>
-        更多
-      </Button>
-      <template #popupRender>
-        <Menu @click="treeMode = !treeMode">
-          <MenuItem key="tree">
-            <template #icon>
-              <IconifyIcon
-                :icon="treeMode ? 'lucide:list' : 'lucide:git-branch'"
-              />
-            </template>
-            {{ treeMode ? '返回代码字典' : '层级与有效期' }}
-          </MenuItem>
-        </Menu>
-      </template>
-    </Dropdown>
-    <template v-if="treeMode">
-      <Checkbox v-model:checked="includeHistory" @change="load">
-        显示历史码值
-      </Checkbox>
-      <Button
-        v-if="can('delete')"
-        danger
-        :disabled="!selectedIds.length"
-        @click="remove()"
-      >
-        <template #icon><IconifyIcon icon="lucide:trash-2" /></template>
-        批量删除
-      </Button>
-    </template>
   </StandardToolbar>
   <Alert v-if="error" :message="error" type="error" class="mb-3" />
   <Table
@@ -295,23 +225,6 @@ watch(treeMode, () => {
     :loading="loading"
     :row-key="(row) => String(row.id)"
     :scroll="{ x: kind === 'items' ? 1120 : 1350 }"
-    :row-selection="
-      treeMode
-        ? {
-            selectedRowKeys: selectedIds,
-            onChange: (keys) => (selectedIds = keys as Id[]),
-            checkStrictly: true,
-          }
-        : undefined
-    "
-    :expandable="
-      treeMode
-        ? {
-            expandedRowKeys: expandedKeys,
-            onExpandedRowsChange: (keys) => (expandedKeys = [...keys] as Id[]),
-          }
-        : undefined
-    "
     @change="changeTable"
   >
     <template #emptyText>
@@ -327,17 +240,6 @@ watch(treeMode, () => {
           : '-'
       }}</span>
       <div v-else-if="column.key === 'actions'" class="standard-row-actions">
-        <Button
-          type="link"
-          v-if="treeMode && can('create')"
-          @click="open(undefined, false, record.id)"
-        >
-          <IconifyIcon
-            icon="lucide:plus"
-            class="mr-1 inline-block size-4 align-middle"
-          />
-          新增下级
-        </Button>
         <Button type="link" v-if="can('update')" @click="open(record)">
           <IconifyIcon icon="lucide:square-pen" />修改
         </Button>
@@ -352,7 +254,6 @@ watch(treeMode, () => {
     </template>
   </Table>
   <StandardPagination
-    v-if="!treeMode"
     v-model:page="page"
     v-model:page-size="pageSize"
     :total="total"
@@ -364,13 +265,13 @@ watch(treeMode, () => {
   min-height: 360px;
 }
 
-:deep(.standard-code-records .ant-table-container) {
+.standard-code-records :deep(.ant-table-container) {
   overflow: hidden;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
 
-:deep(.standard-code-records .ant-table-thead > tr > th) {
+.standard-code-records :deep(.ant-table-thead > tr > th) {
   padding-block: 7px;
   line-height: 20px;
   color: hsl(var(--foreground));
@@ -378,25 +279,25 @@ watch(treeMode, () => {
   border-bottom: 1px solid hsl(var(--border));
 }
 
-:deep(.standard-code-records .ant-table-thead > tr > th:not(:last-child)::before) {
+.standard-code-records :deep(.ant-table-thead > tr > th:not(:last-child)::before) {
   background-color: hsl(var(--border));
 }
 
-:deep(.standard-code-records .ant-table-thead > tr > th),
-:deep(.standard-code-records .ant-table-tbody > tr > td) {
+.standard-code-records :deep(.ant-table-thead > tr > th),
+.standard-code-records :deep(.ant-table-tbody > tr > td) {
   font-size: 12px;
 }
 
-:deep(.standard-code-records-toolbar) {
+.standard-code-records-toolbar {
   min-height: 30px;
   margin-bottom: 8px;
 }
 
-:deep(.standard-code-records-toolbar .standard-toolbar-tools) {
+.standard-code-records-toolbar :deep(.standard-toolbar-tools) {
   gap: 8px;
 }
 
-:deep(.standard-code-records-toolbar .standard-toolbar-tools .ant-btn) {
+.standard-code-records-toolbar :deep(.standard-toolbar-tools .ant-btn) {
   width: 26px;
   min-width: 26px;
   height: 26px;
@@ -404,17 +305,17 @@ watch(treeMode, () => {
   border-radius: 50%;
 }
 
-:deep(.standard-code-records-toolbar .standard-toolbar-tools svg) {
+.standard-code-records-toolbar :deep(.standard-toolbar-tools svg) {
   width: 12px;
   height: 12px;
 }
 
-:deep(.standard-code-records .ant-table-tbody > tr > td) {
+.standard-code-records :deep(.ant-table-tbody > tr > td) {
   padding-block: 8px;
   line-height: 24px;
 }
 
-:deep(.standard-code-records .standard-row-actions .ant-btn) {
+.standard-code-records :deep(.standard-row-actions .ant-btn) {
   height: 24px;
 }
 

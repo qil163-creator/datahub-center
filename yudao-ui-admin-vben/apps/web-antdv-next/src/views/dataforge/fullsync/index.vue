@@ -18,7 +18,6 @@ import {
   Alert,
   Button,
   Checkbox,
-  ConfigProvider,
   Dropdown,
   Input,
   Menu,
@@ -28,10 +27,13 @@ import {
   Select,
   Switch,
   Table,
-  theme,
   Tooltip,
 } from 'antdv-next';
 
+import {
+  ACTION_ICON,
+  NativeVxeButton,
+} from '#/adapter/vxe-table';
 import {
   deleteWizard,
   getDatabaseOptions,
@@ -74,8 +76,12 @@ const loading = ref(false);
 const failed = ref(false);
 const optionsFailed = ref(false);
 const showSearch = ref(true);
+const tableMaximized = ref(false);
 const busyIds = ref(new Set<string>());
 const { active, scope } = useFullSyncScope();
+watch(active, (isActive) => {
+  if (!isActive) tableMaximized.value = false;
+});
 const request = useObjectRequest(() => scope.value);
 const optionRequest = useObjectRequest(() => scope.value);
 const actionRequest = useObjectRequest(() => scope.value);
@@ -169,6 +175,7 @@ function reset() {
   search();
 }
 function openWizard(row?: Wizard) {
+  tableMaximized.value = false;
   void router.push({
     name: 'DataforgeFullSyncWizard',
     params: row ? { id: String(row.id) } : {},
@@ -176,6 +183,7 @@ function openWizard(row?: Wizard) {
   });
 }
 function details(row: Wizard) {
+  tableMaximized.value = false;
   void router.push(`${LIST_PATH}/detail/${encodeURIComponent(String(row.id))}`);
 }
 async function toggle(
@@ -259,14 +267,7 @@ watch(
 </script>
 
 <template>
-  <ConfigProvider
-    :theme="{
-      algorithm: theme.defaultAlgorithm,
-      inherit: false,
-      token: { colorPrimary: '#2663ff', borderRadius: 2 },
-    }"
-  >
-    <Page auto-content-height content-class="qdata-fullsync">
+    <Page auto-content-height content-class="qdata-fullsync fs-list-page">
       <div class="fs-page">
         <Alert
           v-if="!can('query')"
@@ -319,20 +320,21 @@ watch(
               option-filter-prop="label"
           /></label>
           <div class="fs-search-actions">
-            <Button html-type="submit" class="fs-light-button">
-              <ReferenceIcon name="query" />查询
-</Button><Button @click="reset"><ReferenceIcon name="reset" />重置</Button>
+            <Button html-type="submit" type="primary">
+              查询
+</Button><Button @click="reset">重置</Button>
           </div>
         </form>
-        <section class="fs-panel fs-list-panel">
+        <section class="fs-panel fs-list-panel" :class="{ 'is-maximized': tableMaximized }">
           <div class="fs-toolbar">
+            <h2 class="fs-list-title">整库同步任务列表</h2>
             <div class="fs-toolbar-group">
               <Button
                 v-if="can('create')"
-                class="fs-light-button"
+                type="primary"
                 @click="openWizard()"
               >
-                <ReferenceIcon name="add" />新增
+                <IconifyIcon :icon="ACTION_ICON.ADD" />新增
 </Button><Button
                 v-if="can('delete')"
                 danger
@@ -343,25 +345,29 @@ watch(
                   )
                 "
               >
-                <ReferenceIcon name="delete" />删除
+                <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
               </Button>
-            </div>
-            <div class="fs-toolbar-group">
               <Tooltip title="显示/隐藏搜索">
-                <Button
+                <NativeVxeButton
                   aria-label="显示或隐藏搜索"
+                  icon="vxe-icon-search"
+                  circle
+                  :status="showSearch ? 'primary' : undefined"
                   @click="showSearch = !showSearch"
-                >
-                  <ReferenceIcon name="search" />
-                </Button>
+                />
 </Tooltip><Tooltip title="刷新">
-                <Button aria-label="刷新列表" @click="load">
-                  <ReferenceIcon name="refresh" />
-                </Button>
+                <NativeVxeButton aria-label="刷新列表" icon="vxe-icon-repeat" circle @click="load" />
+</Tooltip><Tooltip :title="tableMaximized ? '还原' : '全屏'">
+                <NativeVxeButton
+                  circle
+                  :icon="tableMaximized ? 'vxe-icon-minimize' : 'vxe-icon-fullscreen'"
+                  :aria-label="tableMaximized ? '还原表格' : '全屏表格'"
+                  :aria-pressed="tableMaximized"
+                  @click="tableMaximized = !tableMaximized"
+                />
 </Tooltip><Dropdown :trigger="['click']">
-                <Button aria-label="设置显示列">
-                  <ReferenceIcon name="columns" />
-</Button><template #popupRender>
+                <NativeVxeButton aria-label="设置显示列" icon="vxe-icon-setting" circle />
+<template #popupRender>
                   <Menu>
                     <MenuItem v-for="column in definitions" :key="column.key">
                       <Checkbox
@@ -531,5 +537,4 @@ watch(
         </section>
       </div>
     </Page>
-  </ConfigProvider>
 </template>

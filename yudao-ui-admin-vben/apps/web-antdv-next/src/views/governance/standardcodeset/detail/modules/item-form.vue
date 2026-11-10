@@ -13,29 +13,24 @@ import {
   Alert,
   Form as AntForm,
   Collapse,
-  DatePicker,
   FormItem,
   Input,
   InputNumber,
   message,
   RadioGroup,
-  Select,
 } from 'antdv-next';
 
 import {
   createStandardCodeItem,
   getStandardCodeItem,
-  getStandardCodeItemTree,
   updateStandardCodeItem,
 } from '#/api/governance/standardcodeitem';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
-import { buildCodeItemTree, validateHalfOpenInterval } from '../model';
 interface Context {
   codeSetId: Api.Id;
   dictType?: string;
   id?: Api.Id;
-  parentId?: Api.Id;
   readonly?: boolean;
 }
 const emit = defineEmits<{ success: [] }>();
@@ -52,14 +47,10 @@ const defaults = () => ({
   value: '',
   sort: 0,
   status: 0,
-  parentId: undefined,
-  validFrom: undefined,
-  validTo: undefined,
   remark: undefined,
   id: undefined,
 });
 const formData = reactive<Api.StandardCodeItem>(defaults());
-const parents = ref<{ label: string; value: Api.Id }[]>([]);
 const readonly = computed(() => Boolean(context.value?.readonly));
 const title = computed(() => {
   if (readonly.value) return '数据元代码详情';
@@ -69,7 +60,6 @@ const request = useObjectRequest(
   () => `${identity.value}/${access.accessCodes.join(',')}`,
   () => {
     ready.value = false;
-    parents.value = [];
     Object.assign(formData, defaults());
   },
 );
@@ -81,7 +71,6 @@ const [Modal, modalApi] = useVbenModal({
     const current = request.begin();
     ready.value = false;
     loadError.value = '';
-    parents.value = [];
     Object.assign(formData, defaults());
     modalApi.setState({ confirmDisabled: true });
     if (!open) {
@@ -102,7 +91,6 @@ const [Modal, modalApi] = useVbenModal({
         : {
             codeSetId: target.codeSetId,
             dictType: target.dictType ?? '',
-            parentId: target.parentId,
           };
       if (!current()) return;
       if (
@@ -111,31 +99,6 @@ const [Modal, modalApi] = useVbenModal({
       )
         throw new Error('码值所属代码表不匹配');
       Object.assign(formData, item);
-      if (formData.validFrom)
-        formData.validFrom = String(formatDateTime(formData.validFrom));
-      if (formData.validTo)
-        formData.validTo = String(formatDateTime(formData.validTo));
-      if (!readonly.value) {
-        const rows = await getStandardCodeItemTree({
-          codeSetId: target.codeSetId,
-          includeHistory: true,
-        });
-        if (!current()) return;
-        function walk(
-          items: ReturnType<typeof buildCodeItemTree>,
-          depth: number,
-        ) {
-          for (const row of items) {
-            if (String(row.id) === String(target.id)) continue;
-            parents.value.push({
-              value: row.id!,
-              label: `${'　'.repeat(depth)}${row.label}（${row.value}）`,
-            });
-            if (row.children) walk(row.children, depth + 1);
-          }
-        }
-        walk(buildCodeItemTree(rows), 0);
-      }
       if (current()) {
         ready.value = true;
         modalApi.setState({ confirmDisabled: false });
@@ -153,19 +116,16 @@ const [Modal, modalApi] = useVbenModal({
     const current = request.begin();
     await formRef.value?.validate();
     if (!current()) return;
-    const interval = validateHalfOpenInterval(
-      formData.validFrom,
-      formData.validTo,
-    );
-    if (interval) {
-      message.warning(interval);
-      return;
-    }
     modalApi.lock();
     try {
-      const { children: _children, levelNo: _level, ...editable } = formData;
       const payload = {
-        ...editable,
+        id: formData.id,
+        label: formData.label,
+        value: formData.value,
+        sort: formData.sort,
+        status: formData.status,
+        remark: formData.remark,
+        revision: formData.revision,
         codeSetId: context.value.codeSetId,
         dictType: context.value.dictType ?? formData.dictType,
       };
@@ -222,37 +182,11 @@ watch(
       </FormItem>
       <Collapse
         v-if="!readonly"
-        :items="[{ key: 'advanced', label: '层级与有效期' }]"
+        :items="[{ key: 'advanced', label: '其他信息' }]"
       >
         <template #contentRender>
-          <FormItem label="上级码值">
-            <Select
-              v-model:value="formData.parentId"
-              allow-clear
-              :options="parents"
-              placeholder="不选择则创建根码值"
-              show-search
-              option-filter-prop="label"
-            />
-          </FormItem>
           <FormItem label="排序">
             <InputNumber v-model:value="formData.sort" :min="0" />
-          </FormItem>
-          <FormItem label="生效时间">
-            <DatePicker
-              v-model:value="formData.validFrom"
-              show-time
-              value-format="YYYY-MM-DD HH:mm:ss"
-              placeholder="为空表示立即生效"
-            />
-          </FormItem>
-          <FormItem label="失效时间">
-            <DatePicker
-              v-model:value="formData.validTo"
-              show-time
-              value-format="YYYY-MM-DD HH:mm:ss"
-              placeholder="为空表示长期有效（不含此时刻）"
-            />
           </FormItem>
           <FormItem label="状态">
             <RadioGroup

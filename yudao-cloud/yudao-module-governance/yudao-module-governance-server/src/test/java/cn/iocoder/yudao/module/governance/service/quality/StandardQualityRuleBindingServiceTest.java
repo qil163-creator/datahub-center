@@ -244,7 +244,7 @@ class StandardQualityRuleBindingServiceTest {
                 .nullableFlag(1).dataLength(length).status((short) 0).lifecycleStatus("PUBLISHED").build();
         when(elements.selectById(1)).thenReturn(element);
         when(elements.selectByIdForUpdate(1)).thenReturn(element);
-        var compiled = compilation.compile(element, at);
+        var compiled = compilation.compile(element);
         var constraint = compiled.constraints().getFirst();
         var template = QualityRuleDO.builder().id(100L + version).standardElementId(1L)
                 .status(0).constraintHash(constraint.constraintHash())

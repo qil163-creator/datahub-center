@@ -89,7 +89,7 @@ class StandardQualityRuleMaterializerTest {
     }
 
     private StandardConstraintCompiler.Compilation compile(StandardElementDO element) {
-        return compiler.compile(element, null, List.of(), LocalDateTime.of(2026, 10, 16, 0, 0));
+        return compiler.compile(element, null, List.of());
     }
 
     private static StandardElementDO element(int length) {

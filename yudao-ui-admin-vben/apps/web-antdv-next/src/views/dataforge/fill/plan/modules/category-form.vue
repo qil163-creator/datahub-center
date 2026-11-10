@@ -32,6 +32,7 @@ const emit = defineEmits<{ success: [] }>();
 const access = useAccessStore();
 const user = useUserStore();
 const editingId = ref<number | string>();
+const categoryLabel = ref('计划分类');
 const categories = ref<DataforgeFillApi.PlanCategory[]>([]);
 const identity = computed(() =>
   JSON.stringify([
@@ -41,7 +42,7 @@ const identity = computed(() =>
   ]),
 );
 const title = computed(() =>
-  editingId.value === undefined ? '新建计划分类' : '编辑计划分类',
+  `${editingId.value === undefined ? '新建' : '编辑'}${categoryLabel.value}`,
 );
 
 const parentTree = computed<ParentNode[]>(() => {
@@ -152,6 +153,7 @@ function invalidate() {
 }
 
 const [Modal, modalApi] = useVbenModal<{
+  categoryLabel?: string;
   id?: number | string;
   parentId?: number | string;
 }>({
@@ -198,6 +200,7 @@ const [Modal, modalApi] = useVbenModal<{
     editingId.value = undefined;
     categories.value = [];
     const initialData = modalApi.getData();
+    categoryLabel.value = initialData?.categoryLabel ?? '计划分类';
     modalApi.lock();
     try {
       await formApi.reset();

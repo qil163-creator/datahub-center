@@ -24,12 +24,12 @@ class StandardConstraintCompilationServiceTest {
         var at = LocalDateTime.of(2026, 9, 11, 12, 0);
         var element = StandardElementDO.builder().id(1).columnType("VARCHAR").nullableFlag(1).codeSetId(9).build();
         when(codeSets.selectById(9)).thenReturn(StandardCodeSetDO.builder().id(9).status((short) 0).build());
-        when(codeItems.selectTree(9, at, false)).thenReturn(
+        when(codeItems.selectEnabledByCodeSetId(9)).thenReturn(
                 List.of(StandardCodeItemDO.builder().id(1).codeSetId(9).value("A").status((short) 0).build()),
                 List.of(StandardCodeItemDO.builder().id(2).codeSetId(9).value("B").status((short) 0).build()));
 
-        var first = service.compile(element, at);
-        var second = service.compile(element, at);
+        var first = service.compile(element);
+        var second = service.compile(element);
 
         assertThat(first.compilable()).isTrue();
         assertThat(second.compilable()).isTrue();

@@ -53,45 +53,17 @@ public interface StandardCodeItemMapper extends BaseMapperX<StandardCodeItemDO> 
     default List<StandardCodeItemDO> selectListByCodeSetId(Integer codeSetId) {
         return selectList(new LambdaQueryWrapperX<StandardCodeItemDO>()
                 .eq(StandardCodeItemDO::getCodeSetId, codeSetId)
-                .orderByAsc(StandardCodeItemDO::getLevelNo)
                 .orderByAsc(StandardCodeItemDO::getSort)
                 .orderByAsc(StandardCodeItemDO::getId));
     }
 
-    /**
-     * 查询树。
-     */
-    default List<StandardCodeItemDO> selectTree(Integer codeSetId, java.time.LocalDateTime businessTime,
-            boolean includeHistory) {
-        LambdaQueryWrapperX<StandardCodeItemDO> wrapper = new LambdaQueryWrapperX<StandardCodeItemDO>()
-                .eq(StandardCodeItemDO::getCodeSetId, codeSetId);
-        if (!includeHistory) {
-            wrapper.eq(StandardCodeItemDO::getStatus, (short) 0)
-                    .and(query -> query.isNull(StandardCodeItemDO::getValidFrom)
-                            .or().le(StandardCodeItemDO::getValidFrom, businessTime))
-                    .and(query -> query.isNull(StandardCodeItemDO::getValidTo)
-                            .or().gt(StandardCodeItemDO::getValidTo, businessTime));
-        }
-        return selectList(wrapper.orderByAsc(StandardCodeItemDO::getLevelNo)
-                .orderByAsc(StandardCodeItemDO::getSort)
-                .orderByAsc(StandardCodeItemDO::getId));
-    }
-
-    /**
-     * 按父级编号查询标准代码项列表。
-     */
-    default List<StandardCodeItemDO> selectListByParentId(Integer parentId) {
+    /** 查询码表内已启用的码值。 */
+    default List<StandardCodeItemDO> selectEnabledByCodeSetId(Integer codeSetId) {
         return selectList(new LambdaQueryWrapperX<StandardCodeItemDO>()
-                .eq(StandardCodeItemDO::getParentId, parentId)
+                .eq(StandardCodeItemDO::getCodeSetId, codeSetId)
+                .eq(StandardCodeItemDO::getStatus, (short) 0)
                 .orderByAsc(StandardCodeItemDO::getSort)
                 .orderByAsc(StandardCodeItemDO::getId));
-    }
-
-    /**
-     * 按父级编号查询标准代码项数量。
-     */
-    default Long selectCountByParentId(Integer parentId) {
-        return selectCount(StandardCodeItemDO::getParentId, parentId);
     }
 
     /**
@@ -138,14 +110,7 @@ public interface StandardCodeItemMapper extends BaseMapperX<StandardCodeItemDO> 
                 .likeIfPresent(StandardCodeItemDO::getLabel, reqVO.getLabel())
                 .eqIfPresent(StandardCodeItemDO::getDictType, reqVO.getDictType())
                 .eqIfPresent(StandardCodeItemDO::getCodeSetId, reqVO.getCodeSetId())
-                .eqIfPresent(StandardCodeItemDO::getParentId, reqVO.getParentId())
                 .eqIfPresent(StandardCodeItemDO::getStatus, reqVO.getStatus());
-        if (reqVO.getBusinessTime() != null) {
-            wrapper.and(query -> query.isNull(StandardCodeItemDO::getValidFrom)
-                            .or().le(StandardCodeItemDO::getValidFrom, reqVO.getBusinessTime()))
-                    .and(query -> query.isNull(StandardCodeItemDO::getValidTo)
-                            .or().gt(StandardCodeItemDO::getValidTo, reqVO.getBusinessTime()));
-        }
         if ("id".equals(reqVO.getSortField())) {
             wrapper.orderBy(true, "asc".equals(reqVO.getSortOrder()), StandardCodeItemDO::getId);
         } else {

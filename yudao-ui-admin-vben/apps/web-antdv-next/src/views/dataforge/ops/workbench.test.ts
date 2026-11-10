@@ -14,6 +14,22 @@ import Workbench from './workbench.vue';
 
 vi.mock('@vben/access', () => ({ useAccess: () => ({ hasAccessByCodes: () => true }) }));
 vi.mock('@vben/utils', () => ({ downloadFileFromBlobPart: vi.fn(), formatDate: () => '2026-10-22' }));
+vi.mock('#/adapter/vxe-table', () => ({
+  NativeVxeButton: ref(defineComponent({ setup: () => () => h('button') })),
+}));
+vi.mock('#/components/list-pagination/index.vue', () => ({
+  default: defineComponent({ setup: () => () => null }),
+}));
+vi.mock('#/components/tree-toolbar/index.vue', () => ({
+  default: defineComponent({
+    props: { expanded: Boolean, loading: Boolean, refreshLabel: { type: String, default: '刷新树' } },
+    emits: ['toggleExpand', 'refresh'],
+    setup: (props, { emit }) => () => h('div', [
+      h('button', { 'aria-label': props.expanded ? '全部收起' : '全部展开', onClick: () => emit('toggleExpand') }),
+      h('button', { 'aria-label': props.refreshLabel, disabled: props.loading, onClick: () => emit('refresh') }),
+    ]),
+  }),
+}));
 vi.mock('#/api/dataforge/ops', () => ({
   getOpsInstancePage: vi.fn(async () => ({ list: [], total: 0 })),
   getOpsInstanceStatistics: vi.fn(async () => ({ running: 0, todayFailed: 0, todayExecuted: 0, todaySuccessRate: 0, statisticTime: '2026-10-22 19:11:00', importedSnapshot: true })),
@@ -22,9 +38,10 @@ vi.mock('#/api/dataforge/ops', () => ({
 }));
 vi.mock('antdv-next', () => {
   const Container = defineComponent({ setup: (_props, { slots }) => () => h('div', slots.default?.()) });
-  return { Alert: Container, Button: Container, ConfigProvider: Container, DateRangePicker: Container, Dropdown: Container, Input: Container, Pagination: Container, Select: Container, Spin: Container, Tooltip: Container, Modal: Container, Switch: Container, TextArea: Container,
+  return { Alert: Container, Button: Container, ConfigProvider: Container, DateRangePicker: Container, Dropdown: Container, Pagination: Container, Select: Container, Spin: Container, Tooltip: Container, Modal: Container, Switch: Container, TextArea: Container,
     theme: { defaultAlgorithm: {} },
-    Tree: defineComponent({ emits: ['select'], setup: (_props, { emit }) => () => h('button', { class: 'select-category', onClick: () => emit('select', ['source:2']) }, '选择类目') }),
+    Input: defineComponent({ props: { value: { type: String, default: '' } }, emits: ['update:value'], setup: (props, { emit }) => () => h('input', { value: props.value, onInput: (event: Event) => emit('update:value', (event.target as HTMLInputElement).value) }) }),
+    Tree: defineComponent({ props: { expandedKeys: { type: Array, default: () => [] }, treeData: { type: Array, default: () => [] } }, emits: ['select'], setup: (props, { emit }) => () => h('button', { class: 'select-category', 'data-expanded': JSON.stringify(props.expandedKeys), 'data-tree': JSON.stringify(props.treeData), onClick: () => emit('select', ['source:2']) }, '选择类目') }),
   };
 });
 
@@ -36,6 +53,7 @@ async function flush() { await Promise.resolve(); await Promise.resolve(); await
 beforeEach(() => {
   vi.clearAllMocks(); active.value = true; kind.value = 'INTEGRATION';
   vi.mocked(api.getOpsInstancePage).mockResolvedValue({ list: [], total: 0 });
+  vi.mocked(api.getOpsInstanceCategories).mockResolvedValue([{ id: 'source:2', parentId: '0', name: '测试类目' }]);
   host = document.createElement('div'); document.body.append(host);
   app = createApp(defineComponent({ setup: () => () => h(KeepAlive, () => active.value ? h(Workbench, { kind: kind.value }) : null) }));
   app.use(createPinia()); app.mount(host);
@@ -43,6 +61,69 @@ beforeEach(() => {
 afterEach(() => { app.unmount(); host.remove(); });
 
 describe('实例页面缓存筛选一致性', () => {
+  it.each(['INTEGRATION', 'DEVELOPMENT', 'JOB'] as const)('%s 类目工具可展开、收起、刷新并保留搜索前展开状态', async (instanceKind) => {
+    kind.value = instanceKind;
+    await flush();
+    const categories = [
+      { id: 'source:2', parentId: '0', name: '父类目' },
+      { id: 'source:3', parentId: 'source:2', name: '子类目' },
+      { id: 'source:4', parentId: 'source:3', name: '目标叶子' },
+    ];
+    host.querySelector<HTMLElement>('[aria-label="全部收起"]')?.click();
+    await flush();
+    vi.mocked(api.getOpsInstanceCategories).mockResolvedValue(categories);
+    const calls = vi.mocked(api.getOpsInstanceCategories).mock.calls.length;
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新类目"]')?.click();
+    await flush();
+    expect(api.getOpsInstanceCategories).toHaveBeenCalledTimes(calls + 1);
+    expect(host.querySelector('.select-category')?.getAttribute('data-tree')).toContain('目标叶子');
+    host.querySelector<HTMLElement>('[aria-label="全部展开"]')?.click();
+    await flush();
+    expect(JSON.parse(host.querySelector('.select-category')!.getAttribute('data-expanded')!)).toEqual(['__root', 'source:2', 'source:3']);
+    host.querySelector<HTMLElement>('[aria-label="全部收起"]')?.click();
+    await flush();
+    const input = host.querySelector<HTMLInputElement>('[aria-label="搜索实例类目"]')!;
+    input.value = '目标叶子'; input.dispatchEvent(new Event('input'));
+    await flush();
+    expect(JSON.parse(host.querySelector('.select-category')!.getAttribute('data-expanded')!)).toEqual(['__root', 'source:2', 'source:3']);
+    input.value = ''; input.dispatchEvent(new Event('input'));
+    await flush();
+    expect(JSON.parse(host.querySelector('.select-category')!.getAttribute('data-expanded')!)).toEqual([]);
+  });
+  it('类目刷新中切换实例类型时忽略旧响应', async () => {
+    await flush();
+    let finish: (value: OpsInstanceApi.Category[]) => void = () => {};
+    vi.mocked(api.getOpsInstanceCategories).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    host.querySelector<HTMLButtonElement>('[aria-label="刷新类目"]')?.click();
+    await flush();
+    expect(host.querySelector<HTMLButtonElement>('[aria-label="刷新类目"]')?.disabled).toBe(true);
+    vi.mocked(api.getOpsInstanceCategories).mockResolvedValue([{ id: 'new', parentId: '0', name: '新类目' }]);
+    kind.value = 'DEVELOPMENT';
+    await flush();
+    finish([{ id: 'old', parentId: '0', name: '过期类目' }]);
+    await flush();
+    expect(host.querySelector('.select-category')?.getAttribute('data-tree')).toContain('新类目');
+    expect(host.querySelector('.select-category')?.getAttribute('data-tree')).not.toContain('过期类目');
+  });
+  it('显示各类实例列表标题，支持全屏并在切换页面后还原', async () => {
+    await vi.waitFor(() => expect(host.querySelector('[aria-label="全屏表格"]')).not.toBeNull());
+    expect(host.querySelector('.native-list-title')?.textContent).toBe('数据集成实例列表');
+    host.querySelector<HTMLButtonElement>('[aria-label="全屏表格"]')?.click();
+    await flush();
+    expect(host.querySelector('.qo-table-panel')?.classList.contains('is-maximized')).toBe(true);
+    expect(host.querySelector('[aria-label="还原表格"]')).not.toBeNull();
+    active.value = false; await flush(); active.value = true; await flush();
+    expect(host.querySelector('.qo-table-panel')?.classList.contains('is-maximized')).toBe(false);
+    for (const [nextKind, title] of [
+      ['DEVELOPMENT', '数据开发实例列表'],
+      ['FULL_SYNC', '整库同步实例列表'],
+      ['JOB', '作业管理实例列表'],
+    ] as const) {
+      kind.value = nextKind;
+      await flush();
+      expect(host.querySelector('.native-list-title')?.textContent).toBe(title);
+    }
+  });
   it('真实周期类型SCHEDULE在列表显示为定时调度', async () => {
     await flush();
     const scheduled: OpsInstanceApi.Instance = {

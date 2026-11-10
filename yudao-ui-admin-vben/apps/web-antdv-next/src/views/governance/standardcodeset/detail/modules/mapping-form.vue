@@ -22,7 +22,7 @@ import {
   Select,
 } from 'antdv-next';
 
-import { getStandardCodeItemTree } from '#/api/governance/standardcodeitem';
+import { getStandardCodeItemPage } from '#/api/governance/standardcodeitem';
 import {
   createCodeMapping,
   getCodeMapping,
@@ -69,6 +69,15 @@ const request = useObjectRequest(
     fields.codeItemId = undefined;
   },
 );
+async function loadCodeItems(codeSetId: Id) {
+  const result: ItemApi.StandardCodeItem[] = [];
+  const pageSize = 100;
+  for (let pageNo = 1; ; pageNo += 1) {
+    const page = await getStandardCodeItemPage({ codeSetId, pageNo, pageSize });
+    result.push(...page.list);
+    if (page.list.length === 0 || result.length >= page.total) return result;
+  }
+}
 const [Modal, modalApi] = useVbenModal({
   async onOpenChange(open) {
     identity.value = open
@@ -101,25 +110,13 @@ const [Modal, modalApi] = useVbenModal({
           : Promise.resolve(undefined),
         readonly.value
           ? Promise.resolve([])
-          : getStandardCodeItemTree({
-              codeSetId: target.codeSetId,
-              includeHistory: true,
-            }),
+          : loadCodeItems(target.codeSetId),
       ]);
       if (!current()) return;
       if (detail && String(detail.codeSetId) !== String(target.codeSetId))
         throw new Error('代码映射所属代码表不匹配');
       record.value = detail;
-      const seen = new Set<string>();
-      const walk = (rows: ItemApi.StandardCodeItem[]) => {
-        for (const row of rows) {
-          if (row.id === undefined || seen.has(String(row.id))) continue;
-          seen.add(String(row.id));
-          items.value.push(row);
-          if (row.children) walk(row.children);
-        }
-      };
-      walk(codeItems);
+      items.value = codeItems.filter((item) => item.id !== undefined);
       fields.originalValue = detail?.originalValue ?? '';
       fields.codeItemId = detail?.codeItemId;
       ready.value = true;

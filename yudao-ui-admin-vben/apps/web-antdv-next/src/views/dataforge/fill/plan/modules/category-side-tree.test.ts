@@ -119,6 +119,12 @@ async function selectNode(key: string) {
 }
 
 describe('采集计划分类树', () => {
+  it('工具栏不再提供新建分类入口', () => {
+    mountTree();
+    expect(host.querySelector('[aria-label="新建分类"]')).toBeNull();
+    expect(host.querySelector('[aria-label="刷新分类"]')).not.toBeNull();
+  });
+
   it('手动收起后工具栏准确切换，并且全部展开收起保留当前选择', async () => {
     const selected = mountTree();
     await selectNode(CHILD_ID);

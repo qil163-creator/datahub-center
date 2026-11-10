@@ -20,7 +20,7 @@ import {
   Tag,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   deleteBatchFile,
   executeBatchFile,
@@ -157,9 +157,9 @@ const [Grid, gridApi] = useVbenVxeGrid<Api.Task>({
     pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
     toolbarConfig: {
       refresh: true,
-      refreshOptions: { icon: 'bf-icon bf-icon-refresh', queryMethod: load },
+      refreshOptions: { queryMethod: load },
+      search: true,
       custom: true,
-      customOptions: { icon: 'bf-icon bf-icon-grid' },
       zoom: false,
     },
   },
@@ -421,9 +421,7 @@ watch(
           aria-hidden="true"
         ></i>
         {{ entry.title }}：
-        <strong class="text-foreground font-normal"
-          >{{ summary ? String(summary[entry.key]) : '-' }}个</strong
-        >
+        <strong class="text-foreground font-normal">{{ summary ? String(summary[entry.key]) : '-' }}个</strong>
       </span>
       <span class="ml-auto inline-flex flex-wrap items-center gap-2">
         数据统计截止：{{
@@ -444,7 +442,7 @@ watch(
     </div>
     <Grid class="min-h-0 flex-1" table-title="批量文件入库">
       <template #form-reset-before>
-        <Button @click="reset"><ReferenceIcon name="reset" />重置</Button>
+        <Button @click="reset">重置</Button>
       </template>
       <template #form-submit-before>
         <Button
@@ -452,7 +450,7 @@ watch(
           :disabled="!allowed"
           @click="gridApi.formApi.validateAndSubmit()"
         >
-          <ReferenceIcon name="search" />查询
+          查询
         </Button>
       </template>
       <template #toolbar-tools>
@@ -461,16 +459,7 @@ watch(
           type="primary"
           @click="router.push({ name: 'DataforgeBatchFileCreate' })"
         >
-          <ReferenceIcon name="plus" />新增
-        </Button>
-        <Button
-          class="ml-2"
-          shape="circle"
-          aria-label="显示/隐藏查询"
-          title="显示/隐藏查询"
-          @click="gridApi.toggleSearchForm()"
-        >
-          <span class="bf-search-icon" aria-hidden="true"></span>
+          <IconifyIcon :icon="ACTION_ICON.ADD" />新增
         </Button>
       </template>
       <template #top>
@@ -491,8 +480,9 @@ watch(
           <template #action>
             <Button size="small" @click="load">
               <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" /> </template
-              >重试
+                <IconifyIcon icon="lucide:refresh-cw" />
+              </template>
+              重试
             </Button>
           </template>
         </Alert>
@@ -600,11 +590,6 @@ watch(
   padding: 4px;
 }
 
-.batch-file-list :deep(.vxe-tools--operate .bf-icon),
-.batch-file-list :deep(.ant-btn-circle .bf-icon) {
-  margin-right: 0;
-}
-
 .batch-file-list :deep(.bf-empty) {
   display: flex;
   flex-direction: column;
@@ -618,26 +603,6 @@ watch(
   width: 196px;
   height: 112px;
   object-fit: contain;
-}
-
-.bf-search-icon {
-  position: relative;
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 1.4px solid currentcolor;
-  border-radius: 50%;
-}
-
-.bf-search-icon::after {
-  position: absolute;
-  right: -4px;
-  bottom: -2px;
-  width: 5px;
-  height: 1.4px;
-  content: '';
-  background: currentcolor;
-  transform: rotate(48deg);
 }
 
 /* 保留原有 ReferenceIcon 的几何绘制，避免列表换用标准布局后图标丢失。 */

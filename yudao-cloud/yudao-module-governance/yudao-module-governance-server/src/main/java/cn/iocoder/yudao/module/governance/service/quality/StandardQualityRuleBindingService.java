@@ -167,7 +167,7 @@ public class StandardQualityRuleBindingService {
                         || !Objects.equals(element.getLifecycleStatus(), "PUBLISHED")) {
                     throw invalid("落标数据元未发布或已停用：映射 " + mapping.getId());
                 }
-                var compilation = compilationService.compile(element, LocalDateTime.now());
+                var compilation = compilationService.compile(element);
                 if (!compilation.compilable()) {
                     throw invalid("落标数据元当前约束不可用：映射 " + mapping.getId());
                 }

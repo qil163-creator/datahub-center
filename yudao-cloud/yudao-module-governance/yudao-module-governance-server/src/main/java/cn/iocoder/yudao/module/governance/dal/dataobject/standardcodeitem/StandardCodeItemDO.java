@@ -56,17 +56,6 @@ public class StandardCodeItemDO extends BaseDO {
     /** 标准码表编号 */
     private Integer codeSetId;
 
-    /** 父码值编号 */
-    private Integer parentId;
-
-    /** 树层级，根节点为 0，由服务端维护 */
-    private Integer levelNo;
-
-    /** 生效时间（含） */
-    private LocalDateTime validFrom;
-
-    /** 失效时间（不含），为空表示长期有效 */
-    private LocalDateTime validTo;
 
     /**
      * 码值排序

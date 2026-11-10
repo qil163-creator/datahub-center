@@ -4,6 +4,7 @@ import type { OpsInstanceApi } from '#/api/dataforge/ops';
 
 import {
   computed,
+  defineAsyncComponent,
   onActivated,
   onBeforeUnmount,
   onDeactivated,
@@ -77,10 +78,17 @@ import JobForm from './modules/job-form.vue';
 
 import './style.css';
 
+const NativeVxeButton = defineAsyncComponent(async () => {
+  const { NativeVxeButton: button } = await import('#/adapter/vxe-table');
+  if (!button.value) throw new Error('原生表格按钮尚未注册');
+  return button.value;
+});
+
 const router = useRouter();
 const { hasAccessByCodes } = useAccess();
 const can = (action: string) => hasAccessByCodes([`dataforge:job:${action}`]);
 const active = ref(true);
+const tableMaximized = ref(false);
 const access = useAccessStore();
 const scope = computed(() => `${active.value}/${access.accessToken}/${access.refreshToken}/${access.accessCodes.join(',')}`);
 onActivated(() => {
@@ -88,6 +96,7 @@ onActivated(() => {
 });
 onDeactivated(() => {
   active.value = false;
+  tableMaximized.value = false;
 });
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 function stopRefreshTimer() {
@@ -105,6 +114,7 @@ const stats = ref<OpsInstanceApi.Statistics>();
 const loading = ref(false);
 const failed = ref(false);
 const contextFailed = ref(false);
+const contextLoading = ref(false);
 const categorySearch = ref('');
 const categoryCollapsed = ref(false);
 const selectedCategories = ref<string[]>([]);
@@ -194,6 +204,7 @@ function clear() {
   categoryOpen.value = false;
   actionBusy.value = '';
   loading.value = false;
+  contextLoading.value = false;
   formJobId.value = undefined;
   selectedCategories.value = [];
   expandedCategories.value = ['__root'];
@@ -231,6 +242,7 @@ async function load() {
 }
 async function context() {
   const current = contextRequest.begin();
+  contextLoading.value = true;
   contextFailed.value = false;
   try {
     const [cats, people] = await Promise.all([
@@ -243,6 +255,8 @@ async function context() {
     }
   } catch {
     if (current()) contextFailed.value = true;
+  } finally {
+    if (current()) contextLoading.value = false;
   }
 }
 function search() {
@@ -454,7 +468,6 @@ watch(
 </script>
 
 <template>
-  <ConfigProvider :theme="integrationReferenceTheme">
     <Page auto-content-height content-class="p-0">
       <div class="qj-workbench">
         <div v-if="showBanner" class="qj-banner">
@@ -480,16 +493,19 @@ watch(
                 aria-label="搜索作业类目"
                 >
 <template #prefix>
-<ReferenceIcon name="search" />
+<IconifyIcon class="size-4" icon="lucide:search" />
 </template>
 </Input><TreeToolbar
+                compact
                 :expanded="allExpanded"
-                :show-refresh="false"
+                :loading="contextLoading"
+                refresh-label="刷新作业类目"
                 @toggle-expand="
                   expandedCategories = allExpanded
                     ? []
                     : collectExpandableKeys(tree)
                 "
+                @refresh="context"
               />
             </div>
             <Alert v-if="contextFailed" type="error" message="类目加载失败">
@@ -606,31 +622,55 @@ watch(
                     allow-clear
                 /></label>
                 <div class="qj-query">
-                  <Button html-type="submit">
-<ReferenceIcon name="query" />查询
-</Button><Button @click="reset">
-<ReferenceIcon name="reset" />重置
-</Button><Button @click="expandedFilter = !expandedFilter">
-<ReferenceIcon name="expand" />{{
-                      expandedFilter ? '收起' : '展开'
-                    }}
-</Button>
+                  <Button html-type="submit" type="primary">查询</Button>
+                  <Button @click="reset">重置</Button>
+                  <Button
+                    type="link"
+                    :aria-expanded="expandedFilter"
+                    @click="expandedFilter = !expandedFilter"
+                  >
+                    {{ expandedFilter ? '收起' : '展开' }}
+                    <IconifyIcon :icon="expandedFilter ? 'lucide:chevron-up' : 'lucide:chevron-down'" />
+                  </Button>
                 </div>
               </form>
             </section>
-            <section class="qj-table-panel">
+            <section class="qj-table-panel" :class="{ 'is-maximized': tableMaximized }">
               <div class="qj-toolbar">
-                <Button v-if="can('create')" @click="edit()">＋ 新增</Button><span></span><Button
+                <h2 class="qj-table-title">作业列表</h2>
+                <div class="qj-toolbar-tools">
+                <Button v-if="can('create')" type="primary" @click="edit()">
+                  <template #icon><IconifyIcon icon="lucide:plus" /></template>
+                  新增
+                </Button>
+                <NativeVxeButton
+                  circle
+                  icon="vxe-icon-search"
+                  :status="showFilter ? 'primary' : undefined"
+                  :aria-pressed="showFilter"
                   aria-label="显示或隐藏搜索"
+                  title="显示或隐藏搜索"
                   @click="showFilter = !showFilter"
-                  >
-<ReferenceIcon name="search" />
-</Button><Button aria-label="刷新列表" :loading="loading" @click="load">
-<ReferenceIcon name="refresh" />
-</Button><Dropdown :trigger="['click']">
-<Button aria-label="列设置">
-<ReferenceIcon name="grid" />
-</Button><template #popupRender>
+                />
+                <NativeVxeButton
+                  circle
+                  icon="vxe-icon-repeat"
+                  aria-label="刷新列表"
+                  title="刷新列表"
+                  :loading="loading"
+                  @click="load"
+                />
+                <NativeVxeButton
+                  circle
+                  :icon="tableMaximized ? 'vxe-icon-minimize' : 'vxe-icon-fullscreen'"
+                  :aria-label="tableMaximized ? '还原表格' : '全屏表格'"
+                  :aria-pressed="tableMaximized"
+                  :title="tableMaximized ? '还原' : '全屏'"
+                  @click="tableMaximized = !tableMaximized"
+                />
+                <Dropdown :trigger="['click']">
+                  <NativeVxeButton circle icon="vxe-icon-setting" aria-label="列设置" title="列设置" />
+                  <template #popupRender>
 <div class="qj-popup qj-columns">
                       <label
                         v-for="column in columnDefinitions.filter(
@@ -645,6 +685,7 @@ watch(
                     </div>
 </template>
 </Dropdown>
+                </div>
               </div>
               <Alert v-if="failed" type="error" message="作业列表加载失败">
 <template #action>
@@ -822,48 +863,49 @@ watch(
             </section>
           </main>
         </div>
-        <JobForm
-          v-model:open="formOpen"
-          :job-id="formJobId"
-          @success="load"
-          @configure="configure"
-        />
-        <LogModal :open="!!logRow" :row="logRow" @close="logRow = undefined" />
-        <Modal
-          :open="!!cronJob"
-          title="调度周期"
-          :confirm-loading="cronBusy"
-          ok-text="保存"
-          cancel-text="关闭"
-          :mask-closable="false"
-          @cancel="cronJob = undefined"
-          @ok="saveCron"
-          >
-<div class="qj-cron-dialog">
-            <label>调度周期</label><CronTab v-model="cron" week-mode="quartz" /><p class="qj-schedule-hint">周期调度与人工执行使用相同的作业策略，运行状态及排队原因可在运行实例中查看。</p>
-</div>
-</Modal>
-        <Modal
-          v-model:open="categoryOpen"
-          :title="categoryForm.id ? '修改类目' : '新增类目'"
-          :confirm-loading="categoryBusy"
-          ok-text="保存"
-          cancel-text="取消"
-          @ok="saveCategory"
-          >
-<div class="qj-category-dialog">
-            <label>类目名称<Input
-                v-model:value="categoryForm.name"
-                :maxlength="64"
-                aria-label="类目名称"
-/></label><Alert
-              v-if="categoryError"
-              type="error"
-              :message="categoryError"
-            />
-</div>
-</Modal>
+        <ConfigProvider :theme="integrationReferenceTheme">
+          <JobForm
+            v-model:open="formOpen"
+            :job-id="formJobId"
+            @success="load"
+            @configure="configure"
+          />
+          <LogModal :open="!!logRow" :row="logRow" @close="logRow = undefined" />
+          <Modal
+            :open="!!cronJob"
+            title="调度周期"
+            :confirm-loading="cronBusy"
+            ok-text="保存"
+            cancel-text="关闭"
+            :mask-closable="false"
+            @cancel="cronJob = undefined"
+            @ok="saveCron"
+            >
+  <div class="qj-cron-dialog">
+              <label>调度周期</label><CronTab v-model="cron" week-mode="quartz" /><p class="qj-schedule-hint">周期调度与人工执行使用相同的作业策略，运行状态及排队原因可在运行实例中查看。</p>
+  </div>
+  </Modal>
+          <Modal
+            v-model:open="categoryOpen"
+            :title="categoryForm.id ? '修改类目' : '新增类目'"
+            :confirm-loading="categoryBusy"
+            ok-text="保存"
+            cancel-text="取消"
+            @ok="saveCategory"
+            >
+  <div class="qj-category-dialog">
+              <label>类目名称<Input
+                  v-model:value="categoryForm.name"
+                  :maxlength="64"
+                  aria-label="类目名称"
+  /></label><Alert
+                v-if="categoryError"
+                type="error"
+                :message="categoryError"
+              />
+  </div>
+  </Modal>
+        </ConfigProvider>
       </div>
     </Page>
-  </ConfigProvider>
 </template>

@@ -71,7 +71,7 @@ class StandardQualityBindingPostgreSqlTest {
                 var element = StandardElementDO.builder().id(1).name("标识").columnType("VARCHAR")
                         .nullableFlag(0).status((short) 0).lifecycleStatus("PUBLISHED").build();
                 when(elements.selectById(1)).thenReturn(element);
-                var compiled = compilation.compile(element, LocalDateTime.now());
+                var compiled = compilation.compile(element);
                 var constraint = compiled.constraints().getFirst();
                 when(rules.selectListByStandardElementId(1L)).thenReturn(List.of(QualityRuleDO.builder()
                         .id(20L).standardElementId(1L).status(0)
@@ -147,7 +147,7 @@ class StandardQualityBindingPostgreSqlTest {
                         .nullableFlag(0).status((short) 0).lifecycleStatus("PUBLISHED").build();
                 when(elements.selectById(1)).thenReturn(standard);
                 when(elements.selectByIdForUpdate(1)).thenReturn(standard);
-                var compiled = compilation.compile(standard, at);
+                var compiled = compilation.compile(standard);
                 var templates = new ArrayList<QualityRuleDO>();
                 when(rules.insert(any(QualityRuleDO.class))).thenAnswer(call -> {
                     QualityRuleDO rule = call.getArgument(0);

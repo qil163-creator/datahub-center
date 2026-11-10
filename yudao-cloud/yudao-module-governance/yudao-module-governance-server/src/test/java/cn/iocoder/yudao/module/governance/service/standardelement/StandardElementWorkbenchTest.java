@@ -276,7 +276,7 @@ class StandardElementWorkbenchTest {
         when(codeSets.selectById(7)).thenReturn(StandardCodeSetDO.builder().id(7).status((short) 1).build());
         assertThrows(ServiceException.class, () -> service.create(request));
         when(codeSets.selectById(7)).thenReturn(StandardCodeSetDO.builder().id(7).status((short) 0).build());
-        when(items.selectTree(eq(7), any(), eq(false))).thenReturn(List.of(StandardCodeItemDO.builder().value("effective").build()));
+        when(items.selectEnabledByCodeSetId(7)).thenReturn(List.of(StandardCodeItemDO.builder().value("effective").build()));
         service.create(request);
         var saved = ArgumentCaptor.forClass(StandardElementRuleDO.class); verify(rules).insert(saved.capture());
         assertTrue(saved.getValue().getConfigJson().contains("effective"));

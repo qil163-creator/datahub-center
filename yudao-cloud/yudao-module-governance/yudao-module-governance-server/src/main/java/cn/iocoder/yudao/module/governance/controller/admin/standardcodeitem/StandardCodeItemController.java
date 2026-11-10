@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemSaveReqVO;
-import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemTreeReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.standardcodeitem.StandardCodeItemDO;
 import cn.iocoder.yudao.module.governance.service.standardcodeitem.StandardCodeItemService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -144,19 +143,6 @@ public class StandardCodeItemController {
         catalog.fillItems(result.getList());
         return success(result);
     }
-
-    /**
-     * 获得指定码表的层级码值（按层级、排序返回）。
-     */
-    @GetMapping("/tree")
-    @Operation(summary = "获得标准码表层级码值")
-    @PreAuthorize("@ss.hasPermission('governance:standard-code-set:query')")
-    public CommonResult<List<StandardCodeItemRespVO>> getStandardCodeItemTree(
-            @Valid StandardCodeItemTreeReqVO reqVO) {
-        return success(BeanUtils.toBean(standardCodeItemService.getStandardCodeItemTree(reqVO),
-                StandardCodeItemRespVO.class));
-    }
-
 
     /** 只保留本次操作所需的名称、状态与修订，不改变原业务校验。 */
     private void captureAuditContext(Integer id) {

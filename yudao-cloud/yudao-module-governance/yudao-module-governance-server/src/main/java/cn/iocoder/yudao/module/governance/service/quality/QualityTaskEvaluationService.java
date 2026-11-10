@@ -476,7 +476,7 @@ public class QualityTaskEvaluationService {
         if (codeSet == null || !Objects.equals(codeSet.getStatus(), (short) 0)) {
             throw invalid("码表不存在或未启用");
         }
-        var items = codeItems.selectTree(codeSetId, java.time.LocalDateTime.now(), false);
+        var items = codeItems.selectEnabledByCodeSetId(codeSetId);
         if (items.isEmpty() || items.size() > 2000) {
             throw invalid("码表有效值必须在 1 到 2000 项之间");
         }

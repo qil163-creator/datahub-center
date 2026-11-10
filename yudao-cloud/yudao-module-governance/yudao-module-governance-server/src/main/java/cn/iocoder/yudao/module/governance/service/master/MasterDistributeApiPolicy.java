@@ -301,7 +301,7 @@ public class MasterDistributeApiPolicy {
                         throw new IllegalArgumentException("标准字典转换要求字段关联已发布数据元及启用码表");
                     }
                     Map<String, String> dictionary = new HashMap<>();
-                    codeItems.selectTree(codeSet.getId(), LocalDateTime.now(), false)
+                    codeItems.selectEnabledByCodeSetId(codeSet.getId())
                             .forEach(item -> dictionary.put(item.getValue(), item.getLabel()));
                     dictionaries.put(mapping.getSourceField(), Map.copyOf(dictionary));
                 }

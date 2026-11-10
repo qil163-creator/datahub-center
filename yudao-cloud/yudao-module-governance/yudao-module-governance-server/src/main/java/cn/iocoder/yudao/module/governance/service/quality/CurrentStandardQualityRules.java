@@ -58,7 +58,7 @@ public class CurrentStandardQualityRules {
         for (var entry : groups.entrySet()) {
             var element = element(entry.getKey(), false);
             if (!active(element)) continue;
-            var current = compilation.compile(element, LocalDateTime.now());
+            var current = compilation.compile(element);
             if (!current.compilable()) continue;
             for (var constraint : current.constraints()) {
                 var source = choose(entry.getValue(), constraint);
@@ -120,7 +120,7 @@ public class CurrentStandardQualityRules {
             if (rule.getStandardElementId() == null) { result.add(rule); continue; }
             var element = locked.get(rule.getStandardElementId());
             if (!active(element)) throw invalid("所选数据元未发布或已停用");
-            var current = compilation.compile(element, LocalDateTime.now());
+            var current = compilation.compile(element);
             if (!current.compilable()) throw invalid("所选数据元当前约束不可用");
             var constraint = current.constraints().stream().filter(item -> sameType(rule, item)).findFirst().orElse(null);
             if (constraint == null) continue;

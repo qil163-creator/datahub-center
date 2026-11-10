@@ -36,7 +36,7 @@ public class FillPlanCategoryController {
      */
     @GetMapping("/list")
     @Operation(summary = "获得采集计划分类列表，前端构建目录树")
-    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:query')")
+    @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:query', 'dataforge:fill-plan-category:query')")
     public CommonResult<List<FillPlanCategoryRespVO>> getCategoryList() {
         return success(categoryService.getCategoryList());
     }
@@ -50,7 +50,7 @@ public class FillPlanCategoryController {
     @GetMapping("/get")
     @Operation(summary = "获得采集计划分类")
     @Parameter(name = "id", description = "分类编号", required = true)
-    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:query')")
+    @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:query', 'dataforge:fill-plan-category:query')")
     public CommonResult<FillPlanCategoryRespVO> getCategory(@RequestParam("id") @Positive Long id) {
         return success(categoryService.getCategory(id));
     }
@@ -66,7 +66,7 @@ public class FillPlanCategoryController {
             success = "创建了采集计划分类【{{(#reqVO.name) ?: '未设置'}}】，父分类【{{(#reqVO.parentId) ?: '未设置'}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建采集计划分类")
-    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:create')")
+    @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:create', 'dataforge:fill-plan-category:create')")
     public CommonResult<Long> createCategory(@Valid @RequestBody FillPlanCategorySaveReqVO reqVO) {
         return success(categoryService.createCategory(reqVO));
     }
@@ -82,7 +82,7 @@ public class FillPlanCategoryController {
             success = "修改了采集计划分类【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#reqVO.name) ?: '未设置'}}】，父分类【{{(#reqVO.parentId) ?: '未设置'}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新采集计划分类")
-    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:update')")
+    @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:update', 'dataforge:fill-plan-category:update')")
     public CommonResult<Boolean> updateCategory(@Valid @RequestBody FillPlanCategorySaveReqVO reqVO) {
         String operateName = "编号" + reqVO.getId();
         try {
@@ -111,7 +111,7 @@ public class FillPlanCategoryController {
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除采集计划分类，有子分类或计划引用时拒绝")
     @Parameter(name = "id", description = "分类编号", required = true)
-    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:delete')")
+    @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:delete', 'dataforge:fill-plan-category:delete')")
     public CommonResult<Boolean> deleteCategory(@RequestParam("id") @Positive Long id) {
         String operateName = "编号" + id;
         try {

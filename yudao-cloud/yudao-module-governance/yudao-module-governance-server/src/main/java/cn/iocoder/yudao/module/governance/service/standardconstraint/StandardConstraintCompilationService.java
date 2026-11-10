@@ -9,7 +9,6 @@ import cn.iocoder.yudao.module.governance.dal.mysql.standardcodeset.StandardCode
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -34,18 +33,17 @@ public class StandardConstraintCompilationService {
     /**
      * 读取生效的标准代码集和代码项后编译标准数据元约束。
      */
-    public StandardConstraintCompiler.Compilation compile(StandardElementDO element, LocalDateTime effectiveAt) {
-        LocalDateTime at = effectiveAt != null ? effectiveAt : LocalDateTime.now();
+    public StandardConstraintCompiler.Compilation compile(StandardElementDO element) {
         StandardCodeSetDO codeSet = element != null && element.getCodeSetId() != null
                 ? codeSetMapper.selectById(element.getCodeSetId()) : null;
         List<StandardCodeItemDO> items = element != null && element.getCodeSetId() != null
-                ? codeItemMapper.selectTree(element.getCodeSetId(), at, false) : List.of();
-        return compiler.compile(element, codeSet, items, at);
+                ? codeItemMapper.selectEnabledByCodeSetId(element.getCodeSetId()) : List.of();
+        return compiler.compile(element, codeSet, items);
     }
 
     /** 在调用方修改生命周期状态之前，以稳定、结构化错误码按拒绝原则处理失败。 */
     public StandardConstraintCompiler.Compilation requireCompilable(StandardElementDO element) {
-        StandardConstraintCompiler.Compilation result = compile(element, LocalDateTime.now());
+        StandardConstraintCompiler.Compilation result = compile(element);
         if (!result.compilable()) {
             String summary = result.errors().stream()
                     .map(item -> item.code() + ":" + item.message())

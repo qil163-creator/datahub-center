@@ -161,7 +161,7 @@ onActivated(() => {
         v-model:active-key="activeTab"
         :items="tabItems"
         class="standard-detail-tabs"
-        :class="{ 'standard-code-tabs--detail': activeTab === 'detail' }"
+        :class="{ 'standard-code-tabs--compact': ['detail', 'items', 'mapping'].includes(activeTab) }"
       >
         <template #contentRender="{ item }">
           <ItemGrid
@@ -216,7 +216,7 @@ onActivated(() => {
   margin-top: 0;
 }
 
-.standard-code-tabs--detail :deep(.ant-tabs-nav) {
+.standard-code-tabs--compact :deep(.ant-tabs-nav) {
   margin-bottom: 8px;
 }
 

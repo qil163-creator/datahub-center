@@ -33,18 +33,6 @@ public class StandardCodeItemRespVO {
     @Schema(description = "标准码表编号", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer codeSetId;
 
-    @Schema(description = "父码值编号")
-    private Integer parentId;
-
-    @Schema(description = "树层级", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Integer levelNo;
-
-    @Schema(description = "生效时间（含）")
-    private LocalDateTime validFrom;
-
-    @Schema(description = "失效时间（不含）")
-    private LocalDateTime validTo;
-
     @Schema(description = "码值排序", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("排序")
     private Integer sort;

@@ -15,7 +15,6 @@ import {
   Input,
   Menu,
   Spin,
-  Tooltip,
   Tree,
 } from 'antdv-next';
 
@@ -160,17 +159,6 @@ function isCategory(key: number | string) {
           @toggle-expand="toggleExpandAll"
           @refresh="emit('refresh')"
         />
-        <Tooltip v-if="canCreate" title="新建分类">
-          <Button
-            aria-label="新建分类"
-            :disabled="loading"
-            @click="emit('create', '0')"
-          >
-            <template #icon>
-              <IconifyIcon icon="lucide:plus" />
-            </template>
-          </Button>
-        </Tooltip>
       </div>
       <Spin
         :spinning="loading"

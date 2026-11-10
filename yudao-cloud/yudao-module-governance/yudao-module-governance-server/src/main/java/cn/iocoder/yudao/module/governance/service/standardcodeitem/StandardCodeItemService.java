@@ -3,7 +3,6 @@ package cn.iocoder.yudao.module.governance.service.standardcodeitem;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemSaveReqVO;
-import cn.iocoder.yudao.module.governance.controller.admin.standardcodeitem.vo.StandardCodeItemTreeReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.standardcodeitem.StandardCodeItemDO;
 import jakarta.validation.Valid;
 
@@ -61,7 +60,5 @@ public interface StandardCodeItemService {
      */
     PageResult<StandardCodeItemDO> getStandardCodeItemPage(StandardCodeItemPageReqVO pageReqVO);
 
-    /** 获得指定码表的层级码值（按层级、排序返回）。 */
-    List<StandardCodeItemDO> getStandardCodeItemTree(StandardCodeItemTreeReqVO reqVO);
 
 }

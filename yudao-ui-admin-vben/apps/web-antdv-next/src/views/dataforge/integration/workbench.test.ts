@@ -84,6 +84,31 @@ vi.mock('antdv-next', () => {
     message: { info: vi.fn(), success: vi.fn() },
   };
 });
+const gridHarness = vi.hoisted(() => ({
+  options: undefined as any,
+}));
+vi.mock('#/adapter/vxe-table', () => ({
+  NativeVxeButton: defineComponent({
+    props: { disabled: Boolean, loading: Boolean },
+    setup: (props, { slots }) => () =>
+      h('button', { disabled: props.disabled || props.loading }, slots.default?.()),
+  }),
+  useVbenVxeGrid: (options: any) => {
+    gridHarness.options = options.gridOptions;
+    const Grid = defineComponent({
+      props: { tableData: { type: Array, default: () => [] }, tableTitle: { type: String, default: '' } },
+      setup: (props, { slots }) => () => h('div', { class: 'qi-table-toolbar' }, [
+        h('h2', { class: 'native-list-title' }, props.tableTitle),
+        h('div', { class: 'qi-table-tools' }, slots['toolbar-tools']?.()),
+        h('table', { class: 'qi-table' }, [h('tbody', props.tableData.map((row) =>
+          h('tr', ['id', 'info', 'category', 'last', 'control', 'strategy', 'owner', 'actions'].map((name) =>
+            h('td', slots[name]?.({ row }))))))]),
+        slots.pager?.(),
+      ]),
+    });
+    return [Grid, { grid: {}, setLoading: vi.fn() }];
+  },
+}));
 vi.mock('#/components/list-pagination/index.vue', () => ({
   default: defineComponent({ setup: () => () => null }),
 }));
@@ -123,8 +148,8 @@ function task(overrides: Partial<Api.Task> = {}): Api.Task {
     ...overrides,
   };
 }
-async function mount() {
-  app = createApp(Workbench, { mode: 'OFFLINE' });
+async function mount(mode: Api.Mode = 'OFFLINE') {
+  app = createApp(Workbench, { mode });
   app.mount(host);
   for (let count = 0; count < 8; count++) {
     await Promise.resolve();
@@ -147,6 +172,49 @@ afterEach(() => {
   app?.unmount();
   app = undefined;
   host.remove();
+});
+
+describe('集成工作台工具栏', () => {
+  it('复用项目 Grid 工具栏，并启用真实表格的刷新、全屏与列设置', async () => {
+    await mount();
+    expect(host.querySelector('.native-list-title')?.textContent).toBe('离线任务列表');
+    expect(host.querySelector('.qi-table-tools')?.textContent).toContain('新增');
+    expect(gridHarness.options.toolbarConfig.zoom).toBe(true);
+    expect(gridHarness.options.toolbarConfig.custom).toBe(true);
+    expect(gridHarness.options.columns.map((column: { field: string }) => column.field)).toEqual([
+      'id', 'name', 'categoryName', 'lastRunStatus', 'status', 'executionStrategy', 'ownerName', 'actions',
+    ]);
+    const previousLoads = vi.mocked(api.getIntegrationPage).mock.calls.length;
+    await gridHarness.options.toolbarConfig.refreshOptions.queryMethod();
+    expect(vi.mocked(api.getIntegrationPage).mock.calls.length).toBe(previousLoads + 1);
+  });
+
+  it('保留搜索显隐、展开筛选和刷新行为', async () => {
+    await mount();
+    const button = (label: string) => host.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`);
+    expect(host.querySelector('.qi-filters')).not.toBeNull();
+    button('显示或隐藏搜索')?.click();
+    await nextTick();
+    expect(host.querySelector('.qi-filters')).toBeNull();
+    button('显示或隐藏搜索')?.click();
+    await nextTick();
+    const expand = [...host.querySelectorAll('button')].find((item) => item.textContent?.trim() === '展开');
+    expand?.click();
+    await nextTick();
+    expect(host.querySelector('[aria-label="筛选责任人"]')).not.toBeNull();
+    for (let count = 0; count < 8; count++) {
+      await Promise.resolve();
+      await nextTick();
+    }
+
+  });
+
+  it('实时任务不显示策略与调度列', async () => {
+    await mount('REALTIME');
+    expect(host.querySelector('.native-list-title')?.textContent).toBe('实时任务列表');
+    expect(gridHarness.options.columns.map((column: { field: string }) => column.field))
+      .not.toContain('executionStrategy');
+  });
 });
 
 describe('集成工作台运行环境诊断', () => {

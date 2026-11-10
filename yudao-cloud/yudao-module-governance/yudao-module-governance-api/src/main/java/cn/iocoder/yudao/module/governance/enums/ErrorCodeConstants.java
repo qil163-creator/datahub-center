@@ -102,12 +102,6 @@ public interface ErrorCodeConstants {
     ErrorCode STANDARD_CODE_ITEM_CODE_SET_REQUIRED = new ErrorCode(1_800_000_202, "codeSetId 与 dictType 至少填写一个");
     ErrorCode STANDARD_CODE_ITEM_CODE_SET_CONFLICT = new ErrorCode(1_800_000_203,
             "codeSetId 与 dictType 指向的码表不一致");
-    ErrorCode STANDARD_CODE_ITEM_PARENT_NOT_EXISTS = new ErrorCode(1_800_000_204, "父码值不存在");
-    ErrorCode STANDARD_CODE_ITEM_PARENT_CODE_SET_CONFLICT = new ErrorCode(1_800_000_205, "父码值必须属于同一码表");
-    ErrorCode STANDARD_CODE_ITEM_HIERARCHY_CYCLE = new ErrorCode(1_800_000_206, "码值层级不允许自引用或形成循环");
-    ErrorCode STANDARD_CODE_ITEM_HAS_CHILDREN = new ErrorCode(1_800_000_207, "当前码值存在子码值，无法删除");
-    ErrorCode STANDARD_CODE_ITEM_VALIDITY_INVALID = new ErrorCode(1_800_000_209,
-            "码值有效期不合法，validFrom 必须早于 validTo");
 
 
     // ========== 数据标准--标准数据元 1_900_000_100 ==========

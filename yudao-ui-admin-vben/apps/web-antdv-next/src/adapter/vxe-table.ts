@@ -46,10 +46,12 @@ import { useVbenForm } from './form';
 
 // 复用已注册的原生分页，独立列表与 Grid 使用同一组件及主题。
 export const NativeVxePager = shallowRef<Component>();
+export const NativeVxeButton = shallowRef<Component>();
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
     NativeVxePager.value = vxeUI.getComponent('VxePager');
+    NativeVxeButton.value = vxeUI.getComponent('VxeButton');
     vxeUI.setConfig({
       grid: {
         align: 'center',

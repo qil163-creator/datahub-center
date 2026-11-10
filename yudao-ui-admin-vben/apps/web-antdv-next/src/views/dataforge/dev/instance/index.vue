@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
       show-icon
     />
     <Grid
-      class="min-h-0 flex-1"
+      class="dev-instance-grid min-h-0 flex-1"
       table-title="任务实例"
       table-title-help="查看任务执行状态、运行日志与质量验收结果"
     >
@@ -691,6 +691,30 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.dev-instance-grid :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.dev-instance-grid :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.dev-instance-grid :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-thumb) {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.dev-instance-grid :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover) {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports (-moz-appearance: none) {
+  .dev-instance-grid :deep(.vxe-table--scroll-x-handle) {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
+}
+
 .log-summary {
   display: flex;
   gap: 12px;

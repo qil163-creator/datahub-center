@@ -3,6 +3,7 @@ import type { OpsInstanceApi as Api } from '#/api/dataforge/ops';
 
 import {
   computed,
+  defineAsyncComponent,
   onActivated,
   onBeforeUnmount,
   onDeactivated,
@@ -13,6 +14,7 @@ import {
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { downloadFileFromBlobPart, formatDate } from '@vben/utils';
 
@@ -38,6 +40,7 @@ import {
 } from '#/api/dataforge/ops';
 import ListPagination from '#/components/list-pagination/index.vue';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
+import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { collectExpandableKeys, isTreeExpanded } from '../common/tree-expansion';
@@ -64,6 +67,12 @@ import StatusBadge from './modules/status-badge.vue';
 import './style.css';
 
 const props = defineProps<{ kind: Api.Kind }>();
+const NativeVxeButton = defineAsyncComponent(async () => {
+  const { NativeVxeButton: button } = await import('#/adapter/vxe-table');
+  if (!button.value) throw new Error('原生表格按钮尚未注册');
+  return button.value;
+});
+
 const labels = computed(() => kindLabels[props.kind]);
 const compactColumns = computed(() => props.kind === 'JOB');
 const expandedRows = ref<string[]>([]);
@@ -75,11 +84,16 @@ const canDownload = computed(() =>
   hasAccessByCodes(['dataforge:ops-instance:export']),
 );
 const active = ref(true);
+const tableMaximized = ref(false);
 onActivated(() => {
   active.value = true;
 });
 onDeactivated(() => {
   active.value = false;
+  tableMaximized.value = false;
+});
+watch(() => props.kind, () => {
+  tableMaximized.value = false;
 });
 const scope = computed(() =>
   JSON.stringify([
@@ -104,12 +118,16 @@ const contextLoading = ref(false);
 let categoriesLoaded = false;
 const detailLoading = ref(false);
 const detail = ref<Api.Instance>();
+watch(detail, (record) => {
+  if (record) tableMaximized.value = false;
+});
 const logRow = ref<Api.Instance>();
 const downloading = ref('');
 const categorySearch = ref('');
 const categoryCollapsed = ref(false);
 const selectedCategories = ref<string[]>([]);
 const expandedCategories = ref<string[]>(['__root']);
+let expandedBeforeSearch: string[] | undefined;
 const showFilter = ref(true);
 const expandedFilter = ref(false);
 const hiddenColumns = ref<string[]>([]);
@@ -141,6 +159,11 @@ const tree = computed(() =>
   buildCategoryTree(categories.value, props.kind, categorySearch.value),
 );
 const allExpanded = computed(() => isTreeExpanded(tree.value, expandedCategories.value));
+function toggleExpandAll() {
+  expandedCategories.value = allExpanded.value
+    ? []
+    : collectExpandableKeys(tree.value);
+}
 const statuses = computed(() =>
   statusOptions.filter((option) =>
     props.kind === 'INTEGRATION'
@@ -208,6 +231,7 @@ function clear() {
   selectedCategories.value = [];
   applied.categoryId = undefined;
   expandedCategories.value = ['__root'];
+  expandedBeforeSearch = undefined;
 }
 async function load() {
   stopListRefresh();
@@ -384,9 +408,14 @@ function changePage(nextPage: number, nextSize: number) {
   pageSize.value = nextSize;
   void load();
 }
-watch(categorySearch, (value) => {
-  if (!value.trim()) return;
-  expandedCategories.value = collectExpandableKeys(tree.value);
+watch(categorySearch, (value, previous) => {
+  if (value.trim()) {
+    if (!previous.trim()) expandedBeforeSearch = [...expandedCategories.value];
+    expandedCategories.value = collectExpandableKeys(tree.value);
+  } else if (expandedBeforeSearch) {
+    expandedCategories.value = expandedBeforeSearch;
+    expandedBeforeSearch = undefined;
+  }
 });
 watch(
   scope,
@@ -402,15 +431,15 @@ const date = displayDate;
 </script>
 
 <template>
-  <ConfigProvider :theme="integrationReferenceTheme">
     <Page :auto-content-height="!detail" content-class="p-0">
     <div class="qo-workbench" :class="{ 'is-list': !detail, 'is-compact-instance': compactColumns, 'is-full-sync': kind === 'FULL_SYNC' }">
-      <InstanceDetail
-        v-if="detail"
-        :record="detail"
-        @back="closeDetail"
-        @refresh="refreshDetail"
-      />
+      <ConfigProvider v-if="detail" :theme="integrationReferenceTheme">
+        <InstanceDetail
+          :record="detail"
+          @back="closeDetail"
+          @refresh="refreshDetail"
+        />
+      </ConfigProvider>
       <div v-else class="qo-layout" :class="{ 'is-category-collapsed': categoryCollapsed }">
         <aside v-if="kind !== 'FULL_SYNC'" v-show="!categoryCollapsed" class="qo-category-panel">
           <div class="qo-category-tools flex shrink-0 items-center gap-2">
@@ -421,8 +450,16 @@ const date = displayDate;
             allow-clear
             aria-label="搜索实例类目"
             >
-<template #prefix><ReferenceIcon name="search" /></template>
+<template #prefix><IconifyIcon class="size-4" icon="lucide:search" /></template>
 </Input>
+            <TreeToolbar
+              compact
+              :expanded="allExpanded"
+              :loading="contextLoading"
+              refresh-label="刷新类目"
+              @toggle-expand="toggleExpandAll"
+              @refresh="loadContext"
+            />
           </div>
           <Alert v-if="contextFailed" type="error" message="类目加载失败">
 <template #action>
@@ -518,19 +555,17 @@ const date = displayDate;
                 />
               </div>
               <div class="qo-query-buttons">
-                <Button html-type="submit" type="primary">
-<ReferenceIcon name="query" />查询
-</Button><Button @click="reset">
-<ReferenceIcon name="reset" />重置
-</Button><Button
+                <Button html-type="submit" type="primary">查询</Button>
+                <Button @click="reset">重置</Button>
+                <Button
                   v-if="kind === 'DEVELOPMENT'"
-
+                  type="link"
+                  :aria-expanded="expandedFilter"
                   @click="expandedFilter = !expandedFilter"
-                  >
-<ReferenceIcon name="expand" />{{
-                    expandedFilter ? '收起' : '展开'
-                  }}
-</Button>
+                >
+                  {{ expandedFilter ? '收起' : '展开' }}
+                  <IconifyIcon :icon="expandedFilter ? 'lucide:chevron-up' : 'lucide:chevron-down'" />
+                </Button>
               </div>
               <div
                 v-if="kind === 'DEVELOPMENT' && expandedFilter"
@@ -546,30 +581,40 @@ const date = displayDate;
               </div>
             </form>
           </section>
-          <section class="qo-table-panel">
+          <section class="qo-table-panel" :class="{ 'is-maximized': tableMaximized }">
             <div class="qo-table-toolbar">
-              <span class="qo-toolbar-spacer"></span>
+              <h2 class="native-list-title">{{ labels.title }}列表</h2>
               <Tooltip title="搜索">
-<Button
-
+                <NativeVxeButton
+                  circle
+                  icon="vxe-icon-search"
+                  :status="showFilter ? 'primary' : undefined"
+                  :aria-pressed="showFilter"
                   aria-label="显示或隐藏搜索"
                   @click="showFilter = !showFilter"
-                  >
-<ReferenceIcon name="search" />
-</Button>
-</Tooltip><Tooltip title="刷新">
-<Button
-
+                />
+              </Tooltip>
+              <Tooltip title="刷新">
+                <NativeVxeButton
+                  circle
+                  icon="vxe-icon-repeat"
                   aria-label="刷新列表"
                   :loading="loading"
                   @click="load"
-                  >
-<ReferenceIcon name="refresh" />
-</Button>
-</Tooltip><Dropdown :trigger="['click']">
-<Button aria-label="列设置">
-<ReferenceIcon name="grid" />
-</Button><template #popupRender>
+                />
+              </Tooltip>
+              <Tooltip :title="tableMaximized ? '还原' : '全屏'">
+                <NativeVxeButton
+                  circle
+                  :icon="tableMaximized ? 'vxe-icon-minimize' : 'vxe-icon-fullscreen'"
+                  :aria-label="tableMaximized ? '还原表格' : '全屏表格'"
+                  :aria-pressed="tableMaximized"
+                  @click="tableMaximized = !tableMaximized"
+                />
+              </Tooltip>
+              <Dropdown :trigger="['click']">
+                <NativeVxeButton circle icon="vxe-icon-setting" aria-label="列设置" title="列设置" />
+                <template #popupRender>
 <div class="qo-column-menu">
                     <label v-for="column in columns.filter((item) => allowedColumn(item.key))" :key="column.key"><input
                         type="checkbox"
@@ -734,8 +779,9 @@ type="link"
           </section>
         </main>
       </div>
-      <LogModal :row="logRow" :open="!!logRow" @close="logRow = undefined" />
+      <ConfigProvider :theme="integrationReferenceTheme">
+        <LogModal :row="logRow" :open="!!logRow" @close="logRow = undefined" />
+      </ConfigProvider>
     </div>
     </Page>
-  </ConfigProvider>
 </template>

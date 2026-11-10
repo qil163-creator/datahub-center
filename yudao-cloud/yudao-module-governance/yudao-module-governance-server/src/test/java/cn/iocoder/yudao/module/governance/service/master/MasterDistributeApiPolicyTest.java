@@ -75,7 +75,7 @@ class MasterDistributeApiPolicyTest {
         assertThrows(IllegalArgumentException.class,()->policy.plan(1L,config));
         var element=new StandardElementDO();element.setCodeSetId(20);element.setLifecycleStatus("PUBLISHED");when(elements.selectById(10L)).thenReturn(element);
         var set=new StandardCodeSetDO();set.setId(20);set.setStatus((short)0);when(sets.selectById(20)).thenReturn(set);
-        var item=new StandardCodeItemDO();item.setValue("1");item.setLabel("启用");when(items.selectTree(eq(20),any(),eq(false))).thenReturn(List.of(item));
+        var item=new StandardCodeItemDO();item.setValue("1");item.setLabel("启用");when(items.selectEnabledByCodeSetId(20)).thenReturn(List.of(item));
         var plan=policy.plan(1L,config);assertEquals("启用",plan.map(Map.of("active",1)).get("active_name"));
         assertThrows(IllegalArgumentException.class,()->plan.map(Map.of("active",2)));
         set.setStatus((short)1);assertThrows(IllegalArgumentException.class,()->policy.plan(1L,config));

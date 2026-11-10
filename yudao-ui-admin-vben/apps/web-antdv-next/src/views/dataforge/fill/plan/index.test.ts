@@ -1,7 +1,7 @@
 /* eslint-disable vue/one-component-per-file -- 页面、表单与共享布局桩用于同一组生命周期测试。 */
 import type { App, SetupContext } from 'vue';
 
-import { createApp, defineComponent, h, nextTick, reactive, ref } from 'vue';
+import { createApp, defineComponent, h, KeepAlive, nextTick, reactive, ref } from 'vue';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -344,5 +344,30 @@ describe('采集计划编辑初始化失败', () => {
     expect(close).toHaveBeenCalledOnce();
     expect(harness.setValues).not.toHaveBeenCalled();
     expect(harness.errors).toEqual([]);
+  });
+});
+
+describe('采集计划分类同步', () => {
+  it('从类目管理返回缓存页面时重新加载分类', async () => {
+    const visible = ref(true);
+    harness.getPlanCategoryList
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: '42', parentId: '0', name: '新增类目', sort: 0 }]);
+    app = createApp(defineComponent({
+      setup: () => () => h(KeepAlive, null, { default: () => visible.value ? h(Plan) : null }),
+    }));
+    app.mount(host);
+    await nextTick();
+    await Promise.resolve();
+    expect(harness.getPlanCategoryList).toHaveBeenCalledTimes(1);
+
+    visible.value = false;
+    await nextTick();
+    visible.value = true;
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+    expect(harness.getPlanCategoryList).toHaveBeenCalledTimes(2);
+    expect(host.querySelector('[data-category-items]')!.textContent).toContain('新增类目');
   });
 });

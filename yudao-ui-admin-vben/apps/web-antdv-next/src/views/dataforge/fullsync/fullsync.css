@@ -53,7 +53,7 @@
   align-items: center;
 }
 
-.qdata-fullsync .ant-btn:not(.detail-back-button) {
+.qdata-fullsync:not(.fs-list-page) .ant-btn:not(.detail-back-button) {
   display: inline-flex;
   gap: 5px;
   align-items: center;
@@ -65,15 +65,15 @@
   box-shadow: none;
 }
 
-.qdata-fullsync .fs-light-button {
+.qdata-fullsync:not(.fs-list-page) .fs-light-button {
   color: var(--fs-primary);
   background: #f0f6ff;
   border-color: #a0baff;
 }
 
-.qdata-fullsync .ant-input,
-.qdata-fullsync .ant-input-affix-wrapper,
-.qdata-fullsync .ant-select-selector {
+.qdata-fullsync:not(.fs-list-page) .ant-input,
+.qdata-fullsync:not(.fs-list-page) .ant-input-affix-wrapper,
+.qdata-fullsync:not(.fs-list-page) .ant-select-selector {
   border-color: #dcdfe6;
   border-radius: 2px;
 }
@@ -86,13 +86,65 @@
 .fs-toolbar {
   display: flex;
   gap: 16px;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.fs-toolbar > .fs-toolbar-group:last-child .ant-btn {
-  width: 32px;
-  padding: 0;
+.fs-toolbar .fs-list-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fs-list-page .fs-list-panel.is-maximized {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .fs-toolbar {
+  flex: none;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .fs-list-table,
+.fs-list-page .fs-list-panel.is-maximized .fs-list-table > .ant-spin,
+.fs-list-page .fs-list-panel.is-maximized .ant-spin-nested-loading,
+.fs-list-page .fs-list-panel.is-maximized .ant-spin-container,
+.fs-list-page .fs-list-panel.is-maximized .ant-table,
+.fs-list-page .fs-list-panel.is-maximized .ant-table-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .ant-table-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto !important;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .ant-table-content > table {
+  height: 100%;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .ant-table-placeholder > td {
+  height: 100%;
+}
+
+.fs-list-page .fs-list-panel.is-maximized .ant-table-empty .fs-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
 }
 
 .fs-list-table .ant-table {
@@ -103,6 +155,30 @@
   overflow: hidden;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+}
+
+.fs-list-page .fs-list-table .ant-table-content::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+.fs-list-page .fs-list-table .ant-table-content::-webkit-scrollbar-track:horizontal {
+  background: transparent;
+}
+
+.fs-list-page .fs-list-table .ant-table-content::-webkit-scrollbar-thumb:horizontal {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.fs-list-page .fs-list-table .ant-table-content::-webkit-scrollbar-thumb:horizontal:hover {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .fs-list-page .fs-list-table .ant-table-content {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
 }
 
 .fs-list-table .ant-table-thead > tr > th {
@@ -436,4 +512,36 @@
     flex-wrap: wrap;
   }
 
+}
+
+/* 列表使用项目主题，保留原有区域与表格尺寸。 */
+.fs-list-page {
+  --fs-primary: hsl(var(--primary));
+
+  color: hsl(var(--foreground));
+}
+
+.fs-list-page .fs-panel {
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+
+.fs-list-page .fs-search label,
+.fs-list-page .fs-list-table .ant-table {
+  color: hsl(var(--foreground));
+}
+
+.fs-list-page .fs-secondary,
+.fs-list-page .fs-empty {
+  color: hsl(var(--muted-foreground));
+}
+
+.fs-list-page .fs-db-name {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.fs-list-page .fs-db-name.target {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 8%);
 }

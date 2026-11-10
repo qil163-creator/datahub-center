@@ -140,7 +140,7 @@ class MetaCollectedNamespacePostgreSqlTest {
             var standard = StandardElementDO.builder().code("DE_NAMESPACE").name("标识").engName("person_code")
                     .columnType("VARCHAR").nullableFlag(0).lifecycleStatus("PUBLISHED").status((short) 0).build();
             elements.insert(standard);
-            var compiled = compilation.compile(standard, LocalDateTime.now());
+            var compiled = compilation.compile(standard);
             var materializer = new StandardQualityRuleMaterializer(rules);
             materializer.materialize(standard, compiled);
             var storedTemplates = rules.selectListByStandardElementId(standard.getId().longValue());

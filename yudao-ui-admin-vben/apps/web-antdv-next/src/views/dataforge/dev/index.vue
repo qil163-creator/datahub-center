@@ -36,7 +36,7 @@ import {
 } from 'antdv-next';
 import dayjs from 'dayjs';
 
-import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ACTION_ICON, NativeVxeButton, useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
 import {
   deleteDevDir,
@@ -542,14 +542,6 @@ onBeforeUnmount(() => {
           class="development-directory"
         >
           <div class="directory-header">
-            <div class="directory-tools">
-              <TreeToolbar
-                :expanded="allExpanded"
-                :loading="treeLoading"
-                @toggle-expand="toggleExpandAll"
-                @refresh="loadTree"
-              />
-            </div>
             <Input
               v-model:value="dirKeyword"
               class="directory-search"
@@ -558,6 +550,15 @@ onBeforeUnmount(() => {
             >
               <template #prefix><IconifyIcon icon="lucide:search" /></template>
             </Input>
+            <div class="directory-tools">
+              <TreeToolbar
+                compact
+                :expanded="allExpanded"
+                :loading="treeLoading"
+                @toggle-expand="toggleExpandAll"
+                @refresh="loadTree"
+              />
+            </div>
           </div>
           <Tree
             v-model:expanded-keys="expandedKeys"
@@ -735,32 +736,23 @@ onBeforeUnmount(() => {
               />
             </label>
             <div class="development-search-actions">
-              <Button class="reference-button" @click="gridApi.reload()">
-                <img
-                  class="reference-icon"
-                  :src="DEV_REFERENCE_ASSETS.query"
-                  alt=""
-                />
+              <Button type="primary" @click="gridApi.reload()">
                 查询
               </Button>
               <Button @click="resetSearch">
-                <img
-                  class="reference-icon"
-                  :src="DEV_REFERENCE_ASSETS.reset"
-                  alt=""
-                />
                 重置
               </Button>
               <Button
-                class="reference-button"
+                type="link"
+                :aria-expanded="expandedSearch"
                 @click="expandedSearch = !expandedSearch"
               >
                 {{ expandedSearch ? '收起' : '展开' }}
                 <IconifyIcon
                   :icon="
                     expandedSearch
-                      ? 'lucide:chevrons-up'
-                      : 'lucide:chevrons-down'
+                      ? 'lucide:chevron-up'
+                      : 'lucide:chevron-down'
                   "
                 />
               </Button>
@@ -789,26 +781,24 @@ onBeforeUnmount(() => {
               <template #toolbar-actions>
                 <Button
                   v-if="canSave"
-                  class="reference-button"
+                  type="primary"
                   @click="taskInfo?.open(undefined, dirId)"
                 >
-                  <IconifyIcon icon="lucide:plus" />
+                  <IconifyIcon :icon="ACTION_ICON.ADD" />
                   新增
                 </Button>
               </template>
               <template #toolbar-tools>
-                <Button
-                  class="table-tool"
+                <NativeVxeButton
+                  circle
+                  class="ml-2"
+                  icon="vxe-icon-search"
+                  :status="showFilters ? 'primary' : undefined"
+                  title="搜索"
                   aria-label="显示或隐藏筛选"
                   :aria-pressed="showFilters"
                   @click="showFilters = !showFilters"
-                >
-                  <img
-                    class="reference-icon"
-                    :src="DEV_REFERENCE_ASSETS.search"
-                    alt=""
-                  />
-                </Button>
+                />
               </template>
               <template #taskInfo="{ row }">
                 <div class="task-information">
@@ -975,7 +965,7 @@ onBeforeUnmount(() => {
                   </Tooltip>
                 </div>
                 <div v-else>
-                  <Tag class="latest-status idle-status">
+                  <Tag class="latest-status" color="purple">
                     <template #icon>
                       <IconifyIcon icon="lucide:circle-minus" />
                     </template>
@@ -1147,9 +1137,31 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.development-page {
-  --dev-primary: #2d63ff;
+.development-table :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar) {
+  height: 6px;
+}
 
+.development-table :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.development-table :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-thumb) {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.development-table :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover) {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports (-moz-appearance: none) {
+  .development-table :deep(.vxe-table--scroll-x-handle) {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+.development-page {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1172,15 +1184,15 @@ onBeforeUnmount(() => {
   min-width: 0;
   padding: 10px;
   overflow: hidden;
-  background: hsl(var(--background));
-  border-radius: 2px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .directory-header {
   display: flex;
   flex-shrink: 0;
-  flex-direction: column;
   gap: 6px;
+  align-items: center;
 }
 
 .directory-tools {
@@ -1188,14 +1200,9 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 
-.directory-tools :deep(.ant-btn) {
-  width: 24px;
-  min-width: 24px;
-  height: 24px;
-}
-
 .directory-search {
-  width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   height: 32px;
 }
 
@@ -1207,17 +1214,12 @@ onBeforeUnmount(() => {
   width: 16px;
   min-width: 16px;
   padding: 0;
-  color: #a4a7ae;
+  color: hsl(var(--muted-foreground));
   transform: translateY(-50%);
 }
 
 .directory-collapsed .directory-toggle {
   left: -14px;
-}
-
-.development-directory :deep(.ant-input-affix-wrapper) {
-  flex-shrink: 0;
-  border-radius: 1px;
 }
 
 .development-directory :deep(.ant-tree) {
@@ -1293,9 +1295,9 @@ onBeforeUnmount(() => {
   min-height: 44px;
   padding: 10px 12px;
   font-size: 14px;
-  color: #909399;
-  background: hsl(var(--background));
-  border-radius: 2px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .development-statistics > span {
@@ -1334,7 +1336,7 @@ onBeforeUnmount(() => {
 }
 
 .statistics-time :deep(.ant-btn) {
-  color: var(--dev-primary);
+  color: hsl(var(--primary));
 }
 
 .development-search {
@@ -1345,8 +1347,8 @@ onBeforeUnmount(() => {
   align-items: center;
   min-height: 62px;
   padding: 15px;
-  background: hsl(var(--background));
-  border-radius: 2px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .development-search label {
@@ -1364,7 +1366,6 @@ onBeforeUnmount(() => {
   flex: 1;
   width: 100%;
   min-width: 0;
-  border-radius: 1px;
 }
 
 .development-search-actions {
@@ -1372,13 +1373,6 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 12px;
   justify-content: flex-end;
-}
-
-.reference-button {
-  color: var(--dev-primary);
-  background: #f0f6ff;
-  border-color: #a2b8ff;
-  border-radius: 1px;
 }
 
 .reference-icon {
@@ -1392,8 +1386,8 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 280px;
   overflow: hidden;
-  background: hsl(var(--background));
-  border-radius: 2px;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 .development-table :deep(.vxe-grid) {
@@ -1409,21 +1403,10 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.table-tool,
-.development-table :deep(.vxe-toolbar--tools .vxe-button) {
-  width: 32px;
-  height: 32px;
-  margin-left: 0;
-  border: 1px solid hsl(var(--border));
-  border-radius: 1px;
-}
-
 .development-table :deep(.vxe-header--column) {
   height: 36px;
   font-size: 12px;
   font-weight: 400;
-  color: #686b70;
-  background: hsl(var(--muted) / 65%);
 }
 
 .development-table :deep(.vxe-body--column) {
@@ -1431,14 +1414,6 @@ onBeforeUnmount(() => {
   padding-block: 10px;
   font-size: 12px;
   border-bottom: 1px solid hsl(var(--border));
-}
-
-.development-table :deep(.vxe-body--row:nth-child(even)) {
-  background: hsl(var(--muted) / 25%);
-}
-
-.development-table :deep(.vxe-body--row.row--hover > .vxe-body--column) {
-  background: #f8f9fb;
 }
 
 .task-heading {
@@ -1455,7 +1430,7 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   font-size: 12px;
   font-weight: 400;
-  color: var(--dev-primary);
+  color: hsl(var(--primary));
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
@@ -1465,7 +1440,7 @@ onBeforeUnmount(() => {
 
 .task-name:focus-visible,
 .latest-record-link:focus-visible {
-  outline: 2px solid var(--dev-primary);
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
 
@@ -1477,11 +1452,7 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   font-size: 12px;
   line-height: 20px;
-  color: var(--dev-primary);
   white-space: nowrap;
-  background: #edf6ff;
-  border: 0;
-  border-radius: 1px;
 }
 
 .task-information p {
@@ -1492,7 +1463,7 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 2;
   font-size: 12px;
   line-height: 18px;
-  color: #999;
+  color: hsl(var(--muted-foreground));
   overflow-wrap: anywhere;
   white-space: normal;
   -webkit-box-orient: vertical;
@@ -1524,20 +1495,16 @@ onBeforeUnmount(() => {
   height: 16px;
 }
 
-.task-controls :deep(.ant-switch-checked) {
-  background: var(--dev-primary);
-}
-
 .task-schedule > span {
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #686b70;
+  color: hsl(var(--muted-foreground));
   white-space: nowrap;
 }
 
 .task-schedule :deep(svg) {
   flex-shrink: 0;
-  color: var(--dev-primary);
+  color: hsl(var(--primary));
 }
 
 .latest-record-link {
@@ -1556,18 +1523,11 @@ onBeforeUnmount(() => {
   margin-inline-end: 0;
   font-size: 12px;
   line-height: 20px;
-  border: 0;
-  border-radius: 1px;
 }
 
 .latest-status :deep(svg) {
   width: 12px;
   height: 12px;
-}
-
-.idle-status {
-  color: #9b37da;
-  background: #f4e9fc;
 }
 
 .latest-time {
@@ -1576,7 +1536,7 @@ onBeforeUnmount(() => {
   align-items: center;
   margin: 6px 0 0;
   font-size: 12px;
-  color: #687e9d;
+  color: hsl(var(--muted-foreground));
   white-space: nowrap;
 }
 
@@ -1602,7 +1562,6 @@ onBeforeUnmount(() => {
   gap: 5px;
   padding-inline: 5px;
   font-size: 14px;
-  color: var(--dev-primary);
 }
 
 .task-actions :deep(svg) {

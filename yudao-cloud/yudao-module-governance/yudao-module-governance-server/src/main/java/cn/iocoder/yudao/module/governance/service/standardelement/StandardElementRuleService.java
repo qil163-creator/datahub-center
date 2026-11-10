@@ -343,7 +343,7 @@ public class StandardElementRuleService {
                 if (codeSet == null || !Objects.equals(codeSet.getStatus(), (short) 0)) {
                     throw invalid("代码表不存在或已停用");
                 }
-                var values = codeItems.selectTree(id, java.time.LocalDateTime.now(), false);
+                var values = codeItems.selectEnabledByCodeSetId(id);
                 if (values.isEmpty() || values.size() > 2000) {
                     throw invalid("代码表有效码值必须为 1 至 2000 项");
                 }

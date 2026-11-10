@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -80,17 +79,15 @@ public class StandardConstraintCompiler {
 
     /** 使用已解析的代码集快照编译当前元素定义。 */
     public Compilation compile(StandardElementDO element, StandardCodeSetDO codeSet,
-            List<StandardCodeItemDO> codeItems, LocalDateTime effectiveAt) {
-        return compileCurrent(element, codeSet, codeItems,
-                effectiveAt != null ? effectiveAt : LocalDateTime.now());
+            List<StandardCodeItemDO> codeItems) {
+        return compileCurrent(element, codeSet, codeItems);
     }
 
     /**
      * 按标准数据元约束配置生成结构化约束定义，拒绝不支持或无效的配置。
      */
     private Compilation compileCurrent(StandardElementDO element,
-            StandardCodeSetDO codeSet, List<StandardCodeItemDO> codeItems,
-            LocalDateTime effectiveAt) {
+            StandardCodeSetDO codeSet, List<StandardCodeItemDO> codeItems) {
         if (element == null) {
             return new Compilation(List.of(),
                     List.of(error("DEFINITION", "ELEMENT_MISSING", "标准数据元不能为空", null)));
@@ -124,7 +121,7 @@ public class StandardConstraintCompiler {
         }
 
         compilePrecisionScale(element, constraints, errors);
-        compileEnum(element, codeSet, codeItems, effectiveAt, constraints, errors);
+        compileEnum(element, codeSet, codeItems, constraints, errors);
         compileRange(element, constraints, errors);
         compileFormat(element, constraints, errors);
 
@@ -162,7 +159,7 @@ public class StandardConstraintCompiler {
      * 编译标准约束编译器的枚举。
      */
     private static void compileEnum(StandardElementDO element, StandardCodeSetDO codeSet,
-            List<StandardCodeItemDO> codeItems, LocalDateTime effectiveAt,
+            List<StandardCodeItemDO> codeItems,
             List<CompiledConstraint> constraints,
             List<CompileError> errors) {
         if (element.getCodeSetId() == null) {
@@ -180,9 +177,7 @@ public class StandardConstraintCompiler {
         if (codeItems != null) {
             for (StandardCodeItemDO item : codeItems) {
                 if (item == null || !Objects.equals(item.getCodeSetId(), element.getCodeSetId())
-                        || !Objects.equals(item.getStatus(), (short) 0)
-                        || (item.getValidFrom() != null && item.getValidFrom().isAfter(effectiveAt))
-                        || (item.getValidTo() != null && !item.getValidTo().isAfter(effectiveAt))) {
+                        || !Objects.equals(item.getStatus(), (short) 0)) {
                     continue;
                 }
                 String value = canonicalText(item.getValue());
@@ -192,7 +187,7 @@ public class StandardConstraintCompiler {
             }
         }
         if (values.isEmpty()) {
-            errors.add(error(ENUM, "EMPTY_CODE_SET", "关联码表在当前生效时间没有可用码值",
+            errors.add(error(ENUM, "EMPTY_CODE_SET", "关联码表没有启用的码值",
                     element.getCodeSetId()));
             return;
         }

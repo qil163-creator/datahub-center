@@ -338,7 +338,6 @@ public class StandardCodeSetServiceImpl implements StandardCodeSetService {
             standardCodeItemMapper.insert(StandardCodeItemDO.builder()
                     .codeSetId(codeSet.getId())
                     .dictType(type)
-                    .levelNo(0)
                     .value(value)
                     .label(importVO.getLabel().trim())
                     .sort(importVO.getSort() != null ? importVO.getSort() : 0)

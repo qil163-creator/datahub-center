@@ -36,7 +36,7 @@ const props = defineProps({
   shortcuts: { type: Array as PropType<ShortcutsType[]>, default: () => [] },
   weekMode: { type: String as PropType<WeekMode>, default: 'quartz' },
   modalClass: { type: String, default: undefined },
-  modalWidth: { type: [Number, String], default: 1120 },
+  modalWidth: { type: [Number, String], default: 960 },
 });
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const attrs = useAttrs();
@@ -285,7 +285,7 @@ function submit() {
     :width="modalWidth"
     :root-class="modalClass"
     :style="{ top: '4vh', maxWidth: 'calc(100vw - 32px)' }"
-    :styles="{ body: { paddingTop: '20px' } }"
+    :styles="{ body: { maxHeight: 'calc(92vh - 120px)', overflowY: 'auto', paddingTop: '12px' } }"
     destroy-on-hidden
     title="Cron表达式生成器"
   >
@@ -512,7 +512,7 @@ function submit() {
 .cron-generator {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 18px;
   color: hsl(var(--foreground));
 }
 
@@ -527,8 +527,8 @@ function submit() {
 
 .cron-tabs :deep(.ant-tabs-tab) {
   min-width: 72px;
-  padding: 14px 24px;
-  font-size: 15px;
+  padding: 10px 20px;
+  font-size: 14px;
   border-right: 1px solid transparent;
   border-left: 1px solid transparent;
 }
@@ -545,9 +545,9 @@ function submit() {
 .cron-rules {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  min-height: 244px;
-  padding: 24px 20px 28px;
+  gap: 12px;
+  min-height: 200px;
+  padding: 16px 20px 20px;
   font-size: 14px;
 }
 
@@ -580,7 +580,7 @@ function submit() {
 
 .cron-expression {
   min-width: 0;
-  padding: 14px;
+  padding: 10px 12px;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
@@ -609,14 +609,13 @@ function submit() {
 }
 
 .cron-expression-grid :deep(.ant-input) {
-  padding: 8px 6px;
+  padding: 5px 6px;
   text-align: center;
   border-radius: var(--radius);
 }
 
 .cron-preview-panel {
-  min-height: 202px;
-  padding: 22px 16px;
+  padding: 14px 16px;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
@@ -637,7 +636,7 @@ function submit() {
   padding-left: 24px;
   margin: 0;
   font-variant-numeric: tabular-nums;
-  line-height: 2;
+  line-height: 1.8;
   list-style: disc;
 }
 
@@ -649,7 +648,7 @@ function submit() {
   display: flex;
   gap: 12px;
   justify-content: center;
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
 .cron-footer :deep(.ant-btn) {

@@ -330,6 +330,57 @@
   border-radius: var(--radius);
 }
 
+.qi-native-grid {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.qi-native-grid p {
+  margin: 0;
+}
+
+.qi-native-grid .qi-description {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.qi-native-grid .qi-last-time {
+  display: flex;
+  gap: 7px;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.qi-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar {
+  height: 6px;
+}
+
+.qi-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qi-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.qi-native-grid .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 30%);
+}
+
+.qi-workbench.is-list .qi-table-panel.is-maximized {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  padding: 15px;
+  border-radius: 0;
+}
+
 .qi-table-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -353,6 +404,30 @@
   overflow: auto;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+}
+
+.qi-workbench.is-list .qi-table-scroll::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+.qi-workbench.is-list .qi-table-scroll::-webkit-scrollbar-track:horizontal {
+  background: transparent;
+}
+
+.qi-workbench.is-list .qi-table-scroll::-webkit-scrollbar-thumb:horizontal {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.qi-workbench.is-list .qi-table-scroll::-webkit-scrollbar-thumb:horizontal:hover {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports (-moz-appearance: none) {
+  .qi-workbench.is-list .qi-table-scroll {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
 }
 
 .qi-table {
@@ -443,7 +518,7 @@
   right: 0;
   z-index: 1;
   text-align: center;
-  background: white;
+  background: hsl(var(--card));
   box-shadow: -8px 0 10px -8px hsl(var(--foreground) / 12%);
 }
 
@@ -656,11 +731,6 @@
 .qi-more-menu .ant-dropdown-menu-item {
   min-height: 25px;
   font-size: 12px;
-  color: #5271ff;
-}
-
-.qi-more-menu .ant-dropdown-menu-item-danger {
-  color: #ef7c7a;
 }
 
 .qi-more-menu .ant-dropdown-menu-item-disabled {
@@ -1569,6 +1639,7 @@
 .qi-table-toolbar .native-list-title {
   flex: 1;
   margin: 0;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1581,6 +1652,12 @@
 }
 
 .qi-workbench.is-list {
+  --background: inherit;
+  --foreground: inherit;
+  --muted: inherit;
+  --muted-foreground: inherit;
+  --radius: inherit;
+
   display: flex;
   flex-direction: column;
   gap: var(--qi-business-gutter);
@@ -1588,7 +1665,8 @@
   min-height: 0;
   padding: var(--qi-business-gutter);
   overflow: hidden;
-  background: #f0f2f5;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background-deep));
 }
 
 .qi-workbench.is-list .qi-main-layout {
@@ -1681,10 +1759,10 @@
   align-items: center;
   min-height: 64px;
   padding: 9px 20px 9px 10px;
-  background: #fffcf6 url('/assets/qdata-integration/help-banner.png') right
-    center / auto 100% no-repeat;
-  border: 1px solid #ffe0a3;
-  border-radius: 2px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
 }
 
 .qi-guide-icon {
@@ -1711,7 +1789,7 @@
 }
 
 .qi-guide-text p {
-  color: #828282;
+  color: hsl(var(--muted-foreground));
 }
 
 .qi-guide-actions {
@@ -1724,15 +1802,6 @@
   height: 25px;
   padding-inline: 12px;
   font-size: 12px;
-  color: #e9a035;
-  background: #fffaf1;
-  border-color: #f2ce96;
-}
-
-.qi-guide-actions .ant-btn-primary {
-  color: white;
-  background: #eaa234;
-  border-color: #eaa234;
 }
 
 .qi-category-panel,
@@ -1749,28 +1818,6 @@
 .qi-category-panel .qi-icon {
   width: 16px;
   height: 16px;
-}
-
-.qi-tree-tools {
-  display: flex;
-  flex: none;
-  gap: 3px;
-}
-
-.qi-tree-tools button {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 28px;
-  padding: 0;
-  background: none;
-  border: 0;
-}
-
-.qi-tree-tools .qi-icon {
-  width: 14px;
-  height: 14px;
-  margin: 0;
 }
 
 .qi-filter-date {
@@ -1805,23 +1852,6 @@
 
 .qi-workbench .ant-btn-link:disabled {
   color: #adc1ff;
-}
-
-.qi-table-tools > .ant-btn,
-.qi-table-tools .ant-dropdown-trigger {
-  width: 32px;
-  padding: 0;
-}
-
-.qi-table-tools .qi-icon {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-}
-
-.qi-table-tools > .ant-btn:first-child .qi-icon,
-.qi-table-tools > .ant-btn:nth-child(2) .qi-icon {
-  filter: grayscale(1) brightness(0.4);
 }
 
 .qi-workbench.is-list thead .qi-action-cell,
@@ -2037,4 +2067,70 @@
   .qi-scheduler-cards {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* 列表区域沿用项目主题，保持原有布局和操作。 */
+.qi-workbench.is-list .qi-category-panel,
+.qi-workbench.is-list .qi-statistics,
+.qi-workbench.is-list .qi-filters,
+.qi-workbench.is-list .qi-table-panel {
+  background: hsl(var(--card));
+}
+
+.qi-workbench.is-list .qi-category-panel .ant-tree,
+.qi-workbench.is-list .qi-filter-item label,
+.qi-workbench.is-list .qi-switch-row {
+  color: hsl(var(--foreground));
+}
+
+.qi-workbench.is-list .qi-category-panel .ant-tree-node-selected {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 10%) !important;
+}
+
+.qi-workbench.is-list .qi-task-name,
+.qi-workbench.is-list .qi-link,
+.qi-workbench.is-list .ant-btn-link {
+  color: hsl(var(--primary));
+}
+
+.qi-workbench.is-list .qi-link:disabled,
+.qi-workbench.is-list .ant-btn-link:disabled {
+  color: hsl(var(--muted-foreground) / 50%);
+}
+
+.qi-workbench.is-list .qi-category-tag {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 8%);
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.qi-workbench.is-list .qi-table tbody tr:hover,
+.qi-workbench.is-list tbody tr:hover .qi-action-cell {
+  background: hsl(var(--accent));
+}
+
+.qi-workbench.is-list .qi-sort-arrows.asc::before {
+  border-bottom-color: hsl(var(--primary));
+}
+
+.qi-workbench.is-list .qi-sort-arrows.desc::after {
+  border-top-color: hsl(var(--primary));
+}
+
+.qi-workbench.is-list .qi-switch-row .ant-switch-checked {
+  background: hsl(var(--primary));
+}
+
+.qi-workbench.is-list .qi-statistics > button,
+.qi-workbench.is-list .qi-statistics > p,
+.qi-workbench.is-list .qi-description,
+.qi-workbench.is-list .qi-cron-summary {
+  color: hsl(var(--muted-foreground));
+}
+
+.qi-workbench.is-list .qi-statistics b,
+.qi-workbench.is-list .qi-table td,
+.qi-workbench.is-list .qi-table .qi-last-time {
+  color: hsl(var(--foreground));
 }

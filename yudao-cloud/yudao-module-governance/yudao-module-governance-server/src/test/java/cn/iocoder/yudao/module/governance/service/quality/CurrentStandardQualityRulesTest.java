@@ -43,7 +43,7 @@ class CurrentStandardQualityRulesTest {
         var old = rule(oldElement, 10L);
         var manual = QualityRuleDO.builder().id(55L).status(0).build();
         when(elements.selectById(1)).thenReturn(element);
-        when(compilation.compile(eq(element), any())).thenReturn(compile(element));
+        when(compilation.compile(eq(element))).thenReturn(compile(element));
         var result = service.selectable(List.of(old, manual));
         assertThat(result).hasSize(2);
         assertThat(result.getFirst()).isSameAs(manual);
@@ -59,7 +59,7 @@ class CurrentStandardQualityRulesTest {
         var disabled = rule(element, 20L);
         disabled.setStatus(1);
         when(elements.selectById(1)).thenReturn(element);
-        when(compilation.compile(eq(element), any())).thenReturn(compile(element));
+        when(compilation.compile(eq(element))).thenReturn(compile(element));
         assertThat(service.selectable(List.of(old, disabled))).isEmpty();
     }
 
@@ -77,7 +77,7 @@ class CurrentStandardQualityRulesTest {
         when(columns.selectById(11L)).thenReturn(MetaColumnDO.builder().id(11L).tableId(6L)
                 .datasourceId(7L).columnName("full_name").objectStatus(1).build());
         when(elements.selectByIdForUpdate(1)).thenReturn(element);
-        when(compilation.compile(eq(element), any())).thenReturn(compile(element));
+        when(compilation.compile(eq(element))).thenReturn(compile(element));
         when(rules.selectListByStandardElementId(1L)).thenReturn(List.of(old));
         var result = service.assetExecution(task, List.of(object), List.of(old));
         assertThat(result).hasSize(1);
@@ -121,7 +121,7 @@ class CurrentStandardQualityRulesTest {
         assertThat(service.selectable(List.of(old))).isEmpty();
         element.setLifecycleStatus("PUBLISHED");
         element.setColumnType(null);
-        when(compilation.compile(eq(element), any())).thenReturn(compile(element));
+        when(compilation.compile(eq(element))).thenReturn(compile(element));
         assertThat(service.selectable(List.of(old))).isEmpty();
     }
 
@@ -131,7 +131,7 @@ class CurrentStandardQualityRulesTest {
     }
 
     private StandardConstraintCompiler.Compilation compile(StandardElementDO element) {
-        return compiler.compile(element, null, List.of(), null);
+        return compiler.compile(element, null, List.of());
     }
 
     private QualityRuleDO rule(StandardElementDO element, Long id) {

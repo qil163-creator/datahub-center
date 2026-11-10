@@ -75,6 +75,7 @@ vi.mock('#/api/dataforge/batchfile', () => ({
   updateBatchFileStatus: vi.fn(),
 }));
 vi.mock('#/adapter/vxe-table', () => ({
+  ACTION_ICON: { ADD: 'lucide:plus' },
   useVbenVxeGrid: (options: GridOptions) => {
     const state = reactive({ ...options.gridOptions });
     const values = reactive<Filters>({});

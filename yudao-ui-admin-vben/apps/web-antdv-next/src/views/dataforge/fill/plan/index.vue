@@ -2,7 +2,7 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { DataforgeFillApi } from '#/api/dataforge/fill';
 
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
@@ -83,6 +83,11 @@ async function loadCategories() {
 }
 
 onMounted(loadCategories);
+let activatedOnce = false;
+onActivated(() => {
+  if (activatedOnce) void loadCategories();
+  activatedOnce = true;
+});
 
 const [CategoryFormModal, categoryFormModalApi] = useVbenModal({
   connectedComponent: CategoryForm,

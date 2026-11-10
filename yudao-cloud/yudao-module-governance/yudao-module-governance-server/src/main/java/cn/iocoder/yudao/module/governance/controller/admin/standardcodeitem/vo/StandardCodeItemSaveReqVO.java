@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 
 @Schema(description = "管理后台 - 数据标准--码值新增/修改 Request VO")
 @Data
@@ -31,15 +30,6 @@ public class StandardCodeItemSaveReqVO {
 
     @Schema(description = "标准码表编号", example = "1024")
     private Integer codeSetId;
-
-    @Schema(description = "父码值编号", example = "2048")
-    private Integer parentId;
-
-    @Schema(description = "生效时间（含）")
-    private LocalDateTime validFrom;
-
-    @Schema(description = "失效时间（不含）")
-    private LocalDateTime validTo;
 
     @Schema(description = "码值排序", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "码值排序不能为空")

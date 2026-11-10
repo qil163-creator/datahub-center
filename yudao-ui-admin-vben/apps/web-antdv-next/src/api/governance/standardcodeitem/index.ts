@@ -6,16 +6,11 @@ export namespace GovernanceStandardCodeItemApi {
   export type Id = number | string;
   /** 数据标准--码值 */
   export interface StandardCodeItem {
-    children?: StandardCodeItem[];
     id?: Id;
     codeSetId?: Id;
     label: string;
     value: string;
     dictType: string;
-    parentId?: Id;
-    levelNo?: number;
-    validFrom?: string;
-    validTo?: string;
     sort?: number;
     status?: number;
     remark?: string;
@@ -26,12 +21,6 @@ export namespace GovernanceStandardCodeItemApi {
     revision?: Id;
   }
 }
-
-export type StandardCodeItemTreeParams = {
-  businessTime?: string;
-  codeSetId: GovernanceStandardCodeItemApi.Id;
-  includeHistory?: boolean;
-};
 
 /** 查询数据标准--码值分页 */
 export function getStandardCodeItemPage(
@@ -53,14 +42,6 @@ export function getStandardCodeItem(id: GovernanceStandardCodeItemApi.Id) {
   );
 }
 
-/** 查询指定码表的层级码值。 */
-export function getStandardCodeItemTree(params: StandardCodeItemTreeParams) {
-  return requestClient.get<GovernanceStandardCodeItemApi.StandardCodeItem[]>(
-    '/governance/standard-code-item/tree',
-    { params },
-  );
-}
-
 /** 新增数据标准--码值 */
 export function createStandardCodeItem(
   data: GovernanceStandardCodeItemApi.StandardCodeItem,
@@ -78,13 +59,4 @@ export function updateStandardCodeItem(
 /** 删除数据标准--码值 */
 export function deleteStandardCodeItem(id: GovernanceStandardCodeItemApi.Id) {
   return requestClient.delete(`/governance/standard-code-item/delete?id=${id}`);
-}
-
-/** 批量删除数据标准--码值 */
-export function deleteStandardCodeItemList(
-  ids: GovernanceStandardCodeItemApi.Id[],
-) {
-  return requestClient.delete(
-    `/governance/standard-code-item/delete-list?ids=${ids.join(',')}`,
-  );
 }

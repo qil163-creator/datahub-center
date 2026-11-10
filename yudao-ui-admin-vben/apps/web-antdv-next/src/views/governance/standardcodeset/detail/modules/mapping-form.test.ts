@@ -5,7 +5,7 @@ import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getStandardCodeItemTree } from '#/api/governance/standardcodeitem';
+import { getStandardCodeItemPage } from '#/api/governance/standardcodeitem';
 import {
   createCodeMapping,
   getCodeMapping,
@@ -110,7 +110,7 @@ vi.mock('@vben/utils', () => ({
   formatDate: String,
 }));
 vi.mock('#/api/governance/standardcodeitem', () => ({
-  getStandardCodeItemTree: vi.fn(),
+  getStandardCodeItemPage: vi.fn(),
 }));
 vi.mock('#/api/governance/standardcodeset/mapping', () => ({
   createCodeMapping: vi.fn(),
@@ -143,10 +143,13 @@ beforeEach(() => {
   harness.data = { id: detail.id, codeSetId };
   harness.disabled = true;
   vi.mocked(getCodeMapping).mockResolvedValue(detail);
-  vi.mocked(getStandardCodeItemTree).mockResolvedValue([
-    { id: detail.codeItemId, codeSetId, dictType: 'fixture', label: '同名', value: 'A' },
-    { id: '9007199254741001', codeSetId, dictType: 'fixture', label: '同名', value: 'B' },
-  ]);
+  vi.mocked(getStandardCodeItemPage).mockResolvedValue({
+    list: [
+      { id: detail.codeItemId, codeSetId, dictType: 'fixture', label: '同名', value: 'A' },
+      { id: '9007199254741001', codeSetId, dictType: 'fixture', label: '同名', value: 'B' },
+    ],
+    total: 2,
+  });
   vi.mocked(updateCodeMapping).mockResolvedValue(true);
   host = document.createElement('div');
   document.body.append(host);
@@ -210,7 +213,26 @@ describe('代码映射表单边界', () => {
     harness.data.readonly = true;
     await harness.options!.onOpenChange(true);
     await harness.options!.onConfirm();
-    expect(getStandardCodeItemTree).not.toHaveBeenCalled();
+    expect(getStandardCodeItemPage).not.toHaveBeenCalled();
     expect(updateCodeMapping).not.toHaveBeenCalled();
+  });
+
+  it('加载全部码值分页供映射选择', async () => {
+    vi.mocked(getStandardCodeItemPage)
+      .mockResolvedValueOnce({
+        list: [{ id: detail.codeItemId, codeSetId, dictType: 'fixture', label: '甲', value: 'A' }],
+        total: 2,
+      })
+      .mockResolvedValueOnce({
+        list: [{ id: '9007199254741001', codeSetId, dictType: 'fixture', label: '乙', value: 'B' }],
+        total: 2,
+      });
+    await harness.options!.onOpenChange(true);
+    expect(getStandardCodeItemPage).toHaveBeenNthCalledWith(2, {
+      codeSetId,
+      pageNo: 2,
+      pageSize: 100,
+    });
+    expect([...host.querySelectorAll('option')].map((option) => option.textContent)).toEqual(['甲', '乙']);
   });
 });
