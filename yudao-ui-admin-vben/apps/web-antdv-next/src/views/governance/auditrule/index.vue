@@ -19,8 +19,6 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
-  Button,
   Input,
   message,
   Modal,
@@ -393,15 +391,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           />
         </div>
         <Spin v-if="dimensionLoading" class="p-2" />
-        <Alert
-          v-else-if="dimensionError"
-          type="error"
-          message="质量维度加载失败"
-        >
-          <template #action>
-            <Button size="small" @click="loadDimensions">重试</Button>
-          </template>
-        </Alert>
+        <template v-else-if="dimensionError"></template>
         <Tree
           v-model:expanded-keys="expandedKeys"
           v-else

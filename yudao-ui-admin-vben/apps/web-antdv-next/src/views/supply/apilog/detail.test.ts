@@ -270,12 +270,10 @@ describe('调用记录独立详情页面', () => {
     expect(host.querySelector('[data-field]')).toBeNull();
   });
 
-  it('请求失败显示可操作说明，保留返回入口', async () => {
+  it('请求失败不显示提示条，保留返回入口', async () => {
     vi.mocked(getApiLog).mockRejectedValue(new Error('private upstream error'));
     await open();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-      '调用记录详情加载失败，请重试',
-    );
+    expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(host.textContent).not.toContain('private upstream error');
     await back();
     expect(harness.closeCurrentTab).toHaveBeenCalledOnce();

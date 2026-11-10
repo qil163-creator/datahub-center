@@ -29,6 +29,7 @@ const props = defineProps<{
   selection?: boolean;
   selectionWidth?: number;
   showSearch?: boolean;
+  subtleScrollbar?: boolean;
   title?: string;
   total: number;
 }>();
@@ -63,6 +64,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Row>({
     pagerConfig: { enabled: false },
     proxyConfig: { enabled: false },
     rowConfig: { keyField: 'id', isHover: true },
+    scrollbarConfig: props.subtleScrollbar ? { height: 6 } : undefined,
     sortConfig: { remote: true },
     showOverflow: false,
     toolbarConfig: {
@@ -95,7 +97,7 @@ watch(selected, (value) => { if (!value.length) void gridApi.grid?.clearCheckbox
         <slot name="filters"></slot>
       </section>
       <section class="category-results" :class="{ 'safety-compact-results': compact }">
-        <Alert v-if="error" :message="error" type="error">
+        <Alert v-if="error && !error.includes('读取失败')" :message="error" type="error">
           <template #action><Button size="small" @click="emit('refresh')">重试</Button></template>
         </Alert>
         <Grid class="safety-grid" :table-title="title" :table-data="rows">

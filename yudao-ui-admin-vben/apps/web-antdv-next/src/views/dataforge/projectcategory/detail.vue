@@ -8,7 +8,6 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   Descriptions,
   DescriptionsItem,
@@ -103,10 +102,6 @@ async function open(data: { id: Api.Id }) {
   }
 }
 
-function retry() {
-  if (selectedId.value !== undefined) void open({ id: selectedId.value });
-}
-
 function displayTime(value?: number) {
   return value === undefined ? '-' : formatDate(value, 'YYYY-MM-DD HH:mm:ss');
 }
@@ -129,17 +124,7 @@ defineExpose({ open, close });
   >
     <template #closeIcon><ReferenceIcon name="close" /></template>
     <template #footer><Button @click="close">关闭</Button></template>
-    <Alert
-      v-if="failed"
-      type="error"
-      message="类目详情加载失败，请重试"
-      show-icon
-      class="mb-4"
-    >
-      <template #action>
-<Button size="small" @click="retry">重试</Button>
-</template>
-    </Alert>
+
     <Spin :spinning="loading">
       <Descriptions
         v-if="detail"

@@ -394,14 +394,9 @@ defineExpose({ open, close });
     @cancel="close"
   >
     <Spin :spinning="loading">
-      <Alert
-        v-if="failed"
-        type="error"
-        show-icon
-        message="任务信息加载失败，请关闭后重新打开。"
-      />
+
       <TaskDetailView
-        v-else-if="readonly && !loading"
+        v-if="!failed && readonly && !loading"
         :task="form"
         :directory-name="directoryName"
         :owner-name="ownerName"
@@ -409,7 +404,7 @@ defineExpose({ open, close });
         :database-name="databaseName"
       />
       <Form
-        v-else-if="!readonly"
+        v-else-if="!failed && !readonly"
         ref="formRef"
         :model="form"
         :rules="rules"

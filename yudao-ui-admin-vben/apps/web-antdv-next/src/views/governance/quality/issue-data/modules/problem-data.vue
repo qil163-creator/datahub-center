@@ -5,7 +5,6 @@ import type { QualityReportApi } from '#/api/governance/quality/report';
 import { computed, h, onDeactivated, reactive, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
@@ -277,16 +276,6 @@ defineExpose({ open, close });
         >
       </Tooltip>
     </div>
-    <Alert v-if="failed" type="error" message="问题数据加载失败">
-      <template #action>
-        <Button @click="load()">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <Alert
       v-if="truncated"
       type="info"

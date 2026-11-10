@@ -715,7 +715,7 @@ describe('元数据检索详情的独立页面模式', () => {
     });
     await flush();
     expect(host.textContent).not.toContain('错误对象内容');
-    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(button('返回')).toBeDefined();
   });
 });

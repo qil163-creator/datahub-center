@@ -184,7 +184,7 @@ describe('治理清洗规则读取', () => {
     expect(host.textContent).not.toContain('旧规则');
   });
 
-  it('失败后清除旧选项并提供可重试的明确状态', async () => {
+  it('失败后清除旧选项，保留刷新入口且不展示失败提示条', async () => {
     vi.mocked(getCleanRulePage).mockResolvedValueOnce({
       list: [rule('9007199254740993', '已加载规则')],
       total: 1,
@@ -196,8 +196,8 @@ describe('治理清洗规则读取', () => {
     button('刷新').click();
     await flush();
     expect(host.textContent).not.toContain('已加载规则');
-    expect(host.textContent).toContain('规则列表加载失败');
-    expect(button('重试')).toBeTruthy();
+    expect(host.textContent).not.toContain('规则列表加载失败');
+    expect(button('刷新')).toBeTruthy();
   });
 
   it('租户变化后清除已读取的名称和参数且丢弃旧请求', async () => {

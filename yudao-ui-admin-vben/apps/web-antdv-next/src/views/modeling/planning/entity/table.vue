@@ -428,9 +428,6 @@ onDeactivated(() => {
 <template>
   <div class="planning-entity-table planning-embedded">
     <FormModal @success="load()" /><DetailModal />
-    <div v-if="failed" class="planning-error">
-      业务实体加载失败。<Button type="link" @click="load()">重试</Button>
-    </div>
     <div class="planning-table">
       <Grid
         :style="{

@@ -293,7 +293,7 @@ describe('database detail identity and state', () => {
     harness.getOverview.mockRejectedValueOnce(new Error('unavailable'));
     pending.resolve(overview());
     await flush();
-    expect(host.textContent).toContain('监控数据加载失败');
+    expect(host.textContent).not.toContain('监控数据加载失败');
     expect(host.querySelector('[data-overview]')?.textContent).toBe('100');
     expect(host.querySelector('[data-trend]')?.textContent).toBe('7');
     expect(button('立即采集').disabled).toBe(false);
@@ -387,12 +387,12 @@ describe('database detail identity and state', () => {
     expect(host.textContent).not.toContain('old-session');
   });
 
-  it('offers a working retry when the detail request fails', async () => {
+  it('does not show a banner when the detail request fails and reloads for a new session', async () => {
     harness.getDatabase.mockRejectedValueOnce(new Error('unavailable'));
     await mountPage();
-    expect(host.textContent).toContain('连接详情加载失败，请重试。');
+    expect(host.textContent).not.toContain('连接详情加载失败');
     expect(harness.getOverview).not.toHaveBeenCalled();
-    button('重试').click();
+    harness.access.refreshToken = '2';
     await flush();
     expect(host.textContent).toContain('Example source');
     expect(host.textContent).not.toContain('数据库详情加载失败');

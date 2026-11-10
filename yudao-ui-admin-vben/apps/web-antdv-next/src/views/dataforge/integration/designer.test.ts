@@ -185,19 +185,16 @@ describe('集成流程设计器交互', () => {
     expect(harness.graphs[0].getNodes()).toHaveLength(0);
     expect(host.querySelector('.qi-capability-summary')?.textContent).toBe('可用 2 · 不可用 47');
   });
-  it('能力请求失败时关闭新增并可重试，不删除已有配置', async () => {
+  it('能力请求失败时无横幅并关闭新增，不删除已有配置', async () => {
     vi.mocked(api.getIntegration).mockResolvedValue(task(undefined, undefined, { nodes: [node('existing', 'multi-join', { joins: [] })], edges: [] }));
     vi.mocked(capabilityApi.getIntegrationComponentCapabilities).mockRejectedValueOnce(new Error('offline'));
     await mount();
-    expect(host.querySelector('.qi-capability-error')?.textContent).toContain('组件可用性加载失败');
+    expect(host.querySelector('.qi-capability-error')).toBeNull();
     expect([...host.querySelectorAll<HTMLButtonElement>('.qi-palette-item')].every((item) => item.disabled)).toBe(true);
     const instance = harness.graphs[0];
     instance.events.get('node:dblclick')({ node: instance.getCellById('existing') }); await flush();
     harness.editorConfig.joins.push({ id: 'retained' }); button('保存').click(); await flush();
     expect(instance.getCellById('existing').getData().properties.nodeJson.joins).toEqual([{ id: 'retained' }]);
-    button('重试').click(); await flush();
-    expect(host.querySelector('.qi-capability-error')).toBeNull();
-    expect(host.querySelector<HTMLButtonElement>('[data-component-code="read-db"]')?.disabled).toBe(false);
   });
   it('切换任务和引擎后迟到的能力响应不能开放新任务组件', async () => {
     const old = deferred<IntegrationComponentCapabilities>();

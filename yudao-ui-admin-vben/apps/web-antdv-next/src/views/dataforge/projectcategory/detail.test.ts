@@ -310,7 +310,7 @@ describe('三类项目类目的只读居中详情', () => {
     expect(getProjectCategoryList).toHaveBeenCalledTimes(1);
   });
 
-  it('响应编号不一致时不显示错误对象，重试仍读取选中的原编号', async () => {
+  it('响应编号不一致时不显示错误对象，重新打开仍读取选中的原编号', async () => {
     vi.mocked(getProjectCategory).mockResolvedValueOnce({
       ...detail,
       id: parentId,
@@ -320,10 +320,8 @@ describe('三类项目类目的只读居中详情', () => {
     await instance.open({ id });
     await flush();
     expect(host.textContent).not.toContain('错误对象');
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-      '详情加载失败',
-    );
-    button('重试').click();
+    expect(host.textContent).not.toContain('详情加载失败');
+    await instance.open({ id });
     await flush();
     expect(getProjectCategory).toHaveBeenLastCalledWith('integration', id);
     expect(host.textContent).toContain(detail.name);

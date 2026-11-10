@@ -18,7 +18,6 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
-  Alert,
   Button,
   Empty,
   Input,
@@ -280,11 +279,7 @@ onBeforeUnmount(() => {
 <template>
   <Drawer>
     <Spin v-if="detailLoading" spinning />
-    <Alert v-if="detailError" type="error" :message="detailError" show-icon>
-      <template #action>
-<Button size="small" @click="loadDetail">重试</Button>
-</template>
-    </Alert>
+
     <template v-if="detail">
       <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
       <div class="mx-4 mt-4 text-base font-medium">审批轨迹</div>
@@ -324,18 +319,9 @@ onBeforeUnmount(() => {
       <h2>申请记录</h2>
       <Button :loading="loading" @click="load"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新</Button>
     </header>
-    <Alert
-      v-if="listError"
-      class="mb-3"
-      type="error"
-      :message="listError"
-      show-icon
-      >
-<template #action>
-<Button size="small" @click="load">重试</Button>
-</template>
-</Alert>
+
     <TableViewport
+      :class="{ 'applications-table--empty': rows.length === 0 }"
       :columns="columns"
       :data-source="rows"
       :row-key="(row: MyAssetsApi.Application) => String(row.id)"
@@ -361,9 +347,7 @@ onBeforeUnmount(() => {
 <Empty
           v-if="!loading && !listError"
           description="暂无符合条件的申请记录"
-        /><span v-else>{{
-          listError ? '读取失败，请重试' : '正在读取申请记录'
-        }}</span>
+        /><span v-else-if="loading">正在读取申请记录</span>
 </template>
     </TableViewport>
     <ListPagination
@@ -376,6 +360,30 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.applications-results :deep(.ant-table-body::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.applications-results :deep(.ant-table-body::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.applications-results :deep(.ant-table-body::-webkit-scrollbar-thumb) {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.applications-results :deep(.ant-table-body::-webkit-scrollbar-thumb:hover) {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .applications-results :deep(.ant-table-body) {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
+}
+
 .application-filters {
   display: flex;
   flex-wrap: wrap;
@@ -426,6 +434,19 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+}
+
+.applications-results :deep(.applications-table--empty .ant-table-body) {
+  height: var(--table-body-height);
+}
+
+.applications-results :deep(.applications-table--empty .ant-table-body > table) {
+  height: 100%;
+}
+
+.applications-results :deep(.applications-table--empty .ant-table-placeholder > td) {
+  vertical-align: middle;
+  border-bottom: 0;
 }
 </style>
 

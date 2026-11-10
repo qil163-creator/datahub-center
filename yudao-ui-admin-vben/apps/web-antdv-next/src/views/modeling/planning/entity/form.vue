@@ -74,7 +74,6 @@ const {
   userPhone,
   loading: optionsLoading,
   failed: optionsFailed,
-  reload: reloadUsers,
 } = usePlanningOptions(true);
 const request = useObjectRequest(
   () => `${identity.value}/${access.accessCodes.join(',')}`,
@@ -282,12 +281,6 @@ watch(
         <IconifyIcon
           icon="ant-design:info-circle-filled"
         />业务实体用于描述业务中需要统一管理的对象或活动，例如客户、商品、订单、支付等。通过定义实体类型及实体间的继承、关联关系，可形成统一的业务对象体系。
-      </div>
-      <div v-if="loadFailed" class="planning-error">
-        实体或关联选项加载失败，请关闭后重试。
-      </div>
-      <div v-if="optionsFailed" class="planning-error">
-        人员选项加载失败。<Button type="link" @click="reloadUsers">重试</Button>
       </div>
       <div class="planning-section-title">基础信息</div>
       <Form

@@ -1167,9 +1167,7 @@ function toggleGroup(key: string) {
     content-class="flex min-h-0 flex-col overflow-hidden p-0"
   >
     <div class="qi-designer">
-      <Alert v-if="loadError" :message="loadError" type="error" show-icon>
-        <template #action><Button @click="load">重试</Button></template>
-      </Alert>
+      <Alert v-if="loadError && loadError !== '任务加载失败，请重试'" :message="loadError" type="error" show-icon />
       <Spin :spinning="loading">
         <header class="qi-design-header">
           <div class="qi-design-title">
@@ -1215,15 +1213,8 @@ function toggleGroup(key: string) {
             >
               正在确认组件可用性…
             </p>
-            <div
-              v-else-if="capabilitiesError"
-              class="qi-capability-error"
-              role="alert"
-            >
-              <span>{{ capabilitiesError }}</span><button type="button" @click="loadCapabilities">重试</button>
-            </div>
             <p
-              v-else-if="capabilities"
+              v-else-if="!capabilitiesError && capabilities"
               class="qi-capability-summary"
               role="status"
             >
@@ -1357,7 +1348,8 @@ function toggleGroup(key: string) {
           :step-name="fieldsStepName"
           :fields="previewFields"
           :loading="fieldsLoading"
-          :error="fieldsError"
+          :error="fieldsError === '字段信息加载失败，请关闭后重试。' ? '' : fieldsError"
+          :load-failed="fieldsError === '字段信息加载失败，请关闭后重试。'"
           :partial="fieldsSchema?.complete === false"
         />
         <Modal

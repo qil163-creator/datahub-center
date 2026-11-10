@@ -70,6 +70,7 @@ const authPage = reactive({ current: 1, pageSize: 10 });
 const authLoading = ref(false);
 const detailError = ref('');
 const authError = ref('');
+const authMutationUnconfirmed = ref(false);
 const mutationBusy = ref(false);
 const access = useAccessStore();
 const user = useUserStore();
@@ -133,6 +134,7 @@ function resetPage() {
   authLoading.value = false;
   detailError.value = '';
   authError.value = '';
+  authMutationUnconfirmed.value = false;
   mutationBusy.value = false;
   activeTab.value = 'auth';
   drawerApi.unlock();
@@ -296,6 +298,7 @@ async function loadAuthList() {
   authPage.current = 1;
   authList.value = [];
   authError.value = '';
+  authMutationUnconfirmed.value = false;
   authLoading.value = true;
   try {
     const result = await getAppApiList(current.appId);
@@ -441,12 +444,6 @@ async function loadEditableGrant(row: SupplyAppApi.AppApi) {
   } finally {
     if (isCurrent()) optionsLoading.value = false;
   }
-}
-
-function reloadAuthOptions() {
-  if (mutationBusy.value) return;
-  if (editingGrant.value) void loadEditableGrant(editingGrant.value);
-  else void loadApiOptions();
 }
 
 async function loadApiOptions() {
@@ -671,6 +668,7 @@ async function handleControl(
 }
 
 function clearUnconfirmedGrant() {
+  authMutationUnconfirmed.value = true;
   listGuard.invalidate();
   authList.value = [];
   authLoading.value = false;
@@ -822,7 +820,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
         </div>
         <DetailBackButton @click="handleBack" />
       </div>
-      <Alert v-if="detailError" type="error" :message="detailError" />
+
       <p v-if="embedded && detailLoading" role="status">正在加载应用详情…</p>
       <Descriptions
         v-if="embedded && detail.id"
@@ -888,7 +886,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
               />新增
             </Button>
           </div>
-          <Alert v-if="authError" type="error" :message="authError">
+          <Alert v-if="authMutationUnconfirmed" type="error" :message="authError">
             <template #action>
               <Button
                 :disabled="mutationBusy || !detail.id || !canQuery"
@@ -1060,17 +1058,8 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
       !authForm.apiId
     "
   >
-    <Alert v-if="optionsError" type="error" :message="optionsError" />
-    <Alert v-if="submitError" type="error" :message="submitError" />
-    <Button
-      v-if="optionsError"
-      :disabled="mutationBusy || !canManage"
-      :loading="optionsLoading"
-      @click="reloadAuthOptions"
-    >
-      <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-      <span>重新加载选项</span>
-    </Button>
+<Alert v-if="submitError" type="error" :message="submitError" />
+
     <div class="governance-modal-form governance-form-item-horizontal">
       <div class="form-item">
         <label class="form-item__label form-item__label--required">

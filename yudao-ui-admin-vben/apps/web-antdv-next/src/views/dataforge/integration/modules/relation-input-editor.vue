@@ -469,16 +469,7 @@ defineExpose({ validate });
 
 <template>
   <div class="qi-relation-input" :data-tool-code="toolCode">
-    <Alert
-      v-if="connectionError"
-      :message="connectionError"
-      type="error"
-      show-icon
-    >
-      <template #action>
-<Button size="small" @click="loadConnections">重试</Button>
-</template>
-    </Alert>
+
     <Alert
       v-if="errors.length"
       :message="errors.join('；')"
@@ -584,12 +575,7 @@ SQL解析
         </div>
       </div>
     </div>
-    <div v-if="tableError" class="qi-relation-status" role="alert">
-      <span>{{ tableError }}</span><Button size="small" :loading="tablesLoading" @click="loadTables">
-重试表目录
-</Button>
-    </div>
-    <div v-if="fieldError" class="qi-relation-status" role="alert">
+    <div v-if="fieldError && fieldError !== '属性字段加载失败，已有字段仍保留，请重试。'" class="qi-relation-status" role="alert">
       <span>{{ fieldError }}</span><Button
         v-if="!sqlMode && !realtime"
         size="small"

@@ -698,8 +698,7 @@ const tableTypeOptions = [
     <PickerModal @confirm="onPicked" />
     <div class="asset-register">
       <div class="asset-register__type">
-        <label>资产类型</label
-        ><Select
+        <label>资产类型</label><Select
           v-model:value="assetType"
           :options="ASSET_TYPE_OPTIONS"
           :disabled="saving || batchApplying"
@@ -712,11 +711,7 @@ const tableTypeOptions = [
           type="warning"
           show-icon
         />
-        <Alert v-if="optionError" :message="optionError" type="error" show-icon>
-          <template #action>
-            <Button size="small" @click="loadOptions">重试</Button>
-          </template>
-        </Alert>
+
         <header class="asset-register__heading">
           <h1>资产信息完善</h1>
           <p>
@@ -727,8 +722,8 @@ const tableTypeOptions = [
             :disabled="!canRegister || saving || batchApplying"
             @click="openPicker"
           >
-            选择元数据 </Button
-          ><Button
+            选择元数据
+</Button><Button
             :disabled="!selectedRowKeys.length || saving || batchApplying"
             @click="openBatch"
           >
@@ -752,8 +747,7 @@ const tableTypeOptions = [
               <span
                 v-if="column.key === 'index'"
                 :title="String(record.meta.id)"
-                >{{ record.meta.id }}</span
-              >
+                >{{ record.meta.id }}</span>
               <div v-else-if="column.key === 'source'">
                 {{
                   record.meta.fileName ||
@@ -762,8 +756,8 @@ const tableTypeOptions = [
                 }}<Tag v-if="assetType !== 1" class="asset-register__kind">
                   {{
                     record.meta.fileType || (assetType === 2 ? 'API' : '')
-                  }} </Tag
-                ><small v-if="assetType === 1">{{
+                  }}
+</Tag><small v-if="assetType === 1">{{
                   record.meta.customComment || record.meta.sourceComment || '-'
                 }}</small>
               </div>
@@ -883,23 +877,10 @@ const tableTypeOptions = [
                 :disabled="saving || batchApplying"
                 @click="removeDraft(record.meta.id)"
               >
-                删除 </Button
-              ><span v-else>-</span>
-              <small v-if="column.key === 'assetName' && record.contextLoading"
-                >正在读取配置…</small
-              >
-              <small
-                v-if="column.key === 'assetName' && record.contextError"
-                class="asset-register__error"
-                >{{ record.contextError
-                }}<Button
-                  type="link"
-                  size="small"
-                  @click="refreshDraftContext(record)"
-                  >重试</Button
-                ></small
-              >
-            </template>
+                删除
+</Button><span v-else>-</span>
+              <small v-if="column.key === 'assetName' && record.contextLoading">正在读取配置…</small>
+</template>
             <template #emptyText>
               <div class="asset-register__empty">
                 <img
@@ -914,8 +895,8 @@ const tableTypeOptions = [
         </div>
         <footer class="asset-register__footer">
           <Button :disabled="saving || batchApplying" @click="backToList">
-            返回列表 </Button
-          ><Button
+            返回列表
+</Button><Button
             type="primary"
             :disabled="!drafts.length || !canRegister"
             :loading="saving"
@@ -940,9 +921,8 @@ const tableTypeOptions = [
     >
       <div class="asset-register__batch">
         <p>仅应用您在此处选择的属性，留空的项将保持原资产的配置不变。</p>
-        <Alert v-if="batchError" :message="batchError" type="error" />
-        <label v-if="assetType === 1"
-          >表类型<Select
+
+        <label v-if="assetType === 1">表类型<Select
             :value="batch.tableType"
             :options="tableTypeOptions"
             :disabled="batchApplying"
@@ -950,16 +930,14 @@ const tableTypeOptions = [
             placeholder="-- 不修改 --"
             @change="(value) => changeBatch('tableType', value)"
         /></label>
-        <label v-if="assetType === 1"
-          >数仓分层<Select
+        <label v-if="assetType === 1">数仓分层<Select
             v-model:value="batch.layer"
             :options="layerOptions(batchContext)"
             :disabled="batchApplying || batchLoading"
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label
-          >业务板块<Select
+        <label>业务板块<Select
             :value="batch.dataDomainId"
             :options="domainOptions"
             :disabled="batchApplying"
@@ -967,8 +945,7 @@ const tableTypeOptions = [
             placeholder="-- 不修改 --"
             @change="(value) => changeBatch('dataDomainId', value)"
         /></label>
-        <label
-          >主题域<Select
+        <label>主题域<Select
             :value="batch.subjectDomainId"
             :options="subjectOptions(batchContext, batch.dataDomainId)"
             :disabled="batchApplying || batchLoading"
@@ -987,8 +964,7 @@ const tableTypeOptions = [
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label v-if="assetType === 1 && batch.tableType === 'DWS'"
-          >统计粒度<Select
+        <label v-if="assetType === 1 && batch.tableType === 'DWS'">统计粒度<Select
             v-model:value="batch.granularityEntityIds"
             :options="idOptions(batchContext.granularities)"
             mode="multiple"
@@ -996,24 +972,21 @@ const tableTypeOptions = [
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label v-if="assetType === 1"
-          >数据时效<Select
+        <label v-if="assetType === 1">数据时效<Select
             v-model:value="batch.updateCycle"
             :options="timeEffectOptions"
             :disabled="batchApplying"
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label v-if="assetType === 1"
-          >表命名规范<Select
+        <label v-if="assetType === 1">表命名规范<Select
             v-model:value="batch.nameCase"
             :options="namingCaseOptions"
             :disabled="batchApplying"
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label
-          >资产分类<TreeSelect
+        <label>资产分类<TreeSelect
             v-model:value="batch.categoryId"
             :tree-data="categoryTree"
             :field-names="{
@@ -1026,8 +999,7 @@ const tableTypeOptions = [
             allow-clear
             placeholder="-- 不修改 --"
         /></label>
-        <label v-if="assetType === 1"
-          >表名更新方式<RadioGroup
+        <label v-if="assetType === 1">表名更新方式<RadioGroup
             v-model:value="batch.tableNameUpdateMode"
             :disabled="batchApplying"
             :options="[

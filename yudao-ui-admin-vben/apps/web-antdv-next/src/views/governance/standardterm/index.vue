@@ -20,7 +20,7 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { isEmpty } from '@vben/utils';
 
-import { Alert, Button, Input, message, Spin, Tree } from 'antdv-next';
+import { Input, message, Spin, Tree } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -165,6 +165,7 @@ const [Grid, gridApi] = useVbenVxeGrid<GovernanceStandardTermApi.StandardTerm>({
     columns: useGridColumns(),
     data: [],
     height: 'auto',
+    scrollbarConfig: { height: 6 },
     keepSource: true,
     proxyConfig: { enabled: false, autoLoad: false },
     pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
@@ -344,15 +345,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           />
         </div>
         <Spin :spinning="categoryLoading">
-          <Alert
-            v-if="categoryFailed"
-            type="warning"
-            message="术语类目加载失败"
-          >
-            <template #action>
-              <Button size="small" @click="loadCategories">重试</Button>
-            </template>
-          </Alert>
+          <template v-if="categoryFailed"></template>
           <Tree
             v-else
             v-model:expanded-keys="expanded"
@@ -370,14 +363,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           </Tree>
         </Spin>
       </template>
-      <Grid table-title="业务术语列表">
+      <Grid class="subtle-grid-scrollbar" table-title="业务术语列表">
         <template #table-title>
           <span>业务术语列表</span>
-          <Alert v-if="listFailed" type="warning" message="术语列表加载失败">
-            <template #action>
-              <Button size="small" @click="load">重试</Button>
-            </template>
-          </Alert>
         </template>
         <template #category="{ row }">
           {{ categoryName(row.termCategoryId) }}

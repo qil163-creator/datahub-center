@@ -259,7 +259,7 @@ describe('数据 API 管理三级数据源选择器', () => {
     expect(change).not.toHaveBeenCalled();
   });
 
-  it('加载和错误可见且可重试，禁用关闭弹层，null 值没有虚假回显', async () => {
+  it('加载状态可见，加载失败无提示条且禁用关闭弹层', async () => {
     await mount(null);
     expect(host.textContent).toContain('请选择数据源');
     expect(host.querySelector('[aria-label="清除数据源"]')).toBeNull();
@@ -270,11 +270,9 @@ describe('数据 API 管理三级数据源选择器', () => {
     props.loading = false;
     props.error = '加载失败';
     await flush();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-      '加载失败',
-    );
-    await click('.database-select__retry');
-    expect(retry).toHaveBeenCalledOnce();
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('.database-select__retry')).toBeNull();
+    expect(retry).not.toHaveBeenCalled();
     props.disabled = true;
     await flush();
     expect(

@@ -48,8 +48,6 @@ const {
   userName,
   userPhone,
   loading: optionsLoading,
-  failed: optionsFailed,
-  reload: reloadOptions,
 } = usePlanningOptions();
 const name = ref('');
 const leaderUserId = ref<string>();
@@ -380,12 +378,6 @@ onDeactivated(() => {
       <FormModal @success="load()" /><SubjectModal
         @success="load()"
       /><EntityModal @success="load()" />
-      <div v-if="optionsFailed" class="planning-error">
-        人员加载失败，<Button type="link" @click="reloadOptions">重试</Button>
-      </div>
-      <div v-if="failed" class="planning-error">
-        数据板块加载失败。<Button type="link" @click="load()">重试</Button>
-      </div>
       <Grid
         :style="{ '--vxe-ui-font-size-small': '12px' }"
         class="min-h-0 flex-1"

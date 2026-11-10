@@ -58,6 +58,7 @@ export namespace OpsInstanceApi {
   }
   export interface PageReq extends PageParam {
     kind: Kind;
+    taskId?: Id;
     name?: string;
     categoryId?: Id;
     taskType?: string;

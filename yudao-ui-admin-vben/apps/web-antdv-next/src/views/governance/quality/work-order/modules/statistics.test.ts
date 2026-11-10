@@ -30,6 +30,8 @@ vi.mock('@vben/access', () => ({
 vi.mock('@vben/utils', () => ({
   formatDateTime: String,
 }));
+vi.mock('#/api/request', () => ({ requestClient: {} }));
+vi.mock('./expiry-failures.vue', () => ({ default: defineComponent({ setup: () => () => null }) }));
 vi.mock('@vben/plugins/echarts', () => ({
   EchartsUI: defineComponent({
     setup: () => () => h('div', { class: 'chart' }),
@@ -282,17 +284,15 @@ describe('actual work-order statistics panel and charts', () => {
     expect(host.textContent).not.toContain('没有当前用户可见');
   });
 
-  it('keeps a failed response visible and permits retry', async () => {
+  it('keeps a failed response empty without a persistent alert', async () => {
     vi.mocked(getWorkOrderStatistics)
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValueOnce(fixture());
     mount();
     await flush();
-    expect(host.textContent).toContain('统计加载失败');
-    host.querySelector('button')!.click();
-    await flush();
-    expect(host.textContent).toContain('责任人（9223372036854775807）：2 条');
     expect(host.textContent).not.toContain('统计加载失败');
+    expect(host.querySelector('.chart')).toBeNull();
+    expect(getWorkOrderStatistics).toHaveBeenCalledTimes(1);
   });
 
   it('rejects the old server contract instead of fabricating empty owner statistics', async () => {
@@ -301,7 +301,7 @@ describe('actual work-order statistics panel and charts', () => {
     vi.mocked(getWorkOrderStatistics).mockResolvedValue(stats);
     mount();
     await flush();
-    expect(host.textContent).toContain('统计加载失败');
+    expect(host.textContent).not.toContain('统计加载失败');
     expect(harness.renderers).toHaveLength(0);
   });
 

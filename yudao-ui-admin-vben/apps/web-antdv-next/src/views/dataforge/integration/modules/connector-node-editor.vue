@@ -665,11 +665,7 @@ defineExpose({ validate });
 </Button>
 </template>
     </Alert>
-    <Alert v-if="failed" type="error" message="数据连接加载失败" show-icon>
-      <template #action>
-        <Button size="small" @click="loadDatabases">重试</Button>
-      </template>
-    </Alert>
+
     <div class="qi-connector-reference-main">
       <div v-if="tdengineRealtime" class="qi-connector-field"><label>连接方式</label><RadioGroup :value="0" :options="[{ label: '数据连接', value: 0 }]" :disabled="disabled" /></div>
       <ConnectorReferenceFields
@@ -765,12 +761,12 @@ defineExpose({ validate });
         >
 解析
 </Button><Button
-        v-if="metadataIssue"
+        v-if="metadataIssue && metadataIssue !== '表目录加载失败，可重试；已有表名与字段仍保留。'"
         :disabled="tablesLoading"
         @click="loadTables"
         >
 重试表目录
-</Button><small v-if="metadataIssue">{{ metadataIssue }}</small>
+</Button><small v-if="metadataIssue && metadataIssue !== '表目录加载失败，可重试；已有表名与字段仍保留。'">{{ metadataIssue }}</small>
     </div>
     <section v-if="mainProperties" class="qi-connector-reference-properties">
       <div class="qi-connector-section-header">

@@ -88,7 +88,7 @@ function isFolder(node: unknown) {
         @refresh="emit('retry')"
       />
     </div>
-    <Alert v-if="error" type="error" :message="error">
+    <Alert v-if="error && !error.includes('读取失败')" type="error" :message="error">
       <template #action>
         <Button size="small" @click="emit('retry')">重试</Button>
       </template>

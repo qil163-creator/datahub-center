@@ -120,8 +120,7 @@ async function searchPipelines(page = 1) {
     pipelines.value = result.list;
     pipelineTotal.value = result.total;
   } catch {
-    if (current === pipelineSequence && active)
-      error.value = '子流程列表加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === pipelineSequence) pipelineLoading.value = false;
   }
@@ -150,8 +149,7 @@ async function loadVersions(page = 1) {
     versions.value = result.list.filter((item) => item.eventType === 'PUBLISH');
     versionTotal.value = result.total;
   } catch {
-    if (current === versionSequence && active)
-      error.value = '发布版本加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === versionSequence) versionLoading.value = false;
   }

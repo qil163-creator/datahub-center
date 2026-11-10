@@ -434,7 +434,7 @@ async function accept() {
           show-search
           :filter-option="false"
           :loading="assetsLoading"
-          :not-found-content="assetError || undefined"
+
           :options="assetOptions"
           placeholder="选择已发布资产"
           @change="changeAsset"

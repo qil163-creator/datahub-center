@@ -212,6 +212,7 @@ public interface OpsInstanceMapper extends BaseMapperX<OpsDevelopmentSnapshotDO>
          */
         private static String where() {
             return " WHERE 1=1 <if test='req.name != null and req.name != &quot;&quot;'> AND instance_name ILIKE concat('%',#{req.name},'%') </if>"
+                    + "<if test='req.taskId != null'> AND task_id=#{req.taskId} </if>"
                     + "<if test='req.status != null'> AND status=#{req.status} </if>"
                     + "<if test='req.taskType != null'> AND task_type=#{req.taskType} </if>"
                     + "<if test='req.startDate != null'> AND start_time &gt;= #{req.startDate} </if>"

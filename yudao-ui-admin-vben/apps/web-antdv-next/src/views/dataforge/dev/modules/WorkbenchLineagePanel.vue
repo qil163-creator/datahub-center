@@ -408,9 +408,7 @@ function save() {
                   show-search
                   option-filter-prop="label"
                   @update:value="(value) => chooseTable(row, value)"
-                /><span v-if="row.error" class="row-error" role="alert">{{
-                  row.error
-                }}</span>
+                />
               </td>
               <td>
                 <button
@@ -736,7 +734,6 @@ td :deep(.ant-select-selector) {
   color: #a0a6b3;
 }
 
-.row-error,
 .panel-error {
   font-size: 11px;
   color: #ff4d4f;

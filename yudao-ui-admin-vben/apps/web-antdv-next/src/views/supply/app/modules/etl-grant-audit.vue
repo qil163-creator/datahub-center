@@ -156,7 +156,7 @@ onBeforeUnmount(reset);
       type="info"
       message="显示升级后实际记录的授权及应用控制历史，不补造旧记录。历史状态不等于当前授权；此处不能恢复权限。"
     />
-    <Alert v-if="error" class="mb-3" type="error" :message="error" />
+
     <Table
       class="supply-font-table"
       :columns="columns"

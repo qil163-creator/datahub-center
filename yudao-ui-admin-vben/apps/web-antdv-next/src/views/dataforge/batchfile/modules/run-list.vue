@@ -229,15 +229,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="bf-run-list">
-    <Alert
-      v-if="failed"
-      class="bf-error"
-      type="error"
-      title="运行实例加载失败，请重试"
-      show-icon
-      >
-<template #action><Button @click="load"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button></template>
-</Alert>
+
     <GridTools
       v-model:visible="visible"
       :columns="columns"
@@ -327,20 +319,7 @@ onBeforeUnmount(() => {
       :footer="null"
       >
 <div class="qdata-batch-file bf-modal-body">
-        <Alert
-          v-if="detailFailed"
-          class="bf-error"
-          type="error"
-          title="运行详情加载失败，请重试"
-          show-icon
-          >
-<template #action>
-<Button @click="selectedId !== undefined && detail(selectedId)">
-<template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-重试
-</Button>
-</template>
-</Alert>
+
         <Spin :spinning="detailLoading">
 <template v-if="selected">
 <div class="bf-actions mb-4">

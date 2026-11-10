@@ -124,7 +124,7 @@ async function load(page = 1) {
     rows.value = result.list;
     total.value = result.total;
   } catch {
-    if (seq === listSeq) error.value = '团队模板加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (seq === listSeq) loading.value = false;
   }

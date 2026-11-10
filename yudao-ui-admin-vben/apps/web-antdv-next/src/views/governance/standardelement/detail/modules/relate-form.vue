@@ -7,7 +7,7 @@ import { computed, h, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Alert, Button, message, Pagination } from 'antdv-next';
+import { message, Pagination } from 'antdv-next';
 
 import { useVbenForm } from '#/adapter/form';
 import {
@@ -226,20 +226,6 @@ const [Modal, modalApi] = useVbenModal({
     content-class="standard-modal-content"
     footer-class="standard-modal-footer"
   >
-    <Alert
-      v-if="failed"
-      type="error"
-      message="标准码表加载失败，请重试"
-      class="mb-3"
-    >
-      <template #action><Button @click="loadOptions">重试</Button></template>
-    </Alert>
-    <Alert
-      v-if="boundFailed"
-      type="warning"
-      message="当前关联码表读取失败，原关联未清除；可重新选择码表。"
-      class="mb-3"
-    />
     <Form class="mx-4" />
   </Modal>
 </template>

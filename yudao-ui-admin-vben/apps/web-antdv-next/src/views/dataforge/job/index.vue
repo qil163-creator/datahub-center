@@ -74,6 +74,7 @@ import {
   shouldObserveJob,
   strategyOptions,
 } from './model';
+import JobActionDropdown from './modules/job-action-dropdown.vue';
 import JobForm from './modules/job-form.vue';
 
 import './style.css';
@@ -133,7 +134,6 @@ const page = ref(1);
 const expandedFilter = ref(false);
   const showBanner = ref(localStorage.getItem('dataforge-job-hide-help') !== '1');
   const showFilter = ref(true);
-const moreOpenId = ref('');
 const categoryMenuId = ref('');
 const actionBusy = ref('');
 const formJobId = ref<Api.Id>();
@@ -186,7 +186,6 @@ function clear() {
   expandedCategories.value = ['__root'];
   categorySearch.value = '';
   categoryMenuId.value = '';
-  moreOpenId.value = '';
   page.value = 1;
   Object.assign(filter, { name: '', status: undefined, runStatus: undefined, ownerId: undefined });
   Object.assign(applied, filter, { categoryId: undefined });
@@ -257,7 +256,6 @@ function selectCategory(keys: unknown[]) {
   void load();
 }
 function edit(job?: Api.Job) {
-  moreOpenId.value = '';
   formJobId.value = job?.id;
   formOpen.value = true;
 }
@@ -505,11 +503,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                 @refresh="context"
               />
             </div>
-            <Alert v-if="contextFailed" type="error" message="类目加载失败">
-<template #action>
-<Button type="link" @click="context">重试</Button>
-</template>
-</Alert>
+
             <Tree
               v-model:expanded-keys="expandedCategories"
               :selected-keys="selectedCategories"
@@ -633,9 +627,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
               </form>
             </section>
             <section class="qj-table-panel">
-              <Alert v-if="failed" type="error" message="作业列表加载失败">
-                <template #action><Button type="link" @click="load">重试</Button></template>
-              </Alert>
+
               <Grid class="qj-native-grid" table-title="作业列表" :table-data="rows">
                 <template #toolbar-tools>
                   <Button v-if="can('create')" type="primary" @click="edit()">
@@ -738,56 +730,54 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                         <ReferenceIcon name="edit" />配置
 </button><button type="button" @click="detail(record)">
                         <ReferenceIcon name="eye" />详情
-</button><Dropdown :trigger="['click']" :open="moreOpenId === String(record.id)" @open-change="value=>moreOpenId = value ? String(record.id) : ''">
+</button><JobActionDropdown>
 <button type="button">
                           <IconifyIcon icon="lucide:ellipsis-vertical" />更多
-</button><template #popupRender>
-<div class="qj-popup" @click="moreOpenId = ''">
+</button><template #actions>
                             <button
                               v-if="can('update')"
                               type="button"
                               @click="edit(record)"
                             >
-                              修改
+                              <IconifyIcon icon="lucide:pencil" />修改
 </button><button
                               v-if="can('create')"
                               type="button"
                               @click="action(record, 'clone')"
                             >
-                              复制
+                              <IconifyIcon icon="lucide:copy" />复制
 </button><button
                               v-if="can('update')"
                               type="button"
                               @click="openCron(record)"
                             >
-                              调度周期
+                              <IconifyIcon icon="lucide:calendar-clock" />调度周期
 </button><button
                               type="button"
-                              @click="router.push('/develop/operations/job')"
+                              @click="router.push({ path: '/develop/operations/job', query: { jobId: String(record.id) } })"
                             >
-                              运行实例
+                              <IconifyIcon icon="lucide:history" />运行实例
 </button><button
                               v-if="record.latestRecord"
                               type="button"
                               @click="logRow = record.latestRecord"
                             >
-                              查看日志
-</button><button v-if="can('run')" type="button" @click="action(record, 'run')">执行一次</button><button
+                              <IconifyIcon icon="lucide:file-text" />查看日志
+</button><button v-if="can('run')" type="button" @click="action(record, 'run')"><IconifyIcon icon="lucide:play" />执行一次</button><button
                               v-if="can('run') && hasActiveJobRuns(record)"
                               type="button"
                               @click="action(record, 'stop')"
                             >
-                              停止运行
+                              <IconifyIcon icon="lucide:square" />停止运行
 </button><button
                               v-if="can('delete')"
                               type="button"
                               @click="action(record, 'delete')"
                             >
-                              删除
+                              <IconifyIcon icon="lucide:trash-2" />删除
                             </button>
-                          </div>
 </template>
-</Dropdown>
+</JobActionDropdown>
                     </div>
                 </template>
                 <template #pager>

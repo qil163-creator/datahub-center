@@ -10,7 +10,6 @@ import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   Descriptions,
   DescriptionsItem,
@@ -245,16 +244,7 @@ onMounted(load);
 </script>
 <template>
   <Spin v-if="loading" class="q-loading" />
-  <Alert v-else-if="failed" type="error" message="质量任务加载失败">
-    <template #action>
-      <Button @click="load">
-        <template #icon>
-          <IconifyIcon icon="lucide:refresh-cw" />
-        </template>
-        重试
-</Button><DetailBackButton v-if="readonly" @click="emit('back')" /><Button v-else @click="emit('back')">返回列表</Button>
-    </template>
-  </Alert>
+  <template v-else-if="failed"><DetailBackButton v-if="readonly" @click="emit('back')" /></template>
   <template v-else>
     <section v-if="readonly" class="q-panel q-detail-heading">
       <div class="q-detail-title">

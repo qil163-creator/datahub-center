@@ -169,7 +169,7 @@ watch(
     content-class="standard-modal-content"
     footer-class="standard-modal-footer"
   >
-    <Alert v-if="loadError" type="error" :message="loadError" class="mb-4" />
+    <Alert v-if="loadError && (!/(?:加载|读取|获取).*失败/.test(loadError) || /保存|冲突|未确认/.test(loadError))" type="error" :message="loadError" class="mb-4" />
     <AntForm
       ref="formRef"
       :model="fields"

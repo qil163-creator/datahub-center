@@ -50,7 +50,6 @@ const databases = ref<{ label: string; value: string }[]>([]);
 const loading = ref(false);
 const bindingLoading = ref(false);
 const error = ref('');
-const bindingError = ref('');
 const visible = ref(false);
 const selected = ref<DataforgeEtlApi.Id>();
 const editing = ref<'binding' | 'environment'>();
@@ -88,7 +87,7 @@ async function load() {
     const result = await getEtlEnvironments();
     if (current === sequence) environments.value = result;
   } catch {
-    if (current === sequence) error.value = '环境读取失败，请刷新重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === sequence) loading.value = false;
   }
@@ -97,14 +96,12 @@ async function loadBindings(id: DataforgeEtlApi.Id) {
   const current = ++bindingSequence;
   selected.value = id;
   bindings.value = [];
-  bindingError.value = '';
   bindingLoading.value = true;
   try {
     const result = await getEtlEnvironmentBindings(id);
     if (current === bindingSequence) bindings.value = result;
   } catch {
-    if (current === bindingSequence)
-      bindingError.value = '连接绑定读取失败，请重新选择环境。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === bindingSequence) bindingLoading.value = false;
   }
@@ -153,8 +150,7 @@ async function edit(
         label: item.name ?? String(item.id),
       }));
   } catch {
-    if (current === databaseSequence)
-      formError.value = '数据源列表读取失败，请重新打开绑定配置。';
+    // 请求客户端已显示错误。
   }
 }
 async function save() {
@@ -339,7 +335,6 @@ onBeforeUnmount(() => {
         <template #icon><IconifyIcon icon="lucide:plus" /></template>
         新增连接
       </Button>
-      <Alert v-if="bindingError" type="error" :message="bindingError" />
       <Table
         :scroll="{ x: 'max-content' }"
         :columns="bindingColumns"

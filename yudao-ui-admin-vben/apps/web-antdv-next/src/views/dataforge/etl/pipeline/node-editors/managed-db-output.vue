@@ -26,8 +26,6 @@ const tables = ref<{ label: string; value: string }[]>([]);
 const tasks = ref<{ label: string; value: string }[]>([]);
 const loading = ref(false);
 const tableLoading = ref(false);
-const error = ref('');
-const tableError = ref('');
 let sequence = 0;
 let tableSequence = 0;
 const sourceOptions = computed(() =>
@@ -69,7 +67,6 @@ function selectSource(id: unknown) {
 async function loadTables(id?: DataforgeEtlApi.Id) {
   const current = ++tableSequence;
   tables.value = [];
-  tableError.value = '';
   tableLoading.value = false;
   if (!id) return;
   tableLoading.value = true;
@@ -84,8 +81,7 @@ async function loadTables(id?: DataforgeEtlApi.Id) {
         value: `"${table.tableName.replaceAll('"', '""')}"`,
       }));
   } catch {
-    if (current === tableSequence)
-      tableError.value = '目标表加载失败，请检查数据源权限后重试。';
+    // 请求客户端已显示错误，保留空选项。
   } finally {
     if (current === tableSequence) tableLoading.value = false;
   }
@@ -93,7 +89,6 @@ async function loadTables(id?: DataforgeEtlApi.Id) {
 async function loadOptions() {
   const current = ++sequence;
   loading.value = true;
-  error.value = '';
   const result = await Promise.allSettled([
     loadDatabases(),
     getQualityTaskSimpleList(),
@@ -110,8 +105,6 @@ async function loadOptions() {
       value: String(item.id),
       label: item.taskName ?? String(item.id),
     }));
-  if (db.status === 'rejected' || quality.status === 'rejected')
-    error.value = '数据源或质量任务读取失败，请确认查询权限后重新打开配置。';
   loading.value = false;
 }
 watch(
@@ -144,11 +137,6 @@ onBeforeUnmount(() => {
       type="info"
       show-icon
       message="当前受管输出已验证 PostgreSQL 16。先暂存完整批次，流程完成后提交，再执行批次质量验收。提交成功和质量通过分别显示；仅通过准入后开放受控批次读取。每批最多 5000 行、8 MiB。"
-    />
-    <Alert
-      v-if="error || tableError"
-      type="error"
-      :message="error || tableError"
     />
     <div class="form-item">
       <label class="form-item__label form-item__label--required">直接上游质量节点</label><Select

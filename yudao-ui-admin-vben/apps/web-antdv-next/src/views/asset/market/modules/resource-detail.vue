@@ -300,7 +300,7 @@ defineExpose({ open, close });
       type="info"
       show-icon
     />
-    <Alert v-if="detailError" :message="detailError" type="error" show-icon />
+
     <div v-if="current" class="mx-4 flex flex-col gap-4">
       <Alert
         v-if="current.publicationNotice"

@@ -1889,22 +1889,13 @@ onBeforeUnmount(() => {
                   class="flex h-full flex-col items-center justify-center gap-3"
                 >
                   <Empty
+                    v-if="!taskLoadError"
                     :description="
-                      taskLoadError ||
-                      (openingTask
+                      openingTask
                         ? '正在加载任务配置…'
-                        : '打开任务或新建临时脚本开始开发')
+                        : '打开任务或新建临时脚本开始开发'
                     "
                   />
-                  <Button
-                    v-if="taskLoadError && taskId !== undefined"
-                    @click="openTask(taskId)"
-                  >
-                    <template #icon>
-                      <IconifyIcon icon="lucide:refresh-cw" />
-                    </template>
-                    重新加载
-                  </Button>
                   <template v-if="taskId !== undefined">
                     <DetailBackButton v-if="readOnly" @click="returnToTasks" />
                     <Button v-else @click="returnToTasks">返回列表</Button>

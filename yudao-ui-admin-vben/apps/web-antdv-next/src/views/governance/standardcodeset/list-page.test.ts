@@ -35,6 +35,8 @@ interface GridOptions {
       fixed?: string;
       showOverflow?: boolean;
       title?: string;
+      type?: string;
+      visible?: boolean;
       width?: number;
     }[];
   };
@@ -50,6 +52,7 @@ const state = vi.hoisted(() => ({
   options: undefined as GridOptions | undefined,
   confirm: undefined as undefined | { onOk: () => Promise<void> },
   clearCheckbox: vi.fn(),
+  modalOpen: [] as ReturnType<typeof vi.fn>[],
 }));
 const Slot = defineComponent({
   setup: (_, { slots }) => () => h('div', slots.default?.()),
@@ -69,10 +72,14 @@ vi.mock('@vben/common-ui', () => ({
   Page: defineComponent({
     setup: (_, { slots }) => () => h('main', slots.default?.()),
   }),
-  useVbenModal: () => [
-    defineComponent(() => () => null),
-    { setData: vi.fn(), open: vi.fn(), close: vi.fn() },
-  ],
+  useVbenModal: () => {
+    const open = vi.fn();
+    state.modalOpen.push(open);
+    return [
+      defineComponent(() => () => null),
+      { setData: vi.fn(), open, close: vi.fn() },
+    ];
+  },
 }));
 vi.mock('antdv-next', () => ({
   Alert: defineComponent(() => () => null),
@@ -116,12 +123,13 @@ vi.mock('#/adapter/vxe-table', () => ({
     setup: (props) => () =>
       h(
         'div',
-        [...props.actions, ...props.dropDownActions]
-          .filter((action) => action.ifShow !== false)
-          .map((action) =>
+        [...props.actions.map((action) => ({ action, dropdown: false })),
+          ...props.dropDownActions.map((action) => ({ action, dropdown: true }))]
+          .filter(({ action }) => action.ifShow !== false)
+          .map(({ action, dropdown }) =>
             h(
               'button',
-              { disabled: action.disabled, onClick: action.onClick },
+              { disabled: action.disabled, onClick: action.onClick, 'data-dropdown': dropdown ? '' : undefined },
               action.label,
             ),
           ),
@@ -180,6 +188,7 @@ beforeEach(() => {
   state.grid = reactive({ data: [] });
   state.options = undefined;
   state.confirm = undefined;
+  state.modalOpen = [];
   vi.mocked(getStandardCodeSetPage).mockResolvedValue({ list: [], total: 0 });
 });
 afterEach(() => {
@@ -231,8 +240,10 @@ describe('代码表列表', () => {
   it('批量删除传递无损 ID，成功后清理勾选', async () => {
     mount();
     await settle();
-    click('批量选择');
-    await settle();
+    expect(state.options!.gridOptions.columns).toContainEqual(
+      expect.objectContaining({ type: 'checkbox' }),
+    );
+    expect(state.options!.gridOptions.columns.find((column) => column.type === 'checkbox')?.visible).not.toBe(false);
     const ids = ['9007199254740993', '9007199254740995'];
     state.options!.gridEvents.checkboxChange({ records: ids.map((id) => ({ id })) });
     await settle();
@@ -245,5 +256,19 @@ describe('代码表列表', () => {
       (button) => button.textContent === '批量删除',
     );
     expect(remove?.disabled).toBe(true);
+  });
+
+  it('导入按钮位于批量删除右侧并打开导入弹窗', async () => {
+    mount();
+    await settle();
+    const labels = [...container.querySelectorAll('button')].map(
+      (button) => button.textContent,
+    );
+    expect(labels.indexOf('导入码表/码值')).toBe(labels.indexOf('批量删除') + 1);
+    expect(labels).not.toContain('批量选择');
+    expect(labels).not.toContain('退出批量选择');
+    expect(container.querySelector('[data-dropdown]')).toBeNull();
+    click('导入码表/码值');
+    expect(state.modalOpen[1]).toHaveBeenCalledOnce();
   });
 });

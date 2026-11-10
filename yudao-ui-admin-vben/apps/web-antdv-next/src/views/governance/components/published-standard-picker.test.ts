@@ -207,7 +207,8 @@ describe('已发布标准远程分页选择', () => {
       new Error('读取失败'),
     );
     picker.open();
-    await expect.poll(() => host.textContent).toContain('标准读取失败');
+    await expect.poll(() => vi.mocked(getStandardElementPage).mock.calls.length).toBeGreaterThan(1);
+    expect(host.textContent).not.toContain('标准读取失败');
     host.querySelector<HTMLButtonElement>('[data-ok]')!.click();
     expect(picked).not.toHaveBeenCalled();
   });

@@ -216,7 +216,7 @@ watch(
       <span v-else aria-hidden="true"></span>
     </template>
   </StandardToolbar>
-  <Alert v-if="error" :message="error" type="error" class="mb-3" />
+  <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" :message="error" type="error" class="mb-3" />
   <Table
     class="standard-table standard-code-records"
     :columns="columns"

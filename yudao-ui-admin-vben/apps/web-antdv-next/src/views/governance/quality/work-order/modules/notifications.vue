@@ -363,7 +363,7 @@ onBeforeUnmount(reset);
         type="info"
         message="发送中与发送结果未知不等于未送达。UNKNOWN 不自动重发，人工核验结论与实际投递回执分别保留。"
       />
-      <Alert v-if="error" type="error" :message="error" />
+      <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" type="error" :message="error" />
       <Table
         :columns="columns"
         :data-source="rows"

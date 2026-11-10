@@ -23,11 +23,11 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { Alert, Button, Empty, Tag, Tooltip } from 'antdv-next';
 
+import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import { getMarketCategorySimpleList } from '#/api/asset/marketcategory';
 import { getMyAssetsPage, previewMyAsset } from '#/api/asset/my-assets';
 import ListPagination from '#/components/list-pagination/index.vue';
-import TableViewport from '#/components/table-viewport/index.vue';
 import {
   createLatestWins,
   parseResourceId,
@@ -155,38 +155,42 @@ const categoryOptions = computed(() =>
   ),
 );
 const columns = computed(() => [
+  { title: '编号', field: 'applyNo', width: isMobile.value ? 112 : 180 },
+  { title: '数据集市名称', field: 'name', width: 240 },
+  { title: '集市类目', field: 'marketCategoryName', width: 150 },
+  { title: '交付形态', field: 'deliveryType', width: 120 },
+  { title: '申请时间', field: 'createTime', width: 175 },
+  { title: '有效期', field: 'validity', width: 190 },
+  { title: '状态', field: 'accessStatus', width: 180 },
+  { title: '数据更新周期', field: 'updateCycle', width: 140 },
   {
-    title: '编号',
-    key: 'applyNo',
-    dataIndex: 'applyNo',
-    width: isMobile.value ? 112 : 180,
+    title: '操作', field: 'actions', fixed: 'right' as const, width: 180,
+    showOverflow: false,
   },
-  { title: '数据集市名称', key: 'name', width: 240 },
-  {
-    title: '集市类目',
-    key: 'marketCategoryName',
-    dataIndex: 'marketCategoryName',
-    width: 150,
+].map((column) => ({ ...column, slots: { default: 'body' } })));
+const [Grid, gridApi] = useVbenVxeGrid<MyAssetsApi.Asset>({
+  gridOptions: {
+    columns: columns.value,
+    data: [],
+    height: 'auto',
+    pagerConfig: { enabled: false },
+    proxyConfig: { enabled: false },
+    rowConfig: { keyField: 'applyId', isHover: true },
+    scrollbarConfig: { height: 6 },
+    showOverflow: false,
+    toolbarConfig: {
+      custom: false,
+      refresh: true,
+      refreshOptions: { queryMethod: () => loadAssets() },
+    },
   },
-  { title: '交付形态', key: 'deliveryType', width: 120 },
-  { title: '申请时间', key: 'createTime', width: 175 },
-  { title: '有效期', key: 'validity', width: 190 },
-  { title: '状态', key: 'accessStatus', width: 180 },
-  {
-    title: '数据更新周期',
-    key: 'updateCycle',
-    dataIndex: 'updateCycle',
-    width: 140,
-  },
-  { title: '操作', key: 'actions', fixed: 'right' as const, width: 180 },
-]);
+});
+watch(columns, (value) => gridApi.setGridOptions({ columns: value }));
+watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
 const [PreviewModal, previewModalApi] = useVbenModal({
   connectedComponent: PreviewDrawer,
   destroyOnClose: true,
 });
-function rowKey(row: MyAssetsApi.Asset) {
-  return String(row.applyId);
-}
 function cellText(row: MyAssetsApi.Asset, key: unknown) {
   if (
     key === 'applyNo' ||
@@ -473,13 +477,7 @@ function syncFilterValues() {
       </nav>
       <MyApplications v-if="activeTab === 'applications'" />
       <template v-else>
-        <Alert
-          v-if="linkedAssetError"
-          type="warning"
-          :message="linkedAssetError"
-          show-icon
-        />
-        <FilterForm
+<FilterForm
           @vue:mounted="syncFilterValues"
           class="rounded-lg bg-background p-4"
         >
@@ -494,67 +492,23 @@ function syncFilterValues() {
             </Button>
           </template>
         </FilterForm>
-        <Alert
-          v-if="categoryError"
-          type="warning"
-          :message="categoryError"
-          show-icon
-        >
-          <template #action>
-            <Button
-              size="small"
-              :loading="categoryLoading"
-              @click="loadCategories"
-            >
-              <template #icon>
-<IconifyIcon icon="lucide:refresh-cw" />
-</template>
-              重试
-            </Button>
-          </template>
-        </Alert>
+
         <section class="my-assets-results">
-          <header class="my-assets-results__header">
-            <h2>我的资产</h2>
-            <Button :loading="loading" @click="loadAssets">
-              <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新
-            </Button>
-          </header>
-          <Alert
-            v-if="listError"
-            class="mb-3"
-            type="error"
-            :message="listError"
-            show-icon
+          <Grid
+            class="my-assets-grid subtle-grid-scrollbar"
+            table-title="我的资产"
+            :table-data="rows"
           >
-            <template #action>
-              <Button size="small" :loading="loading" @click="loadAssets">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
-          <TableViewport
-            :columns="columns"
-            :data-source="rows"
-            :row-key="rowKey"
-            :loading="loading"
-            :pagination="false"
-            :scroll="{ x: 1555 }"
-            size="middle"
-          >
-            <template #bodyCell="{ column, record }">
+            <template #body="{ column, row: record }">
               <Button
-                v-if="column.key === 'name'"
+                v-if="column.field === 'name'"
                 type="link"
                 class="my-assets-name"
                 @click="openDetail(record)"
               >
                 {{ assetTitle(record) }}
               </Button>
-              <Tag v-else-if="column.key === 'deliveryType'" color="blue">
+              <Tag v-else-if="column.field === 'deliveryType'" color="blue">
                 {{
                   deliveryLabels(
                     record.deliveryType === undefined ||
@@ -564,11 +518,11 @@ function syncFilterValues() {
                   ).join(' / ') || '--'
                 }}
               </Tag>
-              <span v-else-if="column.key === 'createTime'">{{
+              <span v-else-if="column.field === 'createTime'">{{
                 formatMarketTime(record.createTime)
               }}</span>
               <div
-                v-else-if="column.key === 'validity'"
+                v-else-if="column.field === 'validity'"
                 class="my-assets-validity"
               >
                 <span>{{ formatMarketTime(record.applyStartTime) }}</span><span class="text-muted-foreground">至
@@ -580,7 +534,7 @@ function syncFilterValues() {
                   }}</span>
               </div>
               <div
-                v-else-if="column.key === 'accessStatus'"
+                v-else-if="column.field === 'accessStatus'"
                 class="my-assets-status"
               >
                 <Tag :color="accessState(record.accessStatus).color">
@@ -590,7 +544,7 @@ function syncFilterValues() {
                 }}</span>
               </div>
               <div
-                v-else-if="column.key === 'actions'"
+                v-else-if="column.field === 'actions'"
                 class="my-assets-actions"
               >
                 <Button type="link" size="small" @click="openDetail(record)">
@@ -645,17 +599,15 @@ function syncFilterValues() {
                     </Button></span>
                 </Tooltip>
               </div>
-              <span v-else>{{ cellText(record, column.dataIndex) }}</span>
+              <span v-else>{{ cellText(record, column.field) }}</span>
             </template>
-            <template #emptyText>
+            <template #empty>
               <Empty
                 v-if="!loading && !listError"
                 description="暂无符合条件的已批准资产服务"
-              /><span v-else>{{
-                listError ? '读取失败，请重试' : '正在读取资产服务'
-              }}</span>
+              /><span v-else-if="loading">正在读取资产服务</span>
             </template>
-          </TableViewport>
+          </Grid>
           <ListPagination
             :current="query.pageNo"
             :page-size="query.pageSize"
@@ -700,22 +652,13 @@ function syncFilterValues() {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 20px;
   background: hsl(var(--background));
   border-radius: var(--radius);
 }
 
-.my-assets-results__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.my-assets-results__header h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+.my-assets-grid {
+  flex: 1;
+  min-height: 0;
 }
 
 .my-assets-name {
@@ -752,14 +695,7 @@ function syncFilterValues() {
 .my-assets-pagination {
   display: flex;
   flex: none;
-  margin-top: auto;
+  margin: 0 8px 8px;
 }
 
-@media (width <= 640px) {
-  .my-assets-results {
-    padding: 16px;
-  }
-}
 </style>
-
-<style scoped src="../../table-font.css"></style>

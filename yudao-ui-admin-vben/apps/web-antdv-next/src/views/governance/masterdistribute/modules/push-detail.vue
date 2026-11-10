@@ -262,16 +262,7 @@ const logColumns = [
 <template>
   <LogModal @success="changed" />
   <Spin v-if="loading && !detail" class="m-auto" />
-  <Alert v-else-if="failed" type="error" message="主数据推送详情加载失败">
-    <template #action>
-      <Button @click="load">
-        <template #icon>
-          <IconifyIcon icon="lucide:refresh-cw" />
-        </template>
-        重试 </Button
-      ><DetailBackButton @click="emit('back')" />
-    </template>
-  </Alert>
+  <template v-else-if="failed"><DetailBackButton @click="emit('back')" /></template>
   <div v-else-if="detail" class="metadata-detail">
     <section class="metadata-panel">
       <div class="metadata-detail__title">
@@ -424,16 +415,6 @@ const logColumns = [
               >执行管理与核查
             </Button>
           </div>
-          <Alert v-if="logFailed" type="error" message="推送日志加载失败">
-            <template #action>
-              <Button @click="loadLogs">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
           <Table
             class="qdata-master-mapping"
             :columns="logColumns"
@@ -510,7 +491,7 @@ const logColumns = [
       footer-class="metadata-modal__footer"
     >
       <Alert
-        v-if="mappingError"
+        v-if="mappingError && (!/(?:加载|读取|获取).*失败/.test(mappingError) || /保存|冲突|未确认/.test(mappingError))"
         type="error"
         :message="mappingError"
         class="mb-4"

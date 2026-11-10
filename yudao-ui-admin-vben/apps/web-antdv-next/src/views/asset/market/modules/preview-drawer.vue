@@ -150,13 +150,7 @@ function rowKey(_record: object, index?: number) {
     <div v-if="consumptionKey" class="text-muted-foreground mx-4 mb-2 text-xs">
       消费请求键：{{ consumptionKey }}。网络失败时可使用此请求键联系管理员核对。
     </div>
-    <Alert
-      v-if="previewError"
-      :message="previewError"
-      class="mx-4 mb-2"
-      show-icon
-      type="error"
-    />
+    <template v-if="previewError"></template>
     <Alert
       v-else-if="preview.truncated"
       class="mx-4 mb-2"

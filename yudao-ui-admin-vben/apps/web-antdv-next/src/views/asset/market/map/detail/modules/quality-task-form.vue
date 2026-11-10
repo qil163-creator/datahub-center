@@ -282,12 +282,7 @@ const columns = [
         :allow-execution="hasAccessByCodes(['governance:quality-task:query'])"
         @save="saveEvaluation"
       />
-      <Alert
-        v-if="failed"
-        type="error"
-        message="稽查规则读取失败，请关闭后重试。"
-        class="mb-3"
-      />
+      <template v-if="failed"></template>
       <Alert
         v-else-if="!catalogAllowed"
         type="info"
@@ -313,8 +308,7 @@ const columns = [
           :loading="loading"
           @click="recommend"
         >
-          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
-          >获取稽查规则
+          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>获取稽查规则
         </Button>
       </div>
       <Table

@@ -7,7 +7,6 @@ import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
 
 import {
-  Alert,
   Button,
   Input,
   message,
@@ -323,24 +322,6 @@ const [Modal, modalApi] = useVbenModal({
 <template>
   <Modal :title="title">
     <PathPickerModal @select="setFilePath" />
-    <Alert
-      v-if="failed"
-      type="error"
-      message="任务或可选数据读取失败，请重试。"
-      class="mb-4"
-    >
-      <template #action>
-        <Button
-          size="small"
-          @click="initialize(modalApi.getData() as Api.CollectTask)"
-        >
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="metadata-form-grid">
       <div class="metadata-form-item metadata-form-item--required">
         <label>来源系统</label><Select
@@ -489,16 +470,7 @@ const [Modal, modalApi] = useVbenModal({
         class="metadata-scope-transfer metadata-form-item--wide"
       >
         <div>
-          <Alert v-if="scopeFailed" type="error" message="读取采集范围失败">
-            <template #action>
-              <Button size="small" @click="loadScopes">
-                <template #icon>
-                  <MetadataIcon name="refresh" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
+          <template v-if="scopeFailed"></template>
           <span v-else-if="scopeLoading">正在读取库表…</span>
           <Transfer
             :data-source="

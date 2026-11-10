@@ -6,10 +6,9 @@ import type { QualityRuleSetApi } from '#/api/governance/quality/ruleset';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, AutoComplete, Button, Input, Select } from 'antdv-next';
+import { Alert, AutoComplete, Input, Select } from 'antdv-next';
 
 import {
   getRuleSetItems,
@@ -41,7 +40,6 @@ const ruleSets = ref<QualityRuleSetApi.RuleSet[]>([]);
 const rules = ref<QualityRuleSetApi.Item[]>([]);
 const loading = ref(false);
 const rulesLoading = ref(false);
-const loadError = ref('');
 const rulesError = ref('');
 let setSeq = 0;
 let rulesSeq = 0;
@@ -63,12 +61,11 @@ async function loadSets() {
   ruleSets.value = [];
   if (!canLoadRules.value) return;
   loading.value = true;
-  loadError.value = '';
   try {
     const result = await getRuleSetSimpleList();
     if (seq === setSeq) ruleSets.value = result;
   } catch {
-    if (seq === setSeq) loadError.value = '规则集加载失败，请重试。';
+    // 请求客户端已显示错误，保留空选项。
   } finally {
     if (seq === setSeq) loading.value = false;
   }
@@ -138,7 +135,6 @@ watch(
     rules.value = [];
     loading.value = false;
     rulesLoading.value = false;
-    loadError.value = '';
     rulesError.value = '';
     if (canLoadRules.value) {
       void loadSets();
@@ -167,11 +163,6 @@ onBeforeUnmount(() => {
       message="没有治理规则集查询权限，无法确认规则和字段绑定。"
       class="mb-3"
     />
-    <Alert v-if="loadError" type="error" :message="loadError" class="mb-3">
-      <template #action>
-        <Button size="small" @click="loadSets"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button>
-      </template>
-    </Alert>
     <div class="form-item">
       <label class="form-item__label form-item__label--required">治理规则集</label>
       <Select
@@ -186,14 +177,6 @@ onBeforeUnmount(() => {
       />
       <span class="form-item__tip">本节点用于行级规则；唯一性、跨行及跨表规则须由批次检测执行，服务端会阻断不支持的规则。</span>
     </div>
-    <Alert v-if="rulesError" type="error" :message="rulesError" class="mb-3">
-      <template #action>
-        <Button size="small" @click="loadRules(config.ruleSetId)">
-<template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div v-if="rulesLoading" class="form-item__tip">正在加载规则字段绑定…</div>
     <div
       v-for="binding in bindings"

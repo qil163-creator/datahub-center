@@ -344,17 +344,9 @@ function primaryKeyText() {
         <section class="preview-modal__list">
           <div class="preview-modal__list-head">
             <div class="preview-modal__panel-title">表清单</div>
-            <span class="preview-modal__count">{{ tables.length }} 个</span>
+            <span v-if="!listError" class="preview-modal__count">{{ tables.length }} 个</span>
           </div>
-          <Alert
-            v-if="listError"
-            class="mb-3"
-            :message="listError"
-            description="请先在列表中对该数据源执行连接测试，确认主机、端口、账号密码可用后再预览。"
-            show-icon
-            type="warning"
-          />
-          <Grid class="preview-modal__grid bg-transparent" :table-data="tables">
+          <Grid v-if="!listError" class="preview-modal__grid bg-transparent" :table-data="tables">
             <template #tableName="{ row }">
               <span class="preview-modal__table-name">
                 <IconifyIcon class="size-4 shrink-0" icon="lucide:table" />
@@ -409,13 +401,7 @@ function primaryKeyText() {
     destroy-on-hidden
     @update:open="handleNestedOpenChange"
   >
-    <Alert
-      v-if="nestedError"
-      class="mb-3"
-      :message="nestedError"
-      show-icon
-      type="warning"
-    />
+    <template v-if="!nestedError">
     <div v-if="nestedKind === 'attrs'" class="preview-nested">
       <Descriptions :column="2" bordered size="small">
         <DescriptionsItem label="表名">
@@ -501,6 +487,7 @@ function primaryKeyText() {
         </template>
       </Table>
     </div>
+    </template>
   </Modal>
 </template>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CustomizableColumn } from '../../components/use-table-customization';
 import type { LogicColumn, LogicTableKind } from '../config';
 
 import type { ModelingLogicTableApi } from '#/api/modeling/logictable';
@@ -34,6 +35,7 @@ import {
   Tooltip,
 } from 'antdv-next';
 
+import { ACTION_ICON, NativeVxeButton, TableAction } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import {
   checkLogicTableDelete,
@@ -47,6 +49,8 @@ import { getSimpleUserList } from '#/api/system/user';
 import ListPagination from '#/components/list-pagination/index.vue';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 
+import TableCustomization from '../../components/table-customization.vue';
+import { useTableCustomization } from '../../components/use-table-customization';
 import sectionIcon from '../assets/data-section-default-icon-small.svg';
 import dbIcon from '../assets/db-dm.svg';
 import syncIcon from '../assets/sync-structure.svg';
@@ -95,6 +99,18 @@ const treeFilter = ref<{
   subjectDomainId?: number | string;
 }>({});
 const showSearch = ref(true);
+const {
+  columns: customizedColumns,
+  visibleColumns,
+  open: settingsOpen,
+  apply: applySettings,
+  reset: resetSettings,
+} = useTableCustomization<CustomizableColumn & Omit<LogicColumn, 'align'>>(`modeling-logic-table-${props.kind}`, () =>
+  page.value.columns.map((column) => ({
+    ...column,
+    fixed: column.fixedRight ? 'right' as const : undefined,
+  })),
+);
 
 // ---------- 选项 ----------
 const sourceSystems = ref<ModelingLogicTableApi.SourceSystem[]>([]);
@@ -232,7 +248,7 @@ function resetSearch() {
   void load(true);
 }
 
-function changeSort(column: LogicColumn, asc?: boolean) {
+function changeSort(column: Pick<LogicColumn, 'sortField'>, asc?: boolean) {
   if (!column.sortField) return;
   if (asc === undefined) {
     // 点击表头：升序 → 降序 → 恢复默认
@@ -250,7 +266,7 @@ function changeSort(column: LogicColumn, asc?: boolean) {
   }
   void load(true);
 }
-function sortState(column: LogicColumn) {
+function sortState(column: Pick<LogicColumn, 'sortField'>) {
   if (!column.sortField || sort.value.field !== column.sortField) return '';
   return sort.value.asc ? 'ascending' : 'descending';
 }
@@ -302,24 +318,48 @@ function enabled(row: Row) {
 
 // ---------- 列宽（el-table fit：仅无固定宽度的列分配剩余宽度） ----------
 const tableWrapper = ref<HTMLDivElement>();
+const tableElement = ref<HTMLTableElement>();
+const renderedWidths = ref<number[]>([]);
 const wrapperWidth = ref(0);
 const scrollLeft = ref(0);
 const scrollMax = ref(0);
 const columnWidths = computed(() => {
-  const columns = page.value.columns;
+  const columns = visibleColumns.value;
   const fixed = columns.reduce((sum, col) => sum + (col.width ?? 0), 0);
   const flex = columns.filter((col) => col.width === undefined);
   const flexMin = flex.reduce((sum, col) => sum + (col.minWidth ?? 80), 0);
   const extra = Math.max(0, wrapperWidth.value - fixed - flexMin);
-  return columns.map((col) => {
+  const widths = columns.map((col) => {
     if (col.width !== undefined) return col.width;
     const min = col.minWidth ?? 80;
     return flexMin > 0 ? Math.floor(min + (extra * min) / flexMin) : min;
   });
+  if (!flex.length && extra > 0) {
+    const expandable = Math.max(0, columns.findIndex((column) => !column.fixed));
+    if (widths.length) widths[expandable] = (widths[expandable] ?? 0) + extra;
+  }
+  return widths;
 });
 const tableWidth = computed(() =>
   columnWidths.value.reduce((sum, width) => sum + width, 0),
 );
+function fixedStyle(index: number) {
+  const column = visibleColumns.value[index];
+  const widths = renderedWidths.value.length === visibleColumns.value.length
+    ? renderedWidths.value
+    : columnWidths.value;
+  if (column?.fixed === 'left') {
+    return { left: `${widths.slice(0, index).reduce((sum, width) => sum + width, 0)}px` };
+  }
+  if (column?.fixed === 'right') {
+    return { right: `${widths.slice(index + 1).reduce((sum, width) => sum + width, 0)}px` };
+  }
+  return {};
+}
+watch(visibleColumns, (columns) => {
+  if (!columns.some((column) => column.key === 'selection')) selectedIds.value = new Set();
+  void nextTick(measureTable);
+});
 let resizeObserver: ResizeObserver | undefined;
 function measureTable() {
   const el = tableWrapper.value;
@@ -327,11 +367,13 @@ function measureTable() {
   wrapperWidth.value = el.clientWidth;
   scrollLeft.value = el.scrollLeft;
   scrollMax.value = el.scrollWidth - el.clientWidth;
+  renderedWidths.value = [...(tableElement.value?.querySelectorAll('thead th') ?? [])].map((cell) => cell.getBoundingClientRect().width);
 }
 onMounted(() => {
   if (tableWrapper.value) {
     resizeObserver = new ResizeObserver(() => measureTable());
     resizeObserver.observe(tableWrapper.value);
+    if (tableElement.value) resizeObserver.observe(tableElement.value);
   }
   void nextTick(measureTable);
 });
@@ -593,8 +635,7 @@ const [SearchForm, searchFormApi] = useVbenForm({
   showCollapseButton: true,
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   commonConfig: { componentProps: { class: 'w-full' } },
-  submitButtonOptions: { show: false },
-  resetButtonOptions: { show: false },
+  submitButtonOptions: { content: '搜索' },
   schema: page.value.search.map((item) => ({
     fieldName:
       (
@@ -649,58 +690,25 @@ const themeConfig = computed(() => ({
         />
         <main class="qd-logic-main">
           <div v-if="showSearch" class="qd-wrap-search">
-            <SearchForm>
-              <template #reset-before><Button @click="resetNativeSearch"><QdIcon name="reset" />重置</Button></template>
-              <template #submit-before><Button type="primary" @click="searchFormApi.submit()"><QdIcon name="query" />搜索</Button></template>
-            </SearchForm>
+            <SearchForm />
           </div>
           <div class="qd-wrap-content">
             <div class="qd-wrap-actions">
               <h3 class="qd-list-title">{{ page.label }}</h3>
               <div class="qd-data-actions">
-                <Button
-type="primary"
-                  v-if="can(PERM.create)"
-                  @click="openCreate"
-                >
-                  <QdIcon name="plus" />{{ page.addLabel }}
-                </Button>
-                <Button
-type="default" danger
-                  v-if="can(PERM.delete)"
-                  :disabled="selectedIds.size === 0 || deleting"
-                  @click="removeSelected"
-                >
-                  <QdIcon
-                    :name="page.batchDeleteIcon"
-                    :class="{ 'qd-btn__iconfont': page.batchDeleteIcon === 'deleteGray' }"
-                  />批量删除
-                </Button>
+                <TableAction
+                  :actions="[
+                    { label: page.addLabel, type: 'primary', icon: ACTION_ICON.ADD, auth: [PERM.create], onClick: openCreate },
+                    { label: '批量删除', type: 'primary', danger: true, icon: ACTION_ICON.DELETE, auth: [PERM.delete], disabled: selectedIds.size === 0 || deleting, onClick: removeSelected },
+                  ]"
+                />
               </div>
               <div class="qd-table-actions">
-                <Tooltip :title="showSearch ? '隐藏搜索' : '显示搜索'">
-                  <Button
-type="default"
-                    :aria-label="showSearch ? '隐藏搜索' : '显示搜索'"
-                    @click="showSearch = !showSearch"
-                  >
-                    <QdIcon name="toolbarSearch" />
-                  </Button>
-                </Tooltip>
-                <Tooltip title="刷新">
-                  <Button
-type="default"
-                    aria-label="刷新"
-                    @click="load()"
-                  >
-                    <QdIcon name="toolbarRefresh" />
-                  </Button>
-                </Tooltip>
-                <Tooltip title="显隐列">
-                  <Button type="default" aria-label="显隐列">
-                    <QdIcon name="menu" />
-                  </Button>
-                </Tooltip>
+                <NativeVxeButton :aria-label="showSearch ? '隐藏搜索' : '显示搜索'" :title="showSearch ? '隐藏搜索' : '显示搜索'" icon="vxe-icon-search" size="small" circle :status="showSearch ? 'primary' : undefined" :aria-pressed="showSearch" @click="showSearch = !showSearch" />
+                <div class="vxe-tools--operate">
+                  <NativeVxeButton aria-label="刷新" title="刷新" :icon="loading ? 'vxe-icon-repeat roll' : 'vxe-icon-repeat'" size="small" circle :disabled="loading" @click="load()" />
+                  <NativeVxeButton aria-label="个性化设置" title="个性化设置" icon="vxe-icon-setting" size="small" circle @click="settingsOpen = true" />
+                </div>
               </div>
             </div>
 
@@ -711,12 +719,13 @@ type="default"
                 @scroll="measureTable"
               >
                 <table
+                  ref="tableElement"
                   class="qd-table__inner"
                   :style="{ width: `${Math.max(tableWidth, wrapperWidth)}px` }"
                 >
                   <colgroup>
                     <col
-                      v-for="(col, index) in page.columns"
+                      v-for="(col, index) in visibleColumns"
                       :key="col.key"
                       :style="{ width: `${columnWidths[index]}px` }"
                     />
@@ -724,17 +733,20 @@ type="default"
                   <thead>
                     <tr>
                       <th
-                        v-for="col in page.columns"
+                        v-for="(col, colIndex) in visibleColumns"
                         :key="col.key"
+                        :data-column-key="col.key"
                         :class="[
                           `is-${col.align}`,
                           {
                             'is-sortable': col.sortField,
-                            'is-fixed-right': col.fixedRight,
-                            'has-shadow': col.fixedRight && scrollLeft < scrollMax - 1,
+                            'is-fixed-left': col.fixed === 'left',
+                            'is-fixed-right': col.fixed === 'right',
+                            'has-shadow': col.fixed === 'right' && visibleColumns[colIndex - 1]?.fixed !== 'right' && scrollLeft < scrollMax - 1,
                           },
                           sortState(col),
                         ]"
+                        :style="fixedStyle(colIndex)"
                         @click="changeSort(col)"
                       >
                         <div class="qd-cell">
@@ -779,17 +791,20 @@ type="default"
                       @dblclick="page.kind !== 'source' && openDetail(row)"
                     >
                       <td
-                        v-for="col in page.columns"
+                        v-for="(col, colIndex) in visibleColumns"
                         :key="col.key"
+                        :data-column-key="col.key"
                         :class="[
                           `is-${col.align}`,
                           {
-                            'is-fixed-right': col.fixedRight,
-                            'has-shadow': col.fixedRight && scrollLeft < scrollMax - 1,
+                            'is-fixed-left': col.fixed === 'left',
+                            'is-fixed-right': col.fixed === 'right',
+                            'has-shadow': col.fixed === 'right' && visibleColumns[colIndex - 1]?.fixed !== 'right' && scrollLeft < scrollMax - 1,
                           },
                         ]"
+                        :style="fixedStyle(colIndex)"
                       >
-                        <div class="qd-cell">
+                        <div class="qd-cell" :class="{ 'qd-row-actions': col.key === 'action' }">
                           <Checkbox
                             v-if="col.key === 'selection'"
                             :checked="selectedIds.has(String(row.id))"
@@ -994,6 +1009,7 @@ type="link" danger
       </section>
       <SourceModal v-if="kind === 'source'" ref="sourceModal" @saved="load()" />
       <SummaryModal v-if="kind === 'summary'" ref="summaryModal" @saved="load()" />
+      <TableCustomization v-model:open="settingsOpen" :columns="customizedColumns" @apply="applySettings" @reset="resetSettings" />
     </div>
     </Page>
   </ConfigProvider>

@@ -10,7 +10,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, ConfigProvider, Spin } from 'antdv-next';
+import { Alert, ConfigProvider, Spin } from 'antdv-next';
 
 import { getJob, getJobTaskOptions } from '#/api/dataforge/job';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
@@ -120,11 +120,7 @@ watch(
           title="作业编号无效或没有查询权限"
           show-icon
         />
-        <Alert v-if="failed" type="error" :title="failed" show-icon>
-          <template #action>
-            <Button @click="load">重试</Button>
-          </template>
-        </Alert>
+
         <Spin :spinning="loading" class="qj-designer-spin">
           <section v-if="job" class="qj-detail-header">
             <div class="qj-detail-heading">

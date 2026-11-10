@@ -484,22 +484,15 @@ describe('主数据模型独立只读详情', () => {
     expect(host.querySelector('[role="alert"]')).toBeNull();
   });
 
-  it('加载失败保留重试与返回入口，重试重新读取并清除错误', async () => {
+  it('加载失败不显示提示条并保留返回入口', async () => {
     vi.mocked(api.getMasterModel).mockRejectedValueOnce(new Error('读取失败'));
     await mount();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-      '详情加载失败',
-    );
+    expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(host.querySelector('[aria-busy="true"]')).toBeNull();
     expect(button('返回')).toBeDefined();
-    expect(button('重试')).toBeDefined();
+    expect(button('重试')).toBeUndefined();
     button('返回')!.click();
     await flush();
     expect(harness.back).toHaveBeenCalledOnce();
-    button('重试')!.click();
-    await flush();
-    expect(api.getMasterModel).toHaveBeenCalledTimes(2);
-    expect(host.querySelector('[role="alert"]')).toBeNull();
-    expect(host.textContent).toContain('人员模型');
   });
 });

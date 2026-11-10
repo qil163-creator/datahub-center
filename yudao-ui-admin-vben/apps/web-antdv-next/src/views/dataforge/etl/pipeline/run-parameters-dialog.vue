@@ -83,7 +83,6 @@ function open(pipelineId: DataforgeEtlApi.Id): Promise<Selection | undefined> {
     .catch(() => {
       if (current !== sequence || !visible.value) return;
       loading.value = false;
-      errors.value = ['运行参数定义加载失败，请关闭后重试。'];
     });
   return pending;
 }

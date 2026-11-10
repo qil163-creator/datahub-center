@@ -107,7 +107,7 @@ watch(() => [props.kind, props.ownerId, access.accessToken, access.accessCodes],
       <template #title><span class="text-muted-foreground">展示当前数据元或代码表关联的逻辑模型及相关字段，便于查看标准在数据建模中的应用情况。</span></template>
     </StandardToolbar>
     <Alert v-if="!canQueryModels" class="mb-3" type="warning" message="暂无逻辑模型查询权限" show-icon />
-    <Alert v-else-if="failed" class="mb-3" type="error" message="关联逻辑模型加载失败，请刷新重试" show-icon />
+    <template v-else-if="failed"></template>
     <Table v-if="canQueryModels" :columns="columns" :data-source="visibleRows" :loading="loading" :pagination="false" :scroll="{ x: 1600 }" row-key="id" size="small">
       <template #bodyCell="{ column, record }">
         <span v-if="column.dataIndex === 'fields'">{{ record.fields.join('、') || '-' }}</span>

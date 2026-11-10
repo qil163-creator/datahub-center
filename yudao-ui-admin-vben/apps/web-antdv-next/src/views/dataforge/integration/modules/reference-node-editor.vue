@@ -835,11 +835,7 @@ defineExpose({ validate });
       type="warning"
       message="此历史节点使用正则映射。获取字段后将采用新的显式字段配置，原正则配置仍保留。"
     />
-    <Alert v-if="failed" type="error" :message="failed">
-      <template v-if="isKafka" #action>
-        <Button size="small" @click="loadConnections">重试</Button>
-      </template>
-    </Alert>
+    <Alert v-if="failed && failed !== '数据连接加载失败，请重试'" type="error" :message="failed" />
     <Alert v-if="issues.length" type="error" :message="issues.join('；')" />
     <p v-for="warning in warnings" :key="warning" class="qi-reference-notice">
       {{ warning }}

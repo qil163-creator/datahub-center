@@ -399,7 +399,7 @@ describe('shared market consumer detail', () => {
     await flush();
     expect(state.current).toBeUndefined();
     expect(mock.check).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('身份不一致');
+    expect(host.textContent).not.toContain('身份不一致');
   });
   it.each(['resolve', 'reject'] as const)(
     'discards stale access %s after another detail opens',
@@ -445,7 +445,7 @@ describe('shared market consumer detail', () => {
     await request;
     await flush();
     expect(state.current).toBeUndefined();
-    expect(host.textContent).toContain('详情读取失败');
+    expect(host.textContent).not.toContain('详情读取失败');
   });
   it('requires an exact boolean access grant instead of trusting asset flags', async () => {
     mount();

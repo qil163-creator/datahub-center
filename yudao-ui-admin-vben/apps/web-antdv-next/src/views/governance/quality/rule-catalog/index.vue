@@ -22,9 +22,7 @@ import { formatDate } from '@vben/utils';
 import {
   Alert,
   Button,
-  Checkbox,
   Input,
-  Popover,
   Spin,
   Tag,
   Tree,
@@ -72,14 +70,6 @@ const applied = reactive({ name: '', description: '' });
 const sorting = reactive<
   Pick<QualityCatalogApi.PageReq, 'sortField' | 'sortOrder'>
 >({ sortField: 'createTime', sortOrder: 'desc' });
-const visibleColumns = ref([
-  'id',
-  'name',
-  'description',
-  'category',
-  'createTime',
-  'actions',
-]);
 const detail = ref<QualityCatalogApi.Rule>();
 const detailId = ref<QualityCatalogApi.Id>();
 const detailLoading = ref(false);
@@ -139,12 +129,6 @@ const allColumns = computed(() => [
     slots: { default: 'actions' },
   },
 ]);
-const columns = computed(() =>
-  allColumns.value.filter((column) =>
-    visibleColumns.value.includes(column.field),
-  ),
-);
-
 const [Grid, gridApi] = useVbenVxeGrid<QualityCatalogApi.Rule>({
   formOptions: {
     schema: [
@@ -179,8 +163,9 @@ const [Grid, gridApi] = useVbenVxeGrid<QualityCatalogApi.Rule>({
     },
   },
   gridOptions: {
+    id: `quality-rule-catalog-${props.kind}`,
     showOverflow: false,
-    columns: columns.value,
+    columns: allColumns.value,
     data: [],
     height: 'auto',
     rowConfig: { keyField: 'id', isHover: true },
@@ -191,11 +176,12 @@ const [Grid, gridApi] = useVbenVxeGrid<QualityCatalogApi.Rule>({
     },
     pagerConfig: { currentPage: 1, pageSize: 10, total: 0 },
     proxyConfig: { enabled: false, autoLoad: false },
+    customConfig: { mode: 'modal', storage: true },
     toolbarConfig: {
       refresh: true,
       refreshOptions: { queryMethod: loadRows },
       search: true,
-      custom: false,
+      custom: true,
     },
   },
   gridEvents: {
@@ -214,7 +200,6 @@ watch(
   [
     rows,
     loading,
-    columns,
     () => pagination.pageNo,
     () => pagination.pageSize,
     () => pagination.total,
@@ -223,8 +208,6 @@ watch(
   ],
   async () => {
     gridApi.setGridOptions({
-      columns:
-        columns.value as VxeTableGridOptions<QualityCatalogApi.Rule>['columns'],
       data: rows.value,
       loading: loading.value,
       pagerConfig: {
@@ -240,6 +223,11 @@ watch(
   },
   { immediate: true },
 );
+watch(allColumns, (columns) => {
+  gridApi.setGridOptions({
+    columns: columns as VxeTableGridOptions<QualityCatalogApi.Rule>['columns'],
+  });
+});
 const displayTime = (value?: number | string) =>
   value === undefined ? '-' : formatDate(value, 'YYYY-MM-DD HH:mm') || '-';
 const categoryName = (row: QualityCatalogApi.Rule) =>
@@ -317,11 +305,6 @@ function sortTable(field: string, order?: null | string) {
   sorting.sortOrder = order === 'asc' ? 'asc' : 'desc';
   pagination.pageNo = 1;
   void loadRows();
-}
-function toggleColumn(key: string, checked: boolean) {
-  visibleColumns.value = checked
-    ? [...visibleColumns.value, key]
-    : visibleColumns.value.filter((entry) => entry !== key);
 }
 function clearDetail() {
   detailOpen = false;
@@ -475,45 +458,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         </div>
       </template>
       <Grid class="min-h-0 flex-1" :table-title="`${copy.title}列表`">
-        <template #toolbar-tools>
-          <Popover trigger="click" placement="bottomRight" title="显示列">
-            <template #content>
-              <div class="rule-catalog-column-options">
-                <Checkbox
-                  v-for="column in allColumns"
-                  :key="column.field"
-                  :checked="visibleColumns.includes(column.field)"
-                  :disabled="
-                    visibleColumns.length === 1 &&
-                    visibleColumns.includes(column.field)
-                  "
-                  @update:checked="toggleColumn(column.field, $event)"
-                >
-                  {{ column.title }}
-                </Checkbox>
-              </div>
-            </template>
-            <Button aria-label="设置显示列" shape="circle">
-              <CatalogIcon name="columns" />
-            </Button>
-          </Popover>
-        </template>
         <template #top>
-          <Alert
-            v-if="failed"
-            type="error"
-            message="规则目录加载失败，请重新查询"
-            class="mb-3"
-          >
-            <template #action>
-              <Button @click="loadRows">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
         </template>
         <template #category="{ row }">
           <Tag color="blue">{{ categoryName(row) }}</Tag>
@@ -537,7 +482,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
       :show-cancel-button="false"
     >
       <Spin :spinning="detailLoading">
-        <Alert v-if="detailError" :message="detailError" type="error">
+        <Alert v-if="detailError && (!/(?:加载|读取|获取).*失败/.test(detailError) || /保存|冲突|未确认/.test(detailError))" :message="detailError" type="error">
           <template #action>
             <Button v-if="detailId !== undefined" @click="openDetail(detailId)">
               <template #icon>

@@ -440,7 +440,7 @@ onMounted(initData);
         </div>
       </Card>
 
-      <Alert v-if="configError" type="error" show-icon :message="configError">
+      <Alert v-if="configError && (!/(?:加载|读取|获取).*失败/.test(configError) || /保存|冲突|未确认/.test(configError))" type="error" show-icon :message="configError">
         <template #action>
           <Button
             size="small"

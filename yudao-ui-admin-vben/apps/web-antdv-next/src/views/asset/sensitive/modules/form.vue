@@ -51,6 +51,7 @@ const columnsLoading = ref(false);
 const saving = ref(false);
 const ready = ref(false);
 const error = ref('');
+const saveFailed = ref(false);
 const assetPage = ref(1);
 const assetTotal = ref(0);
 const assetKeyword = ref('');
@@ -106,6 +107,7 @@ function reset() {
   saving.value = false;
   ready.value = false;
   error.value = '';
+  saveFailed.value = false;
   assetPage.value = 1;
   assetTotal.value = 0;
   assetKeyword.value = '';
@@ -286,6 +288,7 @@ const [Modal, modalApi] = useVbenModal({
     } catch {
       if (ticket.isCurrent()) {
         ready.value = false;
+        saveFailed.value = true;
         error.value = '保存失败或记录已变更，请关闭后重新打开核对。';
       }
     } finally {
@@ -322,7 +325,7 @@ onBeforeUnmount(() => {
     class="sensitive-form-modal !top-[60px] !w-[800px] !max-w-[calc(100vw-32px)] !rounded-[var(--radius)]"
     content-class="!p-0"
   >
-    <Alert v-if="error" :message="error" type="warning" class="mb-3" />
+    <Alert v-if="saveFailed" :message="error" type="warning" class="mb-3" />
     <Form
       class="sensitive-form"
       :colon="false"

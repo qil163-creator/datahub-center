@@ -493,7 +493,7 @@ onBeforeUnmount(() => {
       </Button>
       <div v-if="loading" role="status"><Spin /> 正在读取最新工单</div>
       <Alert
-        v-if="error"
+        v-if="error && !error.startsWith('详情加载失败')"
         role="alert"
         type="warning"
         :title="error"

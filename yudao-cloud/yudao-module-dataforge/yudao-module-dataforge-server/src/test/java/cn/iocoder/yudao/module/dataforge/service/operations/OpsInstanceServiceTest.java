@@ -135,6 +135,30 @@ class OpsInstanceServiceTest {
         assertFalse(OpsInstanceMapper.Sql.page(args).contains("t.task_type IN (2,3)"));
     }
 
+    @Test void taskFilterIsBoundAndAbsentRequestsRetainExistingQuery() {
+        var config = new com.baomidou.mybatisplus.core.MybatisConfiguration();
+        config.addMapper(OpsInstanceMapper.class);
+        var req = new PageReq();
+        var args = new HashMap<String, Object>();
+        args.put("req", req); args.put("categoryIds", null); args.put("categoryOrigin", null); args.put("offset", 0L);
+        for (var kind : List.of("JOB", "FULL_SYNC", "INTEGRATION", "DEVELOPMENT", "DATA_ACCESS")) {
+            req.setKind(kind); req.setTaskId(null);
+            for (var method : List.of("selectInstances", "countInstances")) {
+                var statement = config.getMappedStatement(OpsInstanceMapper.class.getName() + "." + method);
+                assertFalse(statement.getBoundSql(args).getSql().contains("AND task_id=?"));
+                req.setTaskId(9007199254740993L);
+                var bound = statement.getBoundSql(args);
+                assertTrue(bound.getSql().contains("AND task_id=?"));
+                assertTrue(bound.getParameterMappings().stream().anyMatch(item -> "req.taskId".equals(item.getProperty())));
+                req.setTaskId(null);
+            }
+        }
+        req.setTaskId(0L);
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            assertTrue(factory.getValidator().validate(req).stream().anyMatch(item -> "taskId".equals(item.getPropertyPath().toString())));
+        }
+    }
+
     @Test void sourceLogsNeverReadOrCallPlatformRuntime() {
         var req = identity("INTEGRATION", "SOURCE", 7L);
         when(mapper.selectInstance(req)).thenReturn(new InstanceResp());

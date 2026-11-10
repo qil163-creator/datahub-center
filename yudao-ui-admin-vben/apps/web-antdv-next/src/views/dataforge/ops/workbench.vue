@@ -19,7 +19,6 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { downloadFileFromBlobPart, formatDate } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   ConfigProvider,
   DateRangePicker,
@@ -64,7 +63,8 @@ import StatusBadge from './modules/status-badge.vue';
 
 import './style.css';
 
-const props = defineProps<{ kind: Api.Kind }>();
+const props = defineProps<{ jobId?: string; kind: Api.Kind }>();
+const emit = defineEmits<{ clearJobFilter: [] }>();
 const labels = computed(() => kindLabels[props.kind]);
 const compactColumns = computed(() => props.kind === 'JOB');
 const expandedRows = ref<string[]>([]);
@@ -86,6 +86,7 @@ const scope = computed(() =>
   JSON.stringify([
     active.value,
     props.kind,
+    props.jobId,
     access.accessToken,
     access.refreshToken,
     access.accessCodes,
@@ -211,6 +212,7 @@ async function load() {
     const [result, stats] = await Promise.all([
       getOpsInstancePage({
         kind: props.kind,
+        taskId: props.kind === 'JOB' ? props.jobId : undefined,
         pageNo: page.value,
         pageSize: pageSize.value,
         ...applied,
@@ -460,13 +462,7 @@ watch([loading, detailLoading], ([listLoading, itemLoading]) => gridApi.setLoadi
               @refresh="loadContext"
             />
           </div>
-          <Alert v-if="contextFailed" type="error" message="类目加载失败">
-<template #action>
-<button type="button" @click="loadContext">
-                重试
-              </button>
-</template>
-</Alert>
+
           <div class="qo-category-scroll subtle-tree-scrollbar">
             <Tree
               v-model:expanded-keys="expandedCategories"
@@ -494,6 +490,7 @@ watch([loading, detailLoading], ([listLoading, itemLoading]) => gridApi.setLoadi
         <SidebarCollapse v-if="kind !== 'FULL_SYNC'" :collapsed="categoryCollapsed" label="实例类目" @toggle="categoryCollapsed = !categoryCollapsed" />
         <main class="qo-list-panel">
           <section v-if="kind !== 'FULL_SYNC'" class="qo-statistics" aria-label="实例统计">
+            <span v-if="kind === 'JOB' && jobId">统计范围：当前类目的全部作业</span>
             <button type="button" @click="selectStatistic('RUNNING')">
               <ReferenceIcon name="stat-running" /><span>运行中任务：</span><b>{{ statistics?.running ?? '-' }}次</b>
             </button>
@@ -581,11 +578,12 @@ watch([loading, detailLoading], ([listLoading, itemLoading]) => gridApi.setLoadi
             </form>
           </section>
           <section class="qo-table-panel">
-            <Alert v-if="failed" type="error" message="实例加载失败，请重试">
-              <template #action><Button @click="load">重试</Button></template>
-            </Alert>
+
             <Grid class="qo-native-grid" :table-title="`${labels.title}列表`" :table-data="displayedRows">
               <template #toolbar-tools>
+                <button v-if="kind === 'JOB' && jobId" type="button" class="ml-2" @click="emit('clearJobFilter')">
+                  作业 #{{ jobId }} ×
+                </button>
                 <component
                   :is="NativeVxeButton"
                   class="ml-2"

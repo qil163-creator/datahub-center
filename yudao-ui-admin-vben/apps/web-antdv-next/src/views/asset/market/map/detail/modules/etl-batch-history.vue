@@ -115,7 +115,7 @@ onBeforeUnmount(invalidate);
         type="info"
         message="以下为不可变关联历史，仅供追溯；历史修订不代表当前准入，也不会恢复或读取旧批次数据。"
       />
-      <Alert v-if="error" type="error" :message="error" />
+
       <Table
         :columns="columns"
         :data-source="rows"

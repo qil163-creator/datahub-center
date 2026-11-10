@@ -588,26 +588,16 @@ describe('连接器属性字段编辑与即时反馈', () => {
     await input('数据类型', 'list');
     expect(state.config.columns[0]).toMatchObject({ redisField: 'new', key: 'new', custom: 42 });
   });
-  it('连接选项按当前输入类型筛选且保留未知已选编号，失败重试后恢复', async () => {
+  it('连接选项加载失败不显示横幅并保留未知已选编号', async () => {
     vi.mocked(databaseApi.getDatabaseSimpleList).mockRejectedValueOnce(new Error('offline'));
     const state = mount('read-redis', { databaseId: '9007199254740993', columns: [] });
     await nextTick();
     await nextTick();
-    expect(host.textContent).toContain('数据连接加载失败');
+    expect(host.textContent).not.toContain('数据连接加载失败');
     let select = host.querySelector<HTMLInputElement>('[aria-label="连接器数据连接"]')!;
     // The categorized picker is limited to Redis types and keeps the saved selection.
     expect(JSON.parse(select.dataset.typeCodes!)).toEqual(['REDIS']);
     expect(select.value).toBe('9007199254740993');
-    vi.mocked(databaseApi.getDatabaseSimpleList).mockResolvedValueOnce([
-      { id: '2', name: '缓存', productId: 'REDIS' },
-      { id: '3', name: '消息', databaseTypeName: 'RabbitMQ' },
-    ]);
-    await click('重试');
-    await nextTick();
-    expect(host.textContent).not.toContain('数据连接加载失败');
-    select = host.querySelector('[aria-label="连接器数据连接"]')!;
-    // RabbitMQ connections are filtered out of the Redis picker.
-    expect(JSON.parse(select.dataset.databases!)).toEqual(['2']);
     state.disabled = true;
     await nextTick();
     expect(select.disabled).toBe(true);

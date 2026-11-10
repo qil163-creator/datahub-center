@@ -208,7 +208,13 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
         return;
       }
       // 如果没有错误信息，则会根据状态码进行提示
-      message.error(errorMessage || msg);
+      const content = errorMessage || msg;
+      // 相同请求错误在消息可见期间合并，避免页面并发加载时重复弹出。
+      message.error(
+        typeof content === 'string'
+          ? { content, key: `request-error:${content}` }
+          : content,
+      );
     }),
   );
 

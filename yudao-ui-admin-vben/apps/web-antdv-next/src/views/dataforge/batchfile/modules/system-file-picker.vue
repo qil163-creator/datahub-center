@@ -4,7 +4,6 @@ import type { DataforgeDataFileApi as Api } from '#/api/dataforge/datafile';
 import { computed, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, Checkbox, Modal, Select, Spin } from 'antdv-next';
 
@@ -156,17 +155,7 @@ watch(
         title="需要文件查询与下载权限才能选择系统文件"
         show-icon
       />
-      <Alert
-        v-if="failed"
-        class="bf-error"
-        type="error"
-        title="系统文件加载失败，请重试"
-        show-icon
-        >
-<template #action>
-<Button @click="start"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button>
-</template>
-</Alert>
+
       <div class="bf-system-path">
         <Select
           :value="connectionId"

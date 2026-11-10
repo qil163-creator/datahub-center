@@ -564,7 +564,7 @@ defineExpose({ open: show });
     <Spin :spinning="loading">
       <div class="qd-source-body">
         <Alert
-          v-if="error"
+          v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))"
           type="error"
           :message="error"
           show-icon
@@ -822,13 +822,7 @@ defineExpose({ open: show });
       <main>
         <h3>表列表</h3>
         <Spin :spinning="pickerLoading">
-          <Alert v-if="pickerError" type="error" message="源表清单加载失败">
-            <template #action>
-              <button class="qd-logic-detail-link" @click="openPicker">
-                重试
-              </button>
-            </template>
-          </Alert>
+          <template v-if="pickerError"></template>
           <table v-else class="qd-source-table">
             <thead>
               <tr>
@@ -914,17 +908,6 @@ defineExpose({ open: show });
   >
     <div class="qd-source-preview-body">
       <Spin :spinning="previewLoading">
-        <Alert v-if="previewError" type="error" message="字段预览加载失败">
-          <template #action>
-            <button
-              v-if="previewSource"
-              class="qd-logic-detail-link"
-              @click="preview(previewSource)"
-            >
-              重试
-            </button>
-          </template>
-        </Alert>
         <div class="qd-source-preview-table">
           <table class="qd-source-table">
             <thead>

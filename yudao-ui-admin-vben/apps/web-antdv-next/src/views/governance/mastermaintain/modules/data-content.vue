@@ -339,13 +339,6 @@ function pageChange(page: number, size: number) {
       message="此模型已开启审批，新增、编辑和删除将在审批通过后生效。"
     />
     <Alert
-      v-if="failed"
-      type="error"
-      show-icon
-      class="mb-4"
-      message="数据加载失败，请重新查询。"
-    />
-    <Alert
       v-if="receipt?.status === 'REJECTED'"
       type="error"
       show-icon

@@ -3,7 +3,7 @@ import type { GovernanceMetaFileApi as Api } from '#/api/governance/metafile';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { Alert, Button, Input, Spin, Tree } from 'antdv-next';
+import { Input, Spin, Tree } from 'antdv-next';
 
 import { getMetaFileTree } from '#/api/governance/metafile';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
@@ -93,16 +93,6 @@ onMounted(load);
         @refresh="load"
       />
     </div>
-    <Alert v-if="error" type="error" message="目录读取失败">
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <Spin :spinning="loading">
       <Tree
         v-model:expanded-keys="expanded"

@@ -7,7 +7,7 @@ import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Alert, message } from 'antdv-next';
+import { message } from 'antdv-next';
 
 import { useVbenForm } from '#/adapter/form';
 import {
@@ -157,13 +157,6 @@ const [Modal, modalApi] = useVbenModal({
 
 <template>
   <Modal :title="title" class="w-[800px]">
-    <Alert
-      v-if="failed"
-      class="mx-4 mb-4"
-      type="error"
-      show-icon
-      message="负责人列表或主数据域加载失败，请重新打开。"
-    />
     <Form class="mx-4" />
   </Modal>
 </template>

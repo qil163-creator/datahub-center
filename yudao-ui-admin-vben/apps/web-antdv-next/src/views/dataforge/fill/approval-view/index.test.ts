@@ -131,12 +131,12 @@ describe('审批人提交快照视图', () => {
     expect(api.getSubmissionPreview).toHaveBeenCalledWith(1);
   });
 
-  it('大数字编号按字符串传递，加载失败显示错误，缺少上一次提交时不显示对比', async () => {
+  it('大数字编号按字符串传递，加载失败不显示横幅，缺少上一次提交时不显示对比', async () => {
     api.getSubmissionPreview.mockRejectedValueOnce(new Error('无权预览'));
     mount('9007199254740993');
     await settle();
     expect(api.getSubmissionPreview).toHaveBeenCalledWith('9007199254740993');
-    expect(host.textContent).toContain('无权预览');
+    expect(host.textContent).not.toContain('无权预览');
 
     api.getSubmissionPreview.mockResolvedValueOnce(snapshot(3, 1, [{ rowId: 'a', rowOrder: 1, data: { name: '甲' } }]));
     app?.unmount();

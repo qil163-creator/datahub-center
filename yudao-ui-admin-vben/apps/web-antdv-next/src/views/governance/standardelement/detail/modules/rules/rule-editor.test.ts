@@ -298,8 +298,11 @@ describe('数据元关联规则编辑器', () => {
       .mockResolvedValueOnce(existing);
     await editor.open(existing);
     await settle();
-    expect(host.textContent).toContain('规则加载失败');
-    button('重试').click();
+    expect(host.textContent).not.toContain('规则加载失败');
+    button('确定').click();
+    await settle();
+    expect(saveElementRule).not.toHaveBeenCalled();
+    await editor.open(existing);
     await settle();
     expect(getElementRule).toHaveBeenNthCalledWith(2, 228, existing.id);
     expect(

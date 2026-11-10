@@ -405,9 +405,8 @@ watch(
       @cancel="close"
     >
       <Spin :spinning="loading">
-        <Alert v-if="failed" type="error" :message="failed" show-icon>
-          <template #action><Button @click="load">重试</Button></template>
-        </Alert>
+        <Alert v-if="!canQuery" type="error" message="没有此任务的查询权限" show-icon />
+
         <Alert v-if="validation" type="error" :message="validation" show-icon />
         <Alert v-if="editable" type="info" message="正在修改源任务配置，保存后会影响所有引用此任务的作业。节点优先级仅用于当前作业。" show-icon />
         <div

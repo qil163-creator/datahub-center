@@ -444,7 +444,7 @@ describe('双引擎程序配置表单', () => {
   it('任务详情加载失败时不提交空表单，重开后可恢复保存', async () => {
     vi.mocked(devApi.getDevTask).mockRejectedValueOnce(new Error('加载失败'));
     await form.open('9007199254740993');
-    expect(host.textContent).toContain('任务信息加载失败');
+    expect(host.textContent).not.toContain('任务信息加载失败');
     host.querySelector<HTMLButtonElement>('[data-save]')!.click();
     await flush();
     expect(devApi.createDevTask).not.toHaveBeenCalled();

@@ -51,14 +51,14 @@ const physicalFields = computed(() => [
 const bindingLabel = ref('');
 const identity = ref('closed');
 const ready = ref(false);
-const loadFailed = ref(false);
+const saveFailed = ref(false);
 const picker = ref<InstanceType<typeof PublishedStandardPicker>>();
 const access = useAccessStore();
 const request = useObjectRequest(
   () => identity.value,
   () => {
     ready.value = false;
-    loadFailed.value = false;
+    saveFailed.value = false;
     columnName.value = '';
     physical.value = undefined;
     bindingLabel.value = '';
@@ -84,7 +84,7 @@ function clearBinding() {
 async function loadDetail(id: GovernanceMetaObjectApi.Id) {
   const current = request.begin();
   ready.value = false;
-  loadFailed.value = false;
+  saveFailed.value = false;
   modalApi.setState({ loading: true, confirmDisabled: true });
   try {
     const data = await getMetaColumnDetail(id);
@@ -107,9 +107,8 @@ async function loadDetail(id: GovernanceMetaObjectApi.Id) {
       remark: data.remark,
     });
     ready.value = data.revision !== undefined;
-    loadFailed.value = !ready.value;
   } catch {
-    if (current()) loadFailed.value = true;
+    if (current()) ready.value = false;
   } finally {
     if (current())
       modalApi.setState({ loading: false, confirmDisabled: !ready.value });
@@ -136,7 +135,7 @@ const [ModalComponent, modalApi] = useVbenModal({
     } catch {
       if (current()) {
         ready.value = false;
-        loadFailed.value = true;
+        saveFailed.value = true;
         modalApi.setState({ confirmDisabled: true });
       }
     } finally {
@@ -171,9 +170,9 @@ watch(
       @picked="handlePicked"
     />
     <Alert
-      v-if="loadFailed"
+      v-if="saveFailed"
       class="mb-3"
-      message="字段读取失败或保存发生冲突，请重新加载后编辑。"
+      message="保存发生冲突，请重新加载后编辑。"
       show-icon
       type="error"
     >

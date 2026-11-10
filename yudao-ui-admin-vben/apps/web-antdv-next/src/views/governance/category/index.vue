@@ -106,6 +106,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Api.Category>({
       })),
     ],
     data: [], height: 'auto', pagerConfig: { enabled: false },
+    scrollbarConfig: { height: 6 },
     proxyConfig: { enabled: false }, rowConfig: { keyField: 'id', isHover: true },
     sortConfig: { remote: true }, showOverflow: false,
     toolbarConfig: { refresh: true, refreshOptions: { queryMethod: () => refresh() }, custom: true, zoom: false },
@@ -468,10 +469,10 @@ onBeforeUnmount(() => {
             />
           </section>
           <section class="category-results">
-            <Alert v-if="errorText" :message="errorText" type="error">
+            <Alert v-if="errorText && (!/(?:加载|读取|获取).*失败/.test(errorText) || /保存|冲突|未确认/.test(errorText))" :message="errorText" type="error">
               <template #action><Button size="small" @click="loadRows">重试</Button></template>
             </Alert>
-            <Grid class="category-grid" table-title="数据分类列表" :table-data="rows">
+            <Grid class="category-grid subtle-grid-scrollbar" table-title="数据分类列表" :table-data="rows">
               <template #toolbar-tools>
                 <TableAction
 :actions="[

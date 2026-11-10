@@ -39,6 +39,7 @@ function mount(fields: readonly NodeFieldSource[]) {
     stepName: '表输出组件',
     fields,
     loading: false,
+    loadFailed: false,
     error: '',
     partial: false,
   });
@@ -63,6 +64,15 @@ function names() {
 }
 
 describe('字段来源只读弹窗', () => {
+  it('字段加载失败时不显示失败提示，也不误显示空字段', async () => {
+    const { state } = mount([]);
+    state.loadFailed = true;
+    await nextTick();
+    expect(host.textContent).not.toContain('加载失败');
+    expect(host.textContent).not.toContain('暂无输入字段');
+    expect(host.querySelector('table')).toBeNull();
+  });
+
   it('按整数排序长度，无损比较 Long 字符串、保留零并让未知值始终在末尾', async () => {
     const fields = Object.freeze([
       Object.freeze({ name: 'unknown' }),
@@ -120,7 +130,9 @@ describe('字段来源只读弹窗', () => {
     state.error = '元数据无权限';
     await nextTick();
     expect(host.textContent).toContain('元数据无权限');
+    expect(host.textContent).not.toContain('字段信息加载失败');
     expect(host.textContent).not.toContain('旧字段');
+    expect(host.querySelector('tbody')?.children).toHaveLength(0);
     await click('关闭');
     expect(closed).toHaveBeenCalledExactlyOnceWith(false);
   });

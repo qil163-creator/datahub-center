@@ -13,10 +13,9 @@ import {
 
 import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, message, Spin } from 'antdv-next';
+import { Button, message, Spin } from 'antdv-next';
 
 import { getDatabase, updateDatabase } from '#/api/dataforge/database';
 import { getDatabaseType } from '#/api/dataforge/databasetype';
@@ -270,14 +269,7 @@ onBeforeUnmount(reset);
       <div v-if="loading" class="connection-edit__loading">
         <Spin />正在读取连接信息…
       </div>
-      <Alert v-else-if="loadError" :message="loadError" type="error" show-icon>
-        <template #action>
-          <Button @click="load">
-            <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
-            >重试
-          </Button>
-        </template>
-      </Alert>
+
       <section
         v-else-if="original"
         v-show="step === 0"

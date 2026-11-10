@@ -42,20 +42,45 @@
 
 .qd-materialized .qd-wrap-content {
   min-height: 0;
-  padding: 12px;
   border-radius: var(--radius);
 }
 
 .qd-materialized .qd-table-actions {
-  gap: 8px;
-}
-
-.qd-materialized .qd-wrap-actions {
-  margin-bottom: 12px;
+  gap: 0;
 }
 
 .qd-materialized .materialized-table .qd-cell {
   padding: 0 10px;
+}
+
+.qd-materialized .materialized-table .is-right > .qd-cell {
+  justify-content: flex-end;
+}
+
+.qd-materialized .materialized-table .is-center .materialized-cell-info {
+  align-items: center;
+  text-align: center;
+}
+
+.qd-materialized .materialized-table .is-right .materialized-cell-info {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.qd-materialized .materialized-table .is-center .qd-table-info {
+  text-align: center;
+}
+
+.qd-materialized .materialized-table .is-right .qd-table-info {
+  text-align: right;
+}
+
+.qd-materialized .materialized-table .is-center .qd-table-info__main {
+  justify-content: center;
+}
+
+.qd-materialized .materialized-table .is-right .qd-table-info__main {
+  justify-content: flex-end;
 }
 
 .qd-materialized .materialized-table th:first-child,
@@ -172,18 +197,14 @@
 }
 
 .qd-materialized .materialized-row-actions {
-  justify-content: center;
   overflow: visible;
   white-space: nowrap;
 }
 
-.qd-materialized .materialized-row-actions .qd-link {
-  gap: 5px;
+.qd-materialized .materialized-row-actions .ant-btn-link {
+  gap: 4px;
+  padding: 4px;
   font-size: 14px;
-}
-
-.qd-materialized .materialized-row-actions .qd-link + .qd-link {
-  margin-left: 10px;
 }
 
 .qd-materialized .materialized-row-actions .qd-icon + span {
@@ -210,13 +231,6 @@
   cursor: pointer;
   background: none;
   border: 0;
-}
-
-.materialized-column-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 8px;
 }
 
 .qd-materialized button:focus-visible {

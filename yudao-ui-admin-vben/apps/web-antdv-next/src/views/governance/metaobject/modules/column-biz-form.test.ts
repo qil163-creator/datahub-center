@@ -160,14 +160,16 @@ describe('字段业务编辑读取与并发保护', () => {
     await harness.options!.onConfirm();
     expect(updateMetaColumnBiz).not.toHaveBeenCalled();
     await nextTick();
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent?.trim() === '重新加载')!
-      .click();
+    expect(host.textContent).not.toContain('字段读取失败');
+    expect(harness.state.confirmDisabled).toBe(true);
+    await harness.options!.onOpenChange(true);
     await expect.poll(() => harness.state.confirmDisabled).toBe(false);
     expect(getMetaColumnDetail).toHaveBeenLastCalledWith('9007199254740993');
     vi.mocked(updateMetaColumnBiz).mockRejectedValueOnce(new Error('冲突'));
     await harness.options!.onConfirm();
     expect(harness.state.confirmDisabled).toBe(true);
+    await nextTick();
+    expect(host.textContent).toContain('重新加载');
     expect(harness.locked).toBe(false);
     await harness.options!.onConfirm();
     expect(updateMetaColumnBiz).toHaveBeenCalledTimes(1);

@@ -28,7 +28,6 @@ const canArchive = computed(
 );
 const archive = ref<EtlArchive | null>(null);
 const archiveKnown = ref(false);
-const error = ref('');
 const loading = ref(false);
 const mode = ref<'archive' | 'restore'>();
 const reason = ref('');
@@ -41,7 +40,6 @@ const archived = computed(() => !!archive.value && !archive.value.restoredAt);
 async function load() {
   const current = ++sequence;
   loading.value = true;
-  error.value = '';
   archiveKnown.value = false;
   emit('availability', false);
   try {
@@ -51,8 +49,7 @@ async function load() {
     archiveKnown.value = true;
     emit('availability', !archived.value);
   } catch {
-    if (current === sequence)
-      error.value = '归档状态读取失败，暂不开放消费操作。';
+    // 未确认归档状态时继续禁止消费操作。
   } finally {
     if (current === sequence) loading.value = false;
   }
@@ -133,7 +130,6 @@ onBeforeUnmount(() => {
         {{ archived ? '恢复归档' : '归档运行' }}
       </Button>
     </div>
-    <Alert v-if="error" class="mt-2" type="error" :message="error" />
     <p v-if="archiveKnown" class="mt-2">
       {{ archived ? '已归档：受控消费与回放已停用' : '未归档' }}
     </p>

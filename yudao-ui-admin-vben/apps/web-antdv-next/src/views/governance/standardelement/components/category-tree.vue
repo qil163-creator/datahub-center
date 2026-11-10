@@ -6,7 +6,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
-import { Alert, Button, Input, Spin, Tree } from 'antdv-next';
+import { Input, Spin, Tree } from 'antdv-next';
 
 import { getStandardElementCategories } from '#/api/governance/standardelement';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
@@ -91,16 +91,7 @@ defineExpose({ reset, reload: load });
       />
     </div>
     <Spin :spinning="loading">
-      <Alert v-if="failed" message="类目加载失败" type="error">
-        <template #action>
-          <Button size="small" @click="load">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
+      <template v-if="failed"></template>
       <Tree
         v-else
         v-model:expanded-keys="expanded"

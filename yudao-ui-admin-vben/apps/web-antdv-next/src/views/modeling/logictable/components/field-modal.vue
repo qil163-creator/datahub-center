@@ -12,7 +12,6 @@ import { useAccess } from '@vben/access';
 import { useAccessStore } from '@vben/stores';
 
 import {
-  Alert,
   Input,
   InputNumber,
   Modal,
@@ -326,23 +325,6 @@ defineExpose({
       </div>
     </div>
     <form v-else class="qd-logic-field-body" @submit.prevent="submit">
-      <Alert
-        v-if="optionError"
-        class="qd-logic-field-full"
-        type="warning"
-        message="部分选项加载失败，请重试后再选择"
-        show-icon
-      >
-        <template #action>
-          <button
-            type="button"
-            class="qd-logic-detail-link"
-            @click="loadOptions"
-          >
-            重试
-          </button>
-        </template>
-      </Alert>
       <div class="qd-logic-field-item">
         <label><i>*</i>字段英文名称</label>
         <div>

@@ -548,11 +548,7 @@ function assetImage(name: string) {
                 @refresh="loadCategories"
               />
             </div>
-            <Alert
-              v-if="categoryError"
-              :message="categoryError"
-              type="warning"
-            />
+
             <Tree
               :tree-data="categoryTree"
               :selected-keys="selectedCategoryKeys"
@@ -608,13 +604,8 @@ function assetImage(name: string) {
               />
             </div>
           </section>
-          <Alert
-            v-if="statisticsError"
-            :message="statisticsError"
-            type="warning"
-            show-icon
-          />
-          <Alert v-if="listError" :message="listError" type="error" show-icon />
+
+
           <Spin :spinning="loading" class="mart-results">
             <article
               v-for="asset in rows"

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 defineProps<{
   name:
-    | 'columns'
     | 'document'
     | 'eye'
     | 'folder'
@@ -26,13 +25,6 @@ defineProps<{
     </template>
     <template v-else-if="name === 'refresh'">
       <path d="M16 6a7 7 0 1 0 1 7M16 2v5h-5" />
-    </template>
-    <template v-else-if="name === 'columns'">
-      <path
-        fill="currentColor"
-        stroke="none"
-        d="M3 3h5v5H3zm9 0h5v5h-5zM3 12h5v5H3zm9 0h5v5h-5z"
-      />
     </template>
     <template v-else-if="name === 'folder'">
       <path d="M2 6V3h6l2 2h8v3M2 7h16l-2 10H2z" />

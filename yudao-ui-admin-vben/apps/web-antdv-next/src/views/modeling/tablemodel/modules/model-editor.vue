@@ -135,21 +135,6 @@ defineExpose({
 
 <template>
   <Spin :spinning="loading">
-    <Alert
-      v-if="failed"
-      class="mb-3"
-      type="error"
-      message="模型加载失败，请重试。"
-    >
-      <template #action>
-        <Button @click="refresh">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <template v-if="model">
       <Card class="mb-3" size="small">
         <div class="flex items-center justify-between gap-3">

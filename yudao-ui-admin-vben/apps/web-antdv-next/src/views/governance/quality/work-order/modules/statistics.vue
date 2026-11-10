@@ -11,10 +11,9 @@ import {
 } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Empty, Select, Spin } from 'antdv-next';
+import { Alert, Empty, Select, Spin } from 'antdv-next';
 
 import { getWorkOrderStatistics } from '#/api/governance/quality/workorder';
 
@@ -130,19 +129,7 @@ onBeforeUnmount(() => {
       title="无权查看工单统计"
       show-icon
     />
-    <div v-else-if="state === 'error'" role="alert">
-      <Alert
-        type="error"
-        title="统计加载失败，请重试；若持续失败，请检查服务版本和权限服务"
-        show-icon
-      />
-      <Button class="mt-2" @click="load">
-        <template #icon>
-          <IconifyIcon icon="lucide:refresh-cw" />
-        </template>
-        重试
-      </Button>
-    </div>
+    <template v-else-if="state === 'error'"></template>
     <Empty
       v-else-if="state === 'empty'"
       description="所选期间内没有当前用户可见的工单"

@@ -6,7 +6,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
 import { Alert, Button, Input, message, Switch, Tree } from 'antdv-next';
@@ -136,7 +135,7 @@ async function remove(row: QualityTaskApi.Task) {
   await deleteQualityTask(row.id);
   await load();
 }
-const { Grid, gridApi, load, error } = useMetadataGrid<QualityTaskApi.Task>(
+const { Grid, gridApi, load } = useMetadataGrid<QualityTaskApi.Task>(
   [
     { field: 'id', title: '编号', width: 80, sortable: true },
     {
@@ -248,6 +247,7 @@ const { Grid, gridApi, load, error } = useMetadataGrid<QualityTaskApi.Task>(
 );
 gridApi.setGridOptions({
   rowConfig: { keyField: 'id', isHover: true },
+  scrollbarConfig: { height: 6 },
 });
 onMounted(loadCategories);
 const expandedKeys = ref<string[]>([]);
@@ -290,16 +290,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
               @refresh="loadCategories"
             />
           </div>
-          <Alert v-if="categoryFailed" type="error" message="类目加载失败">
-            <template #action>
-              <Button @click="loadCategories">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
           <div class="q-task-tree-scroll subtle-tree-scrollbar">
             <Tree
               v-model:expanded-keys="expandedKeys"
@@ -326,16 +316,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         <SidebarCollapse :collapsed="sidebarCollapsed" label="质量类目" @toggle="sidebarCollapsed = !sidebarCollapsed" />
         <main class="q-task-main">
           <section class="q-grid-shell">
-            <Alert v-if="error" type="error" message="质量任务加载失败">
-              <template #action>
-                <Button @click="load()">
-                  <template #icon>
-                    <IconifyIcon icon="lucide:refresh-cw" />
-                  </template>
-                  重试
-                </Button>
-              </template>
-</Alert><Grid class="q-grid" table-title="数据质量任务">
+<Grid class="q-grid subtle-grid-scrollbar" table-title="数据质量任务">
               <template #toolbar-tools>
                 <TableAction
                   :actions="[

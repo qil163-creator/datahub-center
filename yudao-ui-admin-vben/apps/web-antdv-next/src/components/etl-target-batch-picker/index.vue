@@ -181,7 +181,7 @@ onBeforeUnmount(reset);
       />
       <Button :loading="loading" @click="loadRecords(1)">搜索运行</Button>
     </div>
-    <Alert v-if="error" type="error" :message="error" />
+
     <Table
       :columns="recordColumns"
       :data-source="records"
@@ -211,7 +211,7 @@ onBeforeUnmount(reset);
     </Table>
     <template v-if="selectedRecord">
       <h4 class="my-3">运行 #{{ selectedRecord }} 的目标批次</h4>
-      <Alert v-if="batchError" type="error" :message="batchError" />
+
       <Table
         :columns="batchColumns"
         :data-source="batches"

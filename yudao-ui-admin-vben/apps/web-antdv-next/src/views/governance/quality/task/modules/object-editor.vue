@@ -7,11 +7,8 @@ import type { QualityTaskApi } from '#/api/governance/quality/task';
 import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
 import {
-  Alert,
-  Button,
   Form,
   FormItem,
   Input,
@@ -137,16 +134,6 @@ defineExpose({ open });
     cancel-text="关闭"
   >
     <Spin :spinning="loading">
-      <Alert v-if="failed" type="error" message="数据连接加载失败">
-        <template #action>
-          <Button @click="open(form as QualityTaskApi.Object, readonly)">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
       <Form
         ref="formRef"
         :model="form"

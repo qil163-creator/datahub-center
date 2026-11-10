@@ -190,7 +190,7 @@ void load();
           @reset="reset"
         />
       </section>
-      <Alert v-if="error" :message="error" type="error" /><Table
+      <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" :message="error" type="error" /><Table
         class="category-table"
         :columns="columns"
         :data-source="rows"

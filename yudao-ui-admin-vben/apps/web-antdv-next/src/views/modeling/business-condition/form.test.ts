@@ -503,20 +503,15 @@ describe('业务限定完整页向导', () => {
     expect(input('业务限定中文名').value).toBe('已支付订单');
   });
 
-  it('当前来源字段读取失败可重试，并保留已保存的计算定义', async () => {
+  it('当前来源字段读取失败不显示提示条并禁止保存', async () => {
     harness.fields.mockRejectedValueOnce(new Error('读取失败'));
     await mount({ id: ids.condition });
-    expect(host.textContent).toContain('来源字段加载失败');
+    expect(host.textContent).not.toContain('来源字段加载失败');
     button('下一步').click();
     await flush();
-    button('重试来源').click();
-    await flush();
-    expect(select('来源逻辑表').value).toBe(ids.modelA);
-    expect(harness.fields).toHaveBeenLastCalledWith(ids.modelA);
     expect(host.querySelector<HTMLTextAreaElement>('textarea[aria-label="计算逻辑"]')!.value).toBe("pay_status = 'PAID'");
-    button('保存并退出').click();
-    await flush();
-    expect(harness.update).toHaveBeenCalledWith(expect.objectContaining({ expectedRevision: ids.revision, sourceModelId: ids.modelA, expression: "pay_status = 'PAID'" }));
+    expect(button('保存并退出').disabled).toBe(true);
+    expect(harness.update).not.toHaveBeenCalled();
   });
 
   it('启用态详情拒绝进入编辑并不加载可编辑来源', async () => {

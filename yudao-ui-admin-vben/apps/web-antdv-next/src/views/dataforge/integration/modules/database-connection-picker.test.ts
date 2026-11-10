@@ -260,16 +260,14 @@ describe('表输入数据库连接选择器', () => {
     expect(onChange).toHaveBeenCalledWith(undefined);
   });
 
-  it('类型元数据失败时保留全部真实连接可选并提供重试', async () => {
+  it('类型元数据失败时不显示横幅并保留真实连接可选', async () => {
     vi.mocked(getDatabaseTypeSimpleList).mockRejectedValueOnce(
       new Error('failed'),
     );
     const { state } = await mount();
     await open();
-    expect(host.textContent).toContain('连接类型加载失败');
-    expect(host.querySelectorAll('[role="option"]')).toHaveLength(3);
-    await click('重试');
     expect(host.textContent).not.toContain('连接类型加载失败');
+    expect(host.querySelectorAll('[role="option"]')).toHaveLength(3);
     await click('河道水情系统', '[role="option"]');
     expect(state.value).toBe('9007199254740993');
   });

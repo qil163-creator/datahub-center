@@ -191,9 +191,7 @@ onBeforeUnmount(() => clearTimeout(timer));
           术语由「数据治理 →
           业务术语」统一维护。为当前字段选择业务定义；清空后确定即解除绑定。
         </div>
-        <div v-if="loadFailed" class="mt-1 text-xs text-red-500">
-          术语加载失败，请重新搜索后重试。
-        </div>
+        <template v-if="loadFailed"></template>
         <div
           v-else-if="selectionUnavailable && !loading"
           class="text-muted-foreground mt-1 text-xs"

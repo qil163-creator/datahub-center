@@ -691,6 +691,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.dev-instance-grid :deep(.vxe-toolbar .lucide-circle-question-mark) {
+  width: 16px;
+  height: 16px;
+}
+
 .dev-instance-grid :deep(.vxe-table--scroll-x-handle::-webkit-scrollbar) {
   height: 6px;
 }

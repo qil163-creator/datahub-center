@@ -7,7 +7,7 @@ import { computed, ref, watch } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore } from '@vben/stores';
 
-import { Alert, Button, message } from 'antdv-next';
+import { message } from 'antdv-next';
 
 import { useVbenForm } from '#/adapter/form';
 import {
@@ -226,14 +226,6 @@ watch(
 </script>
 <template>
   <Modal :title="title" class="w-[1000px] max-w-[95vw]">
-    <Alert
-      v-if="failed"
-      type="error"
-      message="标准或选项加载失败，请重试"
-      class="mb-4"
-    >
-      <template #action><Button @click="load">重试</Button></template>
-    </Alert>
     <Form class="mx-4" />
   </Modal>
 </template>

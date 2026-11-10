@@ -242,13 +242,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 <template>
   <Drawer :title="title" class="w-[680px] max-w-full" content-class="p-5">
-    <Alert
-      v-if="loadFailed"
-      type="error"
-      message="编码规则加载失败，请重新打开。"
-      show-icon
-      class="mb-4"
-    />
     <Form />
     <div class="bg-muted/40 mb-5 rounded-md border border-dashed p-4">
       <div class="mb-2 flex items-center gap-2 text-sm text-muted-foreground">

@@ -440,13 +440,7 @@ onBeforeUnmount(invalidate);
 
 <template>
   <div class="database-rules-panel">
-    <Alert
-      v-if="failed"
-      type="error"
-      show-icon
-      message="告警规则加载失败，请点击表格右上角刷新重试。"
-      class="mb-3"
-    />
+
     <Grid class="database-rules-grid">
       <template #toolbar-actions>
         <TableAction
@@ -517,13 +511,7 @@ onBeforeUnmount(invalidate);
       :title="editingId ? '修改告警规则' : '新增告警规则'"
       class="w-[620px]"
     >
-      <Alert
-        v-if="formFailed"
-        type="error"
-        show-icon
-        message="规则加载失败，请关闭后重试。"
-        class="mb-4"
-      />
+
       <Alert
         type="info"
         show-icon
@@ -536,12 +524,7 @@ onBeforeUnmount(invalidate);
       <div v-if="detailLoading" class="py-10 text-center text-muted-foreground">
         正在加载详情…
       </div>
-      <Alert
-        v-else-if="detailFailed"
-        type="error"
-        show-icon
-        message="规则加载失败，请关闭后重试。"
-      />
+
       <Descriptions v-else-if="selected" bordered :column="2" size="small">
         <DescriptionsItem label="规则名称" :span="2">
           {{ selected.name }}

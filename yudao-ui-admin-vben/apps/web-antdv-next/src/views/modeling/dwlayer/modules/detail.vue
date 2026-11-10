@@ -8,10 +8,7 @@ import { computed, ref } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
-
-import { Alert, Button } from 'antdv-next';
 
 import { getDwLayer } from '#/api/modeling/dwlayer';
 
@@ -133,21 +130,7 @@ const [Modal, modalApi] = useVbenModal({
     :title="`数仓分层详情${detail?.layerName ? ` · ${detail.layerName}` : ''}`"
     class="w-[800px] max-w-full"
   >
-    <Alert
-      v-if="failed"
-      type="error"
-      message="分层详情加载失败，请重试"
-      show-icon
-    >
-      <template #action>
-        <Button size="small" @click="loadDetail">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
+    <template v-if="failed"></template>
     <DetailFieldForm v-else-if="detail" :fields="fields" class="mx-2" />
   </Modal>
 </template>

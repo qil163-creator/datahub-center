@@ -330,11 +330,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(tree, expanded, search);
           />
         </div>
         <Spin :spinning="categoryLoading">
-          <Alert v-if="categoryFailed" type="error" message="类目加载失败">
-            <template #action>
-              <Button size="small" @click="loadCategories"> 重试 </Button>
-            </template>
-          </Alert>
+          <template v-if="categoryFailed"></template>
           <Tree
             v-else
             v-model:expanded-keys="expanded"
@@ -360,11 +356,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(tree, expanded, search);
         </template>
         <template #table-title>
           <span>数据标准列表</span>
-          <Alert v-if="failed" type="error" message="标准列表加载失败">
-            <template #action>
-              <Button size="small" @click="load">重试</Button>
-            </template>
-          </Alert>
         </template>
         <template #actions="{ row }">
           <TableAction

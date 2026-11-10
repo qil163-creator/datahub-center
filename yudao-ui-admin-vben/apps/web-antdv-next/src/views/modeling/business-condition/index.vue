@@ -9,12 +9,11 @@ import { useAccess } from '@vben/access';
 import { confirm, Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import { useMediaQuery } from '@vueuse/core';
-import { Alert, Button, message, Switch, Tag } from 'antdv-next';
+import { Alert, message, Switch, Tag } from 'antdv-next';
 
 import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -52,7 +51,6 @@ const {
   subjects,
   models,
   loading: optionsLoading,
-  error: optionsError,
   reload: reloadOptions,
   domainLabel,
   subjectLabel,
@@ -460,19 +458,9 @@ onActivated(() => {
           :loading="optionsLoading"
           @refresh="reloadOptions"
           @select="load(true)"
-        /><Button v-if="optionsError" size="small" @click="reloadOptions">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试加载类目
-        </Button>
+        />
       </template>
       <Alert v-if="!canQuery" type="warning" message="暂无业务限定查询权限" />
-      <Alert
-        v-if="loadError"
-        type="error"
-        message="业务限定列表加载失败，请刷新重试。"
-      />
       <Grid class="condition-list-grid min-h-0 flex-1" table-title="业务限定">
         <template #toolbar-tools>
           <TableAction

@@ -199,14 +199,6 @@
   white-space: normal;
 }
 
-.tag-row-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
 .tag-pagination {
   display: flex;
   flex: none;

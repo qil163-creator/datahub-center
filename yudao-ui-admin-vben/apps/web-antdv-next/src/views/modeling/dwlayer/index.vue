@@ -18,7 +18,6 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
-  Alert,
   Button,
   Dropdown,
   Empty,
@@ -377,22 +376,6 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
           </div>
         </div>
       </section>
-      <Alert
-        v-if="failed"
-        type="error"
-        show-icon
-        message="分层配置加载失败"
-        description="请检查网络后重试，未加载的数据不会显示为零。"
-      >
-        <template #action>
-          <Button size="small" @click="loadLayers">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
       <div v-if="loading" class="layer-grid">
         <div
           v-for="item in 6"

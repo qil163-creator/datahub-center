@@ -6,10 +6,9 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, Modal, Spin } from 'antdv-next';
+import { Alert, Modal, Spin } from 'antdv-next';
 
 import { getBatchFile } from '#/api/dataforge/batchfile';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
@@ -137,14 +136,7 @@ watch(
         title="任务编号无效或没有查询权限"
         show-icon
       />
-      <Alert
-        v-if="failed"
-        type="error"
-        title="任务详情加载失败，请重试"
-        show-icon
-        >
-<template #action><Button @click="load"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button></template>
-</Alert>
+
       <Spin :spinning="loading && !task">
 <section class="bf-detail-header">
           <div class="bf-detail-heading">

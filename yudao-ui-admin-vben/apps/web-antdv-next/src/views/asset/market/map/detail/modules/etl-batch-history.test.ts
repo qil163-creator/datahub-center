@@ -126,6 +126,6 @@ describe('资产 ETL 关联修订', () => {
     expect(host.textContent).not.toContain('old-history');
     button('查看关联修订历史').click();
     await flush();
-    expect(host.textContent).toContain('关联历史读取失败');
+    expect(host.textContent).not.toContain('关联历史读取失败');
   });
 });

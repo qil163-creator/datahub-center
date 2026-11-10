@@ -8,8 +8,6 @@ import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
-  Alert,
-  Button,
   Form,
   FormItem,
   Input,
@@ -198,16 +196,6 @@ defineExpose({ open });
     :title="editId ? '编辑稽查规则' : '新增稽查规则'"
   >
     <Spin v-if="loading" class="mb-3" />
-    <Alert
-      v-if="failed"
-      class="mb-3"
-      type="error"
-      message="稽查规则或质量维度加载失败"
-    >
-      <template #action>
-        <Button size="small" @click="load">重试</Button>
-      </template>
-    </Alert>
     <Form
       ref="formRef"
       class="mx-4"

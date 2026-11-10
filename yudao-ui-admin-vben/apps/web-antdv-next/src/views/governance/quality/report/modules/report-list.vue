@@ -3,11 +3,8 @@ import type { QualityTaskInstanceApi } from '#/api/governance/quality/instance';
 
 import { onDeactivated, reactive, ref, watch } from 'vue';
 
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
-
-import { Alert, Button } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/vxe-table';
 import {
@@ -32,7 +29,7 @@ const filters = reactive({
 });
 const applied = reactive({ ...filters });
 
-const { Grid, gridApi, load, error } =
+const { Grid, gridApi, load } =
   useMetadataGrid<QualityTaskInstanceApi.Instance>(
     [
       { field: 'id', title: '编号', width: 82, sortable: true },
@@ -191,16 +188,6 @@ onDeactivated(() => {
 <template>
   <div class="quality-report-list">
     <section class="quality-report-list-panel">
-      <Alert v-if="error" type="error" message="质量报告加载失败" show-icon>
-        <template #action>
-          <Button @click="load()">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
       <Grid class="quality-report-grid" table-title="质量报告列表">
         <template #name="{ row }">
           <button

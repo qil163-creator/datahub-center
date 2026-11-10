@@ -9,7 +9,7 @@ import { useAccess } from '@vben/access';
 import { confirm, Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
-import { Alert, Button, message } from 'antdv-next';
+import { Button, message } from 'antdv-next';
 
 import { TableAction } from '#/adapter/vxe-table';
 import { deleteMetaFileList, getMetaFilePage } from '#/api/governance/metafile';
@@ -111,7 +111,7 @@ const columns: VxeTableGridOptions<Api.MetaFile>['columns'] = [
     slots: { default: 'actions' },
   },
 ];
-const { Grid, gridApi, load, selected, error } = useMetadataGrid<Api.MetaFile>(
+const { Grid, gridApi, load, selected } = useMetadataGrid<Api.MetaFile>(
   columns,
   (page) =>
     getMetaFilePage({
@@ -218,16 +218,6 @@ const sidebarCollapsed = ref(false);
       <FileTree v-show="!sidebarCollapsed" ref="tree" @select="select" />
       <SidebarCollapse :collapsed="sidebarCollapsed" label="目录" @toggle="sidebarCollapsed = !sidebarCollapsed" />
       <div class="metadata-layout__main">
-        <Alert v-if="error" type="error" message="文件元数据读取失败">
-          <template #action>
-            <Button size="small" @click="load()">
-              <template #icon>
-                <IconifyIcon :icon="metadataIcon('refresh')" />
-              </template>
-              重试
-            </Button>
-          </template>
-        </Alert>
         <div class="metadata-grid-shell">
           <Grid
             class="metadata-grid"

@@ -11,7 +11,6 @@ import { IconifyIcon } from '@vben/icons';
 
 import { useMediaQuery } from '@vueuse/core';
 import {
-  Alert,
   Button,
   Input,
   message,
@@ -184,6 +183,7 @@ const [Grid, gridApi] = useVbenVxeGrid<GovernanceMasterDataApi.Model>({
     data: [],
     height: 'auto',
     rowConfig: { keyField: 'id', isHover: true },
+    scrollbarConfig: { height: 6 },
     stripe: true,
     showOverflow: false,
     pagerConfig: { pageSize: 20, currentPage: 1, total: 0 },
@@ -520,13 +520,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
               @refresh="loadDomains"
             />
           </div>
-          <Alert
-            v-if="domainsFailed"
-            class="mt-3"
-            type="error"
-            message="域加载失败"
-            show-icon
-          />
           <Button v-if="domainsFailed" class="mt-2" @click="loadDomains">
             <template #icon>
               <IconifyIcon icon="lucide:refresh-cw" />
@@ -580,15 +573,8 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             </span>
           </button>
         </div>
-        <Alert
-          v-if="failed"
-          class="mb-3"
-          type="error"
-          message="模型加载失败，请点击刷新重试。"
-          show-icon
-        />
         <div class="min-h-0 flex-1">
-          <Grid class="master-model-grid" table-title="主数据模型">
+          <Grid class="master-model-grid subtle-grid-scrollbar" table-title="主数据模型">
             <template #toolbar-tools>
               <TableAction
                 :actions="[

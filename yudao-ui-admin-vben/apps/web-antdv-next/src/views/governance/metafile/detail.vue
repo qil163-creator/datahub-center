@@ -5,11 +5,8 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
 import {
-  Alert,
-  Button,
   Descriptions,
   DescriptionsItem,
   TabPane,
@@ -21,7 +18,6 @@ import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { metadataSize, metadataTime } from '../metadata-common/helpers';
-import { metadataIcon } from '../metadata-common/icons';
 
 import '../metadata-common/metadata.css';
 
@@ -56,16 +52,6 @@ watch(id, load, { immediate: true });
 </script>
 <template>
   <Page auto-content-height content-class="metadata-page">
-    <Alert v-if="error" type="error" message="文件元数据读取失败">
-      <template #action>
-        <Button @click="load">
-          <template #icon>
-            <IconifyIcon :icon="metadataIcon('refresh')" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="metadata-detail">
       <section class="metadata-panel">
         <div class="metadata-detail__title">

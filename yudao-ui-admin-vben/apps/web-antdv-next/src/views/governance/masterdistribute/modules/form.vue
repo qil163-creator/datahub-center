@@ -323,19 +323,7 @@ const [ModalComponent, modalApi] = useVbenModal({
     content-class="metadata-modal__body"
     footer-class="metadata-modal__footer"
   >
-    <Alert
-      v-if="failed"
-      type="error"
-      message="推送配置或模型加载失败，请关闭后重试"
-      class="mb-4"
-    />
     <Alert v-if="validation" type="error" :message="validation" class="mb-4" />
-    <Alert
-      v-if="fieldsFailed"
-      type="error"
-      message="模型字段加载失败，请重新选择主数据对象"
-      class="mb-4"
-    />
     <div class="metadata-section">基础配置</div>
     <div class="metadata-form-grid">
       <div class="metadata-form-item">

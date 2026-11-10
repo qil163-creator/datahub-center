@@ -279,7 +279,7 @@ describe('资产字段统一使用治理业务术语', () => {
     );
     await state.options.onOpenChange(true);
     await flush();
-    expect(host.textContent).toContain('术语加载失败');
+    expect(host.textContent).not.toContain('术语加载失败');
     await state.options.onOpenChange(false);
     vi.mocked(getSimpleAssetTermList).mockResolvedValue([
       { id: 1, name: '可选术语', status: 0 },

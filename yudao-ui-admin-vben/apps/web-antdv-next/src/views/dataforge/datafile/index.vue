@@ -51,7 +51,6 @@ const {
   connection,
   connectionOpen,
   connectionLoading,
-  connectionError,
   summary,
   summaryLoading,
   summaryError,
@@ -306,12 +305,12 @@ function treeEntry(node: unknown) {
         </section>
       </Card>
       <Alert
-        v-if="summaryError || (summary && !summary.complete)"
+        v-if="
+          !summaryError && summary && summary.connectionStatus === 'CONNECTED' && !summary.complete
+        "
         type="warning"
         :message="
-          summaryError
-            ? '文件统计加载失败，可刷新重试。'
-            : summary?.message || '本次扫描未完成，统计暂不可用。'
+          summary?.message || '本次扫描未完成，统计暂不可用。'
         "
         show-icon
       />
@@ -547,11 +546,7 @@ function treeEntry(node: unknown) {
               <FileEmpty
                 :description="
                   connection
-                    ? listError
-                      ? summaryError || (summary && !summary.complete)
-                        ? ''
-                        : '文件列表加载失败'
-                      : '暂无数据'
+                    ? listError ? '' : '暂无数据'
                     : '请选择数据连接'
                 "
               />
@@ -620,9 +615,7 @@ function treeEntry(node: unknown) {
         :connections="connections"
         :selected="connection"
         :loading="connectionLoading"
-        :error="connectionError"
         @select="manager.selectConnection"
-        @reload="manager.loadConnections"
       />
       <Modal
         v-model:open="editOpen"

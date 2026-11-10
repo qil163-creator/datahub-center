@@ -55,7 +55,6 @@ import {
   tagColumns,
   tagDate,
   tagNumber,
-  tagStatusOptions,
 } from './data';
 import TagForm from './modules/form.vue';
 
@@ -110,7 +109,6 @@ const query = reactive<{
   name?: string;
   sortField?: 'assetCount' | 'createTime' | 'id' | 'name';
   sortOrder?: 'asc' | 'desc';
-  status?: number;
 }>({ sortField: 'createTime', sortOrder: 'desc' });
 const pagination = reactive({ pageNo: 1, pageSize: 10, total: 0 });
 const listGuard = createLatestWins();
@@ -189,21 +187,10 @@ const [FilterForm, filterFormApi] = useVbenForm({
       component: 'Input',
       componentProps: { allowClear: true, placeholder: '请输入创建人' },
     },
-    {
-      fieldName: 'status',
-      label: '状态',
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: tagStatusOptions,
-        placeholder: '请选择状态',
-      },
-    },
   ],
   handleValuesChange(values) {
     query.name = values.name;
     query.creatorName = values.creatorName;
-    query.status = values.status;
   },
   handleSubmit: search,
   handleReset: reset,
@@ -268,7 +255,6 @@ function reset() {
   Object.assign(query, {
     name: undefined,
     creatorName: undefined,
-    status: undefined,
   });
   selectedCategoryId.value = undefined;
   treeKeyword.value = '';
@@ -447,6 +433,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AssetTagApi.Tag>({
     pagerConfig: { enabled: false },
     proxyConfig: { enabled: false },
     rowConfig: { keyField: 'id', isHover: true },
+    scrollbarConfig: { height: 6 },
     sortConfig: { remote: true, multiple: false, defaultSort: { field: 'createTime', order: 'desc' } },
     showOverflow: false,
     toolbarConfig: { refresh: true, refreshOptions: { queryMethod: refresh }, custom: true, zoom: false },
@@ -510,7 +497,6 @@ function syncFilterValues() {
     void filterFormApi.setValues({
       name: query.name,
       creatorName: query.creatorName,
-      status: query.status,
     });
 }
 </script>
@@ -554,11 +540,7 @@ function syncFilterValues() {
               @refresh="loadCategories"
             />
           </div>
-          <Alert v-if="categoryError" :message="categoryError" type="error">
-            <template #action>
-              <Button size="small" @click="loadCategories"> 重试 </Button>
-            </template>
-</Alert><Spin :spinning="categoryLoading">
+          <Spin :spinning="categoryLoading">
             <Tree
               class="subtle-tree-scrollbar"
               :tree-data="categoryTree"
@@ -603,12 +585,7 @@ function syncFilterValues() {
             </template>
           </FilterForm>
           <section class="tag-results">
-            <Alert v-if="listError" :message="listError" type="error">
-              <template #action>
-                <Button size="small" @click="loadRows"> 重试 </Button>
-              </template>
-            </Alert>
-            <Grid class="tag-table" table-title="资产标签列表" :table-data="rows">
+<Grid class="tag-table subtle-grid-scrollbar" table-title="资产标签列表" :table-data="rows">
               <template #toolbar-tools>
                 <TableAction
 :actions="[
@@ -640,17 +617,13 @@ function syncFilterValues() {
               <template #creatorName="{ row }">{{ row.creatorName || row.sourceCreatorName || row.creator || '-' }}</template>
               <template #createTime="{ row }">{{ tagDate(row.createTime) }}</template>
               <template #actions="{ row }">
-                <div class="tag-row-actions">
-                  <Button v-if="can('update')" type="link" :disabled="row.status === 0" @click="openEdit(row)">
-                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('edit.svg')})` }"></span>修改
-                  </Button>
-                  <Button v-if="can('delete')" type="link" danger :disabled="row.status === 0" @click="remove(row)">
-                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"></span>删除
-                  </Button>
-                  <Button type="link" @click="openDetail(row)">
-                    <span class="ref-icon" :style="{ maskImage: `url(${tagAsset('detail.svg')})` }"></span>详情
-                  </Button>
-                </div>
+                <TableAction
+                  :actions="[
+                    { label: '修改', icon: ACTION_ICON.EDIT, ifShow: can('update'), disabled: row.status === 0, onClick: () => openEdit(row) },
+                    { label: '删除', icon: ACTION_ICON.DELETE, danger: true, ifShow: can('delete'), disabled: row.status === 0, onClick: () => remove(row) },
+                    { label: '详情', icon: ACTION_ICON.VIEW, onClick: () => openDetail(row) },
+                  ]"
+                />
               </template>
               <template #pager>
                 <ListPagination :current="pagination.pageNo" :page-size="pagination.pageSize" :total="pagination.total" @change="(pageNo: number, pageSize: number) => { pagination.pageNo = pageNo; pagination.pageSize = pageSize; void loadRows(); }" />

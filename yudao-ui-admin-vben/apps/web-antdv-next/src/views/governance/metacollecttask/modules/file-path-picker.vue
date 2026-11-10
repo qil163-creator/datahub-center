@@ -5,7 +5,7 @@ import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Alert, Button, Checkbox, message, Table } from 'antdv-next';
+import { Button, Checkbox, message, Table } from 'antdv-next';
 
 import { getDataFilePage } from '#/api/dataforge/datafile';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -119,11 +119,6 @@ const [Modal, modalApi] = useVbenModal({
       </Button>
       <span>{{ input?.connectionName }}{{ path === '/' ? '' : path }}</span>
     </div>
-    <Alert v-if="failed" type="error" message="目录读取失败，请重试" show-icon>
-      <template #action>
-        <Button size="small" @click="load">重试</Button>
-      </template>
-    </Alert>
     <Table
       size="small"
       :loading="loading"

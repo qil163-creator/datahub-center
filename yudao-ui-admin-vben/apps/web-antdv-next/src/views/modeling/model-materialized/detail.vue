@@ -290,14 +290,7 @@ watch([activeTab, logsPage, logsPageSize], () => {
   <Page auto-content-height content-class="qd-materialized-detail-content">
     <div class="qd-logic-page qd-materialized qd-materialized-detail">
       <Alert v-if="!modelId" type="error" message="无效的模型编号" />
-      <div
-        v-else-if="loadError"
-        class="qd-materialized-detail-error"
-        role="alert"
-      >
-        发布模型详情加载失败
-        <button class="qd-btn" type="button" @click="load">重新加载</button>
-      </div>
+      <template v-else-if="loadError"></template>
       <Spin v-else :spinning="loading" class="qd-materialized-detail-spin">
         <template v-if="detail">
           <section class="qd-materialized-detail-summary">
@@ -558,16 +551,7 @@ watch([activeTab, logsPage, logsPageSize], () => {
                   </Popover>
                 </div>
               </div>
-              <div
-                v-if="logsError"
-                class="qd-materialized-detail-error"
-                role="alert"
-              >
-                发布日志加载失败
-                <button class="qd-btn" type="button" @click="loadLogs">
-                  重新加载
-                </button>
-              </div>
+              <template v-if="logsError"></template>
               <Spin v-else class="qd-materialized-detail-logs-spin" :spinning="logsLoading">
                 <div class="qd-materialized-detail-table-region">
                 <div class="qd-materialized-detail-table-scroll">

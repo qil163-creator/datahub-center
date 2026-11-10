@@ -7,7 +7,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert, Button, Input, Tooltip, Tree } from 'antdv-next';
+import { Button, Input, Tooltip, Tree } from 'antdv-next';
 
 import { TableAction } from '#/adapter/vxe-table';
 import {
@@ -97,7 +97,7 @@ async function loadCounts(rows: GovernanceMasterDataApi.Model[]) {
     }),
   );
 }
-const { Grid, gridApi, load, error } =
+const { Grid, gridApi, load } =
   useMetadataGrid<GovernanceMasterDataApi.Model>(
     [
       { type: 'checkbox', width: 45 },
@@ -210,6 +210,7 @@ const { Grid, gridApi, load, error } =
     undefined,
     'fill',
     true,
+    true,
   );
 function search() {
   Object.assign(applied, filters);
@@ -260,16 +261,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           @refresh="loadDomains"
         />
       </div>
-      <Alert v-if="treeFailed" type="error" message="类目加载失败">
-        <template #action>
-          <Button size="small" @click="loadDomains">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
+      <template v-if="treeFailed"></template>
       <Tree
         v-model:expanded-keys="expandedKeys"
         v-else
@@ -294,10 +286,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
     </aside>
     <SidebarCollapse :collapsed="sidebarCollapsed" label="实体模型类目" @toggle="sidebarCollapsed = !sidebarCollapsed" />
     <main class="qdata-master-main">
-      <Alert v-if="error" type="error" message="主数据模型加载失败，请重试" />
       <div class="metadata-grid-shell">
         <Grid
-          class="metadata-grid"
+          class="metadata-grid subtle-grid-scrollbar"
           table-title="主数据维护模型"
         >
           <template #toolbar-tools>

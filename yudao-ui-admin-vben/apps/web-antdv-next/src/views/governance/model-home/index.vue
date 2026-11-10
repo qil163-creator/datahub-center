@@ -10,7 +10,7 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate, formatDateTime } from '@vben/utils';
 
-import { Alert, Button, Skeleton } from 'antdv-next';
+import { Button, Skeleton } from 'antdv-next';
 
 import { getModelOverview } from '#/api/governance/model-home';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -331,23 +331,6 @@ function activityTime(time: number) {
         </div>
       </section>
 
-      <Alert
-        v-if="failed"
-        type="error"
-        show-icon
-        class="overview-alert"
-        message="建模概览加载失败"
-        description="请检查网络后重试，统计数据暂不可用。"
-      >
-        <template #action>
-          <Button size="small" @click="loadOverview">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
 
       <section class="metric-grid" aria-label="建模核心指标">
         <button
@@ -481,27 +464,24 @@ function activityTime(time: number) {
               :paragraph="{ rows: 7 }"
               :title="false"
             />
+            <template v-else-if="failed"></template>
             <div
               v-else-if="
-                failed || !distribution.available || distribution.total === '0'
+                !distribution.available || distribution.total === '0'
               "
               class="panel-empty"
             >
               <IconifyIcon
                 :icon="
-                  failed
-                    ? 'lucide:cloud-off'
-                    : distribution.available
-                      ? 'lucide:chart-bar'
-                      : 'lucide:lock-keyhole'
+                  distribution.available
+                    ? 'lucide:chart-bar'
+                    : 'lucide:lock-keyhole'
                 "
               />
               <span>{{
-                failed
-                  ? '统计数据加载失败'
-                  : distribution.available
-                    ? distribution.empty
-                    : '暂无查看该统计的权限'
+                distribution.available
+                  ? distribution.empty
+                  : '暂无查看该统计的权限'
               }}</span>
               <Button
                 v-if="
@@ -577,22 +557,18 @@ function activityTime(time: number) {
               :paragraph="{ rows: 8 }"
               :title="false"
             />
+            <template v-else-if="failed"></template>
             <div
               v-else-if="
-                failed ||
                 !overview?.recentActivitiesAvailable ||
                 activities.length === 0
               "
               class="panel-empty"
             >
-              <IconifyIcon
-                :icon="failed ? 'lucide:cloud-off' : 'lucide:history'"
-              /><span>{{
-                failed
-                  ? '动态加载失败'
-                  : overview?.recentActivitiesAvailable
-                    ? '暂无模型动态，创建或发布模型后将在此展示'
-                    : '暂无查看模型动态的权限'
+              <IconifyIcon icon="lucide:history" /><span>{{
+                overview?.recentActivitiesAvailable
+                  ? '暂无模型动态，创建或发布模型后将在此展示'
+                  : '暂无查看模型动态的权限'
               }}</span>
             </div>
             <ol v-else class="activity-list">

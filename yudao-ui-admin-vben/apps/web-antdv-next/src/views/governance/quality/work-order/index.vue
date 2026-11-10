@@ -263,6 +263,7 @@ const [AllGrid, allGridApi] = useVbenVxeGrid({
     ],
   },
   gridOptions: {
+    scrollbarConfig: { height: 6 },
     showOverflow: false,
     columns: workOrderColumns,
     height: 'auto',
@@ -291,6 +292,7 @@ const [AllGrid, allGridApi] = useVbenVxeGrid({
 
 const [TodoGrid, todoGridApi] = useVbenVxeGrid({
   gridOptions: {
+    scrollbarConfig: { height: 6 },
     showOverflow: false,
     columns: workOrderColumns,
     height: 'auto',
@@ -315,7 +317,7 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
     <template #extra>
       <Segmented v-model:value="activeTab" :options="viewOptions" />
     </template>
-    <AllGrid v-if="activeTab === 'all'" table-title="问题工单">
+    <AllGrid v-if="activeTab === 'all'" class="subtle-grid-scrollbar" table-title="问题工单">
       <template #toolbar-tools>
         <TableAction
           :actions="[
@@ -429,7 +431,7 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
         />
       </template>
     </AllGrid>
-    <TodoGrid v-else-if="activeTab === 'todo'" table-title="我的待办">
+    <TodoGrid v-else-if="activeTab === 'todo'" class="subtle-grid-scrollbar" table-title="我的待办">
       <template #toolbar-tools>
         <TableAction
           :actions="[

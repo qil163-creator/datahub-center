@@ -340,12 +340,7 @@ const [Modal, modalApi] = useVbenModal({
     cancel-text="关闭"
   >
     <div class="space-y-4 px-2">
-      <Alert
-        v-if="loadFailed"
-        type="error"
-        show-icon
-        message="详情加载失败，请关闭后重试"
-      />
+      <template v-if="loadFailed"></template>
       <Alert
         v-else-if="model?.status === 'ACTIVE'"
         type="info"
@@ -363,12 +358,6 @@ const [Modal, modalApi] = useVbenModal({
         type="warning"
         show-icon
         message="当前账号没有数据分域查询权限，无法选择或变更数据板块。"
-      />
-      <Alert
-        v-if="optionsFailed"
-        type="warning"
-        show-icon
-        message="部分归属选项加载失败，可关闭后重试。已有归属仍会保留。"
       />
       <Form />
       <DesignEditor v-if="ready" v-model="design" :readonly="readonly" />

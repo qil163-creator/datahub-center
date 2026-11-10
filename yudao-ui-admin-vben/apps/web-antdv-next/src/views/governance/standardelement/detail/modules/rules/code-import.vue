@@ -6,10 +6,9 @@ import type { GovernanceStandardCodeSetApi } from '#/api/governance/standardcode
 import { h, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
-import { Alert, Button, message, Radio, Table } from 'antdv-next';
+import { Button, message, Radio, Table } from 'antdv-next';
 
 import { getStandardCodeSetPage } from '#/api/governance/standardcodeset';
 import { getCodeMappingPage } from '#/api/governance/standardcodeset/mapping';
@@ -176,16 +175,7 @@ defineExpose({ open });
         />
       </aside>
       <main>
-        <Alert v-if="failed" type="error" message="代码表加载失败">
-          <template #action>
-            <Button @click="load">
-              <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
-              </template>
-              重试
-            </Button>
-          </template> </Alert
-        ><Table
+<Table
           :columns="columns"
           :scroll="{ x: 'max-content' }"
           :data-source="rows"

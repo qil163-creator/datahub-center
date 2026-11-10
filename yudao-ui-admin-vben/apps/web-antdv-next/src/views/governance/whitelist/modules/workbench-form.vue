@@ -192,7 +192,7 @@ onBeforeUnmount(() => guard.invalidate());
     class="category-reference-dialog whitelist-reference-dialog"
     @cancel="emit('close')"
   >
-    <Alert v-if="error" :message="error" type="error" /><Spin
+    <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" :message="error" type="error" /><Spin
       :spinning="loading"
     >
       <Form

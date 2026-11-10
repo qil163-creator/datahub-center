@@ -60,6 +60,7 @@ const canQueryCategory = computed(() =>
 const detail = ref<SupplyDataApiApi.DataApi>();
 const loading = ref(false);
 const error = ref('');
+const loadFailed = ref(false);
 const activeTab = ref('params');
 const categories = ref<SupplyApiCategoryApi.ApiCategory[]>([]);
 const categoryState = ref<'failed' | 'loading' | 'ready' | 'unavailable'>(
@@ -299,6 +300,7 @@ function resetDetail() {
   detail.value = undefined;
   loading.value = false;
   error.value = '';
+  loadFailed.value = false;
   categories.value = [];
   categoryState.value = 'unavailable';
   activeTab.value = 'params';
@@ -345,7 +347,10 @@ async function loadDetail() {
     }
     detail.value = row;
   } catch {
-    if (isCurrent()) error.value = 'API详情加载失败，请返回列表后重试';
+    if (isCurrent()) {
+      loadFailed.value = true;
+      error.value = 'API详情加载失败，请返回列表后重试';
+    }
   } finally {
     if (isCurrent()) loading.value = false;
   }
@@ -400,7 +405,7 @@ onBeforeUnmount(() => {
           </div>
           <DetailBackButton @click="handleBack" />
         </div>
-        <Alert v-if="error" type="error" :message="error" show-icon />
+        <Alert v-if="error && !loadFailed" type="error" :message="error" show-icon />
         <p v-if="loading" role="status">正在加载API详情…</p>
         <Descriptions
           v-if="detail"

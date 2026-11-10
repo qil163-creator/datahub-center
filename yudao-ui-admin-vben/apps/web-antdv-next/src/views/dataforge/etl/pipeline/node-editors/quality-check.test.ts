@@ -102,12 +102,13 @@ describe('行级质量规则集编辑', () => {
     expect(getRuleSetItems).toHaveBeenCalledWith('9007199254740995');
   });
 
-  it('规则查询失败明确显示错误，不静默替换已有字段绑定', async () => {
+  it('规则查询失败不展示提示条，保留字段绑定并禁用编辑', async () => {
     vi.mocked(getRuleSetItems).mockRejectedValueOnce(new Error('network'));
     mountEditor();
     config.fieldBindings = [{ ruleId: '9007199254740997', field: 'code' }];
     await flush();
-    expect(host.textContent).toContain('规则明细加载失败');
+    expect(host.textContent).not.toContain('规则明细加载失败');
+    expect(host.querySelector<HTMLInputElement>('input[placeholder="选择或输入待检查字段"]')?.disabled).toBe(true);
     expect(config.fieldBindings).toEqual([
       { ruleId: '9007199254740997', field: 'code' },
     ]);

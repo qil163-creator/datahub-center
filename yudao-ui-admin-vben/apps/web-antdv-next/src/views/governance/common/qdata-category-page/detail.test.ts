@@ -297,15 +297,12 @@ describe('类目只读详情弹窗', () => {
     expect(host.querySelector('[data-centered]')).toBeNull();
   });
 
-  it('失败提供重试，响应编号不匹配时不展示错误对象', async () => {
+  it('失败不显示提示条，重新打开和身份校验仍生效', async () => {
     vi.mocked(adapter.value.get).mockRejectedValueOnce(new Error('读取失败'));
     await instance.value!.open(id);
     await nextTick();
-    expect(host.querySelector('[role="alert"]')).not.toBeNull();
-    const retry = [...host.querySelectorAll('button')].find(
-      (button) => button.textContent === '重试',
-    )!;
-    retry.click();
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    await instance.value!.open(id);
     await flush();
     expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(host.textContent).toContain('当前类目');
@@ -317,7 +314,7 @@ describe('类目只读详情弹窗', () => {
     await instance.value!.open(id);
     await nextTick();
     expect(host.textContent).not.toContain('错误对象');
-    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(harness.errors).toEqual([]);
   });
 });

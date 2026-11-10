@@ -304,19 +304,13 @@ onBeforeUnmount(() => {
         type="warning"
         show-icon
       />
-      <Alert v-else-if="errorText" :message="errorText" type="error">
-        <template #action>
-          <Button @click="loadTag">重试</Button>
-        </template>
-      </Alert>
+      <template v-else-if="errorText"></template>
       <template v-else>
         <Spin :spinning="loading">
           <section class="tag-summary">
             <header>
               <div>
-                <span class="tag-summary__number">{{ tagNumber(tag) }}</span
-                ><strong>{{ tag.name || '-' }}</strong
-                ><Tag
+                <span class="tag-summary__number">{{ tagNumber(tag) }}</span><strong>{{ tag.name || '-' }}</strong><Tag
                   v-if="tag.status !== undefined"
                   class="tag-summary__status"
                   :class="[{ 'is-enabled': tag.status === 0 }]"
@@ -328,12 +322,12 @@ onBeforeUnmount(() => {
             </header>
             <Descriptions :column="3" bordered size="small">
               <DescriptionsItem label="标签类目">
-                {{ tag.categoryName || '-' }} </DescriptionsItem
-              ><DescriptionsItem label="近义词">
-                {{ tag.nearSynonyms || '-' }} </DescriptionsItem
-              ><DescriptionsItem label="同义词">
-                {{ tag.synonyms || '-' }} </DescriptionsItem
-              ><DescriptionsItem label="描述" :span="3">
+                {{ tag.categoryName || '-' }}
+</DescriptionsItem><DescriptionsItem label="近义词">
+                {{ tag.nearSynonyms || '-' }}
+</DescriptionsItem><DescriptionsItem label="同义词">
+                {{ tag.synonyms || '-' }}
+</DescriptionsItem><DescriptionsItem label="描述" :span="3">
                 {{ tag.description || '-' }}
               </DescriptionsItem>
             </Descriptions>
@@ -356,14 +350,14 @@ onBeforeUnmount(() => {
                 <span
                   class="ref-icon"
                   :style="{ maskImage: `url(${tagAsset('refresh.svg')})` }"
-                ></span> </Button
-              ><Dropdown :trigger="['click']">
+                ></span>
+</Button><Dropdown :trigger="['click']">
                 <Button aria-label="选择显示列">
                   <span
                     class="ref-icon"
                     :style="{ maskImage: `url(${tagAsset('columns.svg')})` }"
-                  ></span> </Button
-                ><template #popupRender>
+                  ></span>
+</Button><template #popupRender>
                   <div class="tag-column-picker">
                     <CheckboxGroup
                       v-model:value="visibleKeys"
@@ -378,11 +372,7 @@ onBeforeUnmount(() => {
                 </template>
               </Dropdown>
             </div>
-            <Alert v-if="assetError" :message="assetError" type="error">
-              <template #action>
-                <Button size="small" @click="loadAssets"> 重试 </Button>
-              </template>
-            </Alert>
+
             <Table
               class="tag-table tag-detail__assets detail-fill-table"
               :columns="visibleColumns"
@@ -398,8 +388,7 @@ onBeforeUnmount(() => {
               <template #bodyCell="{ column, record }">
                 <span v-if="column.key === 'assetId'">{{
                   record.sourceRecordId || record.assetId
-                }}</span
-                ><TextEllipsisCell
+                }}</span><TextEllipsisCell
                   v-else-if="column.key === 'description'"
                   class="tag-description"
                   :content="record.description || '-'"
@@ -413,11 +402,10 @@ onBeforeUnmount(() => {
                     ASSET_TYPE_OPTIONS.find(
                       (item) => item.value === record.assetType,
                     )?.label || '-'
-                  }} </Tag
-                ><span v-else-if="column.key === 'createTime'">{{
+                  }}
+</Tag><span v-else-if="column.key === 'createTime'">{{
                   tagDate(record.createTime)
-                }}</span
-                ><Button
+                }}</span><Button
                   v-else-if="column.key === 'actions' && canUnbind"
                   type="link"
                   danger
@@ -426,9 +414,8 @@ onBeforeUnmount(() => {
                   <span
                     class="ref-icon"
                     :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"
-                  ></span
-                  >删除 </Button
-                ><span v-else>{{
+                  ></span>删除
+</Button><span v-else>{{
                   column.key
                     ? record[column.key as keyof AssetTagApi.LinkedAsset] || '-'
                     : '-'
@@ -461,14 +448,14 @@ onBeforeUnmount(() => {
             <DescriptionsItem label="创建人">
               {{
                 tag.creatorName || tag.sourceCreatorName || tag.creator || '-'
-              }} </DescriptionsItem
-            ><DescriptionsItem label="创建时间">
-              {{ tagDate(tag.createTime) }} </DescriptionsItem
-            ><DescriptionsItem label="更新人">
+              }}
+</DescriptionsItem><DescriptionsItem label="创建时间">
+              {{ tagDate(tag.createTime) }}
+</DescriptionsItem><DescriptionsItem label="更新人">
               {{
                 tag.updaterName || tag.sourceUpdaterName || tag.updater || '-'
-              }} </DescriptionsItem
-            ><DescriptionsItem label="更新时间">
+              }}
+</DescriptionsItem><DescriptionsItem label="更新时间">
               {{ tagDate(tag.updateTime) }}
             </DescriptionsItem>
           </Descriptions>

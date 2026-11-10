@@ -38,12 +38,10 @@ const versions = ref<DataforgeEtlApi.Version[]>([]);
 const pageNo = ref(1);
 const total = ref(0);
 const loading = ref(false);
-const loadError = ref('');
 const detailVisible = ref(false);
 const detail = ref<DataforgeEtlApi.Version>();
 const differences = ref<DataforgeEtlApi.VersionDiff[]>([]);
 const detailLoading = ref(false);
-const detailError = ref('');
 const diffError = ref('');
 const compareSelected = ref<DataforgeEtlApi.Version[]>([]);
 const compareVisible = ref(false);
@@ -108,7 +106,6 @@ function closeDetail() {
   detailLoading.value = false;
   detail.value = undefined;
   differences.value = [];
-  detailError.value = '';
   diffError.value = '';
 }
 function closeComparison() {
@@ -150,7 +147,6 @@ async function loadVersions(page = 1) {
   if (pipelineId.value === undefined) return;
   const seq = ++listSeq;
   loading.value = true;
-  loadError.value = '';
   pageNo.value = page;
   try {
     const result = await getEtlVersionPage({
@@ -162,7 +158,7 @@ async function loadVersions(page = 1) {
     versions.value = result.list;
     total.value = result.total;
   } catch {
-    if (seq === listSeq) loadError.value = '版本历史加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (seq === listSeq) loading.value = false;
   }
@@ -179,7 +175,6 @@ async function showVersion(version: DataforgeEtlApi.Version) {
   ]);
   if (seq !== detailSeq || !visible.value || !detailVisible.value) return;
   if (snapshot.status === 'fulfilled') detail.value = snapshot.value;
-  else detailError.value = '版本快照加载失败，请关闭后重试。';
   if (diff.status === 'fulfilled') differences.value = diff.value;
   else diffError.value = '差异比较失败，无法判断与当前草稿的差异。';
   detailLoading.value = false;
@@ -350,7 +345,6 @@ onBeforeUnmount(close);
       type="info"
       message="版本记录发布和恢复时的不可变快照；差异与当前已保存草稿比较。恢复只创建新草稿，当前发布版和调度继续使用原快照。"
     />
-    <Alert v-if="loadError" class="mb-3" type="error" :message="loadError" />
     <Table
       :scroll="{ x: 'max-content' }"
       :data-source="versions"
@@ -404,12 +398,6 @@ onBeforeUnmount(close);
       @cancel="closeDetail"
     >
       <Spin :spinning="detailLoading">
-        <Alert
-          v-if="detailError"
-          type="error"
-          :message="detailError"
-          class="mb-3"
-        />
         <template v-if="detail">
           <p class="mb-2">
             版本 #{{ detail.id }} · 草稿 r{{ detail.revision }} · 来源版本

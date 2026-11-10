@@ -435,16 +435,7 @@ onBeforeUnmount(() => {
   <ConfigProvider :theme="{ token: { borderRadius: tokens.borderRadius } }">
     <div class="qd-logic-detail" :class="{ 'is-source': source }">
       <div v-if="!model" class="qd-logic-detail-state">
-        <Spin v-if="loading" /><Alert
-          v-else
-          type="error"
-          show-icon
-          message="模型详情加载失败"
-        >
-          <template #action>
-            <button class="qd-logic-detail-btn" @click="load">重试</button><DetailBackButton @click="emit('back')" />
-          </template>
-        </Alert>
+        <Spin v-if="loading" /><template v-else><DetailBackButton @click="emit('back')" /></template>
       </div>
       <template v-else>
         <section class="qd-logic-detail-summary">
@@ -569,12 +560,6 @@ onBeforeUnmount(() => {
               {{ tab.label }}
             </button>
           </nav>
-          <Alert
-            v-if="failed"
-            message="刷新失败，请重试"
-            type="error"
-            show-icon
-          />
           <template v-if="activeTab === 'fields'">
             <div class="qd-logic-detail-toolbar">
               <template v-if="!source && !summary">
@@ -861,17 +846,7 @@ onBeforeUnmount(() => {
                 type="info"
                 message="暂无关联信息查询权限"
               />
-              <Alert
-                v-else-if="relatedError"
-                type="error"
-                message="关联信息加载失败"
-              >
-                <template #action>
-                  <button class="qd-logic-detail-link" @click="loadRelated">
-                    重试
-                  </button>
-                </template>
-              </Alert>
+              <template v-else-if="relatedError"></template>
               <div v-else class="qd-logic-detail-table-scroll">
                 <table class="qd-logic-detail-table">
                   <thead>

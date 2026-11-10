@@ -17,7 +17,6 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime, handleTree } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   Input,
   message,
@@ -449,24 +448,15 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             </span>
           </template>
         </Tree>
-        <div v-else class="text-muted-foreground p-2 text-xs">
+        <div v-else-if="!categoriesFailed" class="text-muted-foreground p-2 text-xs">
           {{
             categoriesLoading
               ? '类目加载中…'
-              : categoriesFailed
-                ? '类目加载失败，请刷新重试'
-                : '暂无类目'
+              : '暂无类目'
           }}
         </div>
       </template>
 
-      <Alert
-        v-if="listFailed"
-        class="mb-3"
-        message="清洗规则加载失败，请重新查询"
-        show-icon
-        type="error"
-      />
       <Grid class="min-h-0 flex-1" table-title="清洗规则管理">
         <template #toolbar-tools>
           <Button

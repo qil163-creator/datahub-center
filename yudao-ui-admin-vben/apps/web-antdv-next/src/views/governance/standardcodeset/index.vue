@@ -78,7 +78,6 @@ const categoryLoading = ref(false);
 const sortField = ref<'createTime' | 'id'>('createTime');
 const sortOrder = ref<'asc' | 'desc'>('desc');
 const selectedRows = ref<Api.Id[]>([]);
-const batchMode = ref(false);
 const active = ref(true);
 const request = useObjectRequest(
   () => scope.value,
@@ -100,7 +99,7 @@ const tree = computed(() =>
 );
 function gridColumns(): VxeTableGridOptions<Api.StandardCodeSet>['columns'] {
   return [
-    { type: 'checkbox', width: 48, visible: batchMode.value },
+    { type: 'checkbox', width: 48 },
     { field: 'id', title: '编号', width: 90, sortable: true },
     {
       field: 'name',
@@ -223,7 +222,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Api.StandardCodeSet>({
   },
 });
 watch(
-  [rows, loading, page, pageSize, total, batchMode],
+  [rows, loading, page, pageSize, total],
   async () => {
     gridApi.setGridOptions({
       data: rows.value,
@@ -241,11 +240,6 @@ watch(
   },
   { immediate: true },
 );
-watch(batchMode, () => {
-  selectedRows.value = [];
-  gridApi.setGridOptions({ columns: gridColumns() });
-  void gridApi.grid?.clearCheckboxRow?.();
-});
 const [FormModal, formApi] = useVbenModal({
   connectedComponent: Form,
   destroyOnClose: true,
@@ -422,7 +416,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             @refresh="loadCategories"
           />
         </div>
-        <Alert v-if="categoryError" type="error" :message="categoryError">
+        <Alert v-if="categoryError && (!/(?:加载|读取|获取).*失败/.test(categoryError) || /保存|冲突|未确认/.test(categoryError))" type="error" :message="categoryError">
           <template #action>
             <Button size="small" @click="loadCategories">
               <template #icon>
@@ -448,7 +442,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         </Tree>
       </template>
       <Alert
-        v-if="error"
+        v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))"
         :message="error"
         type="error"
         show-icon
@@ -476,23 +470,15 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 danger: true,
                 icon: ACTION_ICON.DELETE,
                 auth: ['governance:standard-code-set:delete'],
-                ifShow: batchMode,
                 disabled: !selectedRows.length || loading,
                 onClick: () => remove(),
               },
-            ]"
-            :drop-down-actions="[
               {
                 label: '导入码表/码值',
+                type: 'primary',
                 icon: ACTION_ICON.UPLOAD,
                 auth: ['governance:standard-code-set:import'],
                 onClick: () => importApi.open(),
-              },
-              {
-                label: batchMode ? '退出批量选择' : '批量选择',
-                icon: 'lucide:list-checks',
-                auth: ['governance:standard-code-set:delete'],
-                onClick: () => (batchMode = !batchMode),
               },
             ]"
           />

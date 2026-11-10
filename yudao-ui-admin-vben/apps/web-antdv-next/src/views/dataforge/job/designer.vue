@@ -346,11 +346,7 @@ watch(
           title="作业编号无效或没有查询权限"
           show-icon
         />
-        <Alert v-if="failed" type="error" :title="failed" show-icon>
-          <template #action>
-            <Button @click="load">重试</Button>
-          </template>
-        </Alert>
+
         <Spin :spinning="loading" class="qj-designer-spin">
           <header class="qj-design-header">
             <div class="qj-design-title">
@@ -389,16 +385,7 @@ watch(
               >
                 <template #prefix><ReferenceIcon name="search" /></template>
               </Input>
-              <Alert
-                v-if="paletteFailed"
-                type="warning"
-                title="任务列表加载失败"
-                show-icon
-              >
-                <template #action>
-                  <Button size="small" @click="load">重试</Button>
-                </template>
-              </Alert>
+
               <div class="qj-palette-tree subtle-tree-scrollbar">
                 <section v-for="group in groups" :key="group.kind">
                   <button

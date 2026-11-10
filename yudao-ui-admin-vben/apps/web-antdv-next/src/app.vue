@@ -52,6 +52,30 @@ const tokenTheme = computed(() => {
   scrollbar-color: rgb(128 128 128 / 28%) transparent;
 }
 
+.subtle-grid-scrollbar .vxe-table--scroll-x-handle::-webkit-scrollbar {
+  height: 6px;
+}
+
+.subtle-grid-scrollbar .vxe-table--scroll-x-handle::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.subtle-grid-scrollbar .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb {
+  background: hsl(var(--foreground) / 20%);
+  border-radius: 999px;
+}
+
+.subtle-grid-scrollbar .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 30%);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .subtle-grid-scrollbar .vxe-table--scroll-x-handle {
+    scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
+}
+
 /* 让加载图标的旋转中心始终与开关滑块中心重合。 */
 .ant-switch .ant-switch-handle > .ant-switch-loading-icon.anticon {
   position: absolute;

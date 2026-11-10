@@ -61,6 +61,7 @@ const identity = computed(() =>
 const assetType = ref(1);
 const loading = ref(false);
 const errorText = ref('');
+const tooManyResults = ref(false);
 const keyword = ref('');
 const treeKeyword = ref('');
 const allRows = ref<Candidate[]>([]);
@@ -79,6 +80,7 @@ async function loadAll() {
   const ticket = guard.next();
   loading.value = true;
   errorText.value = '';
+  tooManyResults.value = false;
   allRows.value = [];
   selectedRowKeys.value = [];
   try {
@@ -95,6 +97,7 @@ async function loadAll() {
       if (!ticket.isCurrent()) return;
       total = result.total ?? 0;
       if (total > 5000) {
+        tooManyResults.value = true;
         errorText.value = '匹配结果较多，请输入关键字缩小查询范围。';
         return;
       }
@@ -207,6 +210,7 @@ function reset() {
   selectedRowKeys.value = [];
   loading.value = false;
   errorText.value = '';
+  tooManyResults.value = false;
 }
 const [Modal, modalApi] = useVbenModal({
   class: 'w-[80vw]',
@@ -319,11 +323,9 @@ function iconPath(name: string) {
                 "
               >
                 <template #titleRender="node">
-                  <span class="picker__node"
-                    ><img :src="folderIcon" alt="" /><span>{{
+                  <span class="picker__node"><img :src="folderIcon" alt="" /><span>{{
                       node.title
-                    }}</span></span
-                  >
+                    }}</span></span>
                 </template>
               </Tree>
             </div>
@@ -339,11 +341,7 @@ function iconPath(name: string) {
               }}
             </h3>
             <div class="picker__table">
-              <Alert v-if="errorText" :message="errorText" type="error">
-                <template #action>
-                  <Button size="small" @click="loadAll"> 重试 </Button>
-                </template>
-              </Alert>
+              <Alert v-if="tooManyResults" message="匹配结果较多，请输入关键字缩小查询范围。" type="warning" />
               <Table
                 :columns="columns"
                 :data-source="visibleRows"
@@ -372,14 +370,13 @@ function iconPath(name: string) {
                   >
                     <span>{{
                       record.fileName || record.name || record.tableName || '-'
-                    }}</span
-                    ><Tag v-if="assetType !== 1" class="picker__filetype">
+                    }}</span><Tag v-if="assetType !== 1" class="picker__filetype">
                       {{
                         assetType === 2
                           ? record.method || 'API'
                           : record.fileType || '-'
-                      }} </Tag
-                    ><small v-if="assetType === 1">{{
+                      }}
+</Tag><small v-if="assetType === 1">{{
                       record.businessName ||
                       record.customComment ||
                       record.sourceComment ||
@@ -396,8 +393,7 @@ function iconPath(name: string) {
                         : excludedIds.has(resourceIdKey(record.id))
                           ? '已选入'
                           : '未注册'
-                    }}</span
-                  >
+                    }}</span>
                 </template>
                 <template #emptyText>
                   <Empty description="暂无记录" />

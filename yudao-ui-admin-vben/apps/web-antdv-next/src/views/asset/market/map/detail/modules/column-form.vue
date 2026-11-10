@@ -53,6 +53,7 @@ const levelOptions = ref<{ label: string; value: string }[]>([]);
 const levelsReady = ref(false);
 const ready = ref(false);
 const loadFailed = ref(false);
+const saveConflict = ref(false);
 const identity = ref('closed');
 const bindingLabel = ref('');
 const picker = ref<InstanceType<typeof PublishedStandardPicker>>();
@@ -62,6 +63,7 @@ const request = useObjectRequest(
   () => {
     ready.value = false;
     loadFailed.value = false;
+  saveConflict.value = false;
     levelsReady.value = false;
     levelOptions.value = [];
     bindingLabel.value = '';
@@ -79,6 +81,7 @@ async function loadDetail(assetId: DataAssetApi.Id, id: DataAssetApi.Id) {
   const current = request.begin();
   ready.value = false;
   loadFailed.value = false;
+  saveConflict.value = false;
   levelsReady.value = false;
   modalApi.setState({ loading: true, confirmDisabled: true });
   try {
@@ -192,6 +195,7 @@ const [Modal, modalApi] = useVbenModal({
       if (current()) {
         ready.value = false;
         loadFailed.value = true;
+        saveConflict.value = true;
         modalApi.setState({ confirmDisabled: true });
       }
     } finally {
@@ -232,9 +236,9 @@ watch(
   >
     <PublishedStandardPicker ref="picker" @picked="handlePicked" />
     <Alert
-      v-if="loadFailed"
+      v-if="saveConflict"
       class="mb-3"
-      message="当前字段读取失败或保存发生冲突，请重新加载核对后编辑。"
+      message="字段保存失败或发生冲突，请重新加载核对后编辑。"
       show-icon
       type="error"
     >
@@ -245,13 +249,7 @@ watch(
         </Button>
       </template>
     </Alert>
-    <Alert
-      v-else-if="ready && !levelsReady"
-      class="mb-3"
-      message="安全等级选项读取失败，保留当前等级；其他属性仍可编辑。"
-      show-icon
-      type="warning"
-    />
+
     <Form
       :label-col="{ style: { width: '110px' } }"
       :wrapper-col="{ style: { flex: '1 1 0' } }"

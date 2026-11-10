@@ -9,13 +9,11 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import {
   Alert,
-  Button,
   Descriptions,
   DescriptionsItem,
   Empty,
@@ -243,15 +241,7 @@ onBeforeUnmount(() => {
             <DetailBackButton @click="back" />
           </div>
           <Skeleton v-if="loading" active :paragraph="{ rows: 4 }" />
-          <Alert v-else-if="error" :message="error" show-icon type="error">
-            <template #action>
-              <Button size="small" @click="loadDetail">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-</template>重试
-              </Button>
-            </template>
-          </Alert>
+
           <Descriptions
             v-else-if="detail"
             bordered
@@ -306,22 +296,7 @@ onBeforeUnmount(() => {
             :class="{ 'detail-tabs--records': ['logs', 'alarms', 'rules'].includes(activeTab) }"
           >
             <TabPane v-if="supportsMetadata" key="monitor" tab="运行监控">
-              <Alert
-                v-if="monitorError"
-                class="mb-4"
-                :message="monitorError"
-                show-icon
-                type="error"
-              >
-                <template #action>
-                  <Button size="small" @click="loadMonitor">
-                    <template #icon>
-                      <IconifyIcon icon="lucide:refresh-cw" />
-                    </template>
-                    重试
-                  </Button>
-                </template>
-              </Alert>
+
               <Alert
                 v-if="collectError"
                 class="mb-4"

@@ -14,8 +14,6 @@ import { useRoute } from 'vue-router';
 import { Page } from '@vben/common-ui';
 
 import {
-  Alert,
-  Button,
   Descriptions,
   DescriptionsItem,
   Input,
@@ -211,9 +209,6 @@ onActivated(() => {
 
 <template>
   <Page auto-content-height content-class="metadata-page">
-    <Alert v-if="failed" type="error" message="版本对比读取失败，请重试。">
-      <template #action><Button @click="load">重试</Button></template>
-    </Alert>
     <Spin :spinning="loading" :classes="{ root: 'metadata-compare-spin' }">
       <div class="metadata-comparison">
         <div class="metadata-comparison__headers">

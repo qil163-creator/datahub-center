@@ -5,17 +5,15 @@ import { computed, ref, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
 
-import { Alert, Button, Input, Modal, Popover, Spin } from 'antdv-next';
+import { Input, Modal, Popover, Spin } from 'antdv-next';
 
 const props = defineProps<{
   connections: DataforgeDataFileApi.Connection[];
-  error: boolean;
   loading: boolean;
   open: boolean;
   selected?: DataforgeDataFileApi.Connection;
 }>();
 const emit = defineEmits<{
-  reload: [];
   select: [value: DataforgeDataFileApi.Connection];
   'update:open': [value: boolean];
 }>();
@@ -72,16 +70,7 @@ function confirm() {
     @cancel="emit('update:open', false)"
     @ok="confirm"
   >
-    <Alert
-      v-if="error"
-      type="error"
-      message="连接列表加载失败，请重试。"
-      show-icon
-    >
-      <template #action>
-<Button size="small" @click="emit('reload')"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button>
-</template>
-    </Alert>
+
     <div class="connection-form">
       <label>数据库连接</label>
       <Popover

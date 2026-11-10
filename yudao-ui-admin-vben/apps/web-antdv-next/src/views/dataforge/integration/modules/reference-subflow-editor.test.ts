@@ -162,12 +162,12 @@ describe('子流程主配置', () => {
     expect(JSON.stringify(state.config)).toBe(before);
     expect(host.textContent).toBe('');
   });
-  it('主流程列表加载失败仍显示提示，既有引用保持不变', async () => {
+  it('主流程列表加载失败不显示横幅，既有引用保持不变', async () => {
     vi.mocked(api.getSubflowPipelinePage).mockRejectedValue(new Error('unavailable'));
     const state = mount({ versionId: '9007199254740994', parameters: { keep: 'value' } });
     const before = JSON.stringify(state.config);
     await focus();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain('子流程列表加载失败');
+    expect(host.textContent).not.toContain('子流程列表加载失败');
     expect(JSON.stringify(state.config)).toBe(before);
   });
 });

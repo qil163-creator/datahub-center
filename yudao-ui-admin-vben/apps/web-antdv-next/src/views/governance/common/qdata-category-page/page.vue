@@ -395,13 +395,7 @@ onActivated(() => {
       show-icon
       class="mb-4"
     />
-    <Alert
-      v-else-if="failed"
-      message="类目信息加载失败，请刷新重试"
-      type="error"
-      show-icon
-      class="mb-4"
-    />
+    <template v-else-if="failed"></template>
     <Grid :table-title="`${adapter.label}列表`" :show-search-form="showFilter">
       <template #toolbar-tools>
         <div class="qpc-toolbar-actions flex items-center gap-2">

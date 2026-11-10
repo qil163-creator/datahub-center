@@ -2108,14 +2108,9 @@ onMounted(() => {
                     刷新来源表
                   </Button>
                 </div>
-                <Alert
-                  v-if="sourceTablesError"
-                  type="error"
-                  show-icon
-                  :message="sourceTablesError"
-                />
+
                 <Transfer
-                  v-else-if="tableScope !== 'ALL'"
+                  v-if="!sourceTablesError && tableScope !== 'ALL'"
                   :data-source="sourceTransferItems"
                   :target-keys="model.sourceSelectedTables ?? []"
                   :titles="[
@@ -2699,23 +2694,7 @@ onMounted(() => {
           <!-- 映射转换 -->
           <div v-show="currentKey === 'mapper'">
             <div v-if="model.sourceType === 1" class="mb-5">
-              <Alert
-                v-if="tableMappingError"
-                type="error"
-                show-icon
-                :message="tableMappingError"
-                class="mb-3"
-              />
-              <Button
-                v-if="tableMappingError"
-                class="mb-3"
-                @click="loadTableMappings"
-              >
-                <template #icon
-                  ><IconifyIcon icon="lucide:refresh-cw"
-                /></template>
-                重新加载映射
-              </Button>
+
               <TableMapping
                 ref="tableMapping"
                 :rows="mappingRows"

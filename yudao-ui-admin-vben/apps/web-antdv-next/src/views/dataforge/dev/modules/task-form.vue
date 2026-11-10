@@ -311,14 +311,9 @@ onBeforeUnmount(() => {
     @ok="handleOk"
   >
     <Spin :spinning="loading">
-      <Alert
-        v-if="loadFailed"
-        type="error"
-        show-icon
-        message="任务信息加载失败，请关闭后重新打开。"
-      />
+
       <Form
-        v-else
+        v-if="!loadFailed"
         ref="formRef"
         :label-col="{ style: { width: '132px' } }"
         :model="formData"

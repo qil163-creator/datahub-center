@@ -36,14 +36,14 @@ const model = reactive<GovernanceMetaObjectApi.TableBizUpdate>({
 const tableName = ref('');
 const identity = ref('closed');
 const ready = ref(false);
-const loadFailed = ref(false);
+const saveFailed = ref(false);
 const optionsReady = ref(false);
 const access = useAccessStore();
 const request = useObjectRequest(
   () => identity.value,
   () => {
     ready.value = false;
-    loadFailed.value = false;
+    saveFailed.value = false;
     optionsReady.value = false;
     domains.value = [];
     users.value = [];
@@ -87,7 +87,7 @@ function handleLeaderChange(field: 'business' | 'tech', value: unknown) {
 async function loadDetail(id: GovernanceMetaObjectApi.Id) {
   const current = request.begin();
   ready.value = false;
-  loadFailed.value = false;
+  saveFailed.value = false;
   modalApi.setState({ loading: true, confirmDisabled: true });
   try {
     const detail = await getMetaTableDetail(id);
@@ -113,7 +113,6 @@ async function loadDetail(id: GovernanceMetaObjectApi.Id) {
       remark: detail.remark,
     });
     ready.value = detail.bizRevision !== undefined;
-    loadFailed.value = !ready.value;
     const [domainResult, userResult] = await Promise.allSettled([
       getSubjectDomainList({}),
       getSimpleUserList(),
@@ -137,7 +136,7 @@ async function loadDetail(id: GovernanceMetaObjectApi.Id) {
           value: item.id!,
         }));
   } catch {
-    if (current()) loadFailed.value = true;
+    if (current()) ready.value = false;
   } finally {
     if (current())
       modalApi.setState({ loading: false, confirmDisabled: !ready.value });
@@ -161,7 +160,7 @@ const [ModalComponent, modalApi] = useVbenModal({
     } catch {
       if (current()) {
         ready.value = false;
-        loadFailed.value = true;
+        saveFailed.value = true;
         modalApi.setState({ confirmDisabled: true });
       }
     } finally {
@@ -190,9 +189,9 @@ watch(
 <template>
   <ModalComponent :title="getTitle" class="w-[800px]">
     <Alert
-      v-if="loadFailed"
+      v-if="saveFailed"
       class="mb-3"
-      message="详情读取失败或保存发生冲突，请重新加载后编辑。"
+      message="保存发生冲突，请重新加载后编辑。"
       show-icon
       type="error"
     >

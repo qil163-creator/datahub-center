@@ -511,7 +511,7 @@ onBeforeUnmount(() => {
     class="category-reference-dialog"
     @cancel="emit('close')"
   >
-    <Alert v-if="errorText" :message="errorText" type="error" show-icon />
+    <Alert v-if="errorText && (!/(?:加载|读取|获取).*失败/.test(errorText) || /保存|冲突|未确认/.test(errorText))" :message="errorText" type="error" show-icon />
     <Alert v-if="!permitted" message="暂无操作权限" type="warning" />
     <Spin :spinning="loading">
       <Form

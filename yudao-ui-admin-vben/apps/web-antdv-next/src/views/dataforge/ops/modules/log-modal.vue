@@ -6,7 +6,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useAccess } from '@vben/access';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
-import { Alert, Button, Input, Modal, Spin, Switch } from 'antdv-next';
+import { Button, Input, Modal, Spin, Switch } from 'antdv-next';
 
 import {
   downloadOpsInstanceLog,
@@ -195,11 +195,7 @@ const date = displayDate;
         </Button>
       </div>
     </div>
-    <Alert v-if="failed" type="error" message="日志加载失败，请重试">
-      <template #action>
-        <Button size="small" @click="load">重试</Button>
-      </template>
-    </Alert>
+
     <Spin :spinning="loading">
       <LogViewer
         :message="message"

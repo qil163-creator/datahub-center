@@ -300,12 +300,7 @@ defineExpose({ refresh });
         −
       </Button>
     </header>
-    <Alert
-      v-if="failed"
-      message="执行信息读取失败，请刷新重试。"
-      type="error"
-      show-icon
-    />
+
     <template v-if="mode === 'history'">
       <div class="execution-tools">
         <Button class="reference-button" :loading="loading" @click="refresh()">

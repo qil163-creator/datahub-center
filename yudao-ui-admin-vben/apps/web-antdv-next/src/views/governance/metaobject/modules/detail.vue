@@ -707,7 +707,7 @@ onBeforeUnmount(() => {
           <DetailBackButton @click="emit('back')" />
         </header>
         <Alert
-          v-if="embedded && detailError"
+          v-if="embedded && detailError && (!/(?:加载|读取|获取).*失败/.test(detailError) || /保存|冲突|未确认/.test(detailError))"
           :message="detailError"
           class="mb-3"
           type="error"
@@ -1132,7 +1132,7 @@ onBeforeUnmount(() => {
               <section :class="{ 'metadata-profile__version-panel': embedded }">
                 <div class="mb-2 mt-4 font-medium">变更明细</div>
                 <Alert
-                  v-if="embedded && changesError"
+                  v-if="embedded && changesError && (!/(?:加载|读取|获取).*失败/.test(changesError) || /保存|冲突|未确认/.test(changesError))"
                   :message="changesError"
                   class="mb-2"
                   type="error"

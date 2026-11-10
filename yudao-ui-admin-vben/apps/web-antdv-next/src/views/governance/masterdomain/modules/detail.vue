@@ -8,8 +8,6 @@ import { useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert } from 'antdv-next';
-
 import { getMasterDomain } from '#/api/governance/masterdomain';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
@@ -118,13 +116,7 @@ function formatStatus(status?: number) {
 
 <template>
   <Modal :title="`主数据域详情 - ${detail?.name ?? ''}`">
-    <Alert
-      v-if="failed"
-      class="mb-4"
-      type="error"
-      show-icon
-      message="主数据域详情加载失败，请重新打开。"
-    />
+    <template v-if="failed"></template>
     <DetailFieldForm v-else :fields="fields" label-width="110px" />
   </Modal>
 </template>

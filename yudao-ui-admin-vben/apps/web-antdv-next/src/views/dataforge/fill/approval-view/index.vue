@@ -35,7 +35,6 @@ defineOptions({ name: 'DataforgeFillApprovalView' });
 const props = defineProps<{ id: number | string }>();
 
 const loading = ref(true);
-const loadFailed = ref('');
 const preview = ref<DataforgeFillApi.SubmissionPreview>();
 const previous = ref<DataforgeFillApi.SubmissionPreview>();
 const submitterName = ref('');
@@ -117,7 +116,6 @@ let loadSequence = 0;
 async function load() {
   const current = ++loadSequence;
   loading.value = true;
-  loadFailed.value = '';
   preview.value = undefined;
   previous.value = undefined;
   submitterName.value = '';
@@ -137,10 +135,8 @@ async function load() {
         // 上一次提交不可读时只是缺少对比，不影响审批
       }
     }
-  } catch (error: any) {
-    if (current === loadSequence) {
-      loadFailed.value = error?.message ?? '提交快照加载失败，请刷新后重试';
-    }
+  } catch {
+    // 请求失败时保留空快照，由统一请求层提示。
   } finally {
     if (current === loadSequence) loading.value = false;
   }
@@ -212,7 +208,6 @@ watch(() => props.id, () => {
         </DescriptionsItem>
       </Descriptions>
 
-      <Alert v-if="loadFailed" type="error" show-icon :message="loadFailed" />
       <Alert
         v-if="diff"
         type="info"

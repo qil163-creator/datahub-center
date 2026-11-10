@@ -90,9 +90,6 @@ watch(
     :loading="loading"
   >
     <div class="planning-modal__body">
-      <div v-if="failed" class="planning-error">
-        业务实体加载失败，请关闭后重试。
-      </div>
       <template v-if="detail">
         <div class="planning-section-title">基础信息</div>
         <dl class="planning-entity-fields">

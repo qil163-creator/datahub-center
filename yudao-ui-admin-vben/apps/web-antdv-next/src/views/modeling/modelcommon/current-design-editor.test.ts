@@ -379,18 +379,13 @@ describe('当前设计保存与发布', () => {
 });
 
 describe('当前设计异步归属', () => {
-  it('读取失败保持不可写并可显式重试，不回退到旧版本数据', async () => {
+  it('读取失败不显示提示条并保持不可写', async () => {
     const getDesign = vi.fn().mockRejectedValueOnce(new Error('unavailable')).mockResolvedValue(design());
     const saveDraft = vi.fn();
     await mount({ getDesign, saveDraft, publish: vi.fn() });
-    expect(host.textContent).toContain('当前设计读取失败');
-    expect(saveButton().disabled).toBe(true);
-    [...host.querySelectorAll('button')].find((button) => button.textContent === '重试')!.click();
-    await flush();
     expect(host.textContent).not.toContain('当前设计读取失败');
-    expect(nameInput().value).toBe('初始字段');
-    expect(saveButton().disabled).toBe(false);
-    expect(getDesign).toHaveBeenCalledTimes(2);
+    expect(saveButton().disabled).toBe(true);
+    expect(getDesign).toHaveBeenCalledTimes(1);
     expect(saveDraft).not.toHaveBeenCalled();
   });
   it('模型切换后忽略旧设计的晚返回，字段与修订号始终来自同一模型', async () => {

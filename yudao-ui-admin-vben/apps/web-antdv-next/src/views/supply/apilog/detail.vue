@@ -9,7 +9,7 @@ import { Page } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Descriptions, DescriptionsItem, Tag } from 'antdv-next';
+import { Alert, Descriptions, DescriptionsItem, Tag } from 'antdv-next';
 
 import { getApiLog } from '#/api/supply/apilog';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
@@ -32,6 +32,7 @@ const canQuery = computed(() => hasAccessByCodes(['supply:api-log:query']));
 const detail = ref<SupplyApiLogApi.ApiLog>();
 const loading = ref(false);
 const error = ref('');
+const loadFailed = ref(false);
 const guard = createLatestWins();
 let active = true;
 
@@ -56,6 +57,7 @@ function resetDetail() {
   detail.value = undefined;
   loading.value = false;
   error.value = '';
+  loadFailed.value = false;
 }
 
 async function loadDetail() {
@@ -82,7 +84,10 @@ async function loadDetail() {
     }
     detail.value = row;
   } catch {
-    if (isCurrent()) error.value = '调用记录详情加载失败，请重试';
+    if (isCurrent()) {
+      loadFailed.value = true;
+      error.value = '调用记录详情加载失败，请重试';
+    }
   } finally {
     if (isCurrent()) loading.value = false;
   }
@@ -132,11 +137,7 @@ onBeforeUnmount(() => {
           </div>
           <DetailBackButton @click="handleBack" />
         </div>
-        <Alert v-if="error" type="error" :message="error" show-icon>
-          <template v-if="id && canQuery" #action>
-            <Button size="small" @click="loadDetail">重试</Button>
-          </template>
-        </Alert>
+        <Alert v-if="error && !loadFailed" type="error" :message="error" show-icon />
         <p v-if="loading" role="status">正在加载调用记录详情…</p>
         <Descriptions
           v-if="detail"

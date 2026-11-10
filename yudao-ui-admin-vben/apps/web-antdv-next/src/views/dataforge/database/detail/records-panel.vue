@@ -17,7 +17,6 @@ import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
   Descriptions,
   DescriptionsItem,
   Input,
@@ -298,13 +297,7 @@ onBeforeUnmount(invalidate);
 
 <template>
   <div class="database-records-panel">
-    <Alert
-      v-if="failed"
-      type="error"
-      show-icon
-      message="记录加载失败，请点击表格右上角刷新重试。"
-      class="mb-3"
-    />
+
     <Grid class="database-records-grid">
       <template #toolbar-actions>
         <span aria-hidden="true"></span>
@@ -392,12 +385,7 @@ onBeforeUnmount(invalidate);
       <div v-if="detailLoading" class="py-10 text-center text-muted-foreground">
         正在加载详情…
       </div>
-      <Alert
-        v-else-if="detailFailed"
-        type="error"
-        show-icon
-        message="详情加载失败，请关闭后重试。"
-      />
+
       <Descriptions v-else-if="selectedLog" bordered :column="2" size="small">
         <DescriptionsItem label="任务名称" :span="2">
           {{ selectedLog.taskName }}

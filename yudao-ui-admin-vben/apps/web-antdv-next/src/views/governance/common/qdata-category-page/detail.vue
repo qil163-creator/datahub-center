@@ -9,7 +9,7 @@ import { useAccess } from '@vben/access';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, Modal, Spin } from 'antdv-next';
+import { Button, Modal, Spin } from 'antdv-next';
 
 import { useObjectRequest } from '#/hooks/use-object-request';
 import { parseResourceId, sameResourceId } from '#/utils/resource-id';
@@ -150,17 +150,6 @@ defineExpose({ open, close });
     class="qpc-modal qpc-detail-modal"
     @cancel="close"
   >
-    <Alert
-      v-if="failed"
-      class="mb-4"
-      type="error"
-      message="类目详情读取失败或对象不匹配，请重试。"
-      show-icon
-    >
-      <template #action>
-<Button size="small" @click="load">重试</Button>
-</template>
-    </Alert>
     <Spin :spinning="loading">
       <DetailFieldForm v-if="detail" :fields="fields" label-width="130px" />
       <div v-else-if="loading" class="min-h-24"></div>

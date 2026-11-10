@@ -568,9 +568,6 @@ onDeactivated(() => {
             </button>
             <template v-if="treeExpanded">
               <div v-if="optionsLoading" class="planning-muted">加载中…</div>
-              <Button v-if="optionsFailed" type="link" @click="reloadOptions">
-                加载失败，重试
-              </Button>
               <button
                 v-for="domain in visibleDomains"
                 :key="String(domain.id)"
@@ -600,9 +597,6 @@ onDeactivated(() => {
           @toggle="sidebarCollapsed = !sidebarCollapsed"
         />
         <main class="planning-main">
-          <div v-if="failed" class="planning-error">
-            主题域加载失败。<Button type="link" @click="load()">重试</Button>
-          </div>
           <Grid
             :style="{
               '--vxe-ui-font-size-small': '12px',

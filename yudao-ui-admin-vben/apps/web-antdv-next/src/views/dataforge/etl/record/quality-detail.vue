@@ -43,7 +43,6 @@ const loading = ref(false);
 const loadError = ref('');
 const issues = ref<DataforgeEtlApi.QualityIssue[]>([]);
 const issuesLoading = ref(false);
-const issuesError = ref('');
 const pageNo = ref(1);
 const pageSize = 20;
 const total = ref(0);
@@ -142,7 +141,6 @@ async function loadIssues(page = 1) {
   issues.value = [];
   total.value = 0;
   pageNo.value = page;
-  issuesError.value = '';
   issuesLoading.value = false;
   closeDetail();
   if (!batchId.value) return;
@@ -157,7 +155,7 @@ async function loadIssues(page = 1) {
     issues.value = response.list;
     total.value = response.total;
   } catch {
-    if (seq === issuesSeq) issuesError.value = '问题明细加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (seq === issuesSeq) issuesLoading.value = false;
   }
@@ -234,7 +232,6 @@ onBeforeUnmount(close);
         >刷新</Button
       >
     </div>
-    <Alert v-if="loadError" type="error" :message="loadError" class="mb-3" />
     <Spin :spinning="loading">
       <Empty
         v-if="!loading && !loadError && !batches.length"
@@ -311,21 +308,6 @@ onBeforeUnmount(close);
           :key="String(currentBatch.id)"
           :batch-id="currentBatch.id"
         />
-        <Alert
-          v-if="issuesError"
-          type="error"
-          :message="issuesError"
-          class="mb-3"
-        >
-          <template #action>
-            <Button size="small" @click="loadIssues(pageNo)"
-              ><template #icon
-                ><IconifyIcon icon="lucide:refresh-cw"
-              /></template>
-              重试
-            </Button>
-          </template>
-        </Alert>
         <Table
           :scroll="{ x: 'max-content' }"
           :data-source="issues"

@@ -3,7 +3,7 @@ import type { GovernanceStandardElementApi } from '#/api/governance/standardelem
 
 import { h, reactive, ref } from 'vue';
 
-import { Alert, Button, Input, Modal, Table, Tag } from 'antdv-next';
+import { Button, Input, Modal, Table, Tag } from 'antdv-next';
 
 import { getStandardElementPage } from '#/api/governance/standardelement';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
@@ -130,13 +130,6 @@ defineExpose({ close, open });
       <Button type="primary" @click="search">查询</Button>
       <Tag color="success">已发布且启用</Tag>
     </div>
-    <Alert
-      v-if="error"
-      class="mb-3"
-      message="标准读取失败，请重新查询。"
-      show-icon
-      type="error"
-    />
     <Table
       :columns="columns"
       :data-source="rows"

@@ -223,11 +223,7 @@ function move(event: KeyboardEvent) {
             aria-label="搜索数据连接"
         /></label>
         <div v-if="loading" class="materialized-database-state">加载中…</div>
-        <div v-else-if="error" class="materialized-database-state">
-          数据连接加载失败，<button type="button" @click="emit('retry')">
-            重试
-          </button>
-        </div>
+        <template v-else-if="error"></template>
         <div v-else class="materialized-database-columns">
           <div
             class="materialized-database-column"

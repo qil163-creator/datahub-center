@@ -106,8 +106,6 @@ const {
   models,
   users,
   loading: optionsLoading,
-  error: optionsError,
-  reload: reloadOptions,
 } = useMetricOptions();
 const blank = (): BusinessConditionApi.Save => ({
   id: undefined,
@@ -513,19 +511,9 @@ onActivated(() => {
       </div>
       <Spin :spinning="loading" class="condition-form-spin">
         <div class="condition-form-card">
-          <Alert v-if="error" type="error" :message="error" show-icon>
+          <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" type="error" :message="error" show-icon>
             <template #action>
               <Button size="small" @click="load">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
-          <Alert v-if="optionsError" type="warning" message="关联选项加载失败">
-            <template #action>
-              <Button size="small" @click="reloadOptions">
                 <template #icon>
                   <IconifyIcon icon="lucide:refresh-cw" />
                 </template>
@@ -540,7 +528,7 @@ onActivated(() => {
             show-icon
           />
           <Alert
-            v-if="sourceError"
+            v-if="sourceError && (!/(?:加载|读取|获取).*失败/.test(sourceError) || /保存|冲突|未确认/.test(sourceError))"
             type="error"
             :message="sourceError"
             show-icon
@@ -551,7 +539,7 @@ onActivated(() => {
               </Button>
             </template>
           </Alert>
-          <Alert v-if="entityError" type="warning" :message="entityError">
+          <Alert v-if="entityError && (!/(?:加载|读取|获取).*失败/.test(entityError) || /保存|冲突|未确认/.test(entityError))" type="warning" :message="entityError">
             <template #action>
               <Button size="small" @click="loadEntities"> 重试 </Button>
             </template>

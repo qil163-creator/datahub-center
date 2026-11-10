@@ -9,7 +9,6 @@ import { useAccess } from '@vben/access';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
-  Alert,
   Form,
   FormItem,
   Input,
@@ -254,13 +253,7 @@ defineExpose({ open, close: invalidate });
     @ok="save(false)"
   >
     <template #closeIcon><ReferenceIcon name="close" /></template>
-    <Alert
-      v-if="failed"
-      type="error"
-      message="类目信息加载失败，请关闭后重试"
-      show-icon
-      class="qpc-form-error"
-    />
+
     <Spin :spinning="loading">
       <Form
         ref="formRef"

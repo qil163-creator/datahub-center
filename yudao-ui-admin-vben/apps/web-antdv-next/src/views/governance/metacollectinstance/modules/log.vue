@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Alert, Button, message } from 'antdv-next';
+import { Button, message } from 'antdv-next';
 
 import { getMetaCollectInstanceLogList } from '#/api/governance/metacollectinstance';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -86,16 +86,6 @@ const [Modal, modalApi] = useVbenModal({
 </script>
 <template>
   <Modal>
-    <Alert v-if="failed" type="error" message="日志读取失败">
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="log-actions">
       <Button
         type="link"

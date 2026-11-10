@@ -9,7 +9,7 @@ import {
   shallowRef,
 } from 'vue';
 
-import { Button, TextArea } from 'antdv-next';
+import { TextArea } from 'antdv-next';
 
 const props = withDefaults(
   defineProps<{
@@ -27,7 +27,6 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const editor = shallowRef<Component>();
 const loading = ref(false);
-const failed = ref(false);
 let generation = 0;
 function update(value: number | string | undefined) {
   if (!props.readonly) emit('update:modelValue', String(value ?? ''));
@@ -35,13 +34,12 @@ function update(value: number | string | undefined) {
 async function load() {
   const current = ++generation;
   editor.value = undefined;
-  failed.value = false;
   loading.value = true;
   try {
     const module = await import('#/components/monaco/sql-editor.vue');
     if (current === generation) editor.value = markRaw(module.default);
   } catch {
-    if (current === generation) failed.value = true;
+    // 加载失败时继续使用文本框编辑。
   } finally {
     if (current === generation) loading.value = false;
   }
@@ -50,7 +48,6 @@ onErrorCaptured(() => {
   generation++;
   editor.value = undefined;
   loading.value = false;
-  failed.value = true;
   return false;
 });
 onBeforeUnmount(() => {
@@ -88,15 +85,8 @@ void load();
         @update:value="update"
       />
     </div>
-    <div v-if="loading || failed" class="qi-sql-editor-status" role="status">
-      <span>{{
-        loading
-          ? '代码编辑器加载中，可继续输入。'
-          : '代码编辑器加载失败，可继续输入。'
-      }}</span>
-      <Button v-if="failed" type="link" size="small" @click="load">
-重试编辑器
-</Button>
+    <div v-if="loading" class="qi-sql-editor-status" role="status">
+      <span>代码编辑器加载中，可继续输入。</span>
     </div>
   </div>
 </template>

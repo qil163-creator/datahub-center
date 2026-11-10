@@ -12,7 +12,6 @@ import { computed, onDeactivated, reactive, ref } from 'vue';
 import { useAccess } from '@vben/access';
 
 import {
-  Alert,
   Form,
   FormItem,
   Input,
@@ -189,7 +188,6 @@ defineExpose({ open, close: reset });
     @ok="save"
   >
     <template #closeIcon><ReferenceIcon name="close" /></template>
-    <Alert v-if="failed" type="error" message="类目信息加载失败，请关闭后重试" show-icon class="qpc-form-error" />
     <Spin :spinning="loading">
       <Form
         ref="formRef"

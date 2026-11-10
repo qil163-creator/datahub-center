@@ -231,17 +231,18 @@ afterEach(() => {
 });
 
 describe('原子指标编辑异步边界', () => {
-  it('保存期间拒绝重复提交，选项失败重试保留已填定义', async () => {
+  it('选项加载失败不显示提示条，重新打开后拒绝重复提交', async () => {
     harness.entities.mockRejectedValueOnce(
       new Error('temporary entity failure'),
     );
     await editor.open({ indicatorType: 'ATOMIC', cloneId: ids.indicator });
     change('code', 'RAIN_COPY');
     await flush();
-    expect(host.textContent).toContain('业务实体加载失败');
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent === '重试')
-      ?.click();
+    expect(host.textContent).not.toContain('业务实体加载失败');
+    expect(await editor.submit()).toBe(false);
+    expect(harness.create).not.toHaveBeenCalled();
+    await editor.open({ indicatorType: 'ATOMIC', cloneId: ids.indicator });
+    change('code', 'RAIN_COPY');
     await flush();
     expect(host.querySelector<HTMLInputElement>('#atomic-code')?.value).toBe(
       'RAIN_COPY',
@@ -283,17 +284,16 @@ describe('原子指标编辑异步边界', () => {
       }),
     );
   });
-  it('来源字段请求失败后可重试，保存失败保留输入并可重试', async () => {
+  it('来源字段请求失败不显示提示条，保存失败保留输入并可重试', async () => {
     await editor.open({ indicatorType: 'ATOMIC', cloneId: ids.indicator });
     change('code', 'RAIN_COPY');
     harness.fields.mockRejectedValueOnce(new Error('temporary'));
     change('source', ids.source);
     await flush();
-    expect(host.textContent).toContain('来源字段加载失败');
-    const retry = [...host.querySelectorAll('button')].find(
-      (button) => button.textContent === '重试',
-    );
-    retry?.click();
+    expect(host.textContent).not.toContain('来源字段加载失败');
+    expect(await editor.submit()).toBe(false);
+    change('source', '');
+    change('source', ids.source);
     await flush();
     expect(harness.fields).toHaveBeenLastCalledWith(ids.source);
     change('value', 'amount-uid');

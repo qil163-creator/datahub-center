@@ -58,13 +58,6 @@
   vertical-align: middle;
 }
 
-.rule-catalog-column-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 6px 2px;
-}
-
 .rule-catalog-tag {
   display: inline-block;
   padding: 0 8px;

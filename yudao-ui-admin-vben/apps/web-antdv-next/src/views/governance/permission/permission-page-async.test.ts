@@ -159,7 +159,7 @@ describe('数据权限配置加载顺序', () => {
     expect(host.textContent).toContain('有未保存的配置');
   });
 
-  it('字段加载失败时禁止编辑并允许重试', async () => {
+  it('字段加载失败时不显示提示条且禁止编辑', async () => {
     mocks.reload.mockRejectedValueOnce(new Error('failed')).mockResolvedValueOnce(undefined);
     mocks.getConfig.mockResolvedValue(config(first));
     click('#first');
@@ -167,10 +167,8 @@ describe('数据权限配置加载顺序', () => {
     await flush();
     expect(host.querySelector('#ready')?.textContent).toBe('false');
     expect(mocks.getConfig).not.toHaveBeenCalled();
-    const retry = [...host.querySelectorAll('button')].find((item) => item.textContent?.includes('重试'));
-    retry?.click();
-    await flush();
-    expect(mocks.getConfig).toHaveBeenCalledOnce();
-    expect(host.querySelector('#ready')?.textContent).toBe('true');
+    expect(host.textContent).not.toContain('字段或角色配置加载失败');
+    click('#edit');
+    expect(mocks.save).not.toHaveBeenCalled();
   });
 });

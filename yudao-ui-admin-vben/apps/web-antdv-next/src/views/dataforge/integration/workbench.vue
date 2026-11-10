@@ -532,15 +532,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                     @refresh="loadContext"
                   />
                 </div>
-                <Alert
-                  v-if="contextFailed"
-                  type="error"
-                  message="类目与负责人加载失败"
-                >
-                  <template #action>
-                    <button type="button" @click="loadContext">重试</button>
-                  </template>
-                </Alert>
+
                 <div class="qi-category-tree subtle-tree-scrollbar">
                   <Tree
                     v-model:expanded-keys="expandedCategories"
@@ -705,9 +697,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                   </form>
                 </section>
                 <section class="qi-table-panel">
-                  <Alert v-if="failed" type="error" message="任务加载失败，请重试" show-icon>
-                    <template #action><Button @click="load">重试</Button></template>
-                  </Alert>
+
                   <Grid
                     class="qi-native-grid"
                     :table-title="mode === 'REALTIME' ? '实时任务列表' : '离线任务列表'"

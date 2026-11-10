@@ -12,7 +12,6 @@ import { formatDateTime } from '@vben/utils';
 
 import {
   Alert,
-  Button,
   Card,
   Descriptions,
   DescriptionsItem,
@@ -119,9 +118,7 @@ onActivated(() => {
       type="warning"
       message="没有标准登记查询权限"
     />
-    <Alert v-else-if="failed" type="error" message="标准详情加载失败">
-      <template #action><Button @click="load">重试</Button></template>
-    </Alert>
+    <template v-else-if="failed"></template>
     <Spin v-else :spinning="loading" class="doc-register-detail__spin">
       <template v-if="detail">
         <Card class="doc-register-detail__card mb-4">

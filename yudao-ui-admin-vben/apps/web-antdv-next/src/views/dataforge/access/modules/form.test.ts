@@ -520,12 +520,13 @@ describe('access wizard component contract', () => {
     ['a non-string business message', { code: 1, msg: { detail: 'invalid' } }, '目标表映射加载失败，请重试'],
     ['an empty Error message', new Error('  '), '目标表映射加载失败，请重试'],
     ['an unknown rejection', null, '目标表映射加载失败，请重试'],
-  ])('renders %s in the mapping error without another toast', async (_label, error, expected) => {
+  ])('retains %s in mapping state without a banner or another toast', async (_label, error, expected) => {
     await openMappingForm();
     vi.mocked(previewTableMap).mockRejectedValueOnce(error);
     await state.loadTableMappings(); await flush();
+    expect(state.tableMappingError).toBe(expected);
     expect([...host.querySelectorAll('[role="alert"]')].map((alert) => alert.textContent))
-      .toContain(expected);
+      .not.toContain(expected);
     expect(state.mappingRows).toEqual([]);
     expect(state.tableMappingLoading).toBe(false);
     expect(message.error).not.toHaveBeenCalled();

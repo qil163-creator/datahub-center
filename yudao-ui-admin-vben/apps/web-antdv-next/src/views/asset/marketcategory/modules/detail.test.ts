@@ -199,7 +199,7 @@ describe('market category readonly detail', () => {
     await mock.options!.onOpenChange(true);
     await flush();
     expect(state.detail).toBeUndefined();
-    expect(host.textContent).toContain('详情读取失败');
+    expect(host.textContent).not.toContain('详情读取失败');
   });
   it.each(['resolve', 'reject'] as const)(
     'ignores an older detail %s after a new selection',

@@ -75,6 +75,9 @@ public final class OpsInstanceModels {
         @Size(max = 200)
         private String name;
 
+        @Positive
+        private Long taskId;
+
         @Pattern(regexp = "(?:source|platform):[1-9][0-9]{0,18}")
         private String categoryId;
 

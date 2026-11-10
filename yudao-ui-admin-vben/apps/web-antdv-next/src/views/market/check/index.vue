@@ -16,7 +16,7 @@ import { Page, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Input, message, TextArea } from 'antdv-next';
+import { Button, Input, message, TextArea } from 'antdv-next';
 
 import { NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
@@ -399,14 +399,7 @@ function syncFilterValues() {
       </template>
     </FilterForm>
     <section class="check-grid-shell">
-      <Alert
-        v-if="listError"
-        type="error"
-        show-icon
-        message="审批工单加载失败，请刷新重试"
-        class="check-list-error"
-      />
-      <Grid :style="{ '--vxe-ui-font-size-small': '14px' }" class="check-grid" table-title="审批工单列表">
+<Grid :style="{ '--vxe-ui-font-size-small': '14px' }" class="check-grid" table-title="审批工单列表">
         <template #toolbar-tools>
           <NativeVxeButton
             aria-label="显示或隐藏搜索条件"

@@ -607,6 +607,10 @@
   justify-content: center;
 }
 
+.qd-table__inner .is-right > .qd-cell {
+  justify-content: flex-end;
+}
+
 .qd-cell {
   display: flex;
   align-items: center;
@@ -615,6 +619,11 @@
   overflow: hidden;
   line-height: 23px;
   word-break: break-all;
+}
+
+.qd-row-actions > .ant-btn-link {
+  gap: 4px;
+  padding-inline: 4px;
 }
 
 .qd-table__inner th .qd-cell {
@@ -635,10 +644,14 @@
   background: var(--qd-fill-light);
 }
 
+.qd-table__inner .is-fixed-left,
 .qd-table__inner .is-fixed-right {
   position: sticky;
-  right: 0;
   z-index: 2;
+}
+
+.qd-table__inner .is-fixed-right {
+  right: 0;
 }
 
 .qd-table__inner .is-fixed-right.has-shadow::before {
@@ -745,6 +758,24 @@ th.descending .qd-sort-caret.descending {
   min-width: 0;
   padding-inline-end: 20px;
   text-align: left;
+}
+
+.qd-table__inner .is-center .qd-table-info {
+  align-items: center;
+  text-align: center;
+}
+
+.qd-table__inner .is-center .qd-table-info__desc > div {
+  text-align: center !important;
+}
+
+.qd-table__inner .is-right .qd-table-info {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.qd-table__inner .is-right .qd-table-info__desc > div {
+  text-align: right !important;
 }
 
 .qd-table-info__main {
@@ -1027,6 +1058,7 @@ th.descending .qd-sort-caret.descending {
   z-index: 2;
 }
 
+.qd-table__inner thead th.is-fixed-left,
 .qd-table__inner thead th.is-fixed-right {
   z-index: 3;
 }
@@ -1145,12 +1177,12 @@ th.descending .qd-sort-caret.descending {
 }
 
 .qd-logic-page .qd-wrap-content {
-  padding: 12px;
+  padding: 8px 12px 12px;
 }
 
 .qd-logic-page .qd-wrap-actions {
   min-height: 34px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .qd-logic-page .qd-list-title {
@@ -1165,6 +1197,26 @@ th.descending .qd-sort-caret.descending {
 .qd-logic-page .qd-data-actions,
 .qd-logic-page .qd-table-actions {
   gap: 8px;
+}
+
+.qd-logic-page .qd-table-actions {
+  --vxe-ui-font-color: hsl(var(--foreground));
+  --vxe-ui-font-primary-color: hsl(var(--primary));
+  --vxe-ui-font-primary-lighten-color: hsl(var(--primary) / 60%);
+  --vxe-ui-font-primary-darken-color: hsl(var(--primary));
+  --vxe-ui-font-disabled-color: hsl(var(--foreground) / 50%);
+  --vxe-ui-input-border-color: hsl(var(--border));
+
+  gap: 0;
+}
+
+.qd-logic-page .qd-table-actions .vxe-tools--operate {
+  display: flex;
+  align-items: center;
+}
+
+.qd-logic-page .qd-table-actions .ant-btn-circle {
+  border-radius: 50%;
 }
 
 .qd-logic-page .qd-table__inner th {

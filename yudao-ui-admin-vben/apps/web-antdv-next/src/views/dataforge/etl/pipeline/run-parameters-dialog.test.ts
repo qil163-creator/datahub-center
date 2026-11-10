@@ -259,7 +259,8 @@ describe('运行参数确认', () => {
     await flush();
     button('确定').click();
     await flush();
-    expect(host.textContent).toContain('定义加载失败');
+    expect(host.textContent).not.toContain('定义加载失败');
+    expect(host.querySelector('section')).not.toBeNull();
     view.close();
     await expect(failed).resolves.toBeUndefined();
     const result = view.openPreview([{ name: 'p', required: true }]);

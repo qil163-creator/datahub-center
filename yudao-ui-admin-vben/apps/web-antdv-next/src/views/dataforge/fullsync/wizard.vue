@@ -471,16 +471,8 @@ watch(
         </div>
         <div class="fws-main-panel">
           <Alert v-if="!allowed" type="error" title="没有整库同步配置权限" />
-          <Alert v-if="failed" type="error" title="配置加载失败，请重试">
-            <template #action>
-              <Button @click="load">重试</Button>
-            </template>
-          </Alert>
-          <Alert v-if="optionError" type="warning" :title="optionError">
-            <template #action>
-              <Button @click="load">重试</Button>
-            </template>
-          </Alert>
+
+
           <Alert
             v-if="error"
             type="error"
@@ -610,11 +602,7 @@ watch(
                   选择来源表:
                   用户可以点击中间向右的箭头按钮，将左侧已勾选的源端待同步表移动到待同步表队列中(任务执行时将对这些表执行同步传输)
                 </p>
-                <Alert v-if="tableError" type="error" :title="tableError">
-                  <template #action>
-                    <Button @click="loadTables">重试</Button>
-                  </template>
-                </Alert>
+
                 <Spin :spinning="tableLoading">
                   <div class="fws-transfer">
                     <section class="fws-transfer-panel">

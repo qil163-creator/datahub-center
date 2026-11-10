@@ -8,8 +8,6 @@ import { useVbenDrawer } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert } from 'antdv-next';
-
 import { getMasterCodeRule } from '#/api/governance/mastermanage';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
@@ -110,13 +108,7 @@ const [Drawer, drawerApi] = useVbenDrawer<{
 
 <template>
   <Drawer :title="`编码规则详情 - ${rule?.name ?? ''}`">
-    <Alert
-      v-if="failed"
-      class="mx-4 mb-4"
-      type="error"
-      show-icon
-      message="编码规则详情加载失败，请重新打开。"
-    />
+    <template v-if="failed"></template>
     <div v-else class="mx-4 flex flex-col gap-4">
       <DetailFieldForm :fields="fields" />
       <template v-if="rule">

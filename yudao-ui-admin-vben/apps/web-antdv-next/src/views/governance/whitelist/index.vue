@@ -296,7 +296,8 @@ onBeforeUnmount(() => {
       :min-width="1655"
       selection
       :selection-width="55"
-      class="safety-whitelist-workbench"
+      subtle-scrollbar
+      class="safety-whitelist-workbench subtle-grid-scrollbar"
       @change="loadRows"
       @refresh="refresh"
       @sort="sort"

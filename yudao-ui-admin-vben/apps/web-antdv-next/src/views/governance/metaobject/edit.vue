@@ -41,7 +41,7 @@ const model = reactive<Api.TableBizUpdate>({ id: '', bizRevision: 0 });
 const users = ref<{ label: string; mobile?: string; value: Api.Id }[]>([]);
 const loading = ref(false);
 const saving = ref(false);
-const failed = ref(false);
+const saveFailed = ref(false);
 const ready = ref(false);
 const request = useObjectRequest(
   () => id.value,
@@ -71,7 +71,7 @@ async function load() {
   if (!id.value) return;
   const current = request.begin();
   loading.value = true;
-  failed.value = false;
+  saveFailed.value = false;
   ready.value = false;
   try {
     const [data, people] = await Promise.all([
@@ -112,9 +112,8 @@ async function load() {
       businessLeaderPhone: data.businessLeaderPhone,
     });
     ready.value = data.id !== undefined && data.bizRevision !== undefined;
-    failed.value = !ready.value;
   } catch {
-    if (current()) failed.value = true;
+    if (current()) ready.value = false;
   } finally {
     if (current()) loading.value = false;
   }
@@ -142,7 +141,7 @@ async function save(exit: boolean) {
     await (exit ? back() : load());
   } catch {
     if (current()) {
-      failed.value = true;
+      saveFailed.value = true;
       ready.value = false;
     }
   } finally {
@@ -155,9 +154,9 @@ watch(id, load, { immediate: true });
 <template>
   <Page auto-content-height content-class="metadata-page">
     <Alert
-      v-if="failed"
+      v-if="saveFailed"
       type="error"
-      message="读取失败或内容已被其他人修改，请重新加载后保存。"
+      message="保存失败或内容已被其他人修改，请重新加载后保存。"
     >
       <template #action>
         <Button @click="load">重新加载</Button>

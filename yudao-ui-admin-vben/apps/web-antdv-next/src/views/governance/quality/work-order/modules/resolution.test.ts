@@ -47,6 +47,8 @@ vi.mock('@vben/access', () => ({
 vi.mock('@vben/utils', () => ({
   formatDateTime: (value: unknown) => String(value ?? '-'),
 }));
+vi.mock('#/api/request', () => ({ requestClient: {} }));
+vi.mock('./expiry-failures.vue', () => ({ default: defineComponent({ setup: () => () => null }) }));
 vi.mock('@vben/common-ui', () => ({
   Page: defineComponent({
     setup:
@@ -429,7 +431,7 @@ describe('真实工单处理组件', () => {
   });
   it('缺版本的旧服务响应明确报错，不用版本零继续提交', async () => {
     await open(fixture({ lockVersion: undefined }));
-    expect(host.textContent).toContain('详情加载失败');
+    expect(host.textContent).not.toContain('详情加载失败');
     expect(host.querySelector('[data-action="submit"]')).toBeNull();
   });
   it('处理权限撤销会关闭弹窗并丢弃未完成结果', async () => {

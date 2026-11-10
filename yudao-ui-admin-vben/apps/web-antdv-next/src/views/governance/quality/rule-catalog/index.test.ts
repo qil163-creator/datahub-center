@@ -29,6 +29,7 @@ const harness = vi.hoisted(() => ({
     accessCodes: ['governance:audit-rule:query', 'governance:clean-rule:query'],
   },
   user: { userInfo: { userId: '9007199254740993' } },
+  columnUpdates: 0,
 }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => harness.access,
@@ -66,9 +67,16 @@ vi.mock('#/adapter/vxe-table', () => ({
     };
     gridOptions: {
       columns: GridColumn[];
+      customConfig: { mode: string; storage: boolean };
       data: QualityCatalogApi.Rule[];
+      id: string;
       pagerConfig: { currentPage: number; pageSize: number; total: number };
-      toolbarConfig: { refreshOptions: { queryMethod: () => Promise<void> } };
+      toolbarConfig: {
+        custom: boolean;
+        refresh: boolean;
+        refreshOptions: { queryMethod: () => Promise<void> };
+        search: boolean;
+      };
     };
   }) => {
     const state = reactive({ ...options.gridOptions });
@@ -78,7 +86,13 @@ vi.mock('#/adapter/vxe-table', () => ({
         setup:
           (_, { slots }) =>
           () =>
-            h('section', [
+            h('section', {
+              'data-custom': String(options.gridOptions.toolbarConfig.custom),
+              'data-search': String(options.gridOptions.toolbarConfig.search),
+              'data-refresh': String(options.gridOptions.toolbarConfig.refresh),
+              'data-grid-id': options.gridOptions.id,
+              'data-custom-storage': String(options.gridOptions.customConfig.storage),
+            }, [
               h(
                 'form',
                 {
@@ -187,7 +201,10 @@ vi.mock('#/adapter/vxe-table', () => ({
           },
         },
         grid: { sort: vi.fn() },
-        setGridOptions: (next: Partial<typeof state>) => Object.assign(state, next),
+        setGridOptions: (next: Partial<typeof state>) => {
+          if (next.columns) harness.columnUpdates++;
+          Object.assign(state, next);
+        },
       },
     ];
   },
@@ -359,6 +376,7 @@ function deferred<T>() {
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.clear();
+  harness.columnUpdates = 0;
   harness.access = reactive({
     accessToken: 'actor-a',
     refreshToken: '',
@@ -522,7 +540,7 @@ describe('规则目录交互', () => {
     await mount();
     expect(host.querySelector('[data-testid="catalog-guide"]')).toBeNull();
   });
-  it('筛选树保留父级和完整字符串标识，隐藏列不改变业务数据', async () => {
+  it('筛选树保留父级和完整字符串标识', async () => {
     vi.mocked(getRuleCatalogCategories).mockResolvedValue([
       { id: '9007199254740993', categoryName: '数据转换' },
       {
@@ -542,16 +560,19 @@ describe('规则目录交互', () => {
       host.querySelector('[data-category="9007199254740995"]'),
     ).not.toBeNull();
     expect(host.querySelector('[data-category="3"]')).toBeNull();
-    const checkbox = [
-      ...host.querySelectorAll('.rule-catalog-column-options label'),
-    ]
-      .find((entry) => entry.textContent === '描述')!
-      .querySelector('input')!;
-    checkbox.checked = false;
-    checkbox.dispatchEvent(new Event('change'));
-    await settle();
-    expect(host.querySelector('[data-column="description"]')).toBeNull();
-    expect(host.textContent).toContain('字符检查');
     expect(getRuleCatalogPage).toHaveBeenCalledTimes(1);
   });
+  it.each(['audit', 'clean'] as const)(
+    '%s 使用原生工具栏并在刷新时保留列设置',
+    async (kind) => {
+      await mount(kind);
+      expect(host.querySelector('[data-custom="true"][data-search="true"][data-refresh="true"]')).not.toBeNull();
+      expect(host.querySelector(`[data-grid-id="quality-rule-catalog-${kind}"][data-custom-storage="true"]`)).not.toBeNull();
+      const columnUpdates = harness.columnUpdates;
+      host.querySelector<HTMLButtonElement>('[data-grid-refresh]')!.click();
+      await settle();
+      expect(getRuleCatalogPage).toHaveBeenCalledTimes(2);
+      expect(harness.columnUpdates).toBe(columnUpdates);
+    },
+  );
 });

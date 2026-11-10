@@ -262,16 +262,11 @@ describe('数仓分层卡片与请求隔离', () => {
     ).toHaveLength(0);
   });
 
-  it('加载失败可重试，空态不展示伪造分层', async () => {
+  it('加载失败不显示提示条，也不展示伪造分层', async () => {
     harness.load.mockRejectedValueOnce(new Error('network'));
     await mount();
-    expect(host.textContent).toContain('分层配置加载失败');
-    expect(host.querySelectorAll('.layer-card')).toHaveLength(0);
-    harness.load.mockResolvedValueOnce([]);
-    button('重试')?.click();
-    await flush();
-    expect(host.textContent).toContain('暂无分层配置');
     expect(host.textContent).not.toContain('分层配置加载失败');
+    expect(host.querySelectorAll('.layer-card')).toHaveLength(0);
   });
 
   it('不再挂载顶部说明横幅，架构仍可独立折叠', async () => {

@@ -3,9 +3,11 @@ import type { ModelMaterializedApi } from '#/api/modeling/model-materialized';
 
 import {
   computed,
+  nextTick,
   onActivated,
   onBeforeUnmount,
   onDeactivated,
+  onMounted,
   reactive,
   ref,
   watch,
@@ -18,8 +20,9 @@ import { useAntdDesignTokens } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Button, Checkbox, ConfigProvider, Popover } from 'antdv-next';
+import { Button, Checkbox, ConfigProvider } from 'antdv-next';
 
+import { NativeVxeButton } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import {
   getModelMaterializedCatTree,
@@ -27,6 +30,8 @@ import {
 } from '#/api/modeling/model-materialized';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 
+import TableCustomization from '../components/table-customization.vue';
+import { useTableCustomization } from '../components/use-table-customization';
 import dmIcon from '../logictable/assets/db-dm.svg';
 import dorisIcon from '../logictable/assets/db-doris.svg';
 import postgresqlIcon from '../logictable/assets/db-postgresql.svg';
@@ -54,13 +59,15 @@ const { tokens } = useAntdDesignTokens();
 
 type Row = ModelMaterializedApi.Materialized;
 type Column =
+  | 'action'
   | 'belong'
   | 'connection'
   | 'id'
   | 'model'
   | 'publisher'
   | 'publishTime'
-  | 'release';
+  | 'release'
+  | 'selection';
 const router = useRouter();
 const access = useAccessStore();
 const { hasAccessByCodes } = useAccess();
@@ -92,18 +99,8 @@ const query = reactive({
 });
 const sortField = ref<'id' | 'publishTime'>('id');
 const sortOrder = ref<'asc' | 'desc'>('desc');
-const visible = ref(
-  new Set<Column>([
-    'belong',
-    'connection',
-    'id',
-    'model',
-    'publisher',
-    'publishTime',
-    'release',
-  ]),
-);
-const columns: Array<{ key: Column; label: string; width: number }> = [
+const defaultColumns: Array<{ align?: 'center' | 'left' | 'right'; fixed?: 'left' | 'right'; key: Column; label: string; width: number }> = [
+  { key: 'selection', label: '选择', width: 55, align: 'center' },
   { key: 'id', label: '编号', width: 60 },
   { key: 'model', label: '模型信息', width: 390 },
   { key: 'belong', label: '归属信息', width: 260 },
@@ -111,13 +108,62 @@ const columns: Array<{ key: Column; label: string; width: number }> = [
   { key: 'release', label: '发布信息', width: 200 },
   { key: 'publisher', label: '发布人', width: 150 },
   { key: 'publishTime', label: '发布时间', width: 160 },
+  { key: 'action', label: '操作', width: 175, align: 'center', fixed: 'right' },
 ];
-const shownColumns = computed(() =>
-  columns.filter((column) => visible.value.has(column.key)),
-);
+const { columns, visibleColumns: shownColumns, open: customizationOpen, apply: applyCustomization, reset: resetCustomization } =
+  useTableCustomization('modeling-model-materialized', () => defaultColumns);
 const tableWidth = computed(() =>
-  shownColumns.value.reduce((sum, column) => sum + column.width, 55 + 175),
+  shownColumns.value.reduce((sum, column) => sum + column.width, 0),
 );
+const firstRightColumn = computed(() =>
+  shownColumns.value.find((column) => column.fixed === 'right')?.key,
+);
+const tableWrapper = ref<HTMLDivElement>();
+const hasFixedColumnShadow = ref(false);
+const fixedOffsets = ref<Record<string, number>>({});
+let tableResizeObserver: ResizeObserver | undefined;
+function measureTable() {
+  const element = tableWrapper.value;
+  if (!element) return;
+  hasFixedColumnShadow.value =
+    element.scrollLeft < element.scrollWidth - element.clientWidth - 1;
+  const widths = new Map<string, number>();
+  element.querySelectorAll<HTMLElement>('thead [data-column-key]').forEach((cell) => {
+    const key = cell.dataset.columnKey;
+    if (key) widths.set(key, cell.getBoundingClientRect().width);
+  });
+  const offsets: Record<string, number> = {};
+  let left = 0;
+  for (const column of shownColumns.value) {
+    if (column.fixed !== 'left') continue;
+    offsets[column.key] = left;
+    left += widths.get(column.key) || column.width;
+  }
+  let right = 0;
+  for (const column of [...shownColumns.value].reverse()) {
+    if (column.fixed !== 'right') continue;
+    offsets[column.key] = right;
+    right += widths.get(column.key) || column.width;
+  }
+  fixedOffsets.value = offsets;
+}
+function columnStyle(column: (typeof shownColumns.value)[number], header = false) {
+  if (!column.fixed) return undefined;
+  return { position: 'sticky' as const, [column.fixed]: `${fixedOffsets.value[column.key] ?? 0}px`, zIndex: header ? 3 : 2 };
+}
+onMounted(() => {
+  if (tableWrapper.value && typeof ResizeObserver !== 'undefined') {
+    tableResizeObserver = new ResizeObserver(measureTable);
+    tableResizeObserver.observe(tableWrapper.value);
+  }
+  void nextTick(measureTable);
+});
+watch([rows, shownColumns], () => {
+  if (!shownColumns.value.some((column) => column.key === 'selection')) {
+    selectedIds.value = new Set();
+  }
+  void nextTick(measureTable);
+});
 const selectedRows = computed(() =>
   rows.value.filter((row) => selectedIds.value.has(String(row.modelId))),
 );
@@ -215,12 +261,6 @@ function sort(field: 'id' | 'publishTime') {
   sortField.value = field;
   void load(true);
 }
-function toggleColumn(key: Column) {
-  const next = new Set(visible.value);
-  if (next.has(key)) next.delete(key);
-  else next.add(key);
-  visible.value = next;
-}
 function select(row: Row, checked: boolean) {
   const next = new Set(selectedIds.value);
   if (checked) next.add(String(row.modelId));
@@ -306,6 +346,7 @@ watch(
   { immediate: true },
 );
 onActivated(() => {
+  void nextTick(measureTable);
   if (!active) {
     active = true;
     void load();
@@ -318,6 +359,7 @@ onDeactivated(() => {
   treeSequence++;
 });
 onBeforeUnmount(() => {
+  tableResizeObserver?.disconnect();
   sequence++;
   treeSequence++;
 });
@@ -329,8 +371,7 @@ const [SearchForm, searchFormApi] = useVbenForm({
   showCollapseButton: true,
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   commonConfig: { componentProps: { class: 'w-full' } },
-  submitButtonOptions: { show: false },
-  resetButtonOptions: { show: false },
+  submitButtonOptions: { content: '搜索' },
   schema: [
     {
       fieldName: 'name',
@@ -389,96 +430,83 @@ const themeConfig = computed(() => ({
         />
         <main class="qd-logic-main">
           <div v-if="showSearch" class="qd-wrap-search">
-            <SearchForm>
-              <template #reset-before><Button @click="resetNativeSearch"><QdIcon name="reset" />重置</Button></template>
-              <template #submit-before><Button type="primary" @click="searchFormApi.submit()"><QdIcon name="query" />搜索</Button></template>
-            </SearchForm>
+            <SearchForm />
           </div>
           <div class="qd-wrap-content">
             <div class="qd-wrap-actions">
               <h3 class="qd-list-title">发布模型</h3>
               <div class="qd-data-actions">
                 <Button
-type="primary"
                   v-if="canPublish"
+                  type="primary"
                   :disabled="selectedRows.length === 0"
                   @click="publishModal?.openBatch(selectedRows)"
                 >
-                  <span
-                    class="materialized-action-icon"
-                    :style="{ maskImage: `url(&quot;${publishIcon}&quot;)` }"
-                  ></span>批量发布
+                  <template #icon>
+                    <span
+                      class="materialized-action-icon"
+                      :style="{ maskImage: `url(&quot;${publishIcon}&quot;)` }"
+                    ></span>
+                  </template>
+                  批量发布
                 </Button>
               </div>
               <div class="qd-table-actions">
-                <Button
-type="default"
+                <NativeVxeButton
                   aria-label="显示或隐藏查询条件"
+                  :title="showSearch ? '隐藏搜索' : '显示搜索'"
+                  icon="vxe-icon-search"
+                  size="small"
+                  circle
+                  :status="showSearch ? 'primary' : undefined"
                   :aria-pressed="showSearch"
                   @click="showSearch = !showSearch"
-                >
-                  <QdIcon name="toolbarSearch" />
-                </Button>
-                <Button
-type="default"
+                />
+                <div class="vxe-tools--operate">
+                <NativeVxeButton
                   aria-label="刷新"
+                  title="刷新"
+                  :icon="loading ? 'vxe-icon-repeat roll' : 'vxe-icon-repeat'"
+                  size="small"
+                  circle
                   :disabled="loading"
                   @click="load()"
-                >
-                  <QdIcon name="toolbarRefresh" />
-                </Button>
-                <Popover trigger="click" placement="bottomRight">
-<Button
-type="default"
-                    aria-label="列设置"
-                  >
-                    <QdIcon name="menu" />
-</Button><template #content>
-<div class="materialized-column-settings">
-                      <Checkbox
-                        v-for="column in columns"
-                        :key="column.key"
-                        :checked="visible.has(column.key)"
-                        @change="toggleColumn(column.key)"
-                        >
-{{ column.label }}
-</Checkbox>
-                    </div>
-</template>
-</Popover>
+                />
+                <NativeVxeButton
+                  aria-label="个性化设置"
+                  title="个性化设置"
+                  icon="vxe-icon-setting"
+                  size="small"
+                  circle
+                  @click="customizationOpen = true"
+                />
+                </div>
               </div>
             </div>
             <div class="qd-table" :aria-busy="loading">
-              <div class="qd-table__wrapper">
+              <div ref="tableWrapper" class="qd-table__wrapper" @scroll="measureTable">
                 <table
                   class="qd-table__inner materialized-table"
                   :style="{ width: `max(100%, ${tableWidth}px)` }"
                 >
                   <colgroup>
-                    <col style="width: 55px" />
                     <col
                       v-for="column in shownColumns"
                       :key="column.key"
                       :style="{ width: `${column.width}px` }"
                     />
-                    <col style="width: 175px" />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th class="is-center">
-                        <Checkbox
-                          :checked="allSelected"
-                          :indeterminate="
-                            selectedRows.length > 0 && !allSelected
-                          "
-                          aria-label="全选模型"
-                          @change="selectAll(!allSelected)"
-                        />
-                      </th>
                       <th
                         v-for="column in shownColumns"
                         :key="column.key"
+                        :data-column-key="column.key"
+                        :style="columnStyle(column, true)"
                         :class="{
+                          [`is-${column.align || 'left'}`]: true,
+                          'is-fixed-right': column.fixed === 'right',
+                          'has-shadow': column.fixed === 'right' && column.key === firstRightColumn && hasFixedColumnShadow,
                           'is-sortable': ['id', 'publishTime'].includes(
                             column.key,
                           ),
@@ -496,8 +524,17 @@ type="default"
                         "
                       >
                         <div class="qd-cell">
+                        <Checkbox
+                          v-if="column.key === 'selection'"
+                          :checked="allSelected"
+                          :indeterminate="
+                            selectedRows.length > 0 && !allSelected
+                          "
+                          aria-label="全选模型"
+                          @change="selectAll(!allSelected)"
+                        />
                           <button
-                            v-if="
+                            v-else-if="
                               column.key === 'id' ||
                               column.key === 'publishTime'
                             "
@@ -510,9 +547,6 @@ type="default"
 </button><span v-else>{{ column.label }}</span>
                         </div>
                       </th>
-                      <th class="is-fixed-right is-center">
-                        <div class="qd-cell">操作</div>
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -521,8 +555,19 @@ type="default"
                       :key="String(row.modelId)"
                       :class="{ 'is-striped': index % 2 === 1 }"
                     >
-                      <td class="is-center">
+                      <td
+                        v-for="column in shownColumns"
+                        :key="column.key"
+                        :style="columnStyle(column)"
+                        :class="{
+                          [`is-${column.align || 'left'}`]: true,
+                          'is-fixed-right': column.fixed === 'right',
+                          'has-shadow': column.fixed === 'right' && column.key === firstRightColumn && hasFixedColumnShadow,
+                        }"
+                      >
+                        <div class="qd-cell" :class="{ 'materialized-row-actions': column.key === 'action' }">
                         <Checkbox
+                          v-if="column.key === 'selection'"
                           :checked="selectedIds.has(String(row.modelId))"
                           :disabled="isUnresolvedMaterialization(row)"
                           :aria-label="`选择模型 ${row.modelAlias || row.modelId}`"
@@ -530,10 +575,7 @@ type="default"
                             select(row, !selectedIds.has(String(row.modelId)))
                           "
                         />
-                      </td>
-                      <td v-for="column in shownColumns" :key="column.key">
-                        <div class="qd-cell">
-                          <span v-if="column.key === 'id'">{{
+                          <span v-else-if="column.key === 'id'">{{
                             row.modelId
                           }}</span>
                           <div
@@ -617,10 +659,7 @@ type="default"
                                   'YYYY-MM-DD HH:mm',
                                 )
                           }}</span>
-                        </div>
-                      </td>
-                      <td class="is-fixed-right">
-                        <div class="qd-cell materialized-row-actions">
+                          <template v-else-if="column.key === 'action'">
                           <Button
 type="link"
                             v-if="canQuery"
@@ -655,6 +694,7 @@ type="link"
                                 : '重新发布'
                             }}</span>
                           </Button>
+                          </template>
                         </div>
                       </td>
                     </tr>
@@ -689,6 +729,12 @@ type="link"
           </div>
         </main>
       </section>
+      <TableCustomization
+        v-model:open="customizationOpen"
+        :columns="columns"
+        @apply="applyCustomization"
+        @reset="resetCustomization"
+      />
       <PublishModal ref="publishModal" @success="published" />
       <RecoveryModal ref="recoveryModal" @refresh="load()" />
     </div>

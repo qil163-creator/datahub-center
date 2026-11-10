@@ -595,7 +595,7 @@ const [Modal, modalApi] = useVbenModal<{
         show-icon
         message="维护指标定义与业务口径；来源固定到已发布逻辑模型版本。保存后为草稿，启用后可用于派生指标。"
       />
-      <Alert v-if="error" class="mb-4" type="error" :message="error">
+      <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" class="mb-4" type="error" :message="error">
         <template #action>
           <Button size="small" @click="load">
             <template #icon>
@@ -606,7 +606,7 @@ const [Modal, modalApi] = useVbenModal<{
         </template>
       </Alert>
       <Alert
-        v-if="sourceError"
+        v-if="sourceError && (!/(?:加载|读取|获取).*失败/.test(sourceError) || /保存|冲突|未确认/.test(sourceError))"
         class="mb-4"
         type="error"
         :message="sourceError"

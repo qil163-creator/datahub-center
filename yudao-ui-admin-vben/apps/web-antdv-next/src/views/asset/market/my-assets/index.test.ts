@@ -45,6 +45,29 @@ const mock = vi.hoisted(() => ({
   modalOpen: vi.fn(),
   modalState: vi.fn(),
   viewport: { isMobile: false },
+  gridOptions: undefined as any,
+  setGridOptions: vi.fn(),
+  setLoading: vi.fn(),
+}));
+
+vi.mock('#/adapter/business-vxe-table', () => ({
+  useVbenVxeGrid: (options: { gridOptions: any }) => {
+    mock.gridOptions = options.gridOptions;
+    const Grid = defineComponent({
+      props: { tableData: { type: Array, default: () => [] } },
+      setup: (props, { slots }) => () =>
+        h('div', { 'data-testid': 'asset-grid' }, [
+          props.tableData.length
+            ? props.tableData.flatMap((row) =>
+                options.gridOptions.columns.map((column: { field: string }) =>
+                  h('div', { 'data-field': column.field }, slots.body?.({ column, row })),
+                ),
+              )
+            : slots.empty?.(),
+        ]),
+    });
+    return [Grid, { setGridOptions: mock.setGridOptions, setLoading: mock.setLoading }];
+  },
 }));
 
 vi.mock('#/adapter/form', () => ({
@@ -195,7 +218,7 @@ vi.mock('antdv-next', () => {
 
 interface State {
   activeTab: 'applications' | 'assets';
-  columns: { fixed?: string; key: string; width: number }[];
+  columns: { field: string; fixed?: string; width: number }[];
   rows: MyAssetsApi.Asset[];
   query: MyAssetsApi.PageReq;
   filters: {
@@ -309,6 +332,30 @@ afterEach(() => {
 });
 
 describe('我的资产工作台', () => {
+  it('业务表格展示当前资产并保留按申请编号打开预览', async () => {
+    mount();
+    await flush();
+    expect(mock.gridOptions.rowConfig.keyField).toBe('applyId');
+    expect(mock.gridOptions.scrollbarConfig.height).toBe(6);
+    const actionCell = host.querySelector('[data-field="actions"]')!;
+    expect(actionCell.textContent).toContain('数据预览');
+    const preview = [...actionCell.querySelectorAll('div')]
+      .filter((element) => element.textContent?.trim() === '数据预览')
+      .at(-1);
+    preview?.click();
+    expect(mock.modalData).toHaveBeenCalledWith({
+      requestId: '9223372036854775807',
+      title: '门诊资产 · 数据预览',
+    });
+  });
+  it('空列表保留资产空状态', async () => {
+    mock.page.mockResolvedValue({ list: [], total: 0 });
+    mount();
+    await flush();
+    expect(host.querySelector('[data-testid="asset-grid"]')?.textContent).toContain(
+      '暂无符合条件的已批准资产服务',
+    );
+  });
   it('从申请记录跳转授权资产深链时切换页签并打开对应详情', async () => {
     mount();
     await flush();
@@ -483,20 +530,20 @@ describe('我的资产工作台', () => {
     mount();
     await flush();
     expect(
-      state.columns.find((column) => column.key === 'actions')?.fixed,
+      state.columns.find((column) => column.field === 'actions')?.fixed,
     ).toBe('right');
     mock.viewport.isMobile = true;
     await flush();
     expect(
-      state.columns.find((column) => column.key === 'actions')?.fixed,
+      state.columns.find((column) => column.field === 'actions')?.fixed,
     ).toBe('right');
     expect(
-      state.columns.find((column) => column.key === 'applyNo')?.width,
+      state.columns.find((column) => column.field === 'applyNo')?.width,
     ).toBe(112);
     mock.viewport.isMobile = false;
     await flush();
     expect(
-      state.columns.find((column) => column.key === 'actions')?.fixed,
+      state.columns.find((column) => column.field === 'actions')?.fixed,
     ).toBe('right');
   });
   it('只需个人消费权限，详情和预览传申请ID而不是资产ID', async () => {

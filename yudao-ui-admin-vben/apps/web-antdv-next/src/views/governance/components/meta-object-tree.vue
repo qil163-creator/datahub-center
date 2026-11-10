@@ -186,15 +186,13 @@ onMounted(loadTree);
             </template>
           </Tree>
           <div
-            v-if="!treeLoading && treeData.length === 0"
+            v-if="!treeLoading && !loadError && treeData.length === 0"
             class="py-4 text-center text-xs text-gray-500"
           >
             {{
-              loadError
-                ? '加载失败，请点击刷新重试'
-                : keyword
-                  ? '没有匹配的来源'
-                  : '暂无元数据，请先配置并执行采集任务'
+              keyword
+                ? '没有匹配的来源'
+                : '暂无元数据，请先配置并执行采集任务'
             }}
           </div>
         </Spin>

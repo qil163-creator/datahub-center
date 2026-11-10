@@ -134,16 +134,14 @@ describe('标准关联列表', () => {
     );
   });
 
-  it('真实请求失败保留错误提示，刷新成功后恢复正常空态', async () => {
+  it('请求失败不显示提示条，刷新成功后恢复正常空态', async () => {
     vi.mocked(getStandardAssociations)
       .mockRejectedValueOnce(new Error('服务不可用'))
       .mockResolvedValueOnce({ list: [], total: 0 });
     mount();
     await settle();
 
-    expect(host.querySelector('[role="alert"]')?.textContent).toBe(
-      '关联信息加载失败，请刷新重试',
-    );
+    expect(host.querySelector('[role="alert"]')).toBeNull();
     host.querySelector('button')!.click();
     await settle();
 

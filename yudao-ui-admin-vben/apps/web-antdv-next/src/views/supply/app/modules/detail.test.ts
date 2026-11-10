@@ -637,10 +637,11 @@ describe('list display correctness', () => {
       expectedRevision: '0',
       disabled: true,
     });
-    expect(host.textContent).toContain('授权列表读取失败');
+    expect(host.textContent).not.toContain('授权列表读取失败');
     expect(host.querySelectorAll('tr')).toHaveLength(0);
     expect(host.textContent).not.toContain('private');
-    await click('重新加载授权列表');
+    await harness.modals[0]!.close();
+    await open();
     expect(getAppApiList).toHaveBeenCalledTimes(3);
     expect(host.querySelectorAll('tr')).toHaveLength(1);
     expect(host.textContent).not.toContain('授权列表读取失败');
@@ -656,7 +657,7 @@ describe('list display correctness', () => {
   ])('rejects incorrect or duplicate list identity %j', async (...items) => {
     vi.mocked(getAppApiList).mockResolvedValue(items);
     await open();
-    expect(host.textContent).toContain('授权列表读取失败');
+    expect(host.textContent).not.toContain('授权列表读取失败');
     expect(host.querySelectorAll('tr')).toHaveLength(0);
   });
   it.each([{}, { id: '2' }, { id: Number.MAX_SAFE_INTEGER + 1 }])(
@@ -664,7 +665,7 @@ describe('list display correctness', () => {
     async (value) => {
       vi.mocked(getSupplyApp).mockResolvedValue(value);
       await open();
-      expect(host.textContent).toContain('应用详情读取失败');
+      expect(host.textContent).not.toContain('应用详情读取失败');
       expect(getAppApiList).not.toHaveBeenCalled();
       expect(harness.modals[0]!.state.submitting).toBe(false);
     },
@@ -1005,9 +1006,10 @@ describe('add grant options and mutation ownership', () => {
     await harness.modals[1]!.options.onConfirm!();
     expect(createAppApi).not.toHaveBeenCalled();
     expect(host.querySelectorAll('select option')).toHaveLength(1);
-    expect(host.textContent).toContain('API 选项读取失败');
+    expect(host.textContent).not.toContain('API 选项读取失败');
     expect(host.textContent).not.toContain('internal');
-    await click('重新加载选项');
+    await harness.modals[1]!.close();
+    await click('新增');
     expect(host.textContent).not.toContain('API 选项读取失败');
     expect(host.querySelectorAll('select option')).toHaveLength(2);
   });
@@ -1019,7 +1021,7 @@ describe('add grant options and mutation ownership', () => {
       await click('新增');
       await harness.modals[1]!.options.onConfirm!();
       expect(createAppApi).not.toHaveBeenCalled();
-      expect(host.textContent).toContain('API 选项读取失败');
+      expect(host.textContent).not.toContain('API 选项读取失败');
     },
   );
   it('preserves a large API option ID in creation', async () => {
@@ -1215,10 +1217,11 @@ describe('管理员授权修改', () => {
         .mockResolvedValue(editableGrant({ aggregateRevision: '2' }));
       await open();
       await click('修改');
-      expect(host.textContent).toContain('授权详情读取失败');
+      expect(host.textContent).not.toContain('授权详情读取失败');
       await harness.modals[1]!.options.onConfirm!();
       expect(updateAppApi).not.toHaveBeenCalled();
-      await click('重新加载选项');
+      await harness.modals[1]!.close();
+      await click('修改');
       await harness.modals[1]!.options.onConfirm!();
       expect(updateAppApi).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ id: '11', expectedRevision: '2' }),

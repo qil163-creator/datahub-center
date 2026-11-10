@@ -216,7 +216,7 @@ defineExpose({openRulePicker:openPicker});
     <div class="qi-reference-section-header qi-reference-table-heading"><h3>规则设置</h3><Button class="qi-reference-button" :disabled="!canLoadRules" @click="openPicker"><IconifyIcon icon="lucide:plus" />新增规则 </Button></div>
     <Alert v-if="!currentOwner" type="warning" message="身份或访问上下文已变化，请重新打开节点配置。" />
     <Alert v-else-if="!canQuery" type="warning" message="没有治理清洗规则查询权限，无法选择或确认治理参数。" />
-    <Alert v-if="cleanRuleLoadFailed" type="error" message="规则列表加载失败，请重试。" />
+
     <div class="qi-reference-fields-scroll">
 <table class="qi-reference-fields-table">
 <thead><tr><th>序号</th><th>清洗名称</th><th>清洗字段</th><th>清洗规则</th><th>规则描述</th><th>维度</th><th>状态</th><th>操作</th></tr></thead><tbody>

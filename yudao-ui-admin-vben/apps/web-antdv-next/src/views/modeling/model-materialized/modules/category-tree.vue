@@ -159,15 +159,7 @@ defineExpose({
     </div>
     <div class="qd-tree-pane__tree" role="tree" aria-label="发布模型分类">
       <div v-if="loading" class="qd-tree-pane__state">加载中…</div>
-      <div v-else-if="failed" class="qd-tree-pane__state">
-        分类加载失败，<button
-          type="button"
-          class="qd-link-btn"
-          @click="emit('retry')"
-        >
-          重试
-        </button>
-      </div>
+      <template v-else-if="failed"></template>
       <div
         v-for="{ node, level } in loading || failed ? [] : rows"
         :key="node.key"

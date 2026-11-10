@@ -10,10 +10,6 @@ export function tagNumber(tag: AssetTagApi.Tag) {
 export function tagDate(value: number | string | undefined) {
   return value ? formatDate(value, 'YYYY-MM-DD HH:mm') : '-';
 }
-export const tagStatusOptions = [
-  { label: '启用', value: 0 },
-  { label: '禁用', value: 1 },
-];
 export const tagColumns = [
   {
     title: '编号',
@@ -44,7 +40,7 @@ export const tagColumns = [
   {
     title: '操作',
     key: 'actions',
-    width: 240,
+    width: 220,
     fixed: 'right' as const,
     align: 'center' as const,
   },

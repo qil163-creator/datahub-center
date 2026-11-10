@@ -190,7 +190,7 @@ describe('业务限定详情', () => {
     expect(host.textContent).toContain('红色预警9007199254741001');
     expect(host.textContent).not.toContain(`红色预警${id}`);
   });
-  it('无权限时不请求详情，失败后可重新读取', async () => {
+  it('无权限时不请求详情，失败后不显示提示条并可切换对象', async () => {
     state.canQuery = false;
     await mount();
     expect(state.get).not.toHaveBeenCalled();
@@ -201,11 +201,9 @@ describe('业务限定详情', () => {
       .find((button) => button.textContent?.includes('重试'))
       ?.click();
     await flush();
-    expect(host.textContent).toContain('详情加载失败');
-    [...host.querySelectorAll<HTMLButtonElement>('button')]
-      .find((button) => button.textContent?.includes('重试'))
-      ?.click();
+    expect(host.textContent).not.toContain('详情加载失败');
+    state.route.params.id = '9007199254741001';
     await flush();
-    expect(host.textContent).toContain(`红色预警${id}`);
+    expect(host.textContent).toContain('红色预警9007199254741001');
   });
 });

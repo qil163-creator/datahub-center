@@ -4,7 +4,7 @@ import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
 
 import { computed, ref, watch } from 'vue';
 
-import { Button, Input, Popover, Spin } from 'antdv-next';
+import { Input, Popover, Spin } from 'antdv-next';
 
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
 import { ConnectionIcon } from '#/components/connection-icon';
@@ -42,13 +42,11 @@ const category = ref('');
 const type = ref('');
 const types = ref<FoundationDatabaseTypeApi.DatabaseType[]>([]);
 const typesLoading = ref(false);
-const typeError = ref(false);
 const request = useObjectRequest(
   () => open.value,
   () => {
     types.value = [];
     typesLoading.value = false;
-    typeError.value = false;
   },
 );
 const baseCategories = [
@@ -225,7 +223,6 @@ async function loadTypes() {
   const current = request.begin();
   const navigation = JSON.stringify([keyword.value, category.value, type.value]);
   typesLoading.value = true;
-  typeError.value = false;
   try {
     const result = await getDatabaseTypeSimpleList(undefined, {
       silentError: true,
@@ -243,7 +240,7 @@ async function loadTypes() {
       }
     }
   } catch {
-    if (current()) typeError.value = true;
+    // 类型不可用时保留当前连接选项。
   } finally {
     if (current()) typesLoading.value = false;
   }
@@ -299,10 +296,6 @@ watch(keyword, () => {
             </svg>
           </template>
         </Input>
-        <div v-if="typeError" class="qi-connection-picker__error" role="status">
-          连接类型加载失败，仍可从全部连接中选择。
-          <Button type="link" size="small" @click="loadTypes">重试</Button>
-        </div>
         <Spin :spinning="typesLoading || loading">
           <div class="qi-connection-picker__columns">
             <nav

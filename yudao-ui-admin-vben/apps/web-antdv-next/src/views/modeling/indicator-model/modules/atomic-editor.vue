@@ -287,11 +287,6 @@ async function loadEntities() {
     if (current()) entityLoading.value = false;
   }
 }
-async function retryOptions() {
-  const current = request.begin();
-  if (options.error.value) await options.reload();
-  if (current() && entityError.value) await loadEntities();
-}
 function changeDomain() {
   form.subjectDomainId = undefined;
   form.entityId = undefined;
@@ -468,18 +463,9 @@ defineExpose({ open, reset, submit, ready });
   >
     <div class="atomic-editor">
       <Spin :spinning="loading">
-        <Alert v-if="failed" type="error" :message="failed">
+        <Alert v-if="failed && (!/(?:加载|读取|获取).*失败/.test(failed) || /保存|冲突|未确认/.test(failed))" type="error" :message="failed">
           <template #action>
             <Button @click="openData && open(openData)">重试</Button>
-          </template>
-        </Alert>
-        <Alert
-          v-if="options.error.value || entityError"
-          type="error"
-          :message="entityError || '关联选项加载失败，请重试。'"
-        >
-          <template #action>
-            <Button @click="retryOptions">重试</Button>
           </template>
         </Alert>
         <Alert
@@ -693,7 +679,7 @@ defineExpose({ open, reset, submit, ready });
             </div>
           </div>
           <Alert
-            v-if="sourceError"
+            v-if="sourceError && (!/(?:加载|读取|获取).*失败/.test(sourceError) || /保存|冲突|未确认/.test(sourceError))"
             class="atomic-full"
             type="error"
             :message="sourceError"

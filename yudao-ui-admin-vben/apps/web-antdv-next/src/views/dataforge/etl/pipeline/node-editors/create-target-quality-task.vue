@@ -217,11 +217,8 @@ async function show() {
     target.value = { databaseId, schemaName, tableName };
     await loadRules();
   } catch (error) {
-    if (seq === generation)
-      errorMessage.value =
-        error instanceof TargetConfigurationError && error.message
-          ? error.message
-          : '目标连接或规则策略读取失败，请核对权限后重试。';
+    if (seq === generation && error instanceof TargetConfigurationError)
+      errorMessage.value = error.message;
   } finally {
     if (seq === generation) loading.value = false;
   }
@@ -405,7 +402,6 @@ onBeforeUnmount(close);
           更多规则
         </Button>
       </div>
-      <Alert v-if="ruleError" type="error" :message="ruleError" />
       <Checkbox
         v-model:checked="form.activate"
         :disabled="busy || !!pending || !!receipt"

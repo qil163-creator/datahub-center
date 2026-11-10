@@ -199,13 +199,10 @@ describe('建模概览请求状态', () => {
     expect(host.querySelector('.metric-card__number strong')?.textContent).toBe(
       '—',
     );
-    expect(host.textContent).toContain('统计数据加载失败');
+    expect(host.textContent).not.toContain('统计数据加载失败');
     harness.load.mockResolvedValueOnce(overview(0));
-    const retry = [...host.querySelectorAll('button')].find(
-      (button) => button.textContent?.trim() === '重试',
-    );
-    expect(retry).toBeDefined();
-    retry?.click();
+    expect(host.textContent).not.toContain('建模概览加载失败');
+    harness.access.accessCodes = ['modeling:concept-model:query'];
     await flush();
     expect(host.querySelector('.metric-card__number strong')?.textContent).toBe(
       '0',

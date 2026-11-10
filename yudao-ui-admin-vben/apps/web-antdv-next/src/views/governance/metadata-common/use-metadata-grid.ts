@@ -21,6 +21,7 @@ export function useMetadataGrid<Row extends { id?: MetadataId }>(
   resetScopeFilters?: () => void,
   layout: 'content' | 'fill' = 'fill',
   nativeToolbar = false,
+  subtleScrollbar = false,
 ) {
   const selected = shallowRef<Row[]>([]);
   const error = ref(false);
@@ -58,6 +59,7 @@ export function useMetadataGrid<Row extends { id?: MetadataId }>(
       height: layout === 'fill' ? 'auto' : undefined,
       showOverflow: layout === 'fill' ? false : 'tooltip',
       rowConfig: { keyField: 'id', isHover: true },
+      ...(subtleScrollbar ? { scrollbarConfig: { height: 6 } } : {}),
       pagerConfig: {
         currentPage: 1,
         pageSize: 10,

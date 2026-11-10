@@ -10,7 +10,6 @@ import { getDictOptions } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert } from 'antdv-next';
 
 import { getDatabaseType } from '#/api/dataforge/databasetype';
 import { ConnectionIcon } from '#/components/connection-icon';
@@ -153,19 +152,13 @@ const [Modal, modalApi] = useVbenModal<{
     :title="`连接器详情${detail?.typeName ? ` - ${detail.typeName}` : ''}`"
     class="w-[960px]"
   >
-    <Alert
-      v-if="failed"
-      class="mx-4"
-      type="error"
-      show-icon
-      message="连接器详情加载失败，请重新打开。"
-    />
-    <DetailFieldForm v-else-if="detail" :fields="fields" class="mx-4">
+
+    <DetailFieldForm v-if="!failed && detail" :fields="fields" class="mx-4">
       <template #iconPath>
         <ConnectionIcon
-          :icon-path="detail.iconPath"
-          :type-code="detail.typeCode || detail.productId"
-          :alt="detail.typeName"
+          :icon-path="detail?.iconPath"
+          :type-code="detail?.typeCode || detail?.productId"
+          :alt="detail?.typeName"
           class="size-16"
         />
       </template>

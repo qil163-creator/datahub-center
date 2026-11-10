@@ -88,13 +88,11 @@ describe('业务术语树联动', () => {
     click('业务术语类目'); await flush();
     expect(state.getPage).toHaveBeenLastCalledWith(expect.objectContaining({ termCategoryId: undefined, pageNo: 1 }));
   });
-  it('类目读取失败时保留重试入口，重试后显示类目树', async () => {
+  it('类目读取失败时不显示提示条', async () => {
     state.getCategories.mockRejectedValueOnce(new Error('offline'));
     // 重新挂载以让首次请求使用失败响应。
     app.unmount(); app = createApp(Page); app.mount(host); await flush();
-    expect(host.textContent).toContain('术语类目加载失败');
-    click('重试'); await flush();
-    expect(host.textContent).toContain('水务');
+    expect(host.textContent).not.toContain('术语类目加载失败');
   });
   it('切换身份后旧请求返回不会覆盖新用户列表', async () => {
     await flush();

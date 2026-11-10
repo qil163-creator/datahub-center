@@ -443,7 +443,7 @@ describe('关系输入ODPS交互', () => {
     await input('源数据库连接', '2');
     expect(JSON.stringify(state.config)).toBe(before);
   });
-  it('目录失败保留已保存值并可重试，换连接不会延续旧表与字段', async () => {
+  it('目录失败不显示横幅并保留已保存值，换连接不会延续旧表与字段', async () => {
     vi.mocked(databaseApi.getDatabaseTableList).mockRejectedValueOnce(
       new Error('目录离线'),
     );
@@ -453,10 +453,8 @@ describe('关系输入ODPS交互', () => {
       incrementColumn: 'id',
       columns: [{ name: 'id', type: 'LONG' }],
     });
-    expect(host.textContent).toContain('表与视图目录加载失败');
-    expect(state.config.tableName).toBe('stations');
-    await click('重试表目录');
     expect(host.textContent).not.toContain('表与视图目录加载失败');
+    expect(state.config.tableName).toBe('stations');
     await input('源数据库连接', '9007199254740995');
     expect(state.config.columns).toEqual([]);
     expect(state.config).not.toHaveProperty('tableName');

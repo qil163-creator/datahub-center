@@ -89,7 +89,7 @@ watch(() => [props.elementId, access.accessToken, access.accessCodes], loadData,
       设计态落标（建模模块绑定本标准的模型字段）
     </div>
     <Alert v-if="!canQueryModels" type="warning" message="暂无逻辑模型查询权限" show-icon />
-    <Alert v-else-if="failed" type="error" message="设计态落标加载失败" show-icon />
+    <template v-else-if="failed"></template>
     <Table
       v-if="canQueryModels"
       class="standard-detail-table"

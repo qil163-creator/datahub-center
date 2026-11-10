@@ -10,7 +10,7 @@ import { Page } from '@vben/common-ui';
 import { useAntdDesignTokens } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 
-import { Button, ConfigProvider, Spin, TabPane, Tabs } from 'antdv-next';
+import { ConfigProvider, Spin, TabPane, Tabs } from 'antdv-next';
 
 import { getDataDomain } from '#/api/modeling/datadomain';
 import { getSubjectDomain } from '#/api/modeling/subjectdomain';
@@ -120,9 +120,7 @@ function back() {
               </Tabs>
             </section>
           </div>
-          <div v-else-if="failed" class="planning-detail-error">
-            主题域加载失败。<Button type="link" @click="load">重试</Button>
-          </div>
+          <template v-else-if="failed"></template>
           <div v-else-if="!loading" class="planning-detail-error">
             {{ id ? '暂无可访问的主题域' : '无效的主题域编号'
             }}<DetailBackButton @click="back" />

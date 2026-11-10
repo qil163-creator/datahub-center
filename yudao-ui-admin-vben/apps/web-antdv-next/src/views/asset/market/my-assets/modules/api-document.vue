@@ -4,10 +4,10 @@ import type { MyAssetsApi } from '#/api/asset/my-assets';
 import { computed, h, onBeforeUnmount, ref, watch } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
+import {} from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Empty, Spin, Table, Tag } from 'antdv-next';
+import { Alert, Empty, Spin, Table, Tag } from 'antdv-next';
 
 import { getMyAssetApiDocument } from '#/api/asset/my-assets';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
@@ -127,14 +127,7 @@ defineExpose({ open, close });
 <template>
   <Drawer>
     <Spin v-if="loading" spinning />
-    <Alert v-if="loadError" type="error" :message="loadError" show-icon>
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-          重试
-        </Button>
-      </template>
-    </Alert>
+
     <template v-if="document">
       <h2 class="mb-4 text-base font-semibold">
         {{ document.name || 'API 接口' }}
@@ -146,11 +139,7 @@ defineExpose({ open, close });
         class="mb-4"
       />
       <div class="mb-6 flex flex-wrap items-center gap-2 rounded border p-3">
-        <Tag color="blue">{{ document.method || '--' }}</Tag
-        ><code class="break-all">{{ document.path || '--' }}</code
-        ><span class="text-muted-foreground ml-auto text-xs"
-          >版本 {{ document.version || '--' }}</span
-        >
+        <Tag color="blue">{{ document.method || '--' }}</Tag><code class="break-all">{{ document.path || '--' }}</code><span class="text-muted-foreground ml-auto text-xs">版本 {{ document.version || '--' }}</span>
       </div>
       <h3 class="mb-3 font-medium">请求参数</h3>
       <Table
@@ -165,8 +154,7 @@ defineExpose({ open, close });
         <template #bodyCell="{ column, record }">
           <span v-if="column.key === 'required'">{{
             record.required ? '是' : '否'
-          }}</span
-          ><span v-else>{{ fieldText(record, column.dataIndex) }}</span>
+          }}</span><span v-else>{{ fieldText(record, column.dataIndex) }}</span>
         </template>
         <template #emptyText><Empty description="无请求参数" /></template>
       </Table>

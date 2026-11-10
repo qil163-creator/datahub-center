@@ -5,5 +5,5 @@ defineOptions({ name: 'GovernanceSensitiveList' });
 </script>
 
 <template>
-  <SensitiveList />
+  <SensitiveList show-status-filter />
 </template>

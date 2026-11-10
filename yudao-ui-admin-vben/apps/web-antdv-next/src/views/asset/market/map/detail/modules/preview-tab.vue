@@ -298,9 +298,7 @@ onUnmounted(() => {
       >
         <template #icon><IconifyIcon icon="lucide:plus" /></template>
       </Button>
-      <span v-if="!filters.length" class="preview-tab__filter-hint"
-        >点击“+”以添加筛选准则</span
-      >
+      <span v-if="!filters.length" class="preview-tab__filter-hint">点击“+”以添加筛选准则</span>
       <div
         v-for="(row, index) in filters"
         :key="index"
@@ -332,13 +330,7 @@ onUnmounted(() => {
         </Button>
       </div>
     </div>
-    <Alert
-      v-if="loadError"
-      :message="loadError"
-      class="mb-2"
-      show-icon
-      type="error"
-    />
+    <template v-if="loadError"></template>
     <Alert
       v-else-if="preview.truncated && !importedSnapshot"
       class="mb-2"

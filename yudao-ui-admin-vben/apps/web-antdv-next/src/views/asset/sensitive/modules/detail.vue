@@ -6,7 +6,7 @@ import { onBeforeUnmount, ref, watch } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, Form, FormItem, Input, Tag } from 'antdv-next';
+import { Button, Form, FormItem, Input, Tag } from 'antdv-next';
 
 import { getSensitiveList } from '#/api/asset/sensitive';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
@@ -74,8 +74,7 @@ onBeforeUnmount(() => {
     class="!top-[60px] !w-[800px] !max-w-[calc(100vw-32px)] !rounded-[var(--radius)]"
     content-class="!p-0"
   >
-    <Alert v-if="error" type="error" message="详情读取失败，请关闭后重试。" />
-    <Form
+<Form
       v-if="detail"
       class="sensitive-detail"
       :colon="false"

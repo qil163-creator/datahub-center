@@ -15,7 +15,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button } from 'antdv-next';
+import { Alert} from 'antdv-next';
 
 import { getApiLogOverview } from '#/api/supply/apilog';
 
@@ -110,16 +110,7 @@ onUnmounted(() => {
         show-icon
         message="暂无查看数据概览的权限"
       />
-      <Alert v-else-if="failed" type="warning" show-icon>
-        <template #message>
-          {{
-            overview
-              ? '刷新失败，当前显示上次成功获取的数据。'
-              : '数据加载失败，请重试。'
-          }}
-          <Button type="link" size="small" @click="loadOverview">重试</Button>
-        </template>
-      </Alert>
+
       <template v-if="overview">
         <MetricCards :items="overviewItems" />
         <TrendChart :trend="trendList" />

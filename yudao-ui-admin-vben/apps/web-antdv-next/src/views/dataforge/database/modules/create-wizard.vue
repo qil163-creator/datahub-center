@@ -11,10 +11,9 @@ import {
 } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, message, Spin } from 'antdv-next';
+import { Button, message, Spin } from 'antdv-next';
 
 import { createDatabase } from '#/api/dataforge/database';
 
@@ -210,22 +209,9 @@ onBeforeUnmount(reset);
         <div v-if="loading" class="connection-wizard__loading">
           <Spin />正在加载连接类型…
         </div>
-        <Alert
-          v-else-if="loadError"
-          :message="loadError"
-          type="error"
-          show-icon
-        >
-          <template #action
-            ><Button @click="loadTypes"
-              ><template #icon
-                ><IconifyIcon icon="lucide:refresh-cw" /></template
-              >重试</Button
-            ></template
-          >
-        </Alert>
+
         <TypeSelectPanel
-          v-else
+          v-else-if="!loadError"
           v-model:search-keyword="searchKeyword"
           :active-category="activeCategory"
           :all-types="typeList"

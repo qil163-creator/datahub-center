@@ -6,7 +6,7 @@ import { computed, h, ref, watch } from 'vue';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Table } from 'antdv-next';
+import { Table } from 'antdv-next';
 
 import { getStandardAssociations } from '#/api/governance/standardcommon/association';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
@@ -123,12 +123,6 @@ watch(
     >
       <template #title><span aria-hidden="true"></span></template>
     </StandardToolbar>
-    <Alert
-      v-if="failed"
-      type="error"
-      message="关联资产加载失败，请刷新重试"
-      show-icon
-    />
     <Table
       class="standard-table"
       :columns="columns"

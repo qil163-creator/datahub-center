@@ -259,18 +259,19 @@ describe('数据开发独立详情页', () => {
     expect(harness.getTask).toHaveBeenCalledTimes(calls);
   });
 
-  it('失败后可重试，名称接口失败时仍呈现任务及原始编号', async () => {
+  it('加载失败不显示横幅，切换任务后仍可呈现任务及原始编号', async () => {
     harness.getTask.mockRejectedValueOnce(new Error('详情失败'));
     await mount();
-    expect(host.textContent).toContain('任务详情加载失败');
+    expect(host.textContent).not.toContain('任务详情加载失败');
+    expect(host.textContent).not.toContain('任务不存在或已删除');
     harness.getUsers.mockRejectedValueOnce(new Error('选项失败'));
-    clickButton('重试');
+    harness.route.params.id = '10';
     await flush();
     expect(host.textContent).toContain('当前任务');
-    expect(host.textContent).toContain('部分名称加载失败');
+    expect(host.textContent).not.toContain('部分名称加载失败');
     expect(host.querySelector('[data-presentation="page"]')).not.toBeNull();
     harness.getTask.mockResolvedValueOnce(null);
-    clickButton('重试');
+    harness.route.params.id = '11';
     await flush();
     expect(host.textContent).toContain('任务不存在或已删除');
   });

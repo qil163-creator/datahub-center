@@ -130,10 +130,6 @@ function reset() {
   formData.scheduleStatus = currentTask.value.scheduleStatus ?? 0;
 }
 
-function retry() {
-  if (formData.id !== undefined) void open(formData.id);
-}
-
 function close() {
   ++generation;
   visible.value = false;
@@ -165,11 +161,7 @@ defineExpose({ open, close });
         <Spin />
         <span>正在加载任务配置…</span>
       </div>
-      <div v-else-if="loadError" class="schedule-state" role="alert">
-        <span>{{ loadError }}</span>
-        <Button @click="retry"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重新加载</Button>
-      </div>
-      <template v-else-if="currentTask">
+      <template v-else-if="!loadError && currentTask">
         <div class="schedule-task-summary">
           <div class="schedule-task-identity">
             <TaskTypeIcon

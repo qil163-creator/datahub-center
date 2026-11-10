@@ -142,11 +142,9 @@ describe('数据元关联码表远程选择', () => {
     search('新搜索'); await flush();
     expect(host.textContent).toContain('第一页码表');
   });
-  it('请求失败可重试，关闭后迟到结果不回填下一次表单', async () => {
+  it('请求失败不显示提示条，关闭后迟到结果不回填下一次表单', async () => {
     vi.mocked(getStandardCodeSetPage).mockRejectedValueOnce(new Error('读取失败'));
     await state.options!.onOpenChange(true); await flush();
-    expect(host.textContent).toContain('标准码表加载失败');
-    button('重试').click(); await flush();
     expect(host.textContent).not.toContain('标准码表加载失败');
     const pending = deferred<Awaited<ReturnType<typeof getStandardCodeSetPage>>>();
     vi.mocked(getStandardCodeSetPage).mockReturnValueOnce(pending.promise);

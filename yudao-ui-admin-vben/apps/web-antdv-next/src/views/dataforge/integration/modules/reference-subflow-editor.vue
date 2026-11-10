@@ -5,7 +5,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Select } from 'antdv-next';
+import { Button, Select } from 'antdv-next';
 
 import { getSubflowPipelinePage } from '#/api/dataforge/etl/subflow';
 
@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="etl-editor">
     <fieldset :disabled="disabled" :inert="disabled || undefined">
-    <Alert v-if="error" type="error" :message="error" />
+
     <div class="qi-reference-form-row">
       <label class="qi-subflow-required">子流程</label>
       <div>

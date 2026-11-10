@@ -139,6 +139,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useGridColumns(),
     height: 'auto',
+    scrollbarConfig: { height: 6 },
     showHeaderOverflow: 'tooltip',
     proxyConfig: {
       ajax: {
@@ -272,7 +273,7 @@ onBeforeUnmount(() => {
 
       <!-- 右侧列表 -->
       <div class="min-h-0 min-w-0 flex-1 overflow-hidden">
-        <Grid table-title="调用日志">
+        <Grid class="subtle-grid-scrollbar" table-title="调用日志">
           <template #categoryId="{ row }">
             {{ categoryName(row.categoryId) }}
           </template>

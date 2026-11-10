@@ -69,7 +69,6 @@ const {
   userPhone,
   loading: optionsLoading,
   failed: optionsFailed,
-  reload,
 } = usePlanningOptions();
 const request = useObjectRequest(() => identity.value);
 const title = computed(() =>
@@ -246,12 +245,6 @@ watch(
         <div class="planning-step" :class="{ active: step === 1 }">
           ② 配置命名规则
         </div>
-      </div>
-      <div v-if="loadFailed" class="planning-error">
-        加载数据板块失败，请关闭后重试。
-      </div>
-      <div v-if="optionsFailed" class="planning-error">
-        人员选项加载失败。<Button type="link" @click="reload">重试</Button>
       </div>
       <template v-if="step === 0">
         <div class="planning-section-title">基础信息</div>

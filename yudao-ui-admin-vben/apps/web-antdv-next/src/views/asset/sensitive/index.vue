@@ -47,6 +47,7 @@ import SourceIcon from './modules/source-icon.vue';
 import { useSensitiveAccess } from './use-sensitive-access';
 
 defineOptions({ name: 'AssetSensitiveList' });
+const props = defineProps<{ showStatusFilter?: boolean }>();
 const { owner, can } = useSensitiveAccess();
 const filters = reactive<{
   categoryKey?: string;
@@ -104,21 +105,23 @@ const [FilterForm, filterFormApi] = useVbenForm({
         placeholder: '请选择数据分类',
       }),
     },
-    {
-      fieldName: 'status',
-      label: '状态',
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: statusOptions,
-        placeholder: '请选择状态',
-      },
-    },
+    ...(props.showStatusFilter
+      ? [{
+          fieldName: 'status',
+          label: '状态',
+          component: 'Select' as const,
+          componentProps: {
+            allowClear: true,
+            options: statusOptions,
+            placeholder: '请选择状态',
+          },
+        }]
+      : []),
   ],
   handleValuesChange(values) {
     filters.keyword = values.keyword ?? '';
     filters.categoryKey = values.categoryKey;
-    filters.status = values.status;
+    if (props.showStatusFilter) filters.status = values.status;
   },
   handleSubmit: query,
   handleReset: resetFilters,
@@ -161,6 +164,7 @@ const [Grid, gridApi] = useVbenVxeGrid<SensitiveListApi.Record>({
       })),
     ],
     data: [], height: 'auto', pagerConfig: { enabled: false }, proxyConfig: { enabled: false },
+    scrollbarConfig: { height: 6 },
     rowConfig: { keyField: 'id', isHover: true }, sortConfig: { remote: true, defaultSort: { field: 'id', order: 'desc' } }, showOverflow: false,
     toolbarConfig: { refresh: true, refreshOptions: { queryMethod: () => load() }, custom: true, zoom: false },
   },
@@ -189,7 +193,7 @@ async function load() {
       pageSize: pageSize.value,
       keyword: filters.keyword.trim() || undefined,
       categoryKey: filters.categoryKey,
-      status: filters.status,
+      ...(props.showStatusFilter ? { status: filters.status } : {}),
       sortField: sortField.value,
       sortOrder: sortOrder.value,
     });
@@ -433,7 +437,7 @@ function syncFilterValues() {
     void filterFormApi.setValues({
       keyword: filters.keyword,
       categoryKey: filters.categoryKey,
-      status: filters.status,
+      ...(props.showStatusFilter ? { status: filters.status } : {}),
     });
 }
 </script>
@@ -466,22 +470,7 @@ function syncFilterValues() {
         </template>
       </FilterForm>
       <section class="sensitive-main">
-        <Alert
-          v-if="categoryFailed"
-          type="warning"
-          message="数据分类读取失败。"
-          class="mb-2"
-        >
-          <template #action>
-            <Button size="small" @click="loadCategories"> 重试 </Button>
-          </template>
-        </Alert>
-        <Alert v-if="failed" type="error" message="列表读取失败。" class="mb-2">
-          <template #action>
-            <Button size="small" @click="load">重试</Button>
-          </template>
-        </Alert>
-        <Grid class="sensitive-grid" table-title="敏感清单列表" :table-data="rows">
+<Grid class="sensitive-grid subtle-grid-scrollbar" table-title="敏感清单列表" :table-data="rows">
           <template #toolbar-tools>
             <TableAction
 :actions="[

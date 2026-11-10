@@ -347,7 +347,7 @@ describe('治理清洗规则业务参数表单', () => {
     vi.mocked(getCleanRule).mockRejectedValue(new Error('forbidden'));
     await view.open('1');
     await flush();
-    expect(host.textContent).toContain('加载失败');
+    expect(host.textContent).not.toContain('加载失败');
     action('save');
     await flush();
     expect(updateCleanRule).not.toHaveBeenCalled();

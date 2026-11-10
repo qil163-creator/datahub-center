@@ -7,7 +7,7 @@ import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, message } from 'antdv-next';
+import { message } from 'antdv-next';
 
 import { useVbenForm } from '#/adapter/form';
 import {
@@ -177,7 +177,6 @@ onBeforeUnmount(() => {
     class="w-[800px] max-w-[calc(100vw-32px)]"
     :confirm-disabled="!ready || !!loadError"
   >
-    <Alert v-if="loadError" :message="loadError" type="error" class="mb-4" />
-    <Form />
+<Form />
   </Modal>
 </template>

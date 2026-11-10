@@ -244,11 +244,11 @@ const [Grid, gridApi] = useVbenVxeGrid<Wizard>({
     ],
     checkboxConfig: { checkMethod: ({ row }) => editable(row as Wizard) },
     data: [],
+    height: 'auto',
     loading: false,
     pagerConfig: { enabled: false },
     proxyConfig: { enabled: false },
     rowConfig: { keyField: 'id', isHover: true },
-    scrollbarConfig: { height: 6 },
     showOverflow: false,
     toolbarConfig: { refresh: true, refreshOptions: { queryMethod: load }, custom: true, zoom: false },
   } as VxeTableGridOptions<Wizard>,
@@ -290,24 +290,8 @@ watch(
           title="没有整库同步查询权限"
           show-icon
         />
-        <Alert
-          v-if="failed"
-          type="error"
-          title="任务列表加载失败，请重试"
-          show-icon
-        >
-          <template #action><Button @click="load">重试</Button></template>
-        </Alert>
-        <Alert
-          v-if="optionsFailed"
-          type="warning"
-          title="数据连接选项加载失败"
-          show-icon
-        >
-          <template #action>
-            <Button @click="loadOptions">重试</Button>
-          </template>
-        </Alert>
+
+
         <form
           v-if="showSearch"
           class="fs-panel fs-search"

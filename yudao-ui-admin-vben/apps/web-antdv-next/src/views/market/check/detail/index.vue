@@ -160,11 +160,7 @@ onBeforeUnmount(() => {
       type="warning"
       show-icon
     />
-    <Alert v-if="loadError" :message="loadError" type="error" show-icon>
-      <template #action>
-        <Button size="small" @click="load">重试</Button>
-      </template>
-    </Alert>
+
     <div v-if="loading" class="check-detail__loading"><Spin spinning /></div>
     <template v-if="detail">
       <ResourceSummary

@@ -9,7 +9,7 @@ import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
-import { Alert, Button, message } from 'antdv-next';
+import { Button, message } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/business-vxe-table';
 import {
@@ -101,7 +101,7 @@ const columns: VxeTableGridOptions<Api.CollectInstance>['columns'] = [
     slots: { default: 'actions' },
   },
 ];
-const { Grid, gridApi, load, selected, error } =
+const { Grid, gridApi, load, selected } =
   useMetadataGrid<Api.CollectInstance>(
     columns,
     (page) =>
@@ -157,6 +157,7 @@ const { Grid, gridApi, load, selected, error } =
     },
     clearFilters,
     'fill',
+    true,
     true,
   );
 watch(
@@ -214,24 +215,9 @@ async function remove() {
   <Page auto-content-height content-class="metadata-page">
     <LogModal />
 
-    <Alert
-      v-if="error"
-      type="error"
-      show-icon
-      message="采集实例加载失败，请重试"
-    >
-      <template #action>
-        <Button size="small" @click="load()">
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="metadata-grid-shell">
       <Grid
-        class="metadata-grid"
+        class="metadata-grid subtle-grid-scrollbar"
         table-title="采集实例列表"
       >
         <template #toolbar-tools>

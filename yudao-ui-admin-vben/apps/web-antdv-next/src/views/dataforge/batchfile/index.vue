@@ -470,22 +470,7 @@ watch(
           message="没有批量文件入库查询权限"
           show-icon
         />
-        <Alert
-          v-if="failed"
-          class="mb-3"
-          type="error"
-          message="任务加载失败，请重试"
-          show-icon
-        >
-          <template #action>
-            <Button size="small" @click="load">
-              <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
-              </template>
-              重试
-            </Button>
-          </template>
-        </Alert>
+
       </template>
       <template #info="{ row }">
         <Button

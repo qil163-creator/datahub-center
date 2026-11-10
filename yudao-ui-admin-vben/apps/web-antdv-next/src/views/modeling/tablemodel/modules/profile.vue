@@ -15,7 +15,6 @@ import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   Input,
   InputNumber,
@@ -86,7 +85,6 @@ const DECIMAL_TYPES = new Set([
 ]);
 
 const loading = ref(false);
-const loadError = ref(false);
 const saving = ref(false);
 const model = ref<TableModelApi.Model>();
 const fields = ref<FieldRow[]>([]);
@@ -259,7 +257,6 @@ function toRow(field: ModelingModelApi.ModelField): FieldRow {
 async function load() {
   const request = ++sequence;
   loading.value = true;
-  loadError.value = false;
   try {
     const [latest, design, docs, elementPage] = await Promise.all([
       getTableModel(props.modelId),
@@ -281,7 +278,7 @@ async function load() {
     await nextTick();
     if (request === sequence) await fieldsGrid.reload();
   } catch {
-    if (request === sequence) loadError.value = true;
+    // 请求层负责提示错误。
   } finally {
     if (request === sequence) loading.value = false;
   }
@@ -423,17 +420,7 @@ function text(value?: null | number | string) {
 <template>
   <div v-if="!model" class="model-profile__state bg-card">
     <Spin v-if="loading" tip="正在加载模型详情…" />
-    <Alert v-else type="error" show-icon message="模型详情加载失败">
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-        </Button>
-        <DetailBackButton class="ml-2" @click="emit('back')" />
-      </template>
-    </Alert>
+    <template v-else><DetailBackButton class="ml-2" @click="emit('back')" /></template>
   </div>
   <div v-else class="model-profile">
     <section class="model-profile__summary bg-card" aria-label="模型概要">
@@ -476,13 +463,6 @@ function text(value?: null | number | string) {
       class="model-profile__attributes bg-card"
       aria-label="模型属性与详细信息"
     >
-      <Alert
-        v-if="loadError"
-        class="mb-3"
-        type="error"
-        show-icon
-        message="刷新失败，请重试"
-      />
       <Tabs class="model-profile__tabs">
         <TabPane key="fields" tab="属性字段">
           <FieldsGrid class="model-fields-grid">

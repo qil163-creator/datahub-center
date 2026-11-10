@@ -13,11 +13,10 @@ import {
 } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { IconifyIcon } from '@vben/icons';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import { useAccessStore } from '@vben/stores';
 
-import { Alert, Button, Spin, Table } from 'antdv-next';
+import { Button, Spin, Table } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/vxe-table';
 import { getQualityReport } from '#/api/governance/quality/report';
@@ -215,16 +214,7 @@ onActivated(() => {
 <template>
   <div class="quality-report-detail">
     <Spin v-if="loading" class="quality-report-loading" />
-    <Alert v-else-if="failed" type="error" message="报告详情加载失败">
-      <template #action>
-        <Button @click="load">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试 </Button
-        ><DetailBackButton @click="emit('back')" />
-      </template>
-    </Alert>
+    <template v-else-if="failed"><DetailBackButton @click="emit('back')" /></template>
     <template v-else-if="report">
       <section class="quality-report-panel">
         <div class="quality-report-section-title">

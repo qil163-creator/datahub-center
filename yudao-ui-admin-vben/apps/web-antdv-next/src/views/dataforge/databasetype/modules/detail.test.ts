@@ -307,7 +307,7 @@ describe('连接器只读详情弹窗', () => {
   );
 
   it.each(['reject', 'null'] as const)(
-    '详情 %s 时展示可恢复错误，并允许重新打开读取',
+    '详情 %s 时不展示错误横幅，并允许重新打开读取',
     async (outcome) => {
       if (outcome === 'reject') {
         harness.get.mockRejectedValueOnce(new Error('读取失败'));
@@ -320,7 +320,7 @@ describe('连接器只读详情弹窗', () => {
       await nextTick();
       expect(state.detail).toBeUndefined();
       expect(state.failed).toBe(true);
-      expect(host.textContent).toContain('连接器详情加载失败，请重新打开。');
+      expect(host.textContent).not.toContain('连接器详情加载失败');
       expect(harness.state.loading).toBe(false);
       await harness.options!.onOpenChange(true);
       await nextTick();

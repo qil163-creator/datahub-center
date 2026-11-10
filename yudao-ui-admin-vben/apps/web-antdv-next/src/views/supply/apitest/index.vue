@@ -235,12 +235,7 @@ async function selectApi(rawId: string) {
     if (detail.authType === 'APPKEY')
       tab.draft.auth = { ...tab.draft.auth, type: 'apikey', key: 'X-AppKey' };
   } catch {
-    if (
-      !controller.signal.aborted &&
-      generation === epoch &&
-      tabs.value.includes(tab)
-    )
-      tab.error = 'API 定义加载失败，请关闭当前标签后重新选择';
+    // 定义未就绪时仍由发送前校验阻止执行。
   } finally {
     if (details.get(id) === controller && generation === epoch) {
       details.delete(id);
@@ -408,15 +403,7 @@ onBeforeUnmount(() => {
           "
           @select="selectApi"
           @refresh="loadCatalog"
-        /><Alert
-          v-if="catalogError"
-          :message="catalogError"
-          type="error"
-          show-icon
-        /><Button v-if="catalogError" type="link" @click="loadCatalog">
-          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-          重试
-        </Button>
+        />
       </Card>
       <button
         class="api-workbench__collapse"

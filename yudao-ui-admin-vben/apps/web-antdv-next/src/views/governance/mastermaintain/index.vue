@@ -5,12 +5,9 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
 import {
-  Alert,
-  Button,
   Descriptions,
   DescriptionsItem,
   Spin,
@@ -68,16 +65,7 @@ watch(modelId, load, { immediate: true });
   <Page auto-content-height content-class="metadata-page qdata-master-page">
     <ModelList v-if="!modelId" @enter="enter" />
     <Spin v-else-if="loading" class="m-auto" />
-    <Alert v-else-if="failed" type="error" message="模型详情加载失败">
-      <template #action>
-        <Button @click="load">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-</Button><DetailBackButton @click="back" />
-      </template>
-    </Alert>
+    <template v-else-if="failed"><DetailBackButton @click="back" /></template>
     <div v-else-if="model" class="metadata-detail">
       <section class="metadata-panel">
         <div class="metadata-detail__title">

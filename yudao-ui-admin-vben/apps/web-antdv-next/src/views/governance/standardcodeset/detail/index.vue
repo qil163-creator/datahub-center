@@ -112,7 +112,7 @@ onActivated(() => {
     class="qdata-standard"
     content-class="flex min-h-0 flex-col gap-[14px]"
   >
-    <Alert v-if="error" :message="error" type="error" show-icon>
+    <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" :message="error" type="error" show-icon>
       <template #action>
         <Button @click="load">
           <template #icon>

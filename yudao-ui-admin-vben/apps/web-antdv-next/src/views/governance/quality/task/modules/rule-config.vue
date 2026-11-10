@@ -326,14 +326,7 @@ watch(
           placeholder="请选择检查字段"
           show-search
           option-filter-prop="label"
-        /><small v-if="fieldError" class="q-error">字段加载失败
-          <button
-            class="inline-flex items-center gap-1"
-            type="button"
-            @click="loadFields"
-          >
-            <IconifyIcon icon="lucide:refresh-cw" />重试
-          </button></small>
+        />
       </div>
     </div>
     <template v-if="key === 'CHARACTER_VALIDATION'">
@@ -514,14 +507,6 @@ watch(
               ＋
             </Button>
           </div>
-          <small v-if="fieldError" class="q-error">字段加载失败
-            <button
-              class="inline-flex items-center gap-1"
-              type="button"
-              @click="loadFields"
-            >
-              <IconifyIcon icon="lucide:refresh-cw" />重试
-            </button></small>
         </div>
       </div>
     </template>

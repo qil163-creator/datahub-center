@@ -7,9 +7,8 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
-import { Alert, Button, message, Modal, Switch } from 'antdv-next';
+import { Alert, message, Modal, Switch } from 'antdv-next';
 
 import { TableAction } from '#/adapter/vxe-table';
 import {
@@ -125,7 +124,7 @@ const columns: VxeTableGridOptions<Api.MetaTable>['columns'] = [
     slots: { default: 'actions' },
   },
 ];
-const { Grid, gridApi, load, selected, error } = useMetadataGrid<Api.MetaTable>(
+const { Grid, gridApi, load, selected } = useMetadataGrid<Api.MetaTable>(
   columns,
   (page) =>
     (props.finalized ? getFinalizedMetaTablePage : getMetaTablePage)({
@@ -182,6 +181,7 @@ const { Grid, gridApi, load, selected, error } = useMetadataGrid<Api.MetaTable>(
     applied.value = { pageNo: 1, pageSize: 10 };
   },
   'fill',
+  true,
   true,
 );
 const [ImportModal, importApi] = useVbenModal({
@@ -343,16 +343,6 @@ const sidebarCollapsed = ref(false);
       <MetaObjectTree v-show="!sidebarCollapsed" ref="tree" @select="selectNode" @loaded="onTreeLoaded" />
       <SidebarCollapse :collapsed="sidebarCollapsed" label="目录" @toggle="sidebarCollapsed = !sidebarCollapsed" />
       <div class="metadata-layout__main">
-        <Alert v-if="error" type="error" message="加载失败，请重试" show-icon>
-          <template #action>
-            <Button size="small" @click="load()">
-              <template #icon>
-                <IconifyIcon :icon="metadataIcon('refresh')" />
-              </template>
-              重试
-            </Button>
-          </template>
-        </Alert>
         <Alert
           v-if="node?.objectStatus === 2 && !finalized"
           type="warning"
@@ -376,7 +366,7 @@ const sidebarCollapsed = ref(false);
         </Alert>
         <div class="metadata-grid-shell">
           <Grid
-            class="metadata-grid"
+            class="metadata-grid subtle-grid-scrollbar"
             :table-title="finalized ? '定版元数据列表' : '最新元数据列表'"
           >
             <template #toolbar-tools>

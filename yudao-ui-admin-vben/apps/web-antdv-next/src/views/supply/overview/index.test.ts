@@ -71,11 +71,6 @@ async function mount() {
   app.mount(host);
   await flush();
 }
-function click(text: string) {
-  [...host.querySelectorAll('button')]
-    .find((button) => button.textContent?.includes(text))
-    ?.click();
-}
 beforeEach(() => {
   vi.clearAllMocks();
   visible.value = true;
@@ -93,7 +88,7 @@ afterEach(() => {
 });
 
 describe('数据概览加载', () => {
-  it('区分加载、失败和零值，重试成功后不再显示顶部说明工具栏', async () => {
+  it('区分加载和零值，失败不显示提示条且重新进入可恢复', async () => {
     const first = deferred<{ todayCount: number }>();
     harness.load
       .mockReturnValueOnce(first.promise)
@@ -103,8 +98,11 @@ describe('数据概览加载', () => {
     expect(host.textContent).not.toContain('调用数：0');
     first.reject(new Error('failed'));
     await flush();
-    expect(host.textContent).toContain('数据加载失败');
-    click('重试');
+    expect(host.textContent).not.toContain('数据加载失败');
+    visible.value = false;
+    await flush();
+    visible.value = true;
+    await flush();
     await flush();
     expect(host.textContent).toContain('调用数：0');
     expect(host.textContent).not.toContain(
@@ -131,9 +129,12 @@ describe('数据概览加载', () => {
     await flush();
     visible.value = true;
     await flush();
-    expect(host.textContent).toContain('刷新失败');
+    expect(host.textContent).not.toContain('刷新失败');
     expect(host.textContent).toContain('调用数：3');
-    click('重试');
+    visible.value = false;
+    await flush();
+    visible.value = true;
+    await flush();
     harness.user.userInfo.userId = '2';
     await flush();
     expect(host.textContent).not.toContain('调用数：3');

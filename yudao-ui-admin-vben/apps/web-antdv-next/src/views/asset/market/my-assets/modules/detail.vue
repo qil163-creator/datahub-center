@@ -9,7 +9,6 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
-  Alert,
   Button,
   Empty,
   Spin,
@@ -212,14 +211,7 @@ defineExpose({ open, close, isCurrent });
 <template>
   <Drawer>
     <Spin v-if="loading" spinning />
-    <Alert v-if="loadError" type="error" :message="loadError" show-icon>
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>
-          重试
-        </Button>
-      </template>
-    </Alert>
+
     <template v-if="detail">
       <div class="mb-4 flex flex-wrap items-center gap-2">
         <Tag :color="accessState(detail.accessStatus).color">

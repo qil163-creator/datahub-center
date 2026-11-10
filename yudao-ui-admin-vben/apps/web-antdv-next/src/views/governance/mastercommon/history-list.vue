@@ -7,7 +7,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert, Tag } from 'antdv-next';
+import { Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -241,13 +241,6 @@ onMounted(load);
           ? '当模型开启了审批功能后，数据的新增、编辑、删除操作将进入此审批队列。审批通过后数据才会正式生效，驳回则撤销本次变更。'
           : '变更日志自动记录主数据的每一次变更（新增、编辑、删除），便于追溯数据的历史变化。此页面为只读，无需手动操作。'
       "
-    />
-    <Alert
-      v-if="failed"
-      class="mb-3"
-      type="error"
-      message="记录加载失败，请重新查询。"
-      show-icon
     />
     <Grid
       class="min-h-0 flex-1"

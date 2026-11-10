@@ -220,7 +220,7 @@ defineExpose({ open });
     :title="editId ? '编辑清洗规则' : '新增清洗规则'"
   >
     <Alert
-      v-if="loadError"
+      v-if="loadError && (!/(?:加载|读取|获取).*失败/.test(loadError) || /保存|冲突|未确认/.test(loadError))"
       class="mb-3"
       :message="loadError"
       show-icon

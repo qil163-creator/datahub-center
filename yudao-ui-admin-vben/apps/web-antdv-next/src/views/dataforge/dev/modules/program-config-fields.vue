@@ -8,7 +8,6 @@ import { useAccessStore } from '@vben/stores';
 
 import {
   Alert,
-  Button,
   FormItem,
   Input,
   InputNumber,
@@ -272,21 +271,9 @@ const resourceFields = computed<
       />
       运行环境
     </h4>
+
     <Alert
-      v-if="failed"
-      class="mb-3"
-      type="error"
-      message="部署档案加载失败，请重试。"
-    >
-      <template #action>
-        <Button size="small" @click="loadProfiles">
-          <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
-          >重试
-        </Button>
-      </template>
-    </Alert>
-    <Alert
-      v-else-if="!loading && eligibleProfiles.length === 0"
+      v-if="!failed && !loading && eligibleProfiles.length === 0"
       class="mb-3"
       type="warning"
       message="平台未配置此任务类型的可用部署档案；任务配置未完成，完善后保存才可运行。"

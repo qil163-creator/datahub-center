@@ -135,6 +135,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     ],
   },
   gridOptions: {
+    scrollbarConfig: { height: 6 },
     showOverflow: false,
     columns: [
       { field: 'id', title: '编号', width: 70 },
@@ -217,7 +218,7 @@ watch(
 
 <template>
   <Page auto-content-height>
-    <Grid table-title="任务实例监控">
+    <Grid class="subtle-grid-scrollbar" table-title="任务实例监控">
       <template #instanceStatus="{ row }">
         <Tag :color="statusOption(row.instanceStatus)?.color ?? 'default'">
           {{

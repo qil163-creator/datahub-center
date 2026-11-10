@@ -7,7 +7,7 @@ import { deferred, flush, mock, mountKeptState, mountState, resetMocks } from '.
 import List from './index.vue';
 interface State {
   rows: AssetTagApi.Tag[];
-  query: { creatorName?: string; name?: string; status?: number };
+  query: { creatorName?: string; name?: string };
   selectedCategoryId?: string;
   selectedRowKeys: string[];
   pendingIds: Set<string>;
@@ -51,6 +51,7 @@ it('sends free-text creator and category IDs through server filtering and resets
       pageNo: 1,
     }),
   );
+  expect(mock.page.mock.lastCall?.[0]).not.toHaveProperty('status');
   s.reset();
   await flush();
   expect(mock.page).toHaveBeenLastCalledWith(
@@ -60,6 +61,7 @@ it('sends free-text creator and category IDs through server filtering and resets
       name: undefined,
     }),
   );
+  expect(mock.page.mock.lastCall?.[0]).not.toHaveProperty('status');
 });
 it('requests global scoped count sorting instead of sorting the current page', async () => {
   const s = await mount();

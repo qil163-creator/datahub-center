@@ -10,7 +10,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert, Button, Input, Table } from 'antdv-next';
+import { Button, Input, Table } from 'antdv-next';
 
 import { RangePicker } from '#/adapter/component/date-picker';
 import { getImportedAssetRowLogPage } from '#/api/asset/dataasset/imported';
@@ -144,30 +144,22 @@ onBeforeUnmount(() => {
     class="!top-[60px] !w-[1200px] !max-w-[calc(100vw-32px)] !rounded-[var(--radius)]"
   >
     <div class="row-history__filters">
-      <label
-        >时间
+      <label>时间
         <RangePicker
           v-model:value="dateRange"
           show-time
           :placeholder="['开始日期', '结束日期']"
       /></label>
-      <label
-        >创建人
+      <label>创建人
         <Input
           v-model:value="creatorName"
           placeholder="请输入创建人"
           allow-clear
           @press-enter="query"
       /></label>
-      <Button @click="query">查询</Button
-      ><Button @click="clearFilters">重置</Button>
+      <Button @click="query">查询</Button><Button @click="clearFilters">重置</Button>
     </div>
-    <Alert
-      v-if="failed"
-      type="error"
-      message="修改记录读取失败，请关闭后重试。"
-      class="mb-3"
-    />
+
     <Table
       :columns="tableColumns"
       :data-source="rows"

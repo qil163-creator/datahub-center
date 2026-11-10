@@ -447,11 +447,6 @@ defineExpose({ open, close });
     >
       <Spin :spinning="loading">
         <div class="qd-modal-scroll">
-          <Alert v-if="failed" type="error" message="汇总表加载失败" show-icon>
-            <template #action>
-              <Button @click="open(form.id)">重试</Button>
-            </template>
-          </Alert>
           <Alert
             v-if="readonly"
             type="info"
@@ -464,15 +459,6 @@ defineExpose({ open, close });
             message="保存失败，修改内容已保留。请核对最新详情后重试。"
             show-icon
           />
-          <Alert
-            v-if="options.error.value"
-            type="warning"
-            :message="`${options.error.value}选项加载失败，可重新加载。`"
-          >
-            <template #action>
-              <Button @click="options.load">重试</Button>
-            </template>
-          </Alert>
           <div class="qd-summary-notice">
             <QdIcon
               name="info"

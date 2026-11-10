@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
     class="tag-form-modal !top-[6vh] !w-[800px] !max-w-[calc(100vw-32px)] !rounded-[var(--radius)]"
     content-class="!p-0"
   >
-    <Alert v-if="errorText" :message="errorText" type="error" show-icon />
+    <Alert v-if="errorText && optionsReady" :message="errorText" type="error" show-icon />
     <Spin :spinning="loading">
       <Form
         :model="form"

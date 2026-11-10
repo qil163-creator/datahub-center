@@ -334,7 +334,7 @@ describe('model profile field interactions', () => {
         ...change,
       });
       await mount();
-      expect(host.textContent).toContain('模型详情加载失败');
+      expect(host.textContent).not.toContain('模型详情加载失败');
       expect(host.querySelectorAll('[data-field]')).toHaveLength(0);
       expect(
         [...host.querySelectorAll('button')].some(

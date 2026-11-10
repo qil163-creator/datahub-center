@@ -8,7 +8,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert, Button, Input, message, Table } from 'antdv-next';
+import { Button, Input, message, Table } from 'antdv-next';
 
 import { getDocVersions, publishDocVersion } from '#/api/governance/doc';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -125,9 +125,6 @@ watch(
           生成新版本
         </Button>
       </div>
-      <Alert v-if="failed" type="error" message="版本快照加载失败">
-        <template #action><Button @click="load">重试</Button></template>
-      </Alert>
       <Table
         :columns="columns"
         :data-source="versions"

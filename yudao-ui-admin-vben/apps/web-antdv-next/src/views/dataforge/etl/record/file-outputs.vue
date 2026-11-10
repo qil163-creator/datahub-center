@@ -304,7 +304,6 @@ async function refresh() {
   } catch {
     if (stillCurrent()) {
       outputs.value = [];
-      error.value = '文件回执加载失败，或当前用户不是该运行的文件所有人。';
     }
   } finally {
     if (current === sequence) loading.value = false;

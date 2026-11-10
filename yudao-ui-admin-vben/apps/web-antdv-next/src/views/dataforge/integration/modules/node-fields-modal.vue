@@ -18,12 +18,13 @@ const props = withDefaults(
     direction: 'input' | 'output';
     error?: string;
     fields: readonly NodeFieldSource[];
+    loadFailed?: boolean;
     loading?: boolean;
     open: boolean;
     partial?: boolean;
     stepName: string;
   }>(),
-  { error: '', loading: false, partial: false },
+  { error: '', loadFailed: false, loading: false, partial: false },
 );
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 const sectionName = computed(() =>
@@ -102,7 +103,7 @@ function close() {
     >
       字段信息尚不完整，仅展示当前可确定的字段。
     </p>
-    <div class="qi-node-fields-scroll" :aria-busy="loading">
+    <div v-if="!loadFailed" class="qi-node-fields-scroll" :aria-busy="loading">
       <table class="qi-node-fields-table" :aria-label="sectionName">
         <colgroup>
           <col class="qi-node-fields-number" />
@@ -150,9 +151,7 @@ function close() {
               正在加载字段信息…
             </td>
           </tr>
-          <tr v-else-if="error">
-            <td colspan="6" class="qi-node-fields-state">字段信息加载失败</td>
-          </tr>
+          <template v-else-if="error"></template>
           <template v-else>
             <tr
               v-for="({ field, index }, rowIndex) in sortedFields"

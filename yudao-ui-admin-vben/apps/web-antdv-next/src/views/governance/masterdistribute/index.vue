@@ -21,7 +21,7 @@ import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Input, message, Switch, Tag, Tooltip, Tree } from 'antdv-next';
+import { Input, message, Switch, Tag, Tooltip, Tree } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -366,6 +366,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useGridColumns(),
     height: 'auto',
+    scrollbarConfig: { height: 6 },
     keepSource: true,
     showOverflow: false,
     pagerConfig: {
@@ -519,9 +520,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             @refresh="loadCategories"
           />
         </div>
-        <Alert v-if="treeError" type="warning" message="类目读取失败">
-          <template #action><Button size="small" @click="loadCategories">重试</Button></template>
-        </Alert>
         <Tree
           v-model:expanded-keys="expandedKeys"
           class="subtle-tree-scrollbar"
@@ -542,7 +540,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
       <SidebarCollapse :collapsed="categoryCollapsed" label="类目树" @toggle="categoryCollapsed = !categoryCollapsed" />
       <div class="push-main">
     <Grid
-      class="metadata-grid qdata-push-grid"
+      class="metadata-grid qdata-push-grid subtle-grid-scrollbar"
       table-title="主数据分发列表"
     >
       <template #toolbar-tools>

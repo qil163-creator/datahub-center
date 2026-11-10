@@ -7,7 +7,7 @@ import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
 
-import { Alert, message, Modal } from 'antdv-next';
+import { message, Modal } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -191,12 +191,6 @@ onMounted(load);
           发布模型后到「数据维护」录入数据。
         </template>
       </PageGuide>
-      <Alert
-        v-if="failed"
-        type="error"
-        show-icon
-        message="主数据域加载失败，请重新查询。"
-      />
       <Grid class="min-h-0 flex-1" table-title="主数据域列表">
         <template #toolbar-tools>
           <TableAction

@@ -9,7 +9,7 @@ import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Spin, Table, Tag } from 'antdv-next';
+import { Button, Spin, Table, Tag } from 'antdv-next';
 
 import {
   checkMarketAccess,
@@ -248,7 +248,7 @@ function assetImage(name: string) {
   <div class="mart-detail">
     <ApplyModal @success="onApplied" />
     <Spin v-if="detailLoading && !current" spinning />
-    <Alert v-if="detailError" :message="detailError" type="warning" show-icon />
+
     <template v-if="current">
       <section class="mart-detail__metadata">
         <header class="mart-detail__heading">
@@ -338,17 +338,7 @@ function assetImage(name: string) {
           role="tabpanel"
           :aria-labelledby="`mart-tab-${activeTab}`"
         >
-          <Alert
-            v-if="contentError"
-            :message="contentError"
-            type="error"
-            show-icon
-          >
-            <template #action>
-              <Button size="small" @click="selectTab(activeTab)"> 重试 </Button>
-            </template>
-          </Alert>
-          <div v-if="!permitted && !detailLoading" class="mart-detail__empty">
+<div v-if="!permitted && !detailLoading" class="mart-detail__empty">
             <img
               :src="assetImage('empty-permission')"
               alt=""

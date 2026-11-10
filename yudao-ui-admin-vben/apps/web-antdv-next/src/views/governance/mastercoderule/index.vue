@@ -5,7 +5,7 @@ import { onMounted, reactive, ref } from 'vue';
 
 import { Page, useVbenDrawer } from '@vben/common-ui';
 
-import { Alert, message, Modal } from 'antdv-next';
+import { message, Modal } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { getMasterModelSimpleList } from '#/api/governance/masterdata';
@@ -210,12 +210,6 @@ onMounted(refresh);
         type="info"
         show-icon
         message="编码规则定义了主数据编码的自动生成方式（如 STU-20260413-001）。为模型配置并启用编码规则后，新增数据时系统将自动生成编码，无需手动填写。每个模型仅可启用一条编码规则。"
-      />
-      <Alert
-        v-if="failed || modelsFailed"
-        type="error"
-        show-icon
-        message="编码规则或模型加载失败，请重新查询。"
       />
       <Grid class="min-h-0 flex-1" table-title="编码规则列表">
         <template #toolbar-tools>

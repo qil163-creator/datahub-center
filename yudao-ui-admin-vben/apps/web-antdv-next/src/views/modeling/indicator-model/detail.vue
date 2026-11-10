@@ -19,7 +19,6 @@ import { getIndicator, getIndicatorPage } from '#/api/modeling/indicator-model';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import domainIcon from '#/views/modeling/logictable/assets/data-section-default-icon-small.svg';
-import { QdIcon } from '#/views/modeling/logictable/icons';
 
 import { PERIOD_LABELS, TYPE_LABELS } from './data';
 import { useMetricOptions } from './modules/use-metric-options';
@@ -224,20 +223,7 @@ onActivated(() => {
       type="warning"
       message="暂无指标模型查询权限"
     />
-    <Alert
-      v-else-if="failed"
-      type="error"
-      message="指标详情加载失败或指标类型不匹配，请返回列表重试。"
-    >
-      <template #action>
-        <Button size="small" @click="load">
-          <template #icon>
-            <QdIcon name="toolbarRefresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
+    <template v-else-if="failed"></template>
     <Spin v-else :spinning="loading" class="indicator-detail-spin">
       <template v-if="detail">
         <section class="indicator-summary">
@@ -304,11 +290,6 @@ onActivated(() => {
         >
           <Tabs v-model:active-key="tab">
             <TabPane v-if="kind === 'atomic'" key="derived" tab="派生指标">
-              <Alert
-                v-if="relatedError"
-                type="error"
-                message="关联派生指标加载失败，请重新选择页签重试。"
-              />
               <RelatedGrid class="metric-related-grid">
                 <template #name="{ row }">
                   <div>{{ row.name }} ({{ row.code }})</div>

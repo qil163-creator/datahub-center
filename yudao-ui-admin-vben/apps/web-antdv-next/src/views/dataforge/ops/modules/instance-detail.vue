@@ -5,7 +5,7 @@ import type { OpsInstanceApi as Api } from '#/api/dataforge/ops';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
-import { Alert, Button, Input, Spin } from 'antdv-next';
+import { Button, Input, Spin } from 'antdv-next';
 
 import { getOpsInstanceLog } from '#/api/dataforge/ops';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
@@ -244,11 +244,7 @@ const date = displayDate;
           allow-clear
         >
           <template #prefix><ReferenceIcon name="search" /></template>
-</Input><Alert v-if="failed" type="error" message="日志加载失败，请重试">
-          <template #action>
-            <Button size="small" @click="loadLog">重试</Button>
-          </template>
-</Alert><Spin :spinning="loading">
+</Input><Spin :spinning="loading">
           <LogViewer :message="message" :keyword="keyword" />
         </Spin>
       </div>

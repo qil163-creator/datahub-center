@@ -64,9 +64,6 @@ vi.mock('./data', () => ({
 vi.mock('./modules/form.vue', () => ({
   default: defineComponent({ setup: () => () => null }),
 }));
-vi.mock('./modules/import-form.vue', () => ({
-  default: defineComponent({ setup: () => () => null }),
-}));
 vi.mock('../standardcommon/standard-list-layout.vue', () => ({
   default: defineComponent({
     setup:
@@ -151,8 +148,9 @@ vi.mock('#/adapter/vxe-table', () => ({
               ),
               slots['toolbar-tools']?.(),
               slots.top?.(),
-              state.columns.find((column) => column.field === 'selection')
-                ?.visible
+              state.columns.some(
+                (column) => column.field === 'selection' && column.visible !== false,
+              )
                 ? h('input', { type: 'checkbox', 'data-selection': '' })
                 : null,
               h(
@@ -318,22 +316,17 @@ afterEach(() => {
   host.remove();
 });
 describe('数据元目录查询', () => {
-  it('批量操作勾选列在翻页刷新后仍然可见', async () => {
+  it('批量删除勾选列保持可见，已移除的工具栏操作不再显示', async () => {
     mount();
     await settle();
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent === '批量操作')!
-      .click();
-    await settle();
     expect(host.querySelector('[data-selection]')).not.toBeNull();
+    expect(host.textContent).toContain('批量删除');
+    for (const label of ['导入', '批量操作', '退出批量操作', '导出', '统计概览']) {
+      expect(host.textContent).not.toContain(label);
+    }
     click('[data-next-page]');
     await settle();
     expect(host.querySelector('[data-selection]')).not.toBeNull();
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent === '退出批量操作')!
-      .click();
-    await settle();
-    expect(host.querySelector('[data-selection]')).toBeNull();
   });
   it('真实分页后选择大 ID 类目会回到第一页，查询保留类目', async () => {
     mount();

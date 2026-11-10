@@ -10,7 +10,6 @@ import { getQualityTaskSimpleList } from '#/api/governance/quality/task';
 /** 成果质量验收任务选择（选填），研发任务与 ETL 流程共用。 */
 const qualityTaskId = defineModel<DataforgeDevApi.Id>('qualityTaskId');
 const qualityTasks = ref<{ label: string; value: string }[]>([]);
-const qualityError = ref(false);
 const loading = ref(false);
 let alive = true;
 
@@ -21,7 +20,6 @@ onBeforeUnmount(() => {
 async function loadQualityTasks() {
   if (loading.value) return;
   loading.value = true;
-  qualityError.value = false;
   try {
     const list = await getQualityTaskSimpleList();
     if (alive)
@@ -32,7 +30,7 @@ async function loadQualityTasks() {
           value: String(item.id),
         }));
   } catch {
-    if (alive) qualityError.value = true;
+    // 请求失败时保留当前选项。
   } finally {
     if (alive) loading.value = false;
   }
@@ -58,7 +56,6 @@ async function loadQualityTasks() {
         @focus="loadQualityTasks"
         @change="(id?: string) => (qualityTaskId = id)"
       />
-      <span v-if="qualityError" class="text-red-500">质量任务加载失败，请检查查询权限或稍后重试。</span>
     </label>
   </div>
 </template>

@@ -214,12 +214,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 <template>
   <Drawer title="主数据审批详情">
-    <Alert
-      v-if="failed"
-      type="error"
-      show-icon
-      message="审批详情加载失败，请重新打开。"
-    />
     <div v-if="row" class="mx-4">
       <DetailFieldForm :fields="fields" label-width="100px">
         <template #status>

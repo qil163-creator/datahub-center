@@ -341,16 +341,14 @@ onMounted(loadDatabases);
                 视图
               </Tag>
               <Tag
-                v-if="node.nodeType === 'database'"
+                v-if="node.nodeType === 'database' && !node.loadFailed"
                 class="ml-auto shrink-0"
                 size="small"
               >
                 {{
-                  node.loadFailed
-                    ? '加载失败'
-                    : node.tableCount === undefined
-                      ? '未加载'
-                      : `${node.tableCount} 表`
+                  node.tableCount === undefined
+                    ? '未加载'
+                    : `${node.tableCount} 表`
                 }}
               </Tag>
             </span>

@@ -422,7 +422,7 @@ describe('asset map workspace', () => {
     mock.dataDomains.mockRejectedValueOnce(new Error('板块读取失败'));
     mount();
     await flush();
-    expect(host.textContent).toContain('数据板块读取失败');
+    expect(host.textContent).not.toContain('数据板块读取失败');
     expect(state.categoryTreeForSelect[0]?.title).toBe('生产类目');
     expect(state.groupTree[1]?.children?.[0]?.title).toBe('贴源层');
     await state.loadDataDomains();
@@ -576,7 +576,7 @@ describe('asset map workspace', () => {
     await state.loadAssets();
     await flush();
     expect(state.assets).toEqual([]);
-    expect(host.textContent).toContain('资产读取失败');
+    expect(host.textContent).not.toContain('资产读取失败');
     await state.loadAssets();
     expect(state.assets[0]?.assetName).toBe('当前资产');
   });

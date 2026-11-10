@@ -11,7 +11,6 @@ import { Page, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
 import {
-  Alert,
   Button,
   Descriptions,
   DescriptionsItem,
@@ -302,22 +301,7 @@ const technicalFields = computed(() =>
     <ColumnModal @success="load" />
     <Spin :spinning="loading" :classes="{ root: 'metadata-detail-spin' }">
       <div class="metadata-detail">
-        <Alert
-          v-if="failed"
-          type="error"
-          message="元数据加载失败或已不可访问"
-          show-icon
-        >
-          <template #action>
-            <Button @click="load">
-              <template #icon>
-                <IconifyIcon :icon="metadataIcon('refresh')" />
-              </template>
-              重试
-            </Button>
-            <DetailBackButton @click="back" />
-          </template>
-        </Alert>
+        <template v-if="failed"><DetailBackButton @click="back" /></template>
         <template v-if="detail">
           <section class="metadata-panel">
             <div class="metadata-detail__title">

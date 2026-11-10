@@ -271,9 +271,6 @@ watch(
         <template #icon><IconifyIcon icon="lucide:plus" /></template>
         新增
       </Button>
-      <Alert v-if="failed" type="error" message="关联对象加载失败">
-        <template #action><Button @click="load">重试</Button></template>
-      </Alert>
     </template>
     <template #status="{ row }">
       <span v-if="kind === 'model'">{{ row.status || '-' }}</span>

@@ -83,6 +83,15 @@
   min-height: 520px;
 }
 
+.fs-list-page .fs-page {
+  height: 100%;
+  min-height: 0;
+}
+
+.fs-list-page .fs-list-panel {
+  min-height: 0;
+}
+
 .fs-toolbar {
   display: flex;
   gap: 16px;
@@ -125,9 +134,31 @@
   background: hsl(var(--foreground) / 30%);
 }
 
+.fs-list-page .fs-list-panel .vxe-table--scroll-x-handle::-webkit-scrollbar {
+  height: 6px;
+}
+
+.fs-list-page .fs-list-panel .vxe-table--scroll-x-handle::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fs-list-page .fs-list-panel .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb {
+  background: hsl(var(--foreground) / 16%);
+  border-radius: 999px;
+}
+
+.fs-list-page .fs-list-panel .vxe-table--scroll-x-handle::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 24%);
+}
+
 @supports not selector(::-webkit-scrollbar) {
   .fs-list-page .fs-list-table .ant-table-content {
     scrollbar-color: hsl(var(--foreground) / 20%) transparent;
+    scrollbar-width: thin;
+  }
+
+  .fs-list-page .fs-list-panel .vxe-table--scroll-x-handle {
+    scrollbar-color: hsl(var(--foreground) / 16%) transparent;
     scrollbar-width: thin;
   }
 }

@@ -44,14 +44,12 @@ const canRetry = computed(
 const visible = ref(false);
 const consumptionAvailable = ref(false);
 const loading = ref(false);
-const error = ref('');
 const recordId = ref<DataforgeEtlApi.Id>();
 const batches = ref<EtlTargetBatch[]>([]);
 const retryTarget = ref<EtlTargetBatch>();
 const retryMode = ref<'batch' | 'recheck'>('batch');
 const retryVisible = ref(false);
 const replay = ref<EtlReplayStatus | null>(null);
-const replayError = ref('');
 const reason = ref('');
 const retryError = ref('');
 const retrying = ref(false);
@@ -127,8 +125,6 @@ function close() {
   loading.value = false;
   batches.value = [];
   replay.value = null;
-  replayError.value = '';
-  error.value = '';
   closeRows();
   closeRetry();
 }
@@ -144,8 +140,6 @@ async function load() {
   if (recordId.value === undefined) return;
   const current = ++listSeq;
   loading.value = true;
-  error.value = '';
-  replayError.value = '';
   try {
     const [result, status] = await Promise.allSettled([
       getEtlTargetBatches(recordId.value),
@@ -153,11 +147,9 @@ async function load() {
     ]);
     if (current !== listSeq || !visible.value) return;
     if (result.status === 'fulfilled') batches.value = result.value;
-    else error.value = '目标批次加载失败，请重试。';
     if (status.status === 'fulfilled') replay.value = status.value;
-    else replayError.value = '回放复检关联状态读取失败，请刷新重试。';
   } catch {
-    if (current === listSeq) error.value = '目标批次加载失败，请重试。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === listSeq) loading.value = false;
   }
@@ -274,14 +266,7 @@ onBeforeUnmount(close);
         }
       "
     />
-    <Alert v-if="error" class="mb-3" type="error" :message="error" />
     <Alert v-if="copyError" class="mb-3" type="error" :message="copyError" />
-    <Alert
-      v-if="replayError"
-      class="mb-3"
-      type="error"
-      :message="replayError"
-    />
     <div v-if="replay" class="mb-3 rounded border p-3">
       <p>
         源运行 {{ replay.sourceRecordId }} · 工单 {{ replay.workOrderId }} ·

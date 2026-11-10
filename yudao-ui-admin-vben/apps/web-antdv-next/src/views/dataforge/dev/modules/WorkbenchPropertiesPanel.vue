@@ -67,7 +67,6 @@ const memories = ref<Record<string, string>>({});
 const error = ref('');
 const profiles = ref<DataforgeDevApi.RuntimeProfile[]>([]);
 const profilesLoading = ref(false);
-const profilesFailed = ref(false);
 let generation = 0;
 const engine = computed(() => getDevTaskEngine(props.task.taskType));
 const native = computed(() => isNativeProgramTask(draft.value));
@@ -217,7 +216,6 @@ watch(
 );
 async function loadProfiles() {
   const seq = ++generation;
-  profilesFailed.value = false;
   if (props.runtimeProfiles !== undefined) {
     profiles.value = props.runtimeProfiles;
     profilesLoading.value = false;
@@ -230,7 +228,7 @@ async function loadProfiles() {
     const rows = await getDevRuntimeProfiles();
     if (seq === generation) profiles.value = rows;
   } catch {
-    if (seq === generation) profilesFailed.value = true;
+    // 未取得环境时保留空选项，避免使用失效数据。
   } finally {
     if (seq === generation) profilesLoading.value = false;
   }
@@ -614,11 +612,6 @@ function save() {
               @update:value="chooseProfile"
             />
           </div>
-          <p v-if="profilesFailed" role="alert" class="field-note">
-            运行环境加载失败。<button type="button" @click="loadProfiles">
-              重试
-            </button>
-          </p>
           <div class="property-row">
             <label>引擎版本:</label><Input
               :value="program.engineVersion"

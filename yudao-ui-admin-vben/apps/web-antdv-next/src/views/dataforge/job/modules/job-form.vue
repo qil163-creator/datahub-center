@@ -181,12 +181,7 @@ async function save(configure = false) {
     @cancel="!busy && emit('update:open', false)"
   >
     <Spin :spinning="loading">
-      <Alert
-        v-if="failed"
-        type="error"
-        message="作业配置加载失败，请关闭后重试"
-        show-icon
-      />
+
       <Alert v-if="validation" type="error" :message="validation" show-icon />
       <form class="qj-form" @submit.prevent="save()">
         <label><span><em>*</em>作业类目</span><TreeSelect

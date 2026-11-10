@@ -369,20 +369,7 @@ function focusFirstCategory(event: KeyboardEvent) {
           >
             正在加载数据源…
           </div>
-          <div
-            v-else-if="props.error"
-            role="alert"
-            class="database-select__message"
-          >
-            <span>{{ props.error }}</span>
-            <button
-              type="button"
-              class="database-select__retry"
-              @click="emit('retry')"
-            >
-              重试
-            </button>
-          </div>
+          <template v-else-if="props.error"></template>
           <div v-else class="database-select__columns">
             <section
               role="listbox"

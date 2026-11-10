@@ -14,10 +14,9 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
-import { Alert, Button, Empty, Skeleton } from 'antdv-next';
+import { Alert, Empty, Skeleton } from 'antdv-next';
 
 import { getDatabaseSimpleList } from '#/api/dataforge/database';
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
@@ -186,32 +185,11 @@ onBeforeUnmount(() => guard.invalidate());
           type="warning"
         />
         <Skeleton v-else-if="loading" active :paragraph="{ rows: 4 }" />
-        <Alert v-else-if="error" :message="error" show-icon type="error">
-          <template #action>
-            <Button size="small" @click="loadDetail">
-<template #icon>
-<IconifyIcon icon="lucide:refresh-cw" />
-</template>重试
-</Button>
-          </template>
-        </Alert>
-        <Empty v-else description="任务不存在或已删除" />
+
+        <Empty v-else-if="!error" description="任务不存在或已删除" />
       </section>
       <template v-else>
-        <Alert
-          v-if="contextError"
-          message="部分名称加载失败，相关字段保留编号。可重试加载。"
-          show-icon
-          type="warning"
-        >
-          <template #action>
-            <Button size="small" @click="loadDetail">
-<template #icon>
-<IconifyIcon icon="lucide:refresh-cw" />
-</template>重试
-</Button>
-          </template>
-        </Alert>
+
         <TaskDetailView
           :key="`${sessionKey}/${taskId}`"
           :task="task"

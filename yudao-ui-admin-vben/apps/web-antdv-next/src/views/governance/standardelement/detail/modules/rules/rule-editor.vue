@@ -461,16 +461,7 @@ defineExpose({ open });
     footer-class="q-quality-dialog-footer"
   >
     <Spin :spinning="loading">
-      <Alert v-if="failed" type="error" message="规则加载失败">
-        <template #action>
-          <Button @click="open(openedRule, readonly)">
-            <template #icon>
-              <IconifyIcon icon="lucide:refresh-cw" />
-            </template>
-            重试
-          </Button>
-        </template>
-      </Alert>
+      <template v-if="failed"></template>
       <div v-else-if="selecting" class="standard-rule-picker">
         <nav>
           <button :class="{ active: !category }" @click="category = ''">

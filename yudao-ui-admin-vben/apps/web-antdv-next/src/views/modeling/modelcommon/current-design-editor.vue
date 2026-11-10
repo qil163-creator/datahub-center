@@ -11,7 +11,6 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
 import {
-  Alert,
   Button,
   Checkbox,
   Input,
@@ -401,9 +400,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="current-design-editor">
-    <Alert v-if="failed" type="error" message="当前设计读取失败，请重试">
-      <template #action><Button @click="loadDesign">重试</Button></template>
-    </Alert>
     <div class="mb-3 flex items-center justify-between gap-3">
       <strong>当前设计</strong>
       <Button

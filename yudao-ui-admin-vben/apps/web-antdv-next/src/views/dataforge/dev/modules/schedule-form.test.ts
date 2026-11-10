@@ -439,15 +439,13 @@ describe('调度配置加载和关闭边界', () => {
     },
   );
 
-  it('加载失败时可重新读取详情，失败状态不会被当作配置未完成', async () => {
+  it('加载失败时无横幅且不误判配置状态，重开可读取详情', async () => {
     vi.mocked(devApi.getDevTask).mockRejectedValueOnce(new Error('failed'));
     await form.open('9007199254740993');
     await flush();
-    expect(host.textContent).toContain('任务配置加载失败');
+    expect(host.textContent).not.toContain('任务配置加载失败');
     expect(host.textContent).not.toContain('配置未完成');
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent?.includes('重新加载'))!
-      .click();
+    await form.open('9007199254740993');
     await flush();
     expect(devApi.getDevTask).toHaveBeenCalledTimes(2);
     expect(host.textContent).toContain('fixture');

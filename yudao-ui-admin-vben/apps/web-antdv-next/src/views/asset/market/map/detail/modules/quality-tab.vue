@@ -432,26 +432,22 @@ const ruleColumns = [
           class="quality-tab__selector"
         />
         <span v-else>{{ task?.taskName || sourceTask?.taskName }}</span>
-        <span class="quality-tab__last"
-          >上一次评估时间：{{ formatDateTime(lastRunTime) || '-' }}</span
-        >
+        <span class="quality-tab__last">上一次评估时间：{{ formatDateTime(lastRunTime) || '-' }}</span>
         <div class="quality-tab__buttons" v-if="importedSnapshot">
           <Button type="primary" @click="sourceDialog?.open('task')">
-            质量任务详情 </Button
-          ><Button type="primary" @click="sourceDialog?.open('schedule')">
+            质量任务详情
+</Button><Button type="primary" @click="sourceDialog?.open('schedule')">
             调度配置
           </Button>
         </div>
         <div class="quality-tab__buttons" v-else-if="manageable">
-          <Button type="primary" @click="editTask">修改资产质量任务</Button
-          ><Button type="primary" @click="scheduleApi.setData({ task }).open()">
-            调度配置 </Button
-          ><Button type="primary" :loading="busy" @click="execute">
-            执行一次 </Button
-          ><Button type="primary" @click="toggleTask">
-            {{ task?.enabled === 1 ? '停止任务' : '启动任务' }} </Button
-          ><Button type="link" danger @click="deleteTask">删除</Button
-          ><Button type="link" @click="createTask">新增</Button>
+          <Button type="primary" @click="editTask">修改资产质量任务</Button><Button type="primary" @click="scheduleApi.setData({ task }).open()">
+            调度配置
+</Button><Button type="primary" :loading="busy" @click="execute">
+            执行一次
+</Button><Button type="primary" @click="toggleTask">
+            {{ task?.enabled === 1 ? '停止任务' : '启动任务' }}
+</Button><Button type="link" danger @click="deleteTask">删除</Button><Button type="link" @click="createTask">新增</Button>
         </div>
       </div>
       <Alert
@@ -475,16 +471,7 @@ const ruleColumns = [
         type="warning"
         message="执行结果待核对；重试原任务会核对同一次运行。"
       />
-      <Alert
-        v-if="failed"
-        type="error"
-        message="部分质量数据读取失败。"
-        class="quality-tab__notice"
-      >
-        <template #action>
-          <Button size="small" @click="load">重试</Button>
-        </template>
-      </Alert>
+
       <Spin :spinning="loading">
         <div class="quality-tab__dashboard">
           <section class="quality-tab__panel">
@@ -502,14 +489,14 @@ const ruleColumns = [
                 <template v-if="column.key === 'dimension'">
                   <Tag color="blue" :bordered="false">
                     {{ record.label }}
-                  </Tag> </template
-                ><template v-else-if="column.key === 'proportion'">
+                  </Tag>
+</template><template v-else-if="column.key === 'proportion'">
                   {{
                     record.proportion == null ? '-' : `${record.proportion}%`
-                  }} </template
-                ><template v-else-if="column.key === 'change'">
-                  {{ record.change ?? '-' }} </template
-                ><template v-else>{{ text ?? '-' }}</template>
+                  }}
+</template><template v-else-if="column.key === 'change'">
+                  {{ record.change ?? '-' }}
+</template><template v-else>{{ text ?? '-' }}</template>
               </template>
             </Table>
           </section>
@@ -544,13 +531,13 @@ const ruleColumns = [
               <template v-if="column.key === 'dimension'">
                 <Tag color="blue" :bordered="false">
                   {{ dimensionLabel(record.dimension) }}
-                </Tag> </template
-              ><template v-else-if="column.key === 'proportion'">
+                </Tag>
+</template><template v-else-if="column.key === 'proportion'">
                 {{ record.issueCount ?? '-' }} 条
                 <span>{{
                   record.proportion == null ? '-' : `${record.proportion}%`
-                }}</span> </template
-              ><template v-else-if="column.key === 'actions'">
+                }}</span>
+</template><template v-else-if="column.key === 'actions'">
                 <Button
                   v-if="
                     importedSnapshot ||
@@ -560,9 +547,8 @@ const ruleColumns = [
                   size="small"
                   @click="openRule(record)"
                 >
-                  <template #icon><IconifyIcon icon="lucide:eye" /></template
-                  >查看 </Button
-                ><Button
+                  <template #icon><IconifyIcon icon="lucide:eye" /></template>查看
+</Button><Button
                   v-if="
                     !importedSnapshot &&
                     hasAccessByCodes(['governance:quality-issue-data:query'])

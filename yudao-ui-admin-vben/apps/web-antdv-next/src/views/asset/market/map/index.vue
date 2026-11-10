@@ -777,6 +777,7 @@ const tagOpen = ref(false);
 const tagSaving = ref(false);
 const tagLoading = ref(false);
 const tagError = ref('');
+const tagMutationFailed = ref(false);
 const tagGuard = createLatestWins();
 const [TagCreateModal, tagCreateApi] = useVbenModal({
   connectedComponent: TagCreateForm,
@@ -809,6 +810,7 @@ async function openTags(asset: DataAssetApi.DataAsset) {
   tagOpen.value = true;
   tagLoading.value = true;
   tagError.value = '';
+  tagMutationFailed.value = false;
   try {
     const [detail, tags] = await Promise.all([
       getDataAssetDetail(id),
@@ -855,8 +857,10 @@ async function saveTags() {
     tagOpen.value = false;
     void loadAssets();
   } catch {
-    if (ticket.isCurrent())
+    if (ticket.isCurrent()) {
+      tagMutationFailed.value = true;
       tagError.value = '标签保存失败，资产或关联可能已更新。请关闭后刷新重试。';
+    }
   } finally {
     if (ticket.isCurrent()) tagSaving.value = false;
   }
@@ -885,8 +889,10 @@ async function tagCreated(id: AssetTagApi.Tag['id']) {
     )
       selectedTagIds.value.push(String(id));
   } catch {
-    if (ticket.isCurrent())
+    if (ticket.isCurrent()) {
+      tagMutationFailed.value = true;
       tagError.value = '标签已创建，选项刷新失败，请关闭后重新打开。';
+    }
   }
 }
 watch(
@@ -996,6 +1002,7 @@ function invalidatePage() {
   tagLoading.value = false;
   tagSaving.value = false;
   tagError.value = '';
+  tagMutationFailed.value = false;
   tagCreateApi.setState({ isOpen: false });
   stopEpoch++;
   stopping.value = false;
@@ -1067,35 +1074,9 @@ function syncFilterValues() {
       type="warning"
       show-icon
     />
-    <Alert
-      v-if="facetsError"
-      class="mb-3"
-      :message="facetsError"
-      type="warning"
-      show-icon
-    >
-      <template #action>
-        <Button size="small" @click="loadFacets">重新加载</Button>
-      </template>
-    </Alert>
-    <Alert
-      v-if="dataDomainsError"
-      class="mb-3"
-      :message="dataDomainsError"
-      type="warning"
-      show-icon
-    >
-      <template #action>
-        <Button size="small" @click="loadDataDomains">重新加载</Button>
-      </template>
-    </Alert>
-    <Alert
-      v-if="listError"
-      class="mb-3"
-      :message="listError"
-      type="error"
-      show-icon
-    />
+
+
+
     <div v-if="canQuery" class="asset-layout">
       <aside class="asset-aside">
         <div class="asset-aside__search flex items-center gap-2">
@@ -1420,8 +1401,7 @@ function syncFilterValues() {
       @ok="saveEdit"
       @cancel="editGuard.invalidate()"
     >
-      <Alert v-if="editError" :message="editError" type="error" show-icon />
-      <Spin :spinning="editLoading">
+<Spin :spinning="editLoading">
         <Form
           :label-col="{ style: { width: '110px' } }"
           :wrapper-col="{ style: { flex: '1', minWidth: '0' } }"
@@ -1513,7 +1493,7 @@ function syncFilterValues() {
       :style="{ top: '60px' }"
       @ok="saveTags"
     >
-      <Alert v-if="tagError" :message="tagError" type="error" show-icon /><Spin
+      <Alert v-if="tagMutationFailed" :message="tagError" type="error" show-icon /><Spin
         :spinning="tagLoading"
       >
         <div class="flex items-start gap-2 py-2">

@@ -318,13 +318,6 @@ const [Modal, modalApi] = useVbenModal({
   >
     <PickModal @picked="picked" />
     <div class="mx-4">
-      <Alert
-        v-if="loadFailed"
-        type="error"
-        message="模型或选项加载失败，请关闭后重新打开。"
-        show-icon
-        class="mb-4"
-      />
       <Form />
       <Alert
         v-if="!frozen"

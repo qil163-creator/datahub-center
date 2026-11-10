@@ -365,6 +365,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useGridColumns(),
     height: 'auto',
+    scrollbarConfig: { height: 6 },
     showHeaderOverflow: 'tooltip',
     showOverflow: false,
     stripe: true,
@@ -536,7 +537,7 @@ onMounted(() => {
 
       <!-- 右侧列表 -->
       <div class="min-h-0 min-w-0 flex-1 overflow-hidden">
-        <Grid class="dataapi-grid" table-title="API 服务列表">
+        <Grid class="dataapi-grid subtle-grid-scrollbar" table-title="API 服务列表">
           <template #toolbar-tools>
             <TableAction
               :actions="[

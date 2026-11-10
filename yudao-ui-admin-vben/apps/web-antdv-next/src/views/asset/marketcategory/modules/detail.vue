@@ -9,7 +9,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime } from '@vben/utils';
 
-import { Alert } from 'antdv-next';
+import {} from 'antdv-next';
 
 import {
   getMarketCategory,
@@ -140,13 +140,6 @@ onBeforeUnmount(reset);
     class="w-[960px] max-w-[calc(100vw-32px)]"
     data-testid="market-category-detail-modal"
   >
-    <Alert
-      v-if="loadError"
-      :message="loadError"
-      type="error"
-      show-icon
-      class="mx-4 mb-4"
-    />
-    <DetailFieldForm v-if="detail && canQuery" :fields="fields" class="mx-4" />
+<DetailFieldForm v-if="detail && canQuery" :fields="fields" class="mx-4" />
   </Modal>
 </template>

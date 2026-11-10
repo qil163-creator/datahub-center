@@ -221,14 +221,7 @@ watch(
           title="任务编号无效或没有查询权限"
           show-icon
         />
-        <Alert
-          v-if="failed"
-          type="error"
-          title="详情加载失败，请重试"
-          show-icon
-        >
-          <template #action><Button @click="load">重试</Button></template>
-        </Alert>
+
         <Spin :spinning="loading">
           <section v-if="task && config" class="fs-panel fs-detail-header">
             <div class="fs-detail-heading">

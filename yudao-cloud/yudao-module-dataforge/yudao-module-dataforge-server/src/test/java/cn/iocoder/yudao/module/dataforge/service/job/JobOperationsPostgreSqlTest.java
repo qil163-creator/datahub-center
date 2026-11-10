@@ -34,7 +34,13 @@ class JobOperationsPostgreSqlTest {
                     var boundSql=config.getMappedStatement(OpsInstanceMapper.class.getName()+".countInstances").getBoundSql(parameters).getSql();
                     assertNotNull(net.sf.jsqlparser.parser.CCJSqlParserUtil.parse(boundSql));
                     req.setName("' OR 1=1 --");assertEquals(0L,mapper.countInstances(req,null,null));
-                    if("JOB".equals(kind)){assertTrue(mapper.selectJobChildren(row.getId(),"SOURCE").startsWith("["));assertNotNull(mapper.selectJobLog(row.getId(),"SOURCE"));}
+                    if("JOB".equals(kind)){
+                        req.setName(null);req.setTaskId(row.getTaskId());
+                        assertTrue(mapper.countInstances(req,null,null)>0);
+                        assertTrue(mapper.selectInstances(req,null,null,0).stream().allMatch(found->row.getTaskId().equals(found.getTaskId())));
+                        req.setTaskId(Long.MAX_VALUE);assertEquals(0L,mapper.countInstances(req,null,null));
+                        assertTrue(mapper.selectJobChildren(row.getId(),"SOURCE").startsWith("["));assertNotNull(mapper.selectJobLog(row.getId(),"SOURCE"));
+                    }
                     else assertNotNull(mapper.selectFullSyncSnapshotLog(row.getId()));
                 }
                 session.getConnection().setAutoCommit(false);

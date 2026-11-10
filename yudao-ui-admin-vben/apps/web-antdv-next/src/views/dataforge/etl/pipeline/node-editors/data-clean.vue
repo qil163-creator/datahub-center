@@ -77,7 +77,6 @@ const MODE_OPTIONS = [
   { label: '治理清洗规则', value: 'GOVERNANCE' },
 ];
 const cleanRules = ref<GovernanceCleanRuleApi.CleanRule[]>([]);
-const cleanRuleLoadFailed = ref(false);
 const cleanRuleLoading = ref(false);
 const cleanRuleTruncated = ref(false);
 const ruleSearch = ref('');
@@ -175,7 +174,6 @@ function invalidateRules() {
   ++ruleSequence;
   cleanRules.value = [];
   cleanRuleLoading.value = false;
-  cleanRuleLoadFailed.value = false;
   cleanRuleTruncated.value = false;
   selectedGovernanceRule.value = undefined;
 }
@@ -219,7 +217,7 @@ async function loadGovernanceRules() {
     if (!current()) return;
     cleanRules.value = selectGovernanceCleanRules(rows);
   } catch {
-    if (current()) cleanRuleLoadFailed.value = true;
+    // 请求客户端已显示错误，保留空选项。
   } finally {
     if (current()) cleanRuleLoading.value = false;
   }
@@ -292,20 +290,6 @@ function cleanRule(ruleId: number | string) {
           type="warning"
           message="没有治理清洗规则查询权限，无法选择或确认治理参数。"
         />
-        <Alert
-          v-if="cleanRuleLoadFailed"
-          type="error"
-          message="规则列表加载失败。请检查治理查询权限或重试。"
-        >
-          <template #action>
-            <Button size="small" @click="loadGovernanceRules">
-              <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
-              </template>
-              重试
-            </Button>
-          </template>
-        </Alert>
         <div class="flex gap-2">
           <Input
             v-model:value="ruleSearch"

@@ -63,7 +63,6 @@ const {
   userPhone,
   loading: optionsLoading,
   failed: optionsFailed,
-  reload,
 } = usePlanningOptions(true);
 const request = useObjectRequest(() => identity.value);
 const boardIcon = (id?: number | string) =>
@@ -201,12 +200,6 @@ watch(
         <IconifyIcon
           icon="ant-design:info-circle-filled"
         />主题域用于按业务主题组织和管理数据模型，例如客户、商品、交易等。同一主题下的相关维度、事实及汇总模型可统一归类管理，并支持建立多级主题域。
-      </div>
-      <div v-if="loadFailed" class="planning-error">
-        加载主题域失败，请关闭后重试。
-      </div>
-      <div v-if="optionsFailed" class="planning-error">
-        选项加载失败。<Button type="link" @click="reload">重试</Button>
       </div>
       <Form
         :colon="false"

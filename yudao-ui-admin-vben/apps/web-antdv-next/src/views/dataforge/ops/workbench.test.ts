@@ -66,18 +66,35 @@ let app: App;
 let host: HTMLDivElement;
 const active = ref(true);
 const kind = ref<OpsInstanceApi.Kind>('INTEGRATION');
+const jobId = ref<string>();
 async function flush() { await Promise.resolve(); await Promise.resolve(); await nextTick(); }
 beforeEach(() => {
-  vi.clearAllMocks(); active.value = true; kind.value = 'INTEGRATION';
+  vi.clearAllMocks(); active.value = true; kind.value = 'INTEGRATION'; jobId.value = undefined;
   vi.mocked(api.getOpsInstancePage).mockResolvedValue({ list: [], total: 0 });
   vi.mocked(api.getOpsInstanceCategories).mockResolvedValue([{ id: 'source:2', parentId: '0', name: '测试类目' }]);
   host = document.createElement('div'); document.body.append(host);
-  app = createApp(defineComponent({ setup: () => () => h(KeepAlive, () => active.value ? h(Workbench, { kind: kind.value }) : null) }));
+  app = createApp(defineComponent({ setup: () => () => h(KeepAlive, () => active.value ? h(Workbench, { kind: kind.value, jobId: jobId.value, onClearJobFilter: () => { jobId.value = undefined; } }) : null) }));
   app.use(createPinia()); app.mount(host);
 });
 afterEach(() => { app.unmount(); host.remove(); });
 
 describe('实例页面缓存筛选一致性', () => {
+  it('按作业编号筛选实例，并可清除筛选', async () => {
+    kind.value = 'JOB';
+    jobId.value = '9007199254740993';
+    await flush();
+    expect(vi.mocked(api.getOpsInstancePage).mock.lastCall?.[0]).toMatchObject({ kind: 'JOB', taskId: '9007199254740993' });
+    expect(host.textContent).toContain('统计范围：当前类目的全部作业');
+    jobId.value = '9007199254740995';
+    await flush();
+    expect(vi.mocked(api.getOpsInstancePage).mock.lastCall?.[0]).toMatchObject({ kind: 'JOB', taskId: '9007199254740995' });
+    const clear = [...host.querySelectorAll('button')].find((button) => button.textContent?.includes('作业 #9007199254740995'));
+    expect(clear).toBeDefined();
+    clear!.click();
+    await flush();
+    expect(vi.mocked(api.getOpsInstancePage).mock.lastCall?.[0].taskId).toBeUndefined();
+    expect(host.textContent).not.toContain('统计范围：当前类目的全部作业');
+  });
   it.each(['INTEGRATION', 'DEVELOPMENT', 'JOB'] as const)('%s 类目工具可展开、收起、刷新并保留搜索前展开状态', async (instanceKind) => {
     kind.value = instanceKind;
     await flush();

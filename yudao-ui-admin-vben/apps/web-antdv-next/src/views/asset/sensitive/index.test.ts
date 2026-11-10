@@ -33,14 +33,18 @@ const mocks = vi.hoisted(() => ({
   batch: vi.fn(),
   success: vi.fn(),
   dialogs: [] as Confirm[],
+  formOptions: undefined as undefined | {
+    handleValuesChange: (values: Record<string, unknown>) => void;
+    schema: { fieldName: string }[];
+  },
 }));
 
 vi.mock('#/adapter/business-vxe-table', async () => import('#/views/governance/common/vxe-grid.test-support'));
 vi.mock('#/adapter/form', () => ({
-  useVbenForm: () => [
-    () => null,
-    { reset: vi.fn(), validateAndSubmit: vi.fn() },
-  ],
+  useVbenForm: (options: NonNullable<typeof mocks.formOptions>) => {
+    mocks.formOptions = options;
+    return [() => null, { reset: vi.fn(), validateAndSubmit: vi.fn() }];
+  },
 }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => mocks.access,
@@ -139,6 +143,7 @@ interface State {
   loadCategories: () => Promise<void>;
   tree: { key: string; title: string }[];
   total: number;
+  query: () => void;
   selectedRows: SensitiveListApi.Record[];
   changePage: (page: number, size: number) => void;
   handleTableChange: (
@@ -199,6 +204,28 @@ afterEach(() => {
   host.remove();
 });
 describe('敏感清单列表', () => {
+  it('资产入口不显示或提交状态筛选，治理入口保留状态筛选', async () => {
+    expect(mocks.formOptions?.schema.map((item) => item.fieldName)).toEqual([
+      'keyword', 'categoryKey',
+    ]);
+    mocks.formOptions?.handleValuesChange({ keyword: '资产', status: 1 });
+    state.query();
+    await flush();
+    expect(mocks.page.mock.lastCall?.[0]).toMatchObject({ keyword: '资产' });
+    expect(mocks.page.mock.lastCall?.[0]).not.toHaveProperty('status');
+
+    app.unmount();
+    const vm = (app = createApp(List, { showStatusFilter: true })).mount(host) as ComponentPublicInstance;
+    state = (vm.$ as unknown as { setupState: State }).setupState;
+    await flush();
+    expect(mocks.formOptions?.schema.map((item) => item.fieldName)).toEqual([
+      'keyword', 'categoryKey', 'status',
+    ]);
+    mocks.formOptions?.handleValuesChange({ keyword: '资产', status: 1 });
+    state.query();
+    await flush();
+    expect(mocks.page.mock.lastCall?.[0]).toMatchObject({ keyword: '资产', status: 1 });
+  });
   it('分类读取失败时保留列表，并可重试恢复分类筛选', async () => {
     mocks.categories.mockRejectedValueOnce(new Error('分类服务异常'));
     await state.loadCategories();

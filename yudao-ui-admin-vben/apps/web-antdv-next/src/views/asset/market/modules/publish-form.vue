@@ -19,7 +19,6 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
 import {
-  Alert,
   Button,
   CheckboxGroup,
   Form,
@@ -291,14 +290,7 @@ onBeforeUnmount(() => {
     :loading="loading"
     :confirm-disabled="loading || saving || !!loadError || !canPublish"
   >
-    <Alert
-      v-if="loadError"
-      :message="loadError"
-      type="error"
-      show-icon
-      class="mb-4"
-    />
-    <Form
+<Form
       ref="form"
       :model="model"
       :rules="rules"

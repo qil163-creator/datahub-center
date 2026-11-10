@@ -34,7 +34,6 @@ const canOpenOrder = computed(() =>
 );
 const report = ref<DataforgeEtlApi.QualityReport>();
 const loading = ref(false);
-const error = ref('');
 const formVisible = ref(false);
 const orderName = ref('');
 const description = ref('');
@@ -51,7 +50,6 @@ function invalidate() {
   ++reportSeq;
   report.value = undefined;
   loading.value = false;
-  error.value = '';
   creating.value = false;
   createError.value = '';
   formVisible.value = false;
@@ -63,7 +61,6 @@ async function loadReport() {
   const current = generation;
   const seq = ++reportSeq;
   loading.value = true;
-  error.value = '';
   try {
     const result = await getEtlQualityReport(props.batchId);
     if (current !== generation || seq !== reportSeq) return;
@@ -74,8 +71,7 @@ async function loadReport() {
       createError.value = '';
     }
   } catch {
-    if (current === generation && seq === reportSeq)
-      error.value = '治理报告加载失败，请重新查询确认。';
+    // 请求客户端已显示错误。
   } finally {
     if (current === generation && seq === reportSeq) loading.value = false;
   }
@@ -175,7 +171,6 @@ onBeforeUnmount(invalidate);
         重新查询报告
       </Button>
     </div>
-    <Alert v-if="error" class="mb-2" type="error" :message="error" />
     <Spin :spinning="loading">
       <div v-if="report" class="space-y-2">
         <p>

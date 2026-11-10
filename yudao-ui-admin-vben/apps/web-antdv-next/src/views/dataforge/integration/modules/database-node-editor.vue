@@ -533,12 +533,6 @@ function validate() {
   return messages.length === 0 && readValid;
 }
 defineExpose({ validate });
-function refresh() {
-  void loadDatabases();
-  void loadTables();
-  if (isInput.value && props.config.ifSql === 1) void parseSql();
-  else void loadFields();
-}
 watch(
   () => [props.config.ifSql, props.config.sql],
   () => {
@@ -608,17 +602,7 @@ watch(
       :message="validationErrors.join('；')"
       show-icon
     />
-    <Alert v-if="loadError" type="error" :message="loadError" show-icon>
-      <template #action>
-        <Button
-          size="small"
-          :disabled="databaseLoading || tableLoading || fieldLoading"
-          @click="refresh"
-          >
-重试
-</Button>
-      </template>
-    </Alert>
+    <Alert v-if="loadError && !['数据连接加载失败，请重试', '表与视图加载失败，请重试', '表字段加载失败，请重试'].includes(loadError)" type="error" :message="loadError" show-icon />
     <div v-if="isInput" class="qi-db-field qi-db-full">
       <label>连接方式</label>
       <RadioGroup

@@ -9,7 +9,6 @@ import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
 
 import {
-  Alert,
   Button,
   Descriptions,
   DescriptionsItem,
@@ -64,7 +63,6 @@ const {
   Grid,
   gridApi,
   load: loadInstances,
-  error: instanceError,
 } = useMetadataGrid<GovernanceMetaCollectInstanceApi.CollectInstance>(
   [
     { field: 'id', title: '编号', width: 90 },
@@ -141,16 +139,6 @@ watch(
 <template>
   <Page auto-content-height content-class="metadata-page">
     <LogModal />
-    <Alert v-if="failed" type="error" message="任务详情读取失败">
-      <template #action>
-        <Button @click="load">
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="metadata-detail">
       <section class="metadata-panel">
         <div class="metadata-detail__title">
@@ -195,7 +183,6 @@ watch(
       <section class="metadata-panel flex min-h-0 flex-1 flex-col">
         <Tabs v-model:active-key="tab" class="metadata-task-tabs">
           <TabPane key="instances" tab="采集实例">
-            <Alert v-if="instanceError" type="error" message="实例读取失败" />
             <div class="metadata-task-instances">
               <Grid class="metadata-grid" table-title="采集实例列表">
                 <template #toolbar-tools>

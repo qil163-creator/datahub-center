@@ -481,17 +481,7 @@ watch(
           title="没有配置该任务的权限"
           show-icon
         />
-        <Alert
-          v-if="failed"
-          class="bf-error"
-          type="error"
-          title="配置加载失败，请重试"
-          show-icon
-          >
-<template #action>
-<Button @click="load"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>重试</Button>
-</template>
-</Alert>
+
         <Alert
           v-if="blocked"
           class="bf-error"

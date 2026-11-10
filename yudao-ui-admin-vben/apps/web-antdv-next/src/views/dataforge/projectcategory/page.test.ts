@@ -364,13 +364,11 @@ describe('项目类目列表', () => {
     ]);
   });
 
-  it('真实加载失败显示错误，刷新成功后才恢复正常列表', async () => {
+  it('加载失败不显示横幅，刷新成功后恢复正常列表', async () => {
     harness.list.mockRejectedValueOnce(new Error('服务不可用'));
     mount();
     await flush();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-      '类目信息加载失败',
-    );
+    expect(host.textContent).not.toContain('类目信息加载失败');
     expect(harness.table?.loading).toBe(false);
     host.querySelector<HTMLButtonElement>('[aria-label="刷新"]')!.click();
     await flush();

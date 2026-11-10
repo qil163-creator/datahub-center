@@ -177,15 +177,15 @@ describe('资产冻结字段身份与最新编辑合同', () => {
     );
     expect(harness.locked).toBe(false);
   });
-  it('读取失败不能写冻结旧值，重试保留资产与字段大ID', async () => {
+  it('读取失败不能写冻结旧值，重新打开保留资产与字段大ID', async () => {
     vi.mocked(getDataAssetColumn).mockRejectedValueOnce(new Error('读取失败'));
     await harness.options!.onOpenChange(true);
     await harness.options!.onConfirm();
     expect(updateDataAssetColumn).not.toHaveBeenCalled();
     await nextTick();
-    [...host.querySelectorAll('button')]
-      .find((button) => button.textContent?.trim() === '重新加载')!
-      .click();
+    expect(host.textContent).not.toContain('读取失败');
+    await harness.options!.onOpenChange(false);
+    await harness.options!.onOpenChange(true);
     await expect.poll(() => harness.state.confirmDisabled).toBe(false);
     expect(getDataAssetColumn).toHaveBeenLastCalledWith(
       '9007199254740993',

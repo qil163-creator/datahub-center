@@ -321,11 +321,11 @@ describe('接口测试工作台', () => {
     expect(host.textContent).toContain('418 Teapot');
   });
 
-  it('错误身份的定义显示加载失败，并阻止发送', async () => {
+  it('错误身份的定义不显示加载提示条，并阻止发送', async () => {
     vi.mocked(getApiTestDetail).mockResolvedValue({ ...detail, id: '999' });
     await mount();
     await click('选择 测试接口');
-    expect(host.textContent).toContain('API 定义加载失败');
+    expect(host.textContent).not.toContain('API 定义加载失败');
     await click('发送');
     expect(sendApiTest).not.toHaveBeenCalled();
   });
@@ -497,8 +497,8 @@ describe('接口测试工作台', () => {
     await mount();
     harness.state!.refreshToken = '2';
     await flush();
-    expect(host.textContent).toContain('API 目录加载失败');
-    await click('重试');
+    expect(host.textContent).not.toContain('API 目录加载失败');
+    await click('刷新目录');
     old.resolve({
       ...catalog,
       apis: [{ ...catalog.apis[0]!, name: '旧会话接口' }],

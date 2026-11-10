@@ -18,21 +18,18 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
-import { downloadFileFromBlobPart, formatDate } from '@vben/utils';
+import { formatDate } from '@vben/utils';
 
-import { Alert, Button, message, Switch, Tag } from 'antdv-next';
+import { Button, message, Switch, Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   deleteStandardElement,
   deleteStandardElementList,
   deprecateStandardElement,
-  exportStandardElement,
   getStandardElement,
   getStandardElementPage,
-  getStandardElementStatistics,
   publishStandardElement,
   updateStandardElementStatus,
 } from '#/api/governance/standardelement';
@@ -48,7 +45,6 @@ import {
   loadElementNameCaches,
 } from './data';
 import Form from './modules/form.vue';
-import ImportForm from './modules/import-form.vue';
 
 type Element = GovernanceStandardElementApi.StandardElement;
 const router = useRouter();
@@ -66,7 +62,6 @@ const collapsed = ref(false);
 const loading = ref(false);
 const failed = ref(false);
 const changing = ref<number>();
-const bulkMode = ref(false);
 const selected = ref<number[]>([]);
 const active = ref(true);
 const applied = reactive({
@@ -104,19 +99,9 @@ const mutation = useObjectRequest(
     changing.value = undefined;
   },
 );
-const statistics = ref<GovernanceStandardElementApi.Statistics>();
-const statsRequest = useObjectRequest();
 const [FormModal, formApi] = useVbenModal({
   connectedComponent: Form,
   destroyOnClose: true,
-});
-const [ImportModal, importApi] = useVbenModal({
-  connectedComponent: ImportForm,
-  destroyOnClose: true,
-});
-const [StatsModal, statsApi] = useVbenModal({
-  showConfirmButton: false,
-  cancelText: '关闭',
 });
 function gridColumns(): VxeTableGridOptions<Element>['columns'] {
   return [
@@ -124,7 +109,6 @@ function gridColumns(): VxeTableGridOptions<Element>['columns'] {
       field: 'selection',
       type: 'checkbox',
       width: 48,
-      visible: bulkMode.value,
     },
     { field: 'id', title: '编号', width: 90, sortable: true },
     {
@@ -284,7 +268,7 @@ const [Grid, gridApi] = useVbenVxeGrid<Element>({
   },
 });
 watch(
-  [rows, loading, page, pageSize, total, bulkMode],
+  [rows, loading, page, pageSize, total],
   async () => {
     gridApi.setGridOptions({
       data: rows.value,
@@ -302,12 +286,6 @@ watch(
   },
   { immediate: true },
 );
-function toggleBulkMode() {
-  bulkMode.value = !bulkMode.value;
-  selected.value = [];
-  void gridApi.grid.clearCheckboxRow();
-  gridApi.setGridOptions({ columns: gridColumns() });
-}
 async function load() {
   if (!active.value) return;
   const current = requests.begin();
@@ -470,33 +448,6 @@ function lifecycleActions(row: Element): ActionItem[] {
     },
   ];
 }
-async function exportRows() {
-  const current = mutation.begin();
-  const source = await exportStandardElement({
-    ...applied,
-    ...sorting,
-    categoryId: category.value,
-  });
-  if (current())
-    downloadFileFromBlobPart({ fileName: '标准数据元.xls', source });
-}
-async function overview() {
-  statsApi.open();
-  statistics.value = undefined;
-  const current = statsRequest.begin();
-  const result = await getStandardElementStatistics();
-  if (current()) statistics.value = result;
-}
-const statLabels: Record<string, string> = {
-  totalCount: '数据元总数',
-  draftCount: '草稿',
-  publishedCount: '已发布',
-  deprecatedCount: '已废止',
-  mappedElementCount: '已落标',
-  modelMappedElementCount: '建模落标',
-  mappingRate: '落标率（%）',
-  codeSetBoundCount: '已绑码表',
-};
 watch(
   () => [access.accessToken, access.refreshToken, access.accessCodes],
   async () => {
@@ -523,7 +474,6 @@ onMounted(() => {
 <template>
   <Page auto-content-height>
     <FormModal @success="load" />
-    <ImportModal @success="load" />
     <StandardListLayout v-model:collapsed="collapsed">
       <template #tree>
         <CategoryTree ref="categoryTree" @select="selectCategory" />
@@ -540,60 +490,17 @@ onMounted(() => {
                 onClick: () => formApi.setData({ categoryId: category }).open(),
               },
               {
-                label: '导入',
-                icon: ACTION_ICON.UPLOAD,
-                auth: ['governance:standard-element:import'],
-                onClick: () => importApi.open(),
-              },
-              {
                 label: '批量删除',
                 icon: ACTION_ICON.DELETE,
                 danger: true,
-                ifShow: bulkMode,
                 disabled: !selected.length,
                 auth: ['governance:standard-element:delete'],
                 onClick: removeSelected,
               },
             ]"
-            :drop-down-actions="[
-              {
-                label: bulkMode ? '退出批量操作' : '批量操作',
-                icon: 'lucide:list-checks',
-                auth: ['governance:standard-element:delete'],
-                onClick: toggleBulkMode,
-              },
-              {
-                label: '导出',
-                icon: ACTION_ICON.DOWNLOAD,
-                auth: ['governance:standard-element:export'],
-                onClick: exportRows,
-              },
-              {
-                label: '统计概览',
-                icon: 'lucide:chart-no-axes-combined',
-                auth: ['governance:standard-element:query'],
-                onClick: overview,
-              },
-            ]"
           />
         </template>
         <template #top>
-          <Alert
-            v-if="failed"
-            message="数据元加载失败，请重试"
-            type="error"
-            show-icon
-            class="mb-3"
-          >
-            <template #action>
-              <Button size="small" @click="load">
-                <template #icon>
-                  <IconifyIcon icon="lucide:refresh-cw" />
-                </template>
-                重试
-              </Button>
-            </template>
-          </Alert>
         </template>
         <template #name="{ row }">
           <Button
@@ -632,20 +539,6 @@ onMounted(() => {
         </template>
       </Grid>
     </StandardListLayout>
-    <StatsModal title="数据元统计概览" :fullscreen-button="false">
-      <dl class="grid grid-cols-2 gap-3">
-        <template v-for="(label, key) in statLabels" :key="key">
-          <dt class="text-muted-foreground">{{ label }}</dt>
-          <dd>
-            {{
-              statistics?.[
-                key as keyof GovernanceStandardElementApi.Statistics
-              ] ?? '-'
-            }}
-          </dd>
-        </template>
-      </dl>
-    </StatsModal>
   </Page>
 </template>
 

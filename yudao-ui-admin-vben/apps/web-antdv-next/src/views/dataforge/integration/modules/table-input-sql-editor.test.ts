@@ -94,29 +94,23 @@ describe('异步SQL编辑器降级', () => {
       'select edited_while_loading',
     );
   });
-  it('运行初始化失败后保留SQL并可重试，故障期间继续输入可恢复到代码编辑器', async () => {
-    let shouldFail = true;
+  it('运行初始化失败后不显示提示并保留可编辑的SQL', async () => {
     vi.doMock('#/components/monaco/sql-editor.vue', () => ({
       default: defineComponent({
         props: { modelValue: String },
-        setup: (props) => {
-          if (shouldFail) throw new Error('编辑器初始化失败');
-          return () => h('div', { 'data-monaco': true }, props.modelValue);
+        setup: () => {
+          throw new Error('编辑器初始化失败');
         },
       }),
     }));
     const state = await mount();
     await flush();
-    expect(host.textContent).toContain('代码编辑器加载失败');
+    expect(host.textContent).not.toContain('代码编辑器加载失败');
+    expect(host.querySelector('button')).toBeNull();
     input('select fallback');
     await nextTick();
     expect(state.modelValue).toBe('select fallback');
-    shouldFail = false;
-    host.querySelector('button')!.click();
-    await flush();
-    expect(host.querySelector('[data-monaco]')?.textContent).toBe(
-      'select fallback',
-    );
+    expect(host.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('select fallback');
   });
   it('模块加载失败时无未处理拒绝，且只读模式的降级事件不能写回', async () => {
     vi.doMock('#/components/monaco/sql-editor.vue', () => {
@@ -124,7 +118,7 @@ describe('异步SQL编辑器降级', () => {
     });
     const state = await mount(true);
     await flush();
-    expect(host.textContent).toContain('代码编辑器加载失败');
+    expect(host.textContent).not.toContain('代码编辑器加载失败');
     expect(host.querySelector('textarea')?.readOnly).toBe(true);
     input('changed');
     await nextTick();

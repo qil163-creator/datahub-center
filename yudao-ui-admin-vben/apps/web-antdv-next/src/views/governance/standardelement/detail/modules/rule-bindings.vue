@@ -9,7 +9,7 @@ import { IconifyIcon, Plus } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, message, Table } from 'antdv-next';
+import { Button, message, Table } from 'antdv-next';
 
 import {
   deleteElementRule,
@@ -174,16 +174,6 @@ watch(
         <span v-else aria-hidden="true"></span>
       </template>
     </StandardToolbar>
-    <Alert v-if="failed" type="error" message="规则加载失败" show-icon>
-      <template #action>
-        <Button @click="load">
-          <template #icon>
-            <IconifyIcon icon="lucide:refresh-cw" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <Table
       class="standard-table standard-detail-table"
       :columns="columns"

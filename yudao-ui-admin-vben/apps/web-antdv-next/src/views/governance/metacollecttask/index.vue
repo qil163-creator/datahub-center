@@ -8,7 +8,7 @@ import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
-import { Alert, Button, message, Switch } from 'antdv-next';
+import { Button, message, Switch } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/vxe-table';
 import {
@@ -64,7 +64,7 @@ const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
   destroyOnClose: true,
 });
-const { Grid, gridApi, load, selected, error } =
+const { Grid, gridApi, load, selected } =
   useMetadataGrid<GovernanceMetaCollectTaskApi.CollectTask>(
     useGridColumns(),
     (page) => getMetaCollectTaskPage({ ...page, ...filters }),
@@ -99,6 +99,7 @@ const { Grid, gridApi, load, selected, error } =
     },
     clearFilters,
     'fill',
+    true,
     true,
   );
 function clearFilters() {
@@ -177,23 +178,8 @@ async function remove(rows = selected.value) {
   <Page auto-content-height content-class="metadata-page">
     <FormModal @success="load" />
 
-    <Alert
-      v-if="error"
-      type="error"
-      show-icon
-      message="采集任务加载失败，请重试"
-    >
-      <template #action>
-        <Button size="small" @click="load()">
-          <template #icon>
-            <MetadataIcon name="refresh" />
-          </template>
-          重试
-        </Button>
-      </template>
-    </Alert>
     <div class="metadata-grid-shell">
-      <Grid class="metadata-grid" table-title="采集任务列表">
+      <Grid class="metadata-grid subtle-grid-scrollbar" table-title="采集任务列表">
         <template #toolbar-tools>
           <div class="metadata-toolbar">
             <div class="metadata-toolbar">

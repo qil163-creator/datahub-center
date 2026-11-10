@@ -5,7 +5,7 @@ import { ref, watch } from 'vue';
 
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, Empty, Modal, Pagination, Spin } from 'antdv-next';
+import { Button, Empty, Modal, Pagination, Spin } from 'antdv-next';
 
 import {
   getIntegrationRecords,
@@ -126,11 +126,7 @@ function download(record: Api.Record) {
         {{ tab.label }}
       </button>
     </nav>
-    <Alert v-if="failed" type="error" message="运行实例加载失败" show-icon>
-      <template #action>
-        <Button size="small" @click="load">重试</Button>
-      </template>
-    </Alert>
+
     <Spin :spinning="loading">
       <div class="qi-table-scroll qi-instance-scroll">
         <table class="qi-table qi-instance-table">

@@ -187,7 +187,7 @@ onActivated(() => { if (inactive) { inactive = false; void load(); } });
 <template>
   <Page auto-content-height class="qpc">
     <Alert v-if="!canQuery" message="暂无类目查询权限" type="warning" show-icon class="mb-4" />
-    <Alert v-else-if="failed" message="类目信息加载失败，请刷新重试" type="error" show-icon class="mb-4" />
+
     <Grid table-title="数据填报类目列表" :show-search-form="showFilter">
       <template #toolbar-tools>
         <div class="qpc-toolbar-actions flex items-center gap-2">

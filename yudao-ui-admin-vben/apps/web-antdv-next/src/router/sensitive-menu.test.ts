@@ -17,10 +17,11 @@ const lifecycle = vi.hoisted(() => ({ activate: vi.fn(), deactivate: vi.fn() }))
 vi.mock('#/views/asset/sensitive/index.vue', () => ({
   default: {
     name: 'AssetSensitiveList',
-    setup() {
+    props: { showStatusFilter: Boolean },
+    setup(props: { showStatusFilter: boolean }) {
       onActivated(lifecycle.activate);
       onDeactivated(lifecycle.deactivate);
-      return () => h('div', '敏感清单内容');
+      return () => h('div', { 'data-status-filter': String(props.showStatusFilter) }, '敏感清单内容');
     },
   },
 }));
@@ -74,6 +75,7 @@ describe('敏感清单动态菜单', () => {
     const app = createApp(wrapper.default);
     app.mount(container);
     expect(container.textContent).toBe('敏感清单内容');
+    expect(container.querySelector('div')?.dataset.statusFilter).toBe('true');
     app.unmount();
   });
 

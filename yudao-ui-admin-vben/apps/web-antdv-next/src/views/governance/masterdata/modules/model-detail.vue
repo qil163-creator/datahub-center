@@ -179,7 +179,7 @@ onBeforeUnmount(() => request.dispose());
         <DetailBackButton @click="emit('back')" />
       </div>
       <p v-if="loading" role="status">正在加载主数据模型详情…</p>
-      <Alert v-if="error" type="error" :message="error" show-icon>
+      <Alert v-if="error && (!/(?:加载|读取|获取).*失败/.test(error) || /保存|冲突|未确认/.test(error))" type="error" :message="error" show-icon>
         <template v-if="modelId && canQuery" #action>
           <Button size="small" :loading="loading" @click="load">
             <template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>

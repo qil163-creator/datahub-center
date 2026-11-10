@@ -16,7 +16,6 @@ import { useAccessStore } from '@vben/stores';
 import { useMediaQuery } from '@vueuse/core';
 import {
   Alert,
-  Button,
   ConfigProvider,
   Input,
   message,
@@ -588,16 +587,6 @@ defineExpose({ confirmLeave: () => Promise.resolve(!saving.value) });
       </div>
       <div class="qd-editor-panel">
         <Spin :spinning="loading || optionsLoading">
-          <Alert
-            v-if="failed || options.error.value || domainFailed"
-            type="error"
-            message="页面数据加载失败，请重试。"
-            show-icon
-          >
-            <template #action>
-              <Button @click="loadModel">重试</Button>
-            </template>
-          </Alert>
           <Alert
             v-if="readonly"
             type="warning"
