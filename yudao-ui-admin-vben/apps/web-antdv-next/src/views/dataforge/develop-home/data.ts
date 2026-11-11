@@ -1,3 +1,4 @@
+import type { OpsInstanceApi } from '#/api/dataforge/ops';
 import type {
   ModuleOverviewConfig,
   ModuleOverviewData,
@@ -11,10 +12,10 @@ import {
   getDashboardAccessTaskPage,
   getDashboardDataforgeSummary,
   getDashboardDevRecordPage,
-  getDashboardEtlPipelinePage,
-  getDashboardEtlRecordPage,
   getDashboardIntegrationPage,
   getDashboardIntegrationStatistics,
+  getDashboardJobPage,
+  getDashboardOpsInstancePage,
   getDashboardOpsStatistics,
 } from '#/api/dashboard';
 import {
@@ -38,7 +39,6 @@ const targets = {
     titles: ['数据集成实例'],
   },
   job: { names: ['DataforgeJob'], titles: ['作业管理'] },
-  etlRecord: { names: ['DataforgeEtlRecord'], titles: ['流程日志'] },
 } satisfies Record<string, RouteTarget>;
 
 export const developOverviewConfig: ModuleOverviewConfig = {
@@ -46,7 +46,7 @@ export const developOverviewConfig: ModuleOverviewConfig = {
   banner: {
     title: '打造高效协同的数据研发体系',
     description:
-      '贯通数据接入、开发调度、可视化 ETL 与运维监控，让数据加工链路可视、可控、可追溯',
+      '贯通数据连接、数据接入、数据开发、作业调度与运维监控，让数据加工链路可视、可控、可追溯',
     slogan: '让数据流动更高效',
     icons: ['lucide:workflow', 'lucide:code-xml'],
   },
@@ -87,11 +87,11 @@ export const developOverviewConfig: ModuleOverviewConfig = {
       target: DASHBOARD_TARGETS.devWorkbench,
     },
     {
-      key: 'etl',
-      label: 'ETL 流程',
+      key: 'job',
+      label: '作业',
       icon: 'lucide:workflow',
       color: 'violet',
-      target: DASHBOARD_TARGETS.etlPipeline,
+      target: targets.job,
     },
   ],
   process: {
@@ -120,11 +120,11 @@ export const developOverviewConfig: ModuleOverviewConfig = {
         target: DASHBOARD_TARGETS.devWorkbench,
       },
       {
-        title: '可视化 ETL',
+        title: '作业管理',
         icon: 'lucide:workflow',
-        lines: ['拖拽式流程编排', '清洗转换组件', '流程模板复用'],
-        principle: '统一加工流程',
-        target: DASHBOARD_TARGETS.etlPipeline,
+        lines: ['多任务编排与依赖', '定时调度与上下线', '串行 / 并行策略'],
+        principle: '统一作业调度',
+        target: targets.job,
       },
       {
         title: '运维监控',
@@ -197,12 +197,15 @@ export const developOverviewConfig: ModuleOverviewConfig = {
   activity: {
     title: '最近运行',
     empty: '暂无运行记录，任务执行后将在此展示',
-    linkText: '查看日志',
-    target: targets.etlRecord,
+    linkText: '查看实例',
+    target: targets.opsIntegration,
   },
 };
 
 const ACTIVITY_LIMIT = 8;
+
+/** 作业状态：0 未上线 1 已上线 */
+const JOB_ONLINE = 1;
 
 const DEV_STATUS: Record<string, [string, OverviewActivityTone]> = {
   RUNNING: ['运行中', 'processing'],
@@ -219,14 +222,34 @@ const ACCESS_STATUS: Record<number, [string, OverviewActivityTone]> = {
   4: ['异常结束', 'error'],
 };
 
-/** ETL 运行记录 runStatus：1 等待 2 运行中 3 成功 4 失败 5 停止 */
-const ETL_STATUS: Record<number, [string, OverviewActivityTone]> = {
-  1: ['等待中', 'default'],
-  2: ['运行中', 'processing'],
-  3: ['运行成功', 'success'],
-  4: ['运行失败', 'error'],
-  5: ['已停止', 'warning'],
+/** 运维实例状态（集成 / 作业实例共用） */
+const OPS_STATUS: Record<OpsInstanceApi.Status, [string, OverviewActivityTone]> =
+  {
+    WAITING: ['等待中', 'default'],
+    IDLE: ['未运行', 'default'],
+    RUNNING: ['运行中', 'processing'],
+    SUCCESS: ['运行成功', 'success'],
+    FAILURE: ['运行失败', 'error'],
+    STOPPED: ['已停止', 'warning'],
+    UNKNOWN: ['状态未知', 'default'],
+  };
+
+const OPS_LABELS: Partial<Record<OpsInstanceApi.Kind, [string, string]>> = {
+  INTEGRATION: ['集成任务', 'lucide:calendar-clock'],
+  JOB: ['作业', 'lucide:workflow'],
 };
+
+function toOpsActivity(instance: OpsInstanceApi.Instance): OverviewActivity {
+  const [label, tone] = statusOf(OPS_STATUS, instance.status);
+  const [name, icon] = OPS_LABELS[instance.kind] ?? ['任务', 'lucide:play'];
+  return {
+    id: `ops-${instance.kind}-${instance.origin}-${String(instance.id)}`,
+    icon,
+    title: `${name}「${instance.taskName || instance.instanceName}」${label}`,
+    time: toTimestamp(instance.startTime ?? instance.createTime),
+    tone,
+  };
+}
 
 function statusOf<K extends number | string>(
   map: Record<K, [string, OverviewActivityTone]>,
@@ -245,10 +268,12 @@ export async function loadDevelopOverview(): Promise<ModuleOverviewData> {
     realtimeStats,
     fullSyncStats,
     jobStats,
-    etl,
+    jobs,
+    onlineJobs,
     devRecords,
     accessRecords,
-    etlRecords,
+    integrationRuns,
+    jobRuns,
   ] = await Promise.all([
     settle(getDashboardDataforgeSummary()),
     settle(getDashboardIntegrationPage('OFFLINE')),
@@ -257,10 +282,12 @@ export async function loadDevelopOverview(): Promise<ModuleOverviewData> {
     settle(getDashboardIntegrationStatistics('REALTIME')),
     settle(getDashboardOpsStatistics('FULL_SYNC')),
     settle(getDashboardOpsStatistics('JOB')),
-    settle(getDashboardEtlPipelinePage()),
+    settle(getDashboardJobPage()),
+    settle(getDashboardJobPage(JOB_ONLINE)),
     settle(getDashboardDevRecordPage(ACTIVITY_LIMIT)),
     settle(getDashboardAccessTaskPage(ACTIVITY_LIMIT)),
-    settle(getDashboardEtlRecordPage(ACTIVITY_LIMIT)),
+    settle(getDashboardOpsInstancePage('INTEGRATION', ACTIVITY_LIMIT)),
+    settle(getDashboardOpsInstancePage('JOB', ACTIVITY_LIMIT)),
   ]);
 
   const accessRun = summary?.todayAccessRun;
@@ -350,16 +377,8 @@ export async function loadDevelopOverview(): Promise<ModuleOverviewData> {
         tone,
       };
     }),
-    ...(etlRecords?.list ?? []).map((record) => {
-      const [label, tone] = statusOf(ETL_STATUS, record.runStatus);
-      return {
-        id: `etl-${String(record.id)}`,
-        icon: 'lucide:workflow',
-        title: `ETL 流程「${record.name ?? record.pipelineId ?? record.id}」${label}`,
-        time: toTimestamp(record.startTime ?? record.createTime),
-        tone,
-      };
-    }),
+    ...(integrationRuns?.list ?? []).map((item) => toOpsActivity(item)),
+    ...(jobRuns?.list ?? []).map((item) => toOpsActivity(item)),
   ]
     .toSorted((a, b) => (b.time ?? 0) - (a.time ?? 0))
     .slice(0, ACTIVITY_LIMIT);
@@ -389,9 +408,9 @@ export async function loadDevelopOverview(): Promise<ModuleOverviewData> {
         value: summary.devTaskCount ?? 0,
         hint: `已上线 ${summary.devTaskOnlineCount ?? 0} 个`,
       },
-      etl: etl && {
-        value: etl.total,
-        hint: '可视化编排的生产流程',
+      job: jobs && {
+        value: jobs.total,
+        hint: onlineJobs ? `已上线 ${onlineJobs.total} 个` : undefined,
       },
     },
     distributions: {
@@ -399,7 +418,7 @@ export async function loadDevelopOverview(): Promise<ModuleOverviewData> {
       todaySuccess: availableRuns.length > 0 ? { rows: rateRows } : undefined,
     },
     activity:
-      devRecords || accessRecords || etlRecords
+      devRecords || accessRecords || integrationRuns || jobRuns
         ? { items: activities }
         : undefined,
   };

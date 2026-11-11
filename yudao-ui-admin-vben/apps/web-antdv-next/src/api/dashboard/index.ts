@@ -10,8 +10,8 @@ import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
 import type { DataforgeDataFileApi } from '#/api/dataforge/datafile';
 import type { DataforgeDevApi } from '#/api/dataforge/dev';
-import type { DataforgeEtlApi } from '#/api/dataforge/etl';
 import type { IntegrationApi } from '#/api/dataforge/integration';
+import type { JobApi } from '#/api/dataforge/job';
 import type { OpsInstanceApi } from '#/api/dataforge/ops';
 import type { FoundationSystemSourceApi } from '#/api/dataforge/systemsource';
 import type { GovernanceAuditRuleApi } from '#/api/governance/auditrule';
@@ -350,16 +350,19 @@ export function getDashboardOpsStatistics(kind: OpsInstanceApi.Kind) {
   );
 }
 
-/** 可视化 ETL 流程数量 */
-export function getDashboardEtlPipelinePage() {
-  return silentPage<DataforgeEtlApi.Pipeline>('/dataforge/etl-pipeline/page');
+/** 作业数量；status 为 1 时仅统计已上线 */
+export function getDashboardJobPage(status?: number) {
+  return silentPage<JobApi.Job>('/dataforge/job/page', { status });
 }
 
-/** 最近的可视化 ETL 运行记录 */
-export function getDashboardEtlRecordPage(pageSize = 5) {
-  return silentPage<DataforgeEtlApi.EtlRecord>(
-    '/dataforge/etl-record/page',
-    {},
+/** 最近的运维实例（按开始时间倒序），kind 区分集成 / 作业等实例类型 */
+export function getDashboardOpsInstancePage(
+  kind: OpsInstanceApi.Kind,
+  pageSize = 5,
+) {
+  return silentPage<OpsInstanceApi.Instance>(
+    '/dataforge/ops-instance/page',
+    { kind, sortField: 'startTime', sortOrder: 'desc' },
     pageSize,
   );
 }
