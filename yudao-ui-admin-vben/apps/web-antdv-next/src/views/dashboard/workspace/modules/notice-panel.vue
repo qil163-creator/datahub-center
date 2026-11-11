@@ -33,7 +33,12 @@ function show(notice: SystemNoticeApi.Notice) {
 <template>
   <Card title="系统公告">
     <Skeleton :loading="loading" active :paragraph="{ rows: 4 }">
-      <Empty v-if="notices.length === 0" description="暂无公告" />
+      <Empty
+        v-if="notices.length === 0"
+        :image="Empty.PRESENTED_IMAGE_SIMPLE"
+        class="!my-2"
+        description="暂无公告"
+      />
       <ul v-else class="divide-border -my-1 divide-y">
         <li
           v-for="notice in notices"

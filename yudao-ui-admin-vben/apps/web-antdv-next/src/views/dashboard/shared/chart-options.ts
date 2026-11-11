@@ -46,7 +46,8 @@ export function getApiTrendOptions(
 ): EChartsOption {
   return {
     grid: TREND_GRID,
-    legend: { top: 4 },
+    // 图例靠右，避免在窄卡片里压住左上角的纵轴名称
+    legend: { right: 0, top: 4 },
     series: [
       {
         barMaxWidth: 28,
@@ -81,7 +82,8 @@ export function getWorkOrderTrendOptions(
 ): EChartsOption {
   return {
     grid: TREND_GRID,
-    legend: { top: 4 },
+    // 图例靠右，避免在窄卡片里压住左上角的纵轴名称
+    legend: { right: 0, top: 4 },
     series: [
       {
         areaStyle: { opacity: 0.12 },
@@ -302,44 +304,5 @@ export function getDonutOptions(
       },
     ],
     tooltip: { formatter: '{b}：{c}（{d}%）', trigger: 'item' },
-  };
-}
-
-/** 排行条形图（按数值倒序，横向） */
-export function getRankBarOptions(
-  items: NameValue[],
-  seriesName: string,
-  color: string = CHART_COLORS.blue,
-): EChartsOption {
-  const sorted = [...items].sort((a, b) => a.value - b.value);
-  return {
-    grid: {
-      bottom: 8,
-      containLabel: true,
-      left: '2%',
-      right: '8%',
-      top: 8,
-    },
-    series: [
-      {
-        barMaxWidth: 18,
-        data: sorted.map((item) => item.value),
-        itemStyle: { borderRadius: [0, 4, 4, 0], color },
-        label: { position: 'right', show: true },
-        name: seriesName,
-        type: 'bar',
-      },
-    ],
-    tooltip: { formatter: '{b}：{c}', trigger: 'axis' },
-    xAxis: { min: 0, minInterval: 1, type: 'value' },
-    yAxis: {
-      axisLabel: {
-        formatter: (value: string) =>
-          value.length > 12 ? `${value.slice(0, 12)}…` : value,
-      },
-      axisTick: { show: false },
-      data: sorted.map((item) => item.name),
-      type: 'category',
-    },
   };
 }

@@ -9,6 +9,31 @@ import { findRootMenuByPath } from '@vben/utils';
 
 import { useNavigation } from './use-navigation';
 
+/**
+ * 计算当前路径所属的顶级菜单。
+ * 当前页面不属于任何菜单（如首页、个人中心）时：保留当前已选中的顶级菜单；
+ * 尚未选中时（如登录后首次进入首页）默认取第一个带子菜单的顶级菜单，保证侧边菜单可见。
+ * matched 表示是否真实匹配，回退结果不应记作该顶级菜单下“最后访问的子页面”。
+ */
+function resolveRootMenu(
+  menus: MenuRecordRaw[],
+  path: string,
+  currentRootPath = '',
+): { matched: boolean; rootMenu?: MenuRecordRaw } {
+  const rootMenu =
+    findRootMenuByPath(menus, path).rootMenu ??
+    menus.find((item) => item.path === path);
+  if (rootMenu) {
+    return { matched: true, rootMenu };
+  }
+  return {
+    matched: false,
+    rootMenu:
+      menus.find((item) => item.path === currentRootPath) ??
+      menus.find((item) => (item.children?.length ?? 0) > 0),
+  };
+}
+
 function useMixedMenu() {
   const { navigation, willOpenedByWindow } = useNavigation();
   const accessStore = useAccessStore();
@@ -125,17 +150,25 @@ function useMixedMenu() {
   /**
    * 计算侧边菜单
    * @param path 路由路径
+   * @returns 当前路径是否真实属于某个顶级菜单
    */
   function calcSideMenus(path: string = route.path) {
-    let { rootMenu } = findRootMenuByPath(menus.value, path);
-    if (!rootMenu) {
-      rootMenu = menus.value.find((item) => item.path === path);
+    const { matched, rootMenu } = resolveRootMenu(
+      menus.value,
+      path,
+      rootMenuPath.value,
+    );
+    // 回退到已选中的顶级菜单时，保留其二级菜单状态
+    if (matched || rootMenu?.path !== rootMenuPath.value) {
+      const result = matched
+        ? findRootMenuByPath(rootMenu?.children || [], path, 1)
+        : undefined;
+      mixedRootMenuPath.value = result?.rootMenuPath ?? '';
+      mixExtraMenus.value = result?.rootMenu?.children ?? [];
     }
-    const result = findRootMenuByPath(rootMenu?.children || [], path, 1);
-    mixedRootMenuPath.value = result.rootMenuPath ?? '';
-    mixExtraMenus.value = result.rootMenu?.children ?? [];
     rootMenuPath.value = rootMenu?.path ?? '';
     splitSideMenus.value = rootMenu?.children ?? [];
+    return matched;
   }
 
   watch(
@@ -145,8 +178,8 @@ function useMixedMenu() {
       if (willOpenedByWindow(currentPath)) {
         return;
       }
-      calcSideMenus(currentPath);
-      if (rootMenuPath.value)
+      const matched = calcSideMenus(currentPath);
+      if (matched && rootMenuPath.value)
         defaultSubMap.set(rootMenuPath.value, currentPath);
     },
     { immediate: true },
@@ -170,4 +203,4 @@ function useMixedMenu() {
   };
 }
 
-export { useMixedMenu };
+export { resolveRootMenu, useMixedMenu };

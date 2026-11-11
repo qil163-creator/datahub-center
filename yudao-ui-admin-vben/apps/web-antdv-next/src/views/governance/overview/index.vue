@@ -17,8 +17,7 @@ import {
   getDashboardWorkOrderStatistics,
 } from '#/api/dashboard';
 
-import ChartCard from '../../dashboard/analytics/modules/chart-card.vue';
-import MetricCards from '../../dashboard/analytics/modules/metric-cards.vue';
+import ChartCard from '../../dashboard/shared/chart-card.vue';
 import {
   CHART_COLORS,
   getAccessTrendOptions,
@@ -28,6 +27,7 @@ import {
   getRadarOptions,
 } from '../../dashboard/shared/chart-options';
 import { QUALITY_DIMENSIONS } from '../../dashboard/shared/data';
+import MetricCards from '../../dashboard/shared/metric-cards.vue';
 import {
   DASHBOARD_TARGETS,
   useDashboardNav,

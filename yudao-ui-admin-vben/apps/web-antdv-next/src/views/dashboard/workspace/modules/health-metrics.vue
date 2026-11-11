@@ -23,6 +23,7 @@ const LEVEL_STYLE: Record<HealthLevel, { color: string; label: string }> = {
   good: { color: '#18a058', label: '正常' },
   warn: { color: '#f59e0b', label: '关注' },
   bad: { color: '#d03050', label: '异常' },
+  idle: { color: '#94a3b8', label: '暂无数据' },
   none: { color: '#94a3b8', label: '不可用' },
 };
 </script>

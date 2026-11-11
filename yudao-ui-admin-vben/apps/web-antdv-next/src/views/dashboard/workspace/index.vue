@@ -1,31 +1,29 @@
 <script lang="ts" setup>
-import type { WorkbenchQuickNavItem } from '@vben/common-ui';
-
 import type { WorkspaceData } from '../shared/data';
 import type { RouteTarget } from '../shared/route-resolver';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { WorkbenchHeader, WorkbenchQuickNav } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { preferences } from '@vben/preferences';
 import { useUserStore } from '@vben/stores';
 import { formatAxis, formatDate } from '@vben/utils';
 
-import { Tooltip } from 'antdv-next';
-
 import { loadWorkspaceData } from '../shared/data';
 import { DASHBOARD_TARGETS, useDashboardNav } from '../shared/route-resolver';
-import { formatCount, todayText } from '../shared/utils';
+import { todayText } from '../shared/utils';
 import DataChain from './modules/data-chain.vue';
 import HealthMetrics from './modules/health-metrics.vue';
+import HomeBanner from './modules/home-banner.vue';
 import NoticePanel from './modules/notice-panel.vue';
+import QuickNav from './modules/quick-nav.vue';
 import RecentRuns from './modules/recent-runs.vue';
 import TodoPanel from './modules/todo-panel.vue';
+import TrendPanel from './modules/trend-panel.vue';
 
 /**
- * 工作台：面向当前用户的“今天要做什么”。
- * 头部（问候 + 待办数）→ 数据全链路总览 / 今日运行概况 / 最近运行动态 → 快捷入口 / 待办事项 / 系统公告。
+ * 首页：面向当前用户的“今天要做什么”。
+ * 横幅（问候 + 个人待办数）→ 左：数据全链路总览 / 近 7 天趋势 / 今日运行概况；
+ * 右：快捷入口 / 待办事项 / 最近运行动态 / 系统公告。
  * 所有数据来自各业务域已有接口，无权限或服务未启动时对应卡片降级为 “--” / 空态。
  */
 defineOptions({ name: 'DashboardWorkspace' });
@@ -117,21 +115,20 @@ const QUICK_NAV_CANDIDATES: {
   },
 ];
 
-const quickNavItems = computed<WorkbenchQuickNavItem[]>(() =>
-  QUICK_NAV_CANDIDATES.map((item) => ({
-    color: item.color,
-    icon: item.icon,
-    title: item.title,
-    url: resolve(item.target),
-  }))
-    .filter((item) => !!item.url)
-    .slice(0, 9),
+const quickNavItems = computed(() =>
+  QUICK_NAV_CANDIDATES.flatMap((item) => {
+    const url = resolve(item.target);
+    return url
+      ? [{ color: item.color, icon: item.icon, title: item.title, url }]
+      : [];
+  }).slice(0, 12),
 );
 
-const greeting = computed(() => formatAxis(new Date()));
-const nickname = computed(
-  () => userStore.userInfo?.nickname || userStore.userInfo?.username || '',
-);
+const bannerTitle = computed(() => {
+  const nickname =
+    userStore.userInfo?.nickname || userStore.userInfo?.username || '';
+  return `${formatAxis(new Date())}，${nickname}，欢迎使用数据中台`;
+});
 
 /** 头部描述：日期 · 部门 · 角色 */
 const description = computed(() => {
@@ -171,12 +168,6 @@ const headerStats = computed(() => [
   },
 ]);
 
-function onQuickNav(item: WorkbenchQuickNavItem) {
-  if (item.url) {
-    navTo(item.url);
-  }
-}
-
 async function loadData() {
   loading.value = true;
   try {
@@ -191,50 +182,28 @@ onMounted(loadData);
 </script>
 
 <template>
-  <div class="p-5">
-    <WorkbenchHeader
+  <div class="flex flex-col gap-5 p-5">
+    <HomeBanner
       :avatar="userStore.userInfo?.avatar || preferences.app.defaultAvatar"
-    >
-      <template #title>
-        {{ greeting }}，{{ nickname }}，欢迎使用数据中台
-      </template>
-      <template #description>{{ description }}</template>
-      <template #actions>
-        <div class="flex items-center gap-8 md:gap-12">
-          <div
-            v-for="stat in headerStats"
-            :key="stat.key"
-            class="flex cursor-pointer flex-col justify-center text-right"
-            @click="navTo(stat.target)"
-          >
-            <span class="text-foreground/80 text-sm">{{ stat.label }}</span>
-            <span class="text-2xl font-semibold tabular-nums">
-              {{ formatCount(stat.value) }}
-            </span>
-          </div>
-          <Tooltip title="刷新看板">
-            <button
-              type="button"
-              class="text-muted-foreground hover:text-foreground hover:bg-accent flex size-9 items-center justify-center rounded-full transition-colors"
-              :disabled="loading"
-              @click="loadData"
-            >
-              <IconifyIcon
-                icon="lucide:refresh-cw"
-                class="size-4"
-                :class="{ 'animate-spin': loading }"
-              />
-            </button>
-          </Tooltip>
-        </div>
-      </template>
-    </WorkbenchHeader>
+      :description="description"
+      :loading="loading"
+      :stats="headerStats"
+      :title="bannerTitle"
+      @navigate="navTo"
+      @refresh="loadData"
+    />
 
-    <div class="mt-5 flex flex-col gap-5 lg:flex-row">
-      <div class="flex w-full flex-col gap-5 lg:w-3/5">
+    <div class="flex flex-col gap-5 lg:flex-row">
+      <div class="flex w-full min-w-0 flex-col gap-5 lg:w-3/5">
         <DataChain
           :loading="loading"
           :stages="data.stages"
+          @navigate="navTo"
+        />
+        <TrendPanel
+          :api-stats="data.apiStats"
+          :loading="loading"
+          :work-order-stats="data.workOrderStats"
           @navigate="navTo"
         />
         <HealthMetrics
@@ -243,21 +212,20 @@ onMounted(loadData);
           :updated-at="updatedAt"
           @navigate="navTo"
         />
+      </div>
+      <div class="flex w-full min-w-0 flex-col gap-5 lg:w-2/5">
+        <QuickNav
+          v-if="quickNavItems.length > 0"
+          :items="quickNavItems"
+          @navigate="navTo"
+        />
+        <TodoPanel :loading="loading" :todo="data.todo" @navigate="navTo" />
         <RecentRuns
           :available="data.runs.available"
           :items="data.runs.items"
           :loading="loading"
           @navigate="navTo"
         />
-      </div>
-      <div class="flex w-full flex-col gap-5 lg:w-2/5">
-        <WorkbenchQuickNav
-          v-if="quickNavItems.length > 0"
-          :items="quickNavItems"
-          title="快捷入口"
-          @click="onQuickNav"
-        />
-        <TodoPanel :loading="loading" :todo="data.todo" @navigate="navTo" />
         <NoticePanel
           v-if="data.notices !== undefined || loading"
           :loading="loading"

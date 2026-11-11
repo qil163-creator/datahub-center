@@ -26,8 +26,8 @@ import {
   refreshAssetOperation,
 } from '#/api/asset/operation';
 
-import ChartCard from '../../../dashboard/analytics/modules/chart-card.vue';
-import MetricCards from '../../../dashboard/analytics/modules/metric-cards.vue';
+import ChartCard from '../../../dashboard/shared/chart-card.vue';
+import MetricCards from '../../../dashboard/shared/metric-cards.vue';
 import {
   ASSET_TYPES,
   categoryBar,

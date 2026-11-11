@@ -8,9 +8,7 @@
     "profile": "个人中心"
   },
   "dashboard": {
-    "title": "概览",
-    "analytics": "数据总览",
-    "workspace": "工作台"
+    "home": "首页"
   },
   "action": {
     "action": "操作",

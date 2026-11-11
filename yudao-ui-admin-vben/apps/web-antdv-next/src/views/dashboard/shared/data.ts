@@ -23,8 +23,6 @@ import {
   getDashboardModelOverview,
   getDashboardMyWorkOrderList,
   getDashboardNoticePage,
-  getDashboardQualityTrend,
-  getDashboardSafetyOverview,
   getDashboardTodoTaskPage,
   getDashboardUnreadNotifyCount,
   getDashboardUserProfile,
@@ -54,7 +52,8 @@ export interface ChainStage {
   target: RouteTarget;
 }
 
-export type HealthLevel = 'bad' | 'good' | 'none' | 'warn';
+/** none：统计不可用（无权限 / 服务未启动）；idle：可用但统计周期内没有样本 */
+export type HealthLevel = 'bad' | 'good' | 'idle' | 'none' | 'warn';
 
 /** 运行健康指标 */
 export interface HealthMetric {
@@ -118,9 +117,13 @@ export interface WorkspaceData {
   };
   /** undefined 表示公告接口不可用 */
   notices?: SystemNoticeApi.Notice[];
+  /** 近 7 天 API 调用统计（含按天趋势）；undefined 表示不可用 */
+  apiStats?: SupplyApiLogApi.Statistics;
+  /** 近 7 天质量工单统计（含按天趋势）；undefined 表示不可用 */
+  workOrderStats?: DashboardApi.WorkOrderStatistics;
 }
 
-/** 数据总览页：核心指标卡片 */
+/** 核心指标卡片（治理总览 / 资产盘点复用） */
 export interface MetricCardItem {
   key: string;
   title: string;
@@ -131,20 +134,6 @@ export interface MetricCardItem {
   unit?: string;
   hint: string;
   target?: RouteTarget;
-}
-
-/** 数据总览页：各域聚合数据（趋势类按天数单独加载） */
-export interface AnalyticsOverview {
-  /** 数据集成 / 数据研发 */
-  dataforge?: DashboardApi.DataforgeSummary;
-  /** 数据治理（元数据 / 标准 / 质量） */
-  governance?: DashboardApi.GovernanceSummary;
-  model?: ModelHomeApi.ModelOverview;
-  asset?: DataAssetApi.Facets;
-  apiStats?: SupplyApiLogApi.Statistics;
-  qualityTrend?: DashboardApi.QualityTrendPoint[];
-  workOrderStats?: DashboardApi.WorkOrderStatistics;
-  safety?: DashboardApi.SafetySummary;
 }
 
 /** 质量六维（顺序即雷达图指标顺序） */
@@ -332,8 +321,14 @@ function buildHealthMetrics(input: DomainData): HealthMetric[] {
     {
       key: 'collect',
       title: '元数据采集成功率',
-      value: formatPercent(meta?.collectSuccessRate),
-      level: rateLevel(meta?.collectSuccessRate, 95, 80),
+      value:
+        meta?.collectInstanceCount === 0
+          ? '--'
+          : formatPercent(meta?.collectSuccessRate),
+      level:
+        meta?.collectInstanceCount === 0
+          ? 'idle'
+          : rateLevel(meta?.collectSuccessRate, 95, 80),
       description:
         meta?.collectInstanceCount === undefined
           ? '元数据采集统计不可用'
@@ -343,8 +338,14 @@ function buildHealthMetrics(input: DomainData): HealthMetric[] {
     {
       key: 'quality',
       title: '质量检核通过率',
-      value: formatPercent(qualityReport?.avgPassRate),
-      level: rateLevel(qualityReport?.avgPassRate, 95, 80),
+      value:
+        qualityReport?.totalCount === 0
+          ? '--'
+          : formatPercent(qualityReport?.avgPassRate),
+      level:
+        qualityReport?.totalCount === 0
+          ? 'idle'
+          : rateLevel(qualityReport?.avgPassRate, 95, 80),
       description:
         qualityReport?.totalCount === undefined
           ? '质量检核统计不可用'
@@ -559,54 +560,7 @@ export async function loadWorkspaceData(): Promise<WorkspaceData> {
     todo: buildTodoSummary({ governance, todoPage, unreadCount, workOrders }),
     runs: buildRecentRuns(devPage, accessPage, RUN_LIMIT),
     notices: noticePage?.list,
-  };
-}
-
-/** 数据总览：各域聚合数据 */
-export async function loadAnalyticsOverview(
-  days: number,
-): Promise<AnalyticsOverview> {
-  const [
-    dataforge,
-    governance,
-    model,
-    asset,
     apiStats,
-    qualityTrend,
     workOrderStats,
-    safety,
-  ] = await Promise.all([
-    settle(getDashboardDataforgeSummary()),
-    settle(getDashboardGovernanceSummary()),
-    settle(getDashboardModelOverview()),
-    settle(getDashboardAssetFacets()),
-    settle(getDashboardApiLogStatistics(days)),
-    settle(getDashboardQualityTrend(days)),
-    settle(getDashboardWorkOrderStatistics(days)),
-    settle(getDashboardSafetyOverview()),
-  ]);
-  return {
-    dataforge,
-    governance,
-    model,
-    asset,
-    apiStats,
-    qualityTrend,
-    workOrderStats,
-    safety,
   };
-}
-
-/** 数据总览：仅刷新与天数相关的趋势统计 */
-export async function loadAnalyticsTrends(
-  days: number,
-): Promise<
-  Pick<AnalyticsOverview, 'apiStats' | 'qualityTrend' | 'workOrderStats'>
-> {
-  const [apiStats, qualityTrend, workOrderStats] = await Promise.all([
-    settle(getDashboardApiLogStatistics(days)),
-    settle(getDashboardQualityTrend(days)),
-    settle(getDashboardWorkOrderStatistics(days)),
-  ]);
-  return { apiStats, qualityTrend, workOrderStats };
 }

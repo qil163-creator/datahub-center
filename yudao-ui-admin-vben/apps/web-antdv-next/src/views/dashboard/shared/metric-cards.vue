@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import type { MetricCardItem } from '../../shared/data';
-import type { RouteTarget } from '../../shared/route-resolver';
+import type { MetricCardItem } from './data';
+import type { RouteTarget } from './route-resolver';
 
 import { CountTo } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
 import { Card, Skeleton, Tooltip } from 'antdv-next';
 
-/** 平台核心指标卡片 */
-defineOptions({ name: 'AnalyticsMetricCards' });
+/** 核心指标卡片（治理总览 / 资产盘点复用） */
+defineOptions({ name: 'DashboardMetricCards' });
 
 defineProps<{
   items: MetricCardItem[];

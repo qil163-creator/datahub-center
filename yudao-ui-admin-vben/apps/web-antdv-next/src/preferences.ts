@@ -10,6 +10,8 @@ export const overridesPreferences = defineOverridesPreferences({
   app: {
     /** 后端路由模式 */
     accessMode: 'backend',
+    /** 首页（登录后默认进入），与 router/routes/modules/home.ts 保持一致 */
+    defaultHomePath: '/home',
     name: import.meta.env.VITE_APP_TITLE,
     enableRefreshToken: true,
   },

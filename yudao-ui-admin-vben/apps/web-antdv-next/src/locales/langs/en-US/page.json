@@ -8,9 +8,7 @@
     "profile": "Profile"
   },
   "dashboard": {
-    "title": "Dashboard",
-    "analytics": "Data Overview",
-    "workspace": "Workspace"
+    "home": "Home"
   },
   "action": {
     "action": "Action",

@@ -37,7 +37,12 @@ const KIND_TAG: Record<TodoKind, { color: string; label: string }> = {
       </Button>
     </template>
     <Skeleton :loading="loading" active :paragraph="{ rows: 5 }">
-      <Empty v-if="todo.items.length === 0" description="暂无待办，一切正常" />
+      <Empty
+        v-if="todo.items.length === 0"
+        :image="Empty.PRESENTED_IMAGE_SIMPLE"
+        class="!my-2"
+        description="暂无待办，一切正常"
+      />
       <ul v-else class="divide-border -my-1 divide-y">
         <li
           v-for="item in todo.items"

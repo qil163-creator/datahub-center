@@ -3,10 +3,10 @@ import type { EChartsOption } from '@vben/plugins/echarts';
 
 import { Card } from 'antdv-next';
 
-import ChartPanel from '../../shared/chart-panel.vue';
+import ChartPanel from './chart-panel.vue';
 
 /** 带标题的单图卡片 */
-defineOptions({ name: 'AnalyticsChartCard' });
+defineOptions({ name: 'DashboardChartCard' });
 
 withDefaults(
   defineProps<{

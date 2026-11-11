@@ -41,6 +41,8 @@ function relativeTime(time?: number | string) {
     <Skeleton :loading="loading" active :paragraph="{ rows: 6 }">
       <Empty
         v-if="items.length === 0"
+        :image="Empty.PRESENTED_IMAGE_SIMPLE"
+        class="!my-2"
         :description="
           available
             ? '暂无任务运行记录'

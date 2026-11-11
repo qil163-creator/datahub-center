@@ -14,6 +14,7 @@ import { useAuthStore } from '#/store';
 
 import { generateAccess } from './access';
 import { resolveHiddenMenuPath } from './menu-active-path';
+import { removeStaleTabs } from './stale-tabs';
 
 /**
  * 通用守卫配置
@@ -131,6 +132,8 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
     userStore.setUserRoles(userRoles);
+    // 动态路由已生成，清理 sessionStorage 中恢复的失效标签（如已下线的概览 / 数据总览）
+    await removeStaleTabs(router);
     const redirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
         ? userInfo?.homePath || preferences.app.defaultHomePath

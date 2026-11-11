@@ -32,7 +32,7 @@ import type { SystemUserProfileApi } from '#/api/system/user/profile';
 import { requestClient } from '#/api/request';
 
 /**
- * 首页看板（工作台 / 数据总览）数据接口。
+ * 首页工作台及各业务域总览页的看板数据接口。
  *
  * 各业务域各自提供一个看板汇总接口（`/xxx/dashboard/summary` 或既有的 overview / statistics），
  * 首页按域并行拉取。任何一个域无权限或服务未启动，都只应让对应卡片降级，而不能打断整页，

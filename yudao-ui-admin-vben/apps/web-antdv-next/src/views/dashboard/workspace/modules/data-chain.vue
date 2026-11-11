@@ -23,16 +23,18 @@ const emit = defineEmits<{
 <template>
   <Card title="数据全链路总览">
     <template #extra>
-      <span class="text-muted-foreground text-xs">
+      <span class="text-muted-foreground hidden text-xs sm:inline">
         数据源 → 集成 → 元数据 → 建模 → 资产 → 服务
       </span>
     </template>
     <Skeleton :loading="loading" active :paragraph="{ rows: 3 }">
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <!-- 说明文字最多两行，悬停可看全文；超宽屏才排成一行并显示箭头 -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
         <div
           v-for="(stage, index) in stages"
           :key="stage.key"
-          class="chain-stage group border-border relative flex cursor-pointer flex-col rounded-lg border p-4 transition-shadow hover:shadow-md"
+          :title="stage.hint"
+          class="chain-stage group border-border relative flex cursor-pointer flex-col rounded-lg border p-3.5 transition-shadow hover:shadow-md"
           @click="emit('navigate', stage.target)"
         >
           <div class="flex items-center justify-between">
@@ -60,13 +62,13 @@ const emit = defineEmits<{
             </Tooltip>
           </div>
           <div class="mt-2 text-sm font-medium">{{ stage.title }}</div>
-          <div class="text-muted-foreground mt-1 truncate text-xs">
+          <div class="text-muted-foreground mt-1 line-clamp-2 text-xs">
             {{ stage.hint }}
           </div>
           <IconifyIcon
             v-if="index < stages.length - 1"
             icon="lucide:chevron-right"
-            class="chain-stage__arrow text-muted-foreground/60 absolute top-1/2 -right-3.5 hidden size-4 -translate-y-1/2 xl:block"
+            class="chain-stage__arrow text-muted-foreground/60 absolute top-1/2 -right-3.5 hidden size-4 -translate-y-1/2 2xl:block"
           />
         </div>
       </div>
