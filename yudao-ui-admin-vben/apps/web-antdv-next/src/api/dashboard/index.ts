@@ -1,16 +1,31 @@
 import type { PageResult } from '@vben/request';
 
 import type { DataAssetApi } from '#/api/asset/dataasset';
+import type { MarketApi } from '#/api/asset/market';
+import type { MarketCheckApi } from '#/api/asset/market/check';
+import type { AssetTagApi } from '#/api/asset/tag';
 import type { BpmTaskApi } from '#/api/bpm/task';
 import type { DataforgeAccessApi } from '#/api/dataforge/access';
+import type { FoundationDatabaseApi } from '#/api/dataforge/database';
+import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
+import type { DataforgeDataFileApi } from '#/api/dataforge/datafile';
 import type { DataforgeDevApi } from '#/api/dataforge/dev';
+import type { DataforgeEtlApi } from '#/api/dataforge/etl';
+import type { IntegrationApi } from '#/api/dataforge/integration';
+import type { OpsInstanceApi } from '#/api/dataforge/ops';
+import type { FoundationSystemSourceApi } from '#/api/dataforge/systemsource';
+import type { GovernanceAuditRuleApi } from '#/api/governance/auditrule';
+import type { GovernanceCleanRuleApi } from '#/api/governance/cleanrule';
+import type { GovernanceMetaCollectInstanceApi } from '#/api/governance/metacollectinstance';
 import type { MetaOverview } from '#/api/governance/metaobject';
 import type { ModelHomeApi } from '#/api/governance/model-home';
 import type { QualityAlertApi } from '#/api/governance/quality/alert';
 import type { QualityAuditLogApi } from '#/api/governance/quality/auditlog';
 import type { QualityWorkOrderApi } from '#/api/governance/quality/workorder';
 import type { GovernanceStandardElementApi } from '#/api/governance/standardelement';
+import type { GovernanceStandardTermApi } from '#/api/governance/standardterm';
 import type { SupplyApiLogApi } from '#/api/supply/apilog';
+import type { SupplyAppApi } from '#/api/supply/app';
 import type { SystemNoticeApi } from '#/api/system/notice';
 import type { SystemUserProfileApi } from '#/api/system/user/profile';
 
@@ -238,4 +253,185 @@ export function getDashboardApiLogStatistics(days?: number) {
   return silentGet<SupplyApiLogApi.Statistics>('/supply/api-log/statistics', {
     days,
   });
+}
+
+// ==================== 模块概览（基础管理 / 数据研发 / 数据治理 / 数据资产 / 数据服务） ====================
+// 模块概览只读取各列表接口的 total 或最近若干条记录，过滤条件与对应列表页一致，
+// 权限与数据范围仍由后端各列表接口执行；无权限时由页面降级为“暂无权限或服务不可用”。
+
+/** 静默分页：pageSize 默认 1，仅用于读取 total */
+function silentPage<T>(
+  url: string,
+  params: Record<string, unknown> = {},
+  pageSize = 1,
+) {
+  return silentGet<PageResult<T>>(url, { ...params, pageNo: 1, pageSize });
+}
+
+/** 数据连接分页（按编号倒序，用于总数与最近接入） */
+export function getDashboardDatabasePage(pageSize = 1) {
+  return silentPage<FoundationDatabaseApi.Database>(
+    '/dataforge/database/page',
+    {},
+    pageSize,
+  );
+}
+
+/** 连接器（数据库类型）数量；status 为 0 时仅统计启用 */
+export function getDashboardDatabaseTypePage(status?: number) {
+  return silentPage<FoundationDatabaseTypeApi.DatabaseType>(
+    '/dataforge/database-type/page',
+    { status },
+  );
+}
+
+/** 来源系统分页；status 为 0 时仅统计启用 */
+export function getDashboardSystemSourcePage(pageSize = 1, status?: number) {
+  return silentPage<FoundationSystemSourceApi.SystemSource>(
+    '/dataforge/system-source/page',
+    { status },
+    pageSize,
+  );
+}
+
+/** 文件管理可浏览的文件服务连接（FTP / HDFS） */
+export function getDashboardFileConnections() {
+  return silentGet<DataforgeDataFileApi.Connection[]>(
+    '/dataforge/file-resource/connections',
+  );
+}
+
+/** 稽查规则质量维度 */
+export function getDashboardAuditRuleDimensionList() {
+  return silentGet<GovernanceAuditRuleApi.Dimension[]>(
+    '/governance/audit-rule/dimension-list',
+  );
+}
+
+/** 稽查规则数量；可按启用状态与质量维度过滤 */
+export function getDashboardAuditRulePage(params?: {
+  dimensionId?: GovernanceAuditRuleApi.Id;
+  status?: number;
+}) {
+  return silentPage<GovernanceAuditRuleApi.AuditRule>(
+    '/governance/audit-rule/page',
+    params,
+  );
+}
+
+/** 清洗规则数量；status 为 0 时仅统计启用 */
+export function getDashboardCleanRulePage(status?: number) {
+  return silentPage<GovernanceCleanRuleApi.CleanRule>(
+    '/governance/clean-rule/page',
+    { status },
+  );
+}
+
+/** 离线 / 实时开发任务数量 */
+export function getDashboardIntegrationPage(mode: IntegrationApi.Mode) {
+  return silentPage<IntegrationApi.Task>('/dataforge/integration/page', {
+    mode,
+  });
+}
+
+/** 离线 / 实时开发今日执行统计 */
+export function getDashboardIntegrationStatistics(mode: IntegrationApi.Mode) {
+  return silentGet<IntegrationApi.Statistics>(
+    '/dataforge/integration/statistics',
+    { mode },
+  );
+}
+
+/** 运维实例今日执行统计（整库同步 / 作业管理） */
+export function getDashboardOpsStatistics(kind: OpsInstanceApi.Kind) {
+  return silentGet<OpsInstanceApi.Statistics>(
+    '/dataforge/ops-instance/statistics',
+    { kind },
+  );
+}
+
+/** 可视化 ETL 流程数量 */
+export function getDashboardEtlPipelinePage() {
+  return silentPage<DataforgeEtlApi.Pipeline>('/dataforge/etl-pipeline/page');
+}
+
+/** 最近的可视化 ETL 运行记录 */
+export function getDashboardEtlRecordPage(pageSize = 5) {
+  return silentPage<DataforgeEtlApi.EtlRecord>(
+    '/dataforge/etl-record/page',
+    {},
+    pageSize,
+  );
+}
+
+/** 最近的元数据采集实例 */
+export function getDashboardMetaCollectInstancePage(pageSize = 5) {
+  return silentPage<GovernanceMetaCollectInstanceApi.CollectInstance>(
+    '/governance/meta-collect-instance/page',
+    {},
+    pageSize,
+  );
+}
+
+/** 最近的质量告警 */
+export function getDashboardQualityAlertPage(pageSize = 5) {
+  return silentPage<QualityAlertApi.Alert>(
+    '/governance/quality-alert/page',
+    {},
+    pageSize,
+  );
+}
+
+/** 最近的质量问题工单 */
+export function getDashboardQualityWorkOrderPage(pageSize = 5) {
+  return silentPage<QualityWorkOrderApi.WorkOrder>(
+    '/governance/quality-work-order/page',
+    {},
+    pageSize,
+  );
+}
+
+/** 当前用户可见集市资产统计（计数无损） */
+export function getDashboardMartStatistics() {
+  return silentGet<MarketApi.MartStatistics>('/asset/market/mart/statistics');
+}
+
+/** 资产标签数量 */
+export function getDashboardAssetTagPage() {
+  return silentPage<AssetTagApi.Tag>('/asset/tag/page');
+}
+
+/** 业务术语数量 */
+export function getDashboardStandardTermPage() {
+  return silentPage<GovernanceStandardTermApi.StandardTerm>(
+    '/governance/standard-term/page',
+  );
+}
+
+/** 最近的资产申请审批工单（按申请时间倒序） */
+export function getDashboardMarketCheckPage(pageSize = 5) {
+  return silentPage<MarketCheckApi.Ticket>(
+    '/asset/market/check/page',
+    { sortBy: 'applyTime', sortOrder: 'desc' },
+    pageSize,
+  );
+}
+
+/** 数据需求数量 */
+export function getDashboardMarketDemandPage() {
+  return silentPage<MarketApi.Demand>('/asset/market/demand/page');
+}
+
+/** 接入应用数量 */
+export function getDashboardSupplyAppPage() {
+  return silentPage<SupplyAppApi.App>('/supply/app/page');
+}
+
+/** 最近的 API 调用记录 */
+export function getDashboardApiLogPage(pageSize = 5) {
+  return silentPage<SupplyApiLogApi.ApiLog>(
+    '/supply/api-log/page',
+    {},
+    pageSize,
+  );
 }

@@ -7,7 +7,6 @@ import type { AnalyticsOverview, MetricCardItem } from '../shared/data';
 import { computed, onMounted, ref, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
-import { formatDate } from '@vben/utils';
 
 import { Button, Tooltip } from 'antdv-next';
 
@@ -40,7 +39,6 @@ const { navTo } = useDashboardNav();
 const loading = ref(true);
 const trendLoading = ref(false);
 const days = ref(7);
-const updatedAt = ref('');
 const overview = ref<AnalyticsOverview>({});
 
 /** 核心指标 */
@@ -259,7 +257,6 @@ async function loadData() {
   loading.value = true;
   try {
     overview.value = await loadAnalyticsOverview(days.value);
-    updatedAt.value = formatDate(new Date(), 'HH:mm:ss');
   } finally {
     loading.value = false;
   }
@@ -285,13 +282,7 @@ onMounted(loadData);
 <template>
   <div class="flex flex-col gap-5 p-5">
     <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-lg font-semibold">平台数据总览</h2>
-        <p class="text-muted-foreground mt-1 text-xs">
-          汇总数据集成、研发、治理、资产与服务各域的运行指标
-          <template v-if="updatedAt">· 更新于 {{ updatedAt }}</template>
-        </p>
-      </div>
+      <h2 class="text-lg font-semibold">平台数据总览</h2>
       <Tooltip title="刷新全部统计">
         <Button :loading="loading" @click="loadData">
           <template #icon>
