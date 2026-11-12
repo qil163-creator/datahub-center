@@ -121,4 +121,52 @@ public interface DevTaskMapper extends BaseMapperX<DevTaskDO> {
         return selectCount(DevTaskDO::getDirId, dirId);
     }
 
+    // ==================== 血缘上报（单平台后台扫描，不经数据权限改写） ====================
+
+    /**
+     * 有界扫描当前版本或解析器版本尚未上报的开发任务。
+     *
+     * @param analyzerVersion 当前解析器版本
+     * @param limit           最大条数
+     * @return 待上报候选
+     */
+    @com.baomidou.mybatisplus.annotation.InterceptorIgnore(dataPermission = "true")
+    @org.apache.ibatis.annotations.Select("SELECT id, name AS source_name, current_version_id AS source_revision, "
+            + "lineage_report_key, FALSE AS removed FROM dh_dataforge_dev_task "
+            + "WHERE deleted = 0 AND current_version_id IS NOT NULL "
+            + "AND (lineage_report_key IS NULL OR lineage_report_key <> CONCAT(current_version_id, ':', #{analyzerVersion})) "
+            + "ORDER BY id LIMIT #{limit}")
+    List<cn.iocoder.yudao.module.dataforge.service.lineage.LineageMarkerRow> selectLineagePending(
+            @org.apache.ibatis.annotations.Param("analyzerVersion") int analyzerVersion,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+
+    /**
+     * 有界扫描已删除但仍保留上报标记的开发任务，用于上报 REMOVED。
+     *
+     * @param limit 最大条数
+     * @return 已删除候选
+     */
+    @com.baomidou.mybatisplus.annotation.InterceptorIgnore(dataPermission = "true")
+    @org.apache.ibatis.annotations.Select("SELECT id, name AS source_name, current_version_id AS source_revision, "
+            + "lineage_report_key, TRUE AS removed FROM dh_dataforge_dev_task "
+            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL ORDER BY id LIMIT #{limit}")
+    List<cn.iocoder.yudao.module.dataforge.service.lineage.LineageMarkerRow> selectLineageRemoved(
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+
+    /**
+     * 按旧标记 CAS 更新血缘上报标记；只改这一列，不触碰修订号、更新时间与逻辑删除状态。
+     *
+     * @param id     任务编号
+     * @param oldKey 扫描时读到的标记（可为 null）
+     * @param newKey 新标记（来源已删除时为 null）
+     * @return 更新行数
+     */
+    @com.baomidou.mybatisplus.annotation.InterceptorIgnore(dataPermission = "true")
+    @org.apache.ibatis.annotations.Update("UPDATE dh_dataforge_dev_task "
+            + "SET lineage_report_key = CAST(#{newKey,jdbcType=VARCHAR} AS varchar) WHERE id = #{id} "
+            + "AND lineage_report_key IS NOT DISTINCT FROM CAST(#{oldKey,jdbcType=VARCHAR} AS varchar)")
+    int updateLineageReportKey(@org.apache.ibatis.annotations.Param("id") Long id,
+                               @org.apache.ibatis.annotations.Param("oldKey") String oldKey,
+                               @org.apache.ibatis.annotations.Param("newKey") String newKey);
+
 }

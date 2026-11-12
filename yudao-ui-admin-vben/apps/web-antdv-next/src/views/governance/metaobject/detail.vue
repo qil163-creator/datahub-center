@@ -40,6 +40,7 @@ import { metadataTime } from '../metadata-common/helpers';
 import { metadataIcon } from '../metadata-common/icons';
 import { displayComment, formatSize, formatTime } from './data';
 import ColumnBizForm from './modules/column-biz-form.vue';
+import LineageTab from './modules/lineage-tab.vue';
 
 import '../metadata-common/metadata.css';
 
@@ -564,6 +565,13 @@ const technicalFields = computed(() =>
                     {{ detail.businessLeaderPhone || '-' }}
                   </DescriptionsItem>
                 </Descriptions>
+              </TabPane>
+              <TabPane
+                v-if="hasAccessByCodes(['governance:lineage:query'])"
+                key="lineage"
+                tab="血缘"
+              >
+                <LineageTab v-if="activeTab === 'lineage'" :meta-table-id="detail.id" />
               </TabPane>
             </Tabs>
             <ListPagination

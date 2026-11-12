@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import type { DataforgeDevApi } from '#/api/dataforge/dev';
+import type { DataforgeDevApi, DataforgeDevLineageApi } from '#/api/dataforge/dev';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { useAccessStore } from '@vben/stores';
 
-import { Button, Input, Modal, Select } from 'antdv-next';
+import { Button, Input, Modal, Select, Tag } from 'antdv-next';
 
 import { getDatabaseTableList } from '#/api/dataforge/database';
+import { getDevTaskLineagePreview } from '#/api/dataforge/dev';
 
 import { defaultExecutionConfig } from '../list-model';
 
@@ -199,7 +200,57 @@ watch(
 onBeforeUnmount(() => {
   ++epoch;
   tableCache.clear();
+  previewController?.abort();
 });
+
+// ==================== 自动解析预览 ====================
+const preview = ref<DataforgeDevLineageApi.Preview>();
+const previewLoading = ref(false);
+let previewController: AbortController | undefined;
+const PREVIEW_STATUS: Record<
+  DataforgeDevLineageApi.Preview['status'],
+  { color: string; label: string }
+> = {
+  FAILED: { color: 'error', label: '解析失败' },
+  PARTIAL: { color: 'warning', label: '部分解析' },
+  SUCCESS: { color: 'success', label: '解析成功' },
+  UNSUPPORTED: { color: 'default', label: '暂不支持' },
+};
+function tableLabel(table: DataforgeDevLineageApi.TableRef) {
+  return table.schemaName ? `${table.schemaName}.${table.tableName}` : (table.tableName ?? '-');
+}
+/** 解析当前已保存的内容；只有最新一次请求可以写入结果。 */
+async function loadPreview() {
+  const id = props.task.id;
+  if (id === undefined || id === null || id === '') {
+    parseMessage.value = '请先保存任务，再解析血缘。';
+    return;
+  }
+  previewController?.abort();
+  const controller = new AbortController();
+  previewController = controller;
+  previewLoading.value = true;
+  parseMessage.value = '';
+  try {
+    const result = await getDevTaskLineagePreview(id, controller.signal);
+    if (controller === previewController) preview.value = result;
+  } catch {
+    if (controller === previewController) {
+      preview.value = undefined;
+      parseMessage.value = '自动解析失败，请稍后重试。';
+    }
+  } finally {
+    if (controller === previewController) previewLoading.value = false;
+  }
+}
+watch(
+  () => [props.task.id, props.task.revision],
+  () => {
+    previewController?.abort();
+    preview.value = undefined;
+    previewLoading.value = false;
+  },
+);
 function addRow() {
   if (
     !locked.value &&
@@ -305,19 +356,49 @@ function save() {
     <div class="panel-body">
       <div class="section-heading">
         <h3>当前对象</h3>
-        <Button
-          size="small"
-          @click="
-            parseMessage =
-              '当前未配置自动血缘解析，请手动维护真实上下游表关系。'
-          "
-        >
+        <Button size="small" :loading="previewLoading" @click="loadPreview">
           <img class="button-icon" :src="panelAssets.reparse" alt="" />重新解析
         </Button>
       </div>
       <p v-if="parseMessage" role="status" class="field-note">
         {{ parseMessage }}
       </p>
+      <section v-if="preview" class="auto-lineage" aria-label="自动解析结果">
+        <div class="auto-lineage-heading">
+          <strong>自动解析</strong>
+          <Tag :color="PREVIEW_STATUS[preview.status]?.color">
+            {{ PREVIEW_STATUS[preview.status]?.label ?? preview.status }}
+          </Tag>
+          <span class="field-note">
+            按已保存内容解析；保存后约一分钟同步到血缘中心
+          </span>
+        </div>
+        <dl class="auto-lineage-tables">
+          <dt>读取</dt>
+          <dd>
+            <template v-if="preview.readTables.length">
+              <Tag v-for="table in preview.readTables" :key="tableLabel(table)">{{ tableLabel(table) }}</Tag>
+            </template>
+            <span v-else>-</span>
+          </dd>
+          <dt>写入</dt>
+          <dd>
+            <template v-if="preview.writeTables.length">
+              <Tag v-for="table in preview.writeTables" :key="tableLabel(table)" color="blue">
+                {{ tableLabel(table) }}
+              </Tag>
+            </template>
+            <span v-else>-</span>
+          </dd>
+          <dt>字段血缘</dt>
+          <dd>{{ preview.columnEdgeTotal ?? preview.columnEdges.length }} 条</dd>
+        </dl>
+        <ul v-if="preview.issues.length" class="auto-lineage-issues">
+          <li v-for="(issue, index) in preview.issues" :key="index">
+            {{ issue.statementIndex ? `第 ${issue.statementIndex} 条语句：` : '' }}{{ issue.message || issue.code }}
+          </li>
+        </ul>
+      </section>
       <div class="identity-row">
         <label class="required">任务名称:</label
         ><Input :value="task.name || '-'" disabled aria-label="任务名称" />
@@ -835,6 +916,43 @@ td :deep(.ant-select-selector) {
 
 .has-downstream .flow-arrow {
   flex-basis: 10px;
+}
+
+.auto-lineage {
+  margin: 8px 0 12px;
+  padding: 8px 10px;
+  border: 1px solid #e5e8ef;
+  border-radius: 6px;
+  background: #fafbfc;
+}
+
+.auto-lineage-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.auto-lineage-tables {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 4px 8px;
+  margin: 8px 0 0;
+}
+
+.auto-lineage-tables dt {
+  color: #86909c;
+}
+
+.auto-lineage-tables dd {
+  margin: 0;
+}
+
+.auto-lineage-issues {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: #ad6800;
+  font-size: 12px;
 }
 
 .field-note {

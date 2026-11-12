@@ -643,3 +643,59 @@ export function resolveDevRecordQuality(data: {
 }) {
   return requestClient.post('/dataforge/dev-record/resolve-quality', data);
 }
+
+/** 开发任务自动血缘预览：只读展示当前保存内容的解析结果，不代表已上报到血缘中心。 */
+export namespace DataforgeDevLineageApi {
+  export interface TableRef {
+    datasourceId?: DataforgeDevApi.Id;
+    schemaName?: string;
+    tableName?: string;
+  }
+
+  export interface TableEdge {
+    upstream: TableRef;
+    downstream: TableRef;
+    /** PARSED-自动解析 MANUAL-手工维护 */
+    origin: 'MANUAL' | 'PARSED';
+  }
+
+  export interface ColumnEdge {
+    upstream: TableRef;
+    upstreamColumn: string;
+    downstream: TableRef;
+    downstreamColumn: string;
+    transformType: 'DIRECT' | 'INDIRECT';
+    transformSubtype: string;
+    ambiguous?: boolean;
+    masking?: boolean;
+  }
+
+  export interface Issue {
+    code: string;
+    message?: string;
+    statementIndex?: number;
+  }
+
+  export interface Preview {
+    status: 'FAILED' | 'PARTIAL' | 'SUCCESS' | 'UNSUPPORTED';
+    statementCount?: number;
+    analyzerVersion?: number;
+    readTables: TableRef[];
+    writeTables: TableRef[];
+    tableEdges: TableEdge[];
+    columnEdges: ColumnEdge[];
+    columnEdgeTotal?: number;
+    issues: Issue[];
+  }
+}
+
+/** 预览开发任务当前保存内容的自动血缘。 */
+export function getDevTaskLineagePreview(
+  id: DataforgeDevApi.Id,
+  signal?: AbortSignal,
+) {
+  return requestClient.get<DataforgeDevLineageApi.Preview>(
+    '/dataforge/dev-task/lineage-preview',
+    { params: { id }, signal },
+  );
+}

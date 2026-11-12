@@ -18,7 +18,8 @@ import org.springframework.context.annotation.Configuration;
         NotifyMessageSendApi.class,
         OperateLogApi.class, BpmProcessInstanceApi.class,
         MetadataApi.class, PermissionApi.class, QualityTaskApi.class,
-        cn.iocoder.yudao.module.governance.api.etl.GovernanceEtlApi.class})
+        cn.iocoder.yudao.module.governance.api.etl.GovernanceEtlApi.class,
+        cn.iocoder.yudao.module.governance.api.lineage.LineageApi.class})
 public class RpcConfiguration {
 
 }

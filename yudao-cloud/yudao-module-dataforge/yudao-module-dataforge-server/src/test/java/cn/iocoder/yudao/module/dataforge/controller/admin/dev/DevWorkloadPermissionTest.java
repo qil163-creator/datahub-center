@@ -33,6 +33,8 @@ class DevWorkloadPermissionTest {
             .withBean("devRecordService",DevRecordService.class,()->records)
             .withInitializer(app->app.getBeanFactory().registerSingleton("nativeRuntimeSupport",mock(DevNativeRuntimeSupport.class)))
             .withInitializer(app->app.getBeanFactory().registerSingleton("scheduleCoordinator",mock(DevScheduleCoordinator.class)))
+            .withInitializer(app->app.getBeanFactory().registerSingleton("devTaskLineageCollector",
+                    mock(cn.iocoder.yudao.module.dataforge.service.lineage.DevTaskLineageCollector.class)))
             .withBean("ss",SecurityFrameworkService.class,()->security);
 
     @Configuration(proxyBeanMethods = false)

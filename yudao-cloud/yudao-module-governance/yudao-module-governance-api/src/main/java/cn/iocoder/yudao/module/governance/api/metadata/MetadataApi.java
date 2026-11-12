@@ -10,6 +10,8 @@ import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableIngestRe
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableRespDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataCatalogLinkCommandDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataCatalogLinkResultDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsBatchReqDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsRespDTO;
 import cn.iocoder.yudao.module.governance.enums.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,6 +70,18 @@ public interface MetadataApi {
     @GetMapping(PREFIX + "/column-list")
     @Operation(summary = "获得表字段元数据")
     CommonResult<List<MetadataColumnRespDTO>> getColumnList(@RequestParam("tableId") Long tableId);
+
+    /**
+     * 按 (数据源, schema, 表名) 批量读取当前有效字段名，供血缘解析展开 {@code SELECT *}。
+     *
+     * <p>匹配规则：meta_db(datasource_id, schema_name) → meta_table(db_id, table_name)，先精确匹配，
+     * 无精确命中时再做大小写不敏感的唯一匹配；schemaName 为空时仅在该数据源下表名唯一时命中。
+     * 响应与请求一一对应且顺序一致。</p>
+     */
+    @PostMapping(PREFIX + "/column-names-batch")
+    @Operation(summary = "按数据源、schema、表名批量读取当前有效字段名")
+    CommonResult<List<MetadataTableColumnsRespDTO>> getColumnNamesBatch(
+            @Valid @RequestBody MetadataTableColumnsBatchReqDTO req);
 
     /**
      * 按编号读取当前字段治理详情，供消费方完成对象授权后维护。

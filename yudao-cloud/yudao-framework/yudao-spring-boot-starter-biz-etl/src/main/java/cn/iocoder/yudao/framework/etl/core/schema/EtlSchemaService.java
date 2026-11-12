@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.dbswitch.core.lineage.LineageTransform;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription;
 import cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue;
 import cn.iocoder.yudao.framework.dbswitch.core.service.IMetaDataByJdbcService;
@@ -56,6 +57,40 @@ public class EtlSchemaService {
     /** 调用方可提供已经授权并冻结的来源元数据，复用相同转换推导而不重复读取来源。 */
     public EtlSchemaResult resolve(EtlDag dag, EtlConnectionResolver connectionResolver, EtlApiPort apiPort,
             Map<String, List<EtlFieldMeta>> sourceFields) {
+        return resolve(dag, connectionResolver, apiPort, sourceFields, false);
+    }
+
+    /**
+     * 追踪字段来源：复用字段契约推导的逐组件规则，额外记录每个字段来自哪些输入节点的哪些字段。
+     * <p>
+     * 结果只描述画布内的追溯关系，供血缘等消费方映射到物理表；不改变 {@link #resolve} 的结果和序列化形状。
+     * 脚本、表达式计算等无法在设计期证明来源的组件，其输出字段标记为不完整。
+     *
+     * @param sourceFields 调用方已授权并冻结的输入节点字段（可空），与 {@link #resolve} 语义相同
+     */
+    public EtlFieldOriginResult traceOrigins(EtlDag dag, EtlConnectionResolver connectionResolver, EtlApiPort apiPort,
+            Map<String, List<EtlFieldMeta>> sourceFields) {
+        EtlSchemaResult schema = resolve(dag, connectionResolver, apiPort,
+                sourceFields == null ? Map.of() : sourceFields, true);
+        Map<String, EtlFieldOriginResult.NodeTrace> nodes = new LinkedHashMap<>();
+        schema.getNodes().forEach((no, node) -> nodes.put(no, new EtlFieldOriginResult.NodeTrace(
+                traced(node.getInputFields()), traced(node.getOutputFields()))));
+        return new EtlFieldOriginResult(nodes, schema.getErrors());
+    }
+
+    /**
+     * 转换为追踪字段。
+     */
+    private static List<EtlFieldOriginResult.TracedField> traced(List<EtlFieldMeta> fields) {
+        return fields.stream().map(field -> new EtlFieldOriginResult.TracedField(field.getName(), field.origins(),
+                !field.originsUnknown())).toList();
+    }
+
+    /**
+     * 推导字段契约；track 为 true 时为无上游的输入节点打上原始来源，规则沿途传递。
+     */
+    private EtlSchemaResult resolve(EtlDag dag, EtlConnectionResolver connectionResolver, EtlApiPort apiPort,
+            Map<String, List<EtlFieldMeta>> sourceFields, boolean track) {
         EtlSchemaResult result = new EtlSchemaResult();
         List<String> sorted;
         try {
@@ -72,6 +107,9 @@ public class EtlSchemaService {
                 schema.setInputFields(resolveInput(dag, result, node));
                 schema.setOutputFields(sourceFields.containsKey(no) ? copyFields(sourceFields.get(no))
                         : resolveOutput(node, schema.getInputFields(), connectionResolver, apiPort));
+                if (track && dag.getDataUpstream(no) == null && dag.getDataUpstreamList(no).isEmpty()) {
+                    schema.getOutputFields().forEach(field -> field.originAt(no));
+                }
             } catch (Exception ex) {
                 log.warn("[resolve][节点({}) 字段推导失败：{}]", node.getName(), ex.getMessage());
                 result.getErrors().add(String.format("节点【%s】字段推导失败：%s",
@@ -98,7 +136,7 @@ public class EtlSchemaService {
             }
             union.replaceAll((name, field) -> sources.stream().anyMatch(source -> source.stream()
                     .noneMatch(value -> name.equals(value.getName()))) ? new EtlFieldMeta(name,
-                    field.getDataType()) : field);
+                    field.getDataType()).tracedLike(field) : field);
             return new ArrayList<>(union.values());
         }
         String upstreamNo = dag.getDataUpstream(node.getNo());
@@ -120,8 +158,10 @@ public class EtlSchemaService {
                 var declared = config.getJSONArray("fields");
                 if (declared != null) {
                     for (var contract : EtlFieldContract.parseFields(declared)) {
-                        fields.removeIf(existing -> Objects.equals(existing.getName(), contract.name()));
-                        fields.add(contract.metadata());
+                        EtlFieldMeta existing = fields.stream()
+                                .filter(field -> Objects.equals(field.getName(), contract.name())).findFirst().orElse(null);
+                        fields.removeIf(field -> Objects.equals(field.getName(), contract.name()));
+                        fields.add(contract.metadata().tracedLike(existing));
                     }
                 }
                 yield fields;
@@ -141,18 +181,19 @@ public class EtlSchemaService {
             case AddConstantExecutor.TOOL_CODE -> resolveAddConstant(config, inputFields);
             case RowColumnExecutor.TOOL_CODE -> resolveRowColumn(config, inputFields);
             case FieldSplitExecutor.TOOL_CODE -> resolveFieldSplit(config, inputFields);
-            case IdGeneratorExecutor.TOOL_CODE -> resolveAppendField(config, inputFields, "targetField", "String");
+            case IdGeneratorExecutor.TOOL_CODE -> resolveAppendField(config, inputFields, "targetField", "String", false);
             case CalculatorExecutor.TOOL_CODE -> resolveCalculator(config, inputFields);
             case ValueMapExecutor.TOOL_CODE, NumberRangeExecutor.TOOL_CODE ->
-                    resolveAppendField(config, inputFields, "targetField", "String");
+                    resolveAppendField(config, inputFields, "targetField", "String", true);
             case QualityCheckExecutor.TOOL_CODE -> resolveQualityFields(config, inputFields);
-            case SplitToRowsExecutor.TOOL_CODE -> resolveAppendField(config, inputFields, "targetField", "String");
+            case SplitToRowsExecutor.TOOL_CODE -> resolveAppendField(config, inputFields, "targetField", "String", true);
             case SortRecordsExecutor.TOOL_CODE -> copyFields(inputFields);
             // 脚本和复杂合并可改值、补空或展开结构；已有字段名称/类型只作提示，不能沿用新属性证据。
-            case JavaScriptExecutor.TOOL_CODE, JsScriptExecutor.TOOL_CODE -> unknownProperties(inputFields);
-            case DataEncryptExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "encryptFields");
-            case DataDecryptExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "decryptFields");
-            case DataDesensitizeExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "desensitizeFields");
+            // 脚本可任意改写字段值，来源无法在设计期证明。
+            case JavaScriptExecutor.TOOL_CODE, JsScriptExecutor.TOOL_CODE -> unknownOrigins(unknownProperties(inputFields));
+            case DataEncryptExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "encryptFields", true);
+            case DataDecryptExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "decryptFields", false);
+            case DataDesensitizeExecutor.TOOL_CODE -> resolveCryptoFields(config, inputFields, "desensitizeFields", true);
             case DataFilterExecutor.TOOL_CODE, DataConditionExecutor.TOOL_CODE -> copyFields(inputFields);
             case DataMergeExecutor.TOOL_CODE, SortMergeExecutor.TOOL_CODE,
                  MultiJoinExecutor.TOOL_CODE, CartesianProductExecutor.TOOL_CODE,
@@ -328,7 +369,8 @@ public class EtlSchemaService {
             List<EtlFieldMeta> fields = new ArrayList<>(inputFields.size());
             for (EtlFieldMeta field : inputFields) {
                 fields.add(changedFields.contains(field.getName())
-                        ? new EtlFieldMeta(field.getName(), null) : field.copy());
+                        ? new EtlFieldMeta(field.getName(), null).derivedFrom(field, LineageTransform.TRANSFORMATION, false)
+                        : field.copy());
             }
             return fields;
         }
@@ -345,7 +387,9 @@ public class EtlSchemaService {
         if (config.getBool("enableFormatting", false)) {
             collectFieldNames(config.getJSONArray("formatRules"), changed);
         }
-        fields.replaceAll(field -> changed.contains(field.getName()) ? new EtlFieldMeta(field.getName(), null) : field);
+        fields.replaceAll(field -> changed.contains(field.getName())
+                ? new EtlFieldMeta(field.getName(), null).derivedFrom(field, LineageTransform.TRANSFORMATION, false)
+                : field);
         if (config.getBool("enableNullHandling", false)
                 && !"REMOVE".equalsIgnoreCase(config.getStr("nullHandlingStrategy", "REMOVE"))) {
             var defaults = new java.util.HashSet<String>();
@@ -364,7 +408,8 @@ public class EtlSchemaService {
         inputFields.forEach(field -> fields.put(field.getName(), field));
         String targetField = config.getStr("targetField");
         if (StrUtil.isNotBlank(targetField)) {
-            fields.put(targetField, new EtlFieldMeta(targetField, "String"));
+            // 派生表达式的引用字段在设计期无法可靠解析，来源标记为不完整。
+            fields.put(targetField, new EtlFieldMeta(targetField, "String").markOriginsUnknown());
         }
         return new ArrayList<>(fields.values());
     }
@@ -386,6 +431,9 @@ public class EtlSchemaService {
                     ? new EtlFieldMeta(projection.targetField(), "String", source.getNullable(), null, null, null)
                     : source.renamed(projection.targetField());
             target.setSourceName(source.getSourceName());
+            // 设置字段值为原样复制；字符串处理和替换会改变取值。
+            target.derivedFrom(source, EtlFieldRules.SET_FIELD_VALUE.equals(code)
+                    ? LineageTransform.IDENTITY : LineageTransform.TRANSFORMATION, false);
             result.put(target.getName(), target);
         }
         return new ArrayList<>(result.values());
@@ -433,7 +481,8 @@ public class EtlSchemaService {
                 for (Object item : mappings) {
                     String fieldName = ((JSONObject) item).getStr("fieldName");
                     if (StrUtil.isNotBlank(fieldName)) {
-                        fields.add(new EtlFieldMeta(fieldName, "String"));
+                        // 行转列的新列取值依赖运行期数据，来源标记为不完整。
+                        fields.add(new EtlFieldMeta(fieldName, "String").markOriginsUnknown());
                     }
                 }
             }
@@ -450,7 +499,9 @@ public class EtlSchemaService {
         fields.add(new EtlFieldMeta(
                 StrUtil.blankToDefault(config.getStr("keyField"), "key"), "String"));
         fields.add(new EtlFieldMeta(
-                StrUtil.blankToDefault(config.getStr("valueField"), "value"), "String"));
+                StrUtil.blankToDefault(config.getStr("valueField"), "value"), "String")
+                .derivedFrom(inputFields.stream().filter(field -> unpivotFields.contains(field.getName())).toList(),
+                        LineageTransform.TRANSFORMATION, false));
         return fields;
     }
 
@@ -460,6 +511,7 @@ public class EtlSchemaService {
     private List<EtlFieldMeta> resolveFieldSplit(JSONObject config, List<EtlFieldMeta> inputFields) {
         Map<String, EtlFieldMeta> fields = new LinkedHashMap<>();
         inputFields.forEach(field -> fields.put(field.getName(), field));
+        EtlFieldMeta source = fields.get(config.getStr("sourceField"));
         if (!config.getBool("keepSource", false)) {
             fields.remove(config.getStr("sourceField"));
         }
@@ -468,7 +520,8 @@ public class EtlSchemaService {
             for (Object item : outputs) {
                 String name = ((JSONObject) item).getStr("name");
                 if (StrUtil.isNotBlank(name)) {
-                    fields.put(name, new EtlFieldMeta(name, "String"));
+                    fields.put(name, new EtlFieldMeta(name, "String")
+                            .derivedFrom(source, LineageTransform.TRANSFORMATION, false));
                 }
             }
         }
@@ -486,7 +539,8 @@ public class EtlSchemaService {
             for (Object item : rules) {
                 String name = ((JSONObject) item).getStr("targetField");
                 if (StrUtil.isNotBlank(name)) {
-                    fields.put(name, new EtlFieldMeta(name, "String"));
+                    // 计算表达式的引用字段在设计期无法可靠解析，来源标记为不完整。
+                    fields.put(name, new EtlFieldMeta(name, "String").markOriginsUnknown());
                 }
             }
         }
@@ -495,14 +549,18 @@ public class EtlSchemaService {
 
     /**
      * 追加单个目标字段（ID 生成器/值映射/数值范围/列拆分为多行，目标为空则覆盖原字段不变结构）
+     *
+     * @param fromSource 目标值是否由 sourceField 变换而来（ID 生成器为 false）
      */
     private List<EtlFieldMeta> resolveAppendField(JSONObject config, List<EtlFieldMeta> inputFields,
-            String configKey, String dataType) {
+            String configKey, String dataType, boolean fromSource) {
         Map<String, EtlFieldMeta> fields = new LinkedHashMap<>();
         inputFields.forEach(field -> fields.put(field.getName(), field));
+        EtlFieldMeta source = fromSource ? fields.get(config.getStr("sourceField")) : null;
         String targetField = StrUtil.blankToDefault(config.getStr(configKey), config.getStr("sourceField"));
         if (StrUtil.isNotBlank(targetField)) {
-            fields.put(targetField, new EtlFieldMeta(targetField, dataType));
+            fields.put(targetField, new EtlFieldMeta(targetField, dataType)
+                    .derivedFrom(source, LineageTransform.TRANSFORMATION, false));
         }
         return new ArrayList<>(fields.values());
     }
@@ -528,9 +586,11 @@ public class EtlSchemaService {
 
     /**
      * 加密/解密/脱敏：新字段追加，同字段覆盖时也清除原值属性证据。
+     *
+     * @param masking 输出是否不暴露原值（加密、脱敏为 true，解密为 false）
      */
     private List<EtlFieldMeta> resolveCryptoFields(JSONObject config, List<EtlFieldMeta> inputFields,
-            String configKey) {
+            String configKey, boolean masking) {
         Map<String, EtlFieldMeta> fields = new LinkedHashMap<>();
         inputFields.forEach(field -> fields.put(field.getName(), field));
         JSONArray array = config.getJSONArray(configKey);
@@ -542,10 +602,12 @@ public class EtlSchemaService {
                 if (StrUtil.isBlank(fieldName)) {
                     continue;
                 }
+                EtlFieldMeta source = fields.get(fieldName);
                 if (!outputField.equals(fieldName) && !field.getBool("keepOriginal", false)) {
                     fields.remove(fieldName);
                 }
-                fields.put(outputField, new EtlFieldMeta(outputField, "String"));
+                fields.put(outputField, new EtlFieldMeta(outputField, "String")
+                        .derivedFrom(source, LineageTransform.TRANSFORMATION, masking));
             }
         }
         return new ArrayList<>(fields.values());
@@ -569,8 +631,18 @@ public class EtlSchemaService {
      * 根据当前输入构建并返回 {@code ArrayList}。
      */
     private static List<EtlFieldMeta> unknownProperties(List<EtlFieldMeta> fields) {
+        // 属性证据失效，但同名字段的来源仍可追溯（合并、关联只组合字段，不改写取值）。
         return new ArrayList<>(
-                fields.stream().map(field -> new EtlFieldMeta(field.getName(), field.getDataType(), null, null, null, null, null, field.getSourceName())).toList());
+                fields.stream().map(field -> new EtlFieldMeta(field.getName(), field.getDataType(), null, null, null, null, null, field.getSourceName())
+                        .tracedLike(field)).toList());
+    }
+
+    /**
+     * 标记全部字段来源不完整（脚本类组件）。
+     */
+    private static List<EtlFieldMeta> unknownOrigins(List<EtlFieldMeta> fields) {
+        fields.forEach(EtlFieldMeta::markOriginsUnknown);
+        return fields;
     }
 
     /**
@@ -580,7 +652,8 @@ public class EtlSchemaService {
         return new EtlFieldMeta(left.getName(), common(left.getDataType(), right.getDataType()),
                 common(left.getNullable(), right.getNullable()), common(left.getPrecision(), right.getPrecision()),
                 common(left.getScale(), right.getScale()), common(left.getTimezone(), right.getTimezone()),
-                common(left.getLength(), right.getLength()), mergeSource(left.getSourceName(), right.getSourceName()));
+                common(left.getLength(), right.getLength()), mergeSource(left.getSourceName(), right.getSourceName()))
+                .tracedLike(left).mergedWith(right);
     }
 
     private static String mergeSource(String left, String right) {

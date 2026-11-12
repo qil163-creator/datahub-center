@@ -176,6 +176,11 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_TERM_PARENT_IS_CHILD = new ErrorCode(1_900_017_006,
             "不能设置自己的子业务术语类目为父业务术语类目");
 
+    // ========== 数据血缘 1_900_018_000 ==========
+    ErrorCode LINEAGE_NODE_NOT_EXISTS = new ErrorCode(1_900_018_001, "血缘节点不存在");
+    ErrorCode LINEAGE_REPORT_INVALID = new ErrorCode(1_900_018_002, "血缘上报内容无效：{}");
+    ErrorCode LINEAGE_QUERY_INVALID = new ErrorCode(1_900_018_003, "血缘查询参数无效：{}");
+
     // ========== 数据质量类目管理 1_500_010_000 ==========
     ErrorCode CATEGORY_DATA_QUALITY_NOT_EXISTS = new ErrorCode(1_500_010_001, "数据质量类目管理不存在");
     ErrorCode CATEGORY_DATA_QUALITY_EXITS_CHILDREN = new ErrorCode(1_500_010_002,

@@ -45,6 +45,23 @@ public class DevTaskController {
     @Resource
     private cn.iocoder.yudao.module.dataforge.service.dev.DevScheduleCoordinator scheduleCoordinator;
 
+    @Resource
+    private cn.iocoder.yudao.module.dataforge.service.lineage.DevTaskLineageCollector lineageCollector;
+
+    /**
+     * 预览开发任务当前保存内容的自动血缘。只读，不上报；数据范围与获得任务详情一致。
+     *
+     * @param id 任务编号
+     * @return 自动血缘预览
+     */
+    @GetMapping("/lineage-preview")
+    @Operation(summary = "预览开发任务自动解析的血缘")
+    @Parameter(name = "id", description = "编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:dev-task:query')")
+    public CommonResult<DevTaskLineagePreviewRespVO> getLineagePreview(@RequestParam("id") Long id) {
+        return success(lineageCollector.preview(taskService.getTask(id)));
+    }
+
     /**
      * 获得当前平台可用的受管原生运行环境。
      *

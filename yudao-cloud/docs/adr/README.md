@@ -10,6 +10,7 @@
 4. [ADR-0004：PostgreSQL 有序增量迁移](0004-ordered-postgresql-migrations.md)
 5. [ADR-0005：跨服务一致性、RPC 信任与事件合同](0005-cross-service-consistency-and-trust.md)
 6. [ADR-0006：数据 API 开放网关安全部署约束](0006-supply-data-api-security-deployment.md)
+7. [ADR-0007：数据血缘的解析归属与上报契约](0007-lineage-report-contract.md)
 
 ## 维护规则
 

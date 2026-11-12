@@ -9,13 +9,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import WorkbenchLineagePanel from './WorkbenchLineagePanel.vue';
 
-const mocks = vi.hoisted(() => ({ tables: vi.fn() }));
+const mocks = vi.hoisted(() => ({ preview: vi.fn(), tables: vi.fn() }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => ({ accessToken: 'test-session' }),
 }));
 vi.mock('#/api/request', () => ({ requestClient: {} }));
 vi.mock('#/api/dataforge/database', () => ({
   getDatabaseTableList: mocks.tables,
+}));
+vi.mock('#/api/dataforge/dev', async (importActual) => ({
+  ...(await importActual<object>()),
+  getDevTaskLineagePreview: mocks.preview,
 }));
 vi.mock('antdv-next', async () => {
   const { defineComponent, h } = await import('vue');
@@ -85,11 +89,18 @@ vi.mock('antdv-next', async () => {
             ? h('div', { 'data-lineage-dialog': '' }, slots.default?.())
             : null,
     }),
+    Tag: defineComponent({
+      setup:
+        (_props, { slots }) =>
+        () =>
+          h('span', { 'data-tag': '' }, slots.default?.()),
+    }),
   };
 });
 let app: App | undefined;
 let host: HTMLDivElement | undefined;
 beforeEach(() => {
+  mocks.preview.mockReset();
   mocks.tables.mockReset();
   mocks.tables.mockResolvedValue([
     { tableName: 'source_table' },
@@ -235,14 +246,38 @@ describe('工作台真实表血缘维护', () => {
       }),
     );
   });
-  it('重新解析明确说明能力状态，不从SQL猜测或创建关系', async () => {
+  it('未保存的任务提示先保存，不在前端从SQL猜测关系', async () => {
     await mount({ content: 'SELECT * FROM should_not_be_inferred' });
     button('重新解析').click();
     await nextTick();
     expect(host!.querySelector('[role="status"]')!.textContent).toContain(
-      '未配置自动血缘解析',
+      '请先保存任务',
     );
     expect(host!.textContent).not.toContain('should_not_be_inferred');
+    expect(mocks.preview).not.toHaveBeenCalled();
+    expect(mocks.tables).not.toHaveBeenCalled();
+  });
+  it('重新解析展示后端自动解析结果，不改动手工维护的链路', async () => {
+    mocks.preview.mockResolvedValue({
+      status: 'PARTIAL',
+      statementCount: 1,
+      readTables: [{ datasourceId: '2', schemaName: 'ods', tableName: 'orders' }],
+      writeTables: [{ datasourceId: '2', schemaName: 'dw', tableName: 'fact' }],
+      tableEdges: [],
+      columnEdges: [],
+      columnEdgeTotal: 3,
+      issues: [{ code: 'WILDCARD_UNEXPANDED', message: 'ods.orders.* 缺少表结构', statementIndex: 1 }],
+    });
+    await mount({ id: '9007199254740993', content: 'INSERT INTO dw.fact SELECT * FROM ods.orders' });
+    button('重新解析').click();
+    await flush();
+    expect(mocks.preview).toHaveBeenCalledWith('9007199254740993', expect.any(AbortSignal));
+    const result = host!.querySelector('[aria-label="自动解析结果"]')!;
+    expect(result.textContent).toContain('部分解析');
+    expect(result.textContent).toContain('ods.orders');
+    expect(result.textContent).toContain('dw.fact');
+    expect(result.textContent).toContain('3 条');
+    expect(result.textContent).toContain('第 1 条语句');
     expect(mocks.tables).not.toHaveBeenCalled();
   });
   it('切换连接后，较早表清单响应不能覆盖当前选择', async () => {

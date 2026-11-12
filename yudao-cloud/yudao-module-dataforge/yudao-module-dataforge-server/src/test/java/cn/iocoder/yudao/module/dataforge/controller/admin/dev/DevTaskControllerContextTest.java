@@ -31,7 +31,9 @@ class DevTaskControllerContextTest {
             .withInitializer(app -> app.getBeanFactory().registerSingleton("devScheduleCoordinator",
                     scheduleCoordinator()))
             .withInitializer(app -> app.getBeanFactory().registerSingleton("devNativeRuntimeSupport",
-                    mock(DevNativeRuntimeSupport.class)));
+                    mock(DevNativeRuntimeSupport.class)))
+            .withInitializer(app -> app.getBeanFactory().registerSingleton("devTaskLineageCollector",
+                    mock(cn.iocoder.yudao.module.dataforge.service.lineage.DevTaskLineageCollector.class)));
 
     private static cn.iocoder.yudao.module.dataforge.service.dev.DevScheduleCoordinator scheduleCoordinator() {
         var scheduler = mock(cn.iocoder.yudao.module.dataforge.service.dev.DevScheduleCoordinator.class);
