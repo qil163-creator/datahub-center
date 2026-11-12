@@ -55,7 +55,38 @@ public final class EtlPreviewEngine {
                          long inputRows, long outputRows, List<EtlValidationResult.Issue> issues, boolean truncated,
                          Map<String, Long> portCounts, List<String> rowPorts, String previewId,
                          List<List<RowViolation>> rowViolations, Budget budget, long targetInputRows,
-                         List<InputSample> inputSamples, String comparisonMode) {
+                         List<InputSample> inputSamples, String comparisonMode, List<MaskedField> maskedFields) {
+
+        /** 空集合兜底，保证序列化形状稳定。 */
+        public Result {
+            maskedFields = maskedFields == null ? List.of() : List.copyOf(maskedFields);
+        }
+
+        /** 不带脱敏标注的完整构造器，供组件内部与既有消费方使用。 */
+        public Result(boolean success, List<EtlFieldMeta> columns, List<Map<String, Object>> rows,
+                long inputRows, long outputRows, List<EtlValidationResult.Issue> issues, boolean truncated,
+                Map<String, Long> portCounts, List<String> rowPorts, String previewId,
+                List<List<RowViolation>> rowViolations, Budget budget, long targetInputRows,
+                List<InputSample> inputSamples, String comparisonMode) {
+            this(success, columns, rows, inputRows, outputRows, issues, truncated, portCounts, rowPorts, previewId,
+                    rowViolations, budget, targetInputRows, inputSamples, comparisonMode, List.of());
+        }
+
+        /**
+         * 用调用方处理后的行替换展示数据（例如按数据安全策略脱敏），其余统计与诊断保持不变。
+         *
+         * @param maskedRows    替换后的目标节点行，条数必须与原结果一致
+         * @param maskedSamples 替换后的输入样本，个数与顺序必须与原结果一致
+         * @param masked        被处理的字段标注
+         */
+        public Result withMaskedRows(List<Map<String, Object>> maskedRows, List<InputSample> maskedSamples,
+                                     List<MaskedField> masked) {
+            if (maskedRows.size() != rows.size() || maskedSamples.size() != inputSamples.size()) {
+                throw new IllegalArgumentException("替换后的行数与原预览结果不一致");
+            }
+            return new Result(success, columns, maskedRows, inputRows, outputRows, issues, truncated, portCounts,
+                    rowPorts, previewId, rowViolations, budget, targetInputRows, maskedSamples, comparisonMode, masked);
+        }
 
         /** 保留原有完整响应构造器，供组件消费方使用。 */
         public Result(boolean success, List<EtlFieldMeta> columns, List<Map<String, Object>> rows,
@@ -94,6 +125,22 @@ public final class EtlPreviewEngine {
                               String inputPort, List<EtlFieldMeta> columns, List<Map<String, Object>> rows,
                               long rowCount, boolean truncated) {
 
+    }
+
+    /**
+     * 被调用方处理（如脱敏）的字段，只含字段名与原因，不含原值。
+     *
+     * @param sourceNodeNo 字段所在的输入样本节点；为空表示目标节点的输出
+     * @param field        字段名
+     * @param reason       原因编码，由调用方定义
+     * @param categoryNames 命中的分类名称
+     */
+    public record MaskedField(String sourceNodeNo, String field, String reason, List<String> categoryNames) {
+
+        /** 复制为不可变集合。 */
+        public MaskedField {
+            categoryNames = categoryNames == null ? List.of() : List.copyOf(categoryNames);
+        }
     }
 
     /** 只返回规则元信息，不返回可能含原始字段值的规则 message。 */

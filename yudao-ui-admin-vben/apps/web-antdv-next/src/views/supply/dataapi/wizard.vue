@@ -61,6 +61,13 @@ import {
   RESULT_FORMAT_OPTIONS,
 } from './data';
 import { etlBatchConfigError, etlBatchCursor } from './etl-batch';
+import {
+  emptyIndicatorConfig,
+  indicatorConfigError,
+  parseIndicatorConfig,
+  serializeIndicatorConfig,
+} from './indicator-config';
+import IndicatorConfigEditor from './indicator-config-editor.vue';
 import DatabaseSelect from './modules/database-select.vue';
 
 defineOptions({ name: 'SupplyDataApiWizard', inheritAttrs: false });
@@ -83,12 +90,36 @@ watch(step, async () => {
   if (content.value) content.value.scrollTop = 0;
 });
 const form = reactive<SupplyDataApiApi.DataApi>({});
+/** INDICATOR 模式的配置编辑态；保存时序列化到 indicatorConfigJson。 */
+const indicatorConfig = ref(emptyIndicatorConfig());
+const declaredParamNames = computed(() =>
+  (form.requestParams ?? []).map((item) => item.name ?? '').filter(Boolean),
+);
+function declareParams(names: string[]) {
+  const params = [...(form.requestParams ?? [])];
+  for (const name of names) {
+    if (params.some((item) => item.name === name)) continue;
+    params.push({
+      name,
+      paramType: 'STRING',
+      nullable: 1,
+      description: name.toLowerCase().includes('date') ? '日期 yyyy-MM-dd' : '维度过滤值',
+    });
+  }
+  form.requestParams = params;
+}
 watch(
   () => form.configType,
   (type) => {
     testResult.value = undefined;
     testGuard.invalidate();
     testing.value = false;
+    if (type === 'INDICATOR') {
+      // 指标只提供查询，且需要确定的调用主体做动态脱敏。
+      form.apiType = 'QUERY';
+      if (!form.authType || form.authType === 'NONE') form.authType = 'APPKEY';
+      return;
+    }
     if (type !== 'ETL_BATCH') return;
     form.apiType = 'QUERY';
     form.resultFormat = 'LIST';
@@ -98,6 +129,10 @@ watch(
 );
 function requestApi() {
   const api = JSON.parse(JSON.stringify(form)) as SupplyDataApiApi.DataApi;
+  api.indicatorConfigJson =
+    api.configType === 'INDICATOR'
+      ? serializeIndicatorConfig(indicatorConfig.value)
+      : undefined;
   if (api.configType === 'ETL_BATCH')
     api.requestParams = [
       {
@@ -171,6 +206,7 @@ async function open(id?: number | string, defaultCategoryId?: number | string) {
   invalidateRequests();
   step.value = 0;
   Object.keys(form).forEach((key) => Reflect.deleteProperty(form, key));
+  indicatorConfig.value = emptyIndicatorConfig();
   Object.assign(form, {
     version: 'v1.0.0',
     method: 'POST',
@@ -215,6 +251,7 @@ async function open(id?: number | string, defaultCategoryId?: number | string) {
         return;
       }
       Object.assign(form, data);
+      indicatorConfig.value = parseIndicatorConfig(data?.indicatorConfigJson);
       if (form.databaseId) {
         void loadTables(false);
       }
@@ -324,6 +361,16 @@ function validateStep2() {
   if (form.configType === 'FORWARD' && !form.forwardUrl?.trim()) {
     message.warning('请配置转发地址');
     return false;
+  }
+  if (form.configType === 'INDICATOR') {
+    const indicatorError =
+      form.authType === 'NONE'
+        ? '指标接口不能使用 NONE 认证'
+        : indicatorConfigError(indicatorConfig.value, declaredParamNames.value);
+    if (indicatorError) {
+      message.warning(indicatorError);
+      return false;
+    }
   }
   if (form.apiType && form.apiType !== 'QUERY' && form.configType !== 'SQL') {
     message.warning('插入/更新/删除/多脚本接口类型仅支持 SQL 脚本式');
@@ -645,9 +692,7 @@ const getTitle = computed(() =>
           <div class="wizard__section">基础信息</div>
           <div class="form-grid">
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >API 类目</label
-              >
+              <label class="form-item__label form-item__label--required">API 类目</label>
               <TreeSelect
                 v-model:value="form.categoryId"
                 :field-names="{
@@ -664,9 +709,7 @@ const getTitle = computed(() =>
               />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >API 名称</label
-              >
+              <label class="form-item__label form-item__label--required">API 名称</label>
               <Input
                 v-model:value="form.name"
                 allow-clear
@@ -674,9 +717,7 @@ const getTitle = computed(() =>
               />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >API 地址</label
-              >
+              <label class="form-item__label form-item__label--required">API 地址</label>
               <Input
                 v-model:value="form.path"
                 allow-clear
@@ -684,9 +725,7 @@ const getTitle = computed(() =>
               />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >API 版本</label
-              >
+              <label class="form-item__label form-item__label--required">API 版本</label>
               <Input
                 v-model:value="form.version"
                 allow-clear
@@ -694,15 +733,11 @@ const getTitle = computed(() =>
               />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >请求方式</label
-              >
+              <label class="form-item__label form-item__label--required">请求方式</label>
               <Select v-model:value="form.method" :options="METHOD_OPTIONS" />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >返回格式</label
-              >
+              <label class="form-item__label form-item__label--required">返回格式</label>
               <Select
                 v-model:value="form.resultFormat"
                 :disabled="form.configType === 'ETL_BATCH'"
@@ -715,9 +750,7 @@ const getTitle = computed(() =>
               />
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >接口类型</label
-              >
+              <label class="form-item__label form-item__label--required">接口类型</label>
               <Select
                 v-model:value="form.apiType"
                 :options="API_TYPE_OPTIONS"
@@ -726,9 +759,7 @@ const getTitle = computed(() =>
               <div class="form-item__tip">非查询类仅支持 SQL 脚本式</div>
             </div>
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >认证方式</label
-              >
+              <label class="form-item__label form-item__label--required">认证方式</label>
               <RadioGroup
                 v-model:value="form.authType"
                 :options="
@@ -931,9 +962,7 @@ const getTitle = computed(() =>
           <div class="wizard__section">数据源配置</div>
           <div class="form-grid">
             <div class="form-item">
-              <label class="form-item__label form-item__label--required"
-                >配置方式</label
-              >
+              <label class="form-item__label form-item__label--required">配置方式</label>
               <Select
                 v-model:value="form.configType"
                 :options="CONFIG_TYPE_OPTIONS"
@@ -943,9 +972,7 @@ const getTitle = computed(() =>
               v-if="form.configType === 'TABLE' || form.configType === 'SQL'"
             >
               <div class="form-item">
-                <label class="form-item__label form-item__label--required"
-                  >数据源</label
-                >
+                <label class="form-item__label form-item__label--required">数据源</label>
                 <DatabaseSelect
                   v-model:value="form.databaseId"
                   :databases="databaseList"
@@ -958,9 +985,7 @@ const getTitle = computed(() =>
                 />
               </div>
               <div v-if="form.configType === 'TABLE'" class="form-item">
-                <label class="form-item__label form-item__label--required"
-                  >数据源表</label
-                >
+                <label class="form-item__label form-item__label--required">数据源表</label>
                 <Select
                   v-model:value="form.tableName"
                   :options="tableList"
@@ -970,11 +995,19 @@ const getTitle = computed(() =>
                 />
               </div>
             </template>
+            <div
+              v-else-if="form.configType === 'INDICATOR'"
+              class="form-item form-item--full"
+            >
+              <IndicatorConfigEditor
+                v-model="indicatorConfig"
+                :declared-params="declaredParamNames"
+                @declare="declareParams"
+              />
+            </div>
             <template v-else-if="form.configType === 'FORWARD'">
               <div class="form-item">
-                <label class="form-item__label form-item__label--required"
-                  >转发地址</label
-                >
+                <label class="form-item__label form-item__label--required">转发地址</label>
                 <Input
                   v-model:value="form.forwardUrl"
                   placeholder="http(s):// 开头的目标接口地址"
@@ -994,9 +1027,7 @@ const getTitle = computed(() =>
               v-else-if="form.configType === 'ETL_BATCH'"
               class="form-item form-item--full"
             >
-              <label class="form-item__label form-item__label--required"
-                >ETL 目标批次 ID</label
-              >
+              <label class="form-item__label form-item__label--required">ETL 目标批次 ID</label>
               <Input
                 :value="form.etlBatchId == null ? '' : String(form.etlBatchId)"
                 placeholder="从 ETL 运行的目标批次详情复制，保持原始完整数字"
@@ -1016,10 +1047,8 @@ const getTitle = computed(() =>
 
           <template v-if="form.configType === 'SQL'">
             <div class="wizard__section">
-              <span
-                >SQL 脚本（参数用 #{参数名} 占位，支持 &lt;where&gt;/&lt;if&gt;
-                动态条件标签；多脚本类型用分号分隔，同一事务执行）</span
-              >
+              <span>SQL 脚本（参数用 #{参数名} 占位，支持 &lt;where&gt;/&lt;if&gt;
+                动态条件标签；多脚本类型用分号分隔，同一事务执行）</span>
               <div class="flex gap-2">
                 <Button size="small" @click="insertSqlTag('if')">
                   <template #icon>
@@ -1045,7 +1074,7 @@ const getTitle = computed(() =>
               v-model:value="form.sqlText"
               :rows="8"
               class="wizard__sql"
-              placeholder='如：SELECT * FROM hyd_discharge <where><if test="station_code != null"> AND station_code = #{station_code}</if></where>'
+              placeholder="如：SELECT * FROM hyd_discharge <where><if test=&quot;station_code != null&quot;> AND station_code = #{station_code}</if></where>"
               spellcheck="false"
             />
           </template>

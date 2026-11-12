@@ -158,6 +158,119 @@ public class EtlGraphLineageExtractor {
         }
     }
 
+    // ==================== 字段追溯（供预览脱敏） ====================
+
+    /**
+     * 物理字段来源。
+     *
+     * @param masking 经过哈希、计数等不暴露原值的变换
+     */
+    public record PhysicalColumn(Long datasourceId, String schemaName, String tableName, String column,
+                                 boolean masking) {
+    }
+
+    /**
+     * 字段追溯结果。
+     *
+     * @param sources  物理来源；外部数据集（Kafka、文件等）不计入
+     * @param complete false 表示来源无法完整追溯（脚本/表达式组件、SQL 无法解析、来源有歧义等）
+     */
+    public record TracedField(List<PhysicalColumn> sources, boolean complete) {
+    }
+
+    /**
+     * 画布字段追溯：各节点输出（输出节点为写入）字段到物理列的映射，以及画布读取的全部物理表。
+     *
+     * @param fields 节点编号 → 字段名（小写不敏感时以原名为键）→ 追溯结果
+     * @param tables 读取的物理表，作为无法追溯字段的候选
+     */
+    public record FieldTrace(Map<String, Map<String, TracedField>> fields, List<LineageNodeRefDTO> tables) {
+
+        /**
+         * 节点字段的追溯结果；节点或字段不存在时视为无法追溯。
+         */
+        public TracedField of(String nodeNo, String field) {
+            Map<String, TracedField> node = fields.get(nodeNo);
+            TracedField traced = node == null ? null : node.get(field);
+            return traced == null ? new TracedField(List.of(), false) : traced;
+        }
+    }
+
+    /**
+     * 追溯画布每个节点的字段来源，复用血缘的输入解析与组件推导规则。不连接源库，元数据取自已采集结果。
+     */
+    public FieldTrace traceFields(List<EtlNodeDef> nodes, List<EtlEdgeDef> edges) {
+        if (nodes.isEmpty()) {
+            return new FieldTrace(Map.of(), List.of());
+        }
+        EtlDag dag = EtlDag.buildLenient(nodes, edges);
+        // 降级信息只用于血缘上报；这里只关心来源本身。
+        LineageReportBuilder scratch = new LineageReportBuilder("ETL_PIPELINE", 0L, "preview", 0L, 0);
+        Map<String, Input> inputs = inputs(dag, scratch);
+        Map<String, List<EtlFieldMeta>> sourceFields = new LinkedHashMap<>();
+        inputs.forEach((no, input) -> {
+            if (input.fields() != null) {
+                sourceFields.put(no, input.fields());
+            }
+        });
+        EtlFieldOriginResult trace = schemas.traceOrigins(dag, NO_CONNECTION, null, sourceFields);
+        List<LineageNodeRefDTO> tables = new ArrayList<>();
+        inputs.values().forEach(input -> input.nodes().stream()
+                .filter(ref -> ref.getDatasourceId() != null && ref.getTableName() != null)
+                .filter(ref -> !tables.contains(ref)).forEach(tables::add));
+        Map<String, Map<String, TracedField>> fields = new LinkedHashMap<>();
+        trace.nodes().forEach((no, node) -> {
+            List<EtlFieldOriginResult.TracedField> written = node.outputs().isEmpty() ? node.inputs() : node.outputs();
+            Map<String, TracedField> byName = new LinkedHashMap<>();
+            for (EtlFieldOriginResult.TracedField field : written) {
+                byName.put(field.name(), physical(field, inputs));
+            }
+            // 无上游的输入节点：字段直接来自其物理来源。
+            Input own = inputs.get(no);
+            if (own != null && node.outputs().isEmpty() && node.inputs().isEmpty() && own.fields() != null) {
+                own.fields().forEach(field -> byName.put(field.getName(),
+                        new TracedField(columns(own.sources().apply(field.getName())), true)));
+            }
+            fields.put(no, byName);
+        });
+        return new FieldTrace(fields, tables);
+    }
+
+    /**
+     * 把组件追溯的输入来源映射到物理列。
+     */
+    private static TracedField physical(EtlFieldOriginResult.TracedField field, Map<String, Input> inputs) {
+        boolean complete = field.complete();
+        List<PhysicalColumn> result = new ArrayList<>();
+        for (EtlFieldOrigin origin : field.origins()) {
+            Input input = inputs.get(origin.nodeNo());
+            if (input == null) {
+                // 来源输入节点无法解析（如 SQL 不在支持矩阵）：不能当作确定来源。
+                complete = false;
+                continue;
+            }
+            for (Source source : input.sources().apply(origin.field())) {
+                complete = complete && !source.ambiguous() && !"*".equals(source.column());
+                LineageNodeRefDTO ref = source.node();
+                if (ref.getDatasourceId() != null && ref.getTableName() != null) {
+                    result.add(new PhysicalColumn(ref.getDatasourceId(), ref.getSchemaName(), ref.getTableName(),
+                            source.column(), source.masking() || origin.masking()));
+                }
+            }
+        }
+        return new TracedField(result, complete);
+    }
+
+    /**
+     * 输入节点字段的物理列。
+     */
+    private static List<PhysicalColumn> columns(List<Source> sources) {
+        return sources.stream().filter(source -> source.node().getDatasourceId() != null
+                        && source.node().getTableName() != null)
+                .map(source -> new PhysicalColumn(source.node().getDatasourceId(), source.node().getSchemaName(),
+                        source.node().getTableName(), source.column(), source.masking())).toList();
+    }
+
     // ==================== 输入 ====================
 
     /**

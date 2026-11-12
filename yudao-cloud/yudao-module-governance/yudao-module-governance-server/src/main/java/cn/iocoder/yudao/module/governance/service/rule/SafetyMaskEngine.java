@@ -70,6 +70,14 @@ public class SafetyMaskEngine {
      */
     public static Object mask(Object value, String methodCode, Map<String, Object> config,
             List<SafetyReplaceItemDO> replaceItems) {
+        return mask(value, methodCode, config, replaceItems, null);
+    }
+
+    /**
+     * 按规则脱敏；ENCRYPT/KEY_REF 通过 {@code keyCipher} 加密，未提供时该方式不可执行（调用方失败关闭）。
+     */
+    public static Object mask(Object value, String methodCode, Map<String, Object> config,
+            List<SafetyReplaceItemDO> replaceItems, SafetyKeyCipher keyCipher) {
         if (value == null) {
             return null;
         }
@@ -84,7 +92,8 @@ public class SafetyMaskEngine {
             case "NULLIFY" -> null;
             case "REGEX" -> regexReplace(str(value), config);
             case "HASH" -> hash(str(value), MapUtil.getStr(config, "algorithm"));
-            case "ENCRYPT" -> encrypt(str(value), config);
+            case "ENCRYPT" -> "KEY_REF".equals(MapUtil.getStr(config, "encryptType"))
+                    ? encryptByKeyRef(str(value), config, keyCipher) : encrypt(str(value), config);
             default -> throw exception(MASK_METHOD_NOT_SUPPORTED, methodCode);
         };
     }
@@ -322,6 +331,16 @@ public class SafetyMaskEngine {
 
     /**
      * 按配置选择编码、摘要或对称加密方式处理文本。
+     */
+    private static String encryptByKeyRef(String text, Map<String, Object> config, SafetyKeyCipher keyCipher) {
+        if (keyCipher == null) {
+            throw exception(MASK_METHOD_NOT_SUPPORTED, "ENCRYPT/KEY_REF");
+        }
+        return keyCipher.encrypt(MapUtil.getStr(config, "keyCode"), text);
+    }
+
+    /**
+     * 按配置的加密方式处理文本。内联密钥（secretKey）只为兼容历史规则保留，新规则必须使用 KEY_REF。
      */
     private static String encrypt(String text, Map<String, Object> config) {
         String encryptType = StrUtil.nullToEmpty(MapUtil.getStr(config, "encryptType"));

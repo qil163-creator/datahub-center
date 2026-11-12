@@ -195,6 +195,47 @@ public class DataQueryServiceImpl implements DataQueryService {
      */
     @Override
     public DataQueryResultRespVO executeQuery(DataQueryExecuteReqVO reqVO) {
+        return execute(reqVO, "DATA_QUERY");
+    }
+
+    /**
+     * 为导出重新执行查询：沿用数据查询的全部访问校验与批准列约束，结果按 DATA_EXPORT 场景（导出豁免口径）脱敏。
+     */
+    @Override
+    public DataQueryResultRespVO executeForExport(DataQueryExecuteReqVO reqVO) {
+        return execute(reqVO, "DATA_EXPORT");
+    }
+
+    /**
+     * 只做导出申请前的访问校验，不读取数据；返回规范化后的表身份。
+     */
+    @Override
+    public String[] checkExportable(DataQueryExecuteReqVO reqVO) {
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        RestrictedSelectRespDTO plan = parseRestrictedSelect(reqVO);
+        if (StrUtil.isBlank(plan.getTableName()) || StrUtil.isBlank(plan.getSchemaName())
+                || StrUtil.isBlank(plan.getNormalizedSql())) {
+            throw exception(MARKET_QUERY_SQL_REJECTED);
+        }
+        assetAccessGuard.assertPublishedTableReadable(reqVO.getDatasourceId(), plan.getSchemaName(),
+                plan.getTableName(), userId, true);
+        MarketResourceApplyDO apply = marketAccessService.findEffectiveApplyForTable(
+                userId, reqVO.getDatasourceId(), plan.getSchemaName(), plan.getTableName());
+        if (apply != null) {
+            MarketQuerySnapshot authorization = marketAccessService.requireQuerySnapshot(userId, apply.getId());
+            marketAccessService.assertQueryColumnsAllowed(authorization.fieldScope(),
+                    Boolean.TRUE.equals(plan.getWildcard()), plan.getSourceColumns());
+        } else {
+            assetAccessGuard.assertPublishedTableReadable(reqVO.getDatasourceId(), plan.getSchemaName(),
+                    plan.getTableName(), userId, false);
+        }
+        return new String[]{plan.getSchemaName(), plan.getTableName()};
+    }
+
+    /**
+     * 执行受限查询。
+     */
+    private DataQueryResultRespVO execute(DataQueryExecuteReqVO reqVO, String maskScene) {
         Long userId = SecurityFrameworkUtils.getLoginUserId();
         RestrictedSelectRespDTO plan = parseRestrictedSelect(reqVO);
         String tableName = plan.getTableName();
@@ -218,7 +259,7 @@ public class DataQueryServiceImpl implements DataQueryService {
         request.setDatabaseId(reqVO.getDatasourceId());
         request.setSql(plan.getNormalizedSql());
         request.setLimit(reqVO.getLimit());
-        request.setMaskScene("DATA_QUERY");
+        request.setMaskScene(maskScene);
         if (apply != null) {
             // 批准列在数据库执行前生效；返回后再过滤只作为防御，不作为通过依据。
             if (!java.util.Objects.equals(request.getDatabaseId(), authorization.databaseId())

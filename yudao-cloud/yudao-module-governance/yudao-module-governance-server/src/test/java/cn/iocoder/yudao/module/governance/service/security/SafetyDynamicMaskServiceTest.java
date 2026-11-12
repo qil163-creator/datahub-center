@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskResp
 import cn.iocoder.yudao.module.governance.api.security.dto.SafetyMaskExemptRespDTO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.category.SafetyCategoryDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.security.SafetyMaskSceneDO;
+import cn.iocoder.yudao.module.governance.enums.security.SafetyMaskSceneEnum;
 import cn.iocoder.yudao.module.governance.dal.mysql.category.SafetyCategoryMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.security.SafetyMaskSceneMapper;
 import cn.iocoder.yudao.module.governance.service.accesslog.SafetyAccessLogService;
@@ -45,6 +46,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -121,7 +123,42 @@ class SafetyDynamicMaskServiceTest extends BaseMockitoUnitTest {
         var resp = service.maskRows(request(1L, column("phone", PHONE)));
         assertEquals("13800000000", resp.getRows().getFirst().get("phone"));
         assertTrue(resp.getMaskedColumns().isEmpty());
+        // 豁免看到原值也必须留痕：明文访问审计只记列名。
+        ArgumentCaptor<SafetyAccessLogCreateReqDTO> audit = ArgumentCaptor.forClass(SafetyAccessLogCreateReqDTO.class);
+        verify(accessLogService).recordAccessLog(audit.capture());
+        assertEquals(0, audit.getValue().getMaskedFlag());
+        assertEquals("phone", audit.getValue().getSensitiveColumns());
+        assertFalse(audit.getValue().toString().contains("13800000000"), "审计不得包含原值");
+    }
+
+    @Test
+    void nonSensitiveResultIsNotAudited() {
+        service.maskRows(request(1L, column("name", NAME)));
         verify(accessLogService, never()).recordAccessLog(any());
+    }
+
+    @Test
+    void configuredWhitelistSceneDrivesTheExemptionLookup() {
+        SafetyMaskSceneDO configured = new SafetyMaskSceneDO();
+        configured.setSceneCode("DATA_QUERY");
+        configured.setEnabled(true);
+        configured.setWhitelistScene("SHARE");
+        when(sceneMapper.selectByScene("DATA_QUERY")).thenReturn(configured);
+        when(whitelistService.getMaskExemptStrict(eq(1L), eq("SHARE"))).thenReturn(exempt(false));
+        when(whitelistService.getCategoryExemptionsStrict(eq(1L), eq("SHARE"), anySet())).thenReturn(Set.of());
+
+        service.maskRows(request(1L, column("phone", PHONE)));
+
+        verify(whitelistService, never()).getMaskExemptStrict(eq(1L), eq("QUERY"));
+        verify(whitelistService, atLeastOnce()).getMaskExemptStrict(eq(1L), eq("SHARE"));
+    }
+
+    @Test
+    void invalidConfiguredWhitelistSceneFallsBackToTheDefault() {
+        SafetyMaskSceneDO configured = new SafetyMaskSceneDO();
+        configured.setWhitelistScene("ALL");
+        when(sceneMapper.selectByScene("DATA_QUERY")).thenReturn(configured);
+        assertEquals("QUERY", service.whitelistScene(SafetyMaskSceneEnum.DATA_QUERY));
     }
 
     @Test
@@ -174,6 +211,10 @@ class SafetyDynamicMaskServiceTest extends BaseMockitoUnitTest {
         var resp = service.maskRows(request(1L, column("id_card", ID_CARD)));
         assertEquals("110101", resp.getRows().getFirst().get("id_card"));
         assertTrue(resp.getMaskedColumns().isEmpty());
+        ArgumentCaptor<SafetyAccessLogCreateReqDTO> audit = ArgumentCaptor.forClass(SafetyAccessLogCreateReqDTO.class);
+        verify(accessLogService).recordAccessLog(audit.capture());
+        assertEquals(0, audit.getValue().getMaskedFlag());
+        assertEquals("id_card", audit.getValue().getSensitiveColumns());
     }
 
     @Test

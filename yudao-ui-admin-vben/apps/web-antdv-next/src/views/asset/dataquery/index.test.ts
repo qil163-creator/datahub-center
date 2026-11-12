@@ -89,6 +89,15 @@ vi.mock('./modules/file-tree.vue', () => ({
     },
   }),
 }));
+// 导出入口与水印由各自测试覆盖；这里只验证查询结果归属。
+vi.mock('./modules/export-panel.vue', () => ({
+  default: defineComponent({ setup: () => () => h('span') }),
+}));
+vi.mock('#/components/data-watermark', () => ({
+  DataWatermark: defineComponent({
+    setup: (_, { slots }) => () => h('div', slots.default?.()),
+  }),
+}));
 vi.mock('../market/map/data', () => ({
   formatQueryCell: (value: unknown) => value,
 }));

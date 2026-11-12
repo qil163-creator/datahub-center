@@ -10,6 +10,16 @@ export const MASK_SCENE_OPTIONS = [
   { label: '集市预览', value: 'MARKET_PREVIEW' },
   { label: '数据库预览', value: 'DATABASE_PREVIEW' },
   { label: '指标查询', value: 'INDICATOR_QUERY' },
+  { label: 'ETL 设计预览', value: 'ETL_PREVIEW' },
+  { label: '数据导出', value: 'DATA_EXPORT' },
+] as const;
+
+/** 可配置的豁免口径（白名单中的 ALL 是通配，不能作为场景口径） */
+export const WHITELIST_SCENE_OPTIONS = [
+  { label: '查询', value: 'QUERY' },
+  { label: '共享', value: 'SHARE' },
+  { label: '开放', value: 'OPEN' },
+  { label: '导出', value: 'EXPORT' },
 ] as const;
 
 /** 白名单豁免场景名称 */

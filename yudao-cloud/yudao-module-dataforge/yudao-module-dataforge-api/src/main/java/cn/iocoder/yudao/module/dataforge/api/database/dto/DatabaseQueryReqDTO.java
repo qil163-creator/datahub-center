@@ -46,8 +46,8 @@ public class DatabaseQueryReqDTO {
     @Schema(description = "允许访问的物理列")
     private List<String> allowedColumns;
 
-    @Schema(description = "动态脱敏场景：DATA_QUERY（默认）/ASSET_PREVIEW/MARKET_PREVIEW；结果总会经过动态脱敏")
-    @jakarta.validation.constraints.Pattern(regexp = "DATA_QUERY|ASSET_PREVIEW|MARKET_PREVIEW",
+    @Schema(description = "动态脱敏场景：DATA_QUERY（默认）/ASSET_PREVIEW/MARKET_PREVIEW/DATA_EXPORT；结果总会经过动态脱敏")
+    @jakarta.validation.constraints.Pattern(regexp = "DATA_QUERY|ASSET_PREVIEW|MARKET_PREVIEW|DATA_EXPORT",
             message = "脱敏场景不合法")
     private String maskScene;
 

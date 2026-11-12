@@ -35,6 +35,7 @@ import domainIcon from '#/views/modeling/logictable/assets/data-section-default-
 
 import { options, PERIOD_LABELS, STATUS_LABELS, TYPE_LABELS } from './data';
 import IndicatorForm from './modules/form.vue';
+import IndicatorImpactModal from './modules/impact-modal.vue';
 import MetricCategoryTree from './modules/metric-category-tree.vue';
 import { METRIC_ACTION_ICON as ACTION_ICON } from './modules/metric-icons';
 import MetricLayout from './modules/metric-layout.vue';
@@ -507,6 +508,13 @@ onActivated(() => {
     void load();
   }
 });
+
+const impactOpen = ref(false);
+const impactId = ref<IndicatorModelApi.Id>();
+function openImpact(row: IndicatorModelApi.Model) {
+  impactId.value = row.id;
+  impactOpen.value = true;
+}
 </script>
 
 <template>
@@ -604,25 +612,20 @@ onActivated(() => {
         </template>
         <template #result="{ row }">
           <div class="metric-info">
-            <span>{{ row.resultDataType || '-' }}</span
-            ><span>{{ row.unit || '-' }}</span>
+            <span>{{ row.resultDataType || '-' }}</span><span>{{ row.unit || '-' }}</span>
           </div>
         </template>
         <template #freshness="{ row }">
           <Tag v-if="row.dataFreshness" color="success">
-            {{ freshnessLabel(row.dataFreshness) }} </Tag
-          ><span v-else>-</span>
+            {{ freshnessLabel(row.dataFreshness) }}
+</Tag><span v-else>-</span>
         </template>
         <template #expression="{ row }">
-          <span v-if="indicatorType === 'ATOMIC'" class="metric-expression"
-            >{{ row.expression || '-' }}/{{ row.timeFieldName || '-' }}</span
-          ><span v-else class="metric-expression"
-            >{{ row.expression || row.businessCondition || '-' }}<br />{{
+          <span v-if="indicatorType === 'ATOMIC'" class="metric-expression">{{ row.expression || '-' }}/{{ row.timeFieldName || '-' }}</span><span v-else class="metric-expression">{{ row.expression || row.businessCondition || '-' }}<br />{{
               row.timePeriod
                 ? PERIOD_LABELS[row.timePeriod as IndicatorModelApi.Period]
                 : '-'
-            }}</span
-          >
+            }}</span>
         </template>
         <template #derivedCount="{ row }">
           <button
@@ -635,8 +638,8 @@ onActivated(() => {
               })
             "
           >
-            {{ row.derivedIndicatorCount }}</button
-          ><span v-else>{{
+            {{ row.derivedIndicatorCount }}
+</button><span v-else>{{
             row.indicatorType === 'ATOMIC'
               ? (row.derivedIndicatorCount ?? 0)
               : '-'
@@ -657,8 +660,7 @@ onActivated(() => {
         </template>
         <template #creator="{ row }">
           <div class="metric-info">
-            <span>{{ row.creatorName || userLabel(row.creator) }}</span
-            ><span>{{
+            <span>{{ row.creatorName || userLabel(row.creator) }}</span><span>{{
               row.creatorPhone || userPhone(row.creator) || '-'
             }}</span>
           </div>
@@ -689,6 +691,12 @@ onActivated(() => {
             ]"
             :drop-down-actions="[
               {
+                label: '影响分析',
+                icon: 'carbon:flow',
+                auth: ['modeling:indicator-model:query'],
+                onClick: () => openImpact(row),
+              },
+              {
                 label: '克隆',
                 icon: 'qdata:documentcopy',
                 auth: ['modeling:indicator-model:create'],
@@ -708,6 +716,7 @@ onActivated(() => {
         </template>
       </Grid>
     </MetricLayout>
+    <IndicatorImpactModal v-model:open="impactOpen" :indicator-id="impactId" />
   </Page>
 </template>
 

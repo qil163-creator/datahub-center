@@ -35,6 +35,7 @@ import {
   getIndicatorQueryMeta,
   queryIndicatorData,
 } from '#/api/modeling/indicator-model';
+import { DataWatermark } from '#/components/data-watermark';
 import {
   indexMaskedColumns,
   renderMaskedColumnTitle,
@@ -437,9 +438,12 @@ watch(canQuery, (value) => {
               type="info"
               message="系列较多，图中只显示前 20 条，完整数据见下方表格。"
             />
-            <EchartsUI ref="chartRef" height="360px" />
+            <DataWatermark>
+              <EchartsUI ref="chartRef" height="360px" />
+            </DataWatermark>
           </Card>
           <Card class="mb-3" size="small" title="查询结果">
+            <DataWatermark>
             <Table
               :columns="columns"
               :data-source="result.rows"
@@ -451,6 +455,7 @@ watch(canQuery, (value) => {
               size="small"
               :scroll="{ x: 'max-content' }"
             />
+            </DataWatermark>
           </Card>
           <Card size="small" title="生效口径">
             <div

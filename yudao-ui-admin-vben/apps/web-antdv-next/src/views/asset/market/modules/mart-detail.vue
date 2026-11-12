@@ -17,6 +17,7 @@ import {
   previewMarketAsset,
 } from '#/api/asset/market';
 import { getMyAssetApiDocument } from '#/api/asset/my-assets';
+import { DataWatermark } from '#/components/data-watermark';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import {
   indexMaskedColumns,
@@ -380,8 +381,10 @@ function assetImage(name: string) {
               }}</span>
             </template>
           </Table>
-          <Table
+          <DataWatermark
             v-else-if="activeTab === 'preview' && current.assetType === 1"
+          >
+          <Table
             :data-source="preview?.rows ?? []"
             :columns="previewColumns"
             :row-key="(_row: object, index?: number) => String(index)"
@@ -394,6 +397,7 @@ function assetImage(name: string) {
               {{ cellText(record[String(column.key)]) }}
             </template>
           </Table>
+          </DataWatermark>
           <div
             v-else-if="activeTab === 'api' && apiDocument"
             class="mart-detail__api"

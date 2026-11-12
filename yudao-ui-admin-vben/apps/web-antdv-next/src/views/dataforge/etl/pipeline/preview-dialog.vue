@@ -5,6 +5,7 @@ import type {
   EtlPreviewSessionKey,
   EtlPreviewSessionRequest,
 } from '#/api/dataforge/etl/preview-session';
+import type { MaskedColumnInfo } from '#/components/masked-column';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -19,6 +20,8 @@ import {
   getEtlPreviewCapabilities,
   getEtlPreviewSession,
 } from '#/api/dataforge/etl/preview-session';
+import { DataWatermarkLayer } from '#/components/data-watermark';
+import { MaskedColumnTitle } from '#/components/masked-column';
 
 import FieldContractSummary from './field-contract-summary.vue';
 
@@ -205,6 +208,24 @@ const hasInputSamples = computed(() =>
   Array.isArray(result.value?.inputSamples),
 );
 const inputSamples = computed(() => result.value?.inputSamples ?? []);
+/** 脱敏标记：键为输入样本节点编号，目标输出用空串。 */
+const maskedByNode = computed(() => {
+  const groups = new Map<string, Map<string, MaskedColumnInfo>>();
+  for (const item of result.value?.maskedFields ?? []) {
+    const node = item.sourceNodeNo ?? '';
+    const group = groups.get(node) ?? new Map<string, MaskedColumnInfo>();
+    group.set(item.field, {
+      categoryNames: item.categoryNames,
+      name: item.field,
+      reason: item.reason,
+    });
+    groups.set(node, group);
+  }
+  return groups;
+});
+function maskedInfo(node: null | string | undefined, field?: string) {
+  return field ? maskedByNode.value.get(node ?? '')?.get(field) : undefined;
+}
 
 const QUALITY_PORT_ORDER = ['main', 'pass', 'warn', 'reject'];
 const QUALITY_PORT_LABELS: Record<string, string> = {
@@ -502,8 +523,7 @@ function displayValue(value: unknown) {
       />
       <div class="flex gap-2">
         <Button @click="refreshSession()">
-          <template #icon><IconifyIcon icon="lucide:shield-check" /></template
-          >核查会话状态
+          <template #icon><IconifyIcon icon="lucide:shield-check" /></template>核查会话状态
         </Button>
         <Button
           v-if="error && pendingRequest && !cancelling"
@@ -526,10 +546,8 @@ function displayValue(value: unknown) {
         <Tag :color="result.success ? 'success' : 'error'">
           {{ result.success ? '预览完成' : '预览未通过' }}
         </Tag>
-        <span
-          >来源样本输入 {{ result.inputRows }} 行 · 样本输出
-          {{ result.outputRows }} 行</span
-        >
+        <span>来源样本输入 {{ result.inputRows }} 行 · 样本输出
+          {{ result.outputRows }} 行</span>
         <Tag v-if="result.truncated" color="warning">
           来源采样或结果已截断，仅展示样本
         </Tag>
@@ -604,12 +622,16 @@ function displayValue(value: unknown) {
             <Tag v-if="sample.truncated" color="warning">
               本端口展示配额已截断
             </Tag>
-            <div class="preview-table mt-2">
+            <div class="preview-table relative mt-2">
+              <DataWatermarkLayer />
               <table v-if="sample.columns.length">
                 <thead>
                   <tr>
                     <th v-for="column in sample.columns" :key="column.name">
-                      {{ column.name }}
+                      <MaskedColumnTitle
+                        :info="maskedInfo(sample.sourceNodeNo, column.name)"
+                        :title="column.name ?? ''"
+                      />
                       <FieldContractSummary
                         :field="column"
                         class="block whitespace-normal font-normal"
@@ -657,14 +679,18 @@ function displayValue(value: unknown) {
             class="mb-3 w-full"
             aria-label="筛选输出端口"
           />
-          <div class="preview-table">
+          <div class="preview-table relative">
+            <DataWatermarkLayer />
             <table v-if="columns.length">
               <thead>
                 <tr>
                   <th v-if="showRowPorts">输出端口</th>
                   <th v-if="showRowViolations">违规规则</th>
                   <th v-for="column in columns" :key="column.name">
-                    {{ column.name }}
+                    <MaskedColumnTitle
+                      :info="maskedInfo(null, column.name)"
+                      :title="column.name ?? ''"
+                    />
                     <FieldContractSummary
                       :field="column"
                       class="block whitespace-normal font-normal"

@@ -264,6 +264,13 @@ export namespace DataforgeEtlApi {
     /** 与 rows 按下标对应的输出端口，只覆盖展示行 */
     rowPorts?: string[];
     previewId?: string;
+    /** 被动态脱敏的字段；sourceNodeNo 为空表示目标节点输出，否则为对应输入样本 */
+    maskedFields?: {
+      categoryNames?: string[];
+      field: string;
+      reason?: string;
+      sourceNodeNo?: null | string;
+    }[];
     /** 与展示行对应，仅含规则元信息，不含规则原始消息。 */
     rowViolations?: {
       code?: null | string;

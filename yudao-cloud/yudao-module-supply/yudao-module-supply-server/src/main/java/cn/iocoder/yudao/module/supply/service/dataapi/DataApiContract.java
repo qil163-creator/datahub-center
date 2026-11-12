@@ -40,6 +40,10 @@ public final class DataApiContract {
             material.put("etlBatchHash", api.getEtlBatchHash());
             material.put("etlSchemaName", api.getEtlSchemaName());
         }
+        // 只在指标模式计入，既有接口的契约摘要保持不变。
+        if (DataApiDO.CONFIG_TYPE_INDICATOR.equals(api.getConfigType())) {
+            material.put("indicatorConfig", StrUtil.nullToEmpty(api.getIndicatorConfigJson()));
+        }
         return DigestUtil.sha256Hex(JsonUtils.toJsonString(material));
     }
 
@@ -98,6 +102,9 @@ public final class DataApiContract {
             snap.put("etlSchemaName", api.getEtlSchemaName());
         }
         snap.put("sqlText", api.getSqlText());
+        if (DataApiDO.CONFIG_TYPE_INDICATOR.equals(api.getConfigType())) {
+            snap.put("indicatorConfigJson", api.getIndicatorConfigJson());
+        }
         snap.put("forwardUrl", api.getForwardUrl());
         snap.put("forwardMethod", api.getForwardMethod());
         snap.put("requestParamsJson", api.getRequestParamsJson());
@@ -143,6 +150,7 @@ public final class DataApiContract {
         target.setEtlBatchHash(str(snap.get("etlBatchHash")));
         target.setEtlSchemaName(str(snap.get("etlSchemaName")));
         target.setSqlText(str(snap.get("sqlText")));
+        target.setIndicatorConfigJson(str(snap.get("indicatorConfigJson")));
         target.setForwardUrl(str(snap.get("forwardUrl")));
         target.setForwardMethod(str(snap.get("forwardMethod")));
         target.setRequestParamsJson(str(snap.get("requestParamsJson")));

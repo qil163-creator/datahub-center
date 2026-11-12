@@ -186,6 +186,7 @@ public interface ErrorCodeConstants {
             "预览请求编号内容不一致或受理窗口已过期，请先核查原会话");
     ErrorCode ETL_PREVIEW_RESULT_RESTRICTED = new ErrorCode(1_500_018_053,
             "当前权限或脱敏结果无法复核，预览缓存已清除，请重新预览");
+    ErrorCode ETL_PREVIEW_MASK_FAILED = new ErrorCode(1_500_018_054, "ETL 预览结果未返回：{}");
     ErrorCode ETL_TARGET_CONFIG_INVALID = new ErrorCode(1_500_018_024, "受管目标配置无效：{}");
     ErrorCode ETL_TARGET_BATCH_NOT_EXISTS = new ErrorCode(1_500_018_025, "目标批次不存在");
     ErrorCode ETL_TARGET_STATE_CHANGED = new ErrorCode(1_500_018_026, "目标批次状态已变化，请重新读取");

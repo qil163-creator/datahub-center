@@ -480,6 +480,17 @@ public class DataApiServiceImpl implements DataApiService {
                     throw exception(DATA_API_CONFIG_INVALID, "请先在参数配置中配置数据源与 SQL 脚本");
                 }
             }
+            case DataApiDO.CONFIG_TYPE_INDICATOR -> {
+                if (!DataApiDO.API_TYPE_QUERY.equals(apiType)) {
+                    throw exception(DATA_API_CONFIG_INVALID, "指标只能发布为查询接口");
+                }
+                // 动态脱敏需要确定的调用主体：指标接口必须经应用认证调用。
+                if (DataApiDO.AUTH_TYPE_NONE.equals(authType)) {
+                    throw exception(DATA_API_CONFIG_INVALID, "指标接口不能使用 NONE 认证");
+                }
+                DataApiIndicatorConfig.parse(dataApi.getIndicatorConfigJson())
+                        .requireParamsDeclared(dataApi.getRequestParamsJson());
+            }
             case DataApiDO.CONFIG_TYPE_FORWARD -> {
                 if (StrUtil.isBlank(dataApi.getForwardUrl())) {
                     throw exception(DATA_API_CONFIG_INVALID, "请先在参数配置中配置转发地址");

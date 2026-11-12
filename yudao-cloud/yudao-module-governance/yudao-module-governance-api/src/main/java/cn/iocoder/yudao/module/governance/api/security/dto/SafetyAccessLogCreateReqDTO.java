@@ -33,6 +33,12 @@ public class SafetyAccessLogCreateReqDTO {
     /** 访问类型：数据接入同步 */
     public static final String ACCESS_TYPE_ACCESS = "ACCESS";
 
+    /** 访问类型：数据导出 */
+    public static final String ACCESS_TYPE_EXPORT = "EXPORT";
+
+    /** 访问类型：敏感识别扫描读取原值样本（不脱敏，结果不返回给用户） */
+    public static final String ACCESS_TYPE_SCAN = "SCAN";
+
     @Schema(description = "访问用户编号（管理端用户；网关应用调用时为空）")
     private Long userId;
 
@@ -42,7 +48,7 @@ public class SafetyAccessLogCreateReqDTO {
     @Schema(description = "调用应用编号（数据服务网关调用时记录）")
     private Long appId;
 
-    @Schema(description = "访问类型：API / STATIC_TASK / QUERY / DEV / EXPLORE / ACCESS", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "访问类型：API / STATIC_TASK / QUERY / DEV / EXPLORE / ACCESS / EXPORT / SCAN", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "访问类型不能为空")
     private String accessType;
 

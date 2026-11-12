@@ -70,6 +70,10 @@ import static cn.iocoder.yudao.module.supply.enums.grant.ErrorCodeConstants.GRAN
 @Component
 public class DataApiExecutor {
 
+    @jakarta.annotation.Resource
+    private DataApiIndicatorQueryService indicatorQueries;
+
+
     private static final Pattern SQL_PARAM_PATTERN = Pattern.compile("#\\{(\\w+)}");
 
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^[\\w.$\"]+$");
@@ -495,6 +499,13 @@ public class DataApiExecutor {
             case DataApiDO.CONFIG_TYPE_FORWARD -> {
                 requireNoFieldScope(grantSnapshot);
                 yield executeForward(api, effectiveParams);
+            }
+            case DataApiDO.CONFIG_TYPE_INDICATOR -> {
+                requireNoFieldScope(grantSnapshot);
+                if (permissionCtx == null) {
+                    throw exception(DATA_API_NOT_AUTHORIZED);
+                }
+                yield indicatorQueries.execute(api, effectiveParams, pageSize, permissionCtx.userId());
             }
             default -> throw exception(DATA_API_CONFIG_INVALID, "未知配置方式 " + api.getConfigType());
         };

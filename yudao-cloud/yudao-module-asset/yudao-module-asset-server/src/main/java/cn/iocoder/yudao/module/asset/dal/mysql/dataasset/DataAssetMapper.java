@@ -332,4 +332,16 @@ public interface DataAssetMapper extends BaseMapperX<DataAssetDO> {
                 .groupBy("layer"));
     }
 
+
+    /**
+     * 按外部资产编码读取（迁入资产，如 qdata:market:{市场编号}）；不存在时返回 null。
+     */
+    default DataAssetDO selectByExternalCode(String externalCode) {
+        if (externalCode == null || externalCode.isBlank()) {
+            return null;
+        }
+        return selectOne(new cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX<DataAssetDO>()
+                .eq(DataAssetDO::getExternalCode, externalCode).last("LIMIT 1"));
+    }
+
 }

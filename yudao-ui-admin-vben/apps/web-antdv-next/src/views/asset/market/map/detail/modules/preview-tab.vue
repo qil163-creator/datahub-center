@@ -21,6 +21,7 @@ import {
 } from 'antdv-next';
 
 import { previewDataAsset } from '#/api/asset/dataasset';
+import { DataWatermark } from '#/components/data-watermark';
 import ListPagination from '#/components/list-pagination/index.vue';
 import {
   indexMaskedColumns,
@@ -350,6 +351,7 @@ onUnmounted(() => {
       show-icon
       type="warning"
     />
+    <DataWatermark>
     <Table
       class="preview-tab__table detail-fill-table"
       :columns="tableColumns"
@@ -389,6 +391,7 @@ onUnmounted(() => {
         </div>
       </template>
     </Table>
+    </DataWatermark>
     <ListPagination
       :current="pageNo"
       :page-size="pageSize"

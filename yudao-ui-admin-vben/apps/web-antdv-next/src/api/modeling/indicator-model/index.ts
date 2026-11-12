@@ -216,6 +216,49 @@ export namespace IndicatorModelApi {
       reason?: string;
     }[];
   }
+  /** 看板组件：保存查询定义，展示时实时查询 */
+  export interface BoardWidget {
+    key: string;
+    title: string;
+    chartType: 'BAR' | 'LINE' | 'STAT' | 'TABLE';
+    query: QueryReq;
+  }
+  export interface Board {
+    id: Id;
+    name: string;
+    description?: string;
+    ownerUserId: Id;
+    editable: boolean;
+    widgets?: BoardWidget[];
+    widgetCount: number;
+    revision: number;
+    updateTime?: number | string;
+  }
+  export interface BoardSave {
+    id?: Id;
+    name: string;
+    description?: string;
+    widgets: BoardWidget[];
+    expectedRevision?: number;
+  }
+  /** 口径变更影响分析 */
+  export interface ImpactItem {
+    id: Id;
+    code: string;
+    name: string;
+    indicatorType: string;
+    status: string;
+    depth: number;
+    upstreamId?: Id;
+  }
+  export interface Impact {
+    indicator: ImpactItem;
+    dependents: ImpactItem[];
+    boards: { id: Id; name: string; ownerUserId: Id; widgets: string[] }[];
+    apis: { id: Id; indicatorIds: Id[]; name: string; path?: string; status?: number }[];
+    apisAvailable: boolean;
+    truncated: boolean;
+  }
 }
 
 const path = '/modeling/indicator-model';
@@ -266,3 +309,22 @@ export const getIndicatorQueryMeta = (indicatorIds: IndicatorModelApi.Id[]) =>
   });
 export const queryIndicatorData = (data: IndicatorModelApi.QueryReq) =>
   requestClient.post<IndicatorModelApi.QueryResult>(`${path}/query`, data);
+
+const boardPath = '/modeling/indicator-board';
+export const getIndicatorBoardList = (name?: string) =>
+  requestClient.get<IndicatorModelApi.Board[]>(`${boardPath}/list`, {
+    params: { name },
+  });
+export const getIndicatorBoard = (id: IndicatorModelApi.Id) =>
+  requestClient.get<IndicatorModelApi.Board>(`${boardPath}/get`, { params: { id } });
+export const createIndicatorBoard = (data: IndicatorModelApi.BoardSave) =>
+  requestClient.post<IndicatorModelApi.Id>(`${boardPath}/create`, data);
+export const updateIndicatorBoard = (data: IndicatorModelApi.BoardSave) =>
+  requestClient.put<boolean>(`${boardPath}/update`, data);
+export const deleteIndicatorBoard = (id: IndicatorModelApi.Id) =>
+  requestClient.delete<boolean>(`${boardPath}/delete`, { params: { id } });
+/** 指标口径变更影响分析：下游派生/复合指标、看板组件、数据服务接口 */
+export const getIndicatorImpact = (indicatorId: IndicatorModelApi.Id) =>
+  requestClient.get<IndicatorModelApi.Impact>(`${boardPath}/impact`, {
+    params: { indicatorId },
+  });

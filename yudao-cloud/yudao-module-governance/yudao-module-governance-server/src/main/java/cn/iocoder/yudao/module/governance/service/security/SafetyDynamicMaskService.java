@@ -94,7 +94,7 @@ public class SafetyDynamicMaskService {
         resp.setRows(rows);
         resp.setMaskedColumns(decision.maskedColumns());
         resp.setPolicyFingerprint(decision.policy() == null ? null : decision.policy().fingerprint());
-        audit(req, scene, resp);
+        audit(req, scene, resp, decision.revealedColumns());
         return resp;
     }
 
@@ -216,18 +216,21 @@ public class SafetyDynamicMaskService {
         }
 
         SafetyFieldMaskService.Policy policy = null;
+        String exemptScene = whitelistScene(scene);
         if (!fields.isEmpty()) {
             try {
-                policy = fieldMaskService.prepare(userId, scene.getWhitelistScene(), fields, APPLICATION_SCENE_DYNAMIC);
+                policy = fieldMaskService.prepare(userId, exemptScene, fields, APPLICATION_SCENE_DYNAMIC);
             } catch (ServiceException unverifiable) {
                 // 豁免、分类或规则版本无法核验：全部分类列失败关闭。
                 log.warn("[decide][脱敏策略无法核验，失败关闭 scene={} code={}]", scene, unverifiable.getCode());
                 fields.forEach(field -> failClosed.put(field.getFieldName(), SafetyDynamicMaskRespDTO.REASON_UNVERIFIED));
             }
         }
-        boolean globallyExempt = !failClosed.isEmpty() && globallyExempt(userId, scene);
+        boolean globallyExempt = !failClosed.isEmpty() && globallyExempt(userId, exemptScene);
+        Set<String> sensitive = new LinkedHashSet<>(categoriesByColumn.keySet());
+        sensitive.addAll(failClosed.keySet());
         return new Decision(policy, failClosed, globallyExempt,
-                maskedColumns(policy, categoriesByColumn, failClosed, globallyExempt));
+                maskedColumns(policy, categoriesByColumn, failClosed, globallyExempt), List.copyOf(sensitive));
     }
 
     /**
@@ -237,9 +240,20 @@ public class SafetyDynamicMaskService {
      * @param failClosed     失败关闭的列及原因
      * @param globallyExempt 用户在该场景下是否全局豁免（只有全局豁免才跳过失败关闭）
      * @param maskedColumns  最终会被脱敏的列
+     * @param sensitiveColumns 命中分类或失败关闭条件的全部列；其中未被脱敏的就是因豁免看到原值的列
      */
     public record Decision(SafetyFieldMaskService.Policy policy, Map<String, String> failClosed,
-                           boolean globallyExempt, List<SafetyDynamicMaskRespDTO.MaskedColumn> maskedColumns) {
+                           boolean globallyExempt, List<SafetyDynamicMaskRespDTO.MaskedColumn> maskedColumns,
+                           List<String> sensitiveColumns) {
+
+        /**
+         * 因白名单豁免而返回原值的敏感列。
+         */
+        public List<String> revealedColumns() {
+            Set<String> masked = new LinkedHashSet<>();
+            maskedColumns.forEach(column -> masked.add(column.getOutputName()));
+            return sensitiveColumns.stream().filter(column -> !masked.contains(column)).toList();
+        }
     }
 
     /**
@@ -248,6 +262,16 @@ public class SafetyDynamicMaskService {
     public boolean enabled(SafetyMaskSceneEnum scene) {
         SafetyMaskSceneDO row = sceneMapper.selectByScene(scene.name());
         return row == null || !Boolean.FALSE.equals(row.getEnabled());
+    }
+
+    /**
+     * 场景生效的白名单豁免口径：优先取管理端配置，配置缺失或不合法时取场景默认值。
+     */
+    public String whitelistScene(SafetyMaskSceneEnum scene) {
+        SafetyMaskSceneDO row = sceneMapper.selectByScene(scene.name());
+        String configured = row == null ? null : row.getWhitelistScene();
+        return configured != null && SafetyMaskSceneEnum.WHITELIST_SCENES.contains(configured)
+                ? configured : scene.getWhitelistScene();
     }
 
     // ==================== 内部 ====================
@@ -300,12 +324,12 @@ public class SafetyDynamicMaskService {
     /**
      * 是否全局豁免；无法核验时视为不豁免。
      */
-    private boolean globallyExempt(Long userId, SafetyMaskSceneEnum scene) {
+    private boolean globallyExempt(Long userId, String exemptScene) {
         if (userId == null) {
             return false;
         }
         try {
-            SafetyMaskExemptRespDTO exempt = whitelistService.getMaskExemptStrict(userId, scene.getWhitelistScene());
+            SafetyMaskExemptRespDTO exempt = whitelistService.getMaskExemptStrict(userId, exemptScene);
             return exempt != null && Boolean.TRUE.equals(exempt.getExempt());
         } catch (ServiceException unverifiable) {
             return false;
@@ -352,10 +376,15 @@ public class SafetyDynamicMaskService {
     }
 
     /**
-     * 有脱敏时记录访问审计：只记列名与策略指纹，不记原值。审计失败不影响返回。
+     * 访问审计：只记列名，不记原值。审计失败不影响返回。
+     * <p>
+     * 有敏感列因白名单豁免返回原值时记为明文访问（masked_flag=0，列出看到原值的列），
+     * 否则有列被脱敏时记为已脱敏访问；两者都没有则不记。
      */
-    private void audit(SafetyDynamicMaskReqDTO req, SafetyMaskSceneEnum scene, SafetyDynamicMaskRespDTO resp) {
-        if (resp.getMaskedColumns().isEmpty()) {
+    private void audit(SafetyDynamicMaskReqDTO req, SafetyMaskSceneEnum scene, SafetyDynamicMaskRespDTO resp,
+                       List<String> revealed) {
+        boolean plaintext = !revealed.isEmpty();
+        if (!plaintext && resp.getMaskedColumns().isEmpty()) {
             return;
         }
         try {
@@ -369,10 +398,11 @@ public class SafetyDynamicMaskService {
                 entry.setDatabaseId(first.getDatasourceId());
                 entry.setTableName(first.getTableName());
             }
-            entry.setSensitiveColumns(StrUtil.maxLength(String.join(",", resp.getMaskedColumns().stream()
-                    .map(SafetyDynamicMaskRespDTO.MaskedColumn::getOutputName).toList()), 1000));
+            List<String> columns = plaintext ? revealed : resp.getMaskedColumns().stream()
+                    .map(SafetyDynamicMaskRespDTO.MaskedColumn::getOutputName).toList();
+            entry.setSensitiveColumns(StrUtil.maxLength(String.join(",", columns), 1000));
             entry.setColumnCount(req.getColumns().size());
-            entry.setMaskedFlag(1);
+            entry.setMaskedFlag(plaintext ? 0 : 1);
             entry.setAccessTime(LocalDateTime.now());
             accessLogService.recordAccessLog(entry);
         } catch (RuntimeException failure) {

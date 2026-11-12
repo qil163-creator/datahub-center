@@ -143,7 +143,7 @@ class MarketDepartmentAssetPostgreSqlTest {
         when(users.getUserListByDeptIds(List.of(101L))).thenReturn(CommonResult.success(List.of(actor, user(13, 101))));
         var scope = new MarketDepartmentScope(); ReflectionTestUtils.setField(scope, "adminUserApi", users);
         var service = new MarketDepartmentAssetServiceImpl(); ReflectionTestUtils.setField(service, "departmentScope", scope);
-        ReflectionTestUtils.setField(service, "departmentAssetMapper", mapper); ReflectionTestUtils.setField(service, "myAssetService", liveDelivery);
+        ReflectionTestUtils.setField(service, "departmentAssetMapper", mapper); ReflectionTestUtils.setField(service, "snapshotMasks", org.mockito.Mockito.mock(MarketSnapshotMaskSupport.class)); ReflectionTestUtils.setField(service, "myAssetService", liveDelivery);
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(new LoginUser().setId(9L), null, List.of()));
         assertThat(service.get(1L).getPreview().getRows()).hasSize(3);
         assertThat(service.get(1L).getCanInvoke()).isFalse();

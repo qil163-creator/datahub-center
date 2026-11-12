@@ -24,6 +24,8 @@ public class SafetyMaskSceneDO extends BaseDO {
     private String sceneCode;
     /** 是否启用动态脱敏 */
     private Boolean enabled;
+    /** 白名单豁免口径（QUERY/SHARE/OPEN/EXPORT）；为空时取场景默认值 */
+    private String whitelistScene;
     /** 备注 */
     private String remark;
     /** 乐观锁修订号 */

@@ -122,4 +122,42 @@ public class SupplyDataApiApiImpl implements SupplyDataApiApi {
         return success(apiLogMapper.selectCallStatistics(apiIds, reqVO.getSince()));
     }
 
+
+    /**
+     * 列出发布了任一指定指标的 INDICATOR 接口。配置无法解析的接口按不引用处理（保存时已校验）。
+     */
+    @Override
+    public CommonResult<java.util.List<cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyIndicatorApiRefRespDTO>>
+            getIndicatorReferences(java.util.List<Long> indicatorIds) {
+        java.util.Set<Long> wanted = indicatorIds == null ? java.util.Set.of()
+                : indicatorIds.stream().filter(java.util.Objects::nonNull).limit(200)
+                .collect(java.util.stream.Collectors.toSet());
+        java.util.List<cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyIndicatorApiRefRespDTO> result =
+                new java.util.ArrayList<>();
+        if (wanted.isEmpty()) {
+            return success(result);
+        }
+        for (DataApiDO api : apiMapper.selectList(DataApiDO::getConfigType, DataApiDO.CONFIG_TYPE_INDICATOR)) {
+            java.util.List<Long> ids;
+            try {
+                ids = cn.iocoder.yudao.module.supply.service.dataapi.DataApiIndicatorConfig
+                        .parse(api.getIndicatorConfigJson()).indicatorIds();
+            } catch (RuntimeException invalid) {
+                continue;
+            }
+            java.util.List<Long> hit = ids.stream().filter(wanted::contains).toList();
+            if (hit.isEmpty()) {
+                continue;
+            }
+            var ref = new cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyIndicatorApiRefRespDTO();
+            ref.setId(api.getId());
+            ref.setName(api.getName());
+            ref.setPath(api.getPath());
+            ref.setStatus(api.getStatus());
+            ref.setIndicatorIds(hit);
+            result.add(ref);
+        }
+        return success(result);
+    }
+
 }

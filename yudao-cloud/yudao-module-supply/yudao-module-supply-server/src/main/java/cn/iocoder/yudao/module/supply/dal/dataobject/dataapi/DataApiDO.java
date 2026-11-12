@@ -41,6 +41,9 @@ public class DataApiDO extends BaseDO {
     /** 配置方式：指定 ETL 成果批次，逐次校验提交与质量证据。 */
     public static final String CONFIG_TYPE_ETL_BATCH = "ETL_BATCH";
 
+    /** 配置方式：发布建模指标（经 modeling 指标语义层出数，按调用主体动态脱敏）。 */
+    public static final String CONFIG_TYPE_INDICATOR = "INDICATOR";
+
     /** 返回格式：分页 */
     public static final String RESULT_FORMAT_PAGE = "PAGE";
 
@@ -225,6 +228,11 @@ public class DataApiDO extends BaseDO {
      * SQL 脚本（SQL 模式，参数用 #{参数名} 占位）
      */
     private String sqlText;
+
+    /**
+     * 指标配置 JSON（INDICATOR 模式）：指标、维度、粒度、行数上限与请求参数到维度过滤的映射
+     */
+    private String indicatorConfigJson;
 
     /**
      * 转发地址（FORWARD 模式）

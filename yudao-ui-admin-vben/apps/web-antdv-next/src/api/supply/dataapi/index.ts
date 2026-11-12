@@ -70,7 +70,9 @@ export namespace SupplyDataApiApi {
     /** 查询超时秒数，为空使用平台默认值 */
     timeoutSeconds?: null | number;
     alarmEnabled?: number;
-    configType?: string; // TABLE/SQL/FORWARD/ETL_BATCH
+    configType?: string; // TABLE/SQL/FORWARD/ETL_BATCH/INDICATOR
+    /** INDICATOR 模式：发布时固定的指标口径 JSON */
+    indicatorConfigJson?: string;
     etlBatchId?: Id;
     etlBatchHash?: string;
     schemaName?: string;

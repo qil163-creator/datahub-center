@@ -24,6 +24,10 @@ const harness = vi.hoisted(() => ({
   push: vi.fn(),
   confirm: vi.fn(),
 }));
+// 影响分析弹窗由其接口测试覆盖；列表测试只关心筛选、请求隔离与状态写入。
+vi.mock('./modules/impact-modal.vue', () => ({
+  default: { name: 'IndicatorImpactModal', render: () => null },
+}));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => harness.access,
   useUserStore: () => harness.user,

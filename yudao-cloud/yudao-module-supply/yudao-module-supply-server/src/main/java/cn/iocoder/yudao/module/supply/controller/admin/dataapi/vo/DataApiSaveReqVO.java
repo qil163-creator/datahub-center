@@ -102,7 +102,7 @@ public class DataApiSaveReqVO {
     @Schema(description = "是否开启告警通知：0-否 1-是", example = "0")
     private Integer alarmEnabled;
 
-    @Schema(description = "配置方式：TABLE/SQL/FORWARD", requiredMode = Schema.RequiredMode.REQUIRED, example = "TABLE")
+    @Schema(description = "配置方式：TABLE/SQL/FORWARD/ETL_BATCH/INDICATOR", requiredMode = Schema.RequiredMode.REQUIRED, example = "TABLE")
     @NotBlank(message = "配置方式不能为空")
     private String configType;
 
@@ -124,6 +124,10 @@ public class DataApiSaveReqVO {
 
     @Schema(description = "SQL 脚本（SQL 模式，参数用 #{参数名} 占位）")
     private String sqlText;
+
+    @Schema(description = "指标配置 JSON（INDICATOR 模式）：{indicatorIds, dimensions, timeGrain, limit, filters:[{param, fieldUid}]}")
+    @jakarta.validation.constraints.Size(max = 4000, message = "指标配置过长")
+    private String indicatorConfigJson;
 
     @Schema(description = "转发地址（FORWARD 模式）")
     @Size(max = 500, message = "转发地址不能超过 500 个字符")

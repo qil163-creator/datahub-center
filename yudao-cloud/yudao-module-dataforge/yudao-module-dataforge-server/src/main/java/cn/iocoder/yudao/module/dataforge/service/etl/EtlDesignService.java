@@ -19,6 +19,9 @@ import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.ETL_PRE
 public class EtlDesignService {
 
     @Resource
+    private EtlPreviewMaskSupport previewMasks;
+
+    @Resource
     private EtlExecutorRegistry registry;
 
     @Resource
@@ -192,7 +195,9 @@ public class EtlDesignService {
         }
         var selectedEdges = edges.stream()
                 .filter(e -> ancestors.contains(e.getSourceNo()) && ancestors.contains(e.getTargetNo())).toList();
-        return new EtlPreviewEngine().preview(selected, selectedEdges, request.getTargetNodeId(), request.getLimit(),
-                effectiveParameters, plans.createPort(frozen, null), source, control);
+        var result = new EtlPreviewEngine().preview(selected, selectedEdges, request.getTargetNodeId(),
+                request.getLimit(), effectiveParameters, plans.createPort(frozen, null), source, control);
+        // 预览连接已在引擎内关闭；按查看者身份动态脱敏，governance 不可用时不返回数据。
+        return previewMasks.mask(result, selected, selectedEdges, request.getTargetNodeId(), actor);
     }
 }

@@ -138,4 +138,10 @@ public class RpcConfiguration {
         return new DataforgeFillStatusListener();
     }
 
+    @Bean
+    @ConditionalOnMissingBean(name = "assetDataExportStatusListener")
+    public cn.iocoder.yudao.module.bpm.api.event.AssetDataExportStatusListener assetDataExportStatusListener() {
+        return new cn.iocoder.yudao.module.bpm.api.event.AssetDataExportStatusListener();
+    }
+
 }

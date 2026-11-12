@@ -122,6 +122,19 @@ xxl:
 
 --- #################### 芋道相关配置 ####################
 
+# 字段加密密钥中心（KEY_CENTER）主密钥：禁止写入本文件或任何受版本控制的配置。
+# 请配置在 Nacos 的 governance-server-<profile>.yaml，或用环境变量注入：
+#   YUDAO_GOVERNANCE_KEYCENTER_MASTERKEYS_1=<Base64 主密钥>
+#   YUDAO_GOVERNANCE_KEYCENTER_ACTIVEVERSION=1
+# Nacos 写法示例（生成密钥：openssl rand -base64 32）：
+#   yudao:
+#     governance:
+#       key-center:
+#         active-version: "1"
+#         master-keys:
+#           "1": "<Base64，至少 32 字节>"
+# 所有 governance-server 实例必须使用相同的主密钥；主密钥丢失后已加密的数据无法解密，请另行备份。
+# 未配置时字段加密规则失败关闭（返回不可逆掩码），“密钥管理”页面会提示未配置。
 yudao:
   info:
     version: 1.0.0
@@ -139,5 +152,10 @@ yudao:
     version: ${yudao.info.version}
   tenant: # 多租户相关配置项
     enable: false
+  governance:
+    key-center:
+      active-version: "1"
+      master-keys:
+        "1": "nTdkIWy8dg/AaPph3MfJdOZeHUsCpL+SD1kFcNLf+0s="
 
 debug: false

@@ -109,6 +109,36 @@ class EtlGraphLineageExtractorTest extends BaseMockitoUnitTest {
     }
 
     @Test
+    void traceFieldsMapsEveryNodeFieldToItsPhysicalColumn() {
+        var read = node("read", "read-db", 1, Map.of("databaseId", 1, "tableName", "orders",
+                "selectedColumns", List.of("id", "amount")));
+        var rename = node("rename", "column-map", 2, Map.of("regexColumnMapper",
+                List.of(Map.of("fromPattern", "^amount$", "toValue", "amt"))));
+        var trace = extractor.traceFields(List.of(read, rename), List.of(edge("read", "rename")));
+
+        var amt = trace.of("rename", "amt");
+        assertTrue(amt.complete());
+        assertEquals(List.of("orders.amount"), amt.sources().stream()
+                .map(source -> source.tableName() + "." + source.column()).toList());
+        assertEquals(List.of("orders.id"), trace.of("read", "id").sources().stream()
+                .map(source -> source.tableName() + "." + source.column()).toList());
+        // 不存在的字段按无法追溯处理。
+        assertFalse(trace.of("rename", "missing").complete());
+        assertEquals(List.of("orders"), trace.tables().stream().map(table -> table.getTableName()).toList());
+    }
+
+    @Test
+    void traceFieldsMarksScriptOutputsIncomplete() {
+        var read = node("read", "read-db", 1, Map.of("databaseId", 1, "tableName", "orders",
+                "selectedColumns", List.of("id", "note")));
+        var script = node("script", "js-script", 2, Map.of());
+        var trace = extractor.traceFields(List.of(read, script), List.of(edge("read", "script")));
+        // 脚本可能改写任意字段：即便同名也不能当作确定来源。
+        assertFalse(trace.of("script", "note").complete());
+        assertTrue(trace.of("read", "note").complete());
+    }
+
+    @Test
     void sanitizedUrlDropsUserInfoQueryAndFragment() {
         assertEquals("https://api.example.com:8443/a/b",
                 EtlGraphLineageExtractor.sanitizeUrl("https://u:p@api.example.com:8443/a/b?k=v#frag"));

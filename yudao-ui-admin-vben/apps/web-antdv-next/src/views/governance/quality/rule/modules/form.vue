@@ -70,13 +70,17 @@ const RULE_TYPE_OPTIONS = [
   ['CUSTOM', '自定义SQL'],
 ].map(([value, label]) => ({ label: `${label}（${value}）`, value }));
 
-async function open(id?: number) {
+async function open(id?: number, prefill?: QualityRuleApi.Rule) {
   editId.value = id;
   clearReactiveObject(formData as Record<string, unknown>);
   formData.status = 0;
   formData.severity = 'MID';
   formData.checkLevel = 'FIELD';
   formData.collectIssueDetail = 1;
+  if (!id && prefill) {
+    // 探查推荐带入：只预填，保存仍需用户确认。
+    Object.assign(formData, prefill);
+  }
   modalApi.open();
   strategies.value = await getQualityStrategyList();
   if (id) {

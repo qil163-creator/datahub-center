@@ -11,6 +11,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { Alert, Button, InputNumber, Table, Tooltip } from 'antdv-next';
 
 import { previewMarketAsset } from '#/api/asset/market';
+import { DataWatermark } from '#/components/data-watermark';
 import {
   indexMaskedColumns,
   renderMaskedColumnTitle,
@@ -168,6 +169,7 @@ function rowKey(_record: object, index?: number) {
       show-icon
       type="warning"
     />
+    <DataWatermark>
     <Table
       class="mx-4"
       :columns="tableColumns"
@@ -192,5 +194,6 @@ function rowKey(_record: object, index?: number) {
         </div>
       </template>
     </Table>
+    </DataWatermark>
   </Modal>
 </template>

@@ -103,6 +103,10 @@ public class DataApiRespVO {
     @Schema(description = "SQL 脚本")
     private String sqlText;
 
+    @Schema(description = "指标配置 JSON（INDICATOR 模式）：{indicatorIds, dimensions, timeGrain, limit, filters:[{param, fieldUid}]}")
+    @jakarta.validation.constraints.Size(max = 4000, message = "指标配置过长")
+    private String indicatorConfigJson;
+
     @Schema(description = "转发地址")
     private String forwardUrl;
 

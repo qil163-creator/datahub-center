@@ -25,6 +25,10 @@ public class SafetyMaskSceneUpdateReqVO {
     @NotNull(message = "是否启用不能为空")
     private Boolean enabled;
 
+    @Schema(description = "白名单豁免口径：QUERY/SHARE/OPEN/EXPORT；不填取场景默认值", example = "QUERY")
+    @jakarta.validation.constraints.Pattern(regexp = "QUERY|SHARE|OPEN|EXPORT", message = "豁免口径不合法")
+    private String whitelistScene;
+
     @Schema(description = "备注；关闭场景时必填，说明原因")
     @Size(max = 500, message = "备注不能超过 500 个字符")
     private String remark;

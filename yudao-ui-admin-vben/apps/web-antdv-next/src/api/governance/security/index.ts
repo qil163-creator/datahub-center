@@ -27,6 +27,8 @@ export namespace SafetySecurityApi {
     sceneCode: string;
     sceneName?: string;
     whitelistScene?: string;
+    /** 场景默认的豁免口径 */
+    defaultWhitelistScene?: string;
     enabled: boolean;
     remark?: string;
     revision: number;
@@ -37,6 +39,8 @@ export namespace SafetySecurityApi {
   export interface MaskSceneUpdateReq {
     sceneCode: string;
     enabled: boolean;
+    /** 白名单豁免口径：QUERY/SHARE/OPEN/EXPORT；不填取场景默认值 */
+    whitelistScene?: string;
     remark?: string;
     expectedRevision: number;
   }
@@ -56,6 +60,56 @@ export namespace SafetySecurityApi {
     reason?: string;
     categoryNames?: string[];
     sampleResult?: string;
+  }
+
+  /** 字段加密密钥引用（不含任何密钥材料） */
+  export interface KeyRef {
+    id: number | string;
+    keyCode: string;
+    keyName: string;
+    provider: string;
+    keyType: string;
+    keyVersion?: string;
+    status: number;
+    remark?: string;
+    createTime?: number | string;
+  }
+
+  export interface KeyRefCreateReq {
+    keyCode: string;
+    keyName: string;
+    remark?: string;
+  }
+
+  export interface KeyCenterStatus {
+    available: boolean;
+    activeVersion?: string;
+    inlineSecretRuleCount: number;
+  }
+
+  /** 异常访问告警（只含统计值，不含访问到的数据） */
+  export interface AccessAlert {
+    id: number | string;
+    ruleCode: string;
+    userId: number | string;
+    userName?: string;
+    windowStart: number | string;
+    windowEnd: number | string;
+    metricValue: number;
+    threshold: number;
+    status: 'CONFIRMED' | 'IGNORED' | 'OPEN';
+    handlerId?: number | string;
+    handleTime?: number | string;
+    handleRemark?: string;
+    revision: number;
+    createTime?: number | string;
+  }
+
+  export interface AccessAlertHandleReq {
+    id: number | string;
+    status: 'CONFIRMED' | 'IGNORED';
+    remark: string;
+    expectedRevision: number;
   }
 
   export interface MaskPreview {
@@ -92,4 +146,44 @@ export function previewMaskPolicy(data: SafetySecurityApi.MaskPreviewReq) {
     '/governance/dynamic-mask/preview',
     data,
   );
+}
+
+/** 密钥引用列表 */
+export function getKeyRefList() {
+  return requestClient.get<SafetySecurityApi.KeyRef[]>('/governance/key-ref/list');
+}
+
+/** 启用状态的密钥引用（供加密规则选择） */
+export async function getEnabledKeyRefList() {
+  return (await getKeyRefList()).filter((item) => item.status === 0);
+}
+
+/** 密钥中心状态 */
+export function getKeyCenterStatus() {
+  return requestClient.get<SafetySecurityApi.KeyCenterStatus>(
+    '/governance/key-ref/status',
+  );
+}
+
+/** 新建密钥引用（派生盐由服务端生成） */
+export function createKeyRef(data: SafetySecurityApi.KeyRefCreateReq) {
+  return requestClient.post<number | string>('/governance/key-ref/create', data);
+}
+
+/** 启停密钥引用 */
+export function updateKeyRefStatus(data: { id: number | string; status: number }) {
+  return requestClient.put<boolean>('/governance/key-ref/update-status', data);
+}
+
+/** 异常访问告警分页 */
+export function getAccessAlertPage(params: PageParam) {
+  return requestClient.get<PageResult<SafetySecurityApi.AccessAlert>>(
+    '/governance/access-alert/page',
+    { params },
+  );
+}
+
+/** 处理异常访问告警 */
+export function handleAccessAlert(data: SafetySecurityApi.AccessAlertHandleReq) {
+  return requestClient.put<boolean>('/governance/access-alert/handle', data);
 }

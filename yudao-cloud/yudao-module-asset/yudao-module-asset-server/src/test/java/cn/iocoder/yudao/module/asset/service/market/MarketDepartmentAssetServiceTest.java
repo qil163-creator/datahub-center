@@ -34,6 +34,7 @@ class MarketDepartmentAssetServiceTest extends BaseMockitoUnitTest {
     @Mock private AssetCatalogService catalogService;
     @Mock private MarketMyAssetService myAssetService;
     @Mock private MarketObjectGuard objectGuard;
+    @Mock private MarketSnapshotMaskSupport snapshotMasks;
     private final MarketDepartmentScope.Scope scope = new MarketDepartmentScope.Scope(9L, 100L, List.of(9L, 12L));
 
     @BeforeEach
@@ -94,7 +95,10 @@ class MarketDepartmentAssetServiceTest extends BaseMockitoUnitTest {
         assertThat(detail.getCanViewApiDocument()).isTrue();
         assertThat(detail.getCanInvoke()).isFalse();
         assertThat(JsonUtils.toJsonString(detail)).doesNotContain("must-not-leak", "sourceDetailSnapshot", "nativeApply", "sourceWorkOrderId", "sourceAssetExternalCode");
-        verifyNoInteractions(myAssetService, assetMapper, catalogService);
+        // 资产只用于定位脱敏的物理来源，不引入当前资产内容或授权。
+        verify(snapshotMasks).mask(any(), eq(detail.getPreview()), eq(9L));
+        verifyAssetOnlyRead();
+        verifyNoInteractions(myAssetService, catalogService);
     }
 
     @Test
@@ -106,7 +110,9 @@ class MarketDepartmentAssetServiceTest extends BaseMockitoUnitTest {
         assertThat(preview.getTruncated()).isTrue();
         assertThat(service.preview(row.getId(), 20).getRows()).hasSize(3);
         assertThat(service.apiDocument(row.getId()).getPath()).isEqualTo("/documented/path");
-        verifyNoInteractions(myAssetService, assetMapper, catalogService);
+        verify(snapshotMasks, times(2)).mask(any(), any(), eq(9L));
+        verifyAssetOnlyRead();
+        verifyNoInteractions(myAssetService, catalogService);
     }
 
     @Test
@@ -186,5 +192,11 @@ class MarketDepartmentAssetServiceTest extends BaseMockitoUnitTest {
                         "rows", List.of(Map.of("RIVER_0", "1"), Map.of("RIVER_0", "2"), Map.of("RIVER_0", "3")), "truncated", false),
                 "apiDocument", document, "canInvoke", true, "ticket", Map.of("nativeApply", Map.of("phone", "must-not-leak")))));
         return row;
+    }
+
+    /** 快照路径只允许读取资产以定位物理来源。 */
+    private void verifyAssetOnlyRead() {
+        verify(assetMapper, atMost(3)).selectById(any());
+        verifyNoMoreInteractions(assetMapper);
     }
 }

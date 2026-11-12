@@ -26,6 +26,7 @@ export const CONFIG_TYPE_OPTIONS = [
   { label: 'SQL脚本式', value: 'SQL' },
   { label: '第三方转发', value: 'FORWARD' },
   { label: 'ETL 受控批次', value: 'ETL_BATCH' },
+  { label: '发布指标', value: 'INDICATOR' },
 ];
 
 /** 参数类型 */

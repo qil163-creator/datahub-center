@@ -22,6 +22,10 @@ public interface ErrorCodeConstants {
     ErrorCode INDICATOR_QUERY_FAILED = new ErrorCode(1_500_051_008, "指标查询执行失败，请检查来源物理表结构与数据源连接");
     ErrorCode INDICATOR_QUERY_TIMEOUT = new ErrorCode(1_500_051_009, "指标查询超过 30 秒已取消，请缩小时间范围或维度");
     ErrorCode INDICATOR_QUERY_MASK_FAILED = new ErrorCode(1_500_051_010, "指标查询结果未返回：{}");
+    ErrorCode INDICATOR_BOARD_NOT_EXISTS = new ErrorCode(1_500_051_020, "指标看板不存在");
+    ErrorCode INDICATOR_BOARD_INVALID = new ErrorCode(1_500_051_021, "指标看板配置不合法：{}");
+    ErrorCode INDICATOR_BOARD_FORBIDDEN = new ErrorCode(1_500_051_022, "只能修改或删除本人创建的看板");
+    ErrorCode INDICATOR_BOARD_CONFLICT = new ErrorCode(1_500_051_023, "看板已被其他操作修改，请刷新后重试");
 
     // ========== 业务实体 1_500_050_000 ==========
     ErrorCode BUSINESS_ENTITY_NOT_EXISTS = new ErrorCode(1_500_050_000, "业务实体不存在");

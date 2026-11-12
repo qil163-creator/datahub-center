@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.service.rule;
 
+import cn.iocoder.yudao.module.governance.service.security.SafetyKeyCenterService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
@@ -31,10 +32,10 @@ import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.RULE_C
  *   HASH             哈希       {"algorithm":"MD5|SHA|SHA256|SHA384|SHA512|SM3"}
  *   ENCRYPT          加解密     {"encryptType":"BASE64"}
  *                               {"encryptType":"DIGEST","algorithm":"MD5|SHA|SHA256|SHA384|SHA512"}
- *                               {"encryptType":"SM","algorithm":"SM2","publicKey":"...","privateKey":"..."}
+ *                               {"encryptType":"SM","algorithm":"SM2","publicKey":"..."}（只需公钥）
  *                               {"encryptType":"SM","algorithm":"SM3"}
- *                               {"encryptType":"SM","algorithm":"SM4","secretKey":"..."}
- *                               {"encryptType":"AES","secretKey":"..."}（对称加解密）
+ *                               {"encryptType":"KEY_REF","keyCode":"..."}（字段加密：SM4-GCM，密钥由密钥中心派生）
+ *                               对称加密不再接受规则内联密钥（secretKey），SM2 不再接受私钥；历史规则运行时兼容，修改时须改用 KEY_REF
  *
  * @author Li
  */
@@ -247,21 +248,28 @@ public class SafetyRuleConfigValidator {
                 if (algorithm == null || !SM_ALGORITHMS.contains(algorithm)) {
                     throw exception(RULE_CONFIG_INVALID, "国密算法只支持 SM2、SM3、SM4");
                 }
-                if ("SM2".equals(algorithm)
-                        && (StrUtil.isEmpty(getStr(config, "publicKey")) || StrUtil.isEmpty(
-                        getStr(config, "privateKey")))) {
-                    throw exception(RULE_CONFIG_INVALID, "SM2 需要配置公钥和私钥");
+                if ("SM2".equals(algorithm) && StrUtil.isEmpty(getStr(config, "publicKey"))) {
+                    throw exception(RULE_CONFIG_INVALID, "SM2 需要配置公钥");
                 }
-                if ("SM4".equals(algorithm) && StrUtil.isEmpty(getStr(config, "secretKey"))) {
-                    throw exception(RULE_CONFIG_INVALID, "SM4 需要配置密钥");
+                if (StrUtil.isNotEmpty(getStr(config, "privateKey"))) {
+                    throw exception(RULE_CONFIG_INVALID, "规则中不能保存私钥：加密只需要公钥");
                 }
-            }
-            case "AES" -> {
-                if (StrUtil.isEmpty(getStr(config, "secretKey"))) {
-                    throw exception(RULE_CONFIG_INVALID, "AES 需要配置密钥");
+                if ("SM4".equals(algorithm)) {
+                    throw exception(RULE_CONFIG_INVALID, "SM4 对称加密请改用密钥引用（KEY_REF），规则中不能保存密钥");
                 }
             }
-            default -> throw exception(RULE_CONFIG_INVALID, "加解密类型只支持 BASE64、DIGEST、SM、AES");
+            case "AES" -> throw exception(RULE_CONFIG_INVALID,
+                    "对称加密请改用密钥引用（KEY_REF），规则中不能保存密钥");
+            case "KEY_REF" -> {
+                String keyCode = getStr(config, "keyCode");
+                if (keyCode == null || !SafetyKeyCenterService.KEY_CODE.matcher(keyCode).matches()) {
+                    throw exception(RULE_CONFIG_INVALID, "请选择有效的密钥引用");
+                }
+                if (StrUtil.isNotEmpty(getStr(config, "secretKey"))) {
+                    throw exception(RULE_CONFIG_INVALID, "规则中不能保存密钥");
+                }
+            }
+            default -> throw exception(RULE_CONFIG_INVALID, "加解密类型只支持 BASE64、DIGEST、SM、KEY_REF");
         }
     }
 

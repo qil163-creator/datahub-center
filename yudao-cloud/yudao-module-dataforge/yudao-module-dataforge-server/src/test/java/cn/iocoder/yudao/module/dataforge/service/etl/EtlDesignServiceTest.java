@@ -20,6 +20,7 @@ class EtlDesignServiceTest {
     private final EtlPolicyPlanService policies = mock(EtlPolicyPlanService.class);
     @BeforeEach void setup() {
         ReflectionTestUtils.setField(service, "registry", new EtlExecutorRegistry());
+        ReflectionTestUtils.setField(service, "previewMasks", EtlPreviewMaskSupportTest.passThrough());
         ReflectionTestUtils.setField(service, "plans", policies);
         ReflectionTestUtils.setField(service, "targets", mock(EtlTargetBatchService.class));
         ReflectionTestUtils.setField(service, "subflows", new EtlSubflowService());

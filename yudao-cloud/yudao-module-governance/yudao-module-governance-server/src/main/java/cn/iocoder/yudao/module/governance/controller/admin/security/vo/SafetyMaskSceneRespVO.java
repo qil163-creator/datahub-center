@@ -21,8 +21,11 @@ public class SafetyMaskSceneRespVO {
     @Schema(description = "场景名称", example = "数据查询")
     private String sceneName;
 
-    @Schema(description = "对应的白名单豁免场景", example = "QUERY")
+    @Schema(description = "生效的白名单豁免口径", example = "QUERY")
     private String whitelistScene;
+
+    @Schema(description = "场景默认的白名单豁免口径", example = "QUERY")
+    private String defaultWhitelistScene;
 
     @Schema(description = "是否启用", example = "true")
     private Boolean enabled;

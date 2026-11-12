@@ -146,36 +146,56 @@ public class DatabaseDynamicMaskSupport {
      */
     private DatabasePreviewRespDTO apply(String scene, String resourceName, List<SafetyDynamicMaskReqDTO.Column> columns,
                                          DatabasePreviewRespDTO resp, ErrorCode failure) {
-        if (resp.getRows() == null || resp.getRows().isEmpty() || columns.isEmpty()) {
-            resp.setMaskedColumns(new ArrayList<>());
-            return resp;
+        Outcome outcome = maskColumns(scene, SecurityFrameworkUtils.getLoginUserId(), resourceName, columns,
+                resp.getRows(), failure);
+        resp.setRows(outcome.rows());
+        resp.setMaskedColumns(outcome.maskedColumns());
+        return resp;
+    }
+
+    /**
+     * 动态脱敏结果。
+     */
+    public record Outcome(List<Map<String, Object>> rows, List<DatabasePreviewRespDTO.MaskedColumn> maskedColumns) {
+    }
+
+    /**
+     * 通用入口：按列来源调用 governance 动态脱敏。没有行或没有列时不调用；governance 不可用或结果不完整时
+     * 抛出 {@code failure}，绝不返回原值。调用方须在数据库连接关闭后、事务外调用。
+     *
+     * @param userId  查看结果的用户；为空时不享受任何豁免
+     * @param columns 每个结果列的物理来源（见 SafetyDynamicMaskReqDTO.Column）
+     */
+    public Outcome maskColumns(String scene, Long userId, String resourceName,
+                               List<SafetyDynamicMaskReqDTO.Column> columns, List<Map<String, Object>> rows,
+                               ErrorCode failure) {
+        if (rows == null || rows.isEmpty() || columns.isEmpty()) {
+            return new Outcome(rows == null ? new ArrayList<>() : rows, new ArrayList<>());
         }
         SafetyDynamicMaskReqDTO req = new SafetyDynamicMaskReqDTO();
-        req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        req.setUserId(userId);
         req.setScene(scene);
         req.setResourceName(StrUtil.maxLength(resourceName, 250));
         req.setColumns(columns);
-        req.setRows(resp.getRows());
+        req.setRows(rows);
         SafetyDynamicMaskRespDTO masked;
         try {
             masked = safetySecurityApi.maskRows(req).getCheckedData();
         } catch (RuntimeException unavailable) {
             // 只记录异常类型；不能因脱敏服务不可用而返回原值。
-            log.warn("[apply][动态脱敏不可用，失败关闭 scene={} failureType={}]", scene,
+            log.warn("[maskColumns][动态脱敏不可用，失败关闭 scene={} failureType={}]", scene,
                     unavailable.getClass().getSimpleName());
             throw exception(failure, "动态脱敏服务暂不可用，为保护敏感数据暂不返回结果");
         }
-        if (masked == null || masked.getRows() == null || masked.getRows().size() != resp.getRows().size()) {
+        if (masked == null || masked.getRows() == null || masked.getRows().size() != rows.size()) {
             throw exception(failure, "动态脱敏结果不完整，为保护敏感数据暂不返回结果");
         }
-        resp.setRows(masked.getRows());
         List<DatabasePreviewRespDTO.MaskedColumn> maskedColumns = new ArrayList<>();
         for (SafetyDynamicMaskRespDTO.MaskedColumn column : nullSafe(masked.getMaskedColumns())) {
             maskedColumns.add(new DatabasePreviewRespDTO.MaskedColumn(column.getOutputName(), column.getReason(),
                     column.getCategoryNames()));
         }
-        resp.setMaskedColumns(maskedColumns);
-        return resp;
+        return new Outcome(masked.getRows(), maskedColumns);
     }
 
     /**

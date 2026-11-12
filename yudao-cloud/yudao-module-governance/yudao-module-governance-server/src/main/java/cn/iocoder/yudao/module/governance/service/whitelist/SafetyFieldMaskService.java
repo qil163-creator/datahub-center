@@ -19,6 +19,10 @@ import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.*;
 @Validated
 public class SafetyFieldMaskService {
 
+    @jakarta.annotation.Resource
+    private cn.iocoder.yudao.module.governance.service.security.SafetyKeyCenterService keyCenter;
+
+
     @Resource
     private SafetyWhitelistService whitelists;
 
@@ -143,14 +147,28 @@ public class SafetyFieldMaskService {
                     }
                     var category = policy.definitions().get(id);
                     var spec = category.getRuleId() == null ? null : policy.specs().get(category.getRuleId());
-                    value = spec == null ? SafetyMaskEngine.unavailableMask(value) : SafetyMaskEngine.mask(value,
-                            spec.getMethodCode(), spec.getConfig(), spec.getReplaceItems());
+                    value = maskOrUnavailable(value, spec);
                 }
                 output.put(entry.getKey(), value);
             }
             processed.add(output);
         }
         return processed;
+    }
+
+    /**
+     * 按冻结规则处理单值；规则缺失或执行失败（如密钥引用停用、主密钥未配置）时用不可逆掩码，绝不回退原值。
+     */
+    private Object maskOrUnavailable(Object value, SafetyMaskingSpec spec) {
+        if (spec == null) {
+            return SafetyMaskEngine.unavailableMask(value);
+        }
+        try {
+            return SafetyMaskEngine.mask(value, spec.getMethodCode(), spec.getConfig(), spec.getReplaceItems(),
+                    keyCenter == null ? null : keyCenter::encrypt);
+        } catch (RuntimeException unavailable) {
+            return SafetyMaskEngine.unavailableMask(value);
+        }
     }
 
     public record Policy(Map<String, List<Long>> fields,

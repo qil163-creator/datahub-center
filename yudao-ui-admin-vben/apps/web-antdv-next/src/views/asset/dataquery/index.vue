@@ -43,6 +43,7 @@ import {
   updateDataQueryFile,
 } from '#/api/asset/dataquery';
 import { ConnectionIcon } from '#/components/connection-icon';
+import { DataWatermark } from '#/components/data-watermark';
 import {
   indexMaskedColumns,
   renderMaskedColumnTitle,
@@ -57,6 +58,7 @@ import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { formatQueryCell } from '../market/map/data';
+import ExportPanel from './modules/export-panel.vue';
 import FileTree from './modules/file-tree.vue';
 
 defineOptions({ name: 'AssetDataQuery' });
@@ -800,6 +802,11 @@ onUnmounted(() => {
               <template #icon><IconifyIcon icon="lucide:save-all" /></template>
               另存为
             </Button>
+            <ExportPanel
+              :datasource-id="datasourceId"
+              :limit="limit"
+              :sql-provider="() => editorRef?.getSelectionOrValue() ?? sql"
+            />
             <Button @click="editorRef?.format()">
               <template #icon><IconifyIcon icon="lucide:braces" /></template>
               格式化
@@ -831,6 +838,7 @@ onUnmounted(() => {
             show-icon
             type="error"
           />
+          <DataWatermark class="flex min-h-0 flex-1 flex-col">
           <Grid class="query-result-grid min-h-0 flex-1" table-title="查询结果">
             <template #toolbar-tools>
               <span
@@ -847,6 +855,7 @@ onUnmounted(() => {
               </span>
             </template>
           </Grid>
+          </DataWatermark>
         </div>
       </div>
     </div>

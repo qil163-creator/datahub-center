@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(value = "supplyRpcConfiguration", proxyBeanMethods = false)
 @EnableFeignClients(clients = {DatabaseApi.class, NotifyMessageSendApi.class, SafetySecurityApi.class,
+        cn.iocoder.yudao.module.modeling.api.indicator.IndicatorQueryApi.class,
         AdminUserApi.class, cn.iocoder.yudao.module.dataforge.api.etl.EtlTargetBatchApi.class})
 public class RpcConfiguration {
 

@@ -4,6 +4,7 @@ import type { TablePaginationConfig } from 'antdv-next';
 import type { GovernanceProfileApi as Api } from '#/api/governance/profile';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 
@@ -26,6 +27,10 @@ import {
 } from '#/api/governance/profile';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import { metadataTime } from '#/views/governance/metadata-common/helpers';
+import {
+  setRulePrefill,
+  suggestionToRule,
+} from '#/views/governance/quality/rule/prefill';
 
 import {
   COLUMN_KIND_LABELS,
@@ -43,10 +48,13 @@ import {
 
 defineOptions({ name: 'GovernanceProfileTab' });
 
-const props = defineProps<{ metaTableId?: Api.Id }>();
+const props = defineProps<{ metaTableId?: Api.Id; readonly?: boolean }>();
 
 const { hasAccessByCodes } = useAccess();
-const canRun = computed(() => hasAccessByCodes(['governance:profile:run']));
+// 已定稿视图只读：可查看探查结果，不在此发起探查。
+const canRun = computed(
+  () => !props.readonly && hasAccessByCodes(['governance:profile:run']),
+);
 
 const latest = ref<Api.Latest>();
 const loading = ref(false);
@@ -180,6 +188,14 @@ async function startRun() {
   } finally {
     starting.value = false;
   }
+}
+
+const router = useRouter();
+const canCreateRule = computed(() => hasAccessByCodes(['governance:quality-rule:create']));
+
+function applySuggestion(suggestion: Api.RuleSuggestion) {
+  setRulePrefill(suggestionToRule(suggestion));
+  void router.push({ name: 'GovernanceQualityRule' });
 }
 
 async function copyParams(suggestion: Api.RuleSuggestion) {
@@ -321,7 +337,7 @@ onBeforeUnmount(() => {
           type="info"
           show-icon
           class="profile-gap"
-          message="推荐由探查结果直接映射，不会自动创建规则。当前质量规则表单不支持带入预填参数，可复制建议参数后在「质量规则」中手工新建。"
+          message="推荐由探查结果直接映射，不会自动创建规则。点击「带入质量规则」会打开预填的新增表单，确认后才保存。"
         />
         <Table
           :columns="suggestionColumns"
@@ -341,6 +357,14 @@ onBeforeUnmount(() => {
               <code class="profile-code">{{ formatSuggestionParams(record.params) }}</code>
             </template>
             <template v-else-if="column.key === 'actions'">
+              <Button
+                v-if="canCreateRule"
+                type="link"
+                size="small"
+                @click="applySuggestion(record as Api.RuleSuggestion)"
+              >
+                带入质量规则
+              </Button>
               <Button type="link" size="small" @click="copyParams(record as Api.RuleSuggestion)">
                 复制参数
               </Button>

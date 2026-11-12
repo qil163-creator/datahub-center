@@ -159,6 +159,7 @@ public interface ErrorCodeConstants {
             "交付受控重投条件不满足：仅完整匹配的撤销/暂停命令且已绑定核查决定才允许重投");
     ErrorCode MARKET_CHECK_SNAPSHOT_INVALID = new ErrorCode(1_500_026_033,
             "来源工单详情快照格式无效，请核查导入数据");
+    ErrorCode MARKET_PREVIEW_MASK_FAILED = new ErrorCode(1_500_026_035, "集市预览结果未返回：{}");
 
     // ========== 集市类目 1_500_028_000 ==========
     ErrorCode MARKET_CATEGORY_NOT_EXISTS = new ErrorCode(1_500_028_001, "集市类目不存在");
@@ -180,4 +181,11 @@ public interface ErrorCodeConstants {
 
     // ========== 资产运营 1_500_033_000 ==========
     ErrorCode ASSET_OPERATION_REFRESHING = new ErrorCode(1_500_033_000, "资产运营指标正在计算中，请稍后再试");
+
+    // ========== 数据导出审批 1_500_033_100 ==========
+    ErrorCode DATA_EXPORT_NOT_EXISTS = new ErrorCode(1_500_033_100, "导出申请不存在");
+    ErrorCode DATA_EXPORT_STATE_INVALID = new ErrorCode(1_500_033_101, "导出申请当前状态不允许该操作：{}");
+    ErrorCode DATA_EXPORT_EXPIRED = new ErrorCode(1_500_033_102, "导出申请已过下载有效期，请重新申请");
+    ErrorCode DATA_EXPORT_PROCESS_FAILED = new ErrorCode(1_500_033_103, "导出审批流程无法发起：{}");
+    ErrorCode DATA_EXPORT_FORBIDDEN = new ErrorCode(1_500_033_104, "只能操作本人的导出申请");
 }

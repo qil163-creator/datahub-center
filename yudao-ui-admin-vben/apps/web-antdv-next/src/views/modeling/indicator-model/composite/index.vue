@@ -19,6 +19,7 @@ import {
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { options, STATUS_LABELS } from '../data';
+import IndicatorImpactModal from '../modules/impact-modal.vue';
 import { useMetricOptions } from '../modules/use-metric-options';
 import CompositeForm from './composite-form.vue';
 
@@ -39,6 +40,12 @@ const pageNo = ref(1);
 const pageSize = ref(10);
 const loadError = ref(false);
 const busyIds = ref(new Set<string>());
+const impactOpen = ref(false);
+const impactId = ref<IndicatorModelApi.Id>();
+function openImpact(row: IndicatorModelApi.Model) {
+  impactId.value = row.id;
+  impactOpen.value = true;
+}
 let active = true;
 let generation = 0;
 const { domainLabel } = useMetricOptions();
@@ -349,6 +356,12 @@ onBeforeUnmount(() => {
               onClick: () => edit(row),
             },
             {
+              label: '影响分析',
+              type: 'link',
+              auth: ['modeling:indicator-model:query'],
+              onClick: () => openImpact(row),
+            },
+            {
               label: '删除',
               type: 'link',
               danger: true,
@@ -363,5 +376,6 @@ onBeforeUnmount(() => {
         />
       </template>
     </Grid>
+    <IndicatorImpactModal v-model:open="impactOpen" :indicator-id="impactId" />
   </Page>
 </template>

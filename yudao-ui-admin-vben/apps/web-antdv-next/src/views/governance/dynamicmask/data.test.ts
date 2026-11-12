@@ -16,6 +16,8 @@ describe('dynamic mask page data', () => {
       'MARKET_PREVIEW',
       'DATABASE_PREVIEW',
       'INDICATOR_QUERY',
+      'ETL_PREVIEW',
+      'DATA_EXPORT',
     ]);
     expect(sceneLabel('DATA_QUERY')).toBe('数据查询');
     expect(sceneLabel('DATA_QUERY', '自定义')).toBe('自定义');

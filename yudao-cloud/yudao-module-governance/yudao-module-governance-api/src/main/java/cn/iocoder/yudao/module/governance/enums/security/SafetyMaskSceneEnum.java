@@ -16,7 +16,12 @@ public enum SafetyMaskSceneEnum implements ArrayValuable<String> {
     ASSET_PREVIEW("资产预览", "QUERY", "EXPLORE"),
     MARKET_PREVIEW("集市预览", "SHARE", "ACCESS"),
     DATABASE_PREVIEW("数据库预览", "QUERY", "EXPLORE"),
-    INDICATOR_QUERY("指标查询", "QUERY", "QUERY");
+    INDICATOR_QUERY("指标查询", "QUERY", "QUERY"),
+    ETL_PREVIEW("ETL 设计预览", "QUERY", "DEV"),
+    DATA_EXPORT("数据导出", "EXPORT", "EXPORT");
+
+    /** 可配置的白名单豁免场景；ALL 只用于白名单本身表示通配，不能作为场景的豁免口径。 */
+    public static final java.util.Set<String> WHITELIST_SCENES = java.util.Set.of("QUERY", "SHARE", "OPEN", "EXPORT");
 
     public static final String[] ARRAYS = Arrays.stream(values()).map(Enum::name).toArray(String[]::new);
 
@@ -41,7 +46,7 @@ public enum SafetyMaskSceneEnum implements ArrayValuable<String> {
     }
 
     /**
-     * 对应的白名单豁免场景。
+     * 默认的白名单豁免场景；管理端可按场景改配，实际生效值以场景配置为准。
      */
     public String getWhitelistScene() {
         return whitelistScene;

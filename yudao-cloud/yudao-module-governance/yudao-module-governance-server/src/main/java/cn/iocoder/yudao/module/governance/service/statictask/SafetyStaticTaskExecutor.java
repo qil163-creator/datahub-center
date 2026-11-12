@@ -75,6 +75,10 @@ import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.STATIC
 @Component
 public class SafetyStaticTaskExecutor {
 
+    @jakarta.annotation.Resource
+    private cn.iocoder.yudao.module.governance.service.security.SafetyKeyCenterService keyCenter;
+
+
     @Resource
     private DbSwitchRuntime dbSwitchRuntime;
 
@@ -301,6 +305,9 @@ public class SafetyStaticTaskExecutor {
                     }
                 }
                 insert.setQueryTimeout(120);
+                // 未接入密钥中心时 KEY_REF 规则不可执行，任务失败而不是写入原值。
+                cn.iocoder.yudao.module.governance.service.rule.SafetyKeyCipher keyCipher =
+                        keyCenter == null ? null : keyCenter::encrypt;
                 int pending = 0;
                 while (rs.next()) {
                     if (Thread.currentThread().isInterrupted()) {
@@ -311,7 +318,7 @@ public class SafetyStaticTaskExecutor {
                         ColumnMasker masker = maskers.get(columnNames.get(i));
                         if (masker != null) {
                             value = SafetyMaskEngine.mask(value, masker.methodCode(), masker.config(),
-                                    masker.replaceItems());
+                                    masker.replaceItems(), keyCipher);
                         }
                         insert.setObject(i + 1, value);
                     }

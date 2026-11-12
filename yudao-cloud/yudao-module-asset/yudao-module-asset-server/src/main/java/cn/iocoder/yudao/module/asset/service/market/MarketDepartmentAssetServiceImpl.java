@@ -37,6 +37,9 @@ public class MarketDepartmentAssetServiceImpl implements MarketDepartmentAssetSe
     @Resource
     private DataAssetMapper assetMapper;
 
+    @jakarta.annotation.Resource
+    private MarketSnapshotMaskSupport snapshotMasks;
+
     @Resource
     private AssetCatalogService catalogService;
 
@@ -84,6 +87,10 @@ public class MarketDepartmentAssetServiceImpl implements MarketDepartmentAssetSe
             var source = sourceData(row);
             result.setResource(source.getResource());
             result.setColumns(source.getColumns() == null ? List.of() : source.getColumns());
+            if (source.getPreview() != null) {
+                snapshotMasks.mask(row.getAssetId() == null ? null : assetMapper.selectById(row.getAssetId()),
+                        source.getPreview(), scope.actorId());
+            }
             result.setPreview(source.getPreview());
             result.setApiDocument(source.getApiDocument());
             result.setCanPreview(source.getPreview() != null);
@@ -135,9 +142,12 @@ public class MarketDepartmentAssetServiceImpl implements MarketDepartmentAssetSe
                 throw exception(MARKET_APPLY_NOT_AUTHORIZED);
             }
             if (preview.getRows() != null && preview.getRows().size() > limit) {
-                preview.setRows(preview.getRows().subList(0, limit));
+                preview.setRows(new java.util.ArrayList<>(preview.getRows().subList(0, limit)));
                 preview.setTruncated(true);
             }
+            // 快照是交付时的数据副本：读取时按当前查看者与当前分类策略脱敏，服务不可用时不返回。
+            snapshotMasks.mask(row.getAssetId() == null ? null : assetMapper.selectById(row.getAssetId()), preview,
+                    scope.actorId());
             return preview;
         }
         requireOwnLive(row, scope);

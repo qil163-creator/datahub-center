@@ -80,6 +80,10 @@ vi.mock('./modules/database-select.vue', () => ({
 vi.mock('#/components/etl-target-batch-picker/index.vue', () => ({
   default: defineComponent({ render: () => null }),
 }));
+// 指标配置编辑器依赖建模接口，由 indicator-config 的单测覆盖。
+vi.mock('./indicator-config-editor.vue', () => ({
+  default: defineComponent({ setup: () => () => h('div') }),
+}));
 vi.mock('./doc.vue', () => ({
   default: defineComponent({ render: () => null }),
 }));

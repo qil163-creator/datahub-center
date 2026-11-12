@@ -60,7 +60,9 @@ public class SafetyMaskSceneService {
             SafetyMaskSceneRespVO vo = new SafetyMaskSceneRespVO();
             vo.setSceneCode(scene.name());
             vo.setSceneName(scene.getLabel());
-            vo.setWhitelistScene(scene.getWhitelistScene());
+            vo.setDefaultWhitelistScene(scene.getWhitelistScene());
+            vo.setWhitelistScene(row == null || StrUtil.isBlank(row.getWhitelistScene())
+                    ? scene.getWhitelistScene() : row.getWhitelistScene());
             vo.setEnabled(row == null || !Boolean.FALSE.equals(row.getEnabled()));
             if (row != null) {
                 vo.setId(row.getId());
@@ -83,6 +85,11 @@ public class SafetyMaskSceneService {
         if (Boolean.FALSE.equals(req.getEnabled()) && StrUtil.isBlank(req.getRemark())) {
             throw exception(SAFETY_MASK_INVALID, "关闭动态脱敏必须填写原因");
         }
+        SafetyMaskSceneEnum scene = SafetyMaskSceneEnum.of(req.getSceneCode());
+        String whitelistScene = StrUtil.blankToDefault(req.getWhitelistScene(), scene.getWhitelistScene());
+        if (!SafetyMaskSceneEnum.WHITELIST_SCENES.contains(whitelistScene)) {
+            throw exception(SAFETY_MASK_INVALID, "豁免口径只能是 QUERY/SHARE/OPEN/EXPORT");
+        }
         SafetyMaskSceneDO row = sceneMapper.selectByScene(req.getSceneCode());
         if (row == null) {
             if (req.getExpectedRevision() != 0) {
@@ -91,13 +98,14 @@ public class SafetyMaskSceneService {
             SafetyMaskSceneDO created = new SafetyMaskSceneDO();
             created.setSceneCode(req.getSceneCode());
             created.setEnabled(req.getEnabled());
-            created.setRemark(StrUtil.trimToNull(req.getRemark()));
+            created.setWhitelistScene(whitelistScene);
+            created.setRemark(StrUtil.trimToEmpty(req.getRemark()));
             created.setRevision(1);
             sceneMapper.insert(created);
             return;
         }
-        if (sceneMapper.updateByRevision(row.getId(), req.getExpectedRevision(), req.getEnabled(),
-                StrUtil.trimToNull(req.getRemark())) != 1) {
+        if (sceneMapper.updateByRevision(row.getId(), req.getExpectedRevision(), req.getEnabled(), whitelistScene,
+                StrUtil.trimToEmpty(req.getRemark())) != 1) {
             throw exception(SAFETY_MASK_INVALID, "场景已被其他操作修改，请刷新后重试");
         }
     }

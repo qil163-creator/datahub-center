@@ -2,8 +2,9 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { QualityRuleApi } from '#/api/governance/quality/rule';
 
-import { ref } from 'vue';
+import { nextTick, onActivated, onMounted, ref } from 'vue';
 
+import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 
 import { message, Switch, Tag } from 'antdv-next';
@@ -18,6 +19,7 @@ import { $t } from '#/locales';
 
 import RuleForm from './modules/form.vue';
 import PreviewModal from './modules/preview.vue';
+import { takeRulePrefill } from './prefill';
 
 defineOptions({ name: 'GovernanceQualityRule' });
 
@@ -214,6 +216,17 @@ const [Grid, gridApi] = useVbenVxeGrid({
     toolbarConfig: { refresh: true, search: true },
   } as VxeTableGridOptions<QualityRuleApi.Rule>,
 });
+
+const { hasAccessByCodes } = useAccess();
+/** 探查推荐“带入质量规则”：页面打开或从缓存激活时取走预填并打开新增表单。 */
+function consumePrefill() {
+  const prefill = takeRulePrefill();
+  if (prefill && hasAccessByCodes(['governance:quality-rule:create'])) {
+    void nextTick(() => ruleFormRef.value?.open(undefined, prefill));
+  }
+}
+onMounted(consumePrefill);
+onActivated(consumePrefill);
 </script>
 
 <template>

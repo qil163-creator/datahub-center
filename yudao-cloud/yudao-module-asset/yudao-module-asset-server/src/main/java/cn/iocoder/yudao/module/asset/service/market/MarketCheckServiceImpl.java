@@ -41,6 +41,9 @@ public class MarketCheckServiceImpl implements MarketCheckService {
     @Resource
     private DataAssetMapper assetMapper;
 
+    @jakarta.annotation.Resource
+    private MarketSnapshotMaskSupport snapshotMasks;
+
     @Resource
     private MarketAuditRecorder auditRecorder;
 
@@ -75,6 +78,11 @@ public class MarketCheckServiceImpl implements MarketCheckService {
             MarketCheckTicketRespVO ticket = sourceTicket(order);
             result.setTicket(ticket);
             result.setCanInvoke(false);
+            if (result.getPreview() != null) {
+                // 来源快照按当前审批人与当前分类策略脱敏后再展示和写入工单快照视图。
+                snapshotMasks.mask(assetMapper.selectByExternalCode("qdata:market:" + order.getMartSourceId()),
+                        result.getPreview(), actor);
+            }
             result.setCanPreview(Boolean.TRUE.equals(ticket.getCanView()) && result.getPreview() != null);
             if (result.getColumns() == null) {
                 result.setColumns(List.of());

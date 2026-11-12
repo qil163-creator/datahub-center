@@ -63,6 +63,17 @@ public interface SupplyDataApiApi {
     CommonResult<SupplyPublishedApiDocumentRespDTO> getPublishedApiDocument(@RequestParam("id") Long id);
 
     /**
+     * 列出发布了任一指定指标的 INDICATOR 接口（供指标口径变更影响分析）。
+     *
+     * @param indicatorIds 指标编号，最多 200 个
+     * @return 引用这些指标的接口
+     */
+    @org.springframework.web.bind.annotation.PostMapping(PREFIX + "/indicator-references")
+    @Operation(summary = "列出发布了指定指标的数据服务接口")
+    CommonResult<java.util.List<cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyIndicatorApiRefRespDTO>>
+            getIndicatorReferences(@org.springframework.web.bind.annotation.RequestBody java.util.List<Long> indicatorIds);
+
+    /**
      * 列出已上线、单表向导、查询类 API 绑定。
      *
      * @param databaseId 数据源编号

@@ -575,11 +575,15 @@ const technicalFields = computed(() =>
                 <LineageTab v-if="activeTab === 'lineage'" :meta-table-id="detail.id" />
               </TabPane>
               <TabPane
-                v-if="!finalized && hasAccessByCodes(['governance:profile:query'])"
+                v-if="hasAccessByCodes(['governance:profile:query'])"
                 key="profile"
                 tab="数据探查"
               >
-                <ProfileTab v-if="activeTab === 'profile'" :meta-table-id="detail.id" />
+                <ProfileTab
+                  v-if="activeTab === 'profile'"
+                  :meta-table-id="detail.id"
+                  :readonly="finalized"
+                />
               </TabPane>
             </Tabs>
             <ListPagination

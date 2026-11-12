@@ -39,6 +39,7 @@ import {
   MASK_SCENE_OPTIONS,
   reasonView,
   sceneLabel,
+  WHITELIST_SCENE_OPTIONS,
   whitelistSceneLabel,
 } from './data';
 
@@ -57,7 +58,7 @@ const pendingScenes = reactive(new Set<string>());
 
 const sceneColumns = [
   { title: '场景', key: 'scene', width: 160 },
-  { title: '豁免口径', key: 'whitelistScene', width: 120 },
+  { title: '豁免口径', key: 'whitelistScene', width: 160 },
   { title: '动态脱敏', key: 'enabled', width: 120 },
   { title: '备注', key: 'remark', ellipsis: true },
 ];
@@ -77,6 +78,23 @@ async function loadScenes() {
 const disableTarget = ref<SafetySecurityApi.MaskScene>();
 const disableRemark = ref('');
 const disableError = ref<string>();
+
+function sceneUpdatedText(
+  scene: SafetySecurityApi.MaskScene,
+  enabled: boolean,
+  whitelistScene?: string,
+): string {
+  if (whitelistScene !== scene.whitelistScene) return '已更新豁免口径';
+  return enabled ? '已启用动态脱敏' : '已关闭动态脱敏';
+}
+
+function changeWhitelistScene(
+  scene: SafetySecurityApi.MaskScene,
+  whitelistScene: string,
+) {
+  if (whitelistScene === scene.whitelistScene) return;
+  void submitScene(scene, scene.enabled, scene.remark ?? '', whitelistScene);
+}
 
 function changeScene(scene: SafetySecurityApi.MaskScene, enabled: boolean) {
   if (!enabled) {
@@ -101,6 +119,7 @@ async function submitScene(
   scene: SafetySecurityApi.MaskScene,
   enabled: boolean,
   remark: string,
+  whitelistScene = scene.whitelistScene,
 ): Promise<boolean> {
   if (pendingScenes.has(scene.sceneCode)) return false;
   pendingScenes.add(scene.sceneCode);
@@ -108,10 +127,11 @@ async function submitScene(
     await updateMaskScene({
       sceneCode: scene.sceneCode,
       enabled,
+      whitelistScene,
       remark,
       expectedRevision: scene.revision ?? 0,
     });
-    message.success(enabled ? '已启用动态脱敏' : '已关闭动态脱敏');
+    message.success(sceneUpdatedText(scene, enabled, whitelistScene));
     return true;
   } catch {
     // 统一错误提示由请求客户端处理；修订冲突时刷新拿最新状态。
@@ -288,7 +308,25 @@ onBeforeUnmount(() => {
               {{ sceneLabel(record.sceneCode, record.sceneName) }}
             </template>
             <template v-else-if="column.key === 'whitelistScene'">
-              {{ whitelistSceneLabel(record.whitelistScene) }}
+              <Select
+                v-if="canUpdate"
+                :disabled="pendingScenes.has(record.sceneCode)"
+                :options="[...WHITELIST_SCENE_OPTIONS]"
+                :value="record.whitelistScene"
+                class="w-28"
+                size="small"
+                @change="(value) => changeWhitelistScene(record, String(value))"
+              />
+              <span v-else>{{ whitelistSceneLabel(record.whitelistScene) }}</span>
+              <span
+                v-if="
+                  record.defaultWhitelistScene &&
+                  record.whitelistScene !== record.defaultWhitelistScene
+                "
+                class="text-muted-foreground ml-1 text-xs"
+              >
+                默认{{ whitelistSceneLabel(record.defaultWhitelistScene) }}
+              </span>
             </template>
             <template v-else-if="column.key === 'enabled'">
               <Switch

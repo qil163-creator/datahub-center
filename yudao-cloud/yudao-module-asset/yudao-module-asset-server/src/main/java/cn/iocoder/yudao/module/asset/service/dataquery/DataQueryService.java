@@ -45,4 +45,16 @@ public interface DataQueryService {
      */
     DataQueryResultRespVO executeQuery(DataQueryExecuteReqVO reqVO);
 
+    /**
+     * 为已批准的导出重新执行查询（访问校验不变，按 DATA_EXPORT 场景脱敏）。
+     */
+    DataQueryResultRespVO executeForExport(DataQueryExecuteReqVO reqVO);
+
+    /**
+     * 导出申请前的访问校验，不读取数据。
+     *
+     * @return [schema, table]
+     */
+    String[] checkExportable(DataQueryExecuteReqVO reqVO);
+
 }

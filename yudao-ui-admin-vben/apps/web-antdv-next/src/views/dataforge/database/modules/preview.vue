@@ -22,6 +22,7 @@ import {
   getDatabaseTableMeta,
   previewDatabaseTable,
 } from '#/api/dataforge/database';
+import { DataWatermark } from '#/components/data-watermark';
 import {
   indexMaskedColumns,
   renderMaskedColumnTitle,
@@ -480,6 +481,7 @@ function primaryKeyText() {
         show-icon
         type="info"
       />
+      <DataWatermark>
       <Table
         :columns="sampleColumns"
         :data-source="sample?.rows ?? []"
@@ -496,6 +498,7 @@ function primaryKeyText() {
           {{ formatPreviewCell(record[column.dataIndex as string]) }}
         </template>
       </Table>
+      </DataWatermark>
     </div>
     </template>
   </Modal>

@@ -38,18 +38,16 @@ function buildConfig(
       return { matchMode: values.matchMode ?? 'EXACT' };
     }
     case 'ENCRYPT': {
+      // 规则中不再保存任何对称密钥或私钥：字段加密走密钥引用，SM2 只需公钥。
       const config: Record<string, any> = { encryptType: values.encryptType };
-      if (values.encryptType === 'AES') {
-        config.secretKey = values.secretKey;
+      if (values.encryptType === 'KEY_REF') {
+        config.keyCode = values.keyCode;
       } else if (values.encryptType === 'DIGEST') {
         config.algorithm = values.digestAlgorithm;
       } else if (values.encryptType === 'SM') {
         config.algorithm = values.smAlgorithm;
         if (values.smAlgorithm === 'SM2') {
           config.publicKey = values.publicKey;
-          config.privateKey = values.privateKey;
-        } else if (values.smAlgorithm === 'SM4') {
-          config.secretKey = values.secretKey;
         }
       }
       return config;
@@ -105,16 +103,20 @@ function configToFormValues(
   }
   switch (methodCode) {
     case 'ENCRYPT': {
-      const values: Record<string, any> = { encryptType: config.encryptType };
-      if (config.encryptType === 'AES') {
-        values.secretKey = config.secretKey;
+      // 历史规则中的内联密钥不回显：编辑时须改用密钥引用重新保存。
+      const legacy =
+        config.encryptType === 'AES' ||
+        (config.encryptType === 'SM' && config.algorithm === 'SM4');
+      const values: Record<string, any> = {
+        encryptType: legacy ? 'KEY_REF' : config.encryptType,
+      };
+      if (config.encryptType === 'KEY_REF') {
+        values.keyCode = config.keyCode;
       } else if (config.encryptType === 'DIGEST') {
         values.digestAlgorithm = config.algorithm;
-      } else if (config.encryptType === 'SM') {
+      } else if (config.encryptType === 'SM' && !legacy) {
         values.smAlgorithm = config.algorithm;
         values.publicKey = config.publicKey;
-        values.privateKey = config.privateKey;
-        values.secretKey = config.secretKey;
       }
       return values;
     }

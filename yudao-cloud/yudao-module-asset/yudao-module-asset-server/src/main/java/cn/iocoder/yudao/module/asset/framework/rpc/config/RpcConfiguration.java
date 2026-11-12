@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
         SupplyGrantSourceApi.class, SupplyQuotaApi.class,
         AdminUserApi.class, DeptApi.class,
         SafetySecurityApi.class, SensitiveClassificationReferenceApi.class,
+        cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi.class,
         QualityTaskApi.class, QualityWorkOrderApi.class,
         PermissionApi.class, NotifyMessageSendApi.class})
 public class RpcConfiguration {

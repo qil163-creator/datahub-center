@@ -1,4 +1,4 @@
--- Included migrations through: 0278
+-- Included migrations through: 0282
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -67063,6 +67063,464 @@ BEGIN
     SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
            'migration:0278', 'migration:0278', 0
       FROM system_role r JOIN system_menu m ON m.id = ANY(page_ids) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
+COMMIT;
+
+-- 0279 数据安全增强：场景豁免口径、ETL/导出场景、字段加密密钥引用、异常访问告警
+-- Migration: 0279 数据安全增强：场景豁免口径、ETL/导出场景、字段加密密钥引用、异常访问告警
+-- Purpose: 1) dh_governance_mask_scene 新增 whitelist_scene（场景生效的白名单豁免口径，管理端可改配），
+--             场景编码新增 ETL_PREVIEW（ETL 设计预览）、DATA_EXPORT（数据导出），并补齐两行启用的种子数据；
+--          2) 新增 dh_governance_safety_access_alert（异常访问告警，按“规则+用户+窗口”唯一去重）；
+--          3) 访问审计类型说明补充 EXPORT（数据导出）、SCAN（敏感识别采样，明文且不返回用户）；
+--          4) 在“数据治理 > 数据安全”目录下新增“密钥管理”（governance/keyref/index，按钮
+--             governance:key-ref:query/create/update）与“异常访问”（governance/accessalert/index，按钮
+--             governance:access-alert:query/handle）两个页面，仅授权超级管理员。
+-- Depends on: 0278_modeling_composite-indicator-query.sql（编号前驱）；0276_governance_dynamic-mask-scene.sql
+--             （场景表与 ck_mask_scene_code 约束）；存在 /govern 顶级目录及其下 path=safety 的“数据安全”目录。
+--             字段加密运行时需在部署环境配置 yudao.governance.key-center.master-keys 与 active-version，本脚本不涉及密钥。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；列、表、索引带存在性保护，约束先删后建，种子按 scene_code 去重，菜单按组件定位、按钮按权限去重。
+-- Rollback: 加法迁移，无不可逆操作。删除两个新页面及其按钮与 system_role_menu 授权，删除
+--           dh_governance_safety_access_alert 表及其序列，删除 ETL_PREVIEW/DATA_EXPORT 场景行后按 0276 的取值重建
+--           ck_mask_scene_code，再删除 whitelist_scene 列。原始 SQL 不触发缓存失效，提交后需清理权限菜单相关
+--           Redis 缓存或重启 system 服务。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+-- 1) 场景豁免口径与新增场景
+ALTER TABLE dh_governance_mask_scene ADD COLUMN IF NOT EXISTS whitelist_scene varchar(16);
+COMMENT ON COLUMN dh_governance_mask_scene.whitelist_scene IS '生效的白名单豁免口径：QUERY/SHARE/OPEN/EXPORT；为空取场景默认值';
+ALTER TABLE dh_governance_mask_scene DROP CONSTRAINT IF EXISTS ck_mask_scene_whitelist;
+ALTER TABLE dh_governance_mask_scene ADD CONSTRAINT ck_mask_scene_whitelist
+    CHECK (whitelist_scene IS NULL OR whitelist_scene IN ('QUERY', 'SHARE', 'OPEN', 'EXPORT'));
+ALTER TABLE dh_governance_mask_scene DROP CONSTRAINT IF EXISTS ck_mask_scene_code;
+ALTER TABLE dh_governance_mask_scene ADD CONSTRAINT ck_mask_scene_code CHECK (scene_code IN
+    ('DATA_QUERY', 'ASSET_PREVIEW', 'MARKET_PREVIEW', 'DATABASE_PREVIEW', 'INDICATOR_QUERY', 'ETL_PREVIEW', 'DATA_EXPORT'));
+COMMENT ON COLUMN dh_governance_mask_scene.scene_code IS '场景编码：DATA_QUERY数据查询、ASSET_PREVIEW资产预览、MARKET_PREVIEW集市预览、DATABASE_PREVIEW数据库预览、INDICATOR_QUERY指标查询、ETL_PREVIEW ETL设计预览、DATA_EXPORT数据导出';
+INSERT INTO dh_governance_mask_scene(scene_code, enabled, remark, revision, creator, updater, deleted)
+SELECT code, true, '', 0, 'migration:0279', 'migration:0279', 0
+  FROM (VALUES ('ETL_PREVIEW'), ('DATA_EXPORT')) AS seed(code)
+ WHERE NOT EXISTS (SELECT 1 FROM dh_governance_mask_scene old WHERE old.scene_code = seed.code);
+
+-- 2) 异常访问告警
+CREATE SEQUENCE IF NOT EXISTS dh_governance_safety_access_alert_seq;
+CREATE TABLE IF NOT EXISTS dh_governance_safety_access_alert (
+    id int8 NOT NULL DEFAULT nextval('dh_governance_safety_access_alert_seq'::regclass),
+    dedupe_key varchar(128) NOT NULL,
+    rule_code varchar(32) NOT NULL,
+    user_id int8 NOT NULL,
+    user_name varchar(64) NOT NULL DEFAULT '',
+    window_start timestamp(6) NOT NULL,
+    window_end timestamp(6) NOT NULL,
+    metric_value int4 NOT NULL,
+    threshold int4 NOT NULL,
+    status varchar(16) NOT NULL DEFAULT 'OPEN',
+    handler_id int8,
+    handle_time timestamp(6),
+    handle_remark varchar(500),
+    revision int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_safety_access_alert PRIMARY KEY (id),
+    CONSTRAINT uk_dh_governance_safety_access_alert_dedupe UNIQUE (dedupe_key),
+    CONSTRAINT ck_access_alert_rule CHECK (rule_code IN ('VOLUME', 'PLAINTEXT', 'OFF_HOURS', 'TABLE_SPREAD')),
+    CONSTRAINT ck_access_alert_status CHECK (status IN ('OPEN', 'CONFIRMED', 'IGNORED')),
+    CONSTRAINT ck_access_alert_window CHECK (window_end > window_start),
+    CONSTRAINT ck_access_alert_handled CHECK (status = 'OPEN' OR (handler_id IS NOT NULL AND handle_time IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_dh_governance_safety_access_alert_status
+    ON dh_governance_safety_access_alert (status, window_start DESC);
+CREATE INDEX IF NOT EXISTS idx_dh_governance_safety_access_alert_user
+    ON dh_governance_safety_access_alert (user_id, window_start DESC);
+COMMENT ON TABLE dh_governance_safety_access_alert IS '数据安全-异常访问告警（只记统计值与规则，不记访问到的数据）';
+COMMENT ON COLUMN dh_governance_safety_access_alert.id IS '编号';
+COMMENT ON COLUMN dh_governance_safety_access_alert.dedupe_key IS '去重键：规则:用户:窗口开始，任务重跑不重复告警';
+COMMENT ON COLUMN dh_governance_safety_access_alert.rule_code IS '规则：VOLUME敏感访问过多、PLAINTEXT豁免明文访问过多、OFF_HOURS非工作时段访问、TABLE_SPREAD访问表过多';
+COMMENT ON COLUMN dh_governance_safety_access_alert.user_id IS '访问用户编号';
+COMMENT ON COLUMN dh_governance_safety_access_alert.user_name IS '访问用户名称快照';
+COMMENT ON COLUMN dh_governance_safety_access_alert.window_start IS '统计窗口开始';
+COMMENT ON COLUMN dh_governance_safety_access_alert.window_end IS '统计窗口结束（不含）';
+COMMENT ON COLUMN dh_governance_safety_access_alert.metric_value IS '统计值';
+COMMENT ON COLUMN dh_governance_safety_access_alert.threshold IS '触发阈值';
+COMMENT ON COLUMN dh_governance_safety_access_alert.status IS '状态：OPEN待处理、CONFIRMED已确认风险、IGNORED已忽略';
+COMMENT ON COLUMN dh_governance_safety_access_alert.handler_id IS '处理人编号';
+COMMENT ON COLUMN dh_governance_safety_access_alert.handle_time IS '处理时间';
+COMMENT ON COLUMN dh_governance_safety_access_alert.handle_remark IS '处理说明';
+COMMENT ON COLUMN dh_governance_safety_access_alert.revision IS '乐观锁修订号';
+COMMENT ON COLUMN dh_governance_safety_access_alert.creator IS '创建者';
+COMMENT ON COLUMN dh_governance_safety_access_alert.create_time IS '识别时间';
+COMMENT ON COLUMN dh_governance_safety_access_alert.updater IS '更新者';
+COMMENT ON COLUMN dh_governance_safety_access_alert.update_time IS '更新时间';
+COMMENT ON COLUMN dh_governance_safety_access_alert.deleted IS '逻辑删除：0未删除、1已删除（告警不做逻辑删除）';
+
+-- 3) 审计类型说明
+COMMENT ON COLUMN dh_governance_safety_access_log.access_type IS '访问类型：API数据服务接口、STATIC_TASK静态脱敏任务、QUERY数据查询、DEV数据开发调试、EXPLORE数据探查/预览、ACCESS数据接入/集市、EXPORT数据导出、SCAN敏感识别采样（明文、不返回用户）';
+COMMENT ON COLUMN dh_governance_safety_access_log.masked_flag IS '是否已脱敏：1已脱敏、0明文（白名单豁免或敏感识别采样）';
+COMMENT ON COLUMN dh_governance_safety_key_ref.external_key_id IS '外部密钥服务中的密钥标识；KEY_CENTER 为随机派生盐，创建后不可修改';
+
+-- 4) 菜单与权限
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    govern_id bigint;
+    dir_id bigint;
+    page_id bigint;
+    button_id bigint;
+    high_id bigint;
+    pages text[][] := ARRAY[
+        ARRAY['governance/keyref/index', 'key-ref', '密钥管理', 'carbon:password', 'SafetyKeyRef', '9'],
+        ARRAY['governance/accessalert/index', 'access-alert', '异常访问', 'carbon:warning-alt', 'SafetyAccessAlert', '10']];
+    buttons text[][] := ARRAY[
+        ARRAY['governance/keyref/index', 'governance:key-ref:query', '密钥引用查询', '1'],
+        ARRAY['governance/keyref/index', 'governance:key-ref:create', '密钥引用新建', '2'],
+        ARRAY['governance/keyref/index', 'governance:key-ref:update', '密钥引用启停', '3'],
+        ARRAY['governance/accessalert/index', 'governance:access-alert:query', '异常访问查询', '1'],
+        ARRAY['governance/accessalert/index', 'governance:access-alert:handle', '异常访问处理', '2']];
+    granted bigint[] := ARRAY[]::bigint[];
+    i int;
+BEGIN
+    SELECT id INTO govern_id FROM system_menu
+    WHERE deleted = 0 AND parent_id = 0 AND type = 1 AND trim(both '/' from coalesce(path, '')) = 'govern'
+    ORDER BY id LIMIT 1;
+    IF govern_id IS NULL THEN RAISE EXCEPTION '0279 缺少数据治理顶级目录 /govern'; END IF;
+    SELECT id INTO dir_id FROM system_menu
+    WHERE deleted = 0 AND parent_id = govern_id AND type = 1 AND trim(both '/' from coalesce(path, '')) = 'safety'
+    ORDER BY id LIMIT 1;
+    IF dir_id IS NULL THEN RAISE EXCEPTION '0279 缺少数据安全目录 /govern/safety'; END IF;
+
+    FOR i IN 1 .. array_length(pages, 1) LOOP
+        SELECT id INTO page_id FROM system_menu
+        WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = pages[i][1] ORDER BY id LIMIT 1;
+        IF page_id IS NULL THEN
+            IF EXISTS (SELECT 1 FROM system_menu WHERE deleted = 0 AND parent_id = dir_id
+                                                   AND trim(both '/' from coalesce(path, '')) = pages[i][2]) THEN
+                RAISE EXCEPTION '0279 菜单路径冲突：/govern/safety/% 已被其他菜单占用', pages[i][2];
+            END IF;
+            SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                            (SELECT last_value FROM system_menu_id_seq)) + 1 INTO page_id FROM system_menu;
+            INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, component, component_name,
+                                    status, visible, keep_alive, always_show, creator, updater, deleted)
+            VALUES (page_id, pages[i][3], '', 2, pages[i][6]::int, dir_id, pages[i][2], pages[i][4], pages[i][1],
+                    pages[i][5], 0, true, true, true, 'migration:0279', 'migration:0279', 0);
+        ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = page_id AND parent_id = dir_id AND type = 2) THEN
+            RAISE EXCEPTION '0279 菜单组件身份冲突：% 已挂在其他位置', pages[i][1];
+        END IF;
+        granted := granted || page_id;
+    END LOOP;
+
+    FOR i IN 1 .. array_length(buttons, 1) LOOP
+        SELECT id INTO page_id FROM system_menu
+        WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = buttons[i][1] ORDER BY id LIMIT 1;
+        SELECT id INTO button_id FROM system_menu WHERE deleted = 0 AND permission = buttons[i][2] ORDER BY id LIMIT 1;
+        IF button_id IS NULL THEN
+            SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                            (SELECT last_value FROM system_menu_id_seq)) + 1 INTO button_id FROM system_menu;
+            INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                    keep_alive, always_show, creator, updater, deleted)
+            VALUES (button_id, buttons[i][3], buttons[i][2], 3, buttons[i][4]::int, page_id, '', '#', 0, true, true,
+                    true, 'migration:0279', 'migration:0279', 0);
+        ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = button_id AND type = 3 AND parent_id = page_id) THEN
+            RAISE EXCEPTION '0279 权限冲突：% 已被其他菜单使用', buttons[i][2];
+        END IF;
+        granted := granted || button_id;
+    END LOOP;
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    PERFORM setval('system_menu_seq', high_id);
+    PERFORM setval('system_menu_id_seq', high_id);
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0279', 'migration:0279', 0
+      FROM system_role r JOIN system_menu m ON m.id = ANY (granted) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
+COMMIT;
+
+-- 0280 数据查询结果导出（审批制）
+-- Migration: 0280 数据查询结果导出（审批制）
+-- Purpose: 新增 dh_asset_data_export（导出申请：申请人、数据源与目标表、受限查询 SQL、行数上限、原因、状态、
+--          BPM 流程实例、批准与下载截止时间、一次性下载记录、修订号）。审批通过后 24 小时内可下载一次，
+--          下载时重新执行查询并按 DATA_EXPORT 场景动态脱敏，不保存导出文件和查询结果。
+--          在“数据查询”页面（组件 asset/dataquery/index）下新增按钮权限 asset:data-export:create（申请、撤回）、
+--          asset:data-export:query（本人申请列表、下载），并授权给超级管理员。
+-- Depends on: 0279_governance_security-enhancements.sql（编号前驱；DATA_EXPORT 场景）；存在组件为
+--             asset/dataquery/index 的“数据查询”页面菜单。运行时需在 BPM 流程管理中发布 Key 为 asset_data_export
+--             的审批流程（审批节点使用默认拒绝策略），否则提交申请会被拒绝并记为 FAILED。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；序列、表、约束、索引带存在性保护，按钮按权限去重、授权按角色与菜单判重。
+-- Rollback: 加法迁移，无不可逆操作。删除两个按钮及其 system_role_menu 授权，再删除 dh_asset_data_export 表及
+--           dh_asset_data_export_seq 序列即可；已发起的 BPM 流程实例需在流程管理中另行取消。原始 SQL 不触发缓存
+--           失效，提交后需清理权限菜单相关 Redis 缓存或重启 system 服务。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+CREATE SEQUENCE IF NOT EXISTS dh_asset_data_export_seq;
+CREATE TABLE IF NOT EXISTS dh_asset_data_export (
+    id int8 NOT NULL DEFAULT nextval('dh_asset_data_export_seq'::regclass),
+    user_id int8 NOT NULL,
+    datasource_id int8 NOT NULL,
+    schema_name varchar(128) NOT NULL,
+    table_name varchar(255) NOT NULL,
+    sql_text text NOT NULL,
+    row_limit int4 NOT NULL,
+    reason varchar(500) NOT NULL,
+    status varchar(16) NOT NULL DEFAULT 'PENDING',
+    process_instance_id varchar(64),
+    result_reason varchar(500),
+    approved_time timestamp(6),
+    expire_time timestamp(6),
+    download_time timestamp(6),
+    download_rows int4,
+    revision int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_asset_data_export PRIMARY KEY (id),
+    CONSTRAINT ck_asset_data_export_status CHECK (status IN
+        ('PENDING', 'APPROVED', 'REJECTED', 'CANCELED', 'DOWNLOADED', 'FAILED')),
+    CONSTRAINT ck_asset_data_export_limit CHECK (row_limit BETWEEN 1 AND 1000),
+    CONSTRAINT ck_asset_data_export_sql CHECK (length(sql_text) BETWEEN 1 AND 20000),
+    CONSTRAINT ck_asset_data_export_approved CHECK (status NOT IN ('APPROVED', 'DOWNLOADED')
+        OR (approved_time IS NOT NULL AND expire_time IS NOT NULL AND expire_time > approved_time)),
+    CONSTRAINT ck_asset_data_export_downloaded CHECK (status <> 'DOWNLOADED' OR download_time IS NOT NULL)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_dh_asset_data_export_process
+    ON dh_asset_data_export (process_instance_id) WHERE process_instance_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_dh_asset_data_export_user ON dh_asset_data_export (user_id, id DESC);
+COMMENT ON TABLE dh_asset_data_export IS '数据资产-数据查询结果导出申请（审批通过后一次性下载，不保存导出文件）';
+COMMENT ON COLUMN dh_asset_data_export.id IS '编号（也是 BPM 业务标识）';
+COMMENT ON COLUMN dh_asset_data_export.user_id IS '申请人编号';
+COMMENT ON COLUMN dh_asset_data_export.datasource_id IS '数据源编号';
+COMMENT ON COLUMN dh_asset_data_export.schema_name IS '目标 schema（申请时校验得到）';
+COMMENT ON COLUMN dh_asset_data_export.table_name IS '目标表';
+COMMENT ON COLUMN dh_asset_data_export.sql_text IS '受限查询 SQL（只保存在本表，不写入日志）';
+COMMENT ON COLUMN dh_asset_data_export.row_limit IS '导出行数上限（1-1000）';
+COMMENT ON COLUMN dh_asset_data_export.reason IS '申请原因';
+COMMENT ON COLUMN dh_asset_data_export.status IS '状态：PENDING审批中、APPROVED已批准、REJECTED已驳回、CANCELED已撤回、DOWNLOADED已下载、FAILED流程未能发起';
+COMMENT ON COLUMN dh_asset_data_export.process_instance_id IS 'BPM 流程实例编号';
+COMMENT ON COLUMN dh_asset_data_export.result_reason IS '审批或撤回说明';
+COMMENT ON COLUMN dh_asset_data_export.approved_time IS '批准时间';
+COMMENT ON COLUMN dh_asset_data_export.expire_time IS '下载截止时间（批准后 24 小时）';
+COMMENT ON COLUMN dh_asset_data_export.download_time IS '下载时间';
+COMMENT ON COLUMN dh_asset_data_export.download_rows IS '下载的行数';
+COMMENT ON COLUMN dh_asset_data_export.revision IS '乐观锁修订号';
+COMMENT ON COLUMN dh_asset_data_export.creator IS '创建者';
+COMMENT ON COLUMN dh_asset_data_export.create_time IS '申请时间';
+COMMENT ON COLUMN dh_asset_data_export.updater IS '更新者';
+COMMENT ON COLUMN dh_asset_data_export.update_time IS '更新时间';
+COMMENT ON COLUMN dh_asset_data_export.deleted IS '逻辑删除：0未删除、1已删除（申请不做逻辑删除）';
+
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    page_id bigint;
+    button_id bigint;
+    high_id bigint;
+    buttons text[][] := ARRAY[
+        ARRAY['asset:data-export:create', '导出申请', '20'],
+        ARRAY['asset:data-export:query', '导出下载', '21']];
+    granted bigint[] := ARRAY[]::bigint[];
+    i int;
+BEGIN
+    SELECT id INTO page_id FROM system_menu
+    WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = 'asset/dataquery/index' ORDER BY id LIMIT 1;
+    IF page_id IS NULL THEN RAISE EXCEPTION '0280 缺少数据查询页面菜单（asset/dataquery/index）'; END IF;
+    FOR i IN 1 .. array_length(buttons, 1) LOOP
+        SELECT id INTO button_id FROM system_menu WHERE deleted = 0 AND permission = buttons[i][1] ORDER BY id LIMIT 1;
+        IF button_id IS NULL THEN
+            SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                            (SELECT last_value FROM system_menu_id_seq)) + 1 INTO button_id FROM system_menu;
+            INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                    keep_alive, always_show, creator, updater, deleted)
+            VALUES (button_id, buttons[i][2], buttons[i][1], 3, buttons[i][3]::int, page_id, '', '#', 0, true, true,
+                    true, 'migration:0280', 'migration:0280', 0);
+        ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = button_id AND type = 3 AND parent_id = page_id) THEN
+            RAISE EXCEPTION '0280 权限冲突：% 已被其他菜单使用', buttons[i][1];
+        END IF;
+        granted := granted || button_id;
+    END LOOP;
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    PERFORM setval('system_menu_seq', high_id);
+    PERFORM setval('system_menu_id_seq', high_id);
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0280', 'migration:0280', 0
+      FROM system_role r JOIN system_menu m ON m.id = ANY (granted) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
+COMMIT;
+
+-- 0281 数据服务发布建模指标（INDICATOR 配置方式）
+-- Migration: 0281 数据服务发布建模指标（INDICATOR 配置方式）
+-- Purpose: dh_supply_api 新增 indicator_config_json，保存 INDICATOR 配置方式下发布时固定的指标口径
+--          （指标、维度、粒度、行数上限，以及请求参数到时间范围/维度过滤的映射）；config_type 说明补充 INDICATOR。
+--          发布版本快照（dh_supply_api_release.config_json）与契约摘要由应用写入该字段，本脚本不改动历史版本。
+-- Depends on: 0280_asset_data-export.sql（编号前驱）；0278_modeling_composite-indicator-query.sql（指标查询服务）。
+--             运行时 supply-server 经 modeling-server 的 /rpc-api/modeling/indicator-query/query 出数。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；列使用 IF NOT EXISTS，注释可重复设置。
+-- Rollback: 先停用并删除 config_type = 'INDICATOR' 的接口及其发布版本，再执行
+--           ALTER TABLE dh_supply_api DROP COLUMN indicator_config_json；该列只服务指标接口，删除不影响其他配置方式。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+ALTER TABLE dh_supply_api ADD COLUMN IF NOT EXISTS indicator_config_json text;
+ALTER TABLE dh_supply_api DROP CONSTRAINT IF EXISTS ck_supply_api_indicator_config;
+ALTER TABLE dh_supply_api ADD CONSTRAINT ck_supply_api_indicator_config
+    CHECK (indicator_config_json IS NULL OR length(indicator_config_json) <= 4000);
+COMMENT ON COLUMN dh_supply_api.indicator_config_json IS '指标配置 JSON（INDICATOR 模式）：{indicatorIds, dimensions, timeGrain, limit, startParam, endParam, filters:[{param, fieldUid}]}';
+COMMENT ON COLUMN dh_supply_api.config_type IS '配置方式：TABLE 单表、SQL 脚本、FORWARD 转发、ETL_BATCH 指定成果批次、INDICATOR 发布建模指标';
+COMMIT;
+
+-- 0282 指标看板
+-- Migration: 0282 指标看板
+-- Purpose: 新增 dh_modeling_indicator_board（指标看板：名称、说明、创建人、组件查询定义 JSON、修订号）。看板只保存查询
+--          定义，不保存结果；展示时逐个组件调用指标查询，结果按查看者身份动态脱敏。在“指标模型”目录下新增
+--          “指标看板”页面（组件 modeling/indicator-model/board/index）及按钮权限 modeling:indicator-board:query/create/
+--          update/delete，仅授权超级管理员。口径变更影响分析接口复用 modeling:indicator-model:query，不新增权限。
+-- Depends on: 0281_supply_indicator-api.sql（编号前驱）；0278_modeling_composite-indicator-query.sql（指标查询服务）；
+--             存在 component_name = ModelingIndicatorModelRoot、path = indicator-model 的“指标模型”目录。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；序列、表、约束、索引带存在性保护，菜单按组件定位、按钮按权限去重、授权按角色与菜单判重。
+-- Rollback: 加法迁移，无不可逆操作。删除“指标看板”页面、四个按钮及其 system_role_menu 授权，再删除
+--           dh_modeling_indicator_board 表及 dh_modeling_indicator_board_seq 序列即可；看板只含查询定义，不涉及业务数据。
+--           原始 SQL 不触发缓存失效，提交后需清理权限菜单相关 Redis 缓存或重启 system 服务。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+CREATE SEQUENCE IF NOT EXISTS dh_modeling_indicator_board_seq;
+CREATE TABLE IF NOT EXISTS dh_modeling_indicator_board (
+    id int8 NOT NULL DEFAULT nextval('dh_modeling_indicator_board_seq'::regclass),
+    name varchar(100) NOT NULL,
+    description varchar(500),
+    owner_user_id int8 NOT NULL,
+    widgets_json text NOT NULL,
+    revision int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_modeling_indicator_board PRIMARY KEY (id),
+    CONSTRAINT ck_modeling_indicator_board_name CHECK (length(trim(name)) > 0),
+    CONSTRAINT ck_modeling_indicator_board_widgets CHECK (length(widgets_json) BETWEEN 2 AND 200000)
+);
+CREATE INDEX IF NOT EXISTS idx_dh_modeling_indicator_board_owner
+    ON dh_modeling_indicator_board (owner_user_id) WHERE deleted = 0;
+COMMENT ON TABLE dh_modeling_indicator_board IS '指标看板（只保存组件查询定义，不保存查询结果）';
+COMMENT ON COLUMN dh_modeling_indicator_board.id IS '编号';
+COMMENT ON COLUMN dh_modeling_indicator_board.name IS '看板名称';
+COMMENT ON COLUMN dh_modeling_indicator_board.description IS '说明';
+COMMENT ON COLUMN dh_modeling_indicator_board.owner_user_id IS '创建人编号；只有创建人可修改、删除';
+COMMENT ON COLUMN dh_modeling_indicator_board.widgets_json IS '组件 JSON 数组（≤12）：[{key, title, chartType LINE/BAR/TABLE/STAT, query 指标查询请求}]';
+COMMENT ON COLUMN dh_modeling_indicator_board.revision IS '乐观锁修订号';
+COMMENT ON COLUMN dh_modeling_indicator_board.creator IS '创建者';
+COMMENT ON COLUMN dh_modeling_indicator_board.create_time IS '创建时间';
+COMMENT ON COLUMN dh_modeling_indicator_board.updater IS '更新者';
+COMMENT ON COLUMN dh_modeling_indicator_board.update_time IS '更新时间';
+COMMENT ON COLUMN dh_modeling_indicator_board.deleted IS '逻辑删除：0未删除、1已删除';
+
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    metric_parent_id bigint;
+    matches integer;
+    page_id bigint;
+    button_id bigint;
+    high_id bigint;
+    granted bigint[] := ARRAY[]::bigint[];
+    item record;
+BEGIN
+    SELECT count(*), min(id) INTO matches, metric_parent_id FROM system_menu
+    WHERE deleted = 0 AND type = 1 AND component_name = 'ModelingIndicatorModelRoot'
+      AND trim(both '/' from coalesce(path, '')) = 'indicator-model';
+    IF matches <> 1 THEN
+        RAISE EXCEPTION '0282 指标模型目录 ModelingIndicatorModelRoot 缺失或不唯一';
+    END IF;
+
+    SELECT count(*), min(id) INTO matches, page_id FROM system_menu
+    WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = 'modeling/indicator-model/board/index';
+    IF matches > 1 THEN
+        RAISE EXCEPTION '0282 菜单组件身份重复：modeling/indicator-model/board/index';
+    END IF;
+    IF matches = 0 THEN
+        IF EXISTS (SELECT 1 FROM system_menu WHERE deleted = 0 AND parent_id = metric_parent_id
+                                               AND trim(both '/' from coalesce(path, '')) = 'board') THEN
+            RAISE EXCEPTION '0282 菜单路径冲突：指标模型/board 已被其他菜单占用';
+        END IF;
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO page_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, component, component_name,
+                                status, visible, keep_alive, always_show, creator, updater, deleted)
+        VALUES (page_id, '指标看板', '', 2, 60, metric_parent_id, 'board', 'carbon:dashboard',
+                'modeling/indicator-model/board/index', 'ModelingIndicatorBoard', 0, true, true, true,
+                'migration:0282', 'migration:0282', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = page_id AND parent_id = metric_parent_id AND type = 2) THEN
+        RAISE EXCEPTION '0282 菜单组件身份冲突：modeling/indicator-model/board/index 已挂在其他位置';
+    END IF;
+    granted := granted || page_id;
+
+    FOR item IN SELECT * FROM (VALUES
+        ('modeling:indicator-board:query', '看板查询', 1), ('modeling:indicator-board:create', '看板新建', 2),
+        ('modeling:indicator-board:update', '看板修改', 3), ('modeling:indicator-board:delete', '看板删除', 4)
+    ) t(permission, label, sort) LOOP
+        SELECT id INTO button_id FROM system_menu WHERE deleted = 0 AND permission = item.permission ORDER BY id LIMIT 1;
+        IF button_id IS NULL THEN
+            SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                            (SELECT last_value FROM system_menu_id_seq)) + 1 INTO button_id FROM system_menu;
+            INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                    keep_alive, always_show, creator, updater, deleted)
+            VALUES (button_id, item.label, item.permission, 3, item.sort, page_id, '', '#', 0, true, true, true,
+                    'migration:0282', 'migration:0282', 0);
+        ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = button_id AND type = 3 AND parent_id = page_id) THEN
+            RAISE EXCEPTION '0282 权限冲突：% 已被其他菜单使用', item.permission;
+        END IF;
+        granted := granted || button_id;
+    END LOOP;
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    PERFORM setval('system_menu_seq', high_id);
+    PERFORM setval('system_menu_id_seq', high_id);
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0282', 'migration:0282', 0
+      FROM system_role r JOIN system_menu m ON m.id = ANY (granted) AND m.deleted = 0
      WHERE r.code = 'super_admin' AND r.deleted = 0
        AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
                                                               AND old.menu_id = m.id AND old.deleted = 0);

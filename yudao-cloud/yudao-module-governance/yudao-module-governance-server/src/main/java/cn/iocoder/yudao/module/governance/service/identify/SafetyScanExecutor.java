@@ -69,6 +69,9 @@ public class SafetyScanExecutor {
     @Resource
     private DatabaseApi databaseApi;
 
+    @Resource
+    private cn.iocoder.yudao.module.governance.service.accesslog.SafetyAccessLogService accessLogService;
+
     private ExecutorService executor;
 
     /**
@@ -324,6 +327,31 @@ public class SafetyScanExecutor {
     }
 
     /**
+     * 原值采样是失败关闭原则的唯一例外，必须留痕：记一条明文访问审计（只记列名与行数，不记取值）。
+     * 审计失败不影响扫描。
+     */
+    private void auditRawSample(Long databaseId, String tableName, DatabasePreviewRespDTO resp) {
+        try {
+            var entry = new cn.iocoder.yudao.module.governance.api.security.dto.SafetyAccessLogCreateReqDTO();
+            entry.setAccessType(cn.iocoder.yudao.module.governance.api.security.dto.SafetyAccessLogCreateReqDTO
+                    .ACCESS_TYPE_SCAN);
+            entry.setResourceName(StrUtil.maxLength("敏感识别扫描采样：" + tableName, 200));
+            entry.setDatabaseId(databaseId);
+            entry.setTableName(tableName);
+            List<String> columns = resp.getColumns() == null ? List.of()
+                    : resp.getColumns().stream().map(DatabasePreviewRespDTO.Column::getName).toList();
+            entry.setSensitiveColumns(StrUtil.maxLength(String.join(",", columns), 1000));
+            entry.setColumnCount(columns.size());
+            entry.setMaskedFlag(0);
+            entry.setAccessTime(java.time.LocalDateTime.now());
+            accessLogService.recordAccessLog(entry);
+        } catch (RuntimeException failure) {
+            log.warn("[auditRawSample][敏感识别采样审计写入失败 table={} failureType={}]", tableName,
+                    failure.getClass().getSimpleName());
+        }
+    }
+
+    /**
      * 预览数据行。
      */
     private List<Map<String, Object>> previewRows(Long databaseId, String tableName, int limit) {
@@ -335,6 +363,9 @@ public class SafetyScanExecutor {
             // 敏感识别需要原值做分类判定；采样结果只用于规则匹配，不返回给用户。
             reqDTO.setMaskScene("SENSITIVE_SCAN");
             DatabasePreviewRespDTO resp = databaseApi.previewTable(reqDTO).getCheckedData();
+            if (resp != null && resp.getRows() != null && !resp.getRows().isEmpty()) {
+                auditRawSample(databaseId, tableName, resp);
+            }
             return resp == null ? null : resp.getRows();
         } catch (Exception ex) {
             log.warn("[previewRows][表({}) 采样失败：{}]", tableName, ex.getMessage());

@@ -49,6 +49,12 @@ public final class DataApiReadOnlyGuard {
             }
             return;
         }
+        if (DataApiDO.CONFIG_TYPE_INDICATOR.equalsIgnoreCase(configType)) {
+            if (!isQueryApi(api)) {
+                throw exception(DATA_API_READONLY_REQUIRED, "指标只提供受控查询");
+            }
+            return;
+        }
         if (DataApiDO.CONFIG_TYPE_FORWARD.equalsIgnoreCase(configType)) {
             if (mode.readOnly()) {
                 throw exception(DATA_API_READONLY_REQUIRED, "转发属于真实上游调用，请走应用联调入口");

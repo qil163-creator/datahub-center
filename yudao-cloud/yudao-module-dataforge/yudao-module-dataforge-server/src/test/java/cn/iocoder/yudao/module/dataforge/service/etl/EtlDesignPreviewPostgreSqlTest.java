@@ -67,6 +67,7 @@ class EtlDesignPreviewPostgreSqlTest {
         ReflectionTestUtils.setField(access, "queries", queries);
         ReflectionTestUtils.setField(access, "connectionResolverAdapter", connections);
         ReflectionTestUtils.setField(service, "connections", connections);
+        ReflectionTestUtils.setField(service, "previewMasks", EtlPreviewMaskSupportTest.passThrough());
         ReflectionTestUtils.setField(service, "nodeAccess", access);
         ReflectionTestUtils.setField(service, "databaseRuntime", runtime);
         ReflectionTestUtils.setField(service, "plans", policies);

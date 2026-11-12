@@ -6,6 +6,7 @@ import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
 
 import { z } from '#/adapter/form';
+import { getEnabledKeyRefList } from '#/api/governance/security';
 
 import MaskRange from './components/mask-range.vue';
 import ReplaceItemTable from './components/replace-item-table.vue';
@@ -283,10 +284,10 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       componentProps: {
         options: [
+          { label: '字段加密（密钥引用，推荐）', value: 'KEY_REF' },
           { label: 'Base64', value: 'BASE64' },
           { label: 'Digest', value: 'DIGEST' },
           { label: '国密', value: 'SM' },
-          { label: 'AES', value: 'AES' },
         ],
         placeholder: '请选择加密规则',
       },
@@ -295,7 +296,7 @@ export function useFormSchema(): VbenFormSchema[] {
         show: (values) => values.methodCode === 'ENCRYPT',
       },
       description:
-        'Base64 支持加、解密；Digest 仅支持加密；国密含 SM2/SM3/SM4；AES 对称加解密',
+        '字段加密使用密钥中心派生的 SM4 密钥，规则中不保存密钥；Base64 可逆；Digest 与 SM3 为摘要；SM2 只需公钥。对称密钥不再允许写在规则里',
     },
     {
       fieldName: 'digestAlgorithm',
@@ -319,9 +320,8 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       componentProps: {
         options: [
-          { label: 'SM2（非对称，加解密）', value: 'SM2' },
+          { label: 'SM2（非对称，公钥加密）', value: 'SM2' },
           { label: 'SM3（摘要，仅加密）', value: 'SM3' },
-          { label: 'SM4（对称，加解密）', value: 'SM4' },
         ],
         placeholder: '请选择国密算法',
       },
@@ -349,36 +349,20 @@ export function useFormSchema(): VbenFormSchema[] {
       },
     },
     {
-      fieldName: 'privateKey',
-      label: '私钥',
-      rules: 'required',
-      component: 'TextArea',
+      fieldName: 'keyCode',
+      label: '密钥引用',
+      rules: 'selectRequired',
+      component: 'ApiSelect',
       componentProps: {
-        placeholder: '请输入 SM2 私钥（解密使用）',
-        rows: 2,
+        api: getEnabledKeyRefList,
+        labelField: 'keyName',
+        valueField: 'keyCode',
+        placeholder: '请选择密钥引用（在“密钥管理”中创建）',
       },
       dependencies: {
-        triggerFields: ['methodCode', 'encryptType', 'smAlgorithm'],
+        triggerFields: ['methodCode', 'encryptType'],
         show: (values) =>
-          values.methodCode === 'ENCRYPT' &&
-          values.encryptType === 'SM' &&
-          values.smAlgorithm === 'SM2',
-      },
-    },
-    {
-      fieldName: 'secretKey',
-      label: '密钥',
-      rules: 'required',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入对称密钥',
-      },
-      dependencies: {
-        triggerFields: ['methodCode', 'encryptType', 'smAlgorithm'],
-        show: (values) =>
-          values.methodCode === 'ENCRYPT' &&
-          (values.encryptType === 'AES' ||
-            (values.encryptType === 'SM' && values.smAlgorithm === 'SM4')),
+          values.methodCode === 'ENCRYPT' && values.encryptType === 'KEY_REF',
       },
     },
     // ==================== 通用字段 ====================

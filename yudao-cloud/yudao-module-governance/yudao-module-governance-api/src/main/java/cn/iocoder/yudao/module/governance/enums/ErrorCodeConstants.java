@@ -18,6 +18,17 @@ public interface ErrorCodeConstants {
     ErrorCode SAFETY_DIRECTORY_REFERENCED = new ErrorCode(1_900_010_004, "类目仍包含数据分类，无法删除");
     ErrorCode SAFETY_MASK_INVALID = new ErrorCode(1_900_010_005, "展示脱敏配置不合法：{}");
 
+    // ========== 数据安全--密钥中心（本地主密钥派生） 1_900_020_000 ==========
+    ErrorCode KEY_CENTER_NOT_CONFIGURED = new ErrorCode(1_900_020_000, "密钥中心未配置主密钥，不能执行字段加密");
+    ErrorCode KEY_REF_NOT_EXISTS = new ErrorCode(1_900_020_001, "密钥引用不存在或已停用：{}");
+    ErrorCode KEY_REF_CODE_DUPLICATE = new ErrorCode(1_900_020_002, "密钥引用编码【{}】已存在");
+    ErrorCode KEY_REF_INVALID = new ErrorCode(1_900_020_003, "密钥引用参数不合法：{}");
+    ErrorCode KEY_CIPHERTEXT_INVALID = new ErrorCode(1_900_020_004, "密文格式无效或已被篡改");
+
+    // ========== 数据安全--异常访问识别 1_900_021_000 ==========
+    ErrorCode ACCESS_ALERT_NOT_EXISTS = new ErrorCode(1_900_021_000, "异常访问告警不存在");
+    ErrorCode ACCESS_ALERT_STATE_CHANGED = new ErrorCode(1_900_021_001, "告警状态已被其他操作修改，请刷新后重试");
+
 
     // ========== 数据安全--数据等级分级信息 ==========
     ErrorCode LEVEL_NOT_EXISTS = new ErrorCode(1_600_000_100, "数据分级信息不存在");

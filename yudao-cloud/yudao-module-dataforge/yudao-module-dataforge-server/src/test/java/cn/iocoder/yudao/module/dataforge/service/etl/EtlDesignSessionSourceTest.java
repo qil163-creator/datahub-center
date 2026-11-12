@@ -25,6 +25,7 @@ class EtlDesignSessionSourceTest {
         ReflectionTestUtils.setField(service, "plans", policies); ReflectionTestUtils.setField(service, "subflows", new EtlSubflowService());
         ReflectionTestUtils.setField(service, "environments", new EtlEnvironmentService()); ReflectionTestUtils.setField(service, "connections", connections);
         ReflectionTestUtils.setField(service, "nodeAccess", access); ReflectionTestUtils.setField(service, "databaseRuntime", mock(DbSwitchRuntime.class));
+        ReflectionTestUtils.setField(service, "previewMasks", EtlPreviewMaskSupportTest.passThrough());
     }
     @AfterEach void clear() { TenantContextHolder.clear(); }
     @Test void cachedSourceRevisionMustStillMatchBeforeAnyResultCanBeRead() {

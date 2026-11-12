@@ -42,6 +42,34 @@ public class IndicatorQueryMaskSupport {
     public record Result(List<Map<String, String>> rows, List<IndicatorQueryRespVO.MaskedColumn> maskedColumns) {
     }
 
+    /** RPC 调用时由调用方给出的查看主体；只在 {@link #runAs} 的同步调用范围内有效。 */
+    private static final ThreadLocal<Long> VIEWER = new ThreadLocal<>();
+
+    /**
+     * 以指定查看主体执行（供数据服务 RPC，无登录态）；结束后清除，不泄漏到线程池中的后续请求。
+     */
+    public static <T> T runAs(Long viewerUserId, java.util.function.Supplier<T> action) {
+        Long previous = VIEWER.get();
+        VIEWER.set(viewerUserId);
+        try {
+            return action.get();
+        } finally {
+            if (previous == null) {
+                VIEWER.remove();
+            } else {
+                VIEWER.set(previous);
+            }
+        }
+    }
+
+    /**
+     * 当前查看主体：RPC 指定的主体优先，其次为登录用户。
+     */
+    static Long viewer() {
+        Long override = VIEWER.get();
+        return override != null ? override : SecurityFrameworkUtils.getLoginUserId();
+    }
+
     /**
      * 调用 governance 动态脱敏。
      *
@@ -56,7 +84,7 @@ public class IndicatorQueryMaskSupport {
             return new Result(rows, List.of());
         }
         SafetyDynamicMaskReqDTO request = new SafetyDynamicMaskReqDTO();
-        request.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        request.setUserId(viewer());
         request.setScene(SCENE);
         request.setResourceName(StrUtil.maxLength(StrUtil.nullToEmpty(resourceName), MAX_RESOURCE_NAME));
         request.setColumns(columns);

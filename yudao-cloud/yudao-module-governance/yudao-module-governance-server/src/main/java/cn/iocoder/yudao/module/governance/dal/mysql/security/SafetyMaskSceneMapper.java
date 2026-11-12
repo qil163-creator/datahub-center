@@ -20,12 +20,14 @@ public interface SafetyMaskSceneMapper extends BaseMapperX<SafetyMaskSceneDO> {
     }
 
     /**
-     * 按修订号 CAS 更新开关与备注。
+     * 按修订号 CAS 更新开关、豁免口径与备注。备注列非空，空值写为空串。
      */
-    default int updateByRevision(Long id, Integer expectedRevision, Boolean enabled, String remark) {
+    default int updateByRevision(Long id, Integer expectedRevision, Boolean enabled, String whitelistScene,
+                                 String remark) {
         return update(null, new LambdaUpdateWrapper<SafetyMaskSceneDO>()
                 .set(SafetyMaskSceneDO::getEnabled, enabled)
-                .set(SafetyMaskSceneDO::getRemark, remark)
+                .set(SafetyMaskSceneDO::getWhitelistScene, whitelistScene)
+                .set(SafetyMaskSceneDO::getRemark, remark == null ? "" : remark)
                 .setSql("revision = revision + 1")
                 .eq(SafetyMaskSceneDO::getId, id)
                 .eq(SafetyMaskSceneDO::getRevision, expectedRevision));

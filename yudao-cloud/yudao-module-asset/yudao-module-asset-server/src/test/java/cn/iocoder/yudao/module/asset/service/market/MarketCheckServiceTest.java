@@ -35,6 +35,7 @@ class MarketCheckServiceTest extends BaseMockitoUnitTest {
     @Mock private MarketDisplayHelper displayHelper;
     @Mock private DataAssetMapper assetMapper;
     @Mock private MarketAuditRecorder auditRecorder;
+    @Mock private MarketSnapshotMaskSupport snapshotMasks;
 
     @BeforeEach
     void permissions() {
@@ -81,7 +82,11 @@ class MarketCheckServiceTest extends BaseMockitoUnitTest {
         assertThat(detail.getPreview().getTotal()).isEqualTo("9007199254740993");
         assertThat(detail.getCanInvoke()).isFalse();
         assertThat(JsonUtils.toJsonString(detail)).doesNotContain("must-not-leak", "untrusted", "appSecret", "privateKey", "accessToken");
-        verifyNoInteractions(applyService, assetMapper, displayHelper, auditRecorder);
+        // 来源快照按审批人脱敏；资产只按外部编码读取以定位物理来源。
+        verify(snapshotMasks).mask(any(), eq(detail.getPreview()), anyLong());
+        verify(assetMapper).selectByExternalCode(anyString());
+        verifyNoMoreInteractions(assetMapper);
+        verifyNoInteractions(applyService, displayHelper, auditRecorder);
     }
 
     @ParameterizedTest
