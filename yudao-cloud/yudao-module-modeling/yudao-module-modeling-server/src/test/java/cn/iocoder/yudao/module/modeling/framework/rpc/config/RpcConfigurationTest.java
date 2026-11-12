@@ -43,7 +43,9 @@ class RpcConfigurationTest {
                 .withAllowBeanDefinitionOverriding(true)
                 .withConfiguration(AutoConfigurations.of(FeignAutoConfiguration.class))
                 .withUserConfiguration(RpcConfiguration.class, IndicatorModelController.class,
-                        IndicatorModelServiceImpl.class, DwLayerController.class,
+                        IndicatorModelServiceImpl.class,
+                        cn.iocoder.yudao.module.modeling.service.indicator.IndicatorDependencyResolver.class,
+                        DwLayerController.class,
                         DwLayerPresentationService.class, ModelHierarchyResolver.class,
                         RegistrationContextService.class, RegistrationContextApiImpl.class)
                 // 只实例化客户端，不发送 HTTP 请求，也不依赖本机 Nacos 或业务数据库。

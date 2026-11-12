@@ -218,6 +218,7 @@ public class DataQueryServiceImpl implements DataQueryService {
         request.setDatabaseId(reqVO.getDatasourceId());
         request.setSql(plan.getNormalizedSql());
         request.setLimit(reqVO.getLimit());
+        request.setMaskScene("DATA_QUERY");
         if (apply != null) {
             // 批准列在数据库执行前生效；返回后再过滤只作为防御，不作为通过依据。
             if (!java.util.Objects.equals(request.getDatabaseId(), authorization.databaseId())

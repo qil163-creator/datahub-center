@@ -21,6 +21,9 @@ public class DatabasePreviewRespVO {
     @Schema(description = "是否因行数上限截断")
     private Boolean truncated;
 
+    @Schema(description = "被动态脱敏的列（name/reason/categoryNames）；为空表示没有列被脱敏")
+    private List<cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewRespDTO.MaskedColumn> maskedColumns;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

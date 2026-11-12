@@ -22,6 +22,10 @@ import {
   getDatabaseTableMeta,
   previewDatabaseTable,
 } from '#/api/dataforge/database';
+import {
+  indexMaskedColumns,
+  renderMaskedColumnTitle,
+} from '#/components/masked-column';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { createLatestWins } from '#/utils/resource-id';
 
@@ -199,9 +203,15 @@ const columnColumns = [
   },
 ];
 
+const sampleMaskedIndex = computed(() =>
+  indexMaskedColumns(sample.value?.maskedColumns),
+);
 const sampleColumns = computed(() =>
   (sample.value?.columns ?? []).map((column) => ({
-    title: column.label || column.name,
+    title: renderMaskedColumnTitle(
+      column.label || column.name,
+      sampleMaskedIndex.value.get(column.name),
+    ),
     dataIndex: column.name,
     key: column.name,
     ellipsis: true,

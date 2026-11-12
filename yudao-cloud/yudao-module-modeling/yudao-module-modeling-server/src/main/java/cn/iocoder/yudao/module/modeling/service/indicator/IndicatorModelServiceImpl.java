@@ -58,6 +58,9 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
     @Resource
     private BusinessEntityMapper entityMapper;
 
+    @Resource
+    private IndicatorDependencyResolver dependencies;
+
     /**
      * 创建指标定义。
      *
@@ -291,6 +294,7 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
         row.setCode(request.getCode().trim());
         row.setName(request.getName().trim());
         row.setTimeFieldUid(StrUtil.blankToDefault(row.getTimeFieldUid(), null));
+        row.setFormula(StrUtil.blankToDefault(StrUtil.trim(row.getFormula()), null));
         return row;
     }
 
@@ -336,6 +340,7 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
             row.setBaseIndicatorId(null);
             row.setTimePeriod(null);
             row.setBusinessCondition(null);
+            row.setFormula(null);
         } else if (IndicatorModelDO.DERIVED.equals(row.getIndicatorType())) {
             if (row.getBaseIndicatorId() == null || Objects.equals(row.getBaseIndicatorId(), row.getId())) {
                 throw exception(INDICATOR_BASE_INVALID);
@@ -364,6 +369,9 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
             row.setUnit(base.getUnit());
             row.setEntityId(base.getEntityId());
             row.setDataFreshness(base.getDataFreshness());
+            row.setFormula(null);
+        } else if (IndicatorModelDO.COMPOSITE.equals(row.getIndicatorType())) {
+            validateComposite(row);
         } else {
             throw exception(INDICATOR_DEFINITION_INVALID, "指标类型不合法");
         }
@@ -445,6 +453,106 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
         if (mapper.countReferences(id) > 0) {
             throw exception(INDICATOR_REFERENCED);
         }
+        Long composites = mapper.countCompositeReferences(id);
+        if (composites != null && composites > 0) {
+            throw exception(INDICATOR_COMPOSITE_REFERENCED);
+        }
+    }
+
+    /**
+     * 校验复合指标：公式白名单语法、引用启用且同数据域、DAG 无环；结果类型固定 DECIMAL。
+     * 引用保存为规范编码，使引用计数可按 {编码} 精确匹配。调用方已持有全局引用锁。
+     *
+     * @param row 当前行数据
+     */
+    private void validateComposite(IndicatorModelDO row) {
+        IndicatorFormula formula = IndicatorDependencyResolver.parse(row.getFormula());
+        IndicatorDependencyResolver.Node tree = dependencies.resolve(row);
+        Map<String, String> canonical = new HashMap<>();
+        tree.children().forEach(child -> canonical.put(child.indicator().getCode().toLowerCase(Locale.ROOT),
+                child.indicator().getCode()));
+        String normalized = formula.normalize(code -> canonical.get(code.toLowerCase(Locale.ROOT)));
+        if (normalized.length() > IndicatorFormula.MAX_LENGTH) {
+            throw exception(INDICATOR_FORMULA_INVALID, "公式长度不能超过 " + IndicatorFormula.MAX_LENGTH + " 个字符");
+        }
+        row.setFormula(normalized);
+        row.setSourceModelId(null);
+        row.setValueFieldUid(null);
+        row.setTimeFieldUid(null);
+        row.setAggregation(null);
+        row.setBaseIndicatorId(null);
+        row.setTimePeriod(null);
+        row.setBusinessCondition(null);
+        row.setEntityId(null);
+        row.setDataFreshness(null);
+        row.setResultDataType("DECIMAL");
+    }
+
+    /**
+     * 实时校验复合指标公式并返回依赖树；不写库，校验失败以结果返回而非异常。
+     *
+     * @param request 请求参数
+     * @return 校验结果
+     */
+    @Override
+    public IndicatorFormulaValidateRespVO validateFormula(IndicatorFormulaValidateReqVO request) {
+        IndicatorFormulaValidateRespVO response = new IndicatorFormulaValidateRespVO();
+        response.setReferences(List.of());
+        response.setDependencies(List.of());
+        IndicatorModelDO draft = new IndicatorModelDO();
+        draft.setId(request.getId());
+        draft.setCode(StrUtil.blankToDefault(StrUtil.trim(request.getCode()), null));
+        if (draft.getCode() == null && request.getId() != null) {
+            IndicatorModelDO saved = mapper.selectById(request.getId());
+            draft.setCode(saved == null ? null : saved.getCode());
+        }
+        draft.setDataDomainId(request.getDataDomainId());
+        draft.setIndicatorType(IndicatorModelDO.COMPOSITE);
+        draft.setFormula(request.getFormula().trim());
+        try {
+            validateComposite(draft);
+            IndicatorDependencyResolver.Node tree = dependencies.resolve(draft);
+            response.setValid(true);
+            response.setNormalizedFormula(draft.getFormula());
+            response.setReferences(IndicatorFormula.parse(draft.getFormula()).references());
+            response.setDependencies(tree.children().stream().map(this::dependencyNode).toList());
+        } catch (cn.iocoder.yudao.framework.common.exception.ServiceException invalid) {
+            response.setValid(false);
+            response.setMessage(invalid.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * 启用指标轻量选项，供公式编辑器与指标查询选择。
+     *
+     * @param dataDomainId 数据域，可为空
+     * @return 启用指标
+     */
+    @Override
+    public List<IndicatorOptionRespVO> activeOptions(Long dataDomainId) {
+        return mapper.selectActiveOptions(dataDomainId).stream().map(row -> {
+            IndicatorOptionRespVO option = BeanUtils.toBean(row, IndicatorOptionRespVO.class);
+            option.setTimeConfigured(StrUtil.isNotBlank(row.getTimeFieldUid()));
+            return option;
+        }).toList();
+    }
+
+    /**
+     * 组装依赖树节点。
+     */
+    private IndicatorDependencyNodeRespVO dependencyNode(IndicatorDependencyResolver.Node node) {
+        IndicatorDependencyNodeRespVO result = new IndicatorDependencyNodeRespVO();
+        IndicatorModelDO row = node.indicator();
+        result.setId(row.getId());
+        result.setCode(row.getCode());
+        result.setName(row.getName());
+        result.setIndicatorType(row.getIndicatorType());
+        result.setStatus(row.getStatus());
+        result.setFormula(row.getFormula());
+        result.setTimePeriod(row.getTimePeriod());
+        result.setChildren(node.children().stream().map(this::dependencyNode).toList());
+        return result;
     }
 
     /**
@@ -526,6 +634,11 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
         var counts = new HashMap<Long, Long>();
         mapper.selectDerivedReferenceCounts(rows.stream().map(IndicatorModelDO::getId).toList())
                 .forEach(item -> counts.put(item.getBaseIndicatorId(), item.getTotal()));
+        var compositeCounts = new HashMap<Long, Long>();
+        var compositeRows = mapper.selectCompositeReferenceCounts(rows.stream().map(IndicatorModelDO::getId).toList());
+        if (compositeRows != null) {
+            compositeRows.forEach(item -> compositeCounts.put(item.getBaseIndicatorId(), item.getTotal()));
+        }
         var userIds = new HashSet<Long>();
         rows.forEach(row -> {
             if (row.getOwnerUserId() != null) {
@@ -542,6 +655,7 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
                 result.setEntityName(entity.getName());
             }
             result.setDerivedIndicatorCount(counts.getOrDefault(row.getId(), 0L));
+            result.setCompositeReferenceCount(compositeCounts.getOrDefault(row.getId(), 0L));
             var owner = row.getOwnerUserId() == null ? null : users.get(row.getOwnerUserId());
             if (owner != null) {
                 result.setOwnerUserName(owner.getNickname());
@@ -622,6 +736,8 @@ public class IndicatorModelServiceImpl implements IndicatorModelService {
             String field = StrUtil.blankToDefault(response.getValueFieldName(), row.getValueFieldUid());
             response.setExpression("COUNT_DISTINCT".equals(row.getAggregation())
                     ? "COUNT(DISTINCT " + field + ")" : row.getAggregation() + "(" + field + ")");
+        } else if (IndicatorModelDO.COMPOSITE.equals(row.getIndicatorType())) {
+            response.setExpression(row.getFormula());
         } else {
             IndicatorModelDO base = bases.get(row.getBaseIndicatorId());
             response.setBaseIndicatorName(base == null ? null : base.getName());

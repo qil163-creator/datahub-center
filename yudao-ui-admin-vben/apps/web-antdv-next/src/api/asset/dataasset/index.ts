@@ -272,6 +272,8 @@ export namespace DataAssetApi {
     total?: number;
     rowIds?: string[];
     rowRevisions?: number[];
+    /** 被动态脱敏的列（原值不在 rows 中）；为空表示没有列被脱敏 */
+    maskedColumns?: { categoryNames?: string[]; name: string; reason?: string }[];
   }
 }
 

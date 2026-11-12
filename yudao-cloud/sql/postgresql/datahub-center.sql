@@ -1,4 +1,4 @@
--- Included migrations through: 0275
+-- Included migrations through: 0278
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -66484,4 +66484,589 @@ ALTER TABLE dh_dataforge_integration_task ADD COLUMN IF NOT EXISTS lineage_repor
 COMMENT ON COLUMN dh_dataforge_integration_task.lineage_report_key IS '血缘上报标记：已成功上报的"任务修订号:解析器版本"；为空表示尚未上报';
 ALTER TABLE dh_dataforge_etl_pipeline ADD COLUMN IF NOT EXISTS lineage_report_key varchar(64);
 COMMENT ON COLUMN dh_dataforge_etl_pipeline.lineage_report_key IS '血缘上报标记：已成功上报的"发布修订号:解析器版本"；为空表示尚未上报';
+COMMIT;
+
+-- 0276 动态脱敏场景开关、菜单与权限
+-- Migration: 0276 动态脱敏场景开关、菜单与权限
+-- Purpose: 新增 dh_governance_mask_scene（每个动态脱敏场景一行：DATA_QUERY 数据查询、ASSET_PREVIEW 资产预览、
+--          MARKET_PREVIEW 集市预览、DATABASE_PREVIEW 数据库预览、INDICATOR_QUERY 指标查询），初始全部启用；
+--          场景行缺失时服务端按启用处理（失败关闭）。在“数据治理 > 数据安全”目录下新增“动态脱敏”页面
+--          （组件 governance/dynamicmask/index）及按钮权限 governance:dynamic-mask:query（场景列表、策略试算）、
+--          governance:dynamic-mask:update（启停场景），并授权给超级管理员。
+-- Depends on: 平台库已升级至 0275；存在 /govern 顶级目录及其下 path=safety 的“数据安全”目录。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；序列、表、约束带存在性保护，场景种子按 scene_code 去重（不覆盖已调整的开关），
+--             页面按组件路径定位、按钮按权限去重、授权按角色与菜单判重。
+-- Rollback: 加法迁移，无不可逆操作。删除组件为 governance/dynamicmask/index 的页面、权限为
+--           governance:dynamic-mask:query / governance:dynamic-mask:update 的按钮及其 system_role_menu 授权，
+--           再删除 dh_governance_mask_scene 表及 dh_governance_mask_scene_seq 序列；删除后服务端按“全部场景启用”处理。
+--           原始 SQL 不触发缓存失效，提交后需清理权限菜单相关 Redis 缓存或重启 system 服务。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+CREATE SEQUENCE IF NOT EXISTS dh_governance_mask_scene_seq;
+
+CREATE TABLE IF NOT EXISTS dh_governance_mask_scene (
+    id int8 NOT NULL DEFAULT nextval('dh_governance_mask_scene_seq'::regclass),
+    scene_code varchar(32) NOT NULL,
+    enabled bool NOT NULL DEFAULT true,
+    remark varchar(500) NOT NULL DEFAULT '',
+    revision int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_mask_scene PRIMARY KEY (id),
+    CONSTRAINT uk_dh_governance_mask_scene_code UNIQUE (scene_code),
+    CONSTRAINT ck_mask_scene_code CHECK (scene_code IN
+        ('DATA_QUERY', 'ASSET_PREVIEW', 'MARKET_PREVIEW', 'DATABASE_PREVIEW', 'INDICATOR_QUERY')),
+    CONSTRAINT ck_mask_scene_revision CHECK (revision >= 0),
+    CONSTRAINT ck_mask_scene_disable_remark CHECK (enabled OR length(trim(remark)) > 0)
+);
+
+COMMENT ON TABLE dh_governance_mask_scene IS '数据安全-动态脱敏场景开关（每个场景一行；缺失按启用处理）';
+COMMENT ON COLUMN dh_governance_mask_scene.id IS '编号';
+COMMENT ON COLUMN dh_governance_mask_scene.scene_code IS '场景编码：DATA_QUERY数据查询、ASSET_PREVIEW资产预览、MARKET_PREVIEW集市预览、DATABASE_PREVIEW数据库预览、INDICATOR_QUERY指标查询';
+COMMENT ON COLUMN dh_governance_mask_scene.enabled IS '是否启用动态脱敏；停用时该场景返回原值';
+COMMENT ON COLUMN dh_governance_mask_scene.remark IS '备注；停用时必须填写原因';
+COMMENT ON COLUMN dh_governance_mask_scene.revision IS '乐观锁修订号，每次启停加一';
+COMMENT ON COLUMN dh_governance_mask_scene.creator IS '创建者';
+COMMENT ON COLUMN dh_governance_mask_scene.create_time IS '创建时间';
+COMMENT ON COLUMN dh_governance_mask_scene.updater IS '更新者';
+COMMENT ON COLUMN dh_governance_mask_scene.update_time IS '更新时间';
+COMMENT ON COLUMN dh_governance_mask_scene.deleted IS '逻辑删除：0未删除、1已删除（场景行不做逻辑删除）';
+
+INSERT INTO dh_governance_mask_scene(scene_code, enabled, remark, revision, creator, updater, deleted)
+SELECT code, true, '', 0, 'migration:0276', 'migration:0276', 0
+  FROM (VALUES ('DATA_QUERY'), ('ASSET_PREVIEW'), ('MARKET_PREVIEW'), ('DATABASE_PREVIEW'), ('INDICATOR_QUERY'))
+       AS seed(code)
+ WHERE NOT EXISTS (SELECT 1 FROM dh_governance_mask_scene old WHERE old.scene_code = seed.code);
+
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    govern_id bigint;
+    dir_id bigint;
+    page_id bigint;
+    query_id bigint;
+    update_id bigint;
+    high_id bigint;
+BEGIN
+    SELECT id INTO govern_id FROM system_menu
+    WHERE deleted = 0 AND parent_id = 0 AND type = 1 AND trim(both '/' from coalesce(path, '')) = 'govern'
+    ORDER BY id LIMIT 1;
+    IF govern_id IS NULL THEN RAISE EXCEPTION '0276 缺少数据治理顶级目录 /govern'; END IF;
+    SELECT id INTO dir_id FROM system_menu
+    WHERE deleted = 0 AND parent_id = govern_id AND type = 1 AND trim(both '/' from coalesce(path, '')) = 'safety'
+    ORDER BY id LIMIT 1;
+    IF dir_id IS NULL THEN RAISE EXCEPTION '0276 缺少数据安全目录 /govern/safety'; END IF;
+
+    SELECT id INTO page_id FROM system_menu
+    WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = 'governance/dynamicmask/index'
+    ORDER BY id LIMIT 1;
+    IF page_id IS NULL THEN
+        IF EXISTS (SELECT 1 FROM system_menu WHERE deleted = 0 AND parent_id = dir_id
+                                               AND trim(both '/' from coalesce(path, '')) = 'dynamic-mask') THEN
+            RAISE EXCEPTION '0276 菜单路径冲突：/govern/safety/dynamic-mask 已被其他菜单占用';
+        END IF;
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO page_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, component, component_name,
+                                status, visible, keep_alive, always_show, creator, updater, deleted)
+        VALUES (page_id, '动态脱敏', '', 2, 8, dir_id, 'dynamic-mask', 'carbon:view-off',
+                'governance/dynamicmask/index', 'SafetyDynamicMask', 0, true, true, true,
+                'migration:0276', 'migration:0276', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = page_id AND parent_id = dir_id AND type = 2
+                                                 AND trim(both '/' from coalesce(path, '')) = 'dynamic-mask') THEN
+        RAISE EXCEPTION '0276 菜单组件身份冲突：governance/dynamicmask/index 已挂在其他位置';
+    END IF;
+
+    SELECT id INTO query_id FROM system_menu
+    WHERE deleted = 0 AND permission = 'governance:dynamic-mask:query' ORDER BY id LIMIT 1;
+    IF query_id IS NULL THEN
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO query_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                keep_alive, always_show, creator, updater, deleted)
+        VALUES (query_id, '动态脱敏查询', 'governance:dynamic-mask:query', 3, 1, page_id, '', '#', 0, true, true, true,
+                'migration:0276', 'migration:0276', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = query_id AND type = 3 AND parent_id = page_id) THEN
+        RAISE EXCEPTION '0276 权限冲突：governance:dynamic-mask:query 已被其他菜单使用';
+    END IF;
+
+    SELECT id INTO update_id FROM system_menu
+    WHERE deleted = 0 AND permission = 'governance:dynamic-mask:update' ORDER BY id LIMIT 1;
+    IF update_id IS NULL THEN
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO update_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                keep_alive, always_show, creator, updater, deleted)
+        VALUES (update_id, '动态脱敏启停', 'governance:dynamic-mask:update', 3, 2, page_id, '', '#', 0, true, true, true,
+                'migration:0276', 'migration:0276', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = update_id AND type = 3 AND parent_id = page_id) THEN
+        RAISE EXCEPTION '0276 权限冲突：governance:dynamic-mask:update 已被其他菜单使用';
+    END IF;
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    PERFORM setval('system_menu_seq', high_id);
+    PERFORM setval('system_menu_id_seq', high_id);
+
+    -- 与 0274 一致，仅授权超级管理员；沿用角色自身的脚手架租户归属。
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0276', 'migration:0276', 0
+      FROM system_role r JOIN system_menu m ON m.id IN (page_id, query_id, update_id) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
+COMMIT;
+
+-- 0277 数据探查：探查记录、字段指标、Top 值与按钮权限
+-- Migration: 0277 数据探查：探查记录、字段指标、Top 值与按钮权限
+-- Purpose: 新增字段级数据探查的持久化结构：dh_governance_profile_run 记录每次探查（状态 PENDING/RUNNING/SUCCESS/FAILED、
+--          抽样与总行数、执行人、起止时间、失败原因及执行租约），部分唯一索引保证每张元数据表同时只有一条
+--          PENDING/RUNNING 记录；dh_governance_profile_column 保存各列非空/空值率/唯一率/最值/长度/平均值；
+--          dh_governance_profile_value 保存各列 Top 值及计数，落库前经动态脱敏（maskForStorage）处理，敏感列只保存不可逆掩码或计数，绝不保存原文。
+--          在“数据治理 > 元数据管理 > 最新元数据”页面（组件 governance/metaobject/index）下新增按钮权限
+--          governance:profile:run（发起探查）、governance:profile:query（探查结果、记录分页），并授权给超级管理员。
+-- Depends on: 平台库已升级至 0276；存在组件为 governance/metaobject/index 的“最新元数据”页面菜单。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线同步包含本迁移。
+-- Repeatable: 是；序列、表、约束、索引带存在性保护，按钮按权限去重、授权按角色与菜单判重，单事务执行。
+-- Rollback: 加法迁移，无不可逆操作。按 dh_governance_profile_value、dh_governance_profile_column、dh_governance_profile_run
+--           的顺序删除表及同名 _seq 序列，删除权限为 governance:profile:run / governance:profile:query 的按钮及其
+--           system_role_menu 授权即可；探查结果为派生数据，回滚后可重新探查。原始 SQL 不触发缓存失效，提交后需清理
+--           权限菜单相关 Redis 缓存或重启 system 服务。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+CREATE SEQUENCE IF NOT EXISTS dh_governance_profile_run_seq;
+CREATE SEQUENCE IF NOT EXISTS dh_governance_profile_column_seq;
+CREATE SEQUENCE IF NOT EXISTS dh_governance_profile_value_seq;
+
+CREATE TABLE IF NOT EXISTS dh_governance_profile_run (
+    id int8 NOT NULL DEFAULT nextval('dh_governance_profile_run_seq'::regclass),
+    meta_table_id int8 NOT NULL,
+    datasource_id int8,
+    schema_name varchar(128),
+    table_name varchar(255) NOT NULL DEFAULT '',
+    status varchar(16) NOT NULL,
+    sample_limit int4 NOT NULL,
+    sample_rows int8,
+    total_rows int8,
+    column_count int4 NOT NULL DEFAULT 0,
+    executor_user_id int8 NOT NULL,
+    start_time timestamp(6),
+    end_time timestamp(6),
+    fail_reason varchar(500),
+    lease_owner varchar(64),
+    lease_until timestamp(6),
+    attempt_count int4 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_profile_run PRIMARY KEY (id),
+    CONSTRAINT ck_profile_run_status CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED')),
+    CONSTRAINT ck_profile_run_counts CHECK (sample_limit > 0 AND column_count >= 0 AND attempt_count >= 0
+        AND (sample_rows IS NULL OR sample_rows >= 0) AND (total_rows IS NULL OR total_rows >= 0)),
+    CONSTRAINT ck_profile_run_lease CHECK (status <> 'RUNNING' OR (lease_owner IS NOT NULL AND lease_until IS NOT NULL))
+);
+
+COMMENT ON TABLE dh_governance_profile_run IS '数据探查-探查记录（每次对一张元数据表发起的字段级统计探查）';
+COMMENT ON COLUMN dh_governance_profile_run.id IS '探查记录编号';
+COMMENT ON COLUMN dh_governance_profile_run.meta_table_id IS '元数据表编号（dh_governance_meta_table.id）';
+COMMENT ON COLUMN dh_governance_profile_run.datasource_id IS '发起时的数据源编号快照';
+COMMENT ON COLUMN dh_governance_profile_run.schema_name IS '发起时的物理 schema 快照';
+COMMENT ON COLUMN dh_governance_profile_run.table_name IS '发起时的物理表名快照';
+COMMENT ON COLUMN dh_governance_profile_run.status IS '状态：PENDING等待执行、RUNNING执行中、SUCCESS成功、FAILED失败';
+COMMENT ON COLUMN dh_governance_profile_run.sample_limit IS '抽样行数上限';
+COMMENT ON COLUMN dh_governance_profile_run.sample_rows IS '实际抽样行数';
+COMMENT ON COLUMN dh_governance_profile_run.total_rows IS '全表总行数；统计超时或失败时为空';
+COMMENT ON COLUMN dh_governance_profile_run.column_count IS '实际探查的字段数';
+COMMENT ON COLUMN dh_governance_profile_run.executor_user_id IS '执行人（发起探查的用户编号）';
+COMMENT ON COLUMN dh_governance_profile_run.start_time IS '首次开始执行时间';
+COMMENT ON COLUMN dh_governance_profile_run.end_time IS '结束时间';
+COMMENT ON COLUMN dh_governance_profile_run.fail_reason IS '失败原因（不含 SQL 文本或连接信息）';
+COMMENT ON COLUMN dh_governance_profile_run.lease_owner IS '当前执行租约持有者令牌';
+COMMENT ON COLUMN dh_governance_profile_run.lease_until IS '执行租约到期时间；过期后可被重新领取';
+COMMENT ON COLUMN dh_governance_profile_run.attempt_count IS '已领取执行次数';
+COMMENT ON COLUMN dh_governance_profile_run.creator IS '创建者';
+COMMENT ON COLUMN dh_governance_profile_run.create_time IS '创建时间';
+COMMENT ON COLUMN dh_governance_profile_run.updater IS '更新者';
+COMMENT ON COLUMN dh_governance_profile_run.update_time IS '更新时间';
+COMMENT ON COLUMN dh_governance_profile_run.deleted IS '逻辑删除：0未删除、1已删除';
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_dh_governance_profile_run_active
+    ON dh_governance_profile_run (meta_table_id) WHERE status IN ('PENDING', 'RUNNING') AND deleted = 0;
+CREATE INDEX IF NOT EXISTS idx_dh_governance_profile_run_table
+    ON dh_governance_profile_run (meta_table_id, id DESC);
+CREATE INDEX IF NOT EXISTS idx_dh_governance_profile_run_due
+    ON dh_governance_profile_run (status, lease_until, id) WHERE status IN ('PENDING', 'RUNNING') AND deleted = 0;
+
+CREATE TABLE IF NOT EXISTS dh_governance_profile_column (
+    id int8 NOT NULL DEFAULT nextval('dh_governance_profile_column_seq'::regclass),
+    run_id int8 NOT NULL,
+    meta_column_id int8,
+    column_name varchar(255) NOT NULL,
+    data_type varchar(128),
+    column_kind varchar(16) NOT NULL,
+    ordinal_position int4,
+    non_null_count int8 NOT NULL,
+    null_count int8 NOT NULL,
+    null_rate numeric(7, 6) NOT NULL,
+    distinct_count int8,
+    unique_rate numeric(7, 6),
+    min_value varchar(256),
+    max_value varchar(256),
+    value_masked int2 NOT NULL DEFAULT 0,
+    mask_reason varchar(32),
+    avg_length numeric(18, 4),
+    min_length int8,
+    max_length int8,
+    avg_value numeric,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_profile_column PRIMARY KEY (id),
+    CONSTRAINT uk_dh_governance_profile_column UNIQUE (run_id, column_name),
+    CONSTRAINT fk_profile_column_run FOREIGN KEY (run_id) REFERENCES dh_governance_profile_run (id),
+    CONSTRAINT ck_profile_column_kind CHECK (column_kind IN ('TEXT', 'NUMERIC', 'TEMPORAL', 'BOOLEAN', 'OTHER')),
+    CONSTRAINT ck_profile_column_rates CHECK (null_rate BETWEEN 0 AND 1 AND (unique_rate IS NULL OR unique_rate BETWEEN 0 AND 1)),
+    CONSTRAINT ck_profile_column_counts CHECK (non_null_count >= 0 AND null_count >= 0
+        AND (distinct_count IS NULL OR distinct_count >= 0)),
+    CONSTRAINT ck_profile_column_masked CHECK (value_masked IN (0, 1))
+);
+
+COMMENT ON TABLE dh_governance_profile_column IS '数据探查-字段指标（每次探查每个字段一行，统计基于抽样）';
+COMMENT ON COLUMN dh_governance_profile_column.id IS '字段指标编号';
+COMMENT ON COLUMN dh_governance_profile_column.run_id IS '探查记录编号';
+COMMENT ON COLUMN dh_governance_profile_column.meta_column_id IS '元数据字段编号（dh_governance_meta_column.id）';
+COMMENT ON COLUMN dh_governance_profile_column.column_name IS '字段名';
+COMMENT ON COLUMN dh_governance_profile_column.data_type IS '探查时的字段类型';
+COMMENT ON COLUMN dh_governance_profile_column.column_kind IS '统计类别：TEXT文本、NUMERIC数值、TEMPORAL日期时间、BOOLEAN布尔、OTHER其他（只统计非空）';
+COMMENT ON COLUMN dh_governance_profile_column.ordinal_position IS '字段序号';
+COMMENT ON COLUMN dh_governance_profile_column.non_null_count IS '非空数';
+COMMENT ON COLUMN dh_governance_profile_column.null_count IS '空值数';
+COMMENT ON COLUMN dh_governance_profile_column.null_rate IS '空值率（0~1）';
+COMMENT ON COLUMN dh_governance_profile_column.distinct_count IS '唯一值数；OTHER 类别不统计';
+COMMENT ON COLUMN dh_governance_profile_column.unique_rate IS '唯一率（唯一值数/非空数，0~1）';
+COMMENT ON COLUMN dh_governance_profile_column.min_value IS '最小值文本（截断至 256 字符）；已脱敏时为空或为脱敏后文本，不保存原文';
+COMMENT ON COLUMN dh_governance_profile_column.max_value IS '最大值文本（截断至 256 字符）；已脱敏时为空或为脱敏后文本，不保存原文';
+COMMENT ON COLUMN dh_governance_profile_column.value_masked IS '取值已脱敏：0否、1是（最值与 Top 值只保存不可逆掩码或为空，不保存原文）';
+COMMENT ON COLUMN dh_governance_profile_column.mask_reason IS '脱敏原因：RULE命中分类规则、UNCLASSIFIED敏感未分类、UNTRACEABLE来源不可追溯、UNVERIFIED未验证、METADATA元数据敏感标注、MASK_FAILED脱敏服务失败（失败关闭，不保存取值）';
+COMMENT ON COLUMN dh_governance_profile_column.avg_length IS '文本平均长度（字符数）';
+COMMENT ON COLUMN dh_governance_profile_column.min_length IS '文本最小长度（字符数）';
+COMMENT ON COLUMN dh_governance_profile_column.max_length IS '文本最大长度（字符数）';
+COMMENT ON COLUMN dh_governance_profile_column.avg_value IS '数值平均值';
+COMMENT ON COLUMN dh_governance_profile_column.creator IS '创建者';
+COMMENT ON COLUMN dh_governance_profile_column.create_time IS '创建时间';
+COMMENT ON COLUMN dh_governance_profile_column.updater IS '更新者';
+COMMENT ON COLUMN dh_governance_profile_column.update_time IS '更新时间';
+COMMENT ON COLUMN dh_governance_profile_column.deleted IS '逻辑删除：0未删除、1已删除';
+
+CREATE TABLE IF NOT EXISTS dh_governance_profile_value (
+    id int8 NOT NULL DEFAULT nextval('dh_governance_profile_value_seq'::regclass),
+    run_id int8 NOT NULL,
+    profile_column_id int8 NOT NULL,
+    rank_no int4 NOT NULL,
+    value_text varchar(256),
+    value_count int8 NOT NULL,
+    value_masked int2 NOT NULL DEFAULT 0,
+    creator varchar(64) DEFAULT '',
+    create_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updater varchar(64) DEFAULT '',
+    update_time timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted int2 NOT NULL DEFAULT 0,
+    CONSTRAINT pk_dh_governance_profile_value PRIMARY KEY (id),
+    CONSTRAINT uk_dh_governance_profile_value UNIQUE (profile_column_id, rank_no),
+    CONSTRAINT fk_profile_value_run FOREIGN KEY (run_id) REFERENCES dh_governance_profile_run (id),
+    CONSTRAINT fk_profile_value_column FOREIGN KEY (profile_column_id) REFERENCES dh_governance_profile_column (id),
+    CONSTRAINT ck_profile_value_rank CHECK (rank_no >= 1 AND value_count >= 0),
+    CONSTRAINT ck_profile_value_masked CHECK (value_masked IN (0, 1) AND (value_masked = 1 OR value_text IS NOT NULL))
+);
+
+COMMENT ON TABLE dh_governance_profile_value IS '数据探查-Top 值分布（每个字段按出现次数倒序的前 N 个取值）';
+COMMENT ON COLUMN dh_governance_profile_value.id IS 'Top 值编号';
+COMMENT ON COLUMN dh_governance_profile_value.run_id IS '探查记录编号';
+COMMENT ON COLUMN dh_governance_profile_value.profile_column_id IS '字段指标编号';
+COMMENT ON COLUMN dh_governance_profile_value.rank_no IS '排名（从 1 开始）';
+COMMENT ON COLUMN dh_governance_profile_value.value_text IS '取值文本（截断至 256 字符）；已脱敏时为空或为脱敏后文本，不保存原文';
+COMMENT ON COLUMN dh_governance_profile_value.value_count IS '抽样内出现次数';
+COMMENT ON COLUMN dh_governance_profile_value.value_masked IS '已脱敏：0否、1是（文本为不可逆掩码或为空；脱敏失败时只保存计数）';
+COMMENT ON COLUMN dh_governance_profile_value.creator IS '创建者';
+COMMENT ON COLUMN dh_governance_profile_value.create_time IS '创建时间';
+COMMENT ON COLUMN dh_governance_profile_value.updater IS '更新者';
+COMMENT ON COLUMN dh_governance_profile_value.update_time IS '更新时间';
+COMMENT ON COLUMN dh_governance_profile_value.deleted IS '逻辑删除：0未删除、1已删除';
+
+CREATE INDEX IF NOT EXISTS idx_dh_governance_profile_column_run ON dh_governance_profile_column (run_id);
+CREATE INDEX IF NOT EXISTS idx_dh_governance_profile_value_run ON dh_governance_profile_value (run_id);
+
+-- ========== 按钮权限：挂在“最新元数据”页面下，仅授权超级管理员 ==========
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    page_id bigint;
+    run_id bigint;
+    query_id bigint;
+    high_id bigint;
+BEGIN
+    SELECT id INTO page_id FROM system_menu
+    WHERE deleted = 0 AND type = 2 AND trim(both '/' from coalesce(component, '')) = 'governance/metaobject/index'
+    ORDER BY id LIMIT 1;
+    IF page_id IS NULL THEN RAISE EXCEPTION '0277 缺少最新元数据页面菜单 governance/metaobject/index'; END IF;
+
+    SELECT id INTO query_id FROM system_menu WHERE deleted = 0 AND permission = 'governance:profile:query'
+    ORDER BY id LIMIT 1;
+    IF query_id IS NULL THEN
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO query_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                keep_alive, always_show, creator, updater, deleted)
+        VALUES (query_id, '数据探查查询', 'governance:profile:query', 3, 20, page_id, '', '#', 0, true, true, true,
+                'migration:0277', 'migration:0277', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = query_id AND type = 3 AND parent_id = page_id) THEN
+        RAISE EXCEPTION '0277 权限冲突：governance:profile:query 已被其他菜单使用';
+    END IF;
+
+    SELECT id INTO run_id FROM system_menu WHERE deleted = 0 AND permission = 'governance:profile:run'
+    ORDER BY id LIMIT 1;
+    IF run_id IS NULL THEN
+        SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                        (SELECT last_value FROM system_menu_id_seq)) + 1 INTO run_id FROM system_menu;
+        INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, status, visible,
+                                keep_alive, always_show, creator, updater, deleted)
+        VALUES (run_id, '数据探查发起', 'governance:profile:run', 3, 21, page_id, '', '#', 0, true, true, true,
+                'migration:0277', 'migration:0277', 0);
+    ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = run_id AND type = 3 AND parent_id = page_id) THEN
+        RAISE EXCEPTION '0277 权限冲突：governance:profile:run 已被其他菜单使用';
+    END IF;
+
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    PERFORM setval('system_menu_seq', high_id);
+    PERFORM setval('system_menu_id_seq', high_id);
+
+    -- 与 0274 一致，仅授权超级管理员；沿用角色自身的脚手架租户归属。
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0277', 'migration:0277', 0
+      FROM system_role r JOIN system_menu m ON m.id IN (query_id, run_id) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
+COMMIT;
+
+-- 0278 复合指标与指标数据查询
+-- Migration: 0278 复合指标与指标数据查询
+-- Purpose: 1) dh_modeling_indicator_model 新增 formula 列，指标类型增加 COMPOSITE（复合指标，结果固定 DECIMAL），
+--             并重建类型与定义互斥约束；
+--          2) 重建 modeling_current_source_guard()：复合指标不绑定来源模型，公式中的 {编码} 必须引用同数据域、
+--             已启用的其他指标；被复合指标引用的指标与被派生指标引用一样不能删除、修改或停用；
+--          3) 在“指标模型”目录下新增“复合指标”（modeling:indicator-model:query）和
+--             “指标查询”（modeling:indicator-model:data-query）两个页面，仅授权超级管理员。
+-- Depends on: 0277_governance_data-profile.sql（编号前驱，须先执行；与其无数据依赖）；
+--             0276_governance_dynamic-mask-scene.sql（运行时依赖：指标查询结果按 INDICATOR_QUERY 场景调用治理动态脱敏，
+--             本脚本不读写其表）；
+--             0185_modeling_metric-pages-business-condition.sql（指标模型目录 ModelingIndicatorModelRoot 及原子/派生页面）；
+--             0236_modeling_remove-model-versions.sql（当前 ck_modeling_indicator_definition 与 modeling_current_source_guard 定义）。
+-- Target: 已有 PostgreSQL 平台库，schema 为 datahub-center；新库基线 datahub-center.sql 同步包含本迁移。
+-- Repeatable: 是；列使用 IF NOT EXISTS，约束先删后建，函数 CREATE OR REPLACE，菜单按组件定位、授权按角色与菜单判重。
+-- Rollback: 单事务执行，失败整体回滚。提交后回滚：先删除或改写全部 COMPOSITE 指标；按 0236 定义恢复
+--           modeling_current_source_guard() 与 ck_modeling_indicator_definition，恢复类型约束为 ('ATOMIC','DERIVED')；
+--           删除 formula 列（不可逆地丢弃公式）；删除组件为 modeling/indicator-model/composite/index 与
+--           modeling/indicator-model/query/index 的菜单及其 system_role_menu 授权。原始 SQL 不触发缓存失效，
+--           提交后需清理权限菜单相关 Redis 缓存或重启 system 服务。
+-- 风险: 约束重建会短暂持有 dh_modeling_indicator_model 的 ACCESS EXCLUSIVE 锁并全表校验（指标表数据量小）；
+--       菜单部分持有 system_menu / system_role_menu 共享行排他锁，请在维护窗口执行。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '120s';
+
+-- ========== 1. 结构 ==========
+ALTER TABLE dh_modeling_indicator_model ADD COLUMN IF NOT EXISTS formula varchar(2000);
+COMMENT ON COLUMN dh_modeling_indicator_model.formula IS '复合指标公式：仅数字、+ - * /、括号与 {指标编码} 引用，引用保存为规范编码；原子和派生指标为空';
+COMMENT ON COLUMN dh_modeling_indicator_model.indicator_type IS '指标类型：ATOMIC原子、DERIVED派生、COMPOSITE复合';
+
+-- 旧类型约束是建表时的匿名列约束，按定义定位后删除，再以固定名称重建。
+DO $type_check$
+DECLARE constraint_name text;
+BEGIN
+    FOR constraint_name IN
+        SELECT c.conname FROM pg_constraint c
+        WHERE c.conrelid = 'dh_modeling_indicator_model'::regclass AND c.contype = 'c'
+          AND c.conname NOT IN ('ck_modeling_indicator_definition', 'ck_modeling_indicator_type')
+          AND pg_get_constraintdef(c.oid) LIKE '%indicator_type%'
+          AND pg_get_constraintdef(c.oid) NOT LIKE '%source_model_id%'
+    LOOP
+        EXECUTE format('ALTER TABLE dh_modeling_indicator_model DROP CONSTRAINT %I', constraint_name);
+    END LOOP;
+END $type_check$;
+ALTER TABLE dh_modeling_indicator_model DROP CONSTRAINT IF EXISTS ck_modeling_indicator_type;
+ALTER TABLE dh_modeling_indicator_model ADD CONSTRAINT ck_modeling_indicator_type
+    CHECK (indicator_type IN ('ATOMIC', 'DERIVED', 'COMPOSITE'));
+
+ALTER TABLE dh_modeling_indicator_model DROP CONSTRAINT IF EXISTS ck_modeling_indicator_definition;
+ALTER TABLE dh_modeling_indicator_model ADD CONSTRAINT ck_modeling_indicator_definition CHECK (
+    (indicator_type = 'ATOMIC' AND source_model_id IS NOT NULL
+        AND nullif(btrim(value_field_uid), '') IS NOT NULL AND aggregation IS NOT NULL
+        AND base_indicator_id IS NULL AND time_period IS NULL AND business_condition IS NULL AND formula IS NULL)
+    OR (indicator_type = 'DERIVED' AND base_indicator_id IS NOT NULL AND base_indicator_id <> id
+        AND time_period IS NOT NULL AND nullif(btrim(business_condition), '') IS NOT NULL
+        AND source_model_id IS NULL AND value_field_uid IS NULL AND time_field_uid IS NULL AND aggregation IS NULL
+        AND formula IS NULL)
+    OR (indicator_type = 'COMPOSITE' AND nullif(btrim(formula), '') IS NOT NULL
+        AND formula ~ '^[0-9+*/(). \t\r\n{}A-Za-z_-]+$' AND formula ~ '\{[A-Za-z][A-Za-z0-9_]*\}'
+        AND result_data_type = 'DECIMAL'
+        AND source_model_id IS NULL AND value_field_uid IS NULL AND time_field_uid IS NULL AND aggregation IS NULL
+        AND base_indicator_id IS NULL AND time_period IS NULL AND business_condition IS NULL));
+COMMENT ON CONSTRAINT ck_modeling_indicator_definition ON dh_modeling_indicator_model
+    IS '原子、派生、复合指标的定义字段互斥；复合指标只保存公式，结果类型固定 DECIMAL';
+
+-- ========== 2. 引用保护触发器 ==========
+-- 在 0236 定义基础上：复合指标跳过来源模型校验并校验公式引用；被复合指标引用的指标获得与派生引用相同的保护。
+-- 公式语法与 DAG 环检测由建模服务在同一全局咨询锁内完成，此处兜底保证引用存在、启用且同数据域。
+CREATE OR REPLACE FUNCTION modeling_current_source_guard() RETURNS trigger
+LANGUAGE plpgsql SET search_path="datahub-center",pg_catalog AS $guard$
+DECLARE reference_code text;
+BEGIN
+    PERFORM pg_advisory_xact_lock(hashtextextended('modeling-ownership-global',0));
+    IF TG_TABLE_NAME='dh_modeling_indicator_model' AND TG_OP<>'INSERT'
+       AND EXISTS(SELECT 1 FROM dh_modeling_indicator_model WHERE base_indicator_id=OLD.id AND deleted=0) THEN
+        IF TG_OP='DELETE' THEN RAISE EXCEPTION '原子指标仍被派生指标引用' USING ERRCODE='23514'; END IF;
+        IF (to_jsonb(NEW)-ARRAY['updater','update_time','revision']) IS DISTINCT FROM
+            (to_jsonb(OLD)-ARRAY['updater','update_time','revision']) THEN
+            RAISE EXCEPTION '原子指标仍被派生指标引用，不能修改或停用' USING ERRCODE='23514';
+        END IF;
+    END IF;
+    IF TG_TABLE_NAME='dh_modeling_indicator_model' AND TG_OP<>'INSERT'
+       AND EXISTS(SELECT 1 FROM dh_modeling_indicator_model c WHERE c.deleted=0 AND c.indicator_type='COMPOSITE'
+            AND c.id<>OLD.id AND strpos(c.formula,'{'||OLD.code||'}')>0) THEN
+        IF TG_OP='DELETE' THEN RAISE EXCEPTION '指标仍被复合指标引用' USING ERRCODE='23514'; END IF;
+        IF (to_jsonb(NEW)-ARRAY['updater','update_time','revision']) IS DISTINCT FROM
+            (to_jsonb(OLD)-ARRAY['updater','update_time','revision']) THEN
+            RAISE EXCEPTION '指标仍被复合指标引用，不能修改或停用' USING ERRCODE='23514';
+        END IF;
+    END IF;
+    IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+    IF NEW.deleted<>0 THEN RETURN NEW; END IF;
+    IF TG_TABLE_NAME='dh_modeling_indicator_model' THEN
+      IF NEW.indicator_type='DERIVED' THEN
+        IF NOT EXISTS(SELECT 1 FROM dh_modeling_indicator_model b WHERE b.id=NEW.base_indicator_id
+            AND b.deleted=0 AND b.indicator_type='ATOMIC' AND b.status='ACTIVE'
+            AND b.data_domain_id=NEW.data_domain_id AND b.subject_domain_id IS NOT DISTINCT FROM NEW.subject_domain_id
+            AND b.entity_id IS NOT DISTINCT FROM NEW.entity_id) THEN
+            RAISE EXCEPTION '派生指标必须继承同归属的已启用原子指标及实体' USING ERRCODE='23514';
+        END IF;
+        RETURN NEW;
+      END IF;
+      IF NEW.indicator_type='COMPOSITE' THEN
+        FOR reference_code IN SELECT DISTINCT m[1] FROM regexp_matches(NEW.formula,'\{([A-Za-z][A-Za-z0-9_]*)\}','g') m LOOP
+            IF NOT EXISTS(SELECT 1 FROM dh_modeling_indicator_model r WHERE r.code=reference_code
+                AND r.deleted=0 AND r.status='ACTIVE' AND r.id<>NEW.id AND r.data_domain_id=NEW.data_domain_id) THEN
+                RAISE EXCEPTION '复合指标公式引用的指标 % 必须是同数据域的其他已启用指标', reference_code
+                    USING ERRCODE='23514';
+            END IF;
+        END LOOP;
+        RETURN NEW;
+      END IF;
+    END IF;
+    IF NOT modeling_current_source_matches(NEW.source_model_id,NEW.entity_id,NEW.data_domain_id,
+        NEW.subject_domain_id,NEW.data_freshness,true) THEN
+        RAISE EXCEPTION '指标或限定必须绑定同实体、归属及时效的当前已发布启用模型' USING ERRCODE='23514';
+    END IF;
+    IF TG_TABLE_NAME='dh_modeling_indicator_model' THEN
+      IF (
+        NOT EXISTS(SELECT 1 FROM dh_modeling_logic_model_column c WHERE c.model_id=NEW.source_model_id
+            AND c.field_uid=NEW.value_field_uid AND c.deleted=0)
+        OR (NEW.time_field_uid IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dh_modeling_logic_model_column c
+            WHERE c.model_id=NEW.source_model_id AND c.field_uid=NEW.time_field_uid AND c.deleted=0))) THEN
+        RAISE EXCEPTION '指标字段不在当前来源模型的稳定字段集合中' USING ERRCODE='23514';
+      END IF;
+    END IF;
+    RETURN NEW;
+END $guard$;
+COMMENT ON FUNCTION modeling_current_source_guard() IS '在共享事务锁内保护原子、派生、复合指标及业务限定的当前来源绑定与指标间引用';
+
+-- ========== 3. 菜单与权限 ==========
+LOCK TABLE system_menu, system_role_menu IN SHARE ROW EXCLUSIVE MODE;
+DO $menus$
+DECLARE
+    metric_parent_id bigint;
+    matches integer;
+    page_id bigint;
+    page_ids bigint[] := ARRAY[]::bigint[];
+    item record;
+    high_id bigint;
+BEGIN
+    SELECT count(*), min(id) INTO matches, metric_parent_id FROM system_menu
+    WHERE deleted = 0 AND type = 1 AND component_name = 'ModelingIndicatorModelRoot'
+      AND trim(both '/' from coalesce(path, '')) = 'indicator-model';
+    IF matches <> 1 THEN
+        RAISE EXCEPTION '0278 指标模型目录 ModelingIndicatorModelRoot 缺失或不唯一';
+    END IF;
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_menu_seq),
+                    (SELECT last_value FROM system_menu_id_seq)) INTO high_id FROM system_menu;
+    FOR item IN SELECT * FROM (VALUES
+        ('复合指标', 'composite', 'modeling/indicator-model/composite/index', 'ModelingCompositeIndicator',
+         'modeling:indicator-model:query', 'carbon:function-math', 40),
+        ('指标查询', 'query', 'modeling/indicator-model/query/index', 'ModelingIndicatorQuery',
+         'modeling:indicator-model:data-query', 'carbon:chart-multi-line', 50)
+    ) t(label, path, component, component_name, permission, icon, sort) LOOP
+        SELECT count(*), min(id) INTO matches, page_id FROM system_menu
+        WHERE deleted = 0 AND trim(both '/' from coalesce(component, '')) = item.component;
+        IF matches > 1 THEN
+            RAISE EXCEPTION '0278 菜单组件身份重复：%', item.component;
+        END IF;
+        IF matches = 0 THEN
+            IF EXISTS (SELECT 1 FROM system_menu WHERE deleted = 0 AND parent_id = metric_parent_id
+                                                   AND trim(both '/' from coalesce(path, '')) = item.path) THEN
+                RAISE EXCEPTION '0278 菜单路径冲突：指标模型/% 已被其他菜单占用', item.path;
+            END IF;
+            high_id := high_id + 1;
+            page_id := high_id;
+            INSERT INTO system_menu(id, name, permission, type, sort, parent_id, path, icon, component, component_name,
+                                    status, visible, keep_alive, always_show, creator, updater, deleted)
+            VALUES (page_id, item.label, item.permission, 2, item.sort, metric_parent_id, item.path, item.icon,
+                    item.component, item.component_name, 0, true, true, true, 'migration:0278', 'migration:0278', 0);
+        ELSIF NOT EXISTS (SELECT 1 FROM system_menu WHERE id = page_id AND parent_id = metric_parent_id AND type = 2
+                                                     AND trim(both '/' from coalesce(path, '')) = item.path
+                                                     AND permission = item.permission) THEN
+            RAISE EXCEPTION '0278 菜单组件身份冲突：% 已挂在其他位置或权限不一致', item.component;
+        END IF;
+        page_ids := array_append(page_ids, page_id);
+    END LOOP;
+    PERFORM setval('system_menu_seq', greatest((SELECT last_value FROM system_menu_seq), high_id));
+    PERFORM setval('system_menu_id_seq', greatest((SELECT last_value FROM system_menu_id_seq), high_id));
+
+    -- 与 0274 一致，仅授权超级管理员；沿用角色自身的脚手架租户归属。其他角色由管理员按需分配。
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    INSERT INTO system_role_menu(id, role_id, menu_id, tenant_id, creator, updater, deleted)
+    SELECT high_id + row_number() OVER (ORDER BY r.id, r.tenant_id, m.id), r.id, m.id, r.tenant_id,
+           'migration:0278', 'migration:0278', 0
+      FROM system_role r JOIN system_menu m ON m.id = ANY(page_ids) AND m.deleted = 0
+     WHERE r.code = 'super_admin' AND r.deleted = 0
+       AND NOT EXISTS (SELECT 1 FROM system_role_menu old WHERE old.role_id = r.id AND old.tenant_id = r.tenant_id
+                                                              AND old.menu_id = m.id AND old.deleted = 0);
+    SELECT greatest(coalesce(max(id), 0), (SELECT last_value FROM system_role_menu_seq)) INTO high_id FROM system_role_menu;
+    PERFORM setval('system_role_menu_seq', high_id);
+END $menus$;
 COMMIT;

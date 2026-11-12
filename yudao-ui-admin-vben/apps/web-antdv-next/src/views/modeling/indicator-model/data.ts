@@ -1,6 +1,10 @@
 import type { IndicatorModelApi } from '#/api/modeling/indicator-model';
 
-export const TYPE_LABELS = { ATOMIC: '原子指标', DERIVED: '派生指标' } as const;
+export const TYPE_LABELS = {
+  ATOMIC: '原子指标',
+  DERIVED: '派生指标',
+  COMPOSITE: '复合指标',
+} as const;
 export const STATUS_LABELS = { DRAFT: '禁用', ACTIVE: '启用' } as const;
 export const PERIOD_LABELS = {
   DAY: '日',

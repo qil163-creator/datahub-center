@@ -36,6 +36,16 @@ public class DatabasePreviewReqDTO {
     private List<Filter> filters;
 
     /**
+     * 动态脱敏场景。SENSITIVE_SCAN 仅供 governance 敏感识别采样（需要原值做分类判定），
+     * 只在服务间 RPC 上可用，管理端入口不会透传该值。
+     */
+    @Schema(description = "动态脱敏场景：DATABASE_PREVIEW（默认）/ASSET_PREVIEW/MARKET_PREVIEW；"
+            + "SENSITIVE_SCAN 仅供敏感识别内部采样")
+    @jakarta.validation.constraints.Pattern(regexp = "DATABASE_PREVIEW|ASSET_PREVIEW|MARKET_PREVIEW|SENSITIVE_SCAN",
+            message = "脱敏场景不合法")
+    private String maskScene;
+
+    /**
      * 预览列白名单。空或未传表示 SELECT *；非空时只投影这些列，未知列拒绝。
      */
     @Schema(description = "预览列白名单，空表示全部列")

@@ -22,6 +22,9 @@ public class DataQueryResultRespVO {
     @Schema(description = "执行耗时（毫秒）", example = "35")
     private Long elapsedMs;
 
+    @Schema(description = "被动态脱敏的列（name/reason/categoryNames）；为空表示没有列被脱敏")
+    private List<cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewRespDTO.MaskedColumn> maskedColumns;
+
     @Schema(description = "查询结果列")
     @Data
     public static class Column {

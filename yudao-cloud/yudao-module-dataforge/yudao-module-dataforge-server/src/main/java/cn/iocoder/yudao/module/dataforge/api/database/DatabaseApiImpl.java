@@ -60,6 +60,9 @@ public class DatabaseApiImpl implements DatabaseApi {
     @Resource
     private AccessDatabaseResolver databaseResolver;
 
+    @Resource
+    private cn.iocoder.yudao.module.dataforge.service.database.DatabaseDynamicMaskSupport dynamicMaskSupport;
+
     /**
      * 获得数据源精简列表（不含密码）。
      *
@@ -232,6 +235,8 @@ public class DatabaseApiImpl implements DatabaseApi {
         AccessDatabaseResolver.ConnectionInfo info =
                 databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
         int limit = Math.max(1, Math.min(reqDTO.getLimit() == null ? 20 : reqDTO.getLimit(), 100));
+        String schemaName = cn.hutool.core.util.StrUtil.blankToDefault(reqDTO.getSchemaName(), info.getSchema());
+        DatabasePreviewRespDTO preview;
         try {
             try (Connection connection = dbSwitchRuntime.openConnection(info.getProductType(), null,
                     info.getJdbcUrl(), info.getUsername(), info.getPassword())) {
@@ -240,8 +245,6 @@ public class DatabaseApiImpl implements DatabaseApi {
                 } catch (Exception ignored) {
                     // 部分数据库驱动不支持切换只读模式，固定 SELECT 仍限制写操作
                 }
-                String schemaName = cn.hutool.core.util.StrUtil.blankToDefault(
-                        reqDTO.getSchemaName(), info.getSchema());
                 DatabaseMetaData databaseMetaData = connection.getMetaData();
                 String qualifiedTable = quoteIdentifier(databaseMetaData, reqDTO.getTableName());
                 if (cn.hutool.core.util.StrUtil.isNotBlank(schemaName)) {
@@ -257,7 +260,7 @@ public class DatabaseApiImpl implements DatabaseApi {
                     sql += buildWhereClause(databaseMetaData, columnTypes, columnNames,
                             reqDTO.getFilters(), params);
                 }
-                return success(executePreview(connection, sql, params, limit));
+                preview = executePreview(connection, sql, params, limit);
             }
         } catch (cn.iocoder.yudao.framework.common.exception.ServiceException ex) {
             throw ex;
@@ -265,6 +268,9 @@ public class DatabaseApiImpl implements DatabaseApi {
             throw exception(DATABASE_PREVIEW_FAILED,
                     cn.hutool.core.util.StrUtil.maxLength(ex.getMessage(), 300));
         }
+        // 连接关闭后再调用 governance 动态脱敏，按调用者身份处理；不可用时失败关闭。
+        return success(dynamicMaskSupport.maskTable(reqDTO.getDatabaseId(), schemaName, reqDTO.getTableName(),
+                reqDTO.getMaskScene(), preview, DATABASE_PREVIEW_FAILED));
     }
 
     /**
@@ -351,6 +357,7 @@ public class DatabaseApiImpl implements DatabaseApi {
                 databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
         String sql = restrictToAllowedColumns(info, reqDTO);
         int limit = Math.max(1, Math.min(reqDTO.getLimit() == null ? 100 : reqDTO.getLimit(), 1000));
+        DatabasePreviewRespDTO result;
         try {
             try (Connection connection = dbSwitchRuntime.openConnection(info.getProductType(), null,
                     info.getJdbcUrl(), info.getUsername(), info.getPassword())) {
@@ -359,7 +366,7 @@ public class DatabaseApiImpl implements DatabaseApi {
                 } catch (Exception ignored) {
                     // 部分驱动不支持只读模式，SQL 校验仍保证只执行 SELECT
                 }
-                return success(executePreview(connection, sql, List.of(), limit));
+                result = executePreview(connection, sql, List.of(), limit);
             }
         } catch (cn.iocoder.yudao.framework.common.exception.ServiceException ex) {
             throw ex;
@@ -367,6 +374,10 @@ public class DatabaseApiImpl implements DatabaseApi {
             throw exception(DATABASE_QUERY_FAILED,
                     cn.hutool.core.util.StrUtil.maxLength(ex.getMessage(), 300));
         }
+        // 按实际执行的 SQL 追溯输出列来源后脱敏；连接已关闭。
+        return success(dynamicMaskSupport.maskQuery(reqDTO.getDatabaseId(), info.getProductType(), info.getSchema(),
+                sql, reqDTO.getExpectedSchema(), reqDTO.getExpectedTable(), reqDTO.getMaskScene(), result,
+                DATABASE_QUERY_FAILED));
     }
 
     /**

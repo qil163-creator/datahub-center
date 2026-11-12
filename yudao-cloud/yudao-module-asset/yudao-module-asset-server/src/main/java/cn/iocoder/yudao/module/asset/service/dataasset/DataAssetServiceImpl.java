@@ -750,6 +750,7 @@ public class DataAssetServiceImpl implements DataAssetService {
                     .map(filter -> BeanUtils.toBean(filter, DatabasePreviewReqDTO.Filter.class))
                     .toList());
         }
+        request.setMaskScene("ASSET_PREVIEW");
         MarketResourceApplyDO apply = marketAccessService.findEffectiveApply(userId, asset.getId());
         MarketQuerySnapshot authorization = apply == null ? null
                 : marketAccessService.requireQuerySnapshot(userId, apply.getId());

@@ -11,6 +11,10 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { Alert, Button, InputNumber, Table, Tooltip } from 'antdv-next';
 
 import { previewMarketAsset } from '#/api/asset/market';
+import {
+  indexMaskedColumns,
+  renderMaskedColumnTitle,
+} from '#/components/masked-column';
 import { createLatestWins } from '#/utils/resource-id';
 
 defineOptions({ name: 'MarketPreviewDrawer' });
@@ -32,11 +36,17 @@ const consumptionKey = ref('');
 const access = useAccessStore();
 const user = useUserStore();
 
+const maskedIndex = computed(() =>
+  indexMaskedColumns(preview.value.maskedColumns),
+);
 const tableColumns = computed(() =>
   (preview.value.columns ?? []).map((column) => ({
     key: column.name,
     dataIndex: column.name,
-    title: column.label || column.name,
+    title: renderMaskedColumnTitle(
+      column.label || column.name,
+      maskedIndex.value.get(column.name),
+    ),
     ellipsis: true,
     width: 180,
   })),

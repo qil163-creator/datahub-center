@@ -65,6 +65,23 @@ class MarketFieldScopeTest {
     }
 
     @Test
+    void maskedColumnMarkersFollowTheFieldScope() {
+        DatabasePreviewRespDTO preview = new DatabasePreviewRespDTO();
+        preview.setColumns(List.of(
+                new DatabasePreviewRespDTO.Column("id", "id", "int"),
+                new DatabasePreviewRespDTO.Column("phone", "phone", "varchar"),
+                new DatabasePreviewRespDTO.Column("secret", "secret", "varchar")));
+        preview.setRows(List.of(Map.of("id", 1, "phone", "***", "secret", "***")));
+        preview.setMaskedColumns(List.of(
+                new DatabasePreviewRespDTO.MaskedColumn("phone", "RULE", List.of("手机号")),
+                new DatabasePreviewRespDTO.MaskedColumn("secret", "RULE", List.of("密钥"))));
+        new MarketAccessServiceImpl().filterPreview(preview, MarketFieldScope.parse("id,phone"));
+        // 未授权列被裁掉后，其脱敏标记也不能泄露列名。
+        assertEquals(List.of("phone"), preview.getMaskedColumns().stream()
+                .map(DatabasePreviewRespDTO.MaskedColumn::getName).toList());
+    }
+
+    @Test
     void unmatchedPreviewIsRejectedInsteadOfReturningAllColumns() {
         DatabasePreviewRespDTO preview = new DatabasePreviewRespDTO();
         preview.setColumns(List.of(

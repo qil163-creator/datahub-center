@@ -81,6 +81,16 @@ public interface IndicatorModelService {
     String validateScopedSource(Long modelId, Long domainId, Long subjectId, Long entityId,
             String timeliness);
     /** 当前原子指标来源仍满足归属、字段与聚合类型约束时才可用于新生成。 */
+    /**
+     * 实时校验复合指标公式并返回依赖树。
+     */
+    IndicatorFormulaValidateRespVO validateFormula(IndicatorFormulaValidateReqVO request);
+
+    /**
+     * 启用指标轻量选项。
+     */
+    List<IndicatorOptionRespVO> activeOptions(Long dataDomainId);
+
     boolean isAtomicSourceUsable(cn.iocoder.yudao.module.modeling.dal.dataobject.indicator.IndicatorModelDO indicator);
 
 }

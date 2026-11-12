@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(value = "modelingRpcConfiguration", proxyBeanMethods = false)
 @EnableFeignClients(clients = {AdminUserApi.class, DictDataApi.class, DatabaseApi.class, StandardElementApi.class,
-        MetadataApi.class, cn.iocoder.yudao.module.governance.api.standard.StandardReferenceApi.class})
+        MetadataApi.class, cn.iocoder.yudao.module.governance.api.standard.StandardReferenceApi.class,
+        cn.iocoder.yudao.module.governance.api.security.SafetySecurityApi.class})
 public class RpcConfiguration {
 
 }

@@ -4,7 +4,7 @@ import { requestClient } from '#/api/request';
 
 export namespace IndicatorModelApi {
   export type Id = number | string;
-  export type Type = 'ATOMIC' | 'DERIVED';
+  export type Type = 'ATOMIC' | 'COMPOSITE' | 'DERIVED';
   export type Status = 'ACTIVE' | 'DRAFT';
   export type Aggregation =
     | 'AVG'
@@ -59,6 +59,8 @@ export namespace IndicatorModelApi {
     baseIndicatorId?: Id;
     timePeriod?: Period;
     businessCondition?: string;
+    /** 复合指标公式，如 {gmv} / {order_cnt} * 100 */
+    formula?: string;
   }
   export interface Model extends Save {
     id: Id;
@@ -79,6 +81,7 @@ export namespace IndicatorModelApi {
     updaterName?: string;
     updaterPhone?: string;
     derivedIndicatorCount?: number;
+    compositeReferenceCount?: number;
     expression?: string;
     createTime?: number;
     updateTime?: number;
@@ -97,6 +100,121 @@ export namespace IndicatorModelApi {
     fieldName: string;
     cnName?: string;
     dataType: string;
+  }
+  /** 启用指标轻量选项 */
+  export interface Option {
+    id: Id;
+    code: string;
+    name: string;
+    indicatorType: Type;
+    dataDomainId: Id;
+    unit?: string;
+    resultDataType?: ResultType;
+    timeConfigured?: boolean;
+    timePeriod?: Period;
+    formula?: string;
+  }
+  export interface FormulaValidateReq {
+    id?: Id;
+    code?: string;
+    dataDomainId: Id;
+    formula: string;
+  }
+  export interface DependencyNode {
+    id: Id;
+    code: string;
+    name: string;
+    indicatorType: Type;
+    status: Status;
+    formula?: string;
+    timePeriod?: Period;
+    children: DependencyNode[];
+  }
+  export interface FormulaValidateResp {
+    valid: boolean;
+    message?: string;
+    normalizedFormula?: string;
+    references: string[];
+    dependencies: DependencyNode[];
+  }
+  export interface QueryFilter {
+    fieldUid: string;
+    value: string;
+  }
+  export interface QueryReq {
+    indicatorIds: Id[];
+    dimensions?: string[];
+    filters?: QueryFilter[];
+    /** 含起止日期，格式 yyyy-MM-dd */
+    timeRange?: { end: string; start: string };
+    timeGrain?: Period;
+    limit?: number;
+  }
+  export interface QueryMeta {
+    dimensions: SourceField[];
+    timeSupported: boolean;
+    derivedPeriods: Period[];
+  }
+  export type QueryColumnKind = 'DIMENSION' | 'INDICATOR' | 'TIME';
+  export interface QueryColumn {
+    key: string;
+    title: string;
+    kind: QueryColumnKind;
+    fieldUid?: string;
+    indicatorId?: Id;
+    indicatorCode?: string;
+    unit?: string;
+  }
+  export interface QueryCondition {
+    id: Id;
+    code: string;
+    name: string;
+    expression: string;
+  }
+  export interface QuerySource {
+    modelId: Id;
+    materializedId: Id;
+    datasourceId: Id;
+    datasourceName?: string;
+    schemaName?: string;
+    tableName: string;
+  }
+  export interface LeafCaliber {
+    indicatorId: Id;
+    code: string;
+    name: string;
+    indicatorType: Type;
+    aggregation: Aggregation;
+    valueField: string;
+    timeField?: string;
+    timePeriod?: Period;
+    conditions: QueryCondition[];
+    source: QuerySource;
+  }
+  export interface Caliber {
+    indicatorId: Id;
+    code: string;
+    name: string;
+    indicatorType: Type;
+    unit?: string;
+    formula?: string;
+    leaves: LeafCaliber[];
+  }
+  /** 指标值为后端输出的十进制字符串，前端不做数值换算。 */
+  export interface QueryResult {
+    columns: QueryColumn[];
+    rows: Record<string, null | string>[];
+    truncated: boolean;
+    timeGrain?: Period;
+    timeStart?: string;
+    timeEnd?: string;
+    calibers: Caliber[];
+    /** 被动态脱敏的列（name 为行内列 key）；原值不会出现在 rows 中 */
+    maskedColumns?: {
+      categoryNames?: string[];
+      name: string;
+      reason?: string;
+    }[];
   }
 }
 
@@ -129,3 +247,22 @@ export const getIndicatorSourceFields = (modelId: IndicatorModelApi.Id) =>
   requestClient.get<IndicatorModelApi.SourceField[]>(`${path}/source-fields`, {
     params: { modelId },
   });
+export const validateIndicatorFormula = (
+  data: IndicatorModelApi.FormulaValidateReq,
+) =>
+  requestClient.post<IndicatorModelApi.FormulaValidateResp>(
+    `${path}/validate-formula`,
+    data,
+  );
+export const getActiveIndicatorOptions = (
+  dataDomainId?: IndicatorModelApi.Id,
+) =>
+  requestClient.get<IndicatorModelApi.Option[]>(`${path}/active-options`, {
+    params: { dataDomainId },
+  });
+export const getIndicatorQueryMeta = (indicatorIds: IndicatorModelApi.Id[]) =>
+  requestClient.post<IndicatorModelApi.QueryMeta>(`${path}/query-meta`, {
+    indicatorIds,
+  });
+export const queryIndicatorData = (data: IndicatorModelApi.QueryReq) =>
+  requestClient.post<IndicatorModelApi.QueryResult>(`${path}/query`, data);

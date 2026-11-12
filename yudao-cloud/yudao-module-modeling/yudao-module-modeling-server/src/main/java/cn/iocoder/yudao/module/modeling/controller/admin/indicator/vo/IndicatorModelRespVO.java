@@ -52,6 +52,12 @@ public class IndicatorModelRespVO {
 
     private String businessCondition;
 
+    @Schema(description = "复合指标公式")
+    private String formula;
+
+    @Schema(description = "引用本指标的复合指标数量")
+    private Long compositeReferenceCount;
+
     private String status;
 
     private Long revision;

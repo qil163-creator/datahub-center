@@ -65,6 +65,8 @@ class DatabaseQualifiedQueryPostgresTest {
         runtime = cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime.standalone();
         ReflectionTestUtils.setField(api, "dbSwitchRuntime", runtime);
         ReflectionTestUtils.setField(api, "databaseResolver", resolver);
+        ReflectionTestUtils.setField(api, "dynamicMaskSupport",
+                cn.iocoder.yudao.module.dataforge.service.database.DatabaseDynamicMaskSupportTest.passThrough());
     }
 
     @AfterEach

@@ -8,6 +8,21 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
  */
 public interface ErrorCodeConstants {
 
+    // ========== 复合指标与指标查询 1_500_051_000 ==========
+    ErrorCode INDICATOR_FORMULA_INVALID = new ErrorCode(1_500_051_000, "复合指标公式不合法：{}");
+    ErrorCode INDICATOR_FORMULA_REFERENCE_INVALID = new ErrorCode(1_500_051_001,
+            "公式引用的指标【{}】不存在、未启用或不属于同一数据域");
+    ErrorCode INDICATOR_FORMULA_CYCLE = new ErrorCode(1_500_051_002, "复合指标存在循环引用：{}");
+    ErrorCode INDICATOR_COMPOSITE_REFERENCED = new ErrorCode(1_500_051_003, "指标被复合指标引用，不能修改、停用或删除");
+    ErrorCode INDICATOR_QUERY_INVALID = new ErrorCode(1_500_051_004, "指标查询参数不合法：{}");
+    ErrorCode INDICATOR_QUERY_SOURCE_UNAVAILABLE = new ErrorCode(1_500_051_005,
+            "指标【{}】的来源模型尚无成功物化的物理表");
+    ErrorCode INDICATOR_QUERY_UNSUPPORTED = new ErrorCode(1_500_051_006, "数据源【{}】的数据库产品暂不支持指标查询");
+    ErrorCode INDICATOR_QUERY_CONDITION_INVALID = new ErrorCode(1_500_051_007, "派生指标【{}】的业务限定无法执行：{}");
+    ErrorCode INDICATOR_QUERY_FAILED = new ErrorCode(1_500_051_008, "指标查询执行失败，请检查来源物理表结构与数据源连接");
+    ErrorCode INDICATOR_QUERY_TIMEOUT = new ErrorCode(1_500_051_009, "指标查询超过 30 秒已取消，请缩小时间范围或维度");
+    ErrorCode INDICATOR_QUERY_MASK_FAILED = new ErrorCode(1_500_051_010, "指标查询结果未返回：{}");
+
     // ========== 业务实体 1_500_050_000 ==========
     ErrorCode BUSINESS_ENTITY_NOT_EXISTS = new ErrorCode(1_500_050_000, "业务实体不存在");
     ErrorCode BUSINESS_ENTITY_CODE_DUPLICATE = new ErrorCode(1_500_050_001, "数据板块内已存在相同英文名称的业务实体");

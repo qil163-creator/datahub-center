@@ -79,6 +79,8 @@ class DatabaseTidbCatalogBindingTest {
         api = new DatabaseApiImpl();
         ReflectionTestUtils.setField(api, "dbSwitchRuntime", runtime);
         ReflectionTestUtils.setField(api, "databaseResolver", resolver);
+        ReflectionTestUtils.setField(api, "dynamicMaskSupport",
+                cn.iocoder.yudao.module.dataforge.service.database.DatabaseDynamicMaskSupportTest.passThrough());
     }
 
     @AfterEach

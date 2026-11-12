@@ -440,4 +440,10 @@ public interface ErrorCodeConstants {
     ErrorCode STANDARD_CODE_MAPPING_NOT_EXISTS = new ErrorCode(1_900_000_134, "代码值映射不存在");
     ErrorCode STANDARD_CODE_MAPPING_DUPLICATE = new ErrorCode(1_900_000_135, "该原始值已经配置映射");
     ErrorCode STANDARD_CODE_ITEM_REFERENCED = new ErrorCode(1_900_000_136, "码值已被原始值映射引用，请先删除映射");
+
+    // ========== 数据探查 1_900_019_000 ==========
+    ErrorCode PROFILE_RUN_ACTIVE = new ErrorCode(1_900_019_000, "该表已有等待或执行中的探查，请等待完成后再发起");
+    ErrorCode PROFILE_PRODUCT_UNSUPPORTED = new ErrorCode(1_900_019_001, "数据探查暂不支持该数据库类型：{}");
+    ErrorCode PROFILE_NO_COLUMNS = new ErrorCode(1_900_019_002, "该表没有可探查的字段");
+    ErrorCode PROFILE_DATASOURCE_MISSING = new ErrorCode(1_900_019_003, "元数据表未关联可用数据源，无法探查");
 }

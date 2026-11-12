@@ -22,6 +22,10 @@ import {
 
 import { previewDataAsset } from '#/api/asset/dataasset';
 import ListPagination from '#/components/list-pagination/index.vue';
+import {
+  indexMaskedColumns,
+  renderMaskedColumnTitle,
+} from '#/components/masked-column';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
 import {
@@ -79,6 +83,8 @@ const canEdit = computed(
   () =>
     canRead.value &&
     !!props.importedSnapshot &&
+    // 含脱敏值的结果不能作为编辑基线，避免把打码值写回。
+    (preview.value.maskedColumns?.length ?? 0) === 0 &&
     hasAccessByCodes(['asset:data-asset:update']),
 );
 const available = computed(
@@ -117,13 +123,19 @@ const rows = computed<PreviewRow[]>(() =>
     values,
   })),
 );
+const maskedIndex = computed(() =>
+  indexMaskedColumns(preview.value.maskedColumns),
+);
 const tableColumns = computed(() => {
   const columns = (preview.value.columns ?? []).map((column) => {
     const meta = props.columns.find((item) => item.columnName === column.name);
     return {
       key: column.name,
       dataIndex: ['values', column.name],
-      title: `${column.label || column.name}${meta ? `（${columnDisplayName(meta)}）` : ''}`,
+      title: renderMaskedColumnTitle(
+        `${column.label || column.name}${meta ? `（${columnDisplayName(meta)}）` : ''}`,
+        maskedIndex.value.get(column.name),
+      ),
       ellipsis: true,
       width: 180,
       typeName: column.typeName,

@@ -23,7 +23,7 @@ public class IndicatorModelSaveReqVO {
     private String name;
 
     @NotBlank
-    @Pattern(regexp = "ATOMIC|DERIVED")
+    @Pattern(regexp = "ATOMIC|DERIVED|COMPOSITE")
     private String indicatorType;
 
     @NotNull
@@ -78,5 +78,9 @@ public class IndicatorModelSaveReqVO {
 
     @Size(max = 2000)
     private String businessCondition;
+
+    @Schema(description = "复合指标公式，只允许数字、+ - * /、括号和 {指标编码}", example = "{gmv} / {order_cnt} * 100")
+    @Size(max = 2000)
+    private String formula;
 }
 

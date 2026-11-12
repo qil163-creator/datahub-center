@@ -15,6 +15,9 @@ public class IndicatorModelDO extends BaseDO {
 
     public static final String DERIVED = "DERIVED";
 
+    /** 复合指标：由公式引用其他启用指标，结果固定为 DECIMAL，只在服务端计算。 */
+    public static final String COMPOSITE = "COMPOSITE";
+
     public static final String DRAFT = "DRAFT";
 
     public static final String ACTIVE = "ACTIVE";
@@ -75,6 +78,10 @@ public class IndicatorModelDO extends BaseDO {
 
     @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String businessCondition;
+
+    /** 复合指标公式，如 {gmv} / {order_cnt} * 100；引用保存为规范编码。 */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    private String formula;
 
     private String status;
 

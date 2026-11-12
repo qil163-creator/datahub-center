@@ -79,6 +79,64 @@ public interface IndicatorModelMapper extends BaseMapperX<IndicatorModelDO> {
     }
 
     /**
+     * 统计公式中引用该指标的复合指标（含草稿）。公式中的引用保存为规范编码，被引用指标为启用状态时编码不可修改。
+     *
+     * @param id 被引用指标编号
+     * @return 引用它的复合指标数量
+     */
+    @Select("SELECT count(*) FROM dh_modeling_indicator_model c JOIN dh_modeling_indicator_model t ON t.id = #{id} "
+            + "AND t.deleted = 0 WHERE c.deleted = 0 AND c.indicator_type = 'COMPOSITE' AND c.id <> t.id "
+            + "AND strpos(c.formula, '{' || t.code || '}') > 0")
+    Long countCompositeReferences(@Param("id") Long id);
+
+    /**
+     * 批量统计复合指标引用数量。
+     *
+     * @param ids 被引用指标编号
+     * @return 引用数量
+     */
+    @Select("<script>SELECT t.id AS baseIndicatorId, count(c.id) AS total FROM dh_modeling_indicator_model t "
+            + "JOIN dh_modeling_indicator_model c ON c.deleted = 0 AND c.indicator_type = 'COMPOSITE' AND c.id &lt;&gt; t.id "
+            + "AND strpos(c.formula, '{' || t.code || '}') &gt; 0 WHERE t.deleted = 0 AND t.id IN "
+            + "<foreach collection='list' item='id' open='(' separator=',' close=')'>#{id}</foreach> "
+            + "GROUP BY t.id</script>")
+    List<ReferenceCount> selectCompositeReferenceCounts(List<Long> ids);
+
+    /**
+     * 按编码忽略大小写批量查询。
+     *
+     * @param codes 编码
+     * @return 指标
+     */
+    default List<IndicatorModelDO> selectListByCodesIgnoreCase(java.util.Collection<String> codes) {
+        if (codes == null || codes.isEmpty()) {
+            return List.of();
+        }
+        var lowered = codes.stream().map(code -> code.toLowerCase(java.util.Locale.ROOT)).distinct().toList();
+        var query = new LambdaQueryWrapperX<IndicatorModelDO>();
+        StringBuilder in = new StringBuilder("lower(code) IN (");
+        for (int index = 0; index < lowered.size(); index++) {
+            in.append(index == 0 ? "" : ",").append("{").append(index).append("}");
+        }
+        query.apply(in.append(")").toString(), lowered.toArray());
+        return selectList(query);
+    }
+
+    /**
+     * 启用指标轻量选项。
+     *
+     * @param dataDomainId 数据域，可为空
+     * @return 启用指标
+     */
+    default List<IndicatorModelDO> selectActiveOptions(Long dataDomainId) {
+        return selectList(new LambdaQueryWrapperX<IndicatorModelDO>()
+                .eq(IndicatorModelDO::getStatus, IndicatorModelDO.ACTIVE)
+                .eqIfPresent(IndicatorModelDO::getDataDomainId, dataDomainId)
+                .orderByAsc(IndicatorModelDO::getIndicatorType).orderByAsc(IndicatorModelDO::getName)
+                .last("LIMIT 2000"));
+    }
+
+    /**
      * 查询指标模型的派生引用数量。
      *
      * @param ids 记录编号集合

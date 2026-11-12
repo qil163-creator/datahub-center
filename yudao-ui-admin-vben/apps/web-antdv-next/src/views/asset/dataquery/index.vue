@@ -44,6 +44,10 @@ import {
 } from '#/api/asset/dataquery';
 import { ConnectionIcon } from '#/components/connection-icon';
 import {
+  indexMaskedColumns,
+  renderMaskedColumnTitle,
+} from '#/components/masked-column';
+import {
   resolveSqlLanguage,
   setColumnLoader,
   setCompletionTables,
@@ -375,17 +379,25 @@ async function onDatasourceChange(id?: number) {
 
 function buildResultGrid(next: DataQueryApi.Result) {
   const sourceColumns = next.columns ?? [];
+  const masked = indexMaskedColumns(next.maskedColumns);
   const columns: VxeTableGridOptions['columns'] = [
     { type: 'seq', width: 56, title: '#' },
-    ...sourceColumns.map((column, index) => ({
-      field: `__c${index}`,
-      title: column.typeName
+    ...sourceColumns.map((column, index) => {
+      const title = column.typeName
         ? `${column.label}（${column.typeName}）`
-        : column.label || column.name,
+        : column.label || column.name;
+      const info = masked.get(column.name);
+      return {
+      field: `__c${index}`,
+      title,
+      ...(info
+        ? { slots: { header: () => [renderMaskedColumnTitle(title, info)] } }
+        : {}),
       minWidth: 140,
       formatter: ({ cellValue }: { cellValue: unknown }) =>
         formatQueryCell(cellValue, column.typeName),
-    })),
+      };
+    }),
   ];
   const rows = (next.rows ?? []).map((row, rowIndex) => {
     const mapped: Record<string, unknown> = { __rowKey: rowIndex };

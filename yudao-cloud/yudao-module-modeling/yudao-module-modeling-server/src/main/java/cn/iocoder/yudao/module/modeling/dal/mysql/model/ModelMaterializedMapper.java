@@ -42,6 +42,21 @@ public interface ModelMaterializedMapper extends BaseMapperX<ModelMaterializedDO
     }
 
     /**
+     * 查询模型最新一条成功物化记录，供指标查询定位物理表与冻结字段映射。
+     *
+     * @param modelId 模型编号
+     * @return 最新成功物化，没有时为空
+     */
+    default ModelMaterializedDO selectLatestSuccess(Long modelId) {
+        return selectOne(new LambdaQueryWrapperX<ModelMaterializedDO>()
+                .eq(ModelMaterializedDO::getModelId, modelId)
+                .eq(ModelMaterializedDO::getStatus, ModelMaterializedDO.STATUS_SUCCESS)
+                .orderByDesc(ModelMaterializedDO::getUpdateTime)
+                .orderByDesc(ModelMaterializedDO::getId)
+                .last("LIMIT 1"));
+    }
+
+    /**
      * 按模型与数据源查询模型物化。
      *
      * @param modelId 模型编号

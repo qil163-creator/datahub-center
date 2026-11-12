@@ -18,6 +18,10 @@ import {
 } from '#/api/asset/market';
 import { getMyAssetApiDocument } from '#/api/asset/my-assets';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import {
+  indexMaskedColumns,
+  renderMaskedColumnTitle,
+} from '#/components/masked-column';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import {
   createLatestWins,
@@ -115,11 +119,17 @@ function onApplied() {
   const id = parseResourceId(current.value?.id);
   if (id) void open(id);
 }
+const maskedIndex = computed(() =>
+  indexMaskedColumns(preview.value?.maskedColumns),
+);
 const previewColumns = computed(() =>
   (preview.value?.columns ?? []).map((column) => ({
     key: column.name,
     dataIndex: column.name,
-    title: column.label || column.name,
+    title: renderMaskedColumnTitle(
+      column.label || column.name,
+      maskedIndex.value.get(column.name),
+    ),
     width: 160,
     ellipsis: true,
   })),

@@ -300,6 +300,7 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         request.setLimit(limit == null ? 20 : Math.max(1, Math.min(limit, 100)));
         MarketFieldScope scope = authorization.fieldScope();
         MarketFieldScope.applyToPreviewRequest(request, scope);
+        request.setMaskScene("MARKET_PREVIEW");
         return MarketConsumptionService.read(consumptionService, authorization, request, request.getLimit(),
                 allowedLimit -> {
                     request.setLimit(allowedLimit);
@@ -549,6 +550,10 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         Set<String> keys = new LinkedHashSet<>();
         matched.forEach(column -> keys.add(column.getName()));
         preview.setColumns(matched);
+        if (preview.getMaskedColumns() != null) {
+            preview.setMaskedColumns(preview.getMaskedColumns().stream()
+                    .filter(column -> column != null && keys.contains(column.getName())).toList());
+        }
         if (preview.getRows() == null) {
             return;
         }
@@ -575,6 +580,10 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         Set<String> keys = new LinkedHashSet<>();
         matched.forEach(column -> keys.add(column.getName()));
         result.setColumns(matched);
+        if (result.getMaskedColumns() != null) {
+            result.setMaskedColumns(result.getMaskedColumns().stream()
+                    .filter(column -> column != null && keys.contains(column.getName())).toList());
+        }
         if (result.getRows() == null) {
             return;
         }

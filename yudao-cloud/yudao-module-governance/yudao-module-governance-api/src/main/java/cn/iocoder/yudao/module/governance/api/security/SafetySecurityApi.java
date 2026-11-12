@@ -40,4 +40,14 @@ public interface SafetySecurityApi {
     CommonResult<SafetyMaskExemptRespDTO> getMaskExempt(@RequestParam("userId") Long userId,
             @RequestParam("scene") String scene);
 
+    /**
+     * 动态脱敏：按字段分类、白名单豁免和场景开关处理查询结果。
+     * <p>
+     * 调用方须已完成对象与字段读取授权，并提交每个输出列的物理来源。无法核验时失败关闭，不返回原值。
+     */
+    @PostMapping(PREFIX + "/mask-rows")
+    @Operation(summary = "动态脱敏查询结果（失败关闭）")
+    CommonResult<cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO> maskRows(
+            @Valid @RequestBody cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskReqDTO reqDTO);
+
 }

@@ -43,4 +43,16 @@ public class SafetySecurityApiImpl implements SafetySecurityApi {
         return success(whitelistService.getMaskExempt(userId, scene));
     }
 
+    @jakarta.annotation.Resource
+    private cn.iocoder.yudao.module.governance.service.security.SafetyDynamicMaskService dynamicMaskService;
+
+    /**
+     * 动态脱敏查询结果（失败关闭）。
+     */
+    @Override
+    public CommonResult<cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO> maskRows(
+            cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskReqDTO reqDTO) {
+        return success(dynamicMaskService.maskRows(reqDTO));
+    }
+
 }

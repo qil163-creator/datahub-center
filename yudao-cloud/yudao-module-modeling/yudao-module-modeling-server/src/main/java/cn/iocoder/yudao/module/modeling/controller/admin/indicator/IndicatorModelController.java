@@ -134,6 +134,34 @@ public class IndicatorModelController {
     }
 
     /**
+     * 实时校验复合指标公式并返回依赖树。
+     *
+     * @param request 请求参数
+     * @return 校验结果
+     */
+    @PostMapping("/validate-formula")
+    @Operation(summary = "校验复合指标公式")
+    @PreAuthorize("@ss.hasPermission('modeling:indicator-model:query')")
+    public CommonResult<IndicatorFormulaValidateRespVO> validateFormula(
+            @Valid @RequestBody IndicatorFormulaValidateReqVO request) {
+        return success(service.validateFormula(request));
+    }
+
+    /**
+     * 获得启用指标轻量选项。
+     *
+     * @param dataDomainId 数据域，可为空
+     * @return 启用指标
+     */
+    @GetMapping("/active-options")
+    @Operation(summary = "获得启用指标轻量选项")
+    @PreAuthorize("@ss.hasAnyPermissions('modeling:indicator-model:query', 'modeling:indicator-model:data-query')")
+    public CommonResult<List<IndicatorOptionRespVO>> activeOptions(
+            @RequestParam(required = false) @Positive Long dataDomainId) {
+        return success(service.activeOptions(dataDomainId));
+    }
+
+    /**
      * 获得来源已发布当前设计的稳定字段。
      *
      * @param modelId 模型编号

@@ -14,7 +14,7 @@ public class IndicatorModelPageReqVO extends PageParam {
     @Size(max = 100)
     private String keyword;
 
-    @Pattern(regexp = "ATOMIC|DERIVED")
+    @Pattern(regexp = "ATOMIC|DERIVED|COMPOSITE")
     private String indicatorType;
 
     @Pattern(regexp = "DRAFT|ACTIVE")

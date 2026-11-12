@@ -31,6 +31,8 @@ export namespace DataQueryApi {
     rows?: Record<string, unknown>[];
     truncated?: boolean;
     elapsedMs?: number;
+    /** 被动态脱敏的列（原值不在 rows 中）；为空表示没有列被脱敏 */
+    maskedColumns?: { categoryNames?: string[]; name: string; reason?: string }[];
   }
 
   /** 执行查询请求 */

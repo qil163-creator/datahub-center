@@ -332,6 +332,8 @@ public class SafetyScanExecutor {
             reqDTO.setDatabaseId(databaseId);
             reqDTO.setTableName(tableName);
             reqDTO.setLimit(limit);
+            // 敏感识别需要原值做分类判定；采样结果只用于规则匹配，不返回给用户。
+            reqDTO.setMaskScene("SENSITIVE_SCAN");
             DatabasePreviewRespDTO resp = databaseApi.previewTable(reqDTO).getCheckedData();
             return resp == null ? null : resp.getRows();
         } catch (Exception ex) {
