@@ -48,7 +48,8 @@ public class FillNotifyServiceImpl implements FillNotifyService {
             Map.entry(FillNotifyTypeEnum.URGE, "fill_urge"),
             Map.entry(FillNotifyTypeEnum.CORRECTION_CREATED, "fill_correction_created"),
             Map.entry(FillNotifyTypeEnum.DEADLINE_EXTENDED, "fill_deadline_extended"),
-            Map.entry(FillNotifyTypeEnum.TASK_CLOSED, "fill_task_closed"));
+            Map.entry(FillNotifyTypeEnum.TASK_CLOSED, "fill_task_closed"),
+            Map.entry(FillNotifyTypeEnum.MERGE_RETURNED, "fill_merge_returned"));
 
     private static final int SEND_STATUS_SUCCESS = 1;
 

@@ -46,15 +46,29 @@ public interface FillMergeBatchMapper extends BaseMapperX<FillMergeBatchDO> {
                 .orderByDesc(FillMergeBatchDO::getId));
     }
 
-    /** 合并 Job 扫描：待执行 或 失败且到达重试时间 */
-    default List<FillMergeBatchDO> selectListToExecute(LocalDateTime now, int limit) {
+    /**
+     * 查询可执行的合并批次：
+     * 待执行；失败且未超过自动重试上限、已到重试时间；执行中但开始时间早于超时点（进程中断遗留）。
+     *
+     * @param now 当前时间
+     * @param staleBefore 执行中批次的超时时间点
+     * @param maxAutoRetry 自动重试次数上限，超过后只能人工重试或退回整改
+     * @param limit 最大返回条数
+     * @return 可执行的合并批次
+     */
+    default List<FillMergeBatchDO> selectListToExecute(LocalDateTime now, LocalDateTime staleBefore,
+            int maxAutoRetry, int limit) {
         return selectList(new LambdaQueryWrapperX<FillMergeBatchDO>()
-                .in(FillMergeBatchDO::getStatus,
-                        FillMergeBatchStatusEnum.PENDING.getStatus(),
-                        FillMergeBatchStatusEnum.FAILED.getStatus())
                 .and(wrapper -> wrapper
-                        .isNull(FillMergeBatchDO::getNextRetryTime)
-                        .or().le(FillMergeBatchDO::getNextRetryTime, now))
+                        .eq(FillMergeBatchDO::getStatus, FillMergeBatchStatusEnum.PENDING.getStatus())
+                        .or(failed -> failed
+                                .eq(FillMergeBatchDO::getStatus, FillMergeBatchStatusEnum.FAILED.getStatus())
+                                .lt(FillMergeBatchDO::getRetryCount, maxAutoRetry)
+                                .and(due -> due.isNull(FillMergeBatchDO::getNextRetryTime)
+                                        .or().le(FillMergeBatchDO::getNextRetryTime, now)))
+                        .or(running -> running
+                                .eq(FillMergeBatchDO::getStatus, FillMergeBatchStatusEnum.RUNNING.getStatus())
+                                .lt(FillMergeBatchDO::getStartedAt, staleBefore)))
                 .orderByAsc(FillMergeBatchDO::getId)
                 .last("LIMIT " + limit));
     }
@@ -68,5 +82,31 @@ public interface FillMergeBatchMapper extends BaseMapperX<FillMergeBatchDO> {
             + "SET status = 1, started_at = CURRENT_TIMESTAMP, update_time = CURRENT_TIMESTAMP "
             + "WHERE id = #{id} AND status = #{fromStatus} AND deleted = 0")
     int compareAndSetRunning(@Param("id") Long id, @Param("fromStatus") Integer fromStatus);
+
+    /**
+     * 接管执行超时的批次：仅当仍为执行中且开始时间早于超时点时抢占成功，并刷新开始时间。
+     *
+     * @param id 批次编号
+     * @param staleBefore 超时时间点
+     * @return 影响行数，1 表示接管成功
+     */
+    @Update("UPDATE dh_dataforge_fill_merge_batch "
+            + "SET started_at = CURRENT_TIMESTAMP, update_time = CURRENT_TIMESTAMP "
+            + "WHERE id = #{id} AND status = 1 AND started_at < #{staleBefore} AND deleted = 0")
+    int takeOverStaleRunning(@Param("id") Long id, @Param("staleBefore") LocalDateTime staleBefore);
+
+    /**
+     * 批次状态 CAS 迁移。
+     *
+     * @param id 批次编号
+     * @param fromStatus 期望的当前状态
+     * @param toStatus 目标状态
+     * @return 影响行数
+     */
+    @Update("UPDATE dh_dataforge_fill_merge_batch "
+            + "SET status = #{toStatus}, update_time = CURRENT_TIMESTAMP "
+            + "WHERE id = #{id} AND status = #{fromStatus} AND deleted = 0")
+    int compareAndSetStatus(@Param("id") Long id, @Param("fromStatus") Integer fromStatus,
+            @Param("toStatus") Integer toStatus);
 
 }

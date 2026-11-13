@@ -1,10 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -217,22 +213,15 @@ public final class FillFieldRuleValidator {
                 case TYPE_DECIMAL -> {
                     return parseDecimal(text);
                 }
-                case TYPE_DATE -> {
-                    return LocalDate.parse(normalizeTemporal(text));
-                }
-                case TYPE_DATETIME -> {
-                    String normalized = normalizeTemporal(text);
-                    return LocalDateTime.parse(normalized.length() == 10 ? normalized + "T00:00:00"
-                            : normalized.replace(' ', 'T'));
-                }
-                case TYPE_TIME -> {
-                    return LocalTime.parse(text);
+                // 日期与时间的写法以统一转换器为准，保证范围比较、类型校验与合并写入一致
+                case TYPE_DATE, TYPE_DATETIME, TYPE_TIME -> {
+                    return (Comparable<?>) FillValueConverter.convert(type, text);
                 }
                 default -> {
                     return null;
                 }
             }
-        } catch (DateTimeParseException | NumberFormatException error) {
+        } catch (IllegalArgumentException error) {
             return null;
         }
     }
@@ -246,10 +235,6 @@ public final class FillFieldRuleValidator {
         } catch (NumberFormatException error) {
             return null;
         }
-    }
-
-    private static String normalizeTemporal(String text) {
-        return text.replace('/', '-');
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

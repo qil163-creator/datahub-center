@@ -26,6 +26,7 @@ import {
   getCorrectionPage,
   getMergeBatchPage,
   retryMergeBatch,
+  returnMergeBatchToRework,
 } from '#/api/dataforge/fill';
 
 import {
@@ -51,6 +52,38 @@ function handleRetry(batch: DataforgeFillApi.MergeBatch) {
       handleRefresh();
     },
   });
+}
+
+// ---------------------------------------------------------------- 合并失败退回整改
+const returnModalOpen = ref(false);
+const returnSaving = ref(false);
+const returnBatchId = ref<number>();
+const returnReason = ref('');
+
+function openReturnModal(batch: DataforgeFillApi.MergeBatch) {
+  returnBatchId.value = batch.id;
+  returnReason.value = '';
+  returnModalOpen.value = true;
+}
+
+async function handleReturnToRework() {
+  if (!returnBatchId.value) return;
+  if (!returnReason.value.trim()) {
+    message.warning('请填写退回原因');
+    return;
+  }
+  returnSaving.value = true;
+  try {
+    await returnMergeBatchToRework(
+      returnBatchId.value,
+      returnReason.value.trim(),
+    );
+    message.success('已退回整改：填报人修改后重新提交审批');
+    returnModalOpen.value = false;
+    handleRefresh();
+  } finally {
+    returnSaving.value = false;
+  }
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({
@@ -188,6 +221,14 @@ function handleCancelCorrection(correction: DataforgeFillApi.Correction) {
               onClick: handleRetry.bind(null, row),
             },
             {
+              label: '退回整改',
+              type: 'link',
+              icon: 'lucide:undo-2',
+              ifShow: row.status === 3,
+              auth: ['dataforge:fill-merge:retry'],
+              onClick: openReturnModal.bind(null, row),
+            },
+            {
               label: '发起更正',
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -217,6 +258,27 @@ function handleCancelCorrection(correction: DataforgeFillApi.Correction) {
           v-model:value="correctionReason"
           :maxlength="200"
           placeholder="更正原因（必填），如：统计口径错误需重报"
+        />
+      </div>
+    </Modal>
+
+    <Modal
+      v-model:open="returnModalOpen"
+      :confirm-loading="returnSaving"
+      title="合并失败退回整改"
+      width="800px"
+      @ok="handleReturnToRework"
+    >
+      <div class="flex flex-col gap-2 py-2">
+        <p class="text-muted-foreground text-xs">
+          用于重试无法解决的数据问题（如与正式表的约束冲突）。退回后放弃本次合并，
+          该组织实例回到整改中，正式表保持合并前的内容；填报人修改后重新提交将走新的审批流程。
+          原快照与审批历史全部保留。
+        </p>
+        <Input
+          v-model:value="returnReason"
+          :maxlength="200"
+          placeholder="退回原因（必填），会随通知发给填报人"
         />
       </div>
     </Modal>

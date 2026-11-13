@@ -347,14 +347,10 @@ public class FillExcelServiceImpl implements FillExcelService {
                         String.format("第 %s 行【%s】的值不在选择范围内", excelRowNo, field.name)));
                 continue;
             }
-            if ((field.fieldType == 5 || field.fieldType == 6) && !isInteger(text)) {
-                issues.add(issue("TYPE_INTEGER", field.fieldCode, excelRowNo,
-                        String.format("第 %s 行【%s】必须为整数", excelRowNo, field.name)));
-                continue;
-            }
-            if (field.fieldType == 1 && !isParsableNumber(text)) {
-                issues.add(issue("TYPE_DECIMAL", field.fieldCode, excelRowNo,
-                        String.format("第 %s 行【%s】必须为数值", excelRowNo, field.name)));
+            FillValueConverter.TypeViolation typeViolation = FillValueConverter.check(field.fieldType, text);
+            if (typeViolation != null) {
+                issues.add(issue(typeViolation.ruleCode(), field.fieldCode, excelRowNo,
+                        String.format("第 %s 行【%s】%s", excelRowNo, field.name, typeViolation.detail())));
                 continue;
             }
             if (!field.isNumeric() && field.length != null && field.length > 0
@@ -601,21 +597,6 @@ public class FillExcelServiceImpl implements FillExcelService {
         }
         Map<String, Object> data = JsonUtils.parseObject(dataJson, Map.class);
         return data != null ? data : Map.of();
-    }
-
-    /**
-     * 判断是否满足整数条件。
-     *
-     * @param text 待处理文本
-     * @return 判断结果
-     */
-    private boolean isInteger(String text) {
-        try {
-            Long.parseLong(text);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
     }
 
     /**

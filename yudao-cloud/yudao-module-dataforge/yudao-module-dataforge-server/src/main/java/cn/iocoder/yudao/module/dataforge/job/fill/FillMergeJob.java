@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.dataforge.job.fill;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillMergeBatchDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillMergeBatchMapper;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillMergeService;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillMergeServiceImpl;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import jakarta.annotation.Resource;
@@ -40,7 +41,10 @@ public class FillMergeJob {
 
     public void execute() {
         LocalDateTime now = LocalDateTime.now();
-        List<FillMergeBatchDO> batches = mergeBatchMapper.selectListToExecute(now, SCAN_LIMIT);
+        // 含进程中断遗留的超时“执行中”批次；失败批次超过自动重试上限后不再拾取
+        List<FillMergeBatchDO> batches = mergeBatchMapper.selectListToExecute(now,
+                now.minusMinutes(FillMergeServiceImpl.STALE_RUNNING_MINUTES),
+                FillMergeServiceImpl.MAX_AUTO_RETRY, SCAN_LIMIT);
         int executed = 0;
         for (FillMergeBatchDO batch : batches) {
             try {

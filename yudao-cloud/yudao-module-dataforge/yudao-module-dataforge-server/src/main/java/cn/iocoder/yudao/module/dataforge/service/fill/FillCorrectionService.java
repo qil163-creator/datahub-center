@@ -34,16 +34,26 @@ public interface FillCorrectionService {
     PageResult<FillCorrectionDO> getCorrectionPage(FillCorrectionPageReqVO pageReqVO);
 
     /**
-     * 是否存在草拟中的更正（提交类型需强制为"更正"）
+     * 是否存在进行中的更正（提交类型需强制为"更正"）。
+     * 只在工作项处于可编辑状态时调用：此时进行中的更正无论记为草拟还是审批中，本次提交都属于该更正。
      */
     boolean hasActiveCorrection(Long workItemId);
 
     /**
-     * 提交钩子：工作项存在草拟中的更正时绑定新快照并转审批中
+     * 提交钩子：工作项存在进行中的更正时绑定新快照并转审批中
      *
      * @return 是否完成绑定
      */
     boolean bindSubmissionIfCorrecting(Long workItemId, Long submissionId);
+
+    /**
+     * 更正提交未能完成（审批驳回、提交人撤回、流程被终止或合并失败后退回整改）时，更正回到草拟，
+     * 等待填报人修改后重新提交。非更正提交直接返回。
+     *
+     * @param submissionId 未完成的提交编号
+     * @return 是否有更正被置回草拟
+     */
+    boolean reopenBySubmissionId(Long submissionId);
 
     /**
      * 合并成功钩子：更正快照合并完成后闭环更正实例

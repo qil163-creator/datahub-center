@@ -1,4 +1,4 @@
--- Included migrations through: 0284
+-- Included migrations through: 0285
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -8031,7 +8031,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_merge_batch" (
   "deleted" int2 NOT NULL DEFAULT 0
 )
 ;
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_merge_batch"."status" IS '状态：0-待执行 1-执行中 2-成功 3-失败（等待自动/人工重试）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_merge_batch"."status" IS '状态：0-待执行 1-执行中 2-成功 3-失败（等待自动/人工重试） 4-已退回整改';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_merge_batch"."tenant_id" IS '租户编号';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_merge_batch"."creator" IS '创建者';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_merge_batch"."create_time" IS '创建时间';
@@ -8102,7 +8102,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_notify_record" (
   "deleted" int2 NOT NULL DEFAULT 0
 )
 ;
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."notify_type" IS '类型：1-指定填报人 2-转派/重新分配 3-任务开始 4-临近截止 5-已逾期 6-他人已提交 7-驳回 8-通过 9-合并成功 10-合并失败 11-催办 12-数据更正 13-截止延期 14-结束填报';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."notify_type" IS '类型：1-指定填报人 2-转派/重新分配 3-任务开始 4-临近截止 5-已逾期 6-他人已提交 7-驳回 8-通过 9-合并成功 10-合并失败 11-催办 12-数据更正 13-截止延期 14-结束填报 15-合并失败退回整改';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."channel" IS '渠道：1-站内信 2-短信 3-邮件';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."send_status" IS '发送状态：0-待发送 1-已发送 2-发送失败';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."tenant_id" IS '租户编号';
@@ -21607,6 +21607,7 @@ INSERT INTO "datahub-center"."system_notify_template" VALUES (6661, '填报-数�
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6662, '质量告警', 'quality_alert', '数据质量', '质量任务「{taskName}」产生告警：{alertTitle}，问题数 {issueCount}。', 2, '["taskName","issueCount","alertTitle"]', 0, '质量任务高危告警站内信', '1', '2026-09-10 23:27:41.007821', '1', '2026-09-10 23:27:41.007821', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6663, '填报-截止延期', 'fill_deadline_extended', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」的截止时间已延期至 {deadline}，请在截止前完成填报并提交。', 2, '["taskName","periodKey","orgName","deadline"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6664, '填报-结束填报', 'fill_task_closed', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」已由发起者结束填报，本期无需再填报或更正。', 2, '["taskName","periodKey","orgName"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
+INSERT INTO "datahub-center"."system_notify_template" VALUES (6665, '填报-合并失败退回整改', 'fill_merge_returned', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」的数据未能写入正式表，已退回整改：{reason}。请修改后重新提交审批。', 2, '["taskName","periodKey","orgName","reason"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (1, '数据推送失败告警', 'dataforge_push_fail', '数据集成', '推送任务「{taskName}」已连续失败 {failCount} 次。最近错误：{errorInfo}', 2, '["taskName","failCount","errorInfo"]', 0, '数据推送连续失败站内信，接收人为发布人或创建人', '1', '2026-09-10 23:46:47.589359', '1', '2026-09-10 23:46:47.589359', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (2, '集市申请待审', 'market_apply_submit', '数据集市', '申请「{applyNo}」{title} 待您审批，资产：{assetName}。', 2, '["applyNo","title","assetName","checkNote","result"]', 0, '资源申请提交后通知资产技术/业务责任人', '1', '2026-09-11 00:03:38.152361', '1', '2026-09-11 00:03:38.152361', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (3, '集市申请已审', 'market_apply_checked', '数据集市', '申请「{applyNo}」{title} 已{result}。资产：{assetName}，说明：{checkNote}', 2, '["applyNo","title","assetName","checkNote","result"]', 0, '审批通过/驳回/开通或取消授权后通知申请人', '1', '2026-09-11 00:03:38.181868', '1', '2026-09-11 00:03:38.181868', 0);

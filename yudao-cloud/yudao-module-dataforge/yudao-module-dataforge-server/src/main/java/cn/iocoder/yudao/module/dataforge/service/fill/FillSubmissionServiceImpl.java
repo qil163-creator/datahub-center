@@ -122,7 +122,7 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         // 2. 重读服务器草稿并执行强校验（前端"校验通过"永远不作数）
         FillTableVersionDO version = tableVersionService.getTableVersion(item.getTableVersionId());
         List<FillDraftRowDO> rows = draftRowMapper.selectListByWorkItemId(workItemId);
-        // 存在草拟中的数据更正时，本次提交强制为"更正"类型
+        // 存在进行中的数据更正时，本次提交强制为"更正"类型（含更正提交被驳回、撤回后的再次提交）
         boolean correcting = correctionService.hasActiveCorrection(workItemId);
         int submissionType = correcting ? FillSubmissionTypeEnum.CORRECTION.getType()
                 : (reqVO.getSubmissionType() != null
@@ -243,6 +243,8 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         markApprovalFinished(submission.getId(), FillApprovalStatusEnum.WITHDRAWN, reason);
         workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
                 FillWorkItemStatusEnum.APPROVING.getStatus(), FillWorkItemStatusEnum.REWORKING.getStatus());
+        // 撤回的是更正提交时，更正回到草拟，重新提交后继续按更正处理
+        correctionService.reopenBySubmissionId(submission.getId());
         registerStatusBroadcast(submission.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
     }
 
@@ -400,17 +402,13 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                             String.format("第 %s 行【%s】的值不在选择范围内", displayNo, fieldName)));
                     continue;
                 }
-                // 类型（dbswitch 逻辑类型：1小数 5整数 6长整型）
+                // 类型：与合并写入正式表共用同一套转换规则，提交通过的值合并时一定能转换
                 Object fieldType = field.get("fieldType");
                 int type = fieldType instanceof Number number ? number.intValue() : -1;
-                if ((type == 5 || type == 6) && !isInteger(text)) {
-                    issues.add(issue("TYPE_INTEGER", row.getRowId(), fieldCode, displayNo,
-                            String.format("第 %s 行【%s】必须为整数", displayNo, fieldName)));
-                    continue;
-                }
-                if (type == 1 && !isDecimal(text)) {
-                    issues.add(issue("TYPE_DECIMAL", row.getRowId(), fieldCode, displayNo,
-                            String.format("第 %s 行【%s】必须为数值", displayNo, fieldName)));
+                FillValueConverter.TypeViolation typeViolation = FillValueConverter.check(type, text);
+                if (typeViolation != null) {
+                    issues.add(issue(typeViolation.ruleCode(), row.getRowId(), fieldCode, displayNo,
+                            String.format("第 %s 行【%s】%s", displayNo, fieldName, typeViolation.detail())));
                     continue;
                 }
                 // 长度
@@ -691,36 +689,6 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
     private List<Map<String, Object>> parseFields(String fieldSchemaJson) {
         List<Map<String, Object>> fields = JsonUtils.parseObject(fieldSchemaJson, List.class);
         return fields != null ? fields : List.of();
-    }
-
-    /**
-     * 判断是否满足整数条件。
-     *
-     * @param text 待处理文本
-     * @return 判断结果
-     */
-    private boolean isInteger(String text) {
-        try {
-            Long.parseLong(text);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
-    }
-
-    /**
-     * 判断是否满足小数条件。
-     *
-     * @param text 待处理文本
-     * @return 判断结果
-     */
-    private boolean isDecimal(String text) {
-        try {
-            new java.math.BigDecimal(text);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
     }
 
 }

@@ -46,6 +46,7 @@ export const MERGE_STATUS_TEXT: Record<
   1: { color: 'processing', text: '执行中' },
   2: { color: 'success', text: '成功' },
   3: { color: 'error', text: '失败' },
+  4: { color: 'warning', text: '已退回整改' },
 };
 
 export const MERGE_STATUS_OPTIONS = Object.entries(MERGE_STATUS_TEXT).map(

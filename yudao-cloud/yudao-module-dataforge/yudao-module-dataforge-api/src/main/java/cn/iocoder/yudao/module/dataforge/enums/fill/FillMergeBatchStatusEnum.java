@@ -15,7 +15,8 @@ public enum FillMergeBatchStatusEnum {
     PENDING(0, "待执行"),
     RUNNING(1, "执行中"),
     SUCCESS(2, "成功"),
-    FAILED(3, "失败（等待自动或人工重试）");
+    FAILED(3, "失败（等待自动或人工重试）"),
+    RETURNED(4, "已退回整改（放弃本次合并，由填报人修改后重新提交）");
 
     private final Integer status;
 

@@ -79,9 +79,11 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
         if (FillMergeStrategyEnum.APPEND.getStrategy().equals(version.getMergeStrategy())) {
             throw exception(FILL_CORRECTION_APPEND_UNSUPPORTED);
         }
-        // 3. 防重复：一个实例同时只允许一个进行中的更正
-        if (correctionMapper.selectActiveByWorkItemId(item.getId()) != null) {
-            throw exception(FILL_CORRECTION_EXISTS_ACTIVE);
+        // 3. 防重复：一个实例同时只允许一个进行中的更正。
+        //    实例已确认是"已合并"却仍有进行中的更正，说明该更正的状态没有随实例收尾（历史数据），按实际结果收尾后放行
+        FillCorrectionDO active = correctionMapper.selectActiveByWorkItemId(item.getId());
+        if (active != null) {
+            closeStaleCorrection(active, item);
         }
 
         // 4. 建更正实例 + 工作项 CAS 已合并 → 整改中（草稿即上次提交内容，无需复制）
@@ -147,19 +149,21 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
     }
 
     /**
-     * 是否存在草拟中的更正（提交类型需强制为"更正"）
+     * 是否存在进行中的更正（提交类型需强制为"更正"）
+     *
+     * <p>调用时工作项处于可编辑状态：更正提交被驳回、撤回后实例回到整改中，此时更正即使仍记为审批中，
+     * 再次提交也属于同一次更正。</p>
      *
      * @param workItemId 工作项编号
      * @return 判断结果
      */
     @Override
     public boolean hasActiveCorrection(Long workItemId) {
-        FillCorrectionDO correction = correctionMapper.selectActiveByWorkItemId(workItemId);
-        return correction != null && FillCorrectionStatusEnum.DRAFT.getStatus().equals(correction.getStatus());
+        return correctionMapper.selectActiveByWorkItemId(workItemId) != null;
     }
 
     /**
-     * 提交钩子：工作项存在草拟中的更正时绑定新快照并转审批中
+     * 提交钩子：工作项存在进行中的更正时绑定新快照并转审批中（重新提交时改绑到最新快照）
      *
      * @param workItemId 工作项编号
      * @param submissionId 提交编号
@@ -168,7 +172,7 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
     @Override
     public boolean bindSubmissionIfCorrecting(Long workItemId, Long submissionId) {
         FillCorrectionDO correction = correctionMapper.selectActiveByWorkItemId(workItemId);
-        if (correction == null || !FillCorrectionStatusEnum.DRAFT.getStatus().equals(correction.getStatus())) {
+        if (correction == null) {
             return false;
         }
         FillCorrectionDO update = new FillCorrectionDO();
@@ -180,9 +184,45 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
     }
 
     /**
-     * 合并成功钩子：更正快照合并完成后闭环更正实例
+     * 更正提交未能完成时，更正回到草拟。
      *
-     * @param submissionId 提交编号
+     * @param submissionId 未完成的提交编号
+     * @return 是否有更正被置回草拟
+     */
+    @Override
+    public boolean reopenBySubmissionId(Long submissionId) {
+        FillCorrectionDO correction = correctionMapper.selectByCorrectionSubmissionId(submissionId);
+        if (correction == null
+                || !FillCorrectionStatusEnum.APPROVING.getStatus().equals(correction.getStatus())) {
+            return false;
+        }
+        FillCorrectionDO update = new FillCorrectionDO();
+        update.setId(correction.getId());
+        update.setStatus(FillCorrectionStatusEnum.DRAFT.getStatus());
+        correctionMapper.updateById(update);
+        return true;
+    }
+
+    /**
+     * 收尾一条与实例状态不一致的进行中更正：实例已合并了比更正来源更新的快照，说明更正内容已经生效，
+     * 记为已合并；否则正式数据仍是更正前的内容，记为已取消。
+     */
+    private void closeStaleCorrection(FillCorrectionDO correction, FillWorkItemDO item) {
+        boolean merged = !Objects.equals(item.getCurrentSubmissionId(), correction.getOriginSubmissionId());
+        FillCorrectionDO update = new FillCorrectionDO();
+        update.setId(correction.getId());
+        update.setStatus(merged ? FillCorrectionStatusEnum.MERGED.getStatus()
+                : FillCorrectionStatusEnum.CANCELLED.getStatus());
+        correctionMapper.updateById(update);
+        log.warn("[closeStaleCorrection][工作项({}) 已合并但更正({}) 仍为进行中，按{}收尾]",
+                item.getId(), correction.getId(), merged ? "已合并" : "已取消");
+    }
+
+    /**
+     * 结束填报时放弃进行中的更正。
+     *
+     * @param workItemId 工作项编号
+     * @return 是否已恢复为已合并
      */
     @Override
     public boolean abandonForTaskClose(Long workItemId) {
@@ -203,6 +243,11 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
         return true;
     }
 
+    /**
+     * 合并成功钩子：更正快照合并完成后闭环更正实例
+     *
+     * @param submissionId 提交编号
+     */
     @Override
     public void completeBySubmissionId(Long submissionId) {
         FillCorrectionDO correction = correctionMapper.selectByCorrectionSubmissionId(submissionId);

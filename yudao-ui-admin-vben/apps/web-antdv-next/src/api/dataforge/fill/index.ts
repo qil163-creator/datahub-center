@@ -436,6 +436,13 @@ export function retryMergeBatch(id: number) {
   return requestClient.put(`/dataforge/fill-merge-batch/retry?id=${id}`);
 }
 
+/** 合并失败退回整改：放弃本次合并，实例回到整改中，填报人修改后重新提交审批 */
+export function returnMergeBatchToRework(id: number, reason: string) {
+  return requestClient.put(
+    `/dataforge/fill-merge-batch/return-rework?id=${id}&reason=${encodeURIComponent(reason)}`,
+  );
+}
+
 // ==================== 采集计划 ====================
 
 /** 采集计划分页 */

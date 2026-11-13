@@ -76,4 +76,26 @@ public class FillMergeController {
         return success(true);
     }
 
+    /**
+     * 把合并失败的批次退回整改。
+     *
+     * @param id 记录编号
+     * @param reason 退回原因
+     * @return 处理结果
+     */
+    @PutMapping("/return-rework")
+    @LogRecord(type = "数据开发-在线填报合并记录", subType = "合并失败退回整改", bizNo = "{{(#id) ?: 0}}",
+            success = "把填报合并批次【{{(#id) ?: '未设置'}}】退回整改", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @Operation(summary = "合并失败退回整改",
+            description = "放弃本次合并，组织实例回到整改中，填报人修改后重新提交审批；正式表保持合并前的内容。与合并重试使用同一权限")
+    @Parameter(name = "id", description = "批次编号", required = true)
+    @Parameter(name = "reason", description = "退回原因，随通知发给填报人", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-merge:retry')")
+    public CommonResult<Boolean> returnToRework(@RequestParam("id") Long id,
+            @RequestParam("reason") String reason) {
+        mergeService.returnToRework(id, reason);
+        return success(true);
+    }
+
 }

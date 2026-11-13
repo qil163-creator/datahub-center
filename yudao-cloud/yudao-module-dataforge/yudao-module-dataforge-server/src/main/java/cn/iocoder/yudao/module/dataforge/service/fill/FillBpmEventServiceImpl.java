@@ -11,7 +11,9 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,19 +57,54 @@ public class FillBpmEventServiceImpl implements FillBpmEventService {
     @Resource
     private FillCollabService collabService;
 
+    @Resource
+    private FillCorrectionService correctionService;
+
+    @Resource
+    private PlatformTransactionManager transactionManager;
+
+    /** 事件停留在“已接收”超过该时长视为进程中断遗留，允许重投时重新处理 */
+    private static final long STALE_RECEIVED_MINUTES = 10;
+
     /**
      * 处理 BPM 流程实例状态事件（通过/驳回/取消）
      *
-     *  幂等：去重键 {processInstanceId}:{status} 唯一约束；重复、乱序、找不到业务的
-     *  事件只记录不执行副作用；处理异常记录 Inbox 失败，不向 BPM 抛错（避免影响 BPM 事件链）
+     * <p>幂等：去重键 {processInstanceId}:{status} 唯一约束；已处理的事件重复投递时忽略，
+     * 找不到业务的事件只记录不执行副作用。</p>
+     *
+     * <p>业务处理放在独立事务里：处理中途失败时本次的全部状态变更一起回滚，Inbox 记为失败，
+     * 不向 BPM 抛错（避免影响 BPM 事件链）。失败或中断遗留的事件在再次投递（对账任务或 BPM 重发）时重新处理。</p>
      *
      * @param event 事件
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void handleStatusEvent(BpmProcessInstanceStatusEvent event) {
         // 1. Inbox 幂等：事件信封无全局 eventId，用 {processInstanceId}:{status} 确定性构造
         String eventId = event.getId() + ":" + event.getStatus();
+        Long inboxId = acquireInbox(eventId, event);
+        if (inboxId == null) {
+            log.info("[handleStatusEvent][事件({}) 重复投递，忽略]", eventId);
+            return;
+        }
+
+        // 2. 处理：独立事务，失败整体回滚；异常只记录 Inbox 失败，不向 BPM 抛错
+        try {
+            TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+            transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            String result = transaction.execute(status -> process(event));
+            updateInbox(inboxId, FillInboxStatusEnum.PROCESSED, result);
+        } catch (Exception ex) {
+            log.error("[handleStatusEvent][事件({}) 处理失败，状态变更已回滚，等待重投]", eventId, ex);
+            updateInbox(inboxId, FillInboxStatusEnum.FAILED, StrUtil.brief(ex.getMessage(), 500));
+        }
+    }
+
+    /**
+     * 登记事件并取得处理权。
+     *
+     * @return 收件箱主键；事件已处理或正在处理时返回 null
+     */
+    private Long acquireInbox(String eventId, BpmProcessInstanceStatusEvent event) {
         FillEventInboxDO inbox = FillEventInboxDO.builder()
                 .eventId(eventId)
                 .eventType(resolveEventType(event.getStatus()))
@@ -77,18 +114,16 @@ public class FillBpmEventServiceImpl implements FillBpmEventService {
                 .build();
         try {
             inboxMapper.insert(inbox);
+            return inbox.getId();
         } catch (DuplicateKeyException ex) {
-            log.info("[handleStatusEvent][事件({}) 重复投递，忽略]", eventId);
-            return;
-        }
-
-        // 2. 处理：异常只记录 Inbox 失败，不向 BPM 抛错
-        try {
-            String result = process(event);
-            updateInbox(inbox.getId(), FillInboxStatusEnum.PROCESSED, result);
-        } catch (Exception ex) {
-            log.error("[handleStatusEvent][事件({}) 处理失败]", eventId, ex);
-            updateInbox(inbox.getId(), FillInboxStatusEnum.FAILED, StrUtil.brief(ex.getMessage(), 500));
+            // 已存在：只有处理失败、或已接收但超时未处理完的事件允许重新处理（CAS，并发重投只有一个成功）
+            FillEventInboxDO existing = inboxMapper.selectByEventId(eventId);
+            if (existing != null && inboxMapper.reacquireForRetry(existing.getId(),
+                    LocalDateTime.now().minusMinutes(STALE_RECEIVED_MINUTES)) > 0) {
+                log.info("[handleStatusEvent][事件({}) 上次未处理成功，重新处理]", eventId);
+                return existing.getId();
+            }
+            return null;
         }
     }
 
@@ -133,14 +168,18 @@ public class FillBpmEventServiceImpl implements FillBpmEventService {
      * @return 处理已批准文本
      */
     private String handleApproved(FillSubmissionDO submission, BpmProcessInstanceStatusEvent event) {
-        if (FillApprovalStatusEnum.APPROVED.getStatus().equals(submission.getApprovalStatus())) {
-            return "IGNORED：已是通过状态（重复事件）";
+        boolean repeated = FillApprovalStatusEnum.APPROVED.getStatus().equals(submission.getApprovalStatus());
+        if (!repeated) {
+            markFinished(submission, FillApprovalStatusEnum.APPROVED, event.getReason());
         }
-        markFinished(submission, FillApprovalStatusEnum.APPROVED, event.getReason());
-        // 审批通过 → 待合并；只建批次，合并由 Job 异步执行（每组织独立合并，不等其他部门）
+        // 审批通过 → 待合并；只建批次，合并由 Job 异步执行（每组织独立合并，不等其他部门）。
+        // 状态迁移与建批次都可重放：重复到达时用来补齐上次没有完成的部分
         workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
                 FillWorkItemStatusEnum.APPROVING.getStatus(), FillWorkItemStatusEnum.WAIT_MERGE.getStatus());
         mergeService.createBatchForSubmission(submission.getId());
+        if (repeated) {
+            return "PROCESSED：已是通过状态，已确认合并批次存在";
+        }
         notifyAssignees(submission, FillNotifyTypeEnum.APPROVED, null);
         broadcastStatus(submission.getWorkItemId(), FillWorkItemStatusEnum.WAIT_MERGE.getStatus());
         return "PROCESSED：已建合并批次";
@@ -161,6 +200,8 @@ public class FillBpmEventServiceImpl implements FillBpmEventService {
         // 驳回 → 整改中：原快照与 BPM 历史保持不变，草稿重新开放给当前有效填报人
         workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
                 FillWorkItemStatusEnum.APPROVING.getStatus(), FillWorkItemStatusEnum.REWORKING.getStatus());
+        // 被驳回的是更正提交时，更正回到草拟，重新提交后继续按更正处理
+        correctionService.reopenBySubmissionId(submission.getId());
         notifyAssignees(submission, FillNotifyTypeEnum.REJECTED,
                 Map.of("reason", StrUtil.nullToDefault(event.getReason(), "-")));
         broadcastStatus(submission.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
@@ -183,6 +224,7 @@ public class FillBpmEventServiceImpl implements FillBpmEventService {
         markFinished(submission, FillApprovalStatusEnum.WITHDRAWN, event.getReason());
         workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
                 FillWorkItemStatusEnum.APPROVING.getStatus(), FillWorkItemStatusEnum.REWORKING.getStatus());
+        correctionService.reopenBySubmissionId(submission.getId());
         broadcastStatus(submission.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
         return "PROCESSED：已按撤回转整改";
     }

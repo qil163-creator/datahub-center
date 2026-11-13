@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
-import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -26,9 +25,13 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,6 +78,12 @@ public class FillMergeServiceImpl implements FillMergeService {
     private static final long RETRY_BASE_MINUTES = 5;
 
     private static final long RETRY_MAX_MINUTES = 360;
+
+    /** 自动重试次数上限；超过后不再自动重试，只能人工重试或退回整改 */
+    public static final int MAX_AUTO_RETRY = 8;
+
+    /** 批次处于“执行中”超过该时长视为进程中断遗留，允许重新接管执行 */
+    public static final long STALE_RUNNING_MINUTES = 60;
 
     @Resource
     private FillMergeBatchMapper mergeBatchMapper;
@@ -162,8 +171,19 @@ public class FillMergeServiceImpl implements FillMergeService {
         if (batch == null) {
             return;
         }
-        // 执行抢占 CAS：只允许从 待执行/失败 进入执行中，多实例安全
-        if (mergeBatchMapper.compareAndSetRunning(batchId, batch.getStatus()) == 0) {
+        // 执行抢占 CAS：只允许从 待执行/失败 进入执行中，多实例安全；
+        // 进程中断遗留的“执行中”批次超时后按开始时间抢占接管（写入可重放，重复执行结果一致）
+        Integer status = batch.getStatus();
+        boolean acquired;
+        if (FillMergeBatchStatusEnum.RUNNING.getStatus().equals(status)) {
+            acquired = mergeBatchMapper.takeOverStaleRunning(batchId,
+                    LocalDateTime.now().minusMinutes(STALE_RUNNING_MINUTES)) > 0;
+        } else {
+            acquired = (FillMergeBatchStatusEnum.PENDING.getStatus().equals(status)
+                    || FillMergeBatchStatusEnum.FAILED.getStatus().equals(status))
+                    && mergeBatchMapper.compareAndSetRunning(batchId, status) > 0;
+        }
+        if (!acquired) {
             return;
         }
         // 工作项进入合并中（首次从待合并、重试从合并失败）
@@ -178,7 +198,8 @@ public class FillMergeServiceImpl implements FillMergeService {
         } catch (Exception ex) {
             log.error("[executeBatch][合并批次({}) 执行失败]", batchId, ex);
             markBatchFailed(batch, ex);
-            onMergeFailed(batch);
+            // 只在首次失败时通知填报人；之后的自动/人工重试再失败不重复打扰
+            onMergeFailed(batch, batch.getRetryCount() == null || batch.getRetryCount() == 0);
         }
     }
 
@@ -201,6 +222,44 @@ public class FillMergeServiceImpl implements FillMergeService {
         update.setStatus(FillMergeBatchStatusEnum.PENDING.getStatus());
         update.setNextRetryTime(null);
         mergeBatchMapper.updateById(update);
+    }
+
+    /**
+     * 把合并失败的批次退回整改。
+     *
+     * <p>批次“失败 → 已退回”与工作项“合并失败 → 整改中”都走 CAS，与合并 Job 的自动重试互斥；
+     * 任一迁移失败整体回滚。原提交快照与审批记录保留，填报人修改后重新提交会生成新快照并重新审批。</p>
+     *
+     * @param batchId 批次编号
+     * @param reason 退回原因
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void returnToRework(Long batchId, String reason) {
+        FillMergeBatchDO batch = mergeBatchMapper.selectById(batchId);
+        if (batch == null) {
+            throw exception(FILL_MERGE_BATCH_NOT_EXISTS);
+        }
+        if (mergeBatchMapper.compareAndSetStatus(batchId, FillMergeBatchStatusEnum.FAILED.getStatus(),
+                FillMergeBatchStatusEnum.RETURNED.getStatus()) == 0
+                || workItemMapper.compareAndSetStatus(batch.getWorkItemId(),
+                FillWorkItemStatusEnum.MERGE_FAILED.getStatus(), FillWorkItemStatusEnum.REWORKING.getStatus()) == 0) {
+            throw exception(FILL_MERGE_BATCH_STATUS_INVALID);
+        }
+        // 退回的是更正提交时，更正回到草拟，重新提交后继续按更正处理
+        correctionService.reopenBySubmissionId(batch.getSubmissionId());
+        notifyBatch(batch, FillNotifyTypeEnum.MERGE_RETURNED, Map.of("reason",
+                StrUtil.blankToDefault(StrUtil.maxLength(StrUtil.trim(reason), 200), "数据未能写入正式表")));
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    broadcastStatus(batch.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
+                }
+            });
+        } else {
+            broadcastStatus(batch.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
+        }
     }
 
     /**
@@ -281,23 +340,42 @@ public class FillMergeServiceImpl implements FillMergeService {
         FillMergeStrategyEnum strategy = FillMergeStrategyEnum.of(batch.getMergeStrategy());
         int written;
         try (HikariDataSource dataSource = createDataSource(conn)) {
-            written = switch (Objects.requireNonNull(strategy, "未知合并策略")) {
-                case APPEND -> {
+            Objects.requireNonNull(strategy, "未知合并策略");
+            if (FillMergeJdbcWriter.supports(conn.getProductType())) {
+                // 事务型目标库：清理与写入在同一事务内完成，失败整体回滚，正式表保持合并前的内容
+                FillMergeJdbcWriter.Target target = new FillMergeJdbcWriter.Target(
+                        conn.getProductType(), conn.getSchema(), batch.getTargetTableName());
+                written = switch (strategy) {
                     // 幂等：先清理本批次曾写入的行，再整批插入
-                    deleteByCondition(conn, batch.getTargetTableName(),
-                            quote(conn, SYS_COL_SUBMISSION_ID) + " = " + submission.getId());
-                    yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, recordValues);
-                }
-                case REPLACE_SCOPE -> {
-                    // 幂等：范围替换本身可重放；重试重新删范围再插，收敛一致
-                    deleteByCondition(conn, batch.getTargetTableName(),
-                            quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
-                                    + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'");
-                    yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, recordValues);
-                }
-                case UPSERT -> upsertAll(dataSource, conn, batch.getTargetTableName(),
-                        fieldNames, recordValues, resolveBusinessKeyColumns(version, fields));
-            };
+                    case APPEND -> FillMergeJdbcWriter.replaceScope(dataSource, target, fieldNames, recordValues,
+                            List.of(SYS_COL_SUBMISSION_ID), List.of(submission.getId()));
+                    // 幂等：范围替换本身可重放
+                    case REPLACE_SCOPE -> FillMergeJdbcWriter.replaceScope(dataSource, target, fieldNames,
+                            recordValues, List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
+                            List.of(item.getReportingOrgId(), periodKey));
+                    case UPSERT -> FillMergeJdbcWriter.upsert(dataSource, target, fieldNames, recordValues,
+                            resolveBusinessKeyColumns(version, fields));
+                };
+            } else {
+                // 分析型、文档型等目标库不支持“删除 + 写入”同事务提交，沿用通用写入器：
+                // 清理与写入分步执行，写入失败时依靠批次重试收敛
+                List<Object[]> writerValues = toWriterValues(recordValues);
+                written = switch (strategy) {
+                    case APPEND -> {
+                        deleteByCondition(conn, batch.getTargetTableName(),
+                                quote(conn, SYS_COL_SUBMISSION_ID) + " = " + submission.getId());
+                        yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, writerValues);
+                    }
+                    case REPLACE_SCOPE -> {
+                        deleteByCondition(conn, batch.getTargetTableName(),
+                                quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
+                                        + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'");
+                        yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, writerValues);
+                    }
+                    case UPSERT -> upsertAll(dataSource, conn, batch.getTargetTableName(),
+                            fieldNames, writerValues, resolveBusinessKeyColumns(version, fields));
+                };
+            }
         }
 
         // 血缘明细：先删后插，可重放
@@ -487,7 +565,7 @@ public class FillMergeServiceImpl implements FillMergeService {
         refreshTaskProgress(batch.getTaskId());
         // 更正快照合并完成 → 闭环更正实例（非更正提交内部直接返回）
         correctionService.completeBySubmissionId(batch.getSubmissionId());
-        notifyBatch(batch, FillNotifyTypeEnum.MERGE_SUCCEEDED);
+        notifyBatch(batch, FillNotifyTypeEnum.MERGE_SUCCEEDED, null);
         broadcastStatus(batch.getWorkItemId(), FillWorkItemStatusEnum.MERGED.getStatus());
     }
 
@@ -495,11 +573,14 @@ public class FillMergeServiceImpl implements FillMergeService {
      * 处理合并失败。
      *
      * @param batch 目标批次信息
+     * @param notify 是否通知填报人（仅首次失败通知）
      */
-    private void onMergeFailed(FillMergeBatchDO batch) {
+    private void onMergeFailed(FillMergeBatchDO batch, boolean notify) {
         workItemMapper.compareAndSetStatus(batch.getWorkItemId(),
                 FillWorkItemStatusEnum.MERGING.getStatus(), FillWorkItemStatusEnum.MERGE_FAILED.getStatus());
-        notifyBatch(batch, FillNotifyTypeEnum.MERGE_FAILED);
+        if (notify) {
+            notifyBatch(batch, FillNotifyTypeEnum.MERGE_FAILED, null);
+        }
         broadcastStatus(batch.getWorkItemId(), FillWorkItemStatusEnum.MERGE_FAILED.getStatus());
     }
 
@@ -525,15 +606,16 @@ public class FillMergeServiceImpl implements FillMergeService {
      *
      * @param batch 目标批次信息
      * @param type 类型标识
+     * @param extraParams 模板附加参数
      */
-    private void notifyBatch(FillMergeBatchDO batch, FillNotifyTypeEnum type) {
+    private void notifyBatch(FillMergeBatchDO batch, FillNotifyTypeEnum type, Map<String, Object> extraParams) {
         try {
             FillWorkItemDO item = workItemMapper.selectById(batch.getWorkItemId());
             FillTaskDO task = taskMapper.selectById(batch.getTaskId());
             List<Long> userIds = convertList(
                     assigneeMapper.selectValidListByWorkItemId(batch.getWorkItemId()),
                     FillAssigneeDO::getUserId);
-            notifyService.sendToUsers(type, task, item, userIds, null);
+            notifyService.sendToUsers(type, task, item, userIds, extraParams);
         } catch (Exception ex) {
             log.warn("[notifyBatch][批次({}) 通知失败：{}]", batch.getId(), ex.getMessage());
         }
@@ -575,28 +657,38 @@ public class FillMergeServiceImpl implements FillMergeService {
                 dbSwitchRuntime.drivers().runtimes(), dbSwitchRuntime.options());
     }
 
-    /** 快照 JSON 值 → 目标列类型（dbswitch 逻辑类型：1小数 2字符串 3日期 5整数 6长整型 9日期时间 10时间） */
+    /** 快照 JSON 值 → 目标列的 Java 值；转换规则与提交强校验共用 {@link FillValueConverter} */
     private Object convertValue(Map<String, Object> field, Object value) {
-        if (value == null || (value instanceof String text && StrUtil.isBlank(text))) {
-            return null;
-        }
         Object fieldTypeObj = field.get("fieldType");
         int fieldType = fieldTypeObj instanceof Number number ? number.intValue() : ColumnMetaData.TYPE_STRING;
-        String text = String.valueOf(value);
         try {
-            return switch (fieldType) {
-                case ColumnMetaData.TYPE_NUMBER -> new BigDecimal(text);
-                case ColumnMetaData.TYPE_INTEGER -> Integer.parseInt(text.trim());
-                case ColumnMetaData.TYPE_BIGNUMBER -> Long.parseLong(text.trim());
-                case ColumnMetaData.TYPE_DATE -> DateUtil.parse(text, DatePattern.NORM_DATE_PATTERN);
-                case ColumnMetaData.TYPE_TIMESTAMP -> DateUtil.parse(text, DatePattern.NORM_DATETIME_PATTERN);
-                case ColumnMetaData.TYPE_TIME -> DateUtil.parse(text, DatePattern.NORM_TIME_PATTERN);
-                default -> text;
-            };
-        } catch (Exception ex) {
+            return FillValueConverter.convert(fieldType, value);
+        } catch (IllegalArgumentException ex) {
             throw exception(FILL_MERGE_TARGET_INVALID,
-                    String.format("字段【%s】的值不符合类型要求：%s", field.get("name"), text));
+                    String.format("字段【%s】的值不符合类型要求：%s", field.get("name"), value));
         }
+    }
+
+    /** 通用写入器沿用原有的日期时间取值类型（java.util.Date），其余类型原样传递 */
+    private List<Object[]> toWriterValues(List<Object[]> recordValues) {
+        List<Object[]> result = new ArrayList<>(recordValues.size());
+        for (Object[] values : recordValues) {
+            Object[] converted = new Object[values.length];
+            for (int index = 0; index < values.length; index++) {
+                Object value = values[index];
+                if (value instanceof LocalDate date) {
+                    converted[index] = DateUtil.date(date.atStartOfDay());
+                } else if (value instanceof LocalDateTime dateTime) {
+                    converted[index] = DateUtil.date(dateTime);
+                } else if (value instanceof LocalTime time) {
+                    converted[index] = DateUtil.date(LocalDate.EPOCH.atTime(time));
+                } else {
+                    converted[index] = value;
+                }
+            }
+            result.add(converted);
+        }
+        return result;
     }
 
     /**

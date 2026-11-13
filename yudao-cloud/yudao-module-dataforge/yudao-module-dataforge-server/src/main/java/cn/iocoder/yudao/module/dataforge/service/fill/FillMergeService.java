@@ -31,6 +31,15 @@ public interface FillMergeService {
     void retryBatch(Long batchId);
 
     /**
+     * 把合并失败的批次退回整改：放弃本次合并，组织实例回到“整改中”，由填报人修改后重新提交审批。
+     * 用于目标表约束冲突等重试无法解决的数据问题；正式表保持合并前的内容。
+     *
+     * @param batchId 批次编号
+     * @param reason 退回原因，随通知发给填报人
+     */
+    void returnToRework(Long batchId, String reason);
+
+    /**
      * 获得合并批次分页。
      *
      * @param pageReqVO 分页查询条件

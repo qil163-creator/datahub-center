@@ -45,6 +45,9 @@ public class FillOutboxRelayJob {
 
     private static final long RETRY_MAX_MINUTES = 120;
 
+    /** 事件处于“发送中”超过该时长视为进程中断遗留，允许重新投递（启动审批可重放，已有流程实例会被复用） */
+    private static final long STALE_SENDING_MINUTES = 10;
+
     @Resource
     private FillEventOutboxMapper outboxMapper;
 
@@ -70,11 +73,15 @@ public class FillOutboxRelayJob {
 
     public void execute() {
         LocalDateTime now = LocalDateTime.now();
-        List<FillEventOutboxDO> events = outboxMapper.selectListToSend(now, SCAN_LIMIT);
+        LocalDateTime staleBefore = now.minusMinutes(STALE_SENDING_MINUTES);
+        List<FillEventOutboxDO> events = outboxMapper.selectListToSend(now, staleBefore, SCAN_LIMIT);
         int success = 0;
         for (FillEventOutboxDO event : events) {
-            // 投递抢占 CAS，多实例安全
-            if (outboxMapper.compareAndSetSending(event.getId(), event.getStatus()) == 0) {
+            // 投递抢占 CAS，多实例安全；超时的“发送中”事件按更新时间抢占接管
+            boolean acquired = FillOutboxStatusEnum.SENDING.getStatus().equals(event.getStatus())
+                    ? outboxMapper.takeOverStaleSending(event.getId(), staleBefore) > 0
+                    : outboxMapper.compareAndSetSending(event.getId(), event.getStatus()) > 0;
+            if (!acquired) {
                 continue;
             }
             try {
