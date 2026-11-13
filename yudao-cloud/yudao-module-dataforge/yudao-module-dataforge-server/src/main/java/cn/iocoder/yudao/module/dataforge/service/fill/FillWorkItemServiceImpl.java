@@ -4,16 +4,19 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillAssigneeRespVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskExtendReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemAssigneeUpdateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemTransferReqVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillAssigneeDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillAssignmentLogDO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillPlanDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTaskDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillWorkItemDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillAssigneeMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillAssignmentLogMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillNotifyRecordMapper;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillTaskMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillWorkItemMapper;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillAssigneeSourceEnum;
@@ -21,17 +24,20 @@ import cn.iocoder.yudao.module.dataforge.enums.fill.FillAssigneeStateEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillAssignmentActionEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillNotifyTypeEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillOverduePolicyEnum;
+import cn.iocoder.yudao.module.dataforge.enums.fill.FillTaskStatusEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillWorkItemStatusEnum;
 import cn.iocoder.yudao.module.system.api.dept.DeptApi;
 import cn.iocoder.yudao.module.system.api.dept.dto.DeptRespDTO;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +56,7 @@ import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
  *
  * @author Li
  */
+@Slf4j
 @Service
 @Validated
 public class FillWorkItemServiceImpl implements FillWorkItemService {
@@ -70,16 +77,19 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     private FillNotifyRecordMapper notifyRecordMapper;
 
     @Resource
+    private FillPlanMapper planMapper;
+
+    @Resource
     private FillNotifyService notifyService;
+
+    @Resource
+    private FillCollabService collabService;
 
     @Resource
     private DeptApi deptApi;
 
     @Resource
     private AdminUserApi adminUserApi;
-
-    /** 催办频控间隔（分钟） */
-    private static final int URGE_INTERVAL_MINUTES = 60;
 
     /**
      * 我的填报：当前用户作为有效填报人的全部工作项
@@ -230,7 +240,7 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     // ==================== 催办 ====================
 
     /**
-     * 催办单个工作项（通知当前有效填报人；1 小时频控内重复催办抛异常）
+     * 催办单个工作项（通知当前有效填报人；计划配置的频控间隔内重复催办抛异常，默认 60 分钟）
      *
      * @param id 记录编号
      */
@@ -241,8 +251,9 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
             FillWorkItemStatusEnum status = FillWorkItemStatusEnum.of(item.getStatus());
             throw exception(FILL_WORK_ITEM_STATUS_INVALID, status != null ? status.getName() : item.getStatus());
         }
-        if (!tryUrge(item)) {
-            throw exception(FILL_URGE_TOO_FREQUENT, URGE_INTERVAL_MINUTES);
+        int cooldownMinutes = resolveUrgeCooldownMinutes(item.getPlanId());
+        if (!tryUrge(item, taskMapper.selectById(item.getTaskId()), cooldownMinutes)) {
+            throw exception(FILL_URGE_TOO_FREQUENT, cooldownMinutes);
         }
     }
 
@@ -254,27 +265,133 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
      */
     @Override
     public int urgeByTask(Long taskId) {
+        FillTaskDO task = taskMapper.selectById(taskId);
+        if (task == null) {
+            throw exception(FILL_TASK_NOT_EXISTS);
+        }
+        int cooldownMinutes = resolveUrgeCooldownMinutes(task.getPlanId());
         int urged = 0;
         for (FillWorkItemDO item : workItemMapper.selectListByTaskId(taskId)) {
-            if (FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus()) && tryUrge(item)) {
+            if (FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())
+                    && tryUrge(item, task, cooldownMinutes)) {
                 urged++;
             }
         }
         return urged;
     }
 
+    /** 计划配置的催办频控间隔（分钟）；计划缺失或未配置时按默认值 */
+    private int resolveUrgeCooldownMinutes(Long planId) {
+        FillPlanDO plan = planId == null ? null : planMapper.selectById(planId);
+        return FillRemindConfig.parse(plan != null ? plan.getRemindConfig() : null).resolveUrgeCooldownMinutes();
+    }
+
     /** @return false = 频控间隔内已催办过，跳过 */
-    private boolean tryUrge(FillWorkItemDO item) {
+    private boolean tryUrge(FillWorkItemDO item, FillTaskDO task, int cooldownMinutes) {
         long recent = notifyRecordMapper.selectCountSince(item.getId(),
-                FillNotifyTypeEnum.URGE.getType(), LocalDateTime.now().minusMinutes(URGE_INTERVAL_MINUTES));
+                FillNotifyTypeEnum.URGE.getType(), LocalDateTime.now().minusMinutes(cooldownMinutes));
         if (recent > 0) {
             return false;
         }
-        FillTaskDO task = taskMapper.selectById(item.getTaskId());
         List<Long> userIds = convertList(assigneeMapper.selectValidListByWorkItemId(item.getId()),
                 FillAssigneeDO::getUserId);
         notifyService.sendToUsers(FillNotifyTypeEnum.URGE, task, item, userIds, null);
         return true;
+    }
+
+    // ==================== 截止时间延期 ====================
+
+    /**
+     * 延期截止时间：只推后、不提前；同时清除逾期标记，硬截止锁定随之解除。
+     *
+     * 数据范围：与任务催办、调整填报人一致，持有任务延期按钮权限即可操作平台内全部任务（发起者或授权管理员）。
+     * 延期后的提醒与逾期由 Job 按新截止时间重新计算。
+     *
+     * @param reqVO 请求参数
+     * @return 实际延期的组织实例数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int extendDeadline(FillTaskExtendReqVO reqVO) {
+        FillTaskDO task = taskMapper.selectById(reqVO.getTaskId());
+        if (task == null) {
+            throw exception(FILL_TASK_NOT_EXISTS);
+        }
+        if (!FillTaskStatusEnum.PENDING.getStatus().equals(task.getStatus())
+                && !FillTaskStatusEnum.RUNNING.getStatus().equals(task.getStatus())) {
+            throw exception(FILL_TASK_STATUS_INVALID);
+        }
+        LocalDateTime deadline = reqVO.getDeadlineTime();
+        if (!deadline.isAfter(LocalDateTime.now())
+                || (task.getOpenTime() != null && !deadline.isAfter(task.getOpenTime()))) {
+            throw exception(FILL_TASK_DEADLINE_INVALID);
+        }
+
+        boolean wholeTask = CollUtil.isEmpty(reqVO.getWorkItemIds());
+        List<FillWorkItemDO> targets = wholeTask
+                ? workItemMapper.selectListByTaskId(task.getId()).stream()
+                        .filter(item -> FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus()))
+                        .toList()
+                : validateExtendTargets(task, reqVO.getWorkItemIds());
+
+        List<FillWorkItemDO> extended = new ArrayList<>();
+        for (FillWorkItemDO item : targets) {
+            if (item.getDeadlineTime() != null && !deadline.isAfter(item.getDeadlineTime())) {
+                continue;
+            }
+            FillWorkItemDO update = new FillWorkItemDO();
+            update.setId(item.getId());
+            update.setDeadlineTime(deadline);
+            update.setOverdue(0);
+            workItemMapper.updateById(update);
+            item.setDeadlineTime(deadline);
+            item.setOverdue(0);
+            extended.add(item);
+        }
+        if (wholeTask && (task.getDeadlineTime() == null || deadline.isAfter(task.getDeadlineTime()))) {
+            FillTaskDO taskUpdate = new FillTaskDO();
+            taskUpdate.setId(task.getId());
+            taskUpdate.setDeadlineTime(deadline);
+            taskMapper.updateById(taskUpdate);
+            task.setDeadlineTime(deadline);
+        }
+
+        for (FillWorkItemDO item : extended) {
+            List<Long> userIds = convertList(assigneeMapper.selectValidListByWorkItemId(item.getId()),
+                    FillAssigneeDO::getUserId);
+            notifyService.sendToUsers(FillNotifyTypeEnum.DEADLINE_EXTENDED, task, item, userIds, null);
+            broadcastStatus(item);
+        }
+        return extended.size();
+    }
+
+    /** 指定实例延期：实例必须属于该任务且尚未提交（待填报/填报中/整改中） */
+    private List<FillWorkItemDO> validateExtendTargets(FillTaskDO task, List<Long> workItemIds) {
+        Set<Long> ids = workItemIds.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        List<FillWorkItemDO> items = workItemMapper.selectListByIds(ids);
+        if (items.size() != ids.size()) {
+            throw exception(FILL_WORK_ITEM_NOT_EXISTS);
+        }
+        for (FillWorkItemDO item : items) {
+            if (!Objects.equals(item.getTaskId(), task.getId())) {
+                throw exception(FILL_TASK_WORK_ITEM_MISMATCH, item.getOrgName());
+            }
+            if (!FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())) {
+                FillWorkItemStatusEnum status = FillWorkItemStatusEnum.of(item.getStatus());
+                throw exception(FILL_WORK_ITEM_STATUS_INVALID, status != null ? status.getName() : item.getStatus());
+            }
+        }
+        return items;
+    }
+
+    /** 通知工作台重新加载快照（可编辑状态随截止时间变化）；广播只是提示，失败不影响延期结果 */
+    private void broadcastStatus(FillWorkItemDO item) {
+        try {
+            collabService.broadcast(item.getId(), FillSubmissionServiceImpl.WS_STATUS_CHANGED,
+                    Map.of("workItemId", item.getId(), "status", item.getStatus()));
+        } catch (Exception ex) {
+            log.warn("[broadcastStatus][工作项({}) 广播失败：{}]", item.getId(), ex.getMessage());
+        }
     }
 
     // ==================== 供草稿/协同/提交等服务复用的校验能力 ====================

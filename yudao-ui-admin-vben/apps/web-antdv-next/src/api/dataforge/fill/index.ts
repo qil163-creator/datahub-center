@@ -254,6 +254,18 @@ export namespace DataforgeFillApi {
     statusCounts: Record<number, number>;
   }
 
+  /** 结束填报结果 */
+  export interface TaskCloseResp {
+    /** 被取消的未提交组织数（待填报/填报中/整改中） */
+    cancelledCount: number;
+    /** 撤销进行中更正、恢复为已合并的组织数 */
+    restoredCount: number;
+    /** 仍在审批或合并中的组织数；全部完成后任务自动结束 */
+    inFlightCount: number;
+    /** 结束后的任务状态：1进行中 2已完成 3已取消 */
+    taskStatus: number;
+  }
+
   /** 模板版本 */
   export interface TableVersion {
     id: number;
@@ -662,7 +674,7 @@ export function getCorrectionPage(params: {
 
 // ==================== 催办 ====================
 
-/** 催办单个组织实例（1 小时频控） */
+/** 催办单个组织实例（按计划配置的催办频控，默认 60 分钟） */
 export function urgeWorkItem(id: number) {
   return requestClient.post(`/dataforge/fill-work-item/urge?id=${id}`);
 }
@@ -670,6 +682,27 @@ export function urgeWorkItem(id: number) {
 /** 任务级一键催办，返回实际催办组织数 */
 export function urgeTask(id: number) {
   return requestClient.post<number>(`/dataforge/fill-task/urge?id=${id}`);
+}
+
+/**
+ * 延期截止时间：只推后不提前，延期后清除逾期标记并解除硬截止锁定。
+ * 不传 workItemIds 表示任务下全部未提交组织（同时更新任务截止时间），返回实际延期的组织数。
+ */
+export function extendTaskDeadline(data: {
+  /** 新的截止时间，毫秒时间戳（后端 LocalDateTime 按时间戳反序列化） */
+  deadlineTime: number;
+  reason?: string;
+  taskId: number | string;
+  workItemIds?: Array<number | string>;
+}) {
+  return requestClient.put<number>('/dataforge/fill-task/extend', data);
+}
+
+/** 结束填报：取消未提交组织、撤销进行中的更正；审批或合并中的组织走完后任务自动结束 */
+export function closeTask(id: number | string) {
+  return requestClient.put<DataforgeFillApi.TaskCloseResp>(
+    `/dataforge/fill-task/close?id=${id}`,
+  );
 }
 
 /** 把任务冻结的审批流程切换到当前生效版本，返回新的流程定义编号 */

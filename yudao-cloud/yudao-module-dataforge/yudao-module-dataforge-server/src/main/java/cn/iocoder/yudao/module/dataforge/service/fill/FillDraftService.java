@@ -4,6 +4,7 @@ import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillDraftSnaps
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationRespVO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillWorkItemDO;
 
 import java.util.List;
 
@@ -32,5 +33,18 @@ public interface FillDraftService {
      * 事务提交后向房间广播"有新操作"提示
      */
     FillOperationApplyRespVO applyOperations(Long workItemId, FillOperationApplyReqVO reqVO);
+
+    /**
+     * 系统带入草稿（上期数据带入）：把来源提交快照的行复制为本工作项的草稿行，并记录 PREFILL 操作日志。
+     *
+     * 只复制当前模板版本中可编辑、未隐藏、非主键的字段；工作项已被编辑（serverVersion 已变化）或
+     * 已不在可编辑状态时跳过。调用方须处于事务内（任务生成事务）。
+     *
+     * @param item 目标工作项
+     * @param sourceSubmissionId 来源提交快照编号
+     * @param operatorUserId 记入操作日志的操作人
+     * @return 带入的行数，0 表示跳过
+     */
+    int prefillFromSubmission(FillWorkItemDO item, Long sourceSubmissionId, Long operatorUserId);
 
 }

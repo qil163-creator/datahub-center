@@ -75,7 +75,10 @@ public interface FillWorkItemMapper extends BaseMapperX<FillWorkItemDO> {
                 .last("LIMIT " + limit));
     }
 
-    /** 临近截止提醒扫描：可编辑状态、未逾期、截止时间落在 [now, until] 窗口内 */
+    /**
+     * 临近截止提醒扫描：可编辑状态、未逾期、截止时间落在 [now, until] 窗口内；
+     * 按截止时间升序，扫描上限截断时优先处理最紧急的工作项
+     */
     default List<FillWorkItemDO> selectRemindCandidates(java.time.LocalDateTime now,
             java.time.LocalDateTime until, int limit) {
         return selectList(new LambdaQueryWrapperX<FillWorkItemDO>()
@@ -84,8 +87,25 @@ public interface FillWorkItemMapper extends BaseMapperX<FillWorkItemDO> {
                 .isNotNull(FillWorkItemDO::getDeadlineTime)
                 .ge(FillWorkItemDO::getDeadlineTime, now)
                 .le(FillWorkItemDO::getDeadlineTime, until)
+                .orderByAsc(FillWorkItemDO::getDeadlineTime)
                 .last("LIMIT " + limit));
     }
+
+    /**
+     * 系统写入草稿（如上期数据带入）一次推进 delta 个版本：仅在可编辑状态且版本匹配时生效
+     *
+     * @return 影响行数，0 表示版本或状态已变化
+     */
+    @Update("UPDATE dh_dataforge_fill_work_item "
+            + "SET server_version = server_version + #{delta}, "
+            + "    last_modify_user_id = #{userId}, last_modify_time = CURRENT_TIMESTAMP, "
+            + "    update_time = CURRENT_TIMESTAMP "
+            + "WHERE id = #{id} AND server_version = #{expectedVersion} "
+            + "  AND status IN (0, 1, 5) AND deleted = 0")
+    int advanceServerVersionBy(@Param("id") Long id,
+            @Param("expectedVersion") Long expectedVersion,
+            @Param("delta") Long delta,
+            @Param("userId") Long userId);
 
     /**
      * 状态 CAS：仅当当前状态等于 fromStatus 时迁移到 toStatus

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -10,11 +11,13 @@ import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationA
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationRespVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillDraftRowDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillOperationDO;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillSubmissionRowDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTableVersionDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTaskDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillWorkItemDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillDraftRowMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillOperationMapper;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillSubmissionRowMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillTaskMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillWorkItemMapper;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillOperationTypeEnum;
@@ -30,6 +33,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -73,6 +77,9 @@ public class FillDraftServiceImpl implements FillDraftService {
 
     @Resource
     private FillOperationMapper operationMapper;
+
+    @Resource
+    private FillSubmissionRowMapper submissionRowMapper;
 
     @Resource
     private FillTaskMapper taskMapper;
@@ -274,6 +281,80 @@ public class FillDraftServiceImpl implements FillDraftService {
         return respVO;
     }
 
+    /**
+     * 系统带入草稿（上期数据带入）
+     *
+     *  先以一次版本 CAS 预留 N 个连续 serverVersion（同时锁定工作项行、确认草稿未被编辑），
+     *  再逐行写草稿与 PREFILL 操作日志；新行标识重新生成，不复用来源快照的 rowId（防止来源追踪混淆）
+     *
+     * @param item 目标工作项
+     * @param sourceSubmissionId 来源提交快照编号
+     * @param operatorUserId 记入操作日志的操作人
+     * @return 带入的行数，0 表示跳过
+     */
+    @Override
+    public int prefillFromSubmission(FillWorkItemDO item, Long sourceSubmissionId, Long operatorUserId) {
+        if (item == null || sourceSubmissionId == null
+                || !FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())) {
+            return 0;
+        }
+        FieldSchemaIndex schema = parseFieldSchema(item.getTableVersionId());
+        List<Map<String, Object>> rowsData = new ArrayList<>();
+        for (FillSubmissionRowDO sourceRow : submissionRowMapper.selectListBySubmissionId(sourceSubmissionId)) {
+            Map<String, Object> data = new LinkedHashMap<>();
+            parseRowData(sourceRow.getData()).forEach((fieldCode, value) -> {
+                if (value != null && schema.prefillFields.contains(fieldCode)) {
+                    data.put(fieldCode, value);
+                }
+            });
+            if (!data.isEmpty()) {
+                rowsData.add(data);
+            }
+        }
+        if (rowsData.isEmpty()) {
+            return 0;
+        }
+        long baseVersion = item.getServerVersion() == null ? 0L : item.getServerVersion();
+        if (workItemMapper.advanceServerVersionBy(item.getId(), baseVersion, (long) rowsData.size(),
+                operatorUserId) == 0) {
+            return 0;
+        }
+        FillDraftRowDO last = draftRowMapper.selectLastByWorkItemId(item.getId());
+        BigDecimal order = last == null ? BigDecimal.ZERO : last.getRowOrder();
+        for (int index = 0; index < rowsData.size(); index++) {
+            String rowId = "pf" + IdUtil.fastSimpleUUID();
+            String dataJson = JsonUtils.toJsonString(rowsData.get(index));
+            order = order.add(ORDER_GAP);
+            draftRowMapper.insert(FillDraftRowDO.builder()
+                    .workItemId(item.getId())
+                    .rowId(rowId)
+                    .rowOrder(order)
+                    .data(dataJson)
+                    .rowVersion(0L)
+                    .createUserId(operatorUserId)
+                    .lastModifyUserId(operatorUserId)
+                    .build());
+            operationMapper.insert(FillOperationDO.builder()
+                    .workItemId(item.getId())
+                    .serverVersion(baseVersion + index + 1)
+                    .clientOpId("pf-" + IdUtil.fastSimpleUUID())
+                    .clientSessionId("prefill")
+                    .opType(FillOperationTypeEnum.PREFILL.getType())
+                    .rowId(rowId)
+                    .newValue(dataJson)
+                    .operatorUserId(operatorUserId)
+                    .build());
+        }
+        FillWorkItemDO update = new FillWorkItemDO();
+        update.setId(item.getId());
+        update.setDraftRowCount(Math.toIntExact(draftRowMapper.selectCount(
+                FillDraftRowDO::getWorkItemId, item.getId())));
+        workItemMapper.updateById(update);
+        item.setServerVersion(baseVersion + rowsData.size());
+        item.setDraftRowCount(update.getDraftRowCount());
+        return rowsData.size();
+    }
+
     // ---------------------------------------------------------------- 操作执行
 
     /** @return [oldValueJson, newValueJson] */
@@ -440,6 +521,10 @@ public class FillDraftServiceImpl implements FillDraftService {
                 index.allFields.add(fieldCode);
                 if (!Boolean.FALSE.equals(field.get("editable"))) {
                     index.editableFields.add(fieldCode);
+                    // 主键沿用上期会与上期正式数据冲突，隐藏字段不在录入界面，二者都不带入
+                    if (!Boolean.TRUE.equals(field.get("hidden")) && !Boolean.TRUE.equals(field.get("pk"))) {
+                        index.prefillFields.add(fieldCode);
+                    }
                 }
             }
         }
@@ -451,6 +536,9 @@ public class FillDraftServiceImpl implements FillDraftService {
         private final Set<String> allFields = new HashSet<>();
 
         private final Set<String> editableFields = new HashSet<>();
+
+        /** 上期数据带入的字段：可编辑、未隐藏、非主键 */
+        private final Set<String> prefillFields = new HashSet<>();
     }
 
 }

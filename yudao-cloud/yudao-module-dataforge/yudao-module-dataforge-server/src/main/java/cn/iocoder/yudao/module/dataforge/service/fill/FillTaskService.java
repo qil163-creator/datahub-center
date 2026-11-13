@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskCloseRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenerateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskPageReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskProgressRespVO;
@@ -62,5 +63,13 @@ public interface FillTaskService {
      * 任务进度：各状态工作项数量、逾期数、完成率
      */
     FillTaskProgressRespVO getTaskProgress(Long id);
+
+    /**
+     * 结束填报：取消尚未提交的组织实例，放弃进行中的更正；审批/合并中的实例继续走完，全部完成后任务自动结束
+     *
+     * @param id 任务编号
+     * @return 结束结果
+     */
+    FillTaskCloseRespVO closeTask(Long id);
 
 }

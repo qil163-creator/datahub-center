@@ -33,6 +33,11 @@ export interface FillCollabCallbacks {
   }) => void;
   onError?: (message: string) => void;
   onStatusChange?: (open: boolean) => void;
+  /** 工作项状态或可编辑性在服务端发生变化（提交、审批、延期、结束填报等），应重新加载快照 */
+  onWorkItemStatusChanged?: (payload: {
+    status: number;
+    workItemId: number | string;
+  }) => void;
 }
 
 const HEARTBEAT_INTERVAL_MS = 25_000;
@@ -183,6 +188,12 @@ export class FillCollabClient {
       }
       case 'fill-presence-snapshot': {
         this.callbacks.onPresenceSnapshot?.(content);
+        break;
+      }
+      case 'fill-work-item-status-changed': {
+        if (String(content?.workItemId) === String(this.workItemId)) {
+          this.callbacks.onWorkItemStatusChanged?.(content);
+        }
         break;
       }
       default: {

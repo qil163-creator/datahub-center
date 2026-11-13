@@ -50,4 +50,13 @@ public interface FillCorrectionService {
      */
     void completeBySubmissionId(Long submissionId);
 
+    /**
+     * 结束填报时放弃进行中的更正：工作项从整改中恢复为已合并（原已合并数据保持不变），更正实例置为已取消。
+     * 调用方须处于事务内；更正已重新提交（工作项不在整改中）时不处理。
+     *
+     * @param workItemId 工作项编号
+     * @return true = 已恢复为已合并；false = 没有可放弃的更正
+     */
+    boolean abandonForTaskClose(Long workItemId);
+
 }
