@@ -72,4 +72,12 @@ public interface FillTaskService {
      */
     FillTaskCloseRespVO closeTask(Long id);
 
+    /**
+     * 把已到开放时间的“待开始”任务转为进行中，并向各组织仍需填报的有效填报人发送“任务开始”通知
+     *
+     * @param now 当前时间
+     * @return 本次开放的任务数
+     */
+    int openDueTasks(java.time.LocalDateTime now);
+
 }

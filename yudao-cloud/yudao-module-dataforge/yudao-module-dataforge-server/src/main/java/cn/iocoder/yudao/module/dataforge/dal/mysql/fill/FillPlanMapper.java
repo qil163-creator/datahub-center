@@ -8,6 +8,8 @@ import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillPlanDO;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillPlanStatusEnum;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -81,5 +83,25 @@ public interface FillPlanMapper extends BaseMapperX<FillPlanDO> {
                 .eq(FillPlanDO::getId, id)
                 .eq(FillPlanDO::getNextGenerateTime, oldNextGenerateTime));
     }
+
+    /**
+     * 任务生成失败时把生成时点退回，下一轮重试同一期，不跳期。
+     * 仅当生成时点仍是本次推进后的值时生效（期间被停用、重新发布等并发修改不覆盖）。
+     *
+     * @param id 计划编号
+     * @param advancedNextGenerateTime 本次推进后的下次生成时间（一次性计划为 null）
+     * @param generateTime 要退回到的生成时间
+     * @param lastPeriodKey 要恢复的最近期次标识
+     * @return 影响行数
+     */
+    @Update("UPDATE dh_dataforge_fill_plan "
+            + "SET next_generate_time = #{generateTime}, last_period_key = #{lastPeriodKey,jdbcType=VARCHAR}, "
+            + "    update_time = CURRENT_TIMESTAMP "
+            + "WHERE id = #{id} AND deleted = 0 "
+            + "  AND next_generate_time IS NOT DISTINCT FROM #{advancedNextGenerateTime,jdbcType=TIMESTAMP}")
+    int rollbackGeneratePoint(@Param("id") Long id,
+            @Param("advancedNextGenerateTime") LocalDateTime advancedNextGenerateTime,
+            @Param("generateTime") LocalDateTime generateTime,
+            @Param("lastPeriodKey") String lastPeriodKey);
 
 }

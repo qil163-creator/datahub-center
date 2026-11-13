@@ -144,7 +144,7 @@ class FillMergeJdbcWriterPostgreSqlTest {
         List<Object[]> rows = List.of(row("a", "已更新", 1, 101), row("n", "新增", 1, 101));
 
         int written = FillMergeJdbcWriter.upsert(dataSource, TARGET, FIELDS, rows,
-                List.of("id", "source_org_id", "period_key"));
+                List.of("id", "source_org_id", "period_key"), null);
 
         assertEquals(2, written);
         List<Map<String, Object>> org1 = rowsOfOrg(1);
@@ -160,12 +160,39 @@ class FillMergeJdbcWriterPostgreSqlTest {
                 row("n", "超过十个字符的备注内容会被目标列拒绝", 1, 101));
 
         assertThrows(IllegalStateException.class, () -> FillMergeJdbcWriter.upsert(dataSource, TARGET, FIELDS,
-                rows, List.of("id", "source_org_id", "period_key")));
+                rows, List.of("id", "source_org_id", "period_key"), stale(100L)));
 
         List<Map<String, Object>> org1 = rowsOfOrg(1);
         assertEquals(List.of("a", "b"), org1.stream().map(item -> item.get("id")).toList());
         assertEquals("旧", org1.get(0).get("remark"));
         assertEquals(100L, org1.get(0).get("source_submission_id"));
+    }
+
+    private static FillMergeJdbcWriter.StaleRows stale(Long... previousSubmissionIds) {
+        return new FillMergeJdbcWriter.StaleRows(List.of("source_org_id", "period_key"), List.of(1L, "2026-10"),
+                "source_submission_id", List.of(previousSubmissionIds));
+    }
+
+    @Test
+    void upsertRemovesRowsDroppedSinceThePreviousSubmission() {
+        // 更正：上次提交（100）写入了 a、b，本次只保留 a 并新增 n；b 不应继续留在正式表
+        List<Object[]> rows = List.of(row("a", "已更新", 1, 101), row("n", "新增", 1, 101));
+
+        FillMergeJdbcWriter.upsert(dataSource, TARGET, FIELDS, rows,
+                List.of("id", "source_org_id", "period_key"), stale(100L));
+
+        assertEquals(List.of("a", "n"), rowsOfOrg(1).stream().map(item -> item.get("id")).toList());
+        // 其他组织、其他来源的数据不受影响
+        assertEquals(1, rowsOfOrg(2).size());
+    }
+
+    @Test
+    void upsertWithNoRowsStillRemovesPreviousSubmissionRows() {
+        // 更正为零上报：本次没有数据行，上次提交写入的行全部清理
+        assertEquals(0, FillMergeJdbcWriter.upsert(dataSource, TARGET, FIELDS, List.of(),
+                List.of("id", "source_org_id", "period_key"), stale(100L)));
+        assertTrue(rowsOfOrg(1).isEmpty());
+        assertEquals(1, rowsOfOrg(2).size());
     }
 
 }

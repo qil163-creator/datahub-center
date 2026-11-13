@@ -74,4 +74,14 @@ public class FillNotifyRecordDO extends BaseDO {
      */
     private LocalDateTime sendTime;
 
+    /**
+     * 模板参数快照（JSON），用于发送失败后的重试
+     */
+    private String templateParams;
+
+    /**
+     * 已重试次数
+     */
+    private Integer retryCount;
+
 }

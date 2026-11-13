@@ -90,7 +90,7 @@ class FillRemindRulesTest {
         LocalDateTime in30Hours = LocalDateTime.now().plusHours(30);
         FillWorkItemDO earlyPlanItem = item(1L, 100L, in30Hours);
         FillWorkItemDO defaultPlanItem = item(2L, 200L, in30Hours);
-        when(workItemMapper.selectRemindCandidates(any(), any(), anyInt()))
+        when(workItemMapper.selectRemindCandidates(any(), any(), any(), any(), anyInt()))
                 .thenReturn(List.of(earlyPlanItem, defaultPlanItem));
         when(planMapper.selectByIds(any())).thenReturn(List.of(
                 FillPlanDO.builder().id(100L).remindConfig("{\"hoursBeforeDeadline\":48}").build(),
@@ -103,7 +103,7 @@ class FillRemindRulesTest {
 
         ArgumentCaptor<LocalDateTime> from = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> until = ArgumentCaptor.forClass(LocalDateTime.class);
-        verify(workItemMapper).selectRemindCandidates(from.capture(), until.capture(), anyInt());
+        verify(workItemMapper).selectRemindCandidates(from.capture(), until.capture(), any(), any(), anyInt());
         assertThat(Duration.between(from.getValue(), until.getValue()).toHours()).isEqualTo(168);
         // 48 小时提前量已进入窗口：提醒；默认 24 小时尚未进入窗口：不提醒
         verify(notifyService).sendToUsers(eq(FillNotifyTypeEnum.DEADLINE_APPROACHING), any(),
@@ -115,9 +115,33 @@ class FillRemindRulesTest {
     }
 
     @Test
+    void remindScansEveryPageSoLaterItemsAreNotStarved() {
+        // 第一页满 500 条且都已提醒过；只取第一页时，排在后面的工作项永远轮不到
+        LocalDateTime deadline = LocalDateTime.now().plusHours(2);
+        List<FillWorkItemDO> firstPage = new java.util.ArrayList<>();
+        for (long id = 1; id <= 500; id++) {
+            firstPage.add(item(id, 200L, deadline));
+        }
+        FillWorkItemDO later = item(501L, 200L, deadline);
+        when(workItemMapper.selectRemindCandidates(any(), any(), eq(null), eq(null), anyInt())).thenReturn(firstPage);
+        when(workItemMapper.selectRemindCandidates(any(), any(), eq(deadline), eq(500L), anyInt()))
+                .thenReturn(List.of(later));
+        when(planMapper.selectByIds(any())).thenReturn(List.of(FillPlanDO.builder().id(200L).build()));
+        when(taskMapper.selectById(9L)).thenReturn(FillTaskDO.builder().id(9L).build());
+        when(notifyRecordMapper.selectCountSince(any(), any(), any())).thenReturn(1L);
+        when(notifyRecordMapper.selectCountSince(eq(501L), any(), any())).thenReturn(0L);
+
+        try (MockedStatic<XxlJobHelper> ignored = mockStatic(XxlJobHelper.class)) {
+            remindJob().execute();
+        }
+
+        verify(notifyService).sendToUsers(eq(FillNotifyTypeEnum.DEADLINE_APPROACHING), any(), eq(later), any(), any());
+    }
+
+    @Test
     void remindIsSkippedWhenAlreadySentInTheCurrentWindow() {
         FillWorkItemDO due = item(1L, 200L, LocalDateTime.now().plusHours(2));
-        when(workItemMapper.selectRemindCandidates(any(), any(), anyInt())).thenReturn(List.of(due));
+        when(workItemMapper.selectRemindCandidates(any(), any(), any(), any(), anyInt())).thenReturn(List.of(due));
         when(planMapper.selectByIds(any())).thenReturn(List.of(FillPlanDO.builder().id(200L).build()));
         when(notifyRecordMapper.selectCountSince(eq(1L), eq(FillNotifyTypeEnum.DEADLINE_APPROACHING.getType()), any()))
                 .thenReturn(1L);

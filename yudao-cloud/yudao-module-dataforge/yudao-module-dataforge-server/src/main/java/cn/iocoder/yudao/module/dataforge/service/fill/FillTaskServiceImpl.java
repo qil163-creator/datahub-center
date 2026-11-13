@@ -102,6 +102,9 @@ public class FillTaskServiceImpl implements FillTaskService {
     @Resource
     private FillCollabService collabService;
 
+    /** 单次扫描开放的任务数上限 */
+    private static final int OPEN_SCAN_LIMIT = 200;
+
     /** 结束填报时单个实例遇到并发状态迁移的最大重读次数 */
     private static final int CLOSE_MAX_ATTEMPTS = 3;
 
@@ -402,6 +405,44 @@ public class FillTaskServiceImpl implements FillTaskService {
                 .filter(item -> Integer.valueOf(1).equals(item.getOverdue())).count());
         respVO.setCompletionRate(CollUtil.isEmpty(items) ? 0 : merged * 100 / items.size());
         return respVO;
+    }
+
+    // ==================== 到期开放 ====================
+
+    /**
+     * 把已到开放时间的“待开始”任务转为进行中，并通知填报人任务开始。
+     *
+     * <p>状态迁移走 CAS，多实例并发时每个任务只开放、只通知一次。生成时就已开放的任务不经过这里，
+     * 填报人已在生成时收到“被指定为填报人”通知。</p>
+     *
+     * @param now 当前时间
+     * @return 本次开放的任务数
+     */
+    @Override
+    public int openDueTasks(LocalDateTime now) {
+        int opened = 0;
+        for (FillTaskDO task : taskMapper.selectListToOpen(now, OPEN_SCAN_LIMIT)) {
+            if (taskMapper.compareAndSetStatus(task.getId(), FillTaskStatusEnum.PENDING.getStatus(),
+                    FillTaskStatusEnum.RUNNING.getStatus()) == 0) {
+                continue;
+            }
+            opened++;
+            task.setStatus(FillTaskStatusEnum.RUNNING.getStatus());
+            for (FillWorkItemDO item : workItemMapper.selectListByTaskId(task.getId())) {
+                if (!FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())) {
+                    continue;
+                }
+                try {
+                    notifyService.sendToUsers(FillNotifyTypeEnum.TASK_STARTED, task, item,
+                            convertList(assigneeMapper.selectValidListByWorkItemId(item.getId()),
+                                    FillAssigneeDO::getUserId), null);
+                } catch (Exception ex) {
+                    log.warn("[openDueTasks][任务({}) 工作项({}) 任务开始通知失败：{}]",
+                            task.getId(), item.getId(), ex.getMessage());
+                }
+            }
+        }
+        return opened;
     }
 
     // ==================== 结束填报 ====================

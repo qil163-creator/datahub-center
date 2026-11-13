@@ -29,4 +29,12 @@ public interface FillNotifyService {
     void sendToUsers(FillNotifyTypeEnum type, FillTaskDO task, FillWorkItemDO workItem,
             Collection<Long> userIds, Map<String, Object> extraParams);
 
+    /**
+     * 重试发送失败或中断遗留的通知（由事件投递任务周期调用）
+     *
+     * @param now 当前时间
+     * @return 本次重试后发送成功的条数
+     */
+    int retryFailed(java.time.LocalDateTime now);
+
 }

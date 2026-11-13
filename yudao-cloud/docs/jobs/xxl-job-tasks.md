@@ -16,8 +16,8 @@
 | `dataforge-server` | `jobManagementCoordinatorJob` | 作业平台 Quartz 槽位原子受理、三串行策略队列与真实父子恢复；到期和队列阶段各至多二十作业、每作业五槽或五次派发，单轮对账每作业至多十实例，每作业最多一百待结束请求；未知触发不重投 | 建议 `0/5 * * * * ?` |
 | `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入、补数据批次逐日推进及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
 | `dataforge-server` | `lineageReportJob` | 血缘上报：串行扫描开发任务、数据同步、集成任务、可视化 ETL 中修订号或解析器版本变化的对象（每类每轮最多 50 个），解析后经 governance-api 整体替换上报，成功后 CAS 更新 `lineage_report_key`；已删除对象上报 REMOVED。不连接源库，RPC 失败保留标记下轮重试 | 建议 `0 * * * * ?` |
-| `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务 | `0 * * * * ?` |
-| `dataforge-server` | `fillOutboxRelayJob` | 在线填报事件投递 | `0 * * * * ?` |
+| `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务；到开放时间的任务转为进行中并通知填报人 | `0 * * * * ?` |
+| `dataforge-server` | `fillOutboxRelayJob` | 在线填报事件投递；重试发送失败的填报通知 | `0 * * * * ?` |
 | `dataforge-server` | `fillMergeJob` | 在线填报合并执行及重试 | `0 * * * * ?` |
 | `dataforge-server` | `fillOverdueJob` | 在线填报逾期扫描 | `0 0/5 * * * ?` |
 | `dataforge-server` | `fillRemindJob` | 在线填报截止提醒 | `0 0/30 * * * ?` |

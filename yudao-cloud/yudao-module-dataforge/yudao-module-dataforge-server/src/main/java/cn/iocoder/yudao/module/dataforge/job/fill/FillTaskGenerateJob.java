@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,23 +49,41 @@ public class FillTaskGenerateJob {
         LocalDateTime now = LocalDateTime.now();
         List<FillPlanDO> plans = planMapper.selectListToGenerate(now, SCAN_LIMIT);
         int generated = 0;
+        List<String> failures = new ArrayList<>();
         for (FillPlanDO plan : plans) {
-            generated += catchUp(plan, now);
+            generated += catchUp(plan, now, failures);
         }
-        XxlJobHelper.handleSuccess(String.format("扫描到 %s 个到期计划，生成任务 %s 个", plans.size(), generated));
+        // 已到开放时间的“待开始”任务转为进行中，并通知填报人任务开始
+        int opened = 0;
+        try {
+            opened = fillTaskService.openDueTasks(now);
+        } catch (Exception ex) {
+            log.error("[execute][到期任务开放失败]", ex);
+            failures.add("到期任务开放失败：" + ex.getMessage());
+        }
+        String summary = String.format("扫描到 %s 个到期计划，生成任务 %s 个，开放任务 %s 个",
+                plans.size(), generated, opened);
+        if (failures.isEmpty()) {
+            XxlJobHelper.handleSuccess(summary);
+        } else {
+            // 生成失败的期次已退回生成时点，下一轮自动重试；这里把任务标记为失败以触发调度告警
+            XxlJobHelper.handleFail(summary + "；失败 " + failures.size() + " 项：" + String.join("；", failures));
+        }
     }
 
     /**
-     * 补齐向上。
+     * 按生成时点逐期补齐计划的任务。
      *
      * @param plan 计划
      * @param now 当前时间
-     * @return 补齐向上数值
+     * @param failures 失败说明收集
+     * @return 本次生成的任务数
      */
-    private int catchUp(FillPlanDO plan, LocalDateTime now) {
+    private int catchUp(FillPlanDO plan, LocalDateTime now, List<String> failures) {
         FillPeriodConfig config = FillPeriodCalculator.parseConfig(plan.getPeriodConfig());
         int generated = 0;
         LocalDateTime generateTime = plan.getNextGenerateTime();
+        String lastPeriodKey = plan.getLastPeriodKey();
         for (int i = 0; i < MAX_CATCH_UP && generateTime != null && !generateTime.isAfter(now); i++) {
             LocalDateTime next = FillPeriodCalculator.computeNextGenerateTime(
                     plan.getPeriodType(), config, generateTime);
@@ -76,15 +95,19 @@ public class FillTaskGenerateJob {
             if (updated == 0) {
                 break;
             }
-            LocalDateTime finalGenerateTime = generateTime;
             try {
                 // 生成动作按计划执行，保留任务、工作项与填报人的关联
-                fillTaskService.generateForPlan(plan, finalGenerateTime);
+                fillTaskService.generateForPlan(plan, generateTime);
                 generated++;
             } catch (Exception ex) {
-                // 位点已推进，失败期次可通过"任务补生成"按历史时点补建
-                log.error("[catchUp][计划({}) 期次({}) 生成失败]", plan.getId(), period.periodKey(), ex);
+                // 生成失败：把位点退回本期，下一轮重试，不跳期；后续期次等本期成功后再补
+                log.error("[catchUp][计划({}) 期次({}) 生成失败，已退回生成时点等待重试]",
+                        plan.getId(), period.periodKey(), ex);
+                planMapper.rollbackGeneratePoint(plan.getId(), next, generateTime, lastPeriodKey);
+                failures.add("计划 " + plan.getId() + " 期次 " + period.periodKey());
+                break;
             }
+            lastPeriodKey = period.periodKey();
             generateTime = next;
         }
         return generated;

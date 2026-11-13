@@ -91,19 +91,43 @@ final class FillMergeJdbcWriter {
     }
 
     /**
-     * 在一个事务内按业务键逐行更新，不存在的行再整批插入。
+     * 同一组织实例此前的提交在正式表里留下、本次提交已不再包含的行。
+     *
+     * @param scopeColumns 划定范围的列（组织、所属期）
+     * @param scopeValues 与范围列一一对应的值
+     * @param submissionColumn 来源提交编号列
+     * @param submissionIds 该组织实例此前的提交编号
+     */
+    record StaleRows(List<String> scopeColumns, List<Object> scopeValues, String submissionColumn,
+                     List<Long> submissionIds) {
+
+        boolean isEmpty() {
+            return submissionIds == null || submissionIds.isEmpty();
+        }
+    }
+
+    /**
+     * 在一个事务内按业务键逐行更新，不存在的行再整批插入；随后清理该组织实例此前提交留下、
+     * 本次已不再包含的行（更正时删除的行不会继续留在正式表里）。
      *
      * @param dataSource 目标库数据源
      * @param target 目标表
      * @param fieldNames 写入列，顺序与每行数据一致
      * @param rows 新数据
      * @param keyColumns 业务键列（已包含组织与所属期）
+     * @param staleRows 需要清理的历史提交行，可为 null
      * @return 处理行数
      */
     static int upsert(DataSource dataSource, Target target, List<String> fieldNames, List<Object[]> rows,
-            List<String> keyColumns) {
+            List<String> keyColumns, StaleRows staleRows) {
         if (rows.isEmpty()) {
-            return 0;
+            if (staleRows == null || staleRows.isEmpty()) {
+                return 0;
+            }
+            return inTransaction(dataSource, connection -> {
+                deleteStaleRows(connection, target, staleRows);
+                return 0;
+            });
         }
         List<String> valueColumns = fieldNames.stream().filter(name -> !keyColumns.contains(name)).toList();
         if (valueColumns.isEmpty() || !fieldNames.containsAll(keyColumns)) {
@@ -133,8 +157,30 @@ final class FillMergeJdbcWriter {
                 }
             }
             insertAll(connection, target, fieldNames, types, missing);
+            // 本次写入的行都已带上当前提交编号；仍带着旧提交编号的行就是本次已删除的行
+            if (staleRows != null && !staleRows.isEmpty()) {
+                deleteStaleRows(connection, target, staleRows);
+            }
             return rows.size();
         });
+    }
+
+    private static void deleteStaleRows(Connection connection, Target target, StaleRows staleRows)
+            throws SQLException {
+        String sql = "DELETE FROM " + target.tableRef() + " WHERE " + conditions(target, staleRows.scopeColumns())
+                + " AND " + target.quote(staleRows.submissionColumn()) + " IN ("
+                + staleRows.submissionIds().stream().map(id -> "?").collect(Collectors.joining(", ")) + ")";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setQueryTimeout(QUERY_TIMEOUT_SECONDS);
+            int parameter = 1;
+            for (Object value : staleRows.scopeValues()) {
+                statement.setObject(parameter++, value);
+            }
+            for (Long submissionId : staleRows.submissionIds()) {
+                statement.setLong(parameter++, submissionId);
+            }
+            statement.executeUpdate();
+        }
     }
 
     private static void insertAll(Connection connection, Target target, List<String> fieldNames, int[] types,

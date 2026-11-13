@@ -52,6 +52,9 @@ public class FillOutboxRelayJob {
     private FillEventOutboxMapper outboxMapper;
 
     @Resource
+    private cn.iocoder.yudao.module.dataforge.service.fill.FillNotifyService notifyService;
+
+    @Resource
     private FillSubmissionMapper submissionMapper;
 
     @Resource
@@ -93,7 +96,15 @@ public class FillOutboxRelayJob {
                 markFailed(event, ex);
             }
         }
-        XxlJobHelper.handleSuccess(String.format("扫描到 %s 个待投递事件，成功 %s 个", events.size(), success));
+        // 发送失败或中断遗留的填报通知在这里按次数与时间窗重试
+        int notifyRetried = 0;
+        try {
+            notifyRetried = notifyService.retryFailed(now);
+        } catch (Exception ex) {
+            log.error("[execute][填报通知重试失败]", ex);
+        }
+        XxlJobHelper.handleSuccess(String.format("扫描到 %s 个待投递事件，成功 %s 个；重试通知成功 %s 条",
+                events.size(), success, notifyRetried));
     }
 
     /**

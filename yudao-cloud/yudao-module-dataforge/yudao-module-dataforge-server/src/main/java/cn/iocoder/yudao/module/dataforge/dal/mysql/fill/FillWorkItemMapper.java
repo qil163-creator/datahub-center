@@ -65,30 +65,56 @@ public interface FillWorkItemMapper extends BaseMapperX<FillWorkItemDO> {
                 .orderByDesc(FillWorkItemDO::getId));
     }
 
-    /** 逾期扫描：可编辑状态、未标记逾期、已过截止时间 */
+    /**
+     * 进行中的数据更正由发起者主动重新开放，不按原截止时间判定逾期或提醒，从候选中排除。
+     */
+    String NO_ACTIVE_CORRECTION = "NOT EXISTS (SELECT 1 FROM dh_dataforge_fill_correction c "
+            + "WHERE c.work_item_id = dh_dataforge_fill_work_item.id AND c.status IN (0, 1) AND c.deleted = 0)";
+
+    /**
+     * 逾期候选：未提交（待填报/填报中/整改中）、尚未标记逾期且已过截止时间的工作项。
+     *
+     * @param now 当前时间
+     * @param limit 最大返回条数
+     * @return 逾期候选
+     */
     default List<FillWorkItemDO> selectOverdueCandidates(java.time.LocalDateTime now, int limit) {
         return selectList(new LambdaQueryWrapperX<FillWorkItemDO>()
                 .in(FillWorkItemDO::getStatus, 0, 1, 5)
                 .eq(FillWorkItemDO::getOverdue, 0)
                 .isNotNull(FillWorkItemDO::getDeadlineTime)
                 .lt(FillWorkItemDO::getDeadlineTime, now)
+                .apply(NO_ACTIVE_CORRECTION)
                 .last("LIMIT " + limit));
     }
 
     /**
-     * 临近截止提醒扫描：可编辑状态、未逾期、截止时间落在 [now, until] 窗口内；
-     * 按截止时间升序，扫描上限截断时优先处理最紧急的工作项
+     * 临近截止提醒候选，按（截止时间，编号）升序分页；传入上一页最后一条的截止时间与编号取下一页。
+     *
+     * @param now 当前时间
+     * @param until 截止时间上界
+     * @param afterDeadline 上一页最后一条的截止时间，首页传 null
+     * @param afterId 上一页最后一条的编号，首页传 null
+     * @param limit 每页条数
+     * @return 提醒候选
      */
     default List<FillWorkItemDO> selectRemindCandidates(java.time.LocalDateTime now,
-            java.time.LocalDateTime until, int limit) {
-        return selectList(new LambdaQueryWrapperX<FillWorkItemDO>()
-                .in(FillWorkItemDO::getStatus, 0, 1, 5)
+            java.time.LocalDateTime until, java.time.LocalDateTime afterDeadline, Long afterId, int limit) {
+        LambdaQueryWrapperX<FillWorkItemDO> query = new LambdaQueryWrapperX<>();
+        query.in(FillWorkItemDO::getStatus, 0, 1, 5)
                 .eq(FillWorkItemDO::getOverdue, 0)
                 .isNotNull(FillWorkItemDO::getDeadlineTime)
                 .ge(FillWorkItemDO::getDeadlineTime, now)
                 .le(FillWorkItemDO::getDeadlineTime, until)
-                .orderByAsc(FillWorkItemDO::getDeadlineTime)
-                .last("LIMIT " + limit));
+                .apply(NO_ACTIVE_CORRECTION);
+        if (afterDeadline != null && afterId != null) {
+            query.and(cursor -> cursor.gt(FillWorkItemDO::getDeadlineTime, afterDeadline)
+                    .or(same -> same.eq(FillWorkItemDO::getDeadlineTime, afterDeadline)
+                            .gt(FillWorkItemDO::getId, afterId)));
+        }
+        query.orderByAsc(FillWorkItemDO::getDeadlineTime).orderByAsc(FillWorkItemDO::getId)
+                .last("LIMIT " + limit);
+        return selectList(query);
     }
 
     /**

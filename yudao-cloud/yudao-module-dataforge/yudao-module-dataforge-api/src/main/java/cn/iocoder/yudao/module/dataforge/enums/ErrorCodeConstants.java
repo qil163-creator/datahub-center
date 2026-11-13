@@ -267,6 +267,7 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_WORK_ITEM_SUBMITTED_BY_OTHER = new ErrorCode(1_500_021_034, "数据已由【{}】提交，当前为只读状态");
     ErrorCode FILL_WORK_ITEM_OVERDUE_LOCKED = new ErrorCode(1_500_021_035,
             "已超过截止时间且任务为硬截止，请联系发起者延期");
+    ErrorCode FILL_WORK_ITEM_NOT_OPEN = new ErrorCode(1_500_021_036, "填报将于 {} 开放，开放前不能填写或提交");
     // ----- 填报人 -----
     ErrorCode FILL_ASSIGNEE_LAST_ONE = new ErrorCode(1_500_021_040, "填报实例必须至少保留一名有效填报人");
     ErrorCode FILL_ASSIGNEE_ALREADY_EXISTS = new ErrorCode(1_500_021_041, "该用户已是本实例的有效填报人");

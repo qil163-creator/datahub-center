@@ -1,4 +1,4 @@
--- Included migrations through: 0285
+-- Included migrations through: 0286
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -8099,12 +8099,16 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_notify_record" (
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "deleted" int2 NOT NULL DEFAULT 0
+  "deleted" int2 NOT NULL DEFAULT 0,
+  "template_params" text COLLATE "pg_catalog"."default",
+  "retry_count" int2 NOT NULL DEFAULT 0
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."notify_type" IS '类型：1-指定填报人 2-转派/重新分配 3-任务开始 4-临近截止 5-已逾期 6-他人已提交 7-驳回 8-通过 9-合并成功 10-合并失败 11-催办 12-数据更正 13-截止延期 14-结束填报 15-合并失败退回整改';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."channel" IS '渠道：1-站内信 2-短信 3-邮件';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."send_status" IS '发送状态：0-待发送 1-已发送 2-发送失败';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."template_params" IS '模板参数快照（JSON），发送失败后按原内容重试；历史记录为空';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."retry_count" IS '已重试次数';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."tenant_id" IS '租户编号';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."creator" IS '创建者';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."create_time" IS '创建时间';

@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTaskDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillWorkItemDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillAssigneeMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillAssignmentLogMapper;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillCorrectionMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillNotifyRecordMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillTaskMapper;
@@ -78,6 +79,12 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
 
     @Resource
     private FillPlanMapper planMapper;
+
+    @Resource
+    private FillCorrectionMapper correctionMapper;
+
+    private static final java.time.format.DateTimeFormatter OPEN_TIME_FORMATTER =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Resource
     private FillNotifyService notifyService;
@@ -442,6 +449,11 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
         if (task != null && Objects.equals(task.getCreator(), String.valueOf(userId))) {
             return true;
         }
+        // 定时生成的任务没有创建人，发起者以计划创建人为准
+        FillPlanDO plan = item.getPlanId() == null ? null : planMapper.selectById(item.getPlanId());
+        if (plan != null && Objects.equals(plan.getCreator(), String.valueOf(userId))) {
+            return true;
+        }
         DeptRespDTO dept = deptApi.getDeptMap(Set.of(item.getReportingOrgId())).get(item.getReportingOrgId());
         return dept != null && Objects.equals(dept.getLeaderUserId(), userId);
     }
@@ -462,12 +474,18 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
             FillWorkItemStatusEnum status = FillWorkItemStatusEnum.of(item.getStatus());
             throw exception(FILL_WORK_ITEM_STATUS_INVALID, status != null ? status.getName() : item.getStatus());
         }
-        // 硬截止：超过截止时间后锁定编辑，由发起者延期或重新开放（软逾期只标记不拦截）
-        if (item.getDeadlineTime() != null && LocalDateTime.now().isAfter(item.getDeadlineTime())) {
-            FillTaskDO task = taskMapper.selectById(item.getTaskId());
-            if (task != null && FillOverduePolicyEnum.HARD.getPolicy().equals(task.getOverduePolicy())) {
-                throw exception(FILL_WORK_ITEM_OVERDUE_LOCKED);
-            }
+        FillTaskDO task = taskMapper.selectById(item.getTaskId());
+        LocalDateTime now = LocalDateTime.now();
+        // 开放时间之前不能填写或提交（任务生成后、开放前只读）
+        if (task != null && task.getOpenTime() != null && now.isBefore(task.getOpenTime())) {
+            throw exception(FILL_WORK_ITEM_NOT_OPEN, OPEN_TIME_FORMATTER.format(task.getOpenTime()));
+        }
+        // 硬截止：超过截止时间后锁定编辑，由发起者延期或重新开放（软逾期只标记不拦截）。
+        // 进行中的数据更正是发起者主动重新开放的，不受原截止时间限制
+        if (item.getDeadlineTime() != null && now.isAfter(item.getDeadlineTime())
+                && task != null && FillOverduePolicyEnum.HARD.getPolicy().equals(task.getOverduePolicy())
+                && correctionMapper.selectActiveByWorkItemId(item.getId()) == null) {
+            throw exception(FILL_WORK_ITEM_OVERDUE_LOCKED);
         }
     }
 

@@ -6,6 +6,11 @@ import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskPageReqVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTaskDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 在线填报-周期任务 Mapper
@@ -94,5 +99,34 @@ public interface FillTaskMapper extends BaseMapperX<FillTaskDO> {
                 .orderByDesc(FillTaskDO::getId)
                 .last("LIMIT 1"));
     }
+
+    /**
+     * 查询已到开放时间但仍为“待开始”的任务。
+     *
+     * @param now 当前时间
+     * @param limit 最大返回条数
+     * @return 待开放任务
+     */
+    default List<FillTaskDO> selectListToOpen(LocalDateTime now, int limit) {
+        return selectList(new LambdaQueryWrapperX<FillTaskDO>()
+                .eq(FillTaskDO::getStatus, 0)
+                .le(FillTaskDO::getOpenTime, now)
+                .orderByAsc(FillTaskDO::getOpenTime)
+                .last("LIMIT " + limit));
+    }
+
+    /**
+     * 任务状态 CAS 迁移。
+     *
+     * @param id 任务编号
+     * @param fromStatus 期望的当前状态
+     * @param toStatus 目标状态
+     * @return 影响行数
+     */
+    @Update("UPDATE dh_dataforge_fill_task "
+            + "SET status = #{toStatus}, update_time = CURRENT_TIMESTAMP "
+            + "WHERE id = #{id} AND status = #{fromStatus} AND deleted = 0")
+    int compareAndSetStatus(@Param("id") Long id, @Param("fromStatus") Integer fromStatus,
+            @Param("toStatus") Integer toStatus);
 
 }

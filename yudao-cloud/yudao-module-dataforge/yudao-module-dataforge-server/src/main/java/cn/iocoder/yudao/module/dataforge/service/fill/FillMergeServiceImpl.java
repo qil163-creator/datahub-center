@@ -338,6 +338,11 @@ public class FillMergeServiceImpl implements FillMergeService {
         AccessDatabaseResolver.ConnectionInfo conn =
                 databaseResolver.resolve(batch.getTargetDatabaseId(), FILL_MERGE_TARGET_INVALID);
         FillMergeStrategyEnum strategy = FillMergeStrategyEnum.of(batch.getMergeStrategy());
+        // 同一组织实例此前的提交：更新插入策略下，它们写入而本次已删除的行需要从正式表清理
+        List<Long> previousSubmissionIds = submissionMapper.selectListByWorkItemId(item.getId()).stream()
+                .map(FillSubmissionDO::getId)
+                .filter(id -> !Objects.equals(id, submission.getId()))
+                .toList();
         int written;
         try (HikariDataSource dataSource = createDataSource(conn)) {
             Objects.requireNonNull(strategy, "未知合并策略");
@@ -354,7 +359,10 @@ public class FillMergeServiceImpl implements FillMergeService {
                             recordValues, List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
                             List.of(item.getReportingOrgId(), periodKey));
                     case UPSERT -> FillMergeJdbcWriter.upsert(dataSource, target, fieldNames, recordValues,
-                            resolveBusinessKeyColumns(version, fields));
+                            resolveBusinessKeyColumns(version, fields),
+                            new FillMergeJdbcWriter.StaleRows(List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
+                                    List.of(item.getReportingOrgId(), periodKey), SYS_COL_SUBMISSION_ID,
+                                    previousSubmissionIds));
                 };
             } else {
                 // 分析型、文档型等目标库不支持“删除 + 写入”同事务提交，沿用通用写入器：
@@ -372,8 +380,20 @@ public class FillMergeServiceImpl implements FillMergeService {
                                         + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'");
                         yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, writerValues);
                     }
-                    case UPSERT -> upsertAll(dataSource, conn, batch.getTargetTableName(),
-                            fieldNames, writerValues, resolveBusinessKeyColumns(version, fields));
+                    case UPSERT -> {
+                        int upserted = upsertAll(dataSource, conn, batch.getTargetTableName(),
+                                fieldNames, writerValues, resolveBusinessKeyColumns(version, fields));
+                        if (!previousSubmissionIds.isEmpty()) {
+                            // 清理该组织实例此前提交留下、本次已不再包含的行；编号为数值直拼
+                            deleteByCondition(conn, batch.getTargetTableName(),
+                                    quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
+                                            + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'"
+                                            + " AND " + quote(conn, SYS_COL_SUBMISSION_ID) + " IN ("
+                                            + previousSubmissionIds.stream().map(String::valueOf)
+                                            .collect(java.util.stream.Collectors.joining(", ")) + ")");
+                        }
+                        yield upserted;
+                    }
                 };
             }
         }

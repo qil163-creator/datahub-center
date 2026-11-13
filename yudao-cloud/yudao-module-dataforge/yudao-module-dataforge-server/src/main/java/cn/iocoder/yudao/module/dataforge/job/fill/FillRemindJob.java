@@ -44,6 +44,9 @@ public class FillRemindJob {
 
     private static final int SCAN_LIMIT = 500;
 
+    /** 单次执行最多扫描的页数（每页 SCAN_LIMIT 条） */
+    private static final int MAX_PAGES = 40;
+
     @Resource
     private FillWorkItemMapper workItemMapper;
 
@@ -69,22 +72,39 @@ public class FillRemindJob {
 
     public void execute() {
         int reminded = 0;
+        int scanned = 0;
         LocalDateTime now = LocalDateTime.now();
-        List<FillWorkItemDO> candidates = workItemMapper.selectRemindCandidates(
-                now, now.plusHours(FillRemindConfig.MAX_HOURS_BEFORE_DEADLINE), SCAN_LIMIT);
-        Map<Long, Integer> hoursByPlan = resolveHoursByPlan(candidates);
-        for (FillWorkItemDO item : candidates) {
-            try {
-                int hours = hoursByPlan.getOrDefault(item.getPlanId(),
-                        FillRemindConfig.DEFAULT_HOURS_BEFORE_DEADLINE);
-                if (remind(item, hours, now)) {
-                    reminded++;
-                }
-            } catch (Exception ex) {
-                log.error("[execute][工作项({}) 临近截止提醒失败]", item.getId(), ex);
+        LocalDateTime until = now.plusHours(FillRemindConfig.MAX_HOURS_BEFORE_DEADLINE);
+        // 按（截止时间，编号）游标逐页扫描：已提醒过的工作项仍在候选里，只取第一页会让排在后面的永远轮不到
+        LocalDateTime afterDeadline = null;
+        Long afterId = null;
+        for (int page = 0; page < MAX_PAGES; page++) {
+            List<FillWorkItemDO> candidates = workItemMapper.selectRemindCandidates(
+                    now, until, afterDeadline, afterId, SCAN_LIMIT);
+            if (candidates.isEmpty()) {
+                break;
             }
+            scanned += candidates.size();
+            Map<Long, Integer> hoursByPlan = resolveHoursByPlan(candidates);
+            for (FillWorkItemDO item : candidates) {
+                try {
+                    int hours = hoursByPlan.getOrDefault(item.getPlanId(),
+                            FillRemindConfig.DEFAULT_HOURS_BEFORE_DEADLINE);
+                    if (remind(item, hours, now)) {
+                        reminded++;
+                    }
+                } catch (Exception ex) {
+                    log.error("[execute][工作项({}) 临近截止提醒失败]", item.getId(), ex);
+                }
+            }
+            if (candidates.size() < SCAN_LIMIT) {
+                break;
+            }
+            FillWorkItemDO last = candidates.get(candidates.size() - 1);
+            afterDeadline = last.getDeadlineTime();
+            afterId = last.getId();
         }
-        XxlJobHelper.handleSuccess(String.format("扫描到 %s 个待截止工作项，提醒 %s 个", candidates.size(), reminded));
+        XxlJobHelper.handleSuccess(String.format("扫描到 %s 个待截止工作项，提醒 %s 个", scanned, reminded));
     }
 
     /** 每个计划的提醒提前量（小时）；计划缺失时按默认值 */
