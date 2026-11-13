@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskExtendReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemAssigneeUpdateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillWorkItemTransferReqVO;
@@ -55,6 +56,14 @@ public interface FillWorkItemService {
      * @return 实际催办的组织数
      */
     int urgeByTask(Long taskId);
+
+    /**
+     * 延期截止时间（只推后不提前，清除逾期标记并解除硬截止锁定）
+     *
+     * @param reqVO 请求参数
+     * @return 实际延期的组织实例数
+     */
+    int extendDeadline(FillTaskExtendReqVO reqVO);
 
     // ==================== 供草稿/协同/提交等服务复用的校验能力 ====================
 

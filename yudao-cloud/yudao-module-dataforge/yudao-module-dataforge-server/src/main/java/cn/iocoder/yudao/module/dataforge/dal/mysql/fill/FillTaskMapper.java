@@ -77,4 +77,22 @@ public interface FillTaskMapper extends BaseMapperX<FillTaskDO> {
                 .eq(FillTaskDO::getPeriodKey, periodKey));
     }
 
+    /**
+     * 同一计划中所属期紧邻在前的任务（上期数据带入的来源）。
+     *
+     * @param planId 计划编号
+     * @param periodStart 当前任务所属期开始时间
+     * @param excludeId 当前任务编号
+     * @return 上期任务，没有时返回 null
+     */
+    default FillTaskDO selectPreviousTask(Long planId, java.time.LocalDateTime periodStart, Long excludeId) {
+        return selectOne(new LambdaQueryWrapperX<FillTaskDO>()
+                .eq(FillTaskDO::getPlanId, planId)
+                .lt(FillTaskDO::getPeriodStart, periodStart)
+                .ne(FillTaskDO::getId, excludeId)
+                .orderByDesc(FillTaskDO::getPeriodStart)
+                .orderByDesc(FillTaskDO::getId)
+                .last("LIMIT 1"));
+    }
+
 }

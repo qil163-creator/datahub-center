@@ -185,6 +185,25 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
      * @param submissionId 提交编号
      */
     @Override
+    public boolean abandonForTaskClose(Long workItemId) {
+        FillCorrectionDO correction = correctionMapper.selectActiveByWorkItemId(workItemId);
+        if (correction == null) {
+            return false;
+        }
+        // 草拟中，或更正提交被驳回/撤回后回到整改中：两者都没有进行中的审批，原合并数据仍是正式数据
+        int moved = workItemMapper.compareAndSetStatus(workItemId,
+                FillWorkItemStatusEnum.REWORKING.getStatus(), FillWorkItemStatusEnum.MERGED.getStatus());
+        if (moved == 0) {
+            return false;
+        }
+        FillCorrectionDO update = new FillCorrectionDO();
+        update.setId(correction.getId());
+        update.setStatus(FillCorrectionStatusEnum.CANCELLED.getStatus());
+        correctionMapper.updateById(update);
+        return true;
+    }
+
+    @Override
     public void completeBySubmissionId(Long submissionId) {
         FillCorrectionDO correction = correctionMapper.selectByCorrectionSubmissionId(submissionId);
         if (correction == null || FillCorrectionStatusEnum.MERGED.getStatus().equals(correction.getStatus())) {

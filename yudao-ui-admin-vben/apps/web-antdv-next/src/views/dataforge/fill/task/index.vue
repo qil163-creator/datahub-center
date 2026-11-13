@@ -25,7 +25,7 @@ function percent(task: DataforgeFillApi.Task) {
     : 0;
 }
 
-const [Grid] = useVbenVxeGrid({
+const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
     schema: useTaskGridFormSchema(),
   },
@@ -87,6 +87,6 @@ const [Grid] = useVbenVxeGrid({
       </template>
     </Grid>
 
-    <TaskDetail ref="detailRef" />
+    <TaskDetail ref="detailRef" @changed="gridApi.query()" />
   </Page>
 </template>

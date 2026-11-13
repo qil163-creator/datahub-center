@@ -157,4 +157,15 @@ describe('填报协同客户端', () => {
     expect(onOperationApplied).toHaveBeenCalledTimes(1);
     expect(onOperationApplied).toHaveBeenCalledWith(expect.objectContaining({ serverVersion: 4 }));
   });
+
+  it('只把当前填报实例的状态变化广播交给回调（延期、结束填报后重新加载快照）', () => {
+    const onWorkItemStatusChanged = vi.fn();
+    create({ onWorkItemStatusChanged });
+    const socket = FakeSocket.instances[0]!;
+    socket.open();
+    socket.message(frame('fill-work-item-status-changed', { status: 10, workItemId: 8 }));
+    socket.message(frame('fill-work-item-status-changed', { status: 10, workItemId: 7 }));
+    expect(onWorkItemStatusChanged).toHaveBeenCalledTimes(1);
+    expect(onWorkItemStatusChanged).toHaveBeenCalledWith({ status: 10, workItemId: 7 });
+  });
 });

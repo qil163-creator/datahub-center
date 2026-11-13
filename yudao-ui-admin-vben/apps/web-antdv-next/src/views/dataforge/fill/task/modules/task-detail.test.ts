@@ -92,6 +92,7 @@ vi.mock('antdv-next', () => {
       h(tag, attrs, slots.default?.());
   return {
     Button: slot('button'),
+    DatePicker: slot('input'),
     Input: slot('input'),
     Select: slot('select'),
     Space: slot('div'),
@@ -115,6 +116,9 @@ vi.mock('antdv-next', () => {
   };
 });
 vi.mock('#/api/dataforge/fill', () => ({
+  closeTask: vi.fn(),
+  extendTaskDeadline: vi.fn(),
+  getTask: vi.fn(),
   getTaskProgress: vi.fn(),
   getWorkItemListByTask: vi.fn(),
   switchTaskProcessDefinition: vi.fn(),
@@ -201,6 +205,12 @@ function orgNames() {
 
 function refreshing() {
   return host.querySelector('table')?.getAttribute('aria-busy');
+}
+
+function buttonTexts() {
+  return [...host.querySelectorAll('button')].map((element) =>
+    element.textContent?.trim(),
+  );
 }
 
 function refresh() {
@@ -319,5 +329,16 @@ describe('采集任务进度异步加载', () => {
     expect(description('completionRate')).toBe('-');
     expect(orgNames()).toEqual([]);
     expect(refreshing()).toBe('false');
+  });
+
+  it('只有待开始或进行中的任务显示延期和结束填报', async () => {
+    await detail.open(task(1));
+    await flush();
+    expect(buttonTexts()).toEqual(expect.arrayContaining(['延期', '结束填报']));
+
+    await detail.open({ ...task(1), status: 2 });
+    await flush();
+    expect(buttonTexts()).not.toContain('延期');
+    expect(buttonTexts()).not.toContain('结束填报');
   });
 });

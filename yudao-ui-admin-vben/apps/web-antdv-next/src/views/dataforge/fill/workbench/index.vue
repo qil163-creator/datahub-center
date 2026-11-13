@@ -184,7 +184,10 @@ async function pullRemoteOperations() {
             type: 'setCell',
             value: op.newValue,
           });
-        } else if (op.opType === 'ADD_ROW' && op.rowId) {
+        } else if (
+          (op.opType === 'ADD_ROW' || op.opType === 'PREFILL') &&
+          op.rowId
+        ) {
           adapter.applyRemoteOperation({
             data: (op.newValue ?? {}) as Record<string, unknown>,
             rowId: op.rowId,
@@ -707,6 +710,12 @@ function setupCollabClient() {
         if (payload.serverVersion > serverVersion.value) {
           void pullRemoteOperations();
         }
+      },
+      onWorkItemStatusChanged: () => {
+        // 广播只是提示：先同步本端未保存的修改，失败（如已不可编辑）时直接以服务端快照为准
+        void refreshSnapshot()
+          .catch(() => loadSnapshot())
+          .catch(() => undefined);
       },
       onStatusChange: (open) => {
         wsOpen.value = open;

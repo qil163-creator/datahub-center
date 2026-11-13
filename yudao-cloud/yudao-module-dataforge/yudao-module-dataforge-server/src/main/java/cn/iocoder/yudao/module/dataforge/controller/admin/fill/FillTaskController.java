@@ -4,6 +4,8 @@ import com.mzt.logapi.starter.annotation.LogRecord;
 import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskCloseRespVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskExtendReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenerateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskPageReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskProgressRespVO;
@@ -133,7 +135,7 @@ public class FillTaskController {
     @LogRecord(type = "数据开发-在线填报采集任务", subType = "任务级一键催办", bizNo = "{{(#id) ?: 0}}",
             success = "对填报采集任务【{{(#operateName) ?: '未设置'}}】发起了催办，通知处理数【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
-    @Operation(summary = "任务级一键催办", description = "对全部未完成组织实例发送催办；1 小时频控内的自动跳过")
+    @Operation(summary = "任务级一键催办", description = "对全部未完成组织实例发送催办；计划配置的催办频控内自动跳过（默认 60 分钟）")
     @Parameter(name = "id", description = "任务编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:urge')")
     public CommonResult<Integer> urgeTask(@RequestParam("id") Long id) {
@@ -149,6 +151,57 @@ public class FillTaskController {
         LogRecordContext.putVariable("operateName", operateName);
 
         return success(workItemService.urgeByTask(id));
+    }
+
+    /**
+     * 延期截止时间。
+     *
+     * @param reqVO 请求参数
+     * @return 实际延期的组织实例数
+     */
+    @PutMapping("/extend")
+    @LogRecord(type = "数据开发-在线填报采集任务", subType = "延期截止时间", bizNo = "{{(#reqVO.taskId) ?: 0}}",
+            success = "将填报采集任务【{{(#operateName) ?: '未设置'}}】的截止时间延期至【{{(#reqVO.deadlineTime) ?: '未设置'}}】，指定组织实例【{{(#reqVO.workItemIds) ?: '全部未提交'}}】，实际延期【{{(#_ret.data) ?: 0}}】个，原因【{{(#reqVO.reason) ?: '未填写'}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0}}")
+    @Operation(summary = "延期截止时间",
+            description = "不指定组织实例时延期任务下全部未提交实例并同步任务截止时间；只推后不提前，延期后清除逾期标记并解除硬截止锁定")
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:extend')")
+    public CommonResult<Integer> extendDeadline(@Valid @RequestBody FillTaskExtendReqVO reqVO) {
+        putOperateName(reqVO.getTaskId());
+        return success(workItemService.extendDeadline(reqVO));
+    }
+
+    /**
+     * 结束填报。
+     *
+     * @param id 任务编号
+     * @return 结束结果
+     */
+    @PutMapping("/close")
+    @LogRecord(type = "数据开发-在线填报采集任务", subType = "结束填报", bizNo = "{{(#id) ?: 0}}",
+            success = "结束了填报采集任务【{{(#operateName) ?: '未设置'}}】：取消未提交组织【{{(#_ret.data.cancelledCount) ?: 0}}】个，撤销更正恢复已合并【{{(#_ret.data.restoredCount) ?: 0}}】个，仍在审批或合并中【{{(#_ret.data.inFlightCount) ?: 0}}】个", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0}}")
+    @Operation(summary = "结束填报",
+            description = "取消尚未提交的组织实例、撤销进行中的更正；审批或合并中的实例继续走完，全部完成后任务自动结束")
+    @Parameter(name = "id", description = "任务编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:cancel')")
+    public CommonResult<FillTaskCloseRespVO> closeTask(@RequestParam("id") Long id) {
+        putOperateName(id);
+        return success(taskService.closeTask(id));
+    }
+
+    /** 审计日志使用任务名称；读取失败时保留编号，不影响业务权限、校验和写入结果 */
+    private void putOperateName(Long id) {
+        String operateName = "编号" + id;
+        try {
+            var operateObject = taskService.getTask(id);
+            if (operateObject != null) {
+                operateName = java.util.Objects.toString(operateObject.getName(), operateName);
+            }
+        } catch (RuntimeException ignored) {
+            // 任务不存在时由业务方法抛出明确错误
+        }
+        LogRecordContext.putVariable("operateName", operateName);
     }
 
 }

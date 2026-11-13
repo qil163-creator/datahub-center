@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { Dayjs } from 'dayjs';
+
 import type { DataforgeFillApi } from '#/api/dataforge/fill';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -11,6 +13,7 @@ import { formatDateTime } from '@vben/utils';
 
 import {
   Button,
+  DatePicker,
   Input,
   message,
   Modal,
@@ -19,8 +22,12 @@ import {
   Table,
   Tag,
 } from 'antdv-next';
+import dayjs from 'dayjs';
 
 import {
+  closeTask,
+  extendTaskDeadline,
+  getTask,
   getTaskProgress,
   getWorkItemListByTask,
   switchTaskProcessDefinition,
@@ -34,6 +41,8 @@ import { useDescription } from '#/components/description';
 import { TASK_STATUS_TEXT, WORK_ITEM_STATUS_TEXT } from '../../shared';
 
 defineOptions({ name: 'DataforgeFillTaskDetail' });
+
+const emit = defineEmits<{ changed: [] }>();
 
 const router = useRouter();
 const access = useAccessStore();
@@ -109,13 +118,14 @@ const columns = [
     title: '提交次数',
     width: 85,
   },
+  { key: 'deadlineTime', title: '截止时间', width: 150 },
   {
     dataIndex: 'lastModifyTime',
     key: 'lastModifyTime',
     title: '最后修改',
     width: 160,
   },
-  { key: 'actions', title: '操作', width: 340, fixed: 'right' as const },
+  { key: 'actions', title: '操作', width: 400, fixed: 'right' as const },
 ];
 
 const statusSummary = computed(() => {
@@ -151,7 +161,9 @@ async function openDetail(row: DataforgeFillApi.Task) {
   progress.value = undefined;
   workItems.value = [];
   resetAssignees();
+  resetExtend();
   urging.value = false;
+  closing.value = false;
   taskDescApi.setDescProps({ data: { ...row } });
   detailDrawerApi.open();
   loading.value = true;
@@ -179,6 +191,14 @@ async function openDetail(row: DataforgeFillApi.Task) {
 
 async function reload() {
   if (task.value) await openDetail(task.value);
+}
+
+/** 写操作后重新读取任务本身（状态、截止时间会变化），并通知列表刷新 */
+async function reloadTask(generation: number, taskId: number) {
+  emit('changed');
+  const latest = await getTask(taskId);
+  if (!isCurrent(generation)) return;
+  await openDetail(latest);
 }
 
 function viewData(item: DataforgeFillApi.WorkItem) {
@@ -218,7 +238,9 @@ function resetDetail() {
   workItems.value = [];
   taskDescApi.setDescProps({ data: {} });
   resetAssignees();
+  resetExtend();
   urging.value = false;
+  closing.value = false;
 }
 
 async function openAssigneeModal(item: DataforgeFillApi.WorkItem) {
@@ -291,7 +313,7 @@ const urging = ref(false);
 async function handleUrgeItem(item: DataforgeFillApi.WorkItem) {
   const generation = requestGeneration;
   Modal.confirm({
-    content: `将向「${item.orgName ?? item.id}」的当前填报人发送催办。1 小时内重复催办会被服务端频控。`,
+    content: `将向「${item.orgName ?? item.id}」的当前填报人发送催办。在计划配置的催办频控时间内（默认 60 分钟）重复催办会被服务端拒绝。`,
     onOk: async () => {
       if (!isCurrent(generation)) return;
       await urgeWorkItem(item.id);
@@ -335,7 +357,7 @@ async function handleUrgeAll() {
   const taskId = task.value.id;
   Modal.confirm({
     content:
-      '将催办本任务下尚未完成的组织。1 小时内已催办过的组织会被服务端跳过。',
+      '将催办本任务下尚未完成的组织。在计划配置的催办频控时间内（默认 60 分钟）已催办过的组织会被服务端跳过。',
     onOk: async () => {
       if (!isCurrent(generation) || urging.value) return;
       urging.value = true;
@@ -345,13 +367,115 @@ async function handleUrgeAll() {
         message.success(
           count > 0
             ? `已催办 ${count} 个未完成组织`
-            : '没有需要催办的组织（或均在 1 小时频控内）',
+            : '没有需要催办的组织（或均在催办频控时间内）',
         );
       } finally {
         if (isCurrent(generation)) urging.value = false;
       }
     },
     title: '一键催办确认',
+  });
+}
+
+// ---------------------------------------------------------------- 延期截止时间
+/** 进行中或待开始的任务才允许延期、结束填报 */
+const taskOpen = computed(() => task.value?.status === 0 || task.value?.status === 1);
+const extendOpen = ref(false);
+const extendSaving = ref(false);
+/** 为空表示延期整个任务下全部未提交组织 */
+const extendItem = ref<DataforgeFillApi.WorkItem>();
+const extendDeadline = ref<Dayjs>();
+const extendReason = ref('');
+let extendRequest = 0;
+
+function resetExtend() {
+  ++extendRequest;
+  extendOpen.value = false;
+  extendSaving.value = false;
+  extendItem.value = undefined;
+  extendDeadline.value = undefined;
+  extendReason.value = '';
+}
+
+function openExtendModal(item?: DataforgeFillApi.WorkItem) {
+  ++extendRequest;
+  extendItem.value = item;
+  const current = item?.deadlineTime ?? task.value?.deadlineTime;
+  const base = current && dayjs(current).isAfter(dayjs()) ? dayjs(current) : dayjs();
+  extendDeadline.value = base.add(1, 'day');
+  extendReason.value = '';
+  extendSaving.value = false;
+  extendOpen.value = true;
+}
+
+function disabledPastDate(current: Dayjs) {
+  return current.isBefore(dayjs().startOf('day'));
+}
+
+async function handleExtendSave() {
+  if (!task.value || extendSaving.value) return;
+  if (!extendDeadline.value || !extendDeadline.value.isAfter(dayjs())) {
+    message.warning('新的截止时间必须晚于当前时间');
+    return;
+  }
+  extendSaving.value = true;
+  const generation = requestGeneration;
+  const request = extendRequest;
+  const taskId = task.value.id;
+  try {
+    const count = await extendTaskDeadline({
+      deadlineTime: extendDeadline.value.valueOf(),
+      reason: extendReason.value.trim() || undefined,
+      taskId,
+      workItemIds: extendItem.value ? [extendItem.value.id] : undefined,
+    });
+    if (!isCurrent(generation) || request !== extendRequest) return;
+    message.success(
+      count > 0
+        ? `已延期 ${count} 个组织，并通知其填报人`
+        : '没有需要延期的组织（截止时间均已晚于所选时间，或均已提交）',
+    );
+    extendOpen.value = false;
+    await reloadTask(generation, taskId);
+  } finally {
+    if (isCurrent(generation) && request === extendRequest)
+      extendSaving.value = false;
+  }
+}
+
+// ---------------------------------------------------------------- 结束填报
+const closing = ref(false);
+
+function handleCloseTask() {
+  if (!task.value || closing.value) return;
+  const generation = requestGeneration;
+  const taskId = task.value.id;
+  Modal.confirm({
+    content:
+      '结束后，尚未提交的组织（待填报、填报中、整改中）将被取消且不能再填报，已合并后发起的更正会被撤销并保留原数据；审批或合并中的组织会继续走完，全部完成后任务自动结束。此操作不可撤回。',
+    okButtonProps: { danger: true },
+    okText: '结束填报',
+    onOk: async () => {
+      if (!isCurrent(generation) || closing.value) return;
+      closing.value = true;
+      try {
+        const result = await closeTask(taskId);
+        if (!isCurrent(generation)) return;
+        const parts = [`取消 ${result.cancelledCount} 个未提交组织`];
+        if (result.restoredCount > 0) {
+          parts.push(`撤销 ${result.restoredCount} 个进行中的更正`);
+        }
+        message.success(
+          result.inFlightCount > 0
+            ? `已结束填报：${parts.join('，')}；另有 ${result.inFlightCount} 个组织仍在审批或合并中，完成后任务自动结束`
+            : `已结束填报：${parts.join('，')}`,
+        );
+        await reloadTask(generation, taskId);
+      } finally {
+        if (isCurrent(generation)) closing.value = false;
+      }
+    },
+    title: '结束填报确认',
   });
 }
 
@@ -402,6 +526,26 @@ defineExpose({ open: openDetail });
           <template #icon><IconifyIcon icon="lucide:bell-ring" /></template>
           一键催办
         </Button>
+        <Button
+          v-if="taskOpen"
+          v-access:code="'dataforge:fill-task:extend'"
+          size="small"
+          @click="openExtendModal()"
+        >
+          <template #icon><IconifyIcon icon="lucide:clock-plus" /></template>
+          延期
+        </Button>
+        <Button
+          v-if="taskOpen"
+          v-access:code="'dataforge:fill-task:cancel'"
+          :loading="closing"
+          danger
+          size="small"
+          @click="handleCloseTask"
+        >
+          <template #icon><IconifyIcon icon="lucide:circle-stop" /></template>
+          结束填报
+        </Button>
         <Button :loading="loading" size="small" @click="reload"
           ><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
           >刷新</Button
@@ -414,7 +558,7 @@ defineExpose({ open: openDetail });
       :data-source="workItems"
       :loading="loading"
       :pagination="false"
-      :scroll="{ x: 1110 }"
+      :scroll="{ x: 1320 }"
       row-key="id"
       size="small"
       table-layout="fixed"
@@ -436,6 +580,9 @@ defineExpose({ open: openDetail });
               {{ assignee.userName ?? assignee.userId }}
             </Tag>
           </Space>
+        </template>
+        <template v-else-if="column.key === 'deadlineTime'">
+          {{ formatDateTime(record.deadlineTime) || '-' }}
         </template>
         <template v-else-if="column.key === 'lastModifyTime'">
           {{ formatDateTime(record.lastModifyTime) || '-' }}
@@ -466,6 +613,16 @@ defineExpose({ open: openDetail });
           >
             <template #icon><IconifyIcon icon="lucide:bell-ring" /></template>
             催办
+          </Button>
+          <Button
+            v-if="taskOpen && ASSIGNEE_EDITABLE.has(record.status)"
+            v-access:code="'dataforge:fill-task:extend'"
+            size="small"
+            type="link"
+            @click="openExtendModal(record)"
+          >
+            <template #icon><IconifyIcon icon="lucide:clock-plus" /></template>
+            延期
           </Button>
         </template>
       </template>
@@ -524,6 +681,43 @@ defineExpose({ open: openDetail });
         </div>
         <p class="text-muted-foreground text-xs">
           实例始终至少保留一名有效填报人；历史修改与提交记录不受人员调整影响。
+        </p>
+      </div>
+    </Modal>
+    <Modal
+      v-model:open="extendOpen"
+      :confirm-loading="extendSaving"
+      :title="
+        extendItem
+          ? `延期截止时间：${extendItem.orgName ?? extendItem.id}`
+          : '延期截止时间：全部未提交组织'
+      "
+      ok-text="确认延期"
+      @ok="handleExtendSave"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <div>
+          <div class="mb-1 text-sm font-medium">新的截止时间</div>
+          <DatePicker
+            v-model:value="extendDeadline"
+            :disabled-date="disabledPastDate"
+            :show-time="{ format: 'HH:mm' }"
+            class="w-full"
+            format="YYYY-MM-DD HH:mm"
+            placeholder="选择新的截止时间"
+          />
+        </div>
+        <div>
+          <div class="mb-1 text-sm font-medium">延期原因</div>
+          <Input
+            v-model:value="extendReason"
+            :maxlength="200"
+            placeholder="如：部分单位系统维护，统一延期两天（记入操作日志）"
+          />
+        </div>
+        <p class="text-muted-foreground text-xs">
+          只推后、不提前：截止时间已晚于所选时间的组织保持不变。延期后清除逾期标记，硬截止锁定随之解除，并通知相关填报人。
+          {{ extendItem ? '' : '同时更新任务的截止时间。' }}
         </p>
       </div>
     </Modal>

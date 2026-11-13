@@ -23,7 +23,9 @@ public enum FillNotifyTypeEnum {
     MERGE_SUCCEEDED(9, "合并成功"),
     MERGE_FAILED(10, "合并失败"),
     URGE(11, "催办"),
-    CORRECTION_CREATED(12, "数据更正开放整改");
+    CORRECTION_CREATED(12, "数据更正开放整改"),
+    DEADLINE_EXTENDED(13, "截止时间延期"),
+    TASK_CLOSED(14, "发起者结束填报");
 
     private final Integer type;
 
