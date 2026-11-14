@@ -59,7 +59,9 @@ import { LOGIC_TABLE_PAGES } from '../config';
 import { QdIcon } from '../icons';
 import CatTree from './cat-tree.vue';
 import SourceModal from './source-modal.vue';
+import SourceSyncModal from './source-sync-modal.vue';
 import SummaryModal from './summary-modal.vue';
+import VersionCompareModal from './version-compare-modal.vue';
 
 import '../logic-table.css';
 
@@ -425,9 +427,8 @@ function openEdit(row: Row) {
       query: { id: String(row.id), from: route.path },
     });
 }
-function developing() {
-  message.info('功能开发中');
-}
+const syncModal = ref<InstanceType<typeof SourceSyncModal>>();
+const compareModal = ref<InstanceType<typeof VersionCompareModal>>();
 
 /** 确认框打开期间的行，避免重复点击叠加多个确认框。 */
 const confirmingIds = new Set<string>();
@@ -948,14 +949,14 @@ type="link"
                                   <template v-if="page.kind === 'source'">
                                     <Button
 type="link"
-                                      @click="developing"
+                                      @click="syncModal?.open(row.id, row.name)"
                                     >
                                       <img :src="syncIcon" class="qd-action-list__img" alt="" />
                                       同步结构
                                     </Button>
                                     <Button
 type="link"
-                                      @click="developing"
+                                      @click="compareModal?.open(row.id, row.name)"
                                     >
                                       <img :src="versionIcon" class="qd-action-list__img" alt="" />
                                       版本比对
@@ -1008,6 +1009,8 @@ type="link" danger
         </main>
       </section>
       <SourceModal v-if="kind === 'source'" ref="sourceModal" @saved="load()" />
+      <SourceSyncModal v-if="kind === 'source'" ref="syncModal" @synced="load()" />
+      <VersionCompareModal ref="compareModal" />
       <SummaryModal v-if="kind === 'summary'" ref="summaryModal" @saved="load()" />
       <TableCustomization v-model:open="settingsOpen" :columns="customizedColumns" @apply="applySettings" @reset="resetSettings" />
     </div>

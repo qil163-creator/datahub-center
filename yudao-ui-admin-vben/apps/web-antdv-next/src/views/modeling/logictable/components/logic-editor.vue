@@ -52,8 +52,11 @@ import {
   validateLogicFields,
 } from '../editor-state';
 import { QdIcon } from '../icons';
+import { mergeImportedFields } from '../field-import-state';
 import { useLogicOptions } from '../options';
 import FieldGrid from './field-grid.vue';
+import FieldImportModal from './field-import-modal.vue';
+import SqlParseModal from './sql-parse-modal.vue';
 
 import '../editor.css';
 
@@ -557,6 +560,19 @@ async function save() {
     if (current()) saving.value = false;
   }
 }
+const importModal = ref<InstanceType<typeof FieldImportModal>>();
+const sqlModal = ref<InstanceType<typeof SqlParseModal>>();
+/** 引入的字段追加到当前设计（英文名重复的跳过），或按 SQL 解析结果替换。 */
+function importFields(rows: ModelingModelApi.ModelField[], replace = false) {
+  if (disabled.value) return;
+  const result = mergeImportedFields(fields.value, rows, props.kind, replace);
+  fields.value = result.fields;
+  if (result.added > 0) message.success(`已引入 ${result.added} 个字段`);
+  if (result.skipped.length > 0)
+    message.warning(
+      `${result.skipped.length} 个字段与现有字段英文名重复，已跳过：${result.skipped.slice(0, 5).join('、')}${result.skipped.length > 5 ? ' 等' : ''}`,
+    );
+}
 watch(
   () =>
     `${access.accessToken}/${access.refreshToken}/${access.accessCodes.join(',')}/${props.kind}/${props.modelId ?? 'new'}`,
@@ -910,14 +926,14 @@ defineExpose({ confirmLeave: () => Promise.resolve(!saving.value) });
                     type="button"
                     class="qd-editor-button is-plain"
                     :disabled="disabled"
-                    @click="message.info('功能开发中')"
+                    @click="importModal?.open('indicator')"
                   >
                     从派生指标引用
 </button><button
                     type="button"
                     class="qd-editor-button is-plain"
                     :disabled="disabled"
-                    @click="message.info('功能开发中')"
+                    @click="importModal?.open('codeTable')"
                   >
                     从代码表引入
                   </button>
@@ -926,14 +942,14 @@ defineExpose({ confirmLeave: () => Promise.resolve(!saving.value) });
                   type="button"
                   class="qd-editor-button is-plain"
                   :disabled="disabled"
-                  @click="message.info('功能开发中')"
+                  @click="importModal?.open('logic')"
                 >
                   从逻辑表引入
 </button><button
                   type="button"
                   class="qd-editor-button is-plain"
                   :disabled="disabled"
-                  @click="message.info('功能开发中')"
+                  @click="sqlModal?.open()"
                 >
                   SQL解析
                 </button>
@@ -976,6 +992,19 @@ defineExpose({ confirmLeave: () => Promise.resolve(!saving.value) });
           </button>
         </div>
       </div>
+      <FieldImportModal
+        ref="importModal"
+        :kind="kind"
+        :data-domain-id="form.dataDomainId"
+        :current-model-id="modelId"
+        :code-tables="codeTables"
+        @import="(rows) => importFields(rows)"
+      />
+      <SqlParseModal
+        ref="sqlModal"
+        :kind="kind"
+        @import="(rows, replace) => importFields(rows, replace)"
+      />
     </div>
   </ConfigProvider>
 </template>

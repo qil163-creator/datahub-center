@@ -91,6 +91,80 @@ export namespace TableModelApi {
     models?: ErNode[];
     relations?: Relation[];
   }
+  /** 版本变化摘要：初始版本只有 initial；其余为相对上一版本的数量。 */
+  export interface ChangeSummary {
+    initial?: boolean;
+    added?: number;
+    removed?: number;
+    modified?: number;
+    headerChanged?: number;
+  }
+  export interface Version {
+    id: Id;
+    modelId: Id;
+    versionNo: number;
+    versionLabel: string;
+    modelRevision?: Id;
+    fieldCount?: number;
+    changeSummary?: ChangeSummary;
+    publishedBy?: Id;
+    publishedByName?: string;
+    /** 后端 LocalDateTime 默认输出毫秒时间戳 */
+    publishedTime?: number | string;
+  }
+  export interface VersionDetail extends Version {
+    modelSnapshot?: Record<string, unknown>;
+    fields?: ModelingModelApi.ModelField[];
+    typeConfig?: unknown;
+  }
+  export type FieldChangeType = 'ADDED' | 'MODIFIED' | 'REMOVED' | 'UNCHANGED';
+  export interface AttributeChange {
+    key: string;
+    label: string;
+    before?: string;
+    after?: string;
+  }
+  export interface FieldChange {
+    changeType: FieldChangeType;
+    fieldUid?: string;
+    fieldName?: string;
+    cnName?: string;
+    before?: ModelingModelApi.ModelField;
+    after?: ModelingModelApi.ModelField;
+    changes: AttributeChange[];
+  }
+  export interface Diff {
+    fromLabel?: string;
+    toLabel?: string;
+    headerChanges: AttributeChange[];
+    fields: FieldChange[];
+    summary: {
+      added: number;
+      headerChanged: number;
+      modified: number;
+      removed: number;
+      unchanged: number;
+    };
+  }
+  export interface SourceSyncPreview {
+    modelId: Id;
+    revision: Id;
+    status?: string;
+    datasourceId?: Id;
+    sourceTable?: string;
+    diff: Diff;
+  }
+  export interface SourceSyncResult {
+    saved: boolean;
+    published: boolean;
+    publishMessage?: string;
+  }
+  export type SqlDialect = 'DORIS' | 'MYSQL' | 'ORACLE' | 'POSTGRESQL';
+  export interface SqlParseResult {
+    tableName?: string;
+    tableComment?: string;
+    fields: ModelingModelApi.ModelField[];
+  }
 }
 
 /** 仅提交可写设计头；部署目标、展示字段和状态由服务端维护。 */
@@ -210,5 +284,46 @@ export const previewSummaryTableFields = (data: {
 }) =>
   requestClient.post<ModelingModelApi.ModelField[]>(
     `${path}/summary-preview`,
+    data,
+  );
+
+/** 版本列表，最新在前；每次发布生成一个只读版本。 */
+export const getTableModelVersions = (modelId: TableModelApi.Id) =>
+  requestClient.get<TableModelApi.Version[]>(`${path}/version/list`, {
+    params: { modelId },
+  });
+export const getTableModelVersion = (id: TableModelApi.Id) =>
+  requestClient.get<TableModelApi.VersionDetail>(`${path}/version/get`, {
+    params: { id },
+  });
+/** toVersionId 为空时与当前设计比较。 */
+export const compareTableModelVersions = (params: {
+  fromVersionId: TableModelApi.Id;
+  modelId: TableModelApi.Id;
+  toVersionId?: TableModelApi.Id;
+}) =>
+  requestClient.get<TableModelApi.Diff>(`${path}/version/compare`, { params });
+/** 贴源表：源表当前结构与当前设计的差异，不写入任何数据。 */
+export const previewSourceSync = (modelId: TableModelApi.Id) =>
+  requestClient.get<TableModelApi.SourceSyncPreview>(
+    `${path}/source-sync/preview`,
+    { params: { modelId } },
+  );
+/** 贴源表：按预览时的修订号写回结构，原已发布的模型重新发布。 */
+export const applySourceSync = (data: {
+  expectedRevision: TableModelApi.Id;
+  modelId: TableModelApi.Id;
+}) =>
+  requestClient.put<TableModelApi.SourceSyncResult>(
+    `${path}/source-sync/apply`,
+    data,
+  );
+/** 解析建表语句为字段，只返回结果，不写入设计。 */
+export const parseSqlFields = (data: {
+  dialect: TableModelApi.SqlDialect;
+  sql: string;
+}) =>
+  requestClient.post<TableModelApi.SqlParseResult>(
+    `${path}/sql-parse-fields`,
     data,
   );

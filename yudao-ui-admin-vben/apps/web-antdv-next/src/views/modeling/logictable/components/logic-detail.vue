@@ -50,6 +50,7 @@ import {
 import { QdIcon } from '../icons';
 import { loadLogicOptionPages } from '../options';
 import FieldModal from './field-modal.vue';
+import VersionPanel from './version-panel.vue';
 
 import '../detail.css';
 
@@ -833,12 +834,11 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </template>
-          <div
+          <VersionPanel
             v-else-if="activeTab === 'versions'"
-            class="p-6 text-center text-muted-foreground"
-          >
-            暂未实现
-          </div>
+            :model-id="modelId"
+            :model-name="model?.name"
+          />
           <template v-else>
             <Spin class="qd-logic-detail-related" :spinning="relatedLoading">
               <Alert

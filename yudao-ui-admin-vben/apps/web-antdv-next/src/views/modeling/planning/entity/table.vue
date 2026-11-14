@@ -31,8 +31,10 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 
 import EntityDetail from './detail.vue';
 import EntityForm from './form.vue';
+import RelationGraphModal from './relation-graph-modal.vue';
 import { ENTITY_STATUSES, ENTITY_SUBTYPES, ENTITY_TYPES } from './state';
 import { normalizeEntityTree } from './tree-state';
+import VersionModal from './version-modal.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -339,9 +341,8 @@ function reset() {
   status.value = undefined;
   void load(true);
 }
-function notAvailable() {
-  message.info('功能开发中');
-}
+const graphModal = ref<InstanceType<typeof RelationGraphModal>>();
+const versionModal = ref<InstanceType<typeof VersionModal>>();
 async function changeStatus(
   rows: BusinessEntityApi.Entity[],
   target: BusinessEntityApi.Status,
@@ -428,6 +429,11 @@ onDeactivated(() => {
 <template>
   <div class="planning-entity-table planning-embedded">
     <FormModal @success="load()" /><DetailModal />
+    <RelationGraphModal
+      ref="graphModal"
+      @open-entity="(id) => detailApi.setData({ id }).open()"
+    />
+    <VersionModal ref="versionModal" />
     <div class="planning-table">
       <Grid
         :style="{
@@ -577,7 +583,7 @@ onDeactivated(() => {
                 type: 'link',
                 icon: 'lucide:network',
                 auth: ['modeling:business-entity:query'],
-                onClick: notAvailable,
+                onClick: () => graphModal?.open(row.id, row.name),
               },
             ]"
             :drop-down-actions="[
@@ -592,7 +598,7 @@ onDeactivated(() => {
                 label: '版本',
                 icon: 'lucide:file-clock',
                 auth: ['modeling:business-entity:query'],
-                onClick: notAvailable,
+                onClick: () => versionModal?.open(row.id, row.name),
               },
               {
                 label: row.status === 0 ? '下线' : '上线',
