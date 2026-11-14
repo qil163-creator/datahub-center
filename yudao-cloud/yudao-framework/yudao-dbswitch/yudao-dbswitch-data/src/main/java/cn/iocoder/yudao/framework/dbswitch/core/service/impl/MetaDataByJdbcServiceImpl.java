@@ -132,7 +132,7 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
                 || timeoutMillis < 1 || timeoutMillis > 60_000) {
             throw new IllegalArgumentException("明确的 schema/table 与一至六万毫秒期限是必需的");
         }
-        try (Connection connection = connectionProvider.open(jdbcUrl, username, password);
+        try (Connection connection = connectionProvider.open(nativeMetadataJdbcUrl(jdbcUrl), username, password);
              var deadline = new cn.iocoder.yudao.framework.dbswitch.core.util.JdbcReadDeadline(connection,
                      timeoutMillis)) {
             var result = database.resolveCatalogRelation(connection, schemaName, tableName,
@@ -145,6 +145,11 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
         } catch (SQLException failure) {
             throw new IllegalStateException("原生 catalog 关系名解析失败", failure);
         }
+    }
+
+    /** 原生目录的绑定参数复用产品查询传输策略，避免 Doris 客户端转义改变参数类型。 */
+    private String nativeMetadataJdbcUrl(String jdbcUrl) {
+        return dbType == ProductTypeEnum.DORIS ? database.preparePageQueryJdbcUrl(jdbcUrl) : jdbcUrl;
     }
 
     /** 基础读取有意绕过门面接口的完整模式读取、信息补充和截止时间处理路径。 */
@@ -171,10 +176,10 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
         if (maxTables < 1 || maxTables > 10_000) {
             throw new IllegalArgumentException("表列表上限必须在一至一万之间");
         }
-        try (Connection connection = connectionProvider.open(jdbcUrl, username, password);
+        try (Connection connection = connectionProvider.open(nativeMetadataJdbcUrl(jdbcUrl), username, password);
              var deadline = new cn.iocoder.yudao.framework.dbswitch.core.util.JdbcReadDeadline(connection,
                      timeoutMillis)) {
-            if (dbType == ProductTypeEnum.TIDB || dbType == ProductTypeEnum.MYSQL
+            if (dbType == ProductTypeEnum.TIDB || dbType == ProductTypeEnum.DORIS || dbType == ProductTypeEnum.MYSQL
                     || dbType == ProductTypeEnum.MARIADB) {
                 var tables = database.queryCatalogTableList(connection, schemaName, maxTables,
                         Math.max(1, (timeoutMillis + 999) / 1000));
@@ -231,7 +236,8 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
     public List<ColumnDescription> queryExactTableColumns(String jdbcUrl, String username, String password,
             cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity expectedRelation,
             List<String> projection, int timeoutMillis) {
-        if (expectedRelation == null || expectedRelation.product() != dbType || dbType != ProductTypeEnum.TIDB) {
+        if (expectedRelation == null || expectedRelation.product() != dbType
+                || dbType != ProductTypeEnum.TIDB && dbType != ProductTypeEnum.DORIS) {
             throw new UnsupportedOperationException("原生身份绑定列读取仅接受已验证产品的完整关系观察");
         }
         return queryExactTableColumns(jdbcUrl, username, password, expectedRelation.schemaName(),
@@ -254,16 +260,16 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
             columns = projection.stream().map(column -> RestrictedSelectGuard.quotePhysicalIdentifier(dbType, column))
                     .collect(Collectors.joining(", "));
         }
-        try (Connection connection = connectionProvider.open(jdbcUrl, username, password);
+        try (Connection connection = connectionProvider.open(nativeMetadataJdbcUrl(jdbcUrl), username, password);
              var deadline = new cn.iocoder.yudao.framework.dbswitch.core.util.JdbcReadDeadline(connection,
                      timeoutMillis)) {
             cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity observed = null;
-            if (dbType == ProductTypeEnum.TIDB) {
+            if (dbType == ProductTypeEnum.TIDB || dbType == ProductTypeEnum.DORIS) {
                 observed = database.resolveCatalogRelation(connection, schemaName, tableName,
                         Math.max(1, (timeoutMillis + 999) / 1000));
                 if (observed == null || observed.product() != dbType
                         || expectedRelation != null && !expectedRelation.equals(observed)) {
-                    throw new IllegalStateException("TiDB 原生关系身份已变化或无法确认");
+                    throw new IllegalStateException("原生关系身份已变化或无法确认");
                 }
                 relation = RestrictedSelectGuard.qualifiedTableName(dbType, observed.schemaName(),
                         observed.tableName());
@@ -271,8 +277,9 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
             // 禁用空操作函数时，TiDB 8.5.6 会拒绝 Connector/J 的 SET TRANSACTION READ ONLY。
             // 此受控元数据路径仅执行组件自身带引号的零行 SELECT，
             // 以及原生目录读取；不要启用不受支持的服务器模式或更改事务。
-            // 已验证的数据库产品继续遵循原有 JDBC 只读契约。
-            if (dbType != ProductTypeEnum.TIDB) {
+            // Doris 同样只执行固定的零行查询和目录查询，不依赖 MySQL 事务语法。
+            // 其他数据库产品继续遵循原有 JDBC 只读契约。
+            if (dbType != ProductTypeEnum.TIDB && dbType != ProductTypeEnum.DORIS) {
                 connection.setReadOnly(true);
             }
             try (var statement = connection.prepareStatement(
@@ -283,16 +290,15 @@ public class MetaDataByJdbcServiceImpl implements IMetaDataByJdbcService {
                     List<ColumnDescription> resultColumns = new ArrayList<>();
                     for (int i = 1; i <= metadata.getColumnCount(); i++) {
                         var column = new ColumnDescription();
-                        // TiDB 的列标签会原样返回请求别名的大小写；原生的原始名称
-                        // 字段保留目录中的拼写，必须用它构造精确的权限键。
-                        column.setFieldName(dbType == ProductTypeEnum.TIDB
+                        // 原生目录路径使用物理列名称，不能把请求别名拼写作为权限键。
+                        column.setFieldName(dbType == ProductTypeEnum.TIDB || dbType == ProductTypeEnum.DORIS
                                 ? metadata.getColumnName(i) : metadata.getColumnLabel(i));
                         column.setFieldTypeName(metadata.getColumnTypeName(i));
                         resultColumns.add(column);
                     }
                     if (observed != null && !observed.equals(database.resolveCatalogRelation(connection,
                             observed.schemaName(), observed.tableName(), Math.max(1, (timeoutMillis + 999) / 1000)))) {
-                        throw new IllegalStateException("TiDB 原生关系在精确列读取期间变化");
+                        throw new IllegalStateException("原生关系在精确列读取期间变化");
                     }
                     deadline.check();
                     return List.copyOf(resultColumns);

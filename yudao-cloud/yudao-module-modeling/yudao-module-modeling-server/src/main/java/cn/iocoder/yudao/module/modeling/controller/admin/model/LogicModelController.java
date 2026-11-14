@@ -42,6 +42,15 @@ public class LogicModelController {
     @Resource
     private cn.iocoder.yudao.module.modeling.service.model.ModelingDatabaseResolver databaseResolver;
 
+    @Resource
+    private cn.iocoder.yudao.module.modeling.service.model.LogicModelVersionService versionService;
+
+    @Resource
+    private cn.iocoder.yudao.module.modeling.service.model.LogicModelSourceSyncService sourceSyncService;
+
+    @Resource
+    private cn.iocoder.yudao.module.modeling.service.model.ModelSqlParseService sqlParseService;
+
     /**
      * 创建逻辑模型（正向/逆向建模）。
      *
@@ -390,6 +399,103 @@ public class LogicModelController {
             @RequestParam("databaseId") Long databaseId,
             @RequestParam("tableName") String tableName) {
         return success(databaseResolver.importFields(databaseId, tableName));
+    }
+
+    /**
+     * 逻辑模型的版本列表，最新在前。
+     *
+     * @param modelId 逻辑模型编号
+     * @return 版本列表
+     */
+    @GetMapping("/version/list")
+    @Operation(summary = "获得逻辑模型版本列表（每次发布生成，只读）")
+    @Parameter(name = "modelId", description = "逻辑模型编号", required = true)
+    @PreAuthorize("@ss.hasPermission('modeling:model:query')")
+    public CommonResult<List<cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.LogicModelVersionRespVO>>
+            getVersionList(@RequestParam("modelId") Long modelId) {
+        logicModelService.getModel(modelId);
+        return success(versionService.listVersions(modelId));
+    }
+
+    /**
+     * 逻辑模型的版本快照。
+     *
+     * @param id 版本编号
+     * @return 版本快照
+     */
+    @GetMapping("/version/get")
+    @Operation(summary = "获得逻辑模型版本快照")
+    @Parameter(name = "id", description = "版本编号", required = true)
+    @PreAuthorize("@ss.hasPermission('modeling:model:query')")
+    public CommonResult<cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.LogicModelVersionDetailRespVO>
+            getVersion(@RequestParam("id") Long id) {
+        return success(versionService.getVersion(id));
+    }
+
+    /**
+     * 比较两个版本，或某个版本与当前设计。
+     *
+     * @param modelId 逻辑模型编号
+     * @param fromVersionId 基准版本编号
+     * @param toVersionId 目标版本编号，为空时与当前设计比较
+     * @return 比对结果
+     */
+    @GetMapping("/version/compare")
+    @Operation(summary = "比较逻辑模型的两个版本，或版本与当前设计")
+    @Parameter(name = "modelId", description = "逻辑模型编号", required = true)
+    @Parameter(name = "fromVersionId", description = "基准版本编号", required = true)
+    @Parameter(name = "toVersionId", description = "目标版本编号，为空时与当前设计比较")
+    @PreAuthorize("@ss.hasPermission('modeling:model:query')")
+    public CommonResult<cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.ModelDiffRespVO>
+            compareVersion(@RequestParam("modelId") Long modelId, @RequestParam("fromVersionId") Long fromVersionId,
+                           @RequestParam(value = "toVersionId", required = false) Long toVersionId) {
+        return success(versionService.compare(modelId, fromVersionId, toVersionId));
+    }
+
+    /**
+     * 贴源表：预览源表当前结构与当前设计的差异。
+     *
+     * @param modelId 逻辑模型编号
+     * @return 差异预览
+     */
+    @GetMapping("/source-sync/preview")
+    @Operation(summary = "贴源表同步结构：预览源表当前结构与当前设计的差异")
+    @Parameter(name = "modelId", description = "逻辑模型编号", required = true)
+    @PreAuthorize("@ss.hasPermission('modeling:model:query')")
+    public CommonResult<cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.SourceSyncPreviewRespVO>
+            previewSourceSync(@RequestParam("modelId") Long modelId) {
+        return success(sourceSyncService.preview(modelId));
+    }
+
+    /**
+     * 贴源表：按源表当前结构更新当前设计，原本已发布的模型重新发布并生成新版本。
+     *
+     * @param request 模型编号与预览时的修订号
+     * @return 保存与重新发布结果
+     */
+    @LogRecord(type = "数据建模-逻辑模型", subType = "贴源表同步源表结构", bizNo = "{{#request.modelId}}",
+            success = "按源表结构同步了贴源表【{{#request.modelId}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0}}")
+    @PutMapping("/source-sync/apply")
+    @Operation(summary = "贴源表同步结构：按源表当前结构更新设计并重新发布")
+    @PreAuthorize("@ss.hasPermission('modeling:model:save') and @ss.hasPermission('modeling:model:publish')")
+    public CommonResult<cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.SourceSyncApplyRespVO>
+            applySourceSync(@Valid @RequestBody
+                            cn.iocoder.yudao.module.modeling.controller.admin.model.vo.version.SourceSyncApplyReqVO request) {
+        return success(sourceSyncService.apply(request));
+    }
+
+    /**
+     * 字段设计：把建表语句解析为字段，只返回解析结果，不写入设计。
+     *
+     * @param request 方言与建表语句
+     * @return 解析出的字段
+     */
+    @PostMapping("/sql-parse-fields")
+    @Operation(summary = "字段设计：解析建表语句为字段（不写入设计）")
+    @PreAuthorize("@ss.hasPermission('modeling:model:query')")
+    public CommonResult<SqlParseFieldsRespVO> parseSqlFields(@Valid @RequestBody SqlParseFieldsReqVO request) {
+        return success(sqlParseService.parse(request));
     }
 
     /**

@@ -70,6 +70,9 @@ public class LogicModelServiceImpl implements LogicModelService {
     private LogicModelDefinitionService definitionService;
 
     @Resource
+    private LogicModelVersionService versionService;
+
+    @Resource
     private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     /**
@@ -238,6 +241,7 @@ public class LogicModelServiceImpl implements LogicModelService {
         modelMapper.deleteById(id);
         columnService.deleteByModelId(id);
         relationMapper.deleteByModelId(id);
+        versionService.deleteByModelId(id);
     }
 
     /**
@@ -363,14 +367,19 @@ public class LogicModelServiceImpl implements LogicModelService {
             hierarchyResolver.validateHierarchyOnPublish(locked.getLayerId(), locked.getSubjectDomainId(),
                     locked.getDataDomainId(), locked.getTableType(), locked.getBizCategoryId());
             validateCurrentDependencies(locked, fields);
+            Long publishedBy = cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId();
+            java.time.LocalDateTime publishedTime = java.time.LocalDateTime.now();
             modelMapper.update(null, Wrappers.lambdaUpdate(LogicModelDO.class)
                     .set(LogicModelDO::getRevision, revision(locked) + 1)
                     .set(LogicModelDO::getStatus, LogicModelDO.STATUS_PUBLISHED)
-                    .set(LogicModelDO::getPublishedBy,
-                            cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId())
-                    .set(LogicModelDO::getPublishedTime, java.time.LocalDateTime.now())
+                    .set(LogicModelDO::getPublishedBy, publishedBy)
+                    .set(LogicModelDO::getPublishedTime, publishedTime)
                     .eq(LogicModelDO::getId, modelId));
             columnService.replaceByModelId(modelId, fields);
+            // 版本快照与发布同事务写入：任一步失败整体回滚，不留下没有版本的发布或没有发布的版本。
+            LogicModelDO published = modelMapper.selectById(modelId);
+            versionService.recordPublish(published, columnService.listByModelId(modelId), published.getTypeConfig(),
+                    publishedBy, publishedTime);
         });
     }
 

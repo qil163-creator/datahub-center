@@ -983,11 +983,13 @@ public class DataAccessServiceImpl implements DataAccessService {
                 .build();
     }
 
-    /** 只有用户明确关闭已有表同步的普通 PostgreSQL 全量配置，才在保存时固定新表约束。 */
+    /** 用户明确关闭已有表同步的普通 PostgreSQL 源全量配置，可固定到已支持目标的新表约束。 */
     private void normalizeNewTableWriteModeForSave(AccessTaskConfig config, DatabaseDO sourceDatabase,
             DatabaseDO targetDatabase) {
         var source = config.getSource().getFirst();
         var target = config.getTarget();
+        boolean dorisTarget = targetDatabase.getDatabaseType() != null
+                && databaseResolver.resolveProductType(targetDatabase) == ProductTypeEnum.DORIS;
         if (target.getWriteMode() != null || !Integer.valueOf(1).equals(source.getSourceType())
                 || target.isSyncExist() || target.isTargetDrop() || target.isTargetTruncateData()
                 || target.isChangeDataSync() || target.isOnlyCreate() || target.isIndexCreate()
@@ -1000,13 +1002,14 @@ public class DataAccessServiceImpl implements DataAccessService {
                 || CollUtil.isNotEmpty(target.getDistributedKeys())
                 || CollUtil.isNotEmpty(config.getTypeMappingAcknowledgements())
                 || source.getConfigMap() != null && source.getConfigMap().values().stream().anyMatch(mapping ->
-                StrUtil.isNotBlank(mapping.getTargetTableComment()) || StrUtil.isNotBlank(mapping.getTimestampColumn())
-                        || StrUtil.isNotBlank(mapping.getIncreaseColumnName()) || mapping.getDorisOptions() != null)
+                !dorisTarget && StrUtil.isNotBlank(mapping.getTargetTableComment()) || StrUtil.isNotBlank(mapping.getTimestampColumn())
+                        || StrUtil.isNotBlank(mapping.getIncreaseColumnName()) || mapping.getDorisOptions() != null
+                        && (!dorisTarget || mapping.getDorisOptions().partition() != null))
                 || sourceDatabase.getDatabaseType() == null || targetDatabase.getDatabaseType() == null) {
             return;
         }
         if (databaseResolver.resolveProductType(sourceDatabase) == ProductTypeEnum.POSTGRESQL
-                && databaseResolver.resolveProductType(targetDatabase) == ProductTypeEnum.POSTGRESQL) {
+                && (dorisTarget || databaseResolver.resolveProductType(targetDatabase) == ProductTypeEnum.POSTGRESQL)) {
             target.setWriteMode("CREATE_NEW");
         }
     }

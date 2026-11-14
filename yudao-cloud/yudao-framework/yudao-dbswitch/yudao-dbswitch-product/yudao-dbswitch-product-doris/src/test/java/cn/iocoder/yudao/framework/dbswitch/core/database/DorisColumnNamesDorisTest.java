@@ -17,6 +17,48 @@ import static org.junit.jupiter.api.Assertions.*;
 @Timeout(60)
 @EnabledIfSystemProperty(named = "datahub.test.doris.url", matches = "jdbc:mysql://127[.]0[.]0[.]1:[0-9]+/")
 class DorisColumnNamesDorisTest {
+    @Test
+    void nativeInspectionDoesNotMixCommentsForUnderscoreAndPatternMatchingNames() throws Exception {
+        String schema = "inspect_names_" + UUID.randomUUID().toString().replace("-", "");
+        String otherSchema = schema.replace("inspect_", "inspectX");
+        try (var connection = DriverManager.getConnection(System.getProperty("datahub.test.doris.url"), "root", "")) {
+            sql(connection, "CREATE DATABASE " + q(schema));
+            try {
+                sql(connection, "CREATE DATABASE " + q(otherSchema));
+                for (String name : new String[]{"order_", "orderX"}) {
+                    sql(connection, "CREATE TABLE " + q(schema) + "." + q(name)
+                            + "(id BIGINT NOT NULL COMMENT '" + name + " field') ENGINE=OLAP DUPLICATE KEY(id)"
+                            + " COMMENT '" + name + " table' DISTRIBUTED BY HASH(id) BUCKETS 1"
+                            + " PROPERTIES('replication_num'='1')");
+                }
+                sql(connection, "CREATE TABLE " + q(otherSchema) + "." + q("order_")
+                        + "(id BIGINT NOT NULL COMMENT 'other database field') ENGINE=OLAP DUPLICATE KEY(id)"
+                        + " COMMENT 'other database table' DISTRIBUTED BY HASH(id) BUCKETS 1"
+                        + " PROPERTIES('replication_num'='1')");
+                var exact = cn.iocoder.yudao.framework.dbswitch.product.doris.DorisJdbcSupport
+                        .inspect(connection, schema, "order_", 20);
+                var decoy = cn.iocoder.yudao.framework.dbswitch.product.doris.DorisJdbcSupport
+                        .inspect(connection, schema, "orderX", 20);
+                assertEquals("order_ table", exact.table().comment());
+                assertEquals("order_ field", exact.table().column("id").comment());
+                assertEquals("orderX table", decoy.table().comment());
+                assertNotEquals(exact.physical(), decoy.physical());
+                assertNotEquals(exact.generation(), decoy.generation());
+                var other = cn.iocoder.yudao.framework.dbswitch.product.doris.DorisJdbcSupport
+                        .inspect(connection, otherSchema, "order_", 20);
+                assertEquals("other database table", other.table().comment());
+                assertEquals("other database field", other.table().column("id").comment());
+                assertNotEquals(exact.physical(), other.physical());
+            } finally {
+                try {
+                    sql(connection, "DROP DATABASE IF EXISTS " + q(schema) + " FORCE");
+                } finally {
+                    sql(connection, "DROP DATABASE IF EXISTS " + q(otherSchema) + " FORCE");
+                }
+            }
+        }
+    }
+
     @ParameterizedTest @ValueSource(strings = {"ordinary", "wild_%_name", "literal'quote", "back`tick\"name", "MixedCase"})
     void exactPhysicalNamesNeverExpandAsJdbcPatternsOrLoseQuotedCharacters(String name) throws Exception {
         String schema = "dm74_columns_" + UUID.randomUUID().toString().replace("-", "");

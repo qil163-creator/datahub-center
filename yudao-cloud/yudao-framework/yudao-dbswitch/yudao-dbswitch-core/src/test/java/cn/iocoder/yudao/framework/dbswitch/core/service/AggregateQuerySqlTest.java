@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.framework.dbswitch.core.service;
 
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
+import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -77,12 +78,75 @@ class AggregateQuerySqlTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ProductTypeEnum.class, names = {"ORACLE", "SQLSERVER", "TIDB", "DORIS", "CLICKHOUSE",
+    @EnumSource(value = ProductTypeEnum.class, names = {"ORACLE", "SQLSERVER", "TIDB", "CLICKHOUSE",
             "KINGBASE", "DM"})
     void unverifiedProductsAreUnsupported(ProductTypeEnum product) {
         assertFalse(supports(product));
         assertThrows(UnsupportedOperationException.class, () -> render(request(product, List.of("region"),
                 Aggregation.SUM, null, null, null)));
+    }
+
+    private static final CatalogRelationIdentity DORIS_RELATION =
+            new CatalogRelationIdentity(ProductTypeEnum.DORIS, "dw", "fact_order", "a".repeat(64));
+
+    private static Request dorisRequest(TimeWindow time, List<Filter> filters, List<String> rowFilters,
+            CatalogRelationIdentity relation) {
+        return new Request(ProductTypeEnum.DORIS, "dw", "fact_order", COLUMNS, List.of("region"), "amount",
+                Aggregation.SUM, time, filters, rowFilters, 101, relation);
+    }
+
+    @Test
+    void dorisRendersAgainstCatalogRelationWithBackticksAndDorisBuckets() {
+        assertTrue(supports(ProductTypeEnum.DORIS));
+        assertTrue(requiresCatalogRelation(ProductTypeEnum.DORIS));
+        var plan = render(dorisRequest(
+                new TimeWindow("pay_time", TimeGrain.MONTH, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 1)),
+                List.of(new Filter("region", "east")), List.of("pay_status = 'PAID'"), DORIS_RELATION));
+        assertTrue(plan.sql().startsWith("SELECT `dh_dim_0`, `dh_time_bucket`, SUM(`dh_value`) AS `dh_value` FROM ("),
+                plan.sql());
+        assertTrue(plan.sql().contains(
+                "CAST(DATE_TRUNC(CAST(`dh_src`.`pay_time` AS DATETIME), 'month') AS DATE) AS `dh_time_bucket`"),
+                plan.sql());
+        assertTrue(plan.sql().contains("FROM `dw`.`fact_order`"), plan.sql());
+        assertTrue(plan.sql().contains("`pay_status` = 'PAID'"), plan.sql());
+        assertTrue(plan.sql().endsWith("GROUP BY `dh_dim_0`, `dh_time_bucket` "
+                + "ORDER BY `dh_time_bucket` ASC, `dh_dim_0` ASC LIMIT 101"), plan.sql());
+        assertFalse(plan.sql().contains("east"));
+        assertEquals(List.of(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 1), "east"), plan.parameters());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TimeGrain.class)
+    void everyGrainRendersForDoris(TimeGrain grain) {
+        var plan = render(dorisRequest(new TimeWindow("pay_time", grain, null, null), null, null, DORIS_RELATION));
+        assertTrue(plan.sql().contains("DATE_TRUNC(CAST(`dh_src`.`pay_time` AS DATETIME), '"
+                + grain.name().toLowerCase() + "')"), plan.sql());
+    }
+
+    @Test
+    void dorisWithoutMatchingCatalogRelationIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> render(dorisRequest(null, null, null, null)));
+        assertThrows(IllegalArgumentException.class, () -> render(dorisRequest(null, null, null,
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "dw", "other_table", "a".repeat(64)))));
+        assertThrows(IllegalArgumentException.class, () -> render(dorisRequest(null, null, null,
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "DW", "fact_order", "a".repeat(64)))));
+        assertThrows(IllegalArgumentException.class, () -> render(dorisRequest(null, null, null,
+                new CatalogRelationIdentity(ProductTypeEnum.TIDB, "dw", "fact_order", "42"))));
+        assertThrows(IllegalArgumentException.class, () -> render(dorisRequest(null, null, null,
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "dw", "fact_order", "42"))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "pay_status = 'PAID'; DROP TABLE fact_order",
+            "user_id IN (SELECT id FROM information_schema.tables)",
+            "sleep(10) IS NULL",
+            "password = 'x'",
+            "pay_status = 'PAID' UNION SELECT user FROM mysql.user"
+    })
+    void maliciousDorisBusinessConditionsAreRejected(String condition) {
+        assertThrows(IllegalArgumentException.class,
+                () -> render(dorisRequest(null, null, List.of(condition), DORIS_RELATION)));
     }
 
     @ParameterizedTest

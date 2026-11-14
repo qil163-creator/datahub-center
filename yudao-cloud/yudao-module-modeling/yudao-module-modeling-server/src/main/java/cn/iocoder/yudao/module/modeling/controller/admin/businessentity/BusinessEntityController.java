@@ -27,6 +27,12 @@ public class BusinessEntityController {
     @Resource
     private BusinessEntityService service;
 
+    @Resource
+    private cn.iocoder.yudao.module.modeling.service.businessentity.BusinessEntityVersionService versions;
+
+    @Resource
+    private cn.iocoder.yudao.module.modeling.service.businessentity.BusinessEntityGraphService graphService;
+
     /**
      * 新增业务实体。
      *
@@ -171,6 +177,62 @@ public class BusinessEntityController {
     public CommonResult<BusinessEntityOptionsRespVO> options(@RequestParam @Positive Long dataDomainId,
             @RequestParam(required = false) @Positive Long excludeId) {
         return success(service.options(dataDomainId, excludeId));
+    }
+
+    /**
+     * 业务实体关系图。
+     *
+     * @param id 业务实体编号
+     * @return 一跳范围内的实体关系与关联逻辑表
+     */
+    @GetMapping("/relation-graph")
+    @Operation(summary = "获得业务实体关系图（一跳范围内的实体关系及关联逻辑表）")
+    @PreAuthorize("@ss.hasPermission('modeling:business-entity:query')")
+    public CommonResult<BusinessEntityGraphRespVO> relationGraph(@RequestParam @Positive Long id) {
+        return success(graphService.graph(id));
+    }
+
+    /**
+     * 业务实体的版本列表，最新在前。
+     *
+     * @param entityId 业务实体编号
+     * @return 版本列表
+     */
+    @GetMapping("/version/list")
+    @Operation(summary = "获得业务实体版本列表（每次上线生成，只读）")
+    @PreAuthorize("@ss.hasPermission('modeling:business-entity:query')")
+    public CommonResult<List<BusinessEntityVersionRespVO>> versionList(@RequestParam @Positive Long entityId) {
+        service.get(entityId);
+        return success(versions.listVersions(entityId));
+    }
+
+    /**
+     * 业务实体的版本快照。
+     *
+     * @param id 版本编号
+     * @return 版本快照
+     */
+    @GetMapping("/version/get")
+    @Operation(summary = "获得业务实体版本快照")
+    @PreAuthorize("@ss.hasPermission('modeling:business-entity:query')")
+    public CommonResult<BusinessEntityVersionDetailRespVO> version(@RequestParam @Positive Long id) {
+        return success(versions.getVersion(id));
+    }
+
+    /**
+     * 比较两个版本，或某个版本与当前设计。
+     *
+     * @param entityId 业务实体编号
+     * @param fromVersionId 基准版本编号
+     * @param toVersionId 目标版本编号，为空时与当前设计比较
+     * @return 比对结果
+     */
+    @GetMapping("/version/compare")
+    @Operation(summary = "比较业务实体的两个版本，或版本与当前设计")
+    @PreAuthorize("@ss.hasPermission('modeling:business-entity:query')")
+    public CommonResult<BusinessEntityVersionCompareRespVO> compareVersion(@RequestParam @Positive Long entityId,
+            @RequestParam @Positive Long fromVersionId, @RequestParam(required = false) @Positive Long toVersionId) {
+        return success(versions.compare(entityId, fromVersionId, toVersionId));
     }
 
 }

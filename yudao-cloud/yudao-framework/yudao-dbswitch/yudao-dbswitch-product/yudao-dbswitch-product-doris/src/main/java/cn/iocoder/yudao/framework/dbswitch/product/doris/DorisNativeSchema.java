@@ -559,7 +559,7 @@ public final class DorisNativeSchema {
         return new IllegalArgumentException("Doris native structure requires a verified bounded definition");
     }
 
-    private static final class Parser {
+    static final class Parser {
 
         private final String text;
 

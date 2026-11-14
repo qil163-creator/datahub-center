@@ -83,6 +83,11 @@ public final class SchemaSynchronization {
             String tableComment, List<ColumnDescription> desiredColumns,
             MetadataReadOptions options) throws SQLException {
         ProductTypeEnum product = database.getDatabaseType();
+        if (product == ProductTypeEnum.DORIS) {
+            Objects.requireNonNull(options);
+            return database.planTableSynchronization(connection, schema, table, tableComment,
+                    desiredColumns.stream().map(ColumnDescription::copy).toList(), options.timeoutSeconds());
+        }
         if (product != ProductTypeEnum.POSTGRESQL && product != ProductTypeEnum.MYSQL) {
             return rejected(product, "UNSUPPORTED_FULL_SYNCHRONIZATION_PRODUCT", table);
         }
@@ -102,7 +107,21 @@ public final class SchemaSynchronization {
      */
     public static Plan createPlan(AbstractDatabase database, String schema, String table, String tableComment,
             List<ColumnDescription> desiredColumns) {
+        return createPlan(database, schema, table, tableComment, desiredColumns, Map.of());
+    }
+
+    /** 原生数仓表使用显式结构化属性；其他产品不接受未声明的表属性。 */
+    public static Plan createPlan(AbstractDatabase database, String schema, String table, String tableComment,
+            List<ColumnDescription> desiredColumns, Map<String, String> properties) {
         ProductTypeEnum product = database.getDatabaseType();
+        Objects.requireNonNull(properties);
+        if (product == ProductTypeEnum.DORIS) {
+            return database.planCreateTableSynchronization(schema, table, tableComment,
+                    desiredColumns.stream().map(ColumnDescription::copy).toList(), Map.copyOf(properties));
+        }
+        if (!properties.isEmpty()) {
+            return rejected(product, "UNSUPPORTED_CREATE_TABLE_PROPERTIES", table);
+        }
         if (product != ProductTypeEnum.POSTGRESQL && product != ProductTypeEnum.MYSQL) {
             return rejected(product, "UNSUPPORTED_FULL_SYNCHRONIZATION_PRODUCT", table);
         }

@@ -10,6 +10,14 @@ import java.util.List;
  */
 public interface IDatabaseWriter {
 
+    /** 原生授权复制的纯建表规划；结构语义必须与本次类型映射保真结论一致。 */
+    default String planAuthorizedCreateTable(String schema, String table,
+            List<cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription> columns,
+            List<String> primaryKeys, String comment, java.util.Map<String, String> properties,
+            cn.iocoder.yudao.framework.dbswitch.core.schema.mapping.LogicalTypeMappings mappings) {
+        throw new UnsupportedOperationException("Native authorized CREATE TABLE planning is not implemented");
+    }
+
     /** 纯计划：生成实际批量 INSERT 模板，不取得连接或写入目标。 */
     default String planInsertSql(String schema, String table, List<String> fields) {
         throw new UnsupportedOperationException("Authorized INSERT plans are not implemented by this writer");
@@ -19,6 +27,16 @@ public interface IDatabaseWriter {
     default void useAuthorizedInsertSql(String schema, String table, List<String> fields, String sql,
             List<Integer> parameterOrder) {
         throw new UnsupportedOperationException("Authorized INSERT plans are not implemented by this writer");
+    }
+
+    /** 产品原生授权 DDL 执行入口；仅创建与已安装 INSERT 相同的全新表，不回退到任意脚本。 */
+    default void executeAuthorizedCreateTable(
+            cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan plan) {
+        throw new UnsupportedOperationException("Authorized CREATE TABLE execution is not implemented by this writer");
+    }
+
+    /** 授权复制结束后的原生结果复核；不是对外部写入的事务隔离承诺。 */
+    default void completeAuthorizedTransfer(long acknowledgedRows) {
     }
 
     /**

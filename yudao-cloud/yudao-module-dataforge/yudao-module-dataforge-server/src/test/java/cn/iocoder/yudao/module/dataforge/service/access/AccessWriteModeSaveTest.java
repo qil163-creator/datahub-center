@@ -24,10 +24,10 @@ class AccessWriteModeSaveTest {
     private final DataAccessServiceImpl service = new DataAccessServiceImpl();
     private final DataAccessMapper tasks = mock(DataAccessMapper.class);
     private final AccessDatabaseResolver resolver = mock(AccessDatabaseResolver.class);
+    private final DatabaseMapper databases = mock(DatabaseMapper.class);
     private final DatabaseDO database = DatabaseDO.builder().id(1L).databaseType(1).build();
 
     AccessWriteModeSaveTest() {
-        var databases = mock(DatabaseMapper.class);
         when(databases.selectById(1L)).thenReturn(database);
         when(resolver.resolveProductType(database)).thenReturn(ProductTypeEnum.POSTGRESQL);
         when(tasks.insert(any(DataAccessDO.class))).thenAnswer(invocation -> {
@@ -49,6 +49,19 @@ class AccessWriteModeSaveTest {
         runtime.getSource().getFirst().setSourceProductType(ProductTypeEnum.POSTGRESQL);
         runtime.getTarget().setTargetProductType(ProductTypeEnum.POSTGRESQL);
         assertEquals("CREATE_NEW", runtime.getTarget().getWriteMode());
+        assertDoesNotThrow(() -> MigrationService.validateAuthorizedConfiguration(runtime));
+    }
+
+    @Test void postgresToDorisWizardPersistsCreateNewWithoutRequiringHiddenWriteMode() throws Exception {
+        var doris = DatabaseDO.builder().id(2L).databaseType(2).build();
+        when(databases.selectById(2L)).thenReturn(doris);
+        when(resolver.resolveProductType(doris)).thenReturn(ProductTypeEnum.DORIS);
+        var request = request(); request.setTargetDatabaseId(2L);
+        var saved = save(request);
+        assertEquals("CREATE_NEW", saved.getDataAccessJson().getTarget().getWriteMode());
+        var runtime = AccessTaskConfigMapper.toRuntime(saved.getDataAccessJson(), 1L);
+        runtime.getSource().getFirst().setSourceProductType(ProductTypeEnum.POSTGRESQL);
+        runtime.getTarget().setTargetProductType(ProductTypeEnum.DORIS);
         assertDoesNotThrow(() -> MigrationService.validateAuthorizedConfiguration(runtime));
     }
 

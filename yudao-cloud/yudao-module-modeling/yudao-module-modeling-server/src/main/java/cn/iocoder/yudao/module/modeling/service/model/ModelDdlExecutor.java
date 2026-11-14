@@ -10,7 +10,8 @@ import cn.iocoder.yudao.framework.dbswitch.core.service.IMetaDataByJdbcService;
 import cn.iocoder.yudao.framework.dbswitch.core.util.DorisDdlBuilder;
 import cn.iocoder.yudao.framework.dbswitch.core.util.GenerateSqlUtils;
 import cn.iocoder.yudao.framework.dbswitch.core.schema.MetadataReadOptions;
-import cn.iocoder.yudao.framework.dbswitch.core.schema.PostgresSchemaChanges;
+import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaChanges;
+import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaObservation;
 import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaPrecondition;
 import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaSynchronization;
 import cn.iocoder.yudao.module.modeling.controller.admin.model.vo.ModelFieldItem;
@@ -79,64 +80,40 @@ public class ModelDdlExecutor {
      */
     public TableObservation observeTable(ModelingDatabaseResolver.ConnectionInfo conn,
             Long datasourceId, String tableName) {
+        requireVerifiedSchemaExecution(conn);
         try (Connection connection = dbSwitchRuntime.openConnection(conn.getProductType(), null,
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword())) {
-            ModelJdbcTableObserver.Observation observed =
-                    ModelJdbcTableObserver.observe(connection, conn.getSchema(), tableName);
-            SchemaPrecondition nativePrecondition = null;
-            if (conn.getProductType() == cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL) {
-                var nativeObservation = PostgresSchemaChanges.observe(connection,
-                        dbSwitchRuntime.products().metadata(conn.getProductType()), conn.getSchema(), tableName,
-                        MetadataReadOptions.fresh());
-                if (observed.tableExists() != Boolean.TRUE.equals(nativeObservation.metadata().existence().value())
-                        || observed.hasData() != nativeObservation.hasData()) {
-                    throw new IllegalStateException("Target changed during schema observation");
-                }
-                var confirmed = ModelJdbcTableObserver.observe(connection, conn.getSchema(), tableName);
-                if (observed.tableExists() != confirmed.tableExists() || observed.hasData() != confirmed.hasData()
-                        || !java.util.Objects.equals(observed.schemaHash(), confirmed.schemaHash())) {
-                    throw new IllegalStateException("Column evidence changed during native schema observation");
-                }
-                nativePrecondition = nativeObservation.precondition();
-            }
-            if (!observed.tableExists()) {
-                return new TableObservation(false, false, null, observed.observedAt(), List.of(), nativePrecondition);
-            }
-            return new TableObservation(true, observed.hasData(), observed.schemaHash(), observed.observedAt(),
-                    toObservedFields(observed.columns()), nativePrecondition);
+            return toObservation(SchemaChanges.observe(connection,
+                    dbSwitchRuntime.products().metadata(conn.getProductType()), conn.getSchema(), tableName,
+                    MetadataReadOptions.fresh()));
         } catch (Exception ex) {
             throw new IllegalStateException("failed to observe target table on the resolved connection", ex);
         }
     }
 
-    /**
-     * 转换为观测字段。
-     *
-     * @param columns 列集合
-     * @return 转换为观测字段结果集合
-     */
-    private List<ModelFieldItem> toObservedFields(
-            List<ModelJdbcSchemaCanonical.ColumnSnapshot> columns) {
-        List<ModelFieldItem> fields = new ArrayList<>(columns.size());
+    /** 原生结构的唯一事实来源由 DB Switch 提供，业务侧只映射展示字段。 */
+    private TableObservation toObservation(SchemaObservation observed) {
+        List<ModelFieldItem> fields = new ArrayList<>();
         int sort = 1;
-        for (ModelJdbcSchemaCanonical.ColumnSnapshot column : columns) {
+        for (ColumnDescription column : observed.metadata().columns()) {
             ModelFieldItem field = new ModelFieldItem();
-            field.setFieldName(column.columnName());
-            field.setCnName(column.columnName());
-            field.setDataType(column.canonicalTypeName());
-            if ("decimal".equals(SqlTypeSemantics.canonicalName(column.canonicalTypeName()))) {
-                field.setDataPrecision(column.columnSize());
-                field.setDataScale(column.decimalDigits());
-            } else if (Set.of("varchar", "char", "nvarchar", "nchar")
-                    .contains(SqlTypeSemantics.canonicalName(column.canonicalTypeName()))) {
-                field.setDataLength(column.columnSize());
-            }
-            field.setNullableFlag(column.nullable());
-            field.setPkFlag(column.primaryKey());
+            field.setFieldName(column.getFieldName());
+            field.setCnName(column.getFieldName());
+            field.setDataType(column.getFieldTypeName());
+            field.setDataPrecision(column.getPrecisionSize());
+            field.setDataScale(column.getScaleSize());
+            var length = column.getMetadataEvidence().characterLength().value();
+            if (length != null && length <= Integer.MAX_VALUE) field.setDataLength(length.intValue());
+            field.setNullableFlag(column.isNullable());
+            field.setPkFlag(observed.metadata().primaryKeys().contains(column.getFieldName()));
+            field.setComment(column.getRemarks());
             field.setSort(sort++);
             fields.add(field);
         }
-        return List.copyOf(fields);
+        var precondition = observed.precondition();
+        return new TableObservation(precondition.tableExists(), observed.hasData(),
+                precondition.tableExists() ? precondition.schemaFingerprint() : null,
+                Instant.now(), List.copyOf(fields), precondition);
     }
 
     /** 单次受控探测的值对象；比较时刻意不比较 observedAt。 */
@@ -166,8 +143,10 @@ public class ModelDdlExecutor {
          */
         public boolean sameDatabaseState(TableObservation other) {
             return other != null && tableExists == other.tableExists && hasData == other.hasData
-                    && java.util.Objects.equals(observedSchemaHash, other.observedSchemaHash)
-                    && java.util.Objects.equals(nativePrecondition, other.nativePrecondition);
+                    && (nativePrecondition != null && other.nativePrecondition != null
+                    ? nativePrecondition.equals(other.nativePrecondition)
+                    : java.util.Objects.equals(observedSchemaHash, other.observedSchemaHash)
+                    && java.util.Objects.equals(nativePrecondition, other.nativePrecondition));
         }
     }
 
@@ -200,8 +179,42 @@ public class ModelDdlExecutor {
             DorisExtVO dorisExt) {
         String name = StrUtil.blankToDefault(tableName, "");
         String comment = StrUtil.blankToDefault(tableComment, name);
-        if ("DORIS".equals(conn.getProductType().name()) && dorisExt != null) {
-            return List.of(DorisDdlBuilder.buildCreateTable(toDorisDefinition(name, comment, fields, dorisExt)));
+        if ("DORIS".equals(conn.getProductType().name())) {
+            if (dorisExt != null) {
+                // 先保留领域校验错误语义，再把普通列适配到组件。
+                toDorisDefinition(name, comment, fields, dorisExt);
+            }
+            var columns = convertList(fields, this::toPublishColumnDescription);
+            java.util.Map<String, String> properties = new java.util.HashMap<>();
+            if (dorisExt != null) {
+                // 旧配置入口继续保留精确数值验证；受控部署不接受未定义边界的自动分区和聚合语义。
+                if (!Set.of("DUPLICATE", "UNIQUE").contains(dorisExt.getTableModel())
+                        || StrUtil.isNotBlank(dorisExt.getPartitionMode()) && !"NONE".equals(dorisExt.getPartitionMode())
+                        || StrUtil.isNotBlank(dorisExt.getSequenceColumn()) || Boolean.FALSE.equals(dorisExt.getEnableMow())) {
+                    throw new IllegalArgumentException("当前受控发布只支持普通 Doris 明细表或 Merge-on-Write 主键表");
+                }
+                var keys = dorisExt.getKeyColumns() == null ? List.<String>of() : dorisExt.getKeyColumns();
+                if (keys.isEmpty() || !fields.stream().map(ModelFieldItem::getFieldName).toList().containsAll(keys)) {
+                    throw new IllegalArgumentException("Doris Key 列必须来自当前模型字段");
+                }
+                var frozenKeys = fields.stream().filter(field -> Boolean.TRUE.equals(field.getPkFlag()))
+                        .map(ModelFieldItem::getFieldName).toList();
+                if (!frozenKeys.equals(keys)) {
+                    throw new IllegalArgumentException("Doris Key 配置必须与当前模型的键列及顺序一致，请先同步模型字段");
+                }
+                properties.put("doris.preferUniqueKey", Boolean.toString("UNIQUE".equals(dorisExt.getTableModel())));
+                var options = new cn.iocoder.yudao.framework.dbswitch.core.model.DorisCreateTableOptions(null,
+                        StrUtil.blankToDefault(dorisExt.getDistributionType(), "HASH"),
+                        dorisExt.getDistributionColumns() == null ? keys : dorisExt.getDistributionColumns(),
+                        StrUtil.blankToDefault(dorisExt.getBucketMode(), "AUTO"), dorisExt.getBucketCount(),
+                        dorisExt.getReplicationNum() == null ? 1 : dorisExt.getReplicationNum());
+                properties.put(cn.iocoder.yudao.framework.dbswitch.core.model.DorisCreateTableOptions.TABLE_PROPERTY,
+                        options.toJson());
+            }
+            var plan = SchemaSynchronization.createPlan(dbSwitchRuntime.products().metadata(conn.getProductType()),
+                    conn.getSchema(), name, comment, columns, properties);
+            if (!plan.ready()) throw new IllegalArgumentException("Doris 建表定义未获组件支持：" + plan.diagnostics());
+            return plan.statements();
         }
         if (conn.getProductType() == cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL
                 || conn.getProductType() == cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.MYSQL) {
@@ -248,46 +261,31 @@ public class ModelDdlExecutor {
      * @param conn 已解析的数据源连接信息
      */
     public void requireVerifiedSchemaExecution(ModelingDatabaseResolver.ConnectionInfo conn) {
-        if (conn.getProductType() != cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL) {
-            throw new UnsupportedOperationException("Locked model schema changes are verified only for PostgreSQL");
+        if (!SchemaChanges.supports(conn.getProductType())) {
+            throw new UnsupportedOperationException("Frozen model schema changes are unsupported for this product");
         }
     }
 
-    /** 冻结证据、整批计划、锁内复核和执行后观察共用同一外部事务。 */
+    /** 由组件管理外部事务差异；Doris 执行中断或异步任务未结束时保持未知结果。 */
     public void executeDdl(ModelingDatabaseResolver.ConnectionInfo conn, List<String> ddlList,
             TableObservation observation, java.util.function.IntConsumer beforeStep) {
         requireVerifiedSchemaExecution(conn);
         if (observation == null || observation.nativePrecondition() == null) {
             throw new IllegalArgumentException("Model DDL requires a frozen native schema precondition");
         }
-        var plan = cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan.parse(conn.getProductType(),
-                String.join(";\n", List.copyOf(ddlList)));
-        boolean commitSent = false;
-        boolean committed = false;
+        var database = dbSwitchRuntime.products().metadata(conn.getProductType());
+        var expected = observation.nativePrecondition();
+        var plan = SchemaChanges.plan(database, expected.schemaName(), expected.tableName(), ddlList);
+        boolean entered = false;
         try (var connection = dbSwitchRuntime.openConnection(conn.getProductType(), null,
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword())) {
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            connection.setAutoCommit(false);
-            try {
-                PostgresSchemaChanges.execute(connection, dbSwitchRuntime.products().metadata(conn.getProductType()),
-                        plan, observation.nativePrecondition(), MetadataReadOptions.fresh(), beforeStep);
-                commitSent = true;
-                connection.commit();
-                committed = true;
-            } catch (Exception failed) {
-                if (!commitSent) {
-                    try {
-                        connection.rollback();
-                    } catch (java.sql.SQLException uncertain) {
-                        throw new DdlExecutionException(DdlOutcome.UNKNOWN);
-                    }
-                    throw new DdlExecutionException(DdlOutcome.ROLLED_BACK);
-                }
-                throw new DdlExecutionException(DdlOutcome.UNKNOWN);
+            entered = true;
+            var result = SchemaChanges.execute(connection, database, plan, expected, MetadataReadOptions.fresh(), beforeStep);
+            if (result.outcome() != SchemaChanges.Outcome.COMMITTED) {
+                throw new DdlExecutionException(DdlOutcome.valueOf(result.outcome().name()));
             }
         } catch (java.sql.SQLException failed) {
-            throw new DdlExecutionException(
-                    committed ? DdlOutcome.COMMITTED : commitSent ? DdlOutcome.UNKNOWN : DdlOutcome.NOT_STARTED);
+            throw new DdlExecutionException(entered ? DdlOutcome.UNKNOWN : DdlOutcome.NOT_STARTED);
         }
     }
 
@@ -329,7 +327,7 @@ public class ModelDdlExecutor {
         requireVerifiedSchemaExecution(conn);
         try (var connection = dbSwitchRuntime.openConnection(conn.getProductType(), null,
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword())) {
-            return PostgresSchemaChanges.physicalTargetFingerprint(connection,
+            return SchemaChanges.physicalTargetFingerprint(connection,
                     dbSwitchRuntime.products().metadata(conn.getProductType()), conn.getSchema(), tableName,
                     MetadataReadOptions.fresh());
         } catch (java.sql.SQLException failed) {
@@ -339,34 +337,49 @@ public class ModelDdlExecutor {
         }
     }
 
-    /** 原生完整结构匹配也在持锁连接中委托组件，不打开第二个连接等待自己持有的关系锁。 */
+    /** 原生结构对账委托组件；Doris 由持久目标占用及两次观测保护，不冒充关系锁。 */
     public void withLockedExpectedObservation(ModelingDatabaseResolver.ConnectionInfo conn, String tableName,
             String tableComment, List<ModelFieldItem> fields,
+            java.util.function.BiConsumer<TableObservation, Boolean> callback) {
+        withLockedExpectedObservation(conn, tableName, tableComment, fields, null, callback);
+    }
+
+    /** 首次创建还需核对该任务冻结的键模型、布局和属性，不能只比较字段。 */
+    public void withLockedExpectedObservation(ModelingDatabaseResolver.ConnectionInfo conn, String tableName,
+            String tableComment, List<ModelFieldItem> fields, String frozenCreateSql,
             java.util.function.BiConsumer<TableObservation, Boolean> callback) {
         requireVerifiedSchemaExecution(conn);
         try (var connection = dbSwitchRuntime.openConnection(conn.getProductType(), null,
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword())) {
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            connection.setAutoCommit(false);
-            try {
-                var nativeObservation = PostgresSchemaChanges.lockAndObserve(connection,
-                        dbSwitchRuntime.products().metadata(conn.getProductType()), conn.getSchema(), tableName,
-                        MetadataReadOptions.fresh());
-                var observed = ModelJdbcTableObserver.observe(connection, conn.getSchema(), tableName);
-                boolean matches = false;
-                if (fields != null && observed.tableExists()) {
-                    var expected = SchemaSynchronization.plan(connection,
-                            dbSwitchRuntime.products().metadata(conn.getProductType()),
-                            conn.getSchema(), tableName, tableComment,
-                            convertList(fields, this::toPublishColumnDescription));
-                    matches = expected.ready() && expected.statements().isEmpty();
-                }
-                callback.accept(new TableObservation(observed.tableExists(), observed.hasData(), observed.schemaHash(),
-                                observed.observedAt(), toObservedFields(observed.columns()), nativeObservation.precondition()),
-                        matches);
-            } finally {
-                connection.rollback();
-            }
+            var database = dbSwitchRuntime.products().metadata(conn.getProductType());
+            SchemaChanges.withGuardedObservation(connection, database, conn.getSchema(), tableName,
+                    MetadataReadOptions.fresh(), observed -> {
+                        boolean matches = false;
+                        if (fields != null && Boolean.TRUE.equals(observed.metadata().existence().value())) {
+                            try {
+                                var expected = SchemaSynchronization.plan(connection, database, conn.getSchema(),
+                                        tableName, tableComment, convertList(fields, this::toPublishColumnDescription));
+                                matches = expected.ready() && expected.statements().isEmpty();
+                                if (matches && frozenCreateSql != null) {
+                                    matches = !frozenCreateSql.isBlank() && database.matchesModelingCreate(connection,
+                                            conn.getSchema(), tableName, frozenCreateSql, MetadataReadOptions.fresh().timeoutSeconds());
+                                }
+                                if (conn.getProductType() == cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.DORIS) {
+                                    // 对账查询本身也可能与外部改表交错；决策前再次确认原生证据未变化。
+                                    database.awaitSchemaChange(connection, conn.getSchema(), tableName,
+                                            MetadataReadOptions.fresh().timeoutSeconds());
+                                    var confirmed = SchemaChanges.observe(connection, database, conn.getSchema(), tableName,
+                                            MetadataReadOptions.fresh());
+                                    if (!observed.sameState(confirmed)) {
+                                        throw new IllegalStateException("核验期间目标结构发生变化，继续保留未知占用");
+                                    }
+                                }
+                            } catch (java.sql.SQLException failed) {
+                                throw new IllegalStateException("目标结构对账失败，继续保留未知占用");
+                            }
+                        }
+                        callback.accept(toObservation(observed), matches);
+                    });
         } catch (java.sql.SQLException failed) {
             throw new IllegalStateException("目标结构对账未完成，继续保留未知占用");
         }
@@ -398,6 +411,11 @@ public class ModelDdlExecutor {
     /** 在重建删表前证明完整建表脚本属于执行器当前支持的 DDL。 */
     public void validateDdl(ModelingDatabaseResolver.ConnectionInfo conn, List<String> ddlList) {
         parseDdl(conn, ddlList);
+    }
+
+    /** 部署专用校验同时限定物理目标，避免已冻结 SQL 跨表执行。 */
+    public void validateDdl(ModelingDatabaseResolver.ConnectionInfo conn, String tableName, List<String> ddlList) {
+        SchemaChanges.plan(dbSwitchRuntime.products().metadata(conn.getProductType()), conn.getSchema(), tableName, ddlList);
     }
 
     /**

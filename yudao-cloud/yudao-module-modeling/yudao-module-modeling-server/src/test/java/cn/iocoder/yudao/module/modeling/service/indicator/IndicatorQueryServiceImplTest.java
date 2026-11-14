@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskReqD
 import cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
+import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
 import cn.iocoder.yudao.framework.dbswitch.core.service.AggregateQuerySql;
 import cn.iocoder.yudao.module.modeling.controller.admin.indicator.vo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.model.vo.ModelFieldItem;
@@ -87,7 +88,7 @@ class IndicatorQueryServiceImplTest {
         connection.setSchema("public");
         lenient().when(databases.resolve(50L)).thenReturn(connection);
         lenient().when(materializedMapper.selectLatestSuccess(5L)).thenReturn(materialized());
-        lenient().when(executor.execute(any(), anyList(), anyInt())).thenAnswer(invocation -> {
+        lenient().when(executor.execute(any(), anyList(), anyList(), anyInt())).thenAnswer(invocation -> {
             List<AggregateQuerySql.Plan> plans = invocation.getArgument(1);
             executed.addAll(plans);
             List<List<Map<String, Object>>> results = new ArrayList<>();
@@ -209,7 +210,7 @@ class IndicatorQueryServiceImplTest {
 
         var result = service.query(request);
 
-        verify(executor, times(1)).execute(same(connection), anyList(), eq(DEFAULT_LIMIT_PLUS_ONE));
+        verify(executor, times(1)).execute(same(connection), anyList(), eq(List.of()), eq(DEFAULT_LIMIT_PLUS_ONE));
         assertEquals(2, executed.size());
         assertFalse(executed.get(0).sql().contains("PAID"));
         assertTrue(executed.get(1).sql().contains("WHERE (\"pay_status\" = 'PAID')"), executed.get(1).sql());
@@ -234,6 +235,34 @@ class IndicatorQueryServiceImplTest {
     }
 
     private static final int DEFAULT_LIMIT_PLUS_ONE = IndicatorQueryServiceImpl.DEFAULT_LIMIT + 1;
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void dorisResolvesNativeRelationBeforeRenderingAndPassesItToExecution() {
+        connection.setProductType(ProductTypeEnum.DORIS);
+        var relation = new CatalogRelationIdentity(ProductTypeEnum.DORIS, "dw", "fact_order", "b".repeat(64));
+        when(executor.resolveRelations(same(connection), anyList())).thenReturn(List.of(relation, relation));
+
+        service.query(request(List.of(1L, 3L), List.of("region-uid")));
+
+        ArgumentCaptor<List<String[]>> targets = ArgumentCaptor.forClass(List.class);
+        verify(executor).resolveRelations(same(connection), targets.capture());
+        assertEquals(2, targets.getValue().size());
+        assertArrayEquals(new String[]{"dw", "fact_order"}, targets.getValue().getFirst());
+        verify(executor).execute(same(connection), anyList(), eq(List.of(relation, relation)),
+                eq(DEFAULT_LIMIT_PLUS_ONE));
+        assertEquals(2, executed.size());
+        assertTrue(executed.get(0).sql().contains("FROM `dw`.`fact_order`"), executed.get(0).sql());
+        assertTrue(executed.get(1).sql().contains(
+                "DATE_TRUNC(CAST(`dh_src`.`pay_time` AS DATETIME), 'month')"), executed.get(1).sql());
+        assertTrue(executed.get(1).sql().contains("`pay_status` = 'PAID'"), executed.get(1).sql());
+    }
+
+    @Test
+    void postgresDoesNotResolveNativeRelations() {
+        service.query(request(List.of(1L), List.of("region-uid")));
+        verify(executor, never()).resolveRelations(any(), anyList());
+    }
 
     @Test
     void compositeIsComputedPerDimensionKeyWithBigDecimalAndNullOnZeroOrMissing() {
@@ -267,7 +296,7 @@ class IndicatorQueryServiceImplTest {
         var request = request(List.of(1L), List.of("region-uid"));
         request.setLimit(2);
         var result = service.query(request);
-        verify(executor).execute(any(), anyList(), eq(3));
+        verify(executor).execute(any(), anyList(), anyList(), eq(3));
         assertTrue(result.getTruncated());
         assertEquals(List.of("a", "b"), result.getRows().stream().map(row -> row.get("dim_0")).toList());
     }
@@ -314,7 +343,7 @@ class IndicatorQueryServiceImplTest {
         malicious.setExpression("pay_status = 'PAID'");
         malicious.setSourceModelId(99L);
         assertCode(INDICATOR_QUERY_CONDITION_INVALID.getCode(), () -> service.query(request(List.of(3L), List.of())));
-        verify(executor, never()).execute(any(), anyList(), anyInt());
+        verify(executor, never()).execute(any(), anyList(), anyList(), anyInt());
     }
 
     @Test
@@ -343,7 +372,7 @@ class IndicatorQueryServiceImplTest {
         rows.get(1).setStatus(IndicatorModelDO.DRAFT);
         assertCode(INDICATOR_QUERY_INVALID.getCode(), () -> service.query(request(List.of(2L), List.of())));
         assertCode(INDICATOR_NOT_EXISTS.getCode(), () -> service.query(request(List.of(404L), List.of())));
-        verify(executor, never()).execute(any(), anyList(), anyInt());
+        verify(executor, never()).execute(any(), anyList(), anyList(), anyInt());
     }
 
     @Test
@@ -470,7 +499,7 @@ class IndicatorQueryServiceImplTest {
         assertEquals(6, result.getDimensions().size());
         assertTrue(result.getTimeSupported());
         assertEquals(List.of("MONTH"), result.getDerivedPeriods());
-        verify(executor, never()).execute(any(), anyList(), anyInt());
+        verify(executor, never()).execute(any(), anyList(), anyList(), anyInt());
     }
 
     @Test

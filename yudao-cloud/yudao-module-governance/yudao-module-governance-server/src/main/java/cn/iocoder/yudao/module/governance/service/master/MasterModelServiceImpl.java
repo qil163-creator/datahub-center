@@ -461,10 +461,7 @@ public class MasterModelServiceImpl implements MasterModelService {
         cn.iocoder.yudao.framework.dbswitch.data.query.QueryRuntime.Operation operation = null;
         try {
             var connection = databaseResolver.resolve(model.getDatabaseId(), MASTER_MODEL_DATABASE_NOT_EXISTS);
-            if (connection.getProductType() != ProductTypeEnum.POSTGRESQL) {
-                response.setMessage("该数据源暂不支持已验证的限时数据量查询");
-                return response;
-            }
+            // 产品方言、驱动能力和超时均由查询运行时校验；不在业务层限制为单一数据库。
             String scope = "master-model-count:" + actorId + ":" + id;
             String quotaScope = "master-model-count:" + actorId;
             var budget = new cn.iocoder.yudao.framework.dbswitch.data.query.OperationBudget(
@@ -999,7 +996,7 @@ public class MasterModelServiceImpl implements MasterModelService {
                     boolean supported = GuardedTableMutationExecutor.supports(product);
                     model.setMaintenanceSupported(supported);
                     model.setMaintenanceUnsupportedReason(supported ? null
-                            : "该数据源产品（" + product.name() + "）暂不支持原子维护，目前仅支持 PostgreSQL 数据源");
+                            : "该数据源产品（" + product.name() + "）不支持带旧值校验和整批回滚的原子维护，请使用数据查询或分发能力");
                 } catch (IllegalArgumentException invalidProduct) {
                     model.setMaintenanceUnsupportedReason(
                             "数据源产品类型编码无法识别，请检查数据源配置并确认服务版本一致");

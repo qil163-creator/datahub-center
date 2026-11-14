@@ -25,6 +25,16 @@ import java.util.Map;
  */
 public interface IDatabaseInterface {
 
+    /** 纯规划普通新表全量复制；产品原生实现必须核验同一物理表、完整投影及显式参数模板。 */
+    default cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan planAuthorizedCreateNew(
+            String schema, String table, List<String> fields, String createSql, String insertSql) {
+        if (getDatabaseType() != ProductTypeEnum.POSTGRESQL) {
+            throw new UnsupportedOperationException("Authorized CREATE_NEW is not verified for this product");
+        }
+        return cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan.parse(
+                getDatabaseType(), schema, List.of(createSql, insertSql));
+    }
+
     /** 读取账号角色并验证当前数据库连接和目标命名空间使用权限，不表示任意对象的写权限。 */
     default void probeAccountPrivileges(Connection connection, String namespace,
             int timeoutSeconds) throws SQLException {

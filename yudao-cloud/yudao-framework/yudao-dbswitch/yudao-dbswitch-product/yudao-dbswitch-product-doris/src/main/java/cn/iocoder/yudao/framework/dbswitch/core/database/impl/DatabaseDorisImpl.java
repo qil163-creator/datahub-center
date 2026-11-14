@@ -21,6 +21,37 @@ import java.sql.SQLException;
  */
 public class DatabaseDorisImpl extends DatabaseMysqlCompatibleOlapImpl implements IDatabaseInterface {
 
+    /** 独立的新表复制授权入口，不扩大通用脚本解析器的能力。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan planAuthorizedCreateNew(
+            String schema, String table, java.util.List<String> fields, String createSql, String insertSql) {
+        if (getDatabaseType() != ProductTypeEnum.DORIS) {
+            return super.planAuthorizedCreateNew(schema, table, fields, createSql, insertSql);
+        }
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisAuthorizedCreateNew.plan(
+                schema, table, fields, createSql, insertSql);
+    }
+
+    /** Doris 关系授权复用原生版本、internal 目录、永久 OLAP 表及分区代次证据。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity resolveCatalogRelation(
+            Connection connection, String schema, String table, int timeoutSeconds) throws SQLException {
+        if (getDatabaseType() != ProductTypeEnum.DORIS) {
+            return super.resolveCatalogRelation(connection, schema, table, timeoutSeconds);
+        }
+        return DorisRelationIdentity.resolveCatalogRelation(connection, schema, table, timeoutSeconds);
+    }
+
+    /** 精确表选择器使用原生目录，不把 JDBC 的 catalog/schema 模式当作物理名称。 */
+    @Override
+    public java.util.List<cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription> queryCatalogTableList(
+            Connection connection, String schema, int maxTables, int timeoutSeconds) throws SQLException {
+        if (getDatabaseType() != ProductTypeEnum.DORIS) {
+            return super.queryCatalogTableList(connection, schema, maxTables, timeoutSeconds);
+        }
+        return DorisRelationIdentity.queryCatalogTableList(connection, schema, maxTables, timeoutSeconds);
+    }
+
     /** 服务端参数绑定避免 NO_BACKSLASH_ESCAPES 下客户端把字符串转换为 Doris 不支持的 VARBINARY 比较。 */
     @Override
     public String preparePageQueryJdbcUrl(String jdbcUrl) {
@@ -78,7 +109,7 @@ public class DatabaseDorisImpl extends DatabaseMysqlCompatibleOlapImpl implement
     @Override
     public void postAppendCreateTableSql(StringBuilder sql, String comment, java.util.List<String> keys,
             java.util.Map<String, String> properties, String hashField) {
-        if (properties != null && properties.containsKey(
+        if (getDatabaseType() == ProductTypeEnum.DORIS || properties != null && properties.containsKey(
                 cn.iocoder.yudao.framework.dbswitch.core.model.DorisCreateTableOptions.TABLE_PROPERTY)) {
             sql.append(" ENGINE=OLAP ");
         }
@@ -169,6 +200,55 @@ public class DatabaseDorisImpl extends DatabaseMysqlCompatibleOlapImpl implement
     @Override
     public ProductTypeEnum getDatabaseType() {
         return ProductTypeEnum.DORIS;
+    }
+
+    /** 原生数仓表使用 Doris 自身的键模型、分区和分桶规划。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaSynchronization.Plan planCreateTableSynchronization(
+            String schema, String table, String comment,
+            java.util.List<cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription> columns,
+            java.util.Map<String, String> properties) {
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisSchemaSynchronization.create(
+                this, schema, table, comment, columns, properties);
+    }
+
+    /** 读取 Doris 原生结构进行同步预览，保留现有表布局。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaSynchronization.Plan planTableSynchronization(
+            Connection connection, String schema, String table, String comment,
+            java.util.List<cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription> columns,
+            int timeoutSeconds) throws SQLException {
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisSchemaSynchronization.plan(
+                connection, this, schema, table, comment, columns, timeoutSeconds);
+    }
+
+    /** 只放行绑定单个物理表的 Doris 原生建模语法。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan planModelingSchemaScript(
+            String schema, String table, java.util.List<String> statements) {
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisModelingSchemaScript.plan(schema, table, statements);
+    }
+
+    /** 等待 Doris 异步结构任务结束；返回后仍须对比预期结构。 */
+    @Override
+    public void awaitSchemaChange(Connection connection, String schema, String table, int timeoutSeconds) throws SQLException {
+        cn.iocoder.yudao.framework.dbswitch.product.doris.DorisModelingSchemaScript.await(connection, schema, table, timeoutSeconds);
+    }
+
+    /** 使用 Doris 原生列、Unique Key 和布局事实，拒绝从 MySQL 兼容目录推断。 */
+    @Override
+    public cn.iocoder.yudao.framework.dbswitch.core.model.TableSchemaMetadata readModelingSchema(
+            Connection connection, String schema, String table, int timeoutSeconds) throws SQLException {
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisSchemaSynchronization.readMetadata(
+                connection, schema, table, timeoutSeconds);
+    }
+
+    /** 按 Doris 原生语义核验冻结建表的完整布局。 */
+    @Override
+    public boolean matchesModelingCreate(Connection connection, String schema, String table, String createSql,
+            int timeoutSeconds) throws SQLException {
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisModelingSchemaScript.matchesCreate(
+                connection, schema, table, createSql, timeoutSeconds);
     }
 
     /**

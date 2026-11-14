@@ -19,6 +19,7 @@ class ModelDdlDecimalContractTest {
         ReflectionTestUtils.setField(executor, "dbSwitchRuntime", dbSwitchRuntime);
         var connection = new ModelingDatabaseResolver.ConnectionInfo();
         connection.setProductType(ProductTypeEnum.DORIS);
+        connection.setSchema("warehouse");
         DorisExtVO dorisExt = executor.parseDorisExt(
                 """
                 {"tableModel":"DUPLICATE","keyColumns":["id"],"distributionType":"HASH","distributionColumns":["id"],"bucketMode":"AUTO"}
@@ -26,6 +27,7 @@ class ModelDdlDecimalContractTest {
         ModelFieldItem id = new ModelFieldItem();
         id.setFieldName("id");
         id.setDataType("bigint");
+        id.setPkFlag(true);
         ModelFieldItem amount = new ModelFieldItem();
         amount.setFieldName("amount");
         amount.setDataType("decimal");
@@ -34,8 +36,13 @@ class ModelDdlDecimalContractTest {
             amount.setDataScale(scale);
             String ddl = String.join("\n", executor.buildCreateTableDdl(
                     "decimal_contract", "decimal_contract", List.of(id, amount), connection, dorisExt));
-            assertTrue(ddl.contains("DECIMAL(18," + scale + ")"), ddl);
+            assertTrue(ddl.toUpperCase(java.util.Locale.ROOT).contains("DECIMAL(18," + scale + ")"), ddl);
+            assertTrue(ddl.contains("`warehouse`.`decimal_contract`"), ddl);
         }
+        id.setPkFlag(false);
+        assertThrows(IllegalArgumentException.class, () -> executor.buildCreateTableDdl(
+                "decimal_contract", "decimal_contract", List.of(id, amount), connection, dorisExt));
+        id.setPkFlag(true);
         amount.setDataScale(null);
         assertThrows(cn.iocoder.yudao.framework.common.exception.ServiceException.class,
                 () -> executor.buildCreateTableDdl(

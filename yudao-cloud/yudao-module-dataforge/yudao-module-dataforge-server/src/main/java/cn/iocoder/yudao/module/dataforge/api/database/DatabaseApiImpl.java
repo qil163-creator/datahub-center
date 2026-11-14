@@ -15,6 +15,7 @@ import cn.iocoder.yudao.framework.dbswitch.core.service.impl.MetaDataByJdbcServi
 import cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedSelectGuard;
 import cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedSelectPlan;
 import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
+import cn.iocoder.yudao.framework.dbswitch.core.util.JdbcReadDeadline;
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableRespVO;
 import cn.iocoder.yudao.module.dataforge.service.access.AccessDatabaseResolver;
@@ -122,10 +123,10 @@ public class DatabaseApiImpl implements DatabaseApi {
     }
 
     /**
-     * 列出配置 schema 内的精确查询表身份（当前仅 PostgreSQL，最多 2000）。
+     * 列出配置 schema 内的精确查询表身份（最多 2000）。
      *
      * @param id 记录编号
-     * @return 配置 schema 内的精确查询表身份（当前仅 PostgreSQL，最多 2000）结果集合
+     * @return 配置 schema 内的精确查询表身份（最多 2000）结果集合
      */
     @Override
     public CommonResult<List<DatabaseQueryTableRespDTO>> getQueryTableList(Long id) {
@@ -133,7 +134,7 @@ public class DatabaseApiImpl implements DatabaseApi {
         try {
             var tables = dbSwitchRuntime.jdbcMetadata(info.getProductType()).queryExactTableList(
                     info.getJdbcUrl(), info.getUsername(), info.getPassword(), info.getSchema(), 2000, 15_000);
-            assertTiDbConnectionCurrent(info);
+            assertCatalogConnectionCurrent(info);
             return success(convertList(tables, table -> {
                 var result = toQueryTable(info, table.getSchemaName(), table.getTableName());
                 result.setRelationObjectId(table.getCatalogObjectId());
@@ -157,8 +158,10 @@ public class DatabaseApiImpl implements DatabaseApi {
     public CommonResult<DatabaseQueryTableRespDTO> resolveQueryTable(Long id, String tableReference) {
         var info = databaseResolver.resolve(id, DATABASE_NOT_EXISTS);
         try {
-            if (info.getProductType() == ProductTypeEnum.TIDB) {
-                var syntax = RestrictedSelectGuard.parseCatalogRelationReference(tableReference, info.getSchema());
+            if (info.getProductType() == ProductTypeEnum.TIDB || info.getProductType() == ProductTypeEnum.DORIS) {
+                var syntax = info.getProductType() == ProductTypeEnum.TIDB
+                        ? RestrictedSelectGuard.parseCatalogRelationReference(tableReference, info.getSchema())
+                        : RestrictedSelectGuard.parseRelationReference(info.getProductType(), tableReference, info.getSchema());
                 var relation = catalogRelation(info, syntax.getSchemaName(), syntax.getTableName());
                 var result = toQueryTable(info, relation.schemaName(), relation.tableName());
                 result.setRelationObjectId(relation.objectId());
@@ -189,7 +192,7 @@ public class DatabaseApiImpl implements DatabaseApi {
                     : metadata.queryExactTableColumns(info.getJdbcUrl(), info.getUsername(), info.getPassword(),
                     new CatalogRelationIdentity(info.getProductType(), request.getSchemaName(),
                             request.getTableName(), request.getExpectedObjectId()), request.getColumns(), 15_000);
-            assertTiDbConnectionCurrent(info);
+            assertCatalogConnectionCurrent(info);
             return success(convertList(columns,
                     column -> new DatabaseColumnRespDTO(column.getFieldName(), column.getFieldTypeName())));
         } catch (IllegalArgumentException | UnsupportedOperationException ex) {
@@ -225,26 +228,31 @@ public class DatabaseApiImpl implements DatabaseApi {
      */
     @Override
     public CommonResult<DatabasePreviewRespDTO> previewTable(DatabasePreviewReqDTO reqDTO) {
-        boolean tableExists = databaseService.getTableList(reqDTO.getDatabaseId()).stream()
+        AccessDatabaseResolver.ConnectionInfo info =
+                databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
+        boolean tableExists = info.getProductType() == ProductTypeEnum.DORIS
+                || databaseService.getTableList(reqDTO.getDatabaseId()).stream()
                 .map(DatabaseTableRespVO::getTableName)
                 .filter(java.util.Objects::nonNull)
                 .anyMatch(name -> name.equalsIgnoreCase(reqDTO.getTableName()));
         if (!tableExists) {
             throw exception(DATABASE_TABLE_NOT_EXISTS);
         }
-        AccessDatabaseResolver.ConnectionInfo info =
-                databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
         int limit = Math.max(1, Math.min(reqDTO.getLimit() == null ? 20 : reqDTO.getLimit(), 100));
         String schemaName = cn.hutool.core.util.StrUtil.blankToDefault(reqDTO.getSchemaName(), info.getSchema());
         DatabasePreviewRespDTO preview;
         try {
             try (Connection connection = dbSwitchRuntime.openConnection(info.getProductType(), null,
-                    info.getJdbcUrl(), info.getUsername(), info.getPassword())) {
+                    preparedQueryJdbcUrl(info), info.getUsername(), info.getPassword());
+                 var deadline = info.getProductType() == ProductTypeEnum.DORIS
+                         ? new JdbcReadDeadline(connection, 30_000) : null) {
                 try {
                     connection.setReadOnly(true);
                 } catch (Exception ignored) {
                     // 部分数据库驱动不支持切换只读模式，固定 SELECT 仍限制写操作
                 }
+                CatalogRelationIdentity relation = info.getProductType() == ProductTypeEnum.DORIS
+                        ? resolveDorisRelation(connection, info, schemaName, reqDTO.getTableName(), null) : null;
                 DatabaseMetaData databaseMetaData = connection.getMetaData();
                 String qualifiedTable = quoteIdentifier(databaseMetaData, reqDTO.getTableName());
                 if (cn.hutool.core.util.StrUtil.isNotBlank(schemaName)) {
@@ -261,6 +269,10 @@ public class DatabaseApiImpl implements DatabaseApi {
                             reqDTO.getFilters(), params);
                 }
                 preview = executePreview(connection, sql, params, limit);
+                if (relation != null) {
+                    assertDorisRelationCurrent(connection, info, relation);
+                    deadline.check();
+                }
             }
         } catch (cn.iocoder.yudao.framework.common.exception.ServiceException ex) {
             throw ex;
@@ -282,6 +294,17 @@ public class DatabaseApiImpl implements DatabaseApi {
      */
     @Override
     public CommonResult<List<DatabaseColumnRespDTO>> getTableColumnList(Long id, String tableName) {
+        AccessDatabaseResolver.ConnectionInfo info = databaseResolver.resolve(id, DATABASE_NOT_EXISTS);
+        if (info.getProductType() == ProductTypeEnum.DORIS) {
+            // 兼容调用方也通过原生目录读取，避免 MySQL 协议的 catalog/schema 差异及临时遮蔽。
+            var request = new DatabaseQueryColumnsReqDTO();
+            request.setDatabaseId(id);
+            request.setSchemaName(info.getSchema());
+            request.setTableName(tableName);
+            var result = getQueryTableColumns(request);
+            assertCatalogConnectionCurrent(info);
+            return result;
+        }
         boolean tableExists = databaseService.getTableList(id).stream()
                 .map(DatabaseTableRespVO::getTableName)
                 .filter(java.util.Objects::nonNull)
@@ -289,7 +312,6 @@ public class DatabaseApiImpl implements DatabaseApi {
         if (!tableExists) {
             throw exception(DATABASE_TABLE_NOT_EXISTS);
         }
-        AccessDatabaseResolver.ConnectionInfo info = databaseResolver.resolve(id, DATABASE_NOT_EXISTS);
         try {
             try (Connection connection = dbSwitchRuntime.openConnection(info.getProductType(), null,
                     info.getJdbcUrl(), info.getUsername(), info.getPassword())) {
@@ -329,7 +351,7 @@ public class DatabaseApiImpl implements DatabaseApi {
         AccessDatabaseResolver.ConnectionInfo info =
                 databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
         try {
-            if (info.getProductType() == ProductTypeEnum.TIDB) {
+            if (info.getProductType() == ProductTypeEnum.TIDB || info.getProductType() == ProductTypeEnum.DORIS) {
                 var syntax = RestrictedSelectGuard.parse(info.getProductType(), reqDTO.getSql());
                 String schema = syntax.getSchemaName() == null ? info.getSchema() : syntax.getSchemaName();
                 var relation = catalogRelation(info, schema, syntax.getTableName());
@@ -356,17 +378,36 @@ public class DatabaseApiImpl implements DatabaseApi {
         AccessDatabaseResolver.ConnectionInfo info =
                 databaseResolver.resolve(reqDTO.getDatabaseId(), DATABASE_NOT_EXISTS);
         String sql = restrictToAllowedColumns(info, reqDTO);
+        if (info.getProductType() == ProductTypeEnum.DORIS
+                && (reqDTO.getExpectedObjectId() == null
+                || !reqDTO.getExpectedObjectId().matches("[0-9a-f]{64}"))) {
+            throw exception(DATABASE_QUERY_SQL_INVALID, "Doris 查询必须携带解析阶段的原生关系身份");
+        }
         int limit = Math.max(1, Math.min(reqDTO.getLimit() == null ? 100 : reqDTO.getLimit(), 1000));
         DatabasePreviewRespDTO result;
         try {
             try (Connection connection = dbSwitchRuntime.openConnection(info.getProductType(), null,
-                    info.getJdbcUrl(), info.getUsername(), info.getPassword())) {
+                    preparedQueryJdbcUrl(info), info.getUsername(), info.getPassword());
+                 var deadline = info.getProductType() == ProductTypeEnum.DORIS
+                         ? new JdbcReadDeadline(connection, 30_000) : null) {
                 try {
                     connection.setReadOnly(true);
                 } catch (Exception ignored) {
                     // 部分驱动不支持只读模式，SQL 校验仍保证只执行 SELECT
                 }
+                CatalogRelationIdentity relation = null;
+                if (info.getProductType() == ProductTypeEnum.DORIS) {
+                    var syntax = parseUserSelect(info, sql);
+                    String schema = StrUtil.blankToDefault(syntax.getSchemaName(), info.getSchema());
+                    relation = resolveDorisRelation(connection, info, schema, syntax.getTableName(),
+                            reqDTO.getExpectedObjectId());
+                    sql = RestrictedSelectGuard.bindToCatalogRelation(sql, schema, relation).getNormalizedSql();
+                }
                 result = executePreview(connection, sql, List.of(), limit);
+                if (relation != null) {
+                    assertDorisRelationCurrent(connection, info, relation);
+                    deadline.check();
+                }
             }
         } catch (cn.iocoder.yudao.framework.common.exception.ServiceException ex) {
             throw ex;
@@ -380,6 +421,37 @@ public class DatabaseApiImpl implements DatabaseApi {
                 DATABASE_QUERY_FAILED));
     }
 
+    /** 复用产品参数传输契约；Doris 在不同 sql_mode 下仍须使用服务端绑定。 */
+    private String preparedQueryJdbcUrl(AccessDatabaseResolver.ConnectionInfo info) {
+        return info.getProductType() == ProductTypeEnum.DORIS
+                ? dbSwitchRuntime.products().metadata(info.getProductType()).preparePageQueryJdbcUrl(info.getJdbcUrl())
+                : info.getJdbcUrl();
+    }
+
+    /** 执行连接本身必须仍指向解析阶段确认的 internal 永久 OLAP 关系。 */
+    private CatalogRelationIdentity resolveDorisRelation(Connection connection,
+            AccessDatabaseResolver.ConnectionInfo info, String schema, String table, String expectedObjectId)
+            throws java.sql.SQLException {
+        assertCatalogConnectionCurrent(info);
+        var relation = dbSwitchRuntime.products().metadata(ProductTypeEnum.DORIS)
+                .resolveCatalogRelation(connection, schema, table, 5);
+        if (relation == null || relation.product() != ProductTypeEnum.DORIS
+                || !java.util.Objects.equals(schema, relation.schemaName())
+                || !java.util.Objects.equals(table, relation.tableName())
+                || !relation.objectId().matches("[0-9a-f]{64}")
+                || expectedObjectId != null && !expectedObjectId.equals(relation.objectId())) {
+            throw exception(DATABASE_QUERY_SQL_INVALID, "Doris 原生关系身份变化或超出已验证范围");
+        }
+        return relation;
+    }
+
+    /** 数据先保存在本地，确认对象代次与数据源配置未变化后才允许交给调用方。 */
+    private void assertDorisRelationCurrent(Connection connection,
+            AccessDatabaseResolver.ConnectionInfo info, CatalogRelationIdentity expected) throws java.sql.SQLException {
+        resolveDorisRelation(connection, info, expected.schemaName(), expected.tableName(), expected.objectId());
+        assertCatalogConnectionCurrent(info);
+    }
+
     /**
      * 获取数据源的目录关系。
      *
@@ -390,11 +462,11 @@ public class DatabaseApiImpl implements DatabaseApi {
      */
     private CatalogRelationIdentity catalogRelation(AccessDatabaseResolver.ConnectionInfo info, String schema,
             String table) {
-        assertTiDbConnectionCurrent(info);
+        assertCatalogConnectionCurrent(info);
         try {
             var relation = dbSwitchRuntime.jdbcMetadata(info.getProductType()).resolveCatalogRelation(
                     info.getJdbcUrl(), info.getUsername(), info.getPassword(), schema, table, 15_000);
-            assertTiDbConnectionCurrent(info);
+            assertCatalogConnectionCurrent(info);
             return relation;
         } catch (cn.iocoder.yudao.framework.common.exception.ServiceException failure) {
             throw failure;
@@ -410,8 +482,8 @@ public class DatabaseApiImpl implements DatabaseApi {
      *
      * @param info 信息
      */
-    private void assertTiDbConnectionCurrent(AccessDatabaseResolver.ConnectionInfo info) {
-        if (info.getProductType() != ProductTypeEnum.TIDB) {
+    private void assertCatalogConnectionCurrent(AccessDatabaseResolver.ConnectionInfo info) {
+        if (info.getProductType() != ProductTypeEnum.TIDB && info.getProductType() != ProductTypeEnum.DORIS) {
             return;
         }
         var current = databaseResolver.resolve(info.getDatabaseId(), DATABASE_NOT_EXISTS);
@@ -616,7 +688,11 @@ public class DatabaseApiImpl implements DatabaseApi {
             return switch (type) {
                 case Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT -> Long.valueOf(trimmed);
                 case Types.DECIMAL, Types.NUMERIC, Types.FLOAT, Types.REAL, Types.DOUBLE -> new BigDecimal(trimmed);
-                case Types.BOOLEAN, Types.BIT -> Boolean.valueOf(trimmed);
+                case Types.BOOLEAN, Types.BIT -> switch (trimmed.toLowerCase(Locale.ROOT)) {
+                    case "true", "1" -> true;
+                    case "false", "0" -> false;
+                    default -> throw new IllegalArgumentException("布尔过滤值无效");
+                };
                 case Types.DATE -> java.sql.Date.valueOf(trimmed);
                 case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE ->
                         java.sql.Timestamp.valueOf(trimmed.length() == 10 ? trimmed + " 00:00:00"
@@ -705,6 +781,13 @@ public class DatabaseApiImpl implements DatabaseApi {
      * @return 数据源
      */
     private Object normalizeValue(Object value) throws Exception {
+        // 精确数值必须在 JSON 编码前变成十进制字符串，避免浏览器先解析为有损 double。
+        if (value instanceof BigDecimal decimal) {
+            return decimal.toPlainString();
+        }
+        if (value instanceof java.math.BigInteger integer) {
+            return integer.toString();
+        }
         if (value == null || value instanceof Number || value instanceof Boolean) {
             return value;
         }

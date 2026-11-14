@@ -7,71 +7,62 @@ import { describe, expect, it } from 'vitest';
 import routes from './dataforge-database';
 
 describe('database detail route', () => {
-  it('resolves the basic management detail with its own active menu and lossless ID', () => {
-    const router = createRouter({ history: createMemoryHistory(), routes });
-    const id = '9007199254740993';
-    const resolved = router.resolve({
+  it.each([
+    {
       name: 'BasicDataforgeDatabaseDetail',
-      params: { id },
-    });
-    expect(resolved.path).toBe(`/basic/database/detail/${id}`);
-    expect(resolved.params.id).toBe(id);
-    expect(resolved.meta.activePath).toBe('/basic/database');
-    expect(resolved.meta.hideInMenu).toBe(true);
-    const listMenu = { name: '数据连接', path: '/basic/database', parents: ['/basic'] };
-    const { findMenu, rootMenu } = findRootMenuByPath(
-      [{ name: '基础管理', path: '/basic', children: [listMenu] }],
-      resolved.meta.activePath,
-    );
-    expect(findMenu).toBe(listMenu);
-    expect(rootMenu?.path).toBe('/basic');
-  });
-  it('resolves a large database ID losslessly and keeps the list menu active', () => {
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes,
-    });
-    const id = '9007199254740993';
-    const resolved = router.resolve({
+      detailPath: '/basic/database/detail',
+      listPath: '/basic/database',
+      rootPath: '/basic',
+    },
+    {
       name: 'DataforgeDatabaseDetail',
-      params: { id },
-    });
+      detailPath: '/develop/databases/database/detail',
+      listPath: '/develop/database',
+      rootPath: '/develop',
+    },
+  ])(
+    'keeps $name in its own module and preserves large IDs',
+    ({ name, detailPath, listPath, rootPath }) => {
+      const router = createRouter({
+        history: createMemoryHistory(),
+        routes,
+      });
+      const id = '9007199254740993';
+      const resolved = router.resolve({
+        name,
+        params: { id },
+      });
 
-    expect(resolved.path).toBe(`/develop/databases/database/detail/${id}`);
-    expect(resolved.params.id).toBe(id);
-    expect(resolved.meta.activePath).toBe('/develop/database');
-    expect(resolved.meta.hideInMenu).toBe(true);
-  });
+      expect(resolved.path).toBe(`${detailPath}/${id}`);
+      expect(resolved.params.id).toBe(id);
+      expect(resolved.meta.activePath).toBe(listPath);
+      expect(resolved.meta.hideInMenu).toBe(true);
+      const listMenu = {
+        name: '数据连接',
+        path: listPath,
+        parents: [rootPath],
+      };
+      const menus = [
+        {
+          name: '当前模块',
+          path: rootPath,
+          children: [listMenu],
+        },
+      ];
 
-  it('keeps the data development sidebar when opening detail from the backend list menu', () => {
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes,
-    });
-    const listMenu = {
-      name: '数据连接',
-      path: '/develop/database',
-      parents: ['/develop'],
-    };
-    const menus = [
-      {
-        name: '数据开发',
-        path: '/develop',
-        children: [listMenu],
-      },
-    ];
-    const resolved = router.resolve({
-      name: 'DataforgeDatabaseDetail',
-      params: { id: '1' },
-    });
+      const { findMenu, rootMenu } = findRootMenuByPath(
+        menus,
+        resolved.meta.activePath,
+      );
 
-    const { findMenu, rootMenu } = findRootMenuByPath(
-      menus,
-      resolved.meta.activePath,
-    );
+      expect(findMenu).toBe(listMenu);
+      expect(rootMenu?.path).toBe(rootPath);
+      expect(rootMenu?.children).toContain(listMenu);
 
-    expect(findMenu).toBe(listMenu);
-    expect(rootMenu?.path).toBe('/develop');
-    expect(rootMenu?.children).toContain(listMenu);
-  });
+      const direct = router.resolve(resolved.path);
+      expect(direct.name).toBe(name);
+      expect(direct.meta.activePath).toBe(listPath);
+      expect(direct.params.id).toBe(id);
+    },
+  );
 });

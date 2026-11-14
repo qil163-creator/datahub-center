@@ -22,6 +22,9 @@ public class AccessMigrationAuthorization {
     @Resource
     private AccessDatabaseResolver databaseResolver;
 
+    @Resource
+    private cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime dbSwitchRuntime;
+
     /** 复核实际执行人的同步运行权限。 */
     public void requireTargetPermission(Long actor) {
         executionAccess.requireUserPermission(actor, "dataforge:access:run");
@@ -51,6 +54,7 @@ public class AccessMigrationAuthorization {
     /** 仅检查源数据源与物理对象绑定，不执行行列权限或脱敏策略。 */
     public void requireSourceBinding(AccessDatabaseResolver.ConnectionInfo route, Long actor, String table) {
         requireRoute(route, actor);
+        if (route.getProductType() != ProductTypeEnum.POSTGRESQL) throw rejected();
         requireCurrentRoute(route);
         RestrictedSelectGuard.qualifiedTableName(route.getProductType(), route.getSchema(), table);
     }
@@ -64,7 +68,10 @@ public class AccessMigrationAuthorization {
                 || columns == null || columns.isEmpty() || new LinkedHashSet<>(columns).size() != columns.size()) {
             throw rejected();
         }
-        var expected = ManagedSchemaScriptPlan.parse(route.getProductType(), route.getSchema(),
+        var expected = route.getProductType() == ProductTypeEnum.DORIS
+                ? dbSwitchRuntime.products().metadata(route.getProductType()).planAuthorizedCreateNew(
+                route.getSchema(), table, columns, plan.steps().getFirst().sql(), plan.steps().getLast().sql())
+                : ManagedSchemaScriptPlan.parse(route.getProductType(), route.getSchema(),
                 plan.steps().stream().map(ManagedSchemaScriptPlan.Step::sql).toList());
         if (!plan.equals(expected) || !"DDL".equals(expected.steps().getFirst().operation())
                 || !"DML".equals(expected.steps().getLast().operation())
@@ -79,7 +86,7 @@ public class AccessMigrationAuthorization {
 
     private void requireRoute(AccessDatabaseResolver.ConnectionInfo route, Long actor) {
         if (route == null || actor == null || actor <= 0 || route.getDatabaseId() == null
-                || route.getProductType() != ProductTypeEnum.POSTGRESQL
+                || route.getProductType() != ProductTypeEnum.POSTGRESQL && route.getProductType() != ProductTypeEnum.DORIS
                 || route.getConfigurationRevision() == null || route.getConfigurationRevision().isBlank()) {
             throw rejected();
         }
@@ -96,6 +103,6 @@ public class AccessMigrationAuthorization {
     }
 
     private IllegalStateException rejected() {
-        return new IllegalStateException("同步目标写计划不可核验；当前仅支持 PostgreSQL 新表全量同步");
+        return new IllegalStateException("同步目标写计划不可核验；当前仅支持普通 PostgreSQL 源至 PostgreSQL/Doris 新表全量同步");
     }
 }

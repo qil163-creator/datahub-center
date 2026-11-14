@@ -107,7 +107,8 @@ class StandardCodeItemServiceTest {
         when(codeSetMapper.selectById(7)).thenReturn(codeSet);
         when(codeSetMapper.selectByIdForUpdate(7)).thenReturn(codeSet);
         when(itemMapper.selectByIdForUpdate(10)).thenReturn(current);
-        when(valueMappings.selectCount(any(), eq(10))).thenReturn(1L);
+        when(valueMappings.selectCount(
+                any(com.baomidou.mybatisplus.core.toolkit.support.SFunction.class), eq(10))).thenReturn(1L);
 
         assertThatThrownBy(() -> service.deleteStandardCodeItem(10)).hasMessageContaining("引用");
         verify(itemMapper, never()).deleteById(any(Integer.class));

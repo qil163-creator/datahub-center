@@ -310,8 +310,9 @@ public final class DorisDdlBuilder {
             return "DATETIME";
         }
         if (type.contains("char")) {
-            return length == null || length <= 0 ? "VARCHAR(255)"
-                    : String.format("VARCHAR(%d)", Math.min(length * 3, VARCHAR_MAX_LENGTH));
+            // 逻辑建模长度按字符输入，Doris VARCHAR 按字节存储；完整 UTF-8 字符最多占四字节。
+            long bytes = (long) (length == null || length <= 0 ? 255 : length) * 4L;
+            return bytes <= VARCHAR_MAX_LENGTH ? "VARCHAR(" + bytes + ")" : "STRING";
         }
         return "STRING";
     }

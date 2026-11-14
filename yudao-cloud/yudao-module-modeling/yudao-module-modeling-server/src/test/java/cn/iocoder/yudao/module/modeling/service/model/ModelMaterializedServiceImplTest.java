@@ -71,6 +71,8 @@ class ModelMaterializedServiceImplTest {
                 .thenReturn(List.of("CREATE TABLE public.dwd_customer (id bigint)"));
         when(attemptStore.reserve(any(), any())).thenAnswer(call -> {
             ModelMaterializedDO desired = call.getArgument(0); desired.setId(100L);
+            ModelDeploymentAttemptDO requested = call.getArgument(1);
+            attempt.setDdlSql(requested.getDdlSql());
             return attempt;
         });
         locked(after, true);
@@ -81,6 +83,10 @@ class ModelMaterializedServiceImplTest {
             ((BiConsumer<ModelDdlExecutor.TableObservation, Boolean>)call.getArgument(4)).accept(observation, matches);
             return null;
         }).when(ddlExecutor).withLockedExpectedObservation(same(connection), eq("dwd_customer"), anyString(), anyList(), any());
+        doAnswer(call -> {
+            ((BiConsumer<ModelDdlExecutor.TableObservation, Boolean>)call.getArgument(5)).accept(observation, matches);
+            return null;
+        }).when(ddlExecutor).withLockedExpectedObservation(same(connection), eq("dwd_customer"), anyString(), anyList(), anyString(), any());
     }
 
     @Test void draftWithoutPublishedVersionCannotReachTheTarget() {
@@ -114,6 +120,65 @@ class ModelMaterializedServiceImplTest {
                 () -> service.publish(request("REBUILD"))).getCode());
         verifyNoInteractions(attemptStore);
         verify(ddlExecutor, never()).observeTable(any(), any(), any());
+    }
+
+    @Test void dorisIncrementUsesNativePlanAndConfirmsFinalStructure() {
+        prepared();
+        connection.setProductType(ProductTypeEnum.DORIS);
+        var statements = List.of("ALTER TABLE `public`.`dwd_customer` ADD COLUMN `name` varchar(80) NULL");
+        when(ddlExecutor.buildSynchronizeTableDdl(eq("dwd_customer"), eq("客户模型"), same(connection), anyList()))
+                .thenReturn(statements);
+
+        assertEquals(100L, service.publish(request("INCREMENT")));
+
+        verify(ddlExecutor).validateDdl(connection, "dwd_customer", statements);
+        verify(ddlExecutor).executeDdl(same(connection), eq(statements), same(before), any());
+        verify(attemptStore).finish(attempt, "SUCCESS", "已核验任务输入部署成功");
+    }
+
+    @Test void dorisExistingTargetCannotBeDroppedByRebuild() {
+        prepared();
+        connection.setProductType(ProductTypeEnum.DORIS);
+
+        assertEquals(MODEL_MATERIALIZED_MODE_INVALID.getCode(), assertThrows(ServiceException.class,
+                () -> service.publish(request("REBUILD"))).getCode());
+
+        verifyNoInteractions(attemptStore);
+        verify(ddlExecutor, never()).executeDdl(any(), anyList(), any(), any());
+        verify(ddlExecutor, never()).dropTable(any(), any());
+    }
+
+    @Test void dorisNewTargetCanBeCreatedWithoutDropOrIfNotExists() {
+        prepared();
+        connection.setProductType(ProductTypeEnum.DORIS);
+        var absent = new ModelDdlExecutor.TableObservation(false, false, null, Instant.now(), List.of(),
+                new SchemaPrecondition("public", "dwd_customer", "scope", null, false, false, "absent"));
+        when(ddlExecutor.observeTable(connection, 7L, "dwd_customer")).thenReturn(absent, after);
+        var statements = List.of("CREATE TABLE `public`.`dwd_customer` (`id` bigint) ENGINE=OLAP DUPLICATE KEY (`id`) DISTRIBUTED BY HASH (`id`) BUCKETS 10");
+        when(ddlExecutor.buildCreateTableDdl(eq("dwd_customer"), eq("客户模型"), anyList(), same(connection), isNull()))
+                .thenReturn(statements);
+
+        assertEquals(100L, service.publish(request("REBUILD")));
+
+        verify(ddlExecutor).executeDdl(same(connection), eq(statements), same(absent), any());
+        verify(ddlExecutor).withLockedExpectedObservation(same(connection), eq("dwd_customer"), eq("客户模型"),
+                eq(fields), eq(statements.getFirst()), any());
+        verify(attemptStore).finish(attempt, "SUCCESS", "已核验任务输入部署成功");
+        verify(ddlExecutor, never()).dropTable(any(), any());
+    }
+
+    @Test void dorisPartialOrTimedOutAlterKeepsUnknownTargetOwnership() {
+        prepared();
+        connection.setProductType(ProductTypeEnum.DORIS);
+        when(ddlExecutor.buildSynchronizeTableDdl(eq("dwd_customer"), eq("客户模型"), same(connection), anyList()))
+                .thenReturn(List.of("ALTER TABLE `public`.`dwd_customer` ADD COLUMN `name` varchar(80) NULL"));
+        doThrow(new ModelDdlExecutor.DdlExecutionException(ModelDdlExecutor.DdlOutcome.UNKNOWN)).when(ddlExecutor)
+                .executeDdl(any(), anyList(), any(), any());
+
+        service.publish(request("INCREMENT"));
+
+        verify(attemptStore).finish(eq(attempt), eq("UNKNOWN"), anyString());
+        verify(ddlExecutor, never()).dropTable(any(), any());
     }
 
     @Test void sourceModelUsesPublishedSnapshotAndTheSameVerifiedDeploymentChain() {
@@ -185,6 +250,37 @@ class ModelMaterializedServiceImplTest {
     @Test void differentTargetDoesNotReleaseUnknownOwnership() {
         recovery(after, false);
         assertEquals("UNKNOWN", service.reconcile(100L));
+        verify(attemptStore).finish(eq(attempt), eq("UNKNOWN"), anyString());
+    }
+
+    @Test void dorisCreateRecoveryChecksFrozenLayoutInsteadOfOnlyMatchingColumns() {
+        connection.setProductType(ProductTypeEnum.DORIS);
+        var absent = new ModelDdlExecutor.TableObservation(false, false, null, Instant.now(), List.of(),
+                new SchemaPrecondition("public", "dwd_customer", "scope", null, false, false, "absent"));
+        attempt.setBeforeObservationJson(JsonUtils.toJsonString(absent));
+        String frozen = "CREATE TABLE `public`.`dwd_customer` (`id` bigint) ENGINE=OLAP UNIQUE KEY (`id`) DISTRIBUTED BY HASH (`id`) BUCKETS 10";
+        attempt.setDdlSql(frozen);
+        recovery(after, false);
+
+        assertEquals("UNKNOWN", service.reconcile(100L));
+
+        verify(ddlExecutor, times(2)).withLockedExpectedObservation(same(connection), eq("dwd_customer"),
+                eq("客户模型"), eq(fields), eq(frozen), any());
+        verify(attemptStore, never()).finish(any(), eq("SUCCESS"), anyString());
+        verify(attemptStore).finish(eq(attempt), eq("UNKNOWN"), anyString());
+        verify(ddlExecutor, never()).executeDdl(any(), anyList(), any(), any());
+    }
+
+    @Test void dorisCreateRecoveryCannotSucceedWithoutFrozenCreateEvidence() {
+        connection.setProductType(ProductTypeEnum.DORIS);
+        var absent = new ModelDdlExecutor.TableObservation(false, false, null, Instant.now(), List.of(),
+                new SchemaPrecondition("public", "dwd_customer", "scope", null, false, false, "absent"));
+        attempt.setBeforeObservationJson(JsonUtils.toJsonString(absent));
+        recovery(after, true);
+
+        assertEquals("UNKNOWN", service.reconcile(100L));
+
+        verify(attemptStore, never()).finish(any(), eq("SUCCESS"), anyString());
         verify(attemptStore).finish(eq(attempt), eq("UNKNOWN"), anyString());
     }
 

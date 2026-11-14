@@ -215,6 +215,31 @@ afterEach(() => {
   app = undefined;
 });
 
+describe('数据连接详情返回入口', () => {
+  it.each(['/basic/database', '/develop/database'])(
+    '详情正常显示时返回 %s',
+    async (activePath) => {
+      harness.route.meta.activePath = activePath;
+      await mountPage();
+      button('返回').click();
+      expect(harness.push).toHaveBeenCalledExactlyOnceWith(activePath);
+    },
+  );
+
+  it.each(['/basic/database', '/develop/database'])(
+    '无查询权限时返回 %s 且不请求连接数据',
+    async (activePath) => {
+      harness.route.meta.activePath = activePath;
+      harness.access.codes = [];
+      await mountPage();
+      expect(host.textContent).toContain('暂无连接查询权限');
+      button('返回连接管理').click();
+      expect(harness.push).toHaveBeenCalledExactlyOnceWith(activePath);
+      expect(harness.getDatabase).not.toHaveBeenCalled();
+    },
+  );
+});
+
 describe('database detail identity and state', () => {
   it.each(['/basic/database', '/develop/database'])(
     'returns to the originating menu %s',

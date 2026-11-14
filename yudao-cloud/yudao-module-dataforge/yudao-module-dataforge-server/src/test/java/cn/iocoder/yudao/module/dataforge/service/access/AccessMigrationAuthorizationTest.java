@@ -56,6 +56,29 @@ class AccessMigrationAuthorizationTest {
         doThrow(new SecurityException("revoked")).when(access).requireUserPermission(7L, "dataforge:access:run");
         assertThrows(SecurityException.class, () -> authorization.requireTargetPermission(7L));
     }
+    @Test void dorisTargetUsesNativePlanAndKeepsActorSourceAndRevisionChecks() {
+        try (var runtime = new cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime(
+                cn.iocoder.yudao.framework.dbswitch.spi.DbSwitchProductRegistry.discover(),
+                cn.iocoder.yudao.framework.dbswitch.common.config.DbSwitchOptions.defaults(), null)) {
+            ReflectionTestUtils.setField(authorization, "dbSwitchRuntime", runtime);
+            var target = route(); target.setDatabaseId(11L); target.setProductType(ProductTypeEnum.DORIS);
+            when(resolver.resolve(eq(11L), any())).thenReturn(target);
+            var nativePlan = runtime.products().metadata(ProductTypeEnum.DORIS).planAuthorizedCreateNew(
+                    "warehouse", "output", List.of("id", "payload"),
+                    "CREATE TABLE `warehouse`.`output` (`id` BIGINT NOT NULL, `payload` VARCHAR(64) NULL) "
+                            + "ENGINE=OLAP DUPLICATE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1 "
+                            + "PROPERTIES('replication_num'='1')",
+                    "INSERT INTO `warehouse`.`output` (`id`,`payload`) VALUES (?,?)");
+            assertSame(nativePlan, authorization.authorizeTable(route, target, 7L, "source", "output",
+                    List.of("id", "payload"), nativePlan));
+            verify(access).requireUserPermission(7L, "dataforge:access:run");
+            assertThrows(IllegalStateException.class, () -> authorization.requireSourceBinding(target, 7L, "source"));
+            var changed = route(); changed.setProductType(ProductTypeEnum.DORIS); changed.setConfigurationRevision("changed");
+            when(resolver.resolve(eq(11L), any())).thenReturn(changed);
+            assertThrows(IllegalStateException.class, () -> authorization.authorizeTarget(target, 7L, "output",
+                    List.of("id", "payload"), nativePlan));
+        }
+    }
     @Test void tableWorkerRestoresItsSecurityContextAfterSuccessAndDenial() {
         var previous = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
         org.springframework.security.core.context.SecurityContextHolder.setContext(previous);

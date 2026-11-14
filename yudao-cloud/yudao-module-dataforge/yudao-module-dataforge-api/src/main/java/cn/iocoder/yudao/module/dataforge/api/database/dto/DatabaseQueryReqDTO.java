@@ -40,6 +40,11 @@ public class DatabaseQueryReqDTO {
     @Schema(description = "受限字段授权的目标表")
     private String expectedTable;
 
+    /** 原生目录解析返回的对象代次；用于拒绝解析与读取之间的表替换。 */
+    @Schema(description = "预期原生关系身份")
+    @Size(max = 2048, message = "原生关系身份过长")
+    private String expectedObjectId;
+
     /**
      * 允许访问的物理列。出现时服务端在数据库执行前重建投影，越权的返回列、过滤和排序一律拒绝。
      */

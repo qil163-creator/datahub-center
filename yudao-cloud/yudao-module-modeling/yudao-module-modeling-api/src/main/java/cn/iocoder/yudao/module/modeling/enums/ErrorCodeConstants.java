@@ -166,7 +166,7 @@ public interface ErrorCodeConstants {
     ErrorCode MODEL_MATERIALIZED_OUTCOME_UNKNOWN = new ErrorCode(1_500_044_005,
             "部署结果尚未确认，请先执行对账；禁止直接重建或覆盖");
     ErrorCode MODEL_MATERIALIZED_PRODUCT_UNSUPPORTED = new ErrorCode(1_500_044_006,
-            "当前数据库产品未验证冻结部署、事务锁及恢复能力，仅支持 PostgreSQL");
+            "当前数据库产品未接入受控模型部署，目前支持 PostgreSQL 和 Doris 普通表");
 
     // ========== 统一模型设计与部署 1_500_046_000 ==========
     ErrorCode MODEL_DESIGN_REVISION_CONFLICT = new ErrorCode(1_500_046_023, "模型设计已变化，请重新加载后保存");
@@ -184,4 +184,14 @@ public interface ErrorCodeConstants {
     ErrorCode CONCEPT_MODEL_NOT_DRAFT = new ErrorCode(1_500_047_003, "已启用的概念模型不能修改或删除，请先停用");
     ErrorCode CONCEPT_DESIGN_INVALID = new ErrorCode(1_500_047_004, "概念设计不合法：{}");
     ErrorCode CONCEPT_MODEL_EMPTY = new ErrorCode(1_500_047_005, "概念模型至少包含一个实体后才能启用");
+
+    // ========== 模型与实体版本、结构同步、SQL 解析 1_500_052_000 ==========
+    ErrorCode MODEL_VERSION_NOT_EXISTS = new ErrorCode(1_500_052_000, "模型版本不存在");
+    ErrorCode MODEL_VERSION_MISMATCH = new ErrorCode(1_500_052_001, "所选版本不属于当前对象，请刷新后重试");
+    ErrorCode BUSINESS_ENTITY_VERSION_NOT_EXISTS = new ErrorCode(1_500_052_002, "业务实体版本不存在");
+    ErrorCode MODEL_SOURCE_SYNC_UNAVAILABLE = new ErrorCode(1_500_052_003,
+            "贴源表缺少来源数据源或源表名，无法同步结构");
+    ErrorCode MODEL_SOURCE_SYNC_NOT_SOURCE = new ErrorCode(1_500_052_004, "只有贴源表可以同步源表结构");
+    ErrorCode MODEL_SOURCE_SYNC_NO_CHANGE = new ErrorCode(1_500_052_005, "源表结构与当前设计一致，无需同步");
+    ErrorCode MODEL_SQL_PARSE_FAILED = new ErrorCode(1_500_052_006, "建表语句解析失败：{}");
 }

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.framework.dbswitch.core.service;
 
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
+import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -25,8 +26,9 @@ import java.util.Set;
  *     <li>聚合层：只引用生成的、加引号的别名，产出 GROUP BY / ORDER BY / LIMIT。</li>
  * </ol>
  *
- * <p>产品支持沿用 {@link RestrictedSelectGuard#supportsExactBinding}；时间粒度函数按 PostgreSQL 族
- * （PostgreSQL、openGauss）与 MySQL 族（MySQL、MariaDB）分别渲染，其余产品抛出
+ * <p>产品支持沿用 {@link RestrictedSelectGuard#supportsExactBinding}，另外 Doris 必须携带调用方在执行连接上
+ * 观测到的原生 catalog 关系身份（见 {@link #requiresCatalogRelation}）；时间粒度函数按 PostgreSQL 族
+ * （PostgreSQL、openGauss）、MySQL 族（MySQL、MariaDB）与 Doris 分别渲染，其余产品抛出
  * {@link UnsupportedOperationException}。本组件不决定对象授权、数据范围或脱敏，均由调用方负责。
  * 线程安全：无状态静态方法。
  */
@@ -110,11 +112,24 @@ public final class AggregateQuerySql {
      * @param filters          等值过滤，可为空
      * @param rowFilters       调用方可信来源的行条件片段（如业务限定），经受限语法校验后合并，可为空
      * @param limit            最大行数（1..{@value #MAX_LIMIT}）
+     * @param relation         原生 catalog 关系身份；{@link #requiresCatalogRelation} 为真的产品必填，
+     *                         须由调用方在执行连接上观测并在执行后复验，其余产品为空
      */
     public record Request(ProductTypeEnum product, String schemaName, String tableName,
                           List<String> physicalColumns, List<String> dimensionColumns, String valueColumn,
                           Aggregation aggregation, TimeWindow time, List<Filter> filters, List<String> rowFilters,
-                          int limit) {
+                          int limit, CatalogRelationIdentity relation) {
+
+        /**
+         * 不需要原生 catalog 身份的产品沿用的构造方式。
+         */
+        public Request(ProductTypeEnum product, String schemaName, String tableName,
+                       List<String> physicalColumns, List<String> dimensionColumns, String valueColumn,
+                       Aggregation aggregation, TimeWindow time, List<Filter> filters, List<String> rowFilters,
+                       int limit) {
+            this(product, schemaName, tableName, physicalColumns, dimensionColumns, valueColumn, aggregation, time,
+                    filters, rowFilters, limit, null);
+        }
     }
 
     /**
@@ -155,7 +170,16 @@ public final class AggregateQuerySql {
      * 当前产品是否支持受限聚合查询；与精确绑定、行条件合并的产品矩阵一致。
      */
     public static boolean supports(ProductTypeEnum product) {
-        return product != null && RestrictedSelectGuard.supportsExactBinding(product);
+        return product != null && (RestrictedSelectGuard.supportsExactBinding(product)
+                || requiresCatalogRelation(product));
+    }
+
+    /**
+     * 当前产品是否只能通过原生 catalog 关系身份定位目标表。Doris 不开放名称精确绑定，
+     * 调用方须在执行连接上观测 {@link CatalogRelationIdentity} 并在取得结果后复验。
+     */
+    public static boolean requiresCatalogRelation(ProductTypeEnum product) {
+        return product == ProductTypeEnum.DORIS;
     }
 
     /**
@@ -218,8 +242,20 @@ public final class AggregateQuerySql {
                 .map(column -> RestrictedSelectGuard.quotePhysicalIdentifier(product, column)).toList())
                 + " FROM " + RestrictedSelectGuard.qualifiedTableName(product, request.schemaName(),
                 request.tableName());
-        RestrictedSelectProjection source = RestrictedSelectGuard.restrictProjectionWithRowFilters(product, probe,
-                request.schemaName(), request.tableName(), physical, needed, rowFilters);
+        RestrictedSelectProjection source;
+        if (requiresCatalogRelation(product)) {
+            CatalogRelationIdentity relation = request.relation();
+            if (relation == null || relation.product() != product
+                    || !relation.schemaName().equals(request.schemaName())
+                    || !relation.tableName().equals(request.tableName())) {
+                throw new IllegalArgumentException("聚合查询必须绑定与目标表一致的原生 catalog 关系");
+            }
+            source = RestrictedSelectGuard.restrictCatalogProjectionWithRowFilters(probe, request.schemaName(),
+                    relation, physical, needed, rowFilters);
+        } else {
+            source = RestrictedSelectGuard.restrictProjectionWithRowFilters(product, probe,
+                    request.schemaName(), request.tableName(), physical, needed, rowFilters);
+        }
 
         // 第二层：物理列 → 生成别名，范围与过滤全部参数绑定。
         List<Object> parameters = new ArrayList<>();
@@ -364,6 +400,17 @@ public final class AggregateQuerySql {
                 case YEAR -> "year";
             };
             return "CAST(DATE_TRUNC('" + unit + "', CAST(" + column + " AS TIMESTAMP)) AS DATE)";
+        }
+        if (product == ProductTypeEnum.DORIS) {
+            // Doris 的 DATE_TRUNC 参数顺序为 (datetime, unit)，week 同样以周一为一周开始。
+            String unit = switch (grain) {
+                case DAY -> "day";
+                case WEEK -> "week";
+                case MONTH -> "month";
+                case QUARTER -> "quarter";
+                case YEAR -> "year";
+            };
+            return "CAST(DATE_TRUNC(CAST(" + column + " AS DATETIME), '" + unit + "') AS DATE)";
         }
         if (product == ProductTypeEnum.MYSQL || product == ProductTypeEnum.MARIADB) {
             return switch (grain) {

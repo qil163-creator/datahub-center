@@ -8,6 +8,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DatabaseCatalogIdentityWireTest {
+    @Test void queryExecutionCarriesDorisGenerationAsAnOpaqueString() throws Exception {
+        var request = new cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseQueryReqDTO();
+        request.setDatabaseId(7L); request.setSql("SELECT id FROM orders");
+        request.setExpectedObjectId("a".repeat(64));
+        var jackson2 = new com.fasterxml.jackson.databind.ObjectMapper();
+        var jackson3 = tools.jackson.databind.json.JsonMapper.builder().build();
+        assertEquals(request, jackson2.readValue(jackson2.writeValueAsBytes(request), request.getClass()));
+        assertEquals(request, jackson3.readValue(jackson3.writeValueAsBytes(request), request.getClass()));
+    }
     @Test void nativeObjectIdsRemainDecimalStringsBeyondJavascriptSafeIntegerRange() throws Exception {
         String id = "9007199254740993";
         var query = new RestrictedSelectRespDTO(); query.setRelationObjectId(id);

@@ -16,6 +16,7 @@ import cn.iocoder.yudao.module.modeling.dal.dataobject.model.ModelMaterializedDO
 import cn.iocoder.yudao.module.modeling.dal.dataobject.model.ModelDeploymentAttemptDO;
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
 import cn.iocoder.yudao.framework.dbswitch.core.schema.PostgresSchemaChanges;
+import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaChanges;
 import cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
@@ -354,9 +355,14 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
         String comment = StrUtil.blankToDefault(frozen.getName(), tableName);
         List<String> ddl;
         if (ModelMaterializedDO.MODE_REBUILD.equals(mode)) {
+            if (conn.getProductType() == ProductTypeEnum.DORIS && before.tableExists()) {
+                throw exception(MODEL_MATERIALIZED_MODE_INVALID,
+                        "Doris 已有表不支持直接删除重建，请使用增量发布；键、分区或分桶调整须另行迁移");
+            }
             var create = ddlExecutor.buildCreateTableDdl(tableName, comment, fields, conn, null);
-            ddl = PostgresSchemaChanges.rebuildPlan(conn.getSchema(), tableName, create, before.tableExists()).steps()
-                    .stream().map(SqlScriptPlan.Step::sql).toList();
+            ddl = conn.getProductType() == ProductTypeEnum.POSTGRESQL
+                    ? PostgresSchemaChanges.rebuildPlan(conn.getSchema(), tableName, create, before.tableExists()).steps()
+                    .stream().map(SqlScriptPlan.Step::sql).toList() : create;
         } else if (before.tableExists()) {
             ddl = ddlExecutor.buildSynchronizeTableDdl(tableName, comment, conn, fields);
         } else {
@@ -366,7 +372,7 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
             }
         }
         if (!ddl.isEmpty()) {
-            ddlExecutor.validateDdl(conn, ddl);
+            ddlExecutor.validateDdl(conn, tableName, ddl);
         }
         var attempt = new ModelDeploymentAttemptDO();
         attempt.setModelId(modelId);
@@ -417,7 +423,7 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
             }
             var after = ddlExecutor.observeTable(conn, attempt.getDatasourceId(), attempt.getTableName());
             attemptStore.heartbeat(attempt);
-            ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), snapshot.getName(), fields,
+            withExpectedObservation(attempt, conn, snapshot.getName(), fields, before,
                     (locked, matches) -> {
                         if (!matches || !after.sameDatabaseState(locked) || (ddl.isEmpty() && !before.sameDatabaseState(
                                 locked))) {
@@ -429,7 +435,7 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
             // 只有确认回滚或尚未开始才能认定失败；连接中断等不确定结果继续占用目标，防止重建覆盖。
             boolean certain = failure.outcome() == ModelDdlExecutor.DdlOutcome.ROLLED_BACK || failure.outcome() == ModelDdlExecutor.DdlOutcome.NOT_STARTED;
             attemptStore.finish(attempt, certain ? ModelMaterializedDO.STATUS_FAIL : ModelMaterializedDO.STATUS_UNKNOWN,
-                    certain ? "外部事务已确认回滚或尚未开始" : "外部事务结果待对账，已阻止重建和覆盖");
+                    certain ? "外部DDL已确认回滚或尚未开始" : "外部DDL结果待对账，已阻止重建和覆盖");
         } catch (RuntimeException failure) {
             attemptStore.finish(attempt, entered ? ModelMaterializedDO.STATUS_UNKNOWN : ModelMaterializedDO.STATUS_FAIL,
                     entered ? "部署或执行后核验未完成，保留目标占用等待对账" : "部署前目标核验失败，未执行外部DDL");
@@ -467,7 +473,7 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
             }
             var observed = new ModelDdlExecutor.TableObservation[1];
             var decision = new String[]{ModelMaterializedDO.STATUS_UNKNOWN};
-            ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), snapshot.getName(), fields,
+            withExpectedObservation(attempt, conn, snapshot.getName(), fields, before,
                     (locked, matches) -> {
                         attemptStore.heartbeat(attempt);
                         observed[0] = locked;
@@ -478,8 +484,8 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
                         }
                     });
             attemptStore.heartbeat(attempt);
-            // 任务输入复核发生在两次目标观测之间；结束对账前重新加锁比对，拒绝把中途变化的结构认定为成功。
-            ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), snapshot.getName(), fields,
+            // 任务输入复核发生在两次目标观测之间；结束对账前再次受控比对，拒绝把中途变化的结构认定为成功。
+            withExpectedObservation(attempt, conn, snapshot.getName(), fields, before,
                     (locked, matches) -> {
                         if (!observed[0].sameDatabaseState(locked)) {
                             throw exception(MODEL_MATERIALIZED_OUTCOME_UNKNOWN);
@@ -516,13 +522,27 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
         }
     }
 
+    /** Doris 首次创建以冻结 CREATE 为布局依据，后续对账不重新采用当前配置生成期望值。 */
+    private void withExpectedObservation(ModelDeploymentAttemptDO attempt,
+            ModelingDatabaseResolver.ConnectionInfo conn, String comment, List<ModelFieldItem> fields,
+            ModelDdlExecutor.TableObservation before,
+            java.util.function.BiConsumer<ModelDdlExecutor.TableObservation, Boolean> callback) {
+        if (conn.getProductType() == ProductTypeEnum.DORIS && !before.tableExists()) {
+            if (StrUtil.isBlank(attempt.getDdlSql())) throw exception(MODEL_MATERIALIZED_OUTCOME_UNKNOWN);
+            ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), comment, fields,
+                    attempt.getDdlSql(), callback);
+        } else {
+            ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), comment, fields, callback);
+        }
+    }
+
     /**
      * 校验目标数据库产品是否属于当前功能支持范围。
      *
      * @param conn 已解析的数据源连接信息
      */
     private void requireSupported(ModelingDatabaseResolver.ConnectionInfo conn) {
-        if (conn.getProductType() != ProductTypeEnum.POSTGRESQL) {
+        if (!SchemaChanges.supports(conn.getProductType())) {
             throw exception(MODEL_MATERIALIZED_PRODUCT_UNSUPPORTED);
         }
     }

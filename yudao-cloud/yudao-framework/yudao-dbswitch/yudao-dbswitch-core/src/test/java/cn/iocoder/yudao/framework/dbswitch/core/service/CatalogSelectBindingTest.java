@@ -11,6 +11,32 @@ import static org.junit.jupiter.api.Assertions.*;
 class CatalogSelectBindingTest {
     private final CatalogRelationIdentity relation = new CatalogRelationIdentity(ProductTypeEnum.TIDB, "Catalog", "Orders", "42");
 
+    @Test void dorisRequiresNativeGenerationAndExactCaseWithoutEnablingSyntaxOnlyBinding() {
+        var doris = new CatalogRelationIdentity(ProductTypeEnum.DORIS, "Warehouse", "Orders", "a".repeat(64));
+        var plan = RestrictedSelectGuard.bindToCatalogRelation(
+                "select o.id from Orders o where o.id=? order by o.id limit 3", "Warehouse", doris);
+        assertEquals("Warehouse", plan.getSchemaName());
+        assertEquals("Orders", plan.getTableName());
+        assertTrue(plan.getNormalizedSql().contains("`Warehouse`.`Orders` o"));
+        assertTrue(plan.getNormalizedSql().contains("o.id = ?"));
+        assertFalse(RestrictedSelectGuard.supportsExactBinding(ProductTypeEnum.DORIS));
+        assertThrows(UnsupportedOperationException.class,
+                () -> RestrictedSelectGuard.parseBound(ProductTypeEnum.DORIS, "select * from Orders", "Warehouse"));
+        for (String sql : List.of("select * from orders", "select * from warehouse.Orders",
+                "select * from internal.Warehouse.Orders", "select * from Orders join other on Orders.id=other.id",
+                "select * from Orders; select * from other", "select * from Orders /* hint */")) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> RestrictedSelectGuard.bindToCatalogRelation(sql, "Warehouse", doris), sql);
+        }
+        for (var invalid : List.of(
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "Warehouse", "Orders", "42"),
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "Warehouse", "Orders", "A".repeat(64)),
+                new CatalogRelationIdentity(ProductTypeEnum.DORIS, "Warehouse.X", "Orders", "a".repeat(64)))) {
+            assertThrows(IllegalArgumentException.class, () -> RestrictedSelectGuard.bindToCatalogRelation(
+                    "select * from Orders", "Warehouse", invalid));
+        }
+    }
+
     @Test void canonicalizesOnlyTheFromRelationAndKeepsParametersAliasOrderingAndLimit() {
         var plan = RestrictedSelectGuard.bindToCatalogRelation(
                 "SELECT o.id FROM catalog.orders o WHERE o.name=? OR o.id=? ORDER BY o.id DESC LIMIT 3 OFFSET 1",

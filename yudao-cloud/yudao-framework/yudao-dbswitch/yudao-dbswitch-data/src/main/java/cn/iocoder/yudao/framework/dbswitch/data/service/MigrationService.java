@@ -292,8 +292,15 @@ public class MigrationService {
     public static void validateAuthorizedConfiguration(MigrationRequest request) {
         Objects.requireNonNull(request, "request");
         var target = Objects.requireNonNull(request.getTarget(), "target");
+        if (target.getTargetProductType() == ProductTypeEnum.DORIS && request.getSource() != null
+                && request.getSource().stream().anyMatch(source -> source.getConfigMap() != null
+                && source.getConfigMap().values().stream().anyMatch(mapper -> mapper.getDorisOptions() != null
+                && mapper.getDorisOptions().partition() != null))) {
+            throw new IllegalArgumentException("Doris 授权新表全量同步暂不支持分区配置");
+        }
         if (request.getSource() == null || request.getSource().isEmpty()
                 || target.getTargetProductType() != ProductTypeEnum.POSTGRESQL
+                && target.getTargetProductType() != ProductTypeEnum.DORIS
                 || !"CREATE_NEW".equals(target.getWriteMode())
                 || !Boolean.TRUE.equals(target.getWriterEngineInsert())
                 || Boolean.TRUE.equals(target.getTargetDrop()) || Boolean.TRUE.equals(target.getTargetTruncateData())
@@ -309,7 +316,7 @@ public class MigrationService {
                 || !request.getTypeMappingAcknowledgements().isEmpty()
                 || target.getCursorRunBindings() != null || target.getGroupRewriteBindings() != null
                 || target.getGroupRewriteBindingProvider() != null || target.getTableRewriteBindingProvider() != null) {
-            throw new IllegalArgumentException("Authorized migration requires ordinary PostgreSQL CREATE_NEW full INSERT copy");
+            throw new IllegalArgumentException("Authorized migration requires ordinary PostgreSQL or Doris CREATE_NEW full INSERT copy");
         }
         for (var source : request.getSource()) {
             if (source.getSourceProductType() != ProductTypeEnum.POSTGRESQL
@@ -318,8 +325,10 @@ public class MigrationService {
                     || StringUtils.hasText(source.getBeforeSqlScripts()) || StringUtils.hasText(source.getAfterSqlScripts())
                     || StringUtils.hasText(source.getTimestampColumn()) || StringUtils.hasText(source.getIncreaseColumnName())
                     || source.getConfigMap() != null && source.getConfigMap().values().stream().anyMatch(mapper ->
-                    StringUtils.hasText(mapper.getTargetTableComment()) || StringUtils.hasText(mapper.getTimestampColumn())
-                            || StringUtils.hasText(mapper.getIncreaseColumnName()) || mapper.getDorisOptions() != null)) {
+                    target.getTargetProductType() != ProductTypeEnum.DORIS && StringUtils.hasText(mapper.getTargetTableComment())
+                            || StringUtils.hasText(mapper.getTimestampColumn())
+                            || StringUtils.hasText(mapper.getIncreaseColumnName()) || mapper.getDorisOptions() != null
+                            && target.getTargetProductType() != ProductTypeEnum.DORIS)) {
                 throw new IllegalArgumentException("Authorized migration requires ordinary PostgreSQL TABLE sources without hooks");
             }
         }

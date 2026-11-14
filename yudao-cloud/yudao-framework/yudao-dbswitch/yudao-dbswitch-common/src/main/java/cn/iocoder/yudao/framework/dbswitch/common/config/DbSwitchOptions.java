@@ -31,4 +31,10 @@ public record DbSwitchOptions(long maxCacheBytes, boolean pipelineWriteEnabled,
     public static DbSwitchOptions defaults() {
         return new DbSwitchOptions(128L * 1024 * 1024, true, true, 3600, 0, 300_000, 30_000, 0);
     }
+
+    /** 为单次操作显式选择 OLAP 传输，其余限额保持不变。 */
+    public DbSwitchOptions withOlapStreamLoad(boolean enabled) {
+        return new DbSwitchOptions(maxCacheBytes, pipelineWriteEnabled, enabled, queryTimeoutSeconds,
+                poolMinimumIdle, poolIdleTimeoutMs, poolValidationTimeoutMs, poolLeakDetectionThresholdMs, diffSort);
+    }
 }

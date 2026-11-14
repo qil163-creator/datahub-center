@@ -31,6 +31,20 @@ public final class DorisJdbcSupport {
 
     }
 
+    /** 对授权创建的精确内部表计数；超时、额外行或空值都不能作为完整复制凭证。 */
+    public static long countRows(Connection connection, String schema, String table, int timeout) throws SQLException {
+        try (var statement = connection.createStatement()) {
+            statement.setQueryTimeout(timeout);
+            statement.setMaxRows(2);
+            try (var rows = statement.executeQuery("SELECT COUNT(*) FROM " + relation(schema, table))) {
+                if (!rows.next()) throw new SQLException("Doris row count is missing");
+                long count = rows.getLong(1);
+                if (rows.wasNull() || count < 0 || rows.next()) throw new SQLException("Doris row count is unverified");
+                return count;
+            }
+        }
+    }
+
     /**
      * 根据当前输入构建并返回 {@code Evidence}。
      */
@@ -40,12 +54,14 @@ public final class DorisJdbcSupport {
         String tableComment;
         var columnComments = new LinkedHashMap<String, String>();
         try (var p = c.prepareStatement(
-                "SELECT TABLE_COMMENT FROM internal.information_schema.tables WHERE TABLE_SCHEMA=? AND TABLE_NAME=?")) {
+                "SELECT TABLE_COMMENT,TABLE_SCHEMA,TABLE_NAME FROM internal.information_schema.tables "
+                        + "WHERE STRCMP(TABLE_SCHEMA,?)=0 AND STRCMP(TABLE_NAME,?)=0")) {
             p.setQueryTimeout(timeout);
+            p.setMaxRows(2);
             p.setString(1, schema);
             p.setString(2, table);
             try (var r = p.executeQuery()) {
-                if (!r.next()) {
+                if (!r.next() || !schema.equals(r.getString(2)) || !table.equals(r.getString(3))) {
                     throw new SQLException("Doris native comment is absent");
                 }
                 tableComment = r.getString(1);
@@ -58,14 +74,16 @@ public final class DorisJdbcSupport {
         // getTableNames。STRCMP 保持精确相等，避免模式下推；
         // 接受任何列前，独立验证返回的物理名称。
         try (var p = c.prepareStatement(
-                "SELECT COLUMN_NAME,COLUMN_COMMENT,TABLE_NAME FROM internal.information_schema.columns WHERE TABLE_SCHEMA=? AND STRCMP(TABLE_NAME,?)=0 ORDER BY ORDINAL_POSITION")) {
+                "SELECT COLUMN_NAME,COLUMN_COMMENT,TABLE_NAME,TABLE_SCHEMA FROM internal.information_schema.columns "
+                        + "WHERE STRCMP(TABLE_SCHEMA,?)=0 AND STRCMP(TABLE_NAME,?)=0 ORDER BY ORDINAL_POSITION")) {
             p.setQueryTimeout(timeout);
             p.setMaxRows(1025);
             p.setString(1, schema);
             p.setString(2, table);
             try (var r = p.executeQuery()) {
                 while (r.next()) {
-                    if (!table.equals(r.getString(3)) || columnComments.size() >= 1024 || columnComments.put(
+                    if (!table.equals(r.getString(3)) || !schema.equals(r.getString(4))
+                            || columnComments.size() >= 1024 || columnComments.put(
                             r.getString(1), r.getString(2)) != null) {
                         throw new SQLException("Doris native comment projection is incomplete");
                     }
@@ -401,6 +419,16 @@ public final class DorisJdbcSupport {
      */
     public static long write(DataSource source, String schema, String name, Evidence captured, List<String> fields,
             List<Object[]> input, Operation operation, int timeout, BatchLimits limits) {
+        return write(source, schema, name, captured, fields, input, operation, timeout, limits, null);
+    }
+
+    /** 已授权模板逐行原样执行；保留原生类型绑定、代次复核、限额及未知提交结果。 */
+    public static long write(DataSource source, String schema, String name, Evidence captured, List<String> fields,
+            List<Object[]> input, Operation operation, int timeout, BatchLimits limits, String authorizedInsertSql) {
+        if (authorizedInsertSql != null && (operation != Operation.INSERT || !authorizedInsertSql.equals(
+                DorisAuthorizedCreateNew.insertSql(schema, name, fields)))) {
+            throw new IllegalArgumentException("Doris authorized INSERT target or projection changed");
+        }
         List<Object[]> rows = convert(input, fields, captured.table(), limits);
         if (rows.isEmpty()) {
             return 0;
@@ -418,7 +446,7 @@ public final class DorisJdbcSupport {
             throw new IllegalArgumentException("Doris sequence precedence requires a distinct mutation plan");
         }
         List<String> values = fields.stream().filter(f -> !table.keys().contains(f)).toList();
-        int capacity = insert ? limits.maxMultiValueRows(fields.size(), 0) : 1;
+        int capacity = insert && authorizedInsertSql == null ? limits.maxMultiValueRows(fields.size(), 0) : 1;
         long[] acknowledged = {0}, sent = {0};
         try {
             return NonTransactionalWriteExecution.execute(source, (connection, attempt) -> {
@@ -427,7 +455,8 @@ public final class DorisJdbcSupport {
                 // 但保留物理表。DIFF 必须保留完整捕获的分区代次。
                 if (!connection.getAutoCommit() || !captured.physical().equals(current.physical()) || !captured.table()
                         .equals(current.table())
-                        || operation != Operation.INSERT && !captured.generation().equals(current.generation())) {
+                        || (operation != Operation.INSERT || authorizedInsertSql != null)
+                        && !captured.generation().equals(current.generation())) {
                     throw new SQLException("Doris target changed before batch");
                 }
                 if (operation != Operation.INSERT) {
@@ -455,7 +484,7 @@ public final class DorisJdbcSupport {
                         List<String> parameters;
                         if (insert) {
                             parameters = fields;
-                            sql = "INSERT INTO " + relation(schema, name) + " (" + names(
+                            sql = authorizedInsertSql != null ? authorizedInsertSql : "INSERT INTO " + relation(schema, name) + " (" + names(
                                     fields) + ") VALUES " + String.join(",", Collections.nCopies(size,
                                     "(" + String.join(",", Collections.nCopies(fields.size(), "?")) + ")"));
                         } else {
@@ -501,6 +530,16 @@ public final class DorisJdbcSupport {
                             sent[0] = 0;
                         }
                     }
+                }
+                if (authorizedInsertSql != null) {
+                    // 新表复制不允许 TRUNCATE；结束复核失败时本批全部转为未知。
+                    long completed = acknowledged[0];
+                    acknowledged[0] = 0;
+                    sent[0] = rows.size();
+                    Evidence after = inspect(connection, schema, name, timeout);
+                    if (!captured.equals(after)) throw new SQLException("Doris authorized target generation changed during batch");
+                    acknowledged[0] = completed;
+                    sent[0] = 0;
                 }
                 return acknowledged[0];
             });

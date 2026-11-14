@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.modeling.service.indicator;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
 import cn.iocoder.yudao.framework.dbswitch.core.service.AggregateQuerySql;
 import cn.iocoder.yudao.module.modeling.controller.admin.indicator.vo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.model.vo.ModelFieldItem;
@@ -127,12 +128,22 @@ public class IndicatorQueryServiceImpl implements IndicatorQueryService {
             if (!AggregateQuerySql.supports(connection.getProductType())) {
                 throw exception(INDICATOR_QUERY_UNSUPPORTED, connection.getName());
             }
-            List<AggregateQuerySql.Plan> rendered = new ArrayList<>();
             for (LeafPlan plan : group.getValue()) {
                 plan.connection = connection;
-                rendered.add(render(plan, grain, start, end, limit + 1));
+                plan.schema = schemaOf(plan);
             }
-            List<List<Map<String, Object>>> results = executor.execute(connection, rendered, limit + 1);
+            // Doris 只能按执行连接上观测到的原生关系身份定位物化表，执行前后均复验同一身份。
+            List<CatalogRelationIdentity> relations = AggregateQuerySql.requiresCatalogRelation(
+                    connection.getProductType())
+                    ? executor.resolveRelations(connection, group.getValue().stream()
+                    .map(plan -> new String[]{plan.schema, plan.materialized.getTableName()}).toList())
+                    : List.of();
+            List<AggregateQuerySql.Plan> rendered = new ArrayList<>();
+            for (int index = 0; index < group.getValue().size(); index++) {
+                rendered.add(render(group.getValue().get(index), grain, start, end, limit + 1,
+                        relations.isEmpty() ? null : relations.get(index)));
+            }
+            List<List<Map<String, Object>>> results = executor.execute(connection, rendered, relations, limit + 1);
             for (int index = 0; index < rendered.size(); index++) {
                 List<Map<String, Object>> rows = results.get(index);
                 if (rows.size() > limit) {
@@ -417,14 +428,22 @@ public class IndicatorQueryServiceImpl implements IndicatorQueryService {
     }
 
     /**
-     * 渲染受限聚合 SQL；用户书写的限定片段只经组件解析重建。
+     * 物化记录的 schema 优先，缺省回退到数据源配置；两者都缺失时来源不可用。
      */
-    private AggregateQuerySql.Plan render(LeafPlan plan, AggregateQuerySql.TimeGrain grain, LocalDate start,
-            LocalDate end, int limit) {
+    private String schemaOf(LeafPlan plan) {
         String schema = StrUtil.blankToDefault(plan.materialized.getSchemaName(), plan.connection.getSchema());
         if (StrUtil.isBlank(schema)) {
             throw exception(INDICATOR_QUERY_SOURCE_UNAVAILABLE, plan.leaf.getName());
         }
+        return schema;
+    }
+
+    /**
+     * 渲染受限聚合 SQL；用户书写的限定片段只经组件解析重建。
+     */
+    private AggregateQuerySql.Plan render(LeafPlan plan, AggregateQuerySql.TimeGrain grain, LocalDate start,
+            LocalDate end, int limit, CatalogRelationIdentity relation) {
+        String schema = schemaOf(plan);
         plan.schema = schema;
         AggregateQuerySql.TimeWindow time = null;
         if (plan.timeColumn != null && (grain != null || start != null)) {
@@ -436,7 +455,7 @@ public class IndicatorQueryServiceImpl implements IndicatorQueryService {
         AggregateQuerySql.Request request = new AggregateQuerySql.Request(plan.connection.getProductType(), schema,
                 plan.materialized.getTableName(), plan.physical,
                 plan.dimensions.stream().map(ModelFieldItem::getFieldName).toList(), plan.valueColumn,
-                plan.aggregation, time, plan.filters, rowFilters, limit);
+                plan.aggregation, time, plan.filters, rowFilters, limit, relation);
         try {
             return AggregateQuerySql.render(request);
         } catch (UnsupportedOperationException unsupported) {
@@ -446,7 +465,8 @@ public class IndicatorQueryServiceImpl implements IndicatorQueryService {
                 try {
                     AggregateQuerySql.render(new AggregateQuerySql.Request(request.product(), schema,
                             request.tableName(), request.physicalColumns(), request.dimensionColumns(),
-                            request.valueColumn(), request.aggregation(), time, request.filters(), List.of(), limit));
+                            request.valueColumn(), request.aggregation(), time, request.filters(), List.of(), limit,
+                            relation));
                 } catch (IllegalArgumentException other) {
                     throw exception(INDICATOR_QUERY_INVALID, other.getMessage());
                 }

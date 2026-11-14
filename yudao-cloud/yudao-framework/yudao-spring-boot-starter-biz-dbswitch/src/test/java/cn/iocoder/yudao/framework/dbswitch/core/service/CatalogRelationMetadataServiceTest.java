@@ -15,6 +15,38 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CatalogRelationMetadataServiceTest {
+    @Test void dorisMetadataParametersUseTheProductTransportBeforeBorrowing() throws Exception {
+        var fixture = new Fixture(ProductTypeEnum.DORIS);
+        String safeUrl = "jdbc:fixture:catalog?useServerPrepStmts=true&emulateUnsupportedPstmts=false";
+        when(fixture.database.preparePageQueryJdbcUrl("jdbc:fixture:catalog")).thenReturn(safeUrl);
+        when(fixture.metadata.open(safeUrl, null, null)).thenReturn(fixture.connection);
+        var observed = new CatalogRelationIdentity(ProductTypeEnum.DORIS, "warehouse", "orders", "a".repeat(64));
+        when(fixture.database.resolveCatalogRelation(fixture.connection, "warehouse", "orders", 5))
+                .thenReturn(observed);
+        assertEquals(observed, fixture.facade.resolveCatalogRelation(
+                "jdbc:fixture:catalog", null, null, "warehouse", "orders", 5000));
+        verify(fixture.metadata).open(safeUrl, null, null);
+        verify(fixture.metadata, never()).open("jdbc:fixture:catalog", null, null);
+        verify(fixture.connection).close();
+    }
+    @Test void dorisNativePickerAndExpectedGenerationUseTheSameBoundedMetadataConnection() throws Exception {
+        var fixture = new Fixture(ProductTypeEnum.DORIS);
+        var table = new cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription();
+        table.setSchemaName("warehouse"); table.setTableName("orders");
+        table.setCatalogObjectId("a".repeat(64)); table.setTableType("TABLE");
+        when(fixture.database.queryCatalogTableList(fixture.connection, "warehouse", 10, 5)).thenReturn(List.of(table));
+        assertEquals(List.of(table), fixture.facade.queryExactTableList(
+                "jdbc:fixture:catalog", null, null, "warehouse", 10, 5000));
+        verify(fixture.connection, never()).getMetaData();
+        var expected = new CatalogRelationIdentity(ProductTypeEnum.DORIS, "warehouse", "orders", "a".repeat(64));
+        when(fixture.database.resolveCatalogRelation(fixture.connection, "warehouse", "orders", 5))
+                .thenReturn(new CatalogRelationIdentity(ProductTypeEnum.DORIS, "warehouse", "orders", "b".repeat(64)));
+        assertThrows(IllegalStateException.class, () -> fixture.facade.queryExactTableColumns(
+                "jdbc:fixture:catalog", null, null, expected, null, 5000));
+        verify(fixture.connection, never()).prepareStatement(anyString());
+        verify(fixture.connection, times(2)).close();
+        verifyNoInteractions(fixture.workload);
+    }
     @Test void facadeUsesOneOwnedMetadataConnectionAndKeepsNativeSpelling() throws Exception {
         var fixture = new Fixture();
         var observed = new CatalogRelationIdentity(ProductTypeEnum.TIDB, "Tenant", "Orders", "41");
@@ -86,16 +118,13 @@ class CatalogRelationMetadataServiceTest {
                 "jdbc:fixture:catalog", null, null, "tenant", "orders", 5000));
     }
 
-    @Test void fourExistingBindingProductsDoNotInheritTidbCatalogMechanics() {
+    @Test void fourExistingBindingProductsDoNotInheritTidbRelationBinding() {
         for (var product : List.of(ProductTypeEnum.POSTGRESQL, ProductTypeEnum.MYSQL,
                 ProductTypeEnum.MARIADB, ProductTypeEnum.OPENGAUSS)) {
             var connection = mock(Connection.class);
             assertThrows(SQLFeatureNotSupportedException.class, () -> DbSwitchProductRegistry.discover()
                     .metadata(product).resolveCatalogRelation(connection, "Tenant", "Orders", 5));
-            if (product == ProductTypeEnum.POSTGRESQL || product == ProductTypeEnum.OPENGAUSS) {
-                assertThrows(SQLFeatureNotSupportedException.class, () -> DbSwitchProductRegistry.discover()
-                        .metadata(product).queryCatalogTableList(connection, "Tenant", 10, 5));
-            }
+            // 表列表有产品自己的实现，不能把列表能力和 TiDB 对象身份绑定混为一谈。
             verifyNoInteractions(connection);
         }
     }
@@ -157,10 +186,14 @@ class CatalogRelationMetadataServiceTest {
         final JdbcConnectionProvider metadata = mock(JdbcConnectionProvider.class), workload = mock(JdbcConnectionProvider.class);
         final MetaDataByJdbcServiceImpl facade;
         Fixture() throws SQLException {
+            this(ProductTypeEnum.TIDB);
+        }
+        Fixture(ProductTypeEnum product) throws SQLException {
             var registry = mock(DbSwitchProductRegistry.class);
-            when(registry.metadata(ProductTypeEnum.TIDB)).thenReturn(database);
+            when(registry.metadata(product)).thenReturn(database);
             when(metadata.open("jdbc:fixture:catalog", null, null)).thenReturn(connection);
-            facade = new MetaDataByJdbcServiceImpl(ProductTypeEnum.TIDB, registry, metadata, workload);
+            when(database.preparePageQueryJdbcUrl("jdbc:fixture:catalog")).thenReturn("jdbc:fixture:catalog");
+            facade = new MetaDataByJdbcServiceImpl(product, registry, metadata, workload);
         }
     }
 }

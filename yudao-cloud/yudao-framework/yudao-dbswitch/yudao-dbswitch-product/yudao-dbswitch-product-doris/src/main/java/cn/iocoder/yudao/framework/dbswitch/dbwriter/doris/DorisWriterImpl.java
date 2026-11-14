@@ -24,6 +24,83 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
 
     private OlapStreamLoadHelper stream;
 
+    private AuthorizedInsert authorizedInsert;
+
+    private boolean authorizedCreateAttempted;
+
+    private DorisJdbcSupport.Evidence authorizedCreated;
+
+    private record AuthorizedInsert(String schema, String table, List<String> fields, String sql) { }
+
+    @Override
+    public String planAuthorizedCreateTable(String schema, String table,
+            List<cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription> columns,
+            List<String> primaryKeys, String comment, java.util.Map<String, String> properties,
+            cn.iocoder.yudao.framework.dbswitch.core.schema.mapping.LogicalTypeMappings mappings) {
+        planInsertSql(schema, table, columns.stream()
+                .map(cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription::getFieldName).toList());
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisAuthorizedCreateNew.createSql(
+                schema, table, columns, primaryKeys, comment, properties, mappings);
+    }
+
+    /** 授权复制只提供显式 JDBC 参数模板，不以流载入替代已授权语句。 */
+    @Override
+    public String planInsertSql(String schema, String table, List<String> fields) {
+        if (copyRequired || runtimeOptions.olapStreamLoadEnabled()) {
+            throw new UnsupportedOperationException("Authorized Doris INSERT requires JDBC transport");
+        }
+        return cn.iocoder.yudao.framework.dbswitch.product.doris.DorisAuthorizedCreateNew.insertSql(schema, table, fields);
+    }
+
+    @Override
+    public void useAuthorizedInsertSql(String schema, String table, List<String> fields, String sql,
+            List<Integer> parameterOrder) {
+        if (authorizedInsert != null || captured != null || !planInsertSql(schema, table, fields).equals(sql)
+                || !java.util.stream.IntStream.range(0, fields.size()).boxed().toList().equals(parameterOrder)) {
+            throw new IllegalArgumentException("Doris authorized INSERT differs from the exact target projection");
+        }
+        authorizedInsert = new AuthorizedInsert(schema, table, List.copyOf(fields), sql);
+    }
+
+    /** 用原生字面值会话执行同一授权 CREATE；发出后失败保持未知结果，不重试或覆盖已有表。 */
+    @Override
+    public void executeAuthorizedCreateTable(cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan plan) {
+        if (authorizedInsert == null || authorizedCreateAttempted || plan == null || plan.steps().size() != 2
+                || !plan.equals(cn.iocoder.yudao.framework.dbswitch.product.doris.DorisAuthorizedCreateNew.plan(
+                authorizedInsert.schema(), authorizedInsert.table(), authorizedInsert.fields(),
+                plan.steps().getFirst().sql(), authorizedInsert.sql()))) {
+            throw new IllegalArgumentException("Doris CREATE differs from the installed authorized plan");
+        }
+        planInsertSql(authorizedInsert.schema(), authorizedInsert.table(), authorizedInsert.fields());
+        authorizedCreateAttempted = true;
+        cn.iocoder.yudao.framework.dbswitch.dbcommon.database.NonTransactionalWriteExecution.execute(dataSource,
+                (connection, attempt) -> {
+                    if (!connection.getAutoCommit()) throw new java.sql.SQLException("Doris DDL requires an owned idle connection");
+                    var observed = cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaChanges.observe(connection,
+                            new cn.iocoder.yudao.framework.dbswitch.core.database.impl.DatabaseDorisImpl(),
+                            authorizedInsert.schema(), authorizedInsert.table(),
+                            cn.iocoder.yudao.framework.dbswitch.core.schema.MetadataReadOptions.fresh());
+                    if (observed.precondition().tableExists()) {
+                        throw new java.sql.SQLException("Authorized Doris CREATE_NEW refuses an existing native target");
+                    }
+                    try (var literals = DorisJdbcSupport.LiteralMode.open(connection, runtimeOptions.queryTimeoutSeconds());
+                         var statement = connection.createStatement()) {
+                        statement.setQueryTimeout(runtimeOptions.queryTimeoutSeconds());
+                        attempt.sending();
+                        statement.execute(plan.steps().getFirst().sql());
+                        if (statement.getWarnings() != null) throw new java.sql.SQLException("Doris CREATE returned warnings");
+                        var created = DorisJdbcSupport.inspect(connection, authorizedInsert.schema(),
+                                authorizedInsert.table(), runtimeOptions.queryTimeoutSeconds());
+                        if (!cn.iocoder.yudao.framework.dbswitch.product.doris.DorisModelingSchemaScript.matchesCreate(
+                                authorizedInsert.schema(), authorizedInsert.table(), plan.steps().getFirst().sql(), created.table())) {
+                            throw new java.sql.SQLException("Doris created definition differs from the authorized native plan");
+                        }
+                        authorizedCreated = created;
+                    }
+                    return 0;
+                });
+    }
+
     /**
      * 使用给定参数初始化 {@code DorisWriterImpl}。
      */
@@ -54,6 +131,11 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
      */
     @Override
     public void prepareWrite(String schema, String table, List<String> fields) {
+        if (authorizedInsert != null && (!authorizedInsert.schema().equals(schema)
+                || !authorizedInsert.table().equals(table) || !authorizedInsert.fields().equals(fields)
+                || authorizedCreated == null || !authorizedInsert.sql().equals(planInsertSql(schema, table, fields)))) {
+            throw new IllegalArgumentException("Doris prepared target differs from the authorized INSERT");
+        }
         refuseUnverifiedStreamLoad();
         if (stream != null) {
             stream.requireUsable();
@@ -69,6 +151,10 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
                 OlapStreamLoadAdmission.verify(c, "Doris", runtimeOptions.queryTimeoutSeconds());
             }
             var observation = DorisJdbcSupport.inspect(c, schema, table, runtimeOptions.queryTimeoutSeconds());
+            if (authorizedInsert != null && (!authorizedCreated.equals(observation)
+                    || DorisJdbcSupport.countRows(c, schema, table, runtimeOptions.queryTimeoutSeconds()) != 0)) {
+                throw new IllegalStateException("Doris authorized target changed or received rows before copy");
+            }
             fields.forEach(observation.table()::column);
             if (runtimeOptions.olapStreamLoadEnabled() && (!java.util.Set.of("DUPLICATE", "UNIQUE")
                     .contains(observation.table().model())
@@ -113,6 +199,7 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
      */
     @Override
     public long write(List<String> fields, List<Object[]> rows) {
+        if (authorizedInsert != null) planInsertSql(schemaName, tableName, fields);
         refuseUnverifiedStreamLoad();
         if (stream != null) {
             stream.requireUsable();
@@ -151,7 +238,8 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
             }
         }
         return DorisJdbcSupport.write(dataSource, schemaName, tableName, captured, fields, rows,
-                DorisJdbcSupport.Operation.INSERT, runtimeOptions.queryTimeoutSeconds(), batchLimits);
+                DorisJdbcSupport.Operation.INSERT, runtimeOptions.queryTimeoutSeconds(), batchLimits,
+                authorizedInsert == null ? null : authorizedInsert.sql());
     }
 
     /**
@@ -165,6 +253,24 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
                 count == 0 ? cn.iocoder.yudao.framework.dbswitch.dbwriter.CommitAcknowledgement.NONE
                         : runtimeOptions.olapStreamLoadEnabled() ? cn.iocoder.yudao.framework.dbswitch.dbwriter.CommitAcknowledgement.OLAP_STREAM_LOAD_VISIBLE
                         : cn.iocoder.yudao.framework.dbswitch.dbwriter.CommitAcknowledgement.JDBC_COMMIT_RETURNED);
+    }
+
+    /** 只对同一创建代次确认当前行数；检查后发生的外部写入不在此次观测承诺内。 */
+    @Override
+    public void completeAuthorizedTransfer(long acknowledgedRows) {
+        if (authorizedInsert == null || captured == null || acknowledgedRows < 0) {
+            throw new IllegalStateException("Doris authorized transfer is not prepared");
+        }
+        try (var connection = dataSource.getConnection()) {
+            var before = DorisJdbcSupport.inspect(connection, schemaName, tableName, runtimeOptions.queryTimeoutSeconds());
+            long count = DorisJdbcSupport.countRows(connection, schemaName, tableName, runtimeOptions.queryTimeoutSeconds());
+            var after = DorisJdbcSupport.inspect(connection, schemaName, tableName, runtimeOptions.queryTimeoutSeconds());
+            if (!authorizedCreated.equals(before) || !before.equals(after) || count != acknowledgedRows) {
+                throw new java.sql.SQLException("Doris copied rows or native generation differ from acknowledged transfer");
+            }
+        } catch (Exception uncertain) {
+            throw new cn.iocoder.yudao.framework.dbswitch.dbwriter.UnconfirmedWriteException();
+        }
     }
 
     /** 运行时准入独立于产品的 DECLARED 能力。 */

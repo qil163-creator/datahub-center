@@ -51,14 +51,14 @@ class MasterMaintenanceCapabilityTest {
 
     @Test
     void unverifiedProductsRemainUnsupportedIncludingPostgresFamily() {
-        for (String product : List.of("MYSQL", "OPENGAUSS", "GREENPLUM")) {
+        for (String product : List.of("MYSQL", "DORIS", "OPENGAUSS", "GREENPLUM")) {
             sources(product);
 
             var response = service.getReleasedModelList().getFirst();
 
             assertFalse(response.getMaintenanceSupported());
             assertTrue(response.getMaintenanceUnsupportedReason().contains(product));
-            assertTrue(response.getMaintenanceUnsupportedReason().contains("PostgreSQL"));
+            assertTrue(response.getMaintenanceUnsupportedReason().contains("旧值校验和整批回滚"));
         }
     }
 

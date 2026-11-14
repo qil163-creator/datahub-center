@@ -25,6 +25,8 @@ import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -159,6 +161,20 @@ class MasterModelListTest {
         verify(operation).awaitTermination();
     }
 
+    @ParameterizedTest
+    @EnumSource(value = ProductTypeEnum.class, names = {"POSTGRESQL", "DORIS"})
+    void supportedProductCountsUseTheBoundedRuntimeAndProductDialect(ProductTypeEnum product) throws Exception {
+        model.setStatus(MasterModelDO.STATUS_RELEASED);
+        var operation = stubCount(product, List.of(List.of(9007199254740993L)));
+
+        var response = service.getDataCount(100L);
+
+        assertTrue(response.isAvailable());
+        assertEquals(9007199254740993L, response.getDataCount());
+        verify(operation).workerExited();
+        verify(operation).awaitTermination();
+    }
+
     @Test
     void timeoutReturnsUnknownAndDoesNotExposeDatasourceFailureDetails() throws Exception {
         model.setStatus(2);
@@ -216,10 +232,14 @@ class MasterModelListTest {
     }
 
     private QueryRuntime.Operation stubCount(List<List<Object>> rows) throws Exception {
+        return stubCount(ProductTypeEnum.POSTGRESQL, rows);
+    }
+
+    private QueryRuntime.Operation stubCount(ProductTypeEnum product, List<List<Object>> rows) throws Exception {
         var connection = new MasterDatabaseResolver.ConnectionInfo();
-        connection.setProductType(ProductTypeEnum.POSTGRESQL); connection.setSchema("public");
+        connection.setProductType(product); connection.setSchema("master_schema");
         when(resolver.resolve(eq(20L), any())).thenReturn(connection);
-        var spec = new QueryRuntime.ConnectionSpec(ProductTypeEnum.POSTGRESQL, "jdbc:postgresql://fixture.invalid/test", "fixture", "", null, null);
+        var spec = new QueryRuntime.ConnectionSpec(product, "jdbc:fixture://fixture.invalid/test", "fixture", "", null, null);
         when(resolver.queryConnectionSpec(connection)).thenReturn(spec);
         var queries = mock(QueryRuntime.class);
         var operation = mock(QueryRuntime.Operation.class);
@@ -228,8 +248,11 @@ class MasterModelListTest {
         when(runtime.queries()).thenReturn(queries);
         when(queries.register(anyString(), anyString(), anyString(), any(), any())).thenReturn(operation);
         when(operation.openSession(eq(spec), any())).thenReturn(session);
-        when(session.dialect()).thenReturn(DbSwitchProductRegistry.discover().metadata(ProductTypeEnum.POSTGRESQL));
-        when(session.query(anyString(), eq("SELECT COUNT(1) FROM (SELECT 1 FROM \"public\".\"md_person\") t"), eq(List.of()))).thenReturn(cursor);
+        var dialect = DbSwitchProductRegistry.discover().metadata(product);
+        when(session.dialect()).thenReturn(dialect);
+        String countSql = dialect.getPageModel("SELECT 1 FROM "
+                + product.quoteSchemaTableName("master_schema", "md_person")).getPageCountSql();
+        when(session.query(anyString(), eq(countSql), eq(List.of()))).thenReturn(cursor);
         when(cursor.fetch(anyString(), any(), eq(1))).thenReturn(new QueryRuntime.Page(List.of(), rows, true));
         return operation;
     }

@@ -953,6 +953,45 @@ public abstract class AbstractDatabase implements IDatabaseInterface {
         throw new SQLFeatureNotSupportedException(getDatabaseType() + " nullable add is unverified", "0A000");
     }
 
+    /** 原生表模型的建表规划扩展；默认拒绝，调用方不得退回其他产品的方言。 */
+    public cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaSynchronization.Plan planCreateTableSynchronization(
+            String schema, String table, String comment, List<ColumnDescription> columns,
+            Map<String, String> properties) {
+        throw new UnsupportedOperationException("Native table creation planning is unavailable");
+    }
+
+    /** 原生表模型的结构同步扩展；只借用连接读取目录，不执行或改变事务。 */
+    public cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaSynchronization.Plan planTableSynchronization(
+            Connection connection, String schema, String table, String comment, List<ColumnDescription> columns,
+            int timeoutSeconds) throws SQLException {
+        throw new SQLFeatureNotSupportedException("Native table synchronization planning is unavailable", "0A000");
+    }
+
+    /** 受控建模脚本的原生语法门禁；不扩大普通查询、DML 或任意脚本入口。 */
+    public cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan planModelingSchemaScript(
+            String schema, String table, List<String> statements) {
+        throw new UnsupportedOperationException("Native modeling schema script is unavailable");
+    }
+
+    /** 有界等待原生异步结构变更；默认产品没有相应协议，必须显式实现。 */
+    public void awaitSchemaChange(Connection connection, String schema, String table, int timeoutSeconds)
+            throws SQLException {
+        throw new SQLFeatureNotSupportedException("Native asynchronous schema confirmation is unavailable", "0A000");
+    }
+
+    /** 建模读取原生列事实；产品可以覆盖，避免兼容协议的目录丢失键模型等语义。 */
+    public cn.iocoder.yudao.framework.dbswitch.core.model.TableSchemaMetadata readModelingSchema(
+            Connection connection, String schema, String table, int timeoutSeconds) throws SQLException {
+        return cn.iocoder.yudao.framework.dbswitch.core.schema.NativeSchemaReader.read(
+                connection, getDatabaseType(), schema, table, timeoutSeconds);
+    }
+
+    /** 核验冻结建表定义中的键、布局和属性；不能从字段同步无差异推断建表已完成。 */
+    public boolean matchesModelingCreate(Connection connection, String schema, String table, String createSql,
+            int timeoutSeconds) throws SQLException {
+        throw new SQLFeatureNotSupportedException("Native create result comparison is unavailable", "0A000");
+    }
+
     /**
      * 执行单条无参 SQL（Statement 直接执行），失败时抛出运行时异常
      */

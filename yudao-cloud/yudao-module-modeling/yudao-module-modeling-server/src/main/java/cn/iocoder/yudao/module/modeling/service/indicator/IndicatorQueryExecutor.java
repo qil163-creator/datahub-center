@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.modeling.service.indicator;
 
+import cn.iocoder.yudao.framework.dbswitch.core.model.CatalogRelationIdentity;
 import cn.iocoder.yudao.framework.dbswitch.core.service.AggregateQuerySql;
 import cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime;
 import cn.iocoder.yudao.module.modeling.service.model.ModelingDatabaseResolver;
@@ -41,18 +42,46 @@ public class IndicatorQueryExecutor {
      */
     public List<List<Map<String, Object>>> execute(ModelingDatabaseResolver.ConnectionInfo connection,
             List<AggregateQuerySql.Plan> plans, int maxRows) {
-        try (Connection jdbc = dbSwitchRuntime.openConnection(connection.getProductType(), null,
-                connection.getJdbcUrl(), connection.getUsername(), connection.getPassword())) {
-            jdbc.setAutoCommit(false);
-            jdbc.setReadOnly(true);
+        return execute(connection, plans, List.of(), maxRows);
+    }
+
+    /**
+     * 在同一连接上依次执行计划；需要原生 catalog 身份的产品（Doris）在每条计划执行前后复验同一对象身份。
+     *
+     * @param connection 已解析的连接信息
+     * @param plans      聚合计划
+     * @param relations  与计划一一对应的原生关系身份；不需要身份的产品传空列表
+     * @param maxRows    每条语句最大行数
+     * @return 与计划一一对应的结果行（别名 → 原始值）
+     */
+    public List<List<Map<String, Object>>> execute(ModelingDatabaseResolver.ConnectionInfo connection,
+            List<AggregateQuerySql.Plan> plans, List<CatalogRelationIdentity> relations, int maxRows) {
+        boolean catalog = AggregateQuerySql.requiresCatalogRelation(connection.getProductType());
+        if (catalog && relations.size() != plans.size()) {
+            throw new IllegalArgumentException("每条计划都必须携带原生关系身份");
+        }
+        try (Connection jdbc = open(connection)) {
+            if (!catalog) {
+                jdbc.setAutoCommit(false);
+            }
+            setReadOnlyQuietly(jdbc);
             try {
                 List<List<Map<String, Object>>> results = new ArrayList<>();
-                for (AggregateQuerySql.Plan plan : plans) {
-                    results.add(run(jdbc, plan, maxRows));
+                for (int index = 0; index < plans.size(); index++) {
+                    if (catalog) {
+                        requireCurrent(jdbc, connection, relations.get(index));
+                    }
+                    results.add(run(jdbc, plans.get(index), maxRows));
+                    if (catalog) {
+                        // 结果只在执行后复验同一对象身份才交给调用方，避免表被重建后返回混杂数据。
+                        requireCurrent(jdbc, connection, relations.get(index));
+                    }
                 }
                 return results;
             } finally {
-                rollbackQuietly(jdbc);
+                if (!catalog) {
+                    rollbackQuietly(jdbc);
+                }
             }
         } catch (SQLTimeoutException timeout) {
             log.warn("[execute][指标查询超时 datasource={} sqlState={}]", connection.getDatabaseId(),
@@ -67,6 +96,76 @@ public class IndicatorQueryExecutor {
             log.warn("[execute][指标查询失败 datasource={} sqlState={} code={}]", connection.getDatabaseId(),
                     failed.getSQLState(), failed.getErrorCode());
             throw exception(INDICATOR_QUERY_FAILED);
+        }
+    }
+
+    /**
+     * 在只读连接上观测目标表的原生 catalog 身份，供需要身份绑定的产品渲染聚合计划。
+     *
+     * @param connection 已解析的连接信息
+     * @param targets    目标表，元素为 {schema, table}
+     * @return 与目标一一对应的原生关系身份
+     */
+    public List<CatalogRelationIdentity> resolveRelations(ModelingDatabaseResolver.ConnectionInfo connection,
+            List<String[]> targets) {
+        try (Connection jdbc = open(connection)) {
+            setReadOnlyQuietly(jdbc);
+            List<CatalogRelationIdentity> relations = new ArrayList<>();
+            for (String[] target : targets) {
+                relations.add(resolve(jdbc, connection, target[0], target[1], null));
+            }
+            return relations;
+        } catch (SQLException failed) {
+            log.warn("[resolveRelations][指标来源关系身份读取失败 datasource={} sqlState={} code={}]",
+                    connection.getDatabaseId(), failed.getSQLState(), failed.getErrorCode());
+            throw exception(INDICATOR_QUERY_FAILED);
+        }
+    }
+
+    /**
+     * 打开只读查询连接；Doris 使用产品参数传输契约，保证服务端绑定。
+     */
+    private Connection open(ModelingDatabaseResolver.ConnectionInfo connection) throws SQLException {
+        String jdbcUrl = AggregateQuerySql.requiresCatalogRelation(connection.getProductType())
+                ? dbSwitchRuntime.products().metadata(connection.getProductType())
+                .preparePageQueryJdbcUrl(connection.getJdbcUrl())
+                : connection.getJdbcUrl();
+        return dbSwitchRuntime.openConnection(connection.getProductType(), null, jdbcUrl,
+                connection.getUsername(), connection.getPassword());
+    }
+
+    /**
+     * 复验执行连接仍指向观测阶段确认的同一原生对象。
+     */
+    private void requireCurrent(Connection jdbc, ModelingDatabaseResolver.ConnectionInfo connection,
+            CatalogRelationIdentity expected) throws SQLException {
+        resolve(jdbc, connection, expected.schemaName(), expected.tableName(), expected.objectId());
+    }
+
+    /**
+     * 观测原生关系身份；名称不一致、对象身份变化或产品不符时拒绝执行。
+     */
+    private CatalogRelationIdentity resolve(Connection jdbc, ModelingDatabaseResolver.ConnectionInfo connection,
+            String schema, String table, String expectedObjectId) throws SQLException {
+        CatalogRelationIdentity relation = dbSwitchRuntime.products().metadata(connection.getProductType())
+                .resolveCatalogRelation(jdbc, schema, table, QUERY_TIMEOUT_SECONDS);
+        if (relation == null || relation.product() != connection.getProductType()
+                || !Objects.equals(schema, relation.schemaName()) || !Objects.equals(table, relation.tableName())
+                || expectedObjectId != null && !expectedObjectId.equals(relation.objectId())) {
+            log.warn("[resolve][指标来源原生关系身份变化或超出已验证范围 datasource={}]", connection.getDatabaseId());
+            throw exception(INDICATOR_QUERY_FAILED);
+        }
+        return relation;
+    }
+
+    /**
+     * 部分驱动不支持切换只读模式；查询语句本身由组件限定为单表 SELECT。
+     */
+    private void setReadOnlyQuietly(Connection jdbc) {
+        try {
+            jdbc.setReadOnly(true);
+        } catch (SQLException ignored) {
+            // 只读模式不可用时仍只执行组件渲染的受限 SELECT。
         }
     }
 

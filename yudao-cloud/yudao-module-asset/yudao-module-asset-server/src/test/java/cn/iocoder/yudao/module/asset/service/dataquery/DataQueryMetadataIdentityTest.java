@@ -60,12 +60,14 @@ class DataQueryMetadataIdentityTest {
     @Test
     void metadataReadsMustPreserveQuotedTableIdentity() {
         var table = table("Gov.Schema", "Citizen\". One", "\"Gov.Schema\".\"Citizen\"\". One\"");
+        table.setRelationObjectId("a".repeat(64));
         when(database.resolveQueryTable(4L, table.getTableReference())).thenReturn(CommonResult.success(table));
         service.getColumnList(4L, table.getTableReference());
         var metadata = ArgumentCaptor.forClass(DatabaseQueryColumnsReqDTO.class);
         verify(database).getQueryTableColumns(metadata.capture());
         assertThat(metadata.getValue().getSchemaName()).isEqualTo("Gov.Schema");
         assertThat(metadata.getValue().getTableName()).isEqualTo("Citizen\". One");
+        assertThat(metadata.getValue().getExpectedObjectId()).isEqualTo("a".repeat(64));
         verify(market).findEffectiveApplyForTable(9L, 4L, "Gov.Schema", "Citizen\". One");
         verify(database, never()).getTableColumnList(any(), any());
     }

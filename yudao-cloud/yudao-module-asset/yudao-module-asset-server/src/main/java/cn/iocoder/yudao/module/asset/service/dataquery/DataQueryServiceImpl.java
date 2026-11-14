@@ -110,6 +110,7 @@ public class DataQueryServiceImpl implements DataQueryService {
         request.setDatabaseId(datasourceId);
         request.setSchemaName(table.getSchemaName());
         request.setTableName(table.getTableName());
+        request.setExpectedObjectId(table.getRelationObjectId());
         if (authorization != null) {
             request.setColumns(List.copyOf(authorization.fieldScope().getColumns()));
         }
@@ -258,6 +259,7 @@ public class DataQueryServiceImpl implements DataQueryService {
         DatabaseQueryReqDTO request = new DatabaseQueryReqDTO();
         request.setDatabaseId(reqVO.getDatasourceId());
         request.setSql(plan.getNormalizedSql());
+        request.setExpectedObjectId(plan.getRelationObjectId());
         request.setLimit(reqVO.getLimit());
         request.setMaskScene(maskScene);
         if (apply != null) {

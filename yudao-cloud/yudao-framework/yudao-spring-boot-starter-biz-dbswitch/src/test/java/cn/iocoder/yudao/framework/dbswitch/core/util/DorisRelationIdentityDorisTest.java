@@ -90,11 +90,18 @@ class DorisRelationIdentityDorisTest {
     @Test
     void rejectsViewsTemporaryShadowCrossCatalogAndSqlFragments() throws Exception {
         String original = identity("sample");
+        var database = cn.iocoder.yudao.framework.dbswitch.spi.DbSwitchProductRegistry.discover()
+                .metadata(ProductTypeEnum.DORIS);
+        assertEquals(original, database.resolveCatalogRelation(connection, schema, "sample", 5).objectId());
         sql.execute("CREATE VIEW sample_view AS SELECT * FROM sample");
         assertThrows(SQLFeatureNotSupportedException.class, () -> identity("sample_view"));
         sql.execute("CREATE TEMPORARY TABLE sample(id BIGINT)" + SUFFIX);
         assertThrows(SQLFeatureNotSupportedException.class, () -> identity("sample"));
         assertThrows(SQLFeatureNotSupportedException.class, () -> identity(schema + ".sample"));
+        assertThrows(SQLFeatureNotSupportedException.class,
+                () -> database.resolveCatalogRelation(connection, schema, "sample", 5));
+        assertThrows(SQLFeatureNotSupportedException.class,
+                () -> database.queryCatalogTableList(connection, schema, 10, 5));
         sql.execute("DROP TABLE sample");
         assertEquals(original, identity("sample"));
         assertThrows(IllegalArgumentException.class, () -> identity("internal." + schema + ".sample"));

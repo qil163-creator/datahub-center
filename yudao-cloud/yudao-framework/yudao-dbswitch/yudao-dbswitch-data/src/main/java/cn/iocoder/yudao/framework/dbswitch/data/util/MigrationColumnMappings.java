@@ -20,6 +20,46 @@ import java.util.Objects;
 /** 预览与实际迁移共用的列名、主键和默认值映射；不修改来源元数据或请求配置。 */
 public final class MigrationColumnMappings {
 
+    /** 要求映射后的键仍为原生完整主键；用户填写的普通列不能获得唯一性语义。 */
+    public static void requireNativePrimaryKeys(List<String> nativeKeys, java.util.Map<String, String> mapping,
+            List<String> targetKeys) {
+        var expected = nativeKeys.stream().map(mapping::get).toList();
+        if (expected.contains(null) || !expected.equals(targetKeys)) {
+            throw new UnsupportedOperationException("授权同步的目标键必须保持来源原生完整主键及顺序");
+        }
+    }
+
+    /** 只认可 PostgreSQL 常量默认值；函数、序列、运算和未知类型转换仍需独立结构计划。 */
+    public static boolean ordinaryPostgresLiteralDefault(String expression) {
+        if (expression == null || expression.length() > 65536) return false;
+        try {
+            var parser = com.alibaba.druid.sql.parser.SQLParserUtils.createExprParser(expression,
+                    com.alibaba.druid.DbType.postgresql);
+            var value = parser.expr();
+            if (parser.getLexer().token() != com.alibaba.druid.sql.parser.Token.EOF) return false;
+            while (value instanceof com.alibaba.druid.sql.ast.expr.SQLCastExpr cast) {
+                if (!cn.iocoder.yudao.framework.dbswitch.core.schema.NativeColumnSql.supportedType(
+                        cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL,
+                        cast.getDataType().toString().toLowerCase(java.util.Locale.ROOT))) return false;
+                value = cast.getExpr();
+            }
+            if (value instanceof com.alibaba.druid.sql.ast.expr.SQLUnaryExpr unary) {
+                if (unary.getOperator() != com.alibaba.druid.sql.ast.expr.SQLUnaryOperator.Negative
+                        && unary.getOperator() != com.alibaba.druid.sql.ast.expr.SQLUnaryOperator.Plus) return false;
+                value = unary.getExpr();
+                return value instanceof com.alibaba.druid.sql.ast.expr.SQLIntegerExpr
+                        || value instanceof com.alibaba.druid.sql.ast.expr.SQLNumberExpr;
+            }
+            return value instanceof com.alibaba.druid.sql.ast.expr.SQLCharExpr
+                    || value instanceof com.alibaba.druid.sql.ast.expr.SQLIntegerExpr
+                    || value instanceof com.alibaba.druid.sql.ast.expr.SQLNumberExpr
+                    || value instanceof com.alibaba.druid.sql.ast.expr.SQLBooleanExpr
+                    || value instanceof com.alibaba.druid.sql.ast.expr.SQLNullExpr;
+        } catch (RuntimeException invalid) {
+            return false;
+        }
+    }
+
     /**
      * 初始化 {@code MigrationColumnMappings}。
      */

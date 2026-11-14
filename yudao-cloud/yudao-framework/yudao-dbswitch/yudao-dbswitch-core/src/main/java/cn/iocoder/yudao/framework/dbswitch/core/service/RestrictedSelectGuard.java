@@ -209,26 +209,30 @@ public final class RestrictedSelectGuard {
     }
 
     /**
-     * 将 TiDB 查询绑定到公共原生目录 API 观测到的名称。调用方负责该观测的
+     * 将查询绑定到公共原生目录 API 观测到的名称。调用方负责该观测的
      * 真实性、新鲜度和授权；此方法只检查
      * 查询名称是否为该关系的别名，再替换 AST 中的 FROM 关系。
      * 不启用 parseBound，也不允许仅凭调用方名称进行精确授权。
      */
     public static RestrictedSelectPlan bindToCatalogRelation(
             String sql, String defaultSchema, CatalogRelationIdentity relation) {
-        if (relation == null || relation.product() != ProductTypeEnum.TIDB) {
-            throw new UnsupportedOperationException("当前仅接受已验证的 TiDB 原生 catalog 关系");
+        if (relation == null || relation.product() != ProductTypeEnum.TIDB
+                && relation.product() != ProductTypeEnum.DORIS) {
+            throw new UnsupportedOperationException("当前仅接受 TiDB 或 Doris 原生 catalog 关系");
         }
+        boolean doris = relation.product() == ProductTypeEnum.DORIS;
         if (!relation.schemaName().matches("[A-Za-z_][A-Za-z0-9_]{0,62}")
                 || !relation.tableName().matches("[A-Za-z_][A-Za-z0-9_]{0,62}")
-                || !relation.objectId().matches("[1-9][0-9]{0,19}")) {
-            throw new IllegalArgumentException("TiDB catalog 关系必须使用普通名称与原生表 ID");
+                || !relation.objectId().matches(doris ? "[0-9a-f]{64}" : "[1-9][0-9]{0,19}")) {
+            throw new IllegalArgumentException("catalog 关系必须使用普通名称与该产品的原生身份凭证");
         }
         ProductTypeEnum product = relation.product();
         RestrictedSelectPlan plan = parse(product, sql);
         String schema = plan.getSchemaName() == null ? defaultSchema : plan.getSchemaName();
-        if (schema == null || !schema.equalsIgnoreCase(relation.schemaName())
-                || !plan.getTableName().equalsIgnoreCase(relation.tableName())) {
+        if (schema == null || !(doris ? schema.equals(relation.schemaName())
+                && plan.getTableName().equals(relation.tableName())
+                : schema.equalsIgnoreCase(relation.schemaName())
+                && plan.getTableName().equalsIgnoreCase(relation.tableName()))) {
             throw new IllegalArgumentException("查询与原生 catalog 关系不一致");
         }
         SQLSelectQueryBlock block = singleTableQueryBlock(sql, dialect(product));
@@ -603,13 +607,17 @@ public final class RestrictedSelectGuard {
     }
 
     /**
-     * 基于原生目录的 TiDB 行条件 API。调用方负责授权，必须在其数据源上校验
-     * 观测，并将列绑定到同一对象 ID。此方法不能
+     * 基于原生目录的 TiDB / Doris 行条件 API。调用方负责授权，必须在其数据源上校验
+     * 观测，并将列绑定到同一对象 ID；Doris 须在取得结果后再次观测同一对象身份。此方法不能
      * 开放业务路由，通用 TiDB 行条件入口会显式拒绝。
      */
     public static RestrictedSelectProjection restrictCatalogProjectionWithRowFilters(
             String sql, String defaultSchema, CatalogRelationIdentity relation,
             List<String> physicalColumns, Set<String> allowedColumns, List<String> rowFilters) {
+        if (relation == null || relation.product() != ProductTypeEnum.TIDB
+                && relation.product() != ProductTypeEnum.DORIS) {
+            throw new UnsupportedOperationException("catalog 行条件合并尚未验证此产品");
+        }
         RestrictedSelectPlan bound = bindToCatalogRelation(sql, defaultSchema, relation);
         return mergeRowFilters(relation.product(), bound.getNormalizedSql(), relation.schemaName(),
                 relation.tableName(), physicalColumns, allowedColumns, rowFilters);

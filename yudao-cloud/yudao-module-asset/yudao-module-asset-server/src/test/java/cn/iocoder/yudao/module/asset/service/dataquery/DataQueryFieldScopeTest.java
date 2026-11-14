@@ -83,6 +83,7 @@ class DataQueryFieldScopeTest {
         plan.setNormalizedSql("SELECT * FROM \"public\".\"citizen\"");
         plan.setWildcard(true);
         plan.setSourceColumns(List.of());
+        plan.setRelationObjectId("a".repeat(64));
         when(databaseApi.parseRestrictedSelect(any())).thenReturn(CommonResult.success(plan));
         when(databaseApi.executeQuery(any())).thenReturn(CommonResult.success(new DatabasePreviewRespDTO()));
         when(marketAccessService.filterPreview(any(), any())).thenAnswer(call -> call.getArgument(0));
@@ -104,6 +105,7 @@ class DataQueryFieldScopeTest {
         verify(databaseApi).executeQuery(captor.capture());
         assertThat(captor.getValue().getExpectedTable()).isEqualTo("citizen");
         assertThat(captor.getValue().getExpectedSchema()).isEqualTo("public");
+        assertThat(captor.getValue().getExpectedObjectId()).isEqualTo("a".repeat(64));
         assertThat(captor.getValue().getSql()).isEqualTo("SELECT * FROM \"public\".\"citizen\"");
         assertThat(Set.copyOf(captor.getValue().getAllowedColumns())).containsExactlyInAnyOrder("id", "phone");
         verify(marketAccessService).assertStillCurrent(any());

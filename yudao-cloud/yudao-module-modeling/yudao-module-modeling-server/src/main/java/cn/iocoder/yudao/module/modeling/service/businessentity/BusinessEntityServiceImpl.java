@@ -55,6 +55,9 @@ public class BusinessEntityServiceImpl implements BusinessEntityService {
     private ModelHierarchyResolver hierarchy;
 
     @Resource
+    private BusinessEntityVersionService versions;
+
+    @Resource
     private AdminUserApi users;
 
     @Resource
@@ -166,6 +169,7 @@ public class BusinessEntityServiceImpl implements BusinessEntityService {
         requireDeletable(row, Set.of(id));
         replaceRelations(id, List.of());
         entities.deleteById(id);
+        versions.deleteByEntityId(id);
     }
 
     /**
@@ -181,6 +185,7 @@ public class BusinessEntityServiceImpl implements BusinessEntityService {
         rows.forEach(row -> requireDeletable(row, ids));
         rows.forEach(row -> replaceRelations(row.getId(), List.of()));
         rows.forEach(row -> entities.deleteById(row.getId()));
+        rows.forEach(row -> versions.deleteByEntityId(row.getId()));
     }
 
     /**
@@ -286,25 +291,34 @@ public class BusinessEntityServiceImpl implements BusinessEntityService {
         if (status.equals(row.getStatus())) {
             return;
         }
+        List<BusinessEntityRelationDO> own = List.of();
+        List<BusinessEntityDO> boardEntities = List.of();
         if (CommonStatusEnum.isEnable(status)) {
             hierarchy.validateModelDataDomain(row.getDataDomainId());
             hierarchy.validateSubjectDomain(row.getSubjectDomainId(), null, row.getDataDomainId());
             var request = BeanUtils.toBean(row, BusinessEntitySaveReqVO.class);
             var edges = relations.selectByBoard(row.getDataDomainId());
-            var own = edges.stream().filter(r -> Objects.equals(r.getSourceEntityId(), row.getId())).toList();
+            own = edges.stream().filter(r -> Objects.equals(r.getSourceEntityId(), row.getId())).toList();
             request.setInheritEntityId(ids(own, "INHERITANCE").stream().findFirst().orElse(null));
             request.setAssociatedEntityIds(ids(own, "ASSOCIATION"));
             request.setPredecessorEntityIds(ids(own, "PREDECESSOR"));
             request.setProcessEventIds(ids(own, "PROCESS_EVENT"));
-            BusinessEntityRelationPolicy.validate(row.getId(), request, entities.selectByBoard(row.getDataDomainId()),
-                    edges);
+            boardEntities = entities.selectByBoard(row.getDataDomainId());
+            BusinessEntityRelationPolicy.validate(row.getId(), request, boardEntities, edges);
         }
+        Long actor = SecurityFrameworkUtils.getLoginUserId();
+        LocalDateTime now = LocalDateTime.now();
+        long revision = row.getRevision() + 1;
         entities.update(null, Wrappers.lambdaUpdate(BusinessEntityDO.class)
                 .set(BusinessEntityDO::getStatus, status)
-                .set(BusinessEntityDO::getRevision, row.getRevision() + 1)
-                .set(BusinessEntityDO::getUpdater, String.valueOf(SecurityFrameworkUtils.getLoginUserId()))
-                .set(BusinessEntityDO::getUpdateTime, LocalDateTime.now())
+                .set(BusinessEntityDO::getRevision, revision)
+                .set(BusinessEntityDO::getUpdater, String.valueOf(actor))
+                .set(BusinessEntityDO::getUpdateTime, now)
                 .eq(BusinessEntityDO::getId, row.getId()));
+        if (CommonStatusEnum.isEnable(status)) {
+            // 上线与版本快照同事务写入；实体只有下线时才能修改，因此每个版本对应一次已校验的上线设计。
+            versions.recordOnline(row, revision, own, boardEntities, actor, now);
+        }
         auditStatus(row, status);
     }
 

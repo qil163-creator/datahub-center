@@ -693,6 +693,10 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
                         ? WriteMode.INSERT : (targetProductType == ProductTypeEnum.POSTGRESQL
                         || targetProductType == ProductTypeEnum.GREENPLUM || targetProductType == ProductTypeEnum.UXDB)
                         ? WriteMode.COPY : WriteMode.INSERT);
+        if (targetSqlAuthorizer != null && targetProductType == ProductTypeEnum.DORIS) {
+            // 授权的是 JDBC INSERT；单次操作显式关闭流载入，不改变共享运行时配置。
+            writer.configure(runtime.options().withOlapStreamLoad(false));
+        }
         if (sequenceBinding != null) {
             writer.configureSequenceTransfer(sequenceBinding);
         }
@@ -1026,13 +1030,17 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
                 .filter(StringUtils::hasLength).toList();
         IDatabaseWriter writer = newFullWriter();
         writer.preflightRuntimeWrite();
-        List<String> createStatements = buildCreateTableStatements(metadata);
+        List<String> createStatements = targetProductType == ProductTypeEnum.DORIS
+                ? List.of(writer.planAuthorizedCreateTable(targetSchemaName, targetTableName,
+                targetColumnDescriptions.stream().filter(column -> StringUtils.hasLength(column.getFieldName())).toList(),
+                targetPrimaryKeys, sourceTableRemarks, getTblProperties(), runtime.products().typeMappings()))
+                : buildCreateTableStatements(metadata);
         if (createStatements.size() != 1) {
             throw new UnsupportedOperationException("Authorized CREATE_NEW requires exactly one ordinary CREATE TABLE");
         }
-        var planned = cn.iocoder.yudao.framework.dbswitch.core.service.ManagedSchemaScriptPlan.parse(
-                ProductTypeEnum.POSTGRESQL, targetSchemaName,
-                List.of(createStatements.getFirst(), writer.planInsertSql(targetSchemaName, targetTableName, fields)));
+        var planned = runtime.products().metadata(targetProductType).planAuthorizedCreateNew(
+                targetSchemaName, targetTableName, fields, createStatements.getFirst(),
+                writer.planInsertSql(targetSchemaName, targetTableName, fields));
         var objects = java.util.Set.of(targetTableName);
         var order = java.util.stream.IntStream.range(0, fields.size()).boxed().toList();
         if (planned.steps().size() != 2 || !"DDL".equals(planned.steps().get(0).operation())
@@ -1052,14 +1060,21 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
         if (interrupted) {
             throw new IllegalStateException("Migration was interrupted after target authorization");
         }
-        executeCreateTableStatements(List.of(authorized.steps().get(0).sql()));
-        return doFullCoverSynchronize(writer, result);
+        if (targetProductType == ProductTypeEnum.DORIS) {
+            writer.executeAuthorizedCreateTable(authorized);
+        } else {
+            executeCreateTableStatements(List.of(authorized.steps().get(0).sql()));
+        }
+        var transferred = doFullCoverSynchronize(writer, result);
+        writer.completeAuthorizedTransfer(transferred.getTransferSummary().acknowledgedRows());
+        return transferred;
     }
 
     /** 原生目录必须证明没有隐藏写入或结构语义；未知事实不能当作不存在。 */
     private void requireOrdinaryAuthorizedSource() {
-        if (StringUtils.hasText(sourceMetaDataService.getTableRemark(sourceSchemaName, sourceTableName))
-                || StringUtils.hasText(targetTableComment)) {
+        if (targetProductType != ProductTypeEnum.DORIS
+                && (StringUtils.hasText(sourceMetaDataService.getTableRemark(sourceSchemaName, sourceTableName))
+                || StringUtils.hasText(targetTableComment))) {
             throw new UnsupportedOperationException("Authorized CREATE_NEW does not support table comments");
         }
         try (Connection connection = sourceDataSource.getConnection()) {
@@ -1072,11 +1087,20 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
                     sourceColumnDescriptions.stream().map(ColumnDescription::getFieldName).toList())) {
                 throw new UnsupportedOperationException("Authorized CREATE_NEW requires a verified ordinary physical source table");
             }
+            if (targetProductType == ProductTypeEnum.DORIS) {
+                cn.iocoder.yudao.framework.dbswitch.data.util.MigrationColumnMappings.requireNativePrimaryKeys(
+                        schema.primaryKeys(), mappedColumns, targetPrimaryKeys);
+            }
             for (ColumnDescription column : schema.columns()) {
                 var evidence = column.getMetadataEvidence();
-                if (evidence.defaultExpression().state() != absent || evidence.identity().state() != absent
+                boolean ordinaryDefault = evidence.defaultExpression().state() == absent
+                        || targetProductType == ProductTypeEnum.DORIS
+                        && !Boolean.TRUE.equals(targetProperties.getSyncDefaultVal())
+                        && cn.iocoder.yudao.framework.dbswitch.data.util.MigrationColumnMappings
+                        .ordinaryPostgresLiteralDefault(evidence.defaultExpression().value());
+                if (!ordinaryDefault || evidence.identity().state() != absent
                         || evidence.generatedExpression().state() != absent || evidence.sequence().state() != absent
-                        || StringUtils.hasText(column.getRemarks())) {
+                        || targetProductType != ProductTypeEnum.DORIS && StringUtils.hasText(column.getRemarks())) {
                     throw new UnsupportedOperationException("Authorized CREATE_NEW does not support defaults, generated columns or comments");
                 }
             }

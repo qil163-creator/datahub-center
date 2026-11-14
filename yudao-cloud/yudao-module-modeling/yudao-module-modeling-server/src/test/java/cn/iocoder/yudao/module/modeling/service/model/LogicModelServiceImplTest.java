@@ -76,6 +76,8 @@ class LogicModelServiceImplTest {
     private LogicModelColumnService columnService;
     @Mock
     private LogicModelDefinitionService definitionService;
+    @Mock
+    private LogicModelVersionService versionService;
 @Mock
     private ModelHierarchyResolver hierarchyResolver;
 
@@ -271,6 +273,22 @@ class LogicModelServiceImplTest {
                 ((com.baomidou.mybatisplus.core.conditions.AbstractWrapper<?, ?, ?>)update).getParamNameValuePairs()
                         .values().contains("PUBLISHED")));
         verify(columnService).replaceByModelId(eq(2L), any());
+        InOrder order = inOrder(columnService, versionService);
+        order.verify(columnService).replaceByModelId(eq(2L), any());
+        order.verify(versionService).recordPublish(org.mockito.ArgumentMatchers.same(model), any(), any(), any(),
+                any(java.time.LocalDateTime.class));
+    }
+
+    @Test
+    void rejectedPublicationDoesNotRecordVersion() {
+        LogicModelDO model = model(2L, 9L);
+        when(modelMapper.selectById(2L)).thenReturn(model);
+        when(modelMapper.selectByIdForUpdate(2L)).thenReturn(model);
+        when(columnService.listByModelId(2L)).thenReturn(List.of(field("stable", "客户", "cust_name")),
+                List.of(field("new", "另一个字段", "new_field")));
+        org.mockito.Mockito.doNothing().when(typeConfigValidator).validateOnPublish(any(), any(), any());
+        assertThrows(ServiceException.class, () -> logicModelService.publishModel(2L, 0L));
+        verify(versionService, never()).recordPublish(any(), any(), any(), any(), any());
     }
 
     @Test

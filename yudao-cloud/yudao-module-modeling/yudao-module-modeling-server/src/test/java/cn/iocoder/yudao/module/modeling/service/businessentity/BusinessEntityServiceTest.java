@@ -28,6 +28,7 @@ class BusinessEntityServiceTest {
     private final AdminUserApi users = mock(AdminUserApi.class);
     private final ModelHierarchyResolver hierarchy = mock(ModelHierarchyResolver.class);
     private final com.mzt.logapi.service.ILogRecordService audit = mock(com.mzt.logapi.service.ILogRecordService.class);
+    private final BusinessEntityVersionService versions = mock(BusinessEntityVersionService.class);
     private final BusinessEntityServiceImpl service = new BusinessEntityServiceImpl();
 
     @BeforeEach void setup() {
@@ -43,6 +44,7 @@ class BusinessEntityServiceTest {
         ReflectionTestUtils.setField(service, "hierarchy", hierarchy);
         ReflectionTestUtils.setField(service, "users", users);
         ReflectionTestUtils.setField(service, "logRecordService", audit);
+        ReflectionTestUtils.setField(service, "versions", versions);
         when(boards.selectForUpdate(1L)).thenReturn(DataDomainDO.builder().id(1L).status(0).build());
         when(entities.selectByBoard(1L)).thenReturn(List.of());
         when(edges.selectByBoard(1L)).thenReturn(List.of());
@@ -283,5 +285,33 @@ class BusinessEntityServiceTest {
         } finally {
             org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
         }
+    }
+
+    @Test void goingOnlineRecordsVersionWithOwnRelationsAndGoingOfflineDoesNot() {
+        var row = entity(1, "NORMAL");
+        var target = entity(2, "NORMAL");
+        var association = edge(1, 2, "ASSOCIATION");
+        when(entities.selectById(1L)).thenReturn(row);
+        when(entities.selectByBoard(1L)).thenReturn(List.of(row, target));
+        when(edges.selectByBoard(1L)).thenReturn(List.of(association, edge(2, 1, "ASSOCIATION")));
+        var online = new BusinessEntityStatusReqVO(); online.setId(1L); online.setExpectedRevision(0L); online.setStatus(0);
+
+        service.updateStatus(online);
+
+        verify(versions).recordOnline(same(row), eq(1L), eq(List.of(association)), eq(List.of(row, target)),
+                eq(99L), any(java.time.LocalDateTime.class));
+
+        reset(versions);
+        var current = entity(1, "NORMAL"); current.setStatus(0); current.setRevision(1L);
+        when(entities.selectById(1L)).thenReturn(current);
+        var offline = new BusinessEntityStatusReqVO(); offline.setId(1L); offline.setExpectedRevision(1L); offline.setStatus(1);
+        service.updateStatus(offline);
+        verifyNoInteractions(versions);
+    }
+
+    @Test void deletingEntityAlsoRetiresItsVersions() {
+        when(entities.selectById(1L)).thenReturn(entity(1, "NORMAL"));
+        service.delete(1L, 0L);
+        verify(versions).deleteByEntityId(1L);
     }
 }
