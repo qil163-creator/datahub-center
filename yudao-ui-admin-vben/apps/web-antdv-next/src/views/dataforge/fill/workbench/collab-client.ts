@@ -33,6 +33,8 @@ export interface FillCollabCallbacks {
   }) => void;
   onError?: (message: string) => void;
   onStatusChange?: (open: boolean) => void;
+  /** 下级实例状态变化（上级工作台刷新“下级单位”） */
+  onChildrenChanged?: () => void;
   /** 工作项状态或可编辑性在服务端发生变化（提交、审批、延期、结束填报等），应重新加载快照 */
   onWorkItemStatusChanged?: (payload: {
     status: number;
@@ -150,6 +152,12 @@ export class FillCollabClient {
 
   private dispatchMessage(type: string, content: any) {
     switch (type) {
+      case 'fill-children-changed': {
+        if (String(content?.workItemId) === String(this.workItemId)) {
+          this.callbacks.onChildrenChanged?.();
+        }
+        break;
+      }
       case 'fill-error': {
         this.callbacks.onError?.(content?.message ?? '协同消息处理失败');
         break;
