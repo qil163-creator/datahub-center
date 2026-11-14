@@ -21,6 +21,7 @@ import { getSimpleUserList } from '#/api/system/user';
 import ListPagination from '#/components/list-pagination/index.vue';
 
 import { APPROVAL_STATUS_TEXT } from '../shared';
+import { formatRefDisplay } from '../workbench/ref-display';
 import { changedCellCount, diffSnapshots } from './diff';
 
 /**
@@ -44,6 +45,8 @@ const pageSize = ref(100);
 interface PreviewField {
   fieldCode: string;
   name: string;
+  /** 人员、部门、附件、图片：单元格保存编号，显示为“名称（编号）” */
+  refKind?: string;
   required?: boolean;
 }
 
@@ -56,6 +59,7 @@ const fields = computed<PreviewField[]>(() => {
       .map((field) => ({
         fieldCode: field.fieldCode,
         name: field.name ?? field.fieldCode,
+        refKind: field.refKind ?? undefined,
         required: field.required,
       }));
   } catch {
@@ -63,14 +67,40 @@ const fields = computed<PreviewField[]>(() => {
   }
 });
 
+/** 下级汇总的提交：增加来源组织列 */
+const hasSource = computed(() => (preview.value?.rows ?? []).some((row) => !!row.sourceOrgName));
+
 const columns = computed(() => [
   { key: '__no', title: '#', width: 60 },
+  ...(hasSource.value ? [{ key: '__source', title: '来源单位', width: 140 }] : []),
   ...fields.value.map((field) => ({
     dataIndex: ['data', field.fieldCode],
     key: field.fieldCode,
     title: field.required ? `${field.name} *` : field.name,
   })),
 ]);
+
+/** 编号类字段：fieldCode → 编号 → 名称（只含快照引用的编号） */
+const refLabels = computed(() => {
+  const result = new Map<string, Map<string, string>>();
+  for (const field of fields.value) {
+    if (!field.refKind) continue;
+    const options = preview.value?.refLabels?.[field.fieldCode] ?? [];
+    result.set(
+      field.fieldCode,
+      new Map(options.map((option) => [String(option.value), option.label])),
+    );
+  }
+  return result;
+});
+
+/** 单元格显示文本：编号类字段显示“名称（编号）”，其余原样显示 */
+function cellText(record: { data: Record<string, unknown> }, fieldCode: string) {
+  const value = record.data?.[fieldCode];
+  const labels = refLabels.value.get(fieldCode);
+  if (labels) return formatRefDisplay(value, labels);
+  return value === undefined || value === null ? '' : String(value);
+}
 
 const dataSource = computed(() =>
   [...(preview.value?.rows ?? [])]
@@ -251,14 +281,20 @@ watch(() => props.id, () => {
         size="small"
         :row-class-name="(record: any) => rowClass(record)"
       >
-        <template #bodyCell="{ column, record, text }">
+        <template #bodyCell="{ column, record }">
           <template v-if="column.key === '__no'">{{ record.__no }}</template>
+          <template v-else-if="column.key === '__source'">
+            {{ record.sourceOrgName ?? '本单位' }}
+          </template>
           <div
             v-else-if="cellChanged(record, String(column.key))"
             class="qi-fill-cell-changed"
           >
-            {{ text }}
+            {{ cellText(record, String(column.key)) }}
           </div>
+          <template v-else-if="refLabels.has(String(column.key))">
+            {{ cellText(record, String(column.key)) }}
+          </template>
         </template>
       </Table>
       <ListPagination

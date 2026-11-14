@@ -37,4 +37,12 @@ public interface FillSubmissionService {
      */
     FillSubmissionPreviewRespVO getSubmissionPreview(Long submissionId);
 
+    /**
+     * 校验用户可以查看该提交快照（提交人、填报人、发起者、组织负责人或审批流程参与者），不满足时抛出异常。
+     *
+     * @param submissionId 提交编号
+     * @param userId 用户编号
+     */
+    void checkSubmissionViewPermission(Long submissionId, Long userId);
+
 }

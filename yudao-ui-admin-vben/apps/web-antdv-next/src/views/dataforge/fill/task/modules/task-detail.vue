@@ -39,6 +39,8 @@ import { getSimpleUserList } from '#/api/system/user';
 import { useDescription } from '#/components/description';
 
 import { TASK_STATUS_TEXT, WORK_ITEM_STATUS_TEXT } from '../../shared';
+import TaskSummary from './task-summary.vue';
+import { buildWorkItemTree } from './work-item-tree';
 
 defineOptions({ name: 'DataforgeFillTaskDetail' });
 
@@ -51,6 +53,7 @@ let requestGeneration = 0;
 let drawerOpen = false;
 
 const loading = ref(false);
+const summaryRef = ref<InstanceType<typeof TaskSummary>>();
 const task = ref<DataforgeFillApi.Task>();
 const progress = ref<DataforgeFillApi.TaskProgress>();
 const workItems = ref<DataforgeFillApi.WorkItem[]>([]);
@@ -85,6 +88,11 @@ const [TaskDescriptions, taskDescApi] = useDescription({
       render: (value) => formatDateTime(value) || '-',
     },
     { field: 'totalOrgCount', label: '应填组织' },
+    {
+      field: 'childOrgCount',
+      label: '下级单位',
+      render: (value) => (value ? `${value} 个（随上级上报，不计入完成率）` : '-'),
+    },
     { field: 'mergedCount', label: '已合并' },
     { field: 'overdueCount', label: '逾期组织' },
     {
@@ -127,6 +135,9 @@ const columns = [
   },
   { key: 'actions', title: '操作', width: 400, fixed: 'right' as const },
 ];
+
+/** 多级下发时按上下级展示为树 */
+const workItemTree = computed(() => buildWorkItemTree(workItems.value));
 
 const statusSummary = computed(() => {
   const counts = progress.value?.statusCounts ?? {};
@@ -182,6 +193,7 @@ async function openDetail(row: DataforgeFillApi.Task) {
         mergedCount: progress.value?.mergedCount,
         overdueCount: progress.value?.overdueCount,
         totalOrgCount: progress.value?.totalOrgCount ?? row.totalOrgCount,
+        childOrgCount: progress.value?.childOrgCount,
       },
     });
   } finally {
@@ -191,6 +203,10 @@ async function openDetail(row: DataforgeFillApi.Task) {
 
 async function reload() {
   if (task.value) await openDetail(task.value);
+}
+
+function openSummary() {
+  if (task.value) summaryRef.value?.openSummary(task.value);
 }
 
 /** 写操作后重新读取任务本身（状态、截止时间会变化），并通知列表刷新 */
@@ -546,6 +562,10 @@ defineExpose({ open: openDetail });
           <template #icon><IconifyIcon icon="lucide:circle-stop" /></template>
           结束填报
         </Button>
+        <Button size="small" @click="openSummary">
+          <template #icon><IconifyIcon icon="lucide:sigma" /></template>
+          结果汇总
+        </Button>
         <Button :loading="loading" size="small" @click="reload"
           ><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template
           >刷新</Button
@@ -555,11 +575,11 @@ defineExpose({ open: openDetail });
 
     <Table
       :columns="columns"
-      :data-source="workItems"
+      :data-source="workItemTree"
       :loading="loading"
       :pagination="false"
       :scroll="{ x: 1320 }"
-      row-key="id"
+      :row-key="(record: any) => String(record.id)"
       size="small"
       table-layout="fixed"
     >
@@ -570,6 +590,7 @@ defineExpose({ open: openDetail });
           </Tag>
           <Tag v-if="record.overdue === 1" color="error">逾期</Tag>
           <Tag v-if="record.submissionType === 2" color="warning">零上报</Tag>
+          <Tag v-if="(record.level ?? 0) > 0">第 {{ (record.level ?? 0) + 1 }} 级</Tag>
         </template>
         <template v-else-if="column.key === 'assignees'">
           <Space :size="4" wrap>
@@ -721,6 +742,7 @@ defineExpose({ open: openDetail });
         </p>
       </div>
     </Modal>
+    <TaskSummary ref="summaryRef" />
   </DetailDrawer>
 </template>
 

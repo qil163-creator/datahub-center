@@ -27,6 +27,7 @@ import { PERIOD_TYPE_TEXT, PLAN_STATUS_TEXT } from '../shared';
 import CategoryForm from './modules/category-form.vue';
 import CategorySideTree from './modules/category-side-tree.vue';
 import PlanDetail from './modules/detail.vue';
+import PeriodSummary from './modules/period-summary.vue';
 import PlanForm from './modules/plan-form.vue';
 
 defineOptions({ name: 'DataforgeFillPlan' });
@@ -162,6 +163,12 @@ const [DetailModal, detailModalApi] = useVbenModal({
 
 function handleDetail(plan: DataforgeFillApi.Plan) {
   detailModalApi.setData({ id: plan.id }).open();
+}
+
+const periodSummaryRef = ref<InstanceType<typeof PeriodSummary>>();
+
+function handlePeriodSummary(plan: DataforgeFillApi.Plan) {
+  periodSummaryRef.value?.openSummary(plan);
 }
 
 function handleRefresh() {
@@ -336,6 +343,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
             ]"
             :drop-down-actions="[
               {
+                label: '期次汇总',
+                type: 'link',
+                auth: ['dataforge:fill-plan:query'],
+                onClick: handlePeriodSummary.bind(null, row),
+              },
+              {
                 label: '调整分类/人员',
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
@@ -391,6 +404,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     />
 
     <DetailModal :key="`detail:${identity}`" />
+    <PeriodSummary ref="periodSummaryRef" />
 
     <Modal
       v-model:open="generateOpen"

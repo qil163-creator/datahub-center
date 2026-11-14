@@ -136,6 +136,15 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_TABLE_COLUMN_RULE_INVALID = new ErrorCode(1_500_015_015, "字段校验规则无效：{}");
     ErrorCode FILL_TABLE_COLUMN_DICT_INVALID = new ErrorCode(1_500_015_016, "字典类型【{}】不存在或没有可用的字典项");
     ErrorCode FILL_TABLE_TARGET_SCHEMA_MISMATCH = new ErrorCode(1_500_015_017, "目标表【{}】与填报配置不一致：{}");
+    ErrorCode FILL_TABLE_MERGE_CONFIG_INVALID = new ErrorCode(1_500_015_018, "合并策略配置无效：{}");
+    ErrorCode FILL_TABLE_EXPRESSION_INVALID = new ErrorCode(1_500_015_020, "{}表达式无效：{}");
+    ErrorCode FILL_TABLE_RULE_NOT_EXISTS = new ErrorCode(1_500_015_021, "填报表校验规则不存在");
+    ErrorCode FILL_TABLE_REF_SOURCE_INVALID = new ErrorCode(1_500_015_022, "字段【{}】的数据表下拉配置无效：{}");
+    ErrorCode FILL_ATTACHMENT_NOT_EXISTS = new ErrorCode(1_500_015_023, "附件不存在或已删除");
+    ErrorCode FILL_ATTACHMENT_INVALID = new ErrorCode(1_500_015_024, "附件不合法：{}");
+    ErrorCode FILL_ATTACHMENT_STORAGE_UNAVAILABLE = new ErrorCode(1_500_015_025, "文件服务暂不可用，请稍后重试");
+    ErrorCode FILL_TABLE_TARGET_ADD_COLUMN_UNSUPPORTED = new ErrorCode(1_500_015_019,
+            "目标表【{}】无法自动新增字段【{}】：{}；请由数据库管理员手工加列后再发布");
 
     // ========== 文件管理 1_500_016_000 ==========
 
@@ -259,6 +268,7 @@ public interface ErrorCodeConstants {
             "审批流程【{}】当前没有生效版本，请先在流程管理中部署或激活");
     ErrorCode FILL_TASK_DEADLINE_INVALID = new ErrorCode(1_500_021_025, "新的截止时间必须晚于当前时间和任务开放时间");
     ErrorCode FILL_TASK_WORK_ITEM_MISMATCH = new ErrorCode(1_500_021_026, "组织实例【{}】不属于该采集任务");
+    ErrorCode FILL_TASK_NOT_INITIATOR = new ErrorCode(1_500_021_027, "只有采集计划的发起者或超级管理员可以执行该操作");
     // ----- 工作项 -----
     ErrorCode FILL_WORK_ITEM_NOT_EXISTS = new ErrorCode(1_500_021_030, "组织填报实例不存在");
     ErrorCode FILL_WORK_ITEM_STATUS_INVALID = new ErrorCode(1_500_021_031, "填报实例当前状态【{}】不允许该操作");
@@ -316,6 +326,16 @@ public interface ErrorCodeConstants {
     ErrorCode FILL_PLAN_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_021_123, "同级目录下已存在同名分类");
     ErrorCode FILL_PLAN_CATEGORY_HAS_CHILDREN = new ErrorCode(1_500_021_124, "分类下存在子分类，不允许删除");
     ErrorCode FILL_PLAN_CATEGORY_HAS_PLANS = new ErrorCode(1_500_021_125, "分类下存在采集计划，请先调整计划分类");
+
+    // ---------- 多级下发与逐级汇总 ----------
+    ErrorCode FILL_DISPATCH_NOT_ALLOWED = new ErrorCode(1_500_021_140, "不能下发：{}");
+    ErrorCode FILL_DISPATCH_ORG_INVALID = new ErrorCode(1_500_021_141, "组织【{}】不在本单位的下级范围内，或已在本期任务中");
+    ErrorCode FILL_DISPATCH_DEADLINE_INVALID = new ErrorCode(1_500_021_142, "下级截止时间不能晚于本单位截止时间 {}");
+    ErrorCode FILL_CHILD_NOT_IN_SCOPE = new ErrorCode(1_500_021_143, "只有上级单位的有效填报人可以操作该下级实例");
+    ErrorCode FILL_CHILD_STATUS_INVALID = new ErrorCode(1_500_021_144, "下级实例当前状态不允许该操作：{}");
+    ErrorCode FILL_ROLLUP_NOT_READY = new ErrorCode(1_500_021_145, "还不能上报：{}");
+    ErrorCode FILL_ROLLUP_ROW_READONLY = new ErrorCode(1_500_021_146, "该行（{}）来自下级汇总，不能直接修改或删除；如需调整请退回下级");
+    ErrorCode FILL_ROLLUP_CONFIG_INVALID = new ErrorCode(1_500_021_147, "多级汇总规则无效：{}");
 
     // ========== 批量文件入库 1_500_029_000 ==========
     ErrorCode BATCH_FILE_NOT_EXISTS = new ErrorCode(1_500_029_000, "批量文件入库任务不存在");

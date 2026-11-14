@@ -61,6 +61,9 @@ import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
 public class FillMergeServiceImpl implements FillMergeService {
 
     @Resource
+    private FillHierarchyService hierarchyService;
+
+    @Resource
     private cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime dbSwitchRuntime;
 
     /** 系统来源列（发布建表自动追加；合并写入强制携带） */
@@ -293,6 +296,14 @@ public class FillMergeServiceImpl implements FillMergeService {
     // ---------------------------------------------------------------- 合并执行
 
     /**
+     * 系统生成的 UUID 主键：由组织实例与行标识确定性派生（32 位十六进制）。
+     * 同一行在重新提交、更正与合并重试时得到相同主键，不同组织实例、不同期次之间互不重复。
+     */
+    static String generatedKey(Long workItemId, String rowId) {
+        return cn.hutool.crypto.digest.DigestUtil.md5Hex(workItemId + ":" + rowId);
+    }
+
+    /**
      * 合并填报合并。
      *
      * @param batch 目标批次信息
@@ -320,15 +331,28 @@ public class FillMergeServiceImpl implements FillMergeService {
         fieldNames.add(SYS_COL_SUBMISSION_ID);
         fieldNames.add(SYS_COL_ROW_ID);
 
+        // 多级汇总：顶层实例的提交含各级下级的数据，每行按来源组织写入，范围替换时清理整棵子树的组织
+        List<Long> scopeOrgIds = hierarchyService == null ? List.of(item.getReportingOrgId())
+                : new ArrayList<>(hierarchyService.subtreeOrgIds(item));
+        boolean hierarchical = scopeOrgIds.size() > 1
+                || rows.stream().anyMatch(row -> row.getSourceOrgId() != null);
         List<Object[]> recordValues = new ArrayList<>(rows.size());
         for (FillSubmissionRowDO row : rows) {
             Map<String, Object> data = parseRowData(row.getData());
             Object[] values = new Object[fieldNames.size()];
             int index = 0;
             for (Map<String, Object> field : fields) {
-                values[index++] = convertValue(field, data.get(String.valueOf(field.get("fieldCode"))));
+                Object value = data.get(String.valueOf(field.get("fieldCode")));
+                if (FillTableVersionServiceImpl.GENERATED_UUID.equals(field.get("generated"))
+                        && (value == null || StrUtil.isBlank(String.valueOf(value)))) {
+                    // 汇总行按原始录入位置生成：重复汇总、逐级上报后主键不变
+                    value = row.getSourceWorkItemId() != null && row.getSourceRowId() != null
+                            ? generatedKey(row.getSourceWorkItemId(), row.getSourceRowId())
+                            : generatedKey(item.getId(), row.getRowId());
+                }
+                values[index++] = convertValue(field, value);
             }
-            values[index++] = item.getReportingOrgId();
+            values[index++] = rowOrgId(item, row);
             values[index++] = periodKey;
             values[index++] = submission.getId();
             values[index] = row.getRowId();
@@ -355,12 +379,16 @@ public class FillMergeServiceImpl implements FillMergeService {
                     case APPEND -> FillMergeJdbcWriter.replaceScope(dataSource, target, fieldNames, recordValues,
                             List.of(SYS_COL_SUBMISSION_ID), List.of(submission.getId()));
                     // 幂等：范围替换本身可重放
-                    case REPLACE_SCOPE -> FillMergeJdbcWriter.replaceScope(dataSource, target, fieldNames,
+                    case REPLACE_SCOPE -> FillMergeJdbcWriter.replaceScopes(dataSource, target, fieldNames,
                             recordValues, List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
-                            List.of(item.getReportingOrgId(), periodKey));
+                            scopeOrgIds.stream().map(orgId -> List.<Object>of(orgId, periodKey)).toList());
+                    // 此前提交只属于本实例：多级时不再按组织限定（行的来源组织可能是任一下级）
                     case UPSERT -> FillMergeJdbcWriter.upsert(dataSource, target, fieldNames, recordValues,
                             resolveBusinessKeyColumns(version, fields),
-                            new FillMergeJdbcWriter.StaleRows(List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
+                            hierarchical
+                                    ? new FillMergeJdbcWriter.StaleRows(List.of(SYS_COL_PERIOD_KEY),
+                                    List.of(periodKey), SYS_COL_SUBMISSION_ID, previousSubmissionIds)
+                                    : new FillMergeJdbcWriter.StaleRows(List.of(SYS_COL_ORG_ID, SYS_COL_PERIOD_KEY),
                                     List.of(item.getReportingOrgId(), periodKey), SYS_COL_SUBMISSION_ID,
                                     previousSubmissionIds));
                 };
@@ -375,8 +403,10 @@ public class FillMergeServiceImpl implements FillMergeService {
                         yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, writerValues);
                     }
                     case REPLACE_SCOPE -> {
+                        // 组织编号为数值、periodKey 已按白名单校验，直拼安全
                         deleteByCondition(conn, batch.getTargetTableName(),
-                                quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
+                                quote(conn, SYS_COL_ORG_ID) + " IN (" + scopeOrgIds.stream().map(String::valueOf)
+                                        .collect(java.util.stream.Collectors.joining(", ")) + ")"
                                         + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'");
                         yield insertAll(dataSource, conn, batch.getTargetTableName(), fieldNames, writerValues);
                     }
@@ -386,8 +416,9 @@ public class FillMergeServiceImpl implements FillMergeService {
                         if (!previousSubmissionIds.isEmpty()) {
                             // 清理该组织实例此前提交留下、本次已不再包含的行；编号为数值直拼
                             deleteByCondition(conn, batch.getTargetTableName(),
-                                    quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
-                                            + " AND " + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'"
+                                    (hierarchical ? "" : quote(conn, SYS_COL_ORG_ID) + " = " + item.getReportingOrgId()
+                                            + " AND ")
+                                            + quote(conn, SYS_COL_PERIOD_KEY) + " = '" + periodKey + "'"
                                             + " AND " + quote(conn, SYS_COL_SUBMISSION_ID) + " IN ("
                                             + previousSubmissionIds.stream().map(String::valueOf)
                                             .collect(java.util.stream.Collectors.joining(", ")) + ")");
@@ -406,7 +437,7 @@ public class FillMergeServiceImpl implements FillMergeService {
                 .mergeBatchId(batch.getId())
                 .submissionId(submission.getId())
                 .sourceRowId(row.getRowId())
-                .targetKey(item.getReportingOrgId() + ":" + periodKey)
+                .targetKey(rowOrgId(item, row) + ":" + periodKey)
                 .action(action)
                 .build()));
         return written;
@@ -604,9 +635,15 @@ public class FillMergeServiceImpl implements FillMergeService {
         broadcastStatus(batch.getWorkItemId(), FillWorkItemStatusEnum.MERGE_FAILED.getStatus());
     }
 
-    /** 任务进度冗余刷新：全部组织已合并/已取消 → 任务完成 */
+    /** 写入正式表的来源组织：汇总行取原始报送组织，本单位录入的行取实例组织 */
+    private static Long rowOrgId(FillWorkItemDO item, FillSubmissionRowDO row) {
+        return row.getSourceOrgId() != null ? row.getSourceOrgId() : item.getReportingOrgId();
+    }
+
+    /** 任务进度冗余刷新：全部顶层组织已合并/已取消 → 任务完成（下级随上级上报，不参与判断） */
     private void refreshTaskProgress(Long taskId) {
-        List<FillWorkItemDO> items = workItemMapper.selectListByTaskId(taskId);
+        List<FillWorkItemDO> items = workItemMapper.selectListByTaskId(taskId).stream()
+                .filter(item -> item.getParentWorkItemId() == null).toList();
         int merged = (int) items.stream()
                 .filter(item -> FillWorkItemStatusEnum.MERGED.getStatus().equals(item.getStatus())).count();
         boolean allDone = items.stream().allMatch(item ->

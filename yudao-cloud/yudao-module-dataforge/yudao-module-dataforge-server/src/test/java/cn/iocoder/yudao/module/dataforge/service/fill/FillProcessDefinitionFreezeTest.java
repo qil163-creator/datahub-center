@@ -38,6 +38,7 @@ class FillProcessDefinitionFreezeTest {
 
     FillProcessDefinitionFreezeTest() {
         ReflectionTestUtils.setField(service, "taskMapper", taskMapper);
+        ReflectionTestUtils.setField(service, "accessGuard", org.mockito.Mockito.mock(FillTaskAccessGuard.class));
         ReflectionTestUtils.setField(service, "outboxMapper", outboxMapper);
         ReflectionTestUtils.setField(service, "bpmAdapter", bpmAdapter);
     }

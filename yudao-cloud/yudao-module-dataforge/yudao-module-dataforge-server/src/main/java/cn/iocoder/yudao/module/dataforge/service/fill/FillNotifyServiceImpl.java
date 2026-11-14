@@ -1,5 +1,11 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.mail.dto.MailSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.mail.MailSendApi;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanMapper;
+import java.util.Set;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillNotifyRecordDO;
@@ -57,6 +63,8 @@ public class FillNotifyServiceImpl implements FillNotifyService {
             Map.entry(FillNotifyTypeEnum.URGE, "fill_urge"),
             Map.entry(FillNotifyTypeEnum.CORRECTION_CREATED, "fill_correction_created"),
             Map.entry(FillNotifyTypeEnum.DEADLINE_EXTENDED, "fill_deadline_extended"),
+            Map.entry(FillNotifyTypeEnum.CHILD_SUBMITTED, "fill_child_submitted"),
+            Map.entry(FillNotifyTypeEnum.RETURNED_BY_PARENT, "fill_returned_by_parent"),
             Map.entry(FillNotifyTypeEnum.TASK_CLOSED, "fill_task_closed"),
             Map.entry(FillNotifyTypeEnum.MERGE_RETURNED, "fill_merge_returned"));
 
@@ -82,6 +90,29 @@ public class FillNotifyServiceImpl implements FillNotifyService {
 
     @Resource
     private NotifyMessageSendApi notifyMessageSendApi;
+
+    @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
+    private MailSendApi mailSendApi;
+
+    @Resource
+    private FillPlanMapper planMapper;
+
+    /** 短信、邮件通用模板编号（发送内容由 notice 参数给出） */
+    static final String SMS_TEMPLATE_CODE = "fill_sms_notice";
+    static final String MAIL_TEMPLATE_CODE = "fill_mail_notice";
+
+    /** 需要填报人处理、按计划配置同时走短信或邮件的通知类型 */
+    private static final Map<FillNotifyTypeEnum, String> EXTERNAL_NOTICES = Map.of(
+            FillNotifyTypeEnum.URGE, "发起者催办，请尽快填报并提交，截止时间 {deadline}",
+            FillNotifyTypeEnum.DEADLINE_APPROACHING, "将于 {deadline} 截止，请尽快填报并提交",
+            FillNotifyTypeEnum.OVERDUE, "已超过截止时间 {deadline}，请尽快处理",
+            FillNotifyTypeEnum.REJECTED, "审批驳回：{reason}，请修改后重新提交",
+            FillNotifyTypeEnum.DEADLINE_EXTENDED, "截止时间已延期至 {deadline}，请在截止前完成填报",
+            FillNotifyTypeEnum.CHILD_SUBMITTED, "下级单位已提交数据，请及时审核",
+            FillNotifyTypeEnum.RETURNED_BY_PARENT, "被上级单位退回：{reason}，请修改后重新提交");
 
     @Resource
     private PlatformTransactionManager transactionManager;
@@ -111,6 +142,10 @@ public class FillNotifyServiceImpl implements FillNotifyService {
         Long taskId = task != null ? task.getId() : null;
         Long workItemId = workItem != null ? workItem.getId() : null;
         List<Long> receivers = userIds.stream().filter(Objects::nonNull).distinct().toList();
+        Set<String> externalChannels = resolveExternalChannels(type, task);
+        Map<String, Object> externalParams = new HashMap<>(params);
+        externalParams.put("notice", buildNotice(type, params));
+        String externalParamsJson = JsonUtils.toJsonString(externalParams);
         Runnable delivery = () -> {
             for (Long userId : receivers) {
                 try {
@@ -127,9 +162,30 @@ public class FillNotifyServiceImpl implements FillNotifyService {
                             .retryCount(0)
                             .build();
                     inNewTransaction(() -> notifyRecordMapper.insert(record));
-                    deliver(record.getId(), userId, templateCode, params);
+                    deliver(record.getId(), record.getChannel(), userId, templateCode, params);
                 } catch (Exception ex) {
                     log.warn("[sendToUsers][通知({}) 用户({}) 记录失败：{}]", type, userId, ex.getMessage());
+                }
+                for (String external : externalChannels) {
+                    try {
+                        boolean sms = "SMS".equals(external);
+                        FillNotifyRecordDO record = FillNotifyRecordDO.builder()
+                                .notifyType(type.getType())
+                                .taskId(taskId)
+                                .workItemId(workItemId)
+                                .receiverUserId(userId)
+                                .channel(sms ? FillNotifyChannelEnum.SMS.getChannel() : FillNotifyChannelEnum.MAIL.getChannel())
+                                .templateCode(sms ? SMS_TEMPLATE_CODE : MAIL_TEMPLATE_CODE)
+                                .contentSummary(summary)
+                                .templateParams(externalParamsJson)
+                                .sendStatus(SEND_STATUS_PENDING)
+                                .retryCount(0)
+                                .build();
+                        inNewTransaction(() -> notifyRecordMapper.insert(record));
+                        deliver(record.getId(), record.getChannel(), userId, record.getTemplateCode(), externalParams);
+                    } catch (Exception ex) {
+                        log.warn("[sendToUsers][通知({}) 用户({}) {} 记录失败：{}]", type, userId, external, ex.getMessage());
+                    }
                 }
             }
         };
@@ -168,7 +224,8 @@ public class FillNotifyServiceImpl implements FillNotifyService {
                 }
                 Map<String, Object> params = JsonUtils.parseObject(record.getTemplateParams(),
                         new TypeReference<Map<String, Object>>() { });
-                if (deliver(record.getId(), record.getReceiverUserId(), record.getTemplateCode(), params)) {
+                if (deliver(record.getId(), record.getChannel(), record.getReceiverUserId(), record.getTemplateCode(),
+                        params)) {
                     succeeded++;
                 }
             } catch (Exception ex) {
@@ -179,27 +236,65 @@ public class FillNotifyServiceImpl implements FillNotifyService {
     }
 
     /** 发送一条站内信并回写结果；返回是否发送成功 */
-    private boolean deliver(Long recordId, Long userId, String templateCode, Map<String, Object> params) {
+    private boolean deliver(Long recordId, Integer channel, Long userId, String templateCode,
+                            Map<String, Object> params) {
         FillNotifyRecordDO update = new FillNotifyRecordDO();
         update.setId(recordId);
         update.setSendTime(LocalDateTime.now());
         boolean success;
         try {
-            NotifySendSingleToUserReqDTO reqDTO = new NotifySendSingleToUserReqDTO();
-            reqDTO.setUserId(userId);
-            reqDTO.setTemplateCode(templateCode);
-            reqDTO.setTemplateParams(params);
-            reqDTO.setIdempotencyKey("dataforge:fill-notify:" + recordId);
-            notifyMessageSendApi.sendSingleMessageToAdmin(reqDTO).checkError();
+            if (FillNotifyChannelEnum.SMS.getChannel().equals(channel)) {
+                // 收件号码取用户资料；模板停用或渠道未配置时 system 只记日志不发送
+                var reqDTO = new SmsSendSingleToUserReqDTO();
+                reqDTO.setUserId(userId);
+                reqDTO.setTemplateCode(templateCode);
+                reqDTO.setTemplateParams(params);
+                smsSendApi.sendSingleSmsToAdmin(reqDTO).checkError();
+            } else if (FillNotifyChannelEnum.MAIL.getChannel().equals(channel)) {
+                var reqDTO = new MailSendSingleToUserReqDTO();
+                reqDTO.setUserId(userId);
+                reqDTO.setTemplateCode(templateCode);
+                reqDTO.setTemplateParams(params);
+                mailSendApi.sendSingleMailToAdmin(reqDTO).checkError();
+            } else {
+                NotifySendSingleToUserReqDTO reqDTO = new NotifySendSingleToUserReqDTO();
+                reqDTO.setUserId(userId);
+                reqDTO.setTemplateCode(templateCode);
+                reqDTO.setTemplateParams(params);
+                reqDTO.setIdempotencyKey("dataforge:fill-notify:" + recordId);
+                notifyMessageSendApi.sendSingleMessageToAdmin(reqDTO).checkError();
+            }
             success = true;
         } catch (Exception ex) {
             success = false;
-            log.warn("[deliver][通知记录({}) 用户({}) 模板({}) 站内信发送失败：{}]",
-                    recordId, userId, templateCode, ex.getMessage());
+            log.warn("[deliver][通知记录({}) 渠道({}) 用户({}) 模板({}) 发送失败：{}]",
+                    recordId, channel, userId, templateCode, ex.getMessage());
         }
         update.setSendStatus(success ? SEND_STATUS_SUCCESS : SEND_STATUS_FAILED);
         inNewTransaction(() -> notifyRecordMapper.updateById(update));
         return success;
+    }
+
+    /** 计划配置的附加渠道；只对需要填报人处理的通知生效 */
+    private Set<String> resolveExternalChannels(FillNotifyTypeEnum type, FillTaskDO task) {
+        if (!EXTERNAL_NOTICES.containsKey(type) || task == null || task.getPlanId() == null || planMapper == null) {
+            return Set.of();
+        }
+        var plan = planMapper.selectById(task.getPlanId());
+        return plan == null ? Set.of() : FillRemindConfig.parse(plan.getRemindConfig()).resolveChannels();
+    }
+
+    /** 短信、邮件正文中的事项说明：替换 {deadline}、{reason} 等参数 */
+    static String buildNotice(FillNotifyTypeEnum type, Map<String, Object> params) {
+        String notice = EXTERNAL_NOTICES.get(type);
+        if (notice == null) {
+            return type.getName();
+        }
+        for (String key : List.of("deadline", "reason")) {
+            Object value = params.get(key);
+            notice = notice.replace("{" + key + "}", value == null ? "-" : String.valueOf(value));
+        }
+        return notice;
     }
 
     /**

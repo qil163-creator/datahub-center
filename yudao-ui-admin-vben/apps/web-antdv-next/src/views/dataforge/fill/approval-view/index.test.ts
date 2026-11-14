@@ -39,7 +39,13 @@ vi.mock('antdv-next', () => {
     Tag: Box,
     Table: defineComponent({
       props: { dataSource: Array, columns: Array },
-      setup: (props) => () => h('table', (props.dataSource as any[]).map((row) => h('tr', { 'data-row': row.rowId }, JSON.stringify(row.data)))),
+      setup: (props, { slots }) => () =>
+        h('table', (props.dataSource as any[]).map((row) =>
+          h('tr', { 'data-row': row.rowId }, [
+            JSON.stringify(row.data),
+            ...((props.columns as any[]) ?? []).map((column) =>
+              h('td', { 'data-cell': `${row.rowId}:${column.key}` }, slots.bodyCell?.({ column, record: row }))),
+          ]))),
     }),
   };
 });
@@ -144,6 +150,27 @@ describe('审批人提交快照视图', () => {
     mount(3);
     await settle();
     expect(host.textContent).not.toContain('较上一次提交');
+  });
+
+  it('人员、部门、附件字段显示“名称（编号）”，查不到的编号显示为未知', async () => {
+    api.getSubmissionPreview.mockResolvedValue(
+      snapshot(4, 1, [{ rowId: 'r1', rowOrder: 1, data: { amount: 5, owner: '12,99', unit: '9007199254740993' } }], {
+        fieldSchema: JSON.stringify([
+          { fieldCode: 'owner', name: '负责人', refKind: 'USER' },
+          { fieldCode: 'unit', name: '单位', refKind: 'DEPT' },
+          { fieldCode: 'amount', name: '金额' },
+        ]),
+        refLabels: {
+          owner: [{ label: '张三', value: '12' }],
+          unit: [{ label: '市局', value: '9007199254740993' }],
+        },
+      }),
+    );
+    mount(4);
+    await settle();
+    expect(host.querySelector('[data-cell="r1:owner"]')?.textContent).toBe('张三（12），未知（99）');
+    expect(host.querySelector('[data-cell="r1:unit"]')?.textContent).toBe('市局（9007199254740993）');
+    expect(host.querySelector('[data-cell="r1:amount"]')?.textContent).toBe('');
   });
 
   it('切换提交编号时丢弃迟到的旧响应', async () => {

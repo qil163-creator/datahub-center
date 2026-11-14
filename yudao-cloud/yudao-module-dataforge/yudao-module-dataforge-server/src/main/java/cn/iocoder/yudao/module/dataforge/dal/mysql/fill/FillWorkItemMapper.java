@@ -37,6 +37,18 @@ public interface FillWorkItemMapper extends BaseMapperX<FillWorkItemDO> {
      * @param reportingOrgId 填报组织编号
      * @return 填报工作项
      */
+    /**
+     * 查询直接下级实例。
+     *
+     * @param parentWorkItemId 上级实例编号
+     * @return 下级实例
+     */
+    default List<FillWorkItemDO> selectListByParentId(Long parentWorkItemId) {
+        return selectList(new LambdaQueryWrapperX<FillWorkItemDO>()
+                .eq(FillWorkItemDO::getParentWorkItemId, parentWorkItemId)
+                .orderByAsc(FillWorkItemDO::getId));
+    }
+
     default FillWorkItemDO selectByTaskIdAndOrgId(Long taskId, Long reportingOrgId) {
         return selectOne(new LambdaQueryWrapperX<FillWorkItemDO>()
                 .eq(FillWorkItemDO::getTaskId, taskId)

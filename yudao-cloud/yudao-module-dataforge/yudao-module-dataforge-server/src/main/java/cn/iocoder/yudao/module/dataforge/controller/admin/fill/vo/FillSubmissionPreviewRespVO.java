@@ -39,6 +39,9 @@ public class FillSubmissionPreviewRespVO extends FillSubmissionRespVO {
     @Schema(description = "提交时产生的警告提示（仅当前有效提交返回；警告不阻断提交）")
     private List<FillSubmitRespVO.Issue> warnings;
 
+    @Schema(description = "人员、部门、附件、图片字段的显示名称：fieldCode → 快照中出现的编号与名称（只含快照引用的编号）")
+    private Map<String, List<FillDraftSnapshotRespVO.RefOption>> refLabels;
+
     @Schema(description = "管理后台 - 快照行")
     @Data
     public static class Row {
@@ -51,6 +54,12 @@ public class FillSubmissionPreviewRespVO extends FillSubmissionRespVO {
 
         @Schema(description = "行数据：fieldCode -> 值")
         private Map<String, Object> data;
+
+        @Schema(description = "行来源：空-本单位录入 1-下级明细 2-下级分组合计")
+        private Integer sourceKind;
+
+        @Schema(description = "来源报送组织名称（下级汇总的行）", example = "下属一科")
+        private String sourceOrgName;
 
     }
 

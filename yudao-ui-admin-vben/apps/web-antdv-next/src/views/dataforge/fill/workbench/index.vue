@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import type { DomainOperation, FillFieldSchema, FillRowData } from './types';
+import type {
+  DomainOperation,
+  FillFieldSchema,
+  FillFormula,
+  FillLayout,
+  FillRowData,
+} from './types';
 
 import type { DataforgeFillApi } from '#/api/dataforge/fill';
 
@@ -30,22 +36,33 @@ import {
 import {
   applyDraftOperations,
   confirmWorkItemExcelImport,
+  downloadFillAttachment,
   downloadWorkItemExcelTemplate,
   exportWorkItemExcel,
   getDraftOperations,
   getDraftSnapshot,
+  getReuseSources,
   getSubmissionsByWorkItem,
   previewWorkItemExcelImport,
+  reuseHistoryData,
   submitWorkItem,
   transferWorkItem,
+  uploadFillAttachment,
   withdrawSubmission,
 } from '#/api/dataforge/fill';
 import { getSimpleUserList } from '#/api/system/user';
 
 import { APPROVAL_STATUS_TEXT, WORK_ITEM_STATUS_TEXT } from '../shared';
+import ChildrenPanel from './children-panel.vue';
 import { FillCollabClient } from './collab-client';
+import { describeImportResult, duplicateTargets, toMapping } from './import-mapping';
 import { buildImportIssueReport } from './import-report';
-import { mapDraftRows, mapFieldSchema } from './schema-mapper';
+import {
+  mapDraftRows,
+  mapFieldSchema,
+  mapFormulaSchema,
+  mapLayout,
+} from './schema-mapper';
 import SheetEditor from './SheetEditor.vue';
 
 defineOptions({ name: 'DataforgeFillWorkbench' });
@@ -80,7 +97,13 @@ const workItemId = computed(() => {
 
 // ---------------------------------------------------------------- 编辑器数据集
 const fields = shallowRef<FillFieldSchema[]>([]);
+const formulas = shallowRef<FillFormula[]>([]);
+const layout = shallowRef<FillLayout>({});
 const rows = shallowRef<FillRowData[]>([]);
+/** 下级汇总生成的行数（只读，修改须退回下级） */
+const rollupRowCount = ref(0);
+const childrenOpen = ref(false);
+const childrenPanelRef = ref<InstanceType<typeof ChildrenPanel>>();
 const readonly = ref(false);
 const reloadSeq = ref(0);
 const editorRef = ref<InstanceType<typeof SheetEditor>>();
@@ -144,8 +167,11 @@ async function loadSnapshot() {
     taskName: snapshot.taskName,
   };
   serverVersion.value = snapshot.serverVersion;
-  fields.value = mapFieldSchema(snapshot.fieldSchema);
+  fields.value = mapFieldSchema(snapshot.fieldSchema, snapshot.refOptions);
+  formulas.value = mapFormulaSchema(snapshot.formulaSchema);
+  layout.value = mapLayout(snapshot.layoutSnapshot);
   rows.value = mapDraftRows(snapshot.rows);
+  rollupRowCount.value = snapshot.rows.filter((row) => row.sourceKind !== undefined && row.sourceKind !== null).length;
   readonly.value = !snapshot.editable;
   // 丢弃未提交队列（快照即最新事实），重挂编辑器
   pendingQueue.length = 0;
@@ -481,11 +507,119 @@ function canWithdraw(submission: DataforgeFillApi.Submission) {
 
 // ---------------------------------------------------------------- Excel 导入导出
 const fileInputRef = ref<HTMLInputElement>();
+
+// ---------------------------------------------------------------- 附件与图片字段
+const selectedCell = ref<{ fieldCode: string; rowId: string }>();
+const attachmentInputRef = ref<HTMLInputElement>();
+const attachmentUploading = ref(false);
+const attachmentListOpen = ref(false);
+/** 当前选中的附件/图片字段（未选中此类单元格时为空） */
+const selectedAttachmentField = computed(() => {
+  const code = selectedCell.value?.fieldCode;
+  const field = fields.value.find((item) => item.fieldCode === code);
+  return field?.refKind === 'ATTACHMENT' || field?.refKind === 'IMAGE'
+    ? field
+    : undefined;
+});
+const selectedAttachments = computed(() => {
+  const field = selectedAttachmentField.value;
+  const cell = selectedCell.value;
+  if (!field || !cell) return [];
+  // 依赖 serverVersion 以在写入后刷新列表
+  void serverVersion.value;
+  const ids = (editorRef.value?.getAdapter()?.getCellValue(cell.rowId, field.fieldCode) ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+  const labels = new Map((field.refOptions ?? []).map((option) => [option.value, option.label]));
+  return ids.map((id) => ({ id, name: labels.get(id) ?? `附件 ${id}` }));
+});
+
+function pickAttachment() {
+  if (!selectedAttachmentField.value || readonly.value) return;
+  attachmentInputRef.value?.click();
+}
+
+async function onAttachmentFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  const field = selectedAttachmentField.value;
+  const cell = selectedCell.value;
+  const adapter = editorRef.value?.getAdapter();
+  if (!file || !field || !cell || !adapter || !workItemId.value || attachmentUploading.value) return;
+  attachmentUploading.value = true;
+  try {
+    const uploaded = await uploadFillAttachment({
+      fieldCode: field.fieldCode,
+      file,
+      workItemId: workItemId.value,
+    });
+    const id = String(uploaded.id);
+    field.refOptions = [...(field.refOptions ?? []), { label: uploaded.name, value: id }];
+    const existing = adapter.getCellValue(cell.rowId, field.fieldCode);
+    adapter.setCellValue(
+      cell.rowId,
+      field.fieldCode,
+      existing ? `${existing},${id}` : id,
+      [{ label: uploaded.name, value: id }],
+    );
+    message.success(`已上传：${uploaded.name}`);
+  } finally {
+    attachmentUploading.value = false;
+  }
+}
+
+function removeAttachment(id: string) {
+  const field = selectedAttachmentField.value;
+  const cell = selectedCell.value;
+  const adapter = editorRef.value?.getAdapter();
+  if (!field || !cell || !adapter || readonly.value) return;
+  const remaining = adapter
+    .getCellValue(cell.rowId, field.fieldCode)
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item && item !== id);
+  adapter.setCellValue(cell.rowId, field.fieldCode, remaining.join(','));
+}
+
+async function downloadAttachment(item: { id: string; name: string }) {
+  const blob = await downloadFillAttachment(item.id);
+  downloadFileFromBlobPart({ fileName: item.name, source: blob });
+}
 const importOpen = ref(false);
 const importing = ref(false);
 const importConfirming = ref(false);
 const importMode = ref(1);
 const importPreview = ref<DataforgeFillApi.ExcelImportPreview>();
+/** 当前导入的文件：调整列映射后用它重新预检 */
+const importFile = shallowRef<File>();
+/** 手工列映射：Excel 表头 → 字段码（空字符串表示忽略） */
+const importMapping = ref<Record<string, string>>({});
+const importRemapping = ref(false);
+/** 唯一标识字段与重复处理方式（仅追加模式） */
+const duplicateKeys = ref<string[]>([]);
+const duplicateMode = ref<'OVERWRITE' | 'SKIP'>('SKIP');
+let previewSeq = 0;
+const importFieldOptions = computed(() => [
+  { label: '（忽略此列）', value: '' },
+  ...(importPreview.value?.fields ?? []).map((field) => ({
+    label: field.name,
+    value: field.fieldCode,
+  })),
+]);
+const duplicateKeyOptions = computed(() =>
+  (importPreview.value?.fields ?? []).map((field) => ({
+    label: field.name,
+    value: field.fieldCode,
+  })),
+);
+const mappingConflicts = computed(() => {
+  const names = new Map(
+    (importPreview.value?.fields ?? []).map((field) => [field.fieldCode, field.name]),
+  );
+  return duplicateTargets(importMapping.value).map((code) => names.get(code) ?? code);
+});
 
 function downloadImportIssueReport() {
   if (!importPreview.value) return;
@@ -523,15 +657,40 @@ async function onImportFileChange(event: Event) {
   input.value = '';
   if (!file || !workItemId.value) return;
   importing.value = true;
+  const seq = ++previewSeq;
   try {
-    importPreview.value = await previewWorkItemExcelImport(
-      workItemId.value,
-      file,
-    );
+    const preview = await previewWorkItemExcelImport(workItemId.value, file);
+    if (seq !== previewSeq) return;
+    importFile.value = file;
+    importPreview.value = preview;
+    importMapping.value = toMapping(preview.headers);
     importMode.value = 1;
+    duplicateKeys.value = [];
+    duplicateMode.value = 'SKIP';
     importOpen.value = true;
   } finally {
     importing.value = false;
+  }
+}
+
+/** 调整列映射后重新预检；只采用最后一次请求的结果 */
+async function onMappingChange(header: string, fieldCode: string) {
+  importMapping.value = { ...importMapping.value, [header]: fieldCode };
+  if (!workItemId.value || !importFile.value || mappingConflicts.value.length > 0) return;
+  importRemapping.value = true;
+  const seq = ++previewSeq;
+  try {
+    const preview = await previewWorkItemExcelImport(
+      workItemId.value,
+      importFile.value,
+      importMapping.value,
+    );
+    if (seq !== previewSeq) return;
+    importPreview.value = preview;
+    const valid = new Set((preview.fields ?? []).map((field) => field.fieldCode));
+    duplicateKeys.value = duplicateKeys.value.filter((code) => valid.has(code));
+  } finally {
+    if (seq === previewSeq) importRemapping.value = false;
   }
 }
 
@@ -541,19 +700,72 @@ async function handleImportConfirm() {
   try {
     // 先冲刷本端未同步操作，避免导入与本地编辑的版本冲突
     await flushNow();
+    const useKeys = importMode.value === 1 && duplicateKeys.value.length > 0;
     const resp = await confirmWorkItemExcelImport(workItemId.value, {
+      duplicateKeys: useKeys ? duplicateKeys.value : undefined,
+      duplicateMode: useKeys ? duplicateMode.value : undefined,
       expectedVersion: serverVersion.value,
       mode: importMode.value,
       rows: importPreview.value.rows,
     });
-    message.success(
-      `导入成功：${importMode.value === 2 ? '已替换为' : '已追加'} ${importPreview.value.totalCount} 行（当前共 ${resp.draftRowCount} 行）`,
-    );
+    message.success(describeImportResult(resp, importMode.value === 2));
     importOpen.value = false;
     importPreview.value = undefined;
+    importFile.value = undefined;
     await loadSnapshot();
   } finally {
     importConfirming.value = false;
+  }
+}
+
+// ---------------------------------------------------------------- 复用历史数据
+const reuseOpen = ref(false);
+const reuseLoading = ref(false);
+const reuseSaving = ref(false);
+const reuseSources = ref<DataforgeFillApi.ReuseSource[]>([]);
+const reuseSubmissionId = ref<number | string>();
+const reuseMode = ref(1);
+const reuseOptions = computed(() =>
+  reuseSources.value.map((source) => ({
+    label: `${source.periodKey}（${source.rowCount} 行，${formatDateTime(source.submitTime) || '-'} 提交）`,
+    value: String(source.submissionId),
+  })),
+);
+
+async function openReuse() {
+  if (!workItemId.value) return;
+  reuseOpen.value = true;
+  reuseLoading.value = true;
+  reuseMode.value = 1;
+  reuseSubmissionId.value = undefined;
+  try {
+    reuseSources.value = await getReuseSources(workItemId.value);
+    reuseSubmissionId.value = reuseSources.value[0]
+      ? String(reuseSources.value[0].submissionId)
+      : undefined;
+  } finally {
+    reuseLoading.value = false;
+  }
+}
+
+async function handleReuse() {
+  if (!workItemId.value || !reuseSubmissionId.value) {
+    message.warning('请选择要复用的期次');
+    return;
+  }
+  reuseSaving.value = true;
+  try {
+    await flushNow();
+    const resp = await reuseHistoryData(workItemId.value, {
+      expectedVersion: serverVersion.value,
+      mode: reuseMode.value,
+      submissionId: reuseSubmissionId.value,
+    });
+    message.success(`已带入历史数据（当前共 ${resp.draftRowCount} 行）`);
+    reuseOpen.value = false;
+    await loadSnapshot();
+  } finally {
+    reuseSaving.value = false;
   }
 }
 
@@ -628,6 +840,7 @@ function releaseHeldLock() {
 }
 
 function handleSelection(cell?: { fieldCode: string; rowId: string }) {
+  selectedCell.value = cell;
   if (readonly.value || !workItemId.value) {
     return;
   }
@@ -710,6 +923,9 @@ function setupCollabClient() {
         if (payload.serverVersion > serverVersion.value) {
           void pullRemoteOperations();
         }
+      },
+      onChildrenChanged: () => {
+        void childrenPanelRef.value?.reload();
       },
       onWorkItemStatusChanged: () => {
         // 广播只是提示：先同步本端未保存的修改，失败（如已不可编辑）时直接以服务端快照为准
@@ -835,6 +1051,23 @@ function handleOperation(op: DomainOperation) {
                 </Menu>
               </template>
             </Dropdown>
+            <Button v-if="!readonly" @click="openReuse"><template #icon><IconifyIcon icon="lucide:copy-plus" /></template>复用历史数据</Button>
+            <Button @click="childrenOpen = true"><template #icon><IconifyIcon icon="lucide:network" /></template>下级单位</Button>
+            <Tag v-if="rollupRowCount > 0" color="purple" title="由下级汇总生成，修改须退回下级">含下级汇总 {{ rollupRowCount }} 行（只读）</Tag>
+            <template v-if="selectedAttachmentField">
+              <Button
+                v-if="!readonly"
+                :loading="attachmentUploading"
+                @click="pickAttachment"
+              >
+                <template #icon><IconifyIcon icon="lucide:paperclip" /></template>
+                上传{{ selectedAttachmentField.refKind === 'IMAGE' ? '图片' : '附件' }}
+              </Button>
+              <Button @click="attachmentListOpen = true">
+                <template #icon><IconifyIcon icon="lucide:files" /></template>
+                附件列表 {{ selectedAttachments.length }}
+              </Button>
+            </template>
             <Button v-if="!readonly" @click="openTransfer"><template #icon><IconifyIcon icon="lucide:user-round-pen" /></template>转派</Button>
             <Button v-if="issues.length > 0" :danger="errorCount > 0" @click="issuesOpen = true">
 <template #icon><IconifyIcon icon="lucide:list-checks" /></template>
@@ -852,6 +1085,13 @@ function handleOperation(op: DomainOperation) {
               提交审批
             </Button>
             <input
+              ref="attachmentInputRef"
+              :accept="selectedAttachmentField?.refKind === 'IMAGE' ? 'image/png,image/jpeg,image/gif,image/webp' : undefined"
+              class="hidden"
+              type="file"
+              @change="onAttachmentFileChange"
+            />
+            <input
               ref="fileInputRef"
               accept=".xlsx"
               class="hidden"
@@ -868,6 +1108,8 @@ function handleOperation(op: DomainOperation) {
           ref="editorRef"
           :key="datasetKey"
           :fields="fields"
+          :formulas="formulas"
+          :layout="layout"
           :readonly="readonly"
           :rows="rows"
           @operation="handleOperation"
@@ -875,6 +1117,38 @@ function handleOperation(op: DomainOperation) {
         />
       </div>
     </div>
+
+    <Drawer
+      v-model:open="attachmentListOpen"
+      :title="`附件列表：${selectedAttachmentField?.name ?? ''}`"
+      :width="420"
+    >
+      <p v-if="selectedAttachments.length === 0" class="text-muted-foreground text-sm">
+        当前单元格还没有附件
+      </p>
+      <div
+        v-for="item in selectedAttachments"
+        :key="item.id"
+        class="mb-2 flex items-center justify-between gap-2 rounded border px-3 py-2 text-sm"
+      >
+        <span class="min-w-0 truncate" :title="item.name">{{ item.name }}</span>
+        <Space>
+          <Button size="small" type="link" @click="downloadAttachment(item)">下载</Button>
+          <Button
+            v-if="!readonly"
+            danger
+            size="small"
+            type="link"
+            @click="removeAttachment(item.id)"
+          >
+            移除
+          </Button>
+        </Space>
+      </div>
+      <p class="text-muted-foreground mt-3 text-xs">
+        移除只解除单元格引用；未提交且不再引用的附件 7 天后自动清理。
+      </p>
+    </Drawer>
 
     <Drawer v-model:open="logOpen" :width="560" title="领域操作日志（最近 200 条）">
       <p class="text-muted-foreground mb-2 text-xs">
@@ -953,8 +1227,13 @@ function handleOperation(op: DomainOperation) {
     <Modal
       v-model:open="importOpen"
       :confirm-loading="importConfirming"
-      :ok-button-props="{ disabled: (importPreview?.errorCount ?? 0) > 0 }"
-      :width="640"
+      :ok-button-props="{
+        disabled:
+          (importPreview?.errorCount ?? 0) > 0 ||
+          mappingConflicts.length > 0 ||
+          importRemapping,
+      }"
+      :width="720"
       ok-text="确认导入"
       title="Excel 导入预检"
       @ok="handleImportConfirm"
@@ -967,7 +1246,33 @@ function handleOperation(op: DomainOperation) {
           </Tag>
           <Tag>匹配 {{ importPreview.matchedColumns.length }} 列</Tag>
         </Space>
-        <div v-if="importPreview.ignoredHeaders.length > 0" class="text-muted-foreground text-xs">
+        <div v-if="(importPreview.headers ?? []).length > 0">
+          <div class="mb-1 text-sm font-medium">
+            列映射
+            <span class="text-muted-foreground text-xs font-normal">表头对不上时，手工选择对应的模板列，修改后自动重新预检</span>
+          </div>
+          <div class="max-h-56 overflow-auto rounded-md border">
+            <div
+              v-for="item in importPreview.headers"
+              :key="item.header"
+              class="flex items-center gap-2 border-b px-2 py-1 last:border-b-0"
+            >
+              <span class="w-1/2 truncate text-sm" :title="item.header">{{ item.header }}</span>
+              <Select
+                :disabled="importRemapping"
+                :options="importFieldOptions"
+                :value="importMapping[item.header] ?? ''"
+                class="w-1/2"
+                size="small"
+                @change="(value: unknown) => onMappingChange(item.header, String(value ?? ''))"
+              />
+            </div>
+          </div>
+          <p v-if="mappingConflicts.length > 0" class="mt-1 text-xs text-red-500">
+            {{ mappingConflicts.join('、') }} 被多个表头同时映射，请只保留一个。
+          </p>
+        </div>
+        <div v-else-if="importPreview.ignoredHeaders.length > 0" class="text-muted-foreground text-xs">
           以下表头未匹配模板输入列，已忽略：{{ importPreview.ignoredHeaders.join('、') }}
         </div>
         <div>
@@ -978,6 +1283,25 @@ function handleOperation(op: DomainOperation) {
           <p v-if="importMode === 2" class="mt-1 text-xs text-red-500">
             替换将删除当前全部草稿行（操作日志保留，可追溯）；其他在线填报人会实时收到变更。
           </p>
+        </div>
+        <div v-if="importMode === 1" class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <span class="shrink-0 text-sm">唯一标识</span>
+            <Select
+              v-model:value="duplicateKeys"
+              :max-count="5"
+              :options="duplicateKeyOptions"
+              allow-clear
+              class="flex-1"
+              mode="multiple"
+              placeholder="不选则全部追加；选择后按这些列判断重复"
+              size="small"
+            />
+          </div>
+          <RadioGroup v-if="duplicateKeys.length > 0" v-model:value="duplicateMode">
+            <Radio value="SKIP">重复时跳过（保留现有数据）</Radio>
+            <Radio value="OVERWRITE">重复时覆盖（以 Excel 为准）</Radio>
+          </RadioGroup>
         </div>
         <div
           v-if="importPreview.issues.length > 0"
@@ -1003,6 +1327,47 @@ function handleOperation(op: DomainOperation) {
         </div>
         <p v-if="importPreview.errorCount > 0" class="text-xs text-red-500">
           存在校验错误时不允许导入，请修正 Excel 后重新上传。
+        </p>
+      </div>
+    </Modal>
+
+    <ChildrenPanel
+      v-if="workItemId"
+      ref="childrenPanelRef"
+      v-model:open="childrenOpen"
+      :deadline-time="snapshotMeta.deadlineTime"
+      :editable="!readonly"
+      :flush="flushNow"
+      :get-version="() => serverVersion"
+      :work-item-id="workItemId"
+      @changed="loadSnapshot"
+    />
+
+    <Modal
+      v-model:open="reuseOpen"
+      :confirm-loading="reuseSaving"
+      :ok-button-props="{ disabled: !reuseSubmissionId }"
+      ok-text="带入"
+      title="复用历史数据"
+      @ok="handleReuse"
+    >
+      <div class="flex flex-col gap-3 py-2">
+        <p class="text-muted-foreground text-xs">
+          可选择本组织更早期次审批通过的数据（最近 24 期），只带入可编辑的输入列，公式列会重新计算。
+        </p>
+        <Select
+          v-model:value="reuseSubmissionId"
+          :loading="reuseLoading"
+          :not-found-content="reuseLoading ? '加载中…' : '没有可复用的历史期次'"
+          :options="reuseOptions"
+          placeholder="选择期次"
+        />
+        <RadioGroup v-model:value="reuseMode">
+          <Radio :value="1">追加到现有草稿</Radio>
+          <Radio :value="2">替换全部草稿行</Radio>
+        </RadioGroup>
+        <p v-if="reuseMode === 2" class="text-xs text-red-500">
+          替换将删除当前全部草稿行（操作日志保留，可追溯）；其他在线填报人会实时收到变更。
         </p>
       </div>
     </Modal>

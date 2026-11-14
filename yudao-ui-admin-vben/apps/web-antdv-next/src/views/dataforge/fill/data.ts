@@ -198,6 +198,13 @@ export function useDeptViewGridColumns(): VxeTableGridOptions<DataforgeFillApi.W
 
 // ==================== 采集计划 ====================
 
+/** 计划提醒的附加通知渠道（站内信之外） */
+export const REMIND_CHANNEL_OPTIONS = [
+  { label: '短信', value: 'SMS' },
+  { label: '邮件', value: 'MAIL' },
+];
+const REMIND_CHANNEL_VALUES = new Set(REMIND_CHANNEL_OPTIONS.map((option) => option.value));
+
 export interface PlanFormValues {
   categoryId?: number | string;
   deadlineOffsetDays?: number;
@@ -220,6 +227,8 @@ export interface PlanFormValues {
   prefillLastPeriod?: boolean;
   processDefinitionKey?: string;
   quarterGenerateDay?: number;
+  /** 站内信之外的附加通知渠道：SMS、MAIL */
+  remindChannels?: string[];
   remindHoursBeforeDeadline?: number;
   remindUrgeCooldownMinutes?: number;
   tableId?: number | string;
@@ -322,6 +331,11 @@ export function toPlanFormValues(plan: DataforgeFillApi.Plan): PlanFormValues {
       typeof period.quarterGenerateDay === 'number'
         ? period.quarterGenerateDay
         : undefined,
+    remindChannels: Array.isArray(remind.channels)
+      ? remind.channels.filter((channel): channel is string =>
+          REMIND_CHANNEL_VALUES.has(String(channel)),
+        )
+      : [],
     remindHoursBeforeDeadline:
       typeof remind.hoursBeforeDeadline === 'number'
         ? remind.hoursBeforeDeadline
@@ -372,6 +386,12 @@ export function toPlanSaveReq(
   }
   if (values.remindUrgeCooldownMinutes !== undefined) {
     remind.urgeCooldownMinutes = values.remindUrgeCooldownMinutes;
+  }
+  const channels = (values.remindChannels ?? []).filter((channel) =>
+    REMIND_CHANNEL_VALUES.has(channel),
+  );
+  if (channels.length > 0) {
+    remind.channels = channels;
   }
   const orgs = (values.orgs ?? [])
     .filter((row) => row.reportingOrgId)
@@ -711,6 +731,13 @@ export function usePlanFormSchema(): VbenFormSchema[] {
         min: 1,
         placeholder: '如 24，写入 remindConfig',
       },
+    },
+    {
+      fieldName: 'remindChannels',
+      label: '附加通知渠道',
+      component: 'CheckboxGroup',
+      componentProps: { options: REMIND_CHANNEL_OPTIONS },
+      help: '站内信始终发送；勾选后催办、临近截止、逾期、驳回、延期通知同时发短信或邮件（需管理员先启用 fill_sms_notice / fill_mail_notice 模板）',
     },
     {
       fieldName: 'remindUrgeCooldownMinutes',

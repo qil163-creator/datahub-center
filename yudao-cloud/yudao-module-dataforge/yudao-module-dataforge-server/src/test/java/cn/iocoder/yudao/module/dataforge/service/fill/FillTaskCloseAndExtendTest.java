@@ -66,6 +66,7 @@ class FillTaskCloseAndExtendTest {
         ReflectionTestUtils.setField(correctionService, "correctionMapper", correctionMapper);
         ReflectionTestUtils.setField(correctionService, "workItemMapper", workItemMapper);
         FillTaskServiceImpl service = new FillTaskServiceImpl();
+        ReflectionTestUtils.setField(service, "accessGuard", org.mockito.Mockito.mock(FillTaskAccessGuard.class));
         ReflectionTestUtils.setField(service, "taskMapper", taskMapper);
         ReflectionTestUtils.setField(service, "workItemMapper", workItemMapper);
         ReflectionTestUtils.setField(service, "assigneeMapper", assigneeMapper);
@@ -163,6 +164,7 @@ class FillTaskCloseAndExtendTest {
 
     private FillWorkItemServiceImpl workItemService() {
         FillWorkItemServiceImpl service = new FillWorkItemServiceImpl();
+        ReflectionTestUtils.setField(service, "accessGuard", org.mockito.Mockito.mock(FillTaskAccessGuard.class));
         ReflectionTestUtils.setField(service, "workItemMapper", workItemMapper);
         ReflectionTestUtils.setField(service, "assigneeMapper", assigneeMapper);
         ReflectionTestUtils.setField(service, "taskMapper", taskMapper);

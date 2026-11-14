@@ -41,6 +41,11 @@ public class FillRemindConfig {
     private Integer urgeCooldownMinutes;
 
     /**
+     * 站内信之外的附加通知渠道：SMS（短信）、MAIL（邮件）；只用于需要填报人处理的通知
+     */
+    private java.util.List<String> channels;
+
+    /**
      * 解析提醒规则；JSON 为空或格式错误时返回全默认配置。
      *
      * @param remindConfigJson 计划上的 remindConfig
@@ -71,6 +76,18 @@ public class FillRemindConfig {
      */
     public int resolveUrgeCooldownMinutes() {
         return within(urgeCooldownMinutes, MAX_URGE_COOLDOWN_MINUTES, DEFAULT_URGE_COOLDOWN_MINUTES);
+    }
+
+    /**
+     * @return 生效的附加渠道（去重，仅 SMS、MAIL）
+     */
+    public java.util.Set<String> resolveChannels() {
+        java.util.Set<String> result = new java.util.LinkedHashSet<>();
+        if (channels != null) {
+            channels.stream().filter(java.util.Objects::nonNull).map(String::trim)
+                    .filter(channel -> channel.equals("SMS") || channel.equals("MAIL")).forEach(result::add);
+        }
+        return result;
     }
 
     private static int within(Integer value, int max, int defaultValue) {

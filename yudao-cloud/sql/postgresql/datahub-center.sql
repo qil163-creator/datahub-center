@@ -1,4 +1,4 @@
--- Included migrations through: 0286
+-- Included migrations through: 0290
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -7807,7 +7807,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_assignee" (
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."state" IS '状态：1-有效 0-已失效（转派移交/移除）';
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."source" IS '来源：1-计划默认 2-发起者指定 3-转派接收 4-管理员重新分配';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."source" IS '来源：1-计划默认 2-发起者指定 3-转派接收 4-管理员重新分配 5-上级单位下发';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."tenant_id" IS '租户编号';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."creator" IS '创建者';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_assignee"."create_time" IS '创建时间';
@@ -7905,6 +7905,11 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_draft_row" (
   "create_user_id" int8,
   "last_modify_user_id" int8,
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "source_kind" int2,
+  "source_org_id" int8,
+  "source_work_item_id" int8,
+  "source_submission_id" int8,
+  "source_row_id" varchar(64) COLLATE "pg_catalog"."default",
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8104,7 +8109,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_notify_record" (
   "retry_count" int2 NOT NULL DEFAULT 0
 )
 ;
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."notify_type" IS '类型：1-指定填报人 2-转派/重新分配 3-任务开始 4-临近截止 5-已逾期 6-他人已提交 7-驳回 8-通过 9-合并成功 10-合并失败 11-催办 12-数据更正 13-截止延期 14-结束填报 15-合并失败退回整改';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."notify_type" IS '类型：1-指定填报人 2-转派/重新分配 3-任务开始 4-临近截止 5-已逾期 6-他人已提交 7-驳回 8-通过 9-合并成功 10-合并失败 11-催办 12-数据更正 13-截止延期 14-结束填报 15-合并失败退回整改 16-下级提交待审核 17-上级单位退回';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."channel" IS '渠道：1-站内信 2-短信 3-邮件';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."send_status" IS '发送状态：0-待发送 1-已发送 2-发送失败';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_notify_record"."template_params" IS '模板参数快照（JSON），发送失败后按原内容重试；历史记录为空';
@@ -8383,6 +8388,8 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_submission" (
   "approval_end_time" timestamp(6),
   "approval_reason" varchar(1000) COLLATE "pg_catalog"."default",
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "review_mode" int2 NOT NULL DEFAULT 1,
+  "reviewer_user_id" int8,
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8422,6 +8429,11 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_submission_row" (
   "create_user_id" int8,
   "last_modify_user_id" int8,
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "source_kind" int2,
+  "source_org_id" int8,
+  "source_work_item_id" int8,
+  "source_submission_id" int8,
+  "source_row_id" varchar(64) COLLATE "pg_catalog"."default",
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8459,13 +8471,20 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_table" (
   "release_time" timestamp(6),
   "org_id" int8,
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "rollup_mode" varchar(16) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'DETAIL'::character varying,
+  "rollup_group_fields" varchar(1000) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted" int2 NOT NULL DEFAULT 0,
   "workflow_mode" int2 NOT NULL DEFAULT 1,
-  "current_version_id" int8
+  "current_version_id" int8,
+  "merge_strategy" varchar(32) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'REPLACE_SCOPE'::character varying,
+  "business_key_fields" varchar(500) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "freeze_column_count" int2 NOT NULL DEFAULT 0,
+  CONSTRAINT "ck_dh_dataforge_fill_table_freeze_column_count" CHECK (freeze_column_count >= 0 AND freeze_column_count <= 10),
+  CONSTRAINT "ck_dh_dataforge_fill_table_merge_strategy" CHECK (merge_strategy::text = ANY (ARRAY['REPLACE_SCOPE'::character varying, 'APPEND'::character varying, 'UPSERT'::character varying]::text[]))
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."table_eng_name" IS '物理表英文名';
@@ -8484,6 +8503,9 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."update_time" IS '�
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."deleted" IS '是否删除';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."workflow_mode" IS '工作模式：1-遗留直写（旧链路，仅限存量模板受控使用） 2-审批流（新链路，禁止直写正式表）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."current_version_id" IS '当前已发布模板版本编号（dh_dataforge_fill_table_version.id）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."merge_strategy" IS '合并策略：REPLACE_SCOPE-范围替换（默认） APPEND-追加 UPSERT-更新插入；发布时固化进模板版本';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."freeze_column_count" IS '录入页面冻结的前几列（0 表示不冻结）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."business_key_fields" IS 'UPSERT 业务键字段码（英文逗号分隔，须为必填字段；组织与所属期由系统自动并入业务键）';
 COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_table" IS '数据填报-填报表定义';
 
 -- ----------------------------
@@ -8513,6 +8535,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_table_column" (
   "pk_type" int2,
   "sort" int4 NOT NULL DEFAULT 0,
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "rollup_func" varchar(16) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8525,7 +8548,16 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_table_column" (
   "regex_message" varchar(100) COLLATE "pg_catalog"."default",
   "unique_flag" int2 NOT NULL DEFAULT 0,
   "rule_severity" int2 NOT NULL DEFAULT 1,
-  "dict_type" varchar(100) COLLATE "pg_catalog"."default"
+  "dict_type" varchar(100) COLLATE "pg_catalog"."default",
+  "formula_expr" varchar(1000) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "column_width" int4,
+  "header_group" varchar(50) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "ref_database_id" int8,
+  "ref_table_name" varchar(128) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "ref_value_column" varchar(128) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "ref_parent_field" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "ref_parent_column" varchar(128) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "ref_scope" varchar(16) COLLATE "pg_catalog"."default" DEFAULT ''::character varying
 )
 ;
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."table_id" IS '填报表编号';
@@ -8533,7 +8565,13 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."name" IS '�
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."cn_name" IS '中文名称（录入页面表头）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."comment_str" IS '物理列注释';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."field_type" IS '数据类型（dbswitch 逻辑类型）：1-小数 2-字符串 3-日期 5-整数 6-长整型 9-日期时间 10-时间';
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."fill_type" IS '录入类型：1-手工录入 2-选择';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."fill_type" IS '录入类型：1-手工录入 2-选择 3-多选（取值为英文逗号分隔） 4-人员 5-部门 6-附件 7-图片（单元格存编号）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_database_id" IS '数据表下拉：取值来源数据源编号（发布时读取取值并固化进模板版本）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_table_name" IS '数据表下拉：来源表名';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_value_column" IS '数据表下拉：取值列（去重后作为可选项）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_parent_field" IS '级联：上级字段码（本模板内的另一个下拉字段）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_parent_column" IS '级联：来源表中与上级字段取值对应的列';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."ref_scope" IS '人员/部门选择范围：ORG-报送组织及下级（默认） ALL-全部启用的人员或部门';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."fill_values" IS '选择值（英文逗号分隔，fill_type=2 时使用）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."fill_hide" IS '录入是否隐藏：0-否 1-是';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."field_length" IS '字段长度';
@@ -8557,7 +8595,221 @@ COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."updater" IS
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."update_time" IS '更新时间';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."deleted" IS '是否删除';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."field_code" IS '永久不可变字段码；存量数据回填为 name，新建字段由服务端生成后不再变更';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."formula_expr" IS '行内公式（引用本表字段码）；设置后为只读计算列，提交时由服务端重算';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."column_width" IS '录入页面列宽（像素，空值按默认宽度）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."header_group" IS '表头分组名称：相邻同名字段合并为上一级表头，空值表示不分组';
 COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_table_column" IS '数据填报-填报表字段';
+
+-- ----------------------------
+-- 表结构： dh_dataforge_fill_attachment（迁移 0288）
+-- ----------------------------
+DROP TABLE IF EXISTS "datahub-center"."dh_dataforge_fill_attachment";
+DROP SEQUENCE IF EXISTS "datahub-center"."dh_dataforge_fill_attachment_seq";
+CREATE SEQUENCE "datahub-center"."dh_dataforge_fill_attachment_seq"
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE TABLE "datahub-center"."dh_dataforge_fill_attachment" (
+  "id" int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_fill_attachment_seq'::regclass),
+  "work_item_id" int8 NOT NULL,
+  "field_code" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "content_type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "size" int8 NOT NULL,
+  "sha256" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "operation_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "storage_file_id" int8,
+  "state" varchar(16) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'PENDING'::character varying,
+  "uploader_user_id" int8 NOT NULL,
+  "submission_id" int8,
+  "expires_at" timestamp(6),
+  "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" int2 NOT NULL DEFAULT 0,
+  CONSTRAINT "pk_dh_dataforge_fill_attachment" PRIMARY KEY ("id"),
+  CONSTRAINT "uk_dh_dataforge_fill_attachment_operation" UNIQUE ("operation_key"),
+  CONSTRAINT "ck_dh_dataforge_fill_attachment_state" CHECK (state::text = ANY (ARRAY['PENDING'::character varying, 'READY'::character varying, 'DELETED'::character varying]::text[])),
+  CONSTRAINT "ck_dh_dataforge_fill_attachment_size" CHECK (size > 0)
+)
+;
+CREATE INDEX "idx_dh_dataforge_fill_attachment_work_item" ON "datahub-center"."dh_dataforge_fill_attachment" USING btree (
+  "work_item_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+) WHERE deleted = 0;
+CREATE INDEX "idx_dh_dataforge_fill_attachment_cleanup" ON "datahub-center"."dh_dataforge_fill_attachment" USING btree (
+  "state" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
+  "expires_at" "pg_catalog"."timestamp_ops" ASC NULLS LAST
+) WHERE deleted = 0 AND submission_id IS NULL;
+COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_attachment" IS '在线填报-附件（附件、图片字段的单元格存附件编号；文件本体在 infra 受管文件中）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."id" IS '主键id';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."work_item_id" IS '组织实例（工作项）编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."field_code" IS '字段码';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."name" IS '文件名';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."content_type" IS '内容类型（图片按文件头识别）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."size" IS '文件大小（字节）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."sha256" IS '内容 SHA-256，用于核对受管文件回执';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."operation_key" IS '受管文件操作键（全局唯一，幂等上传与对账）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."storage_file_id" IS '受管文件编号（READY 后写入）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."state" IS '状态：PENDING-上传意图 READY-已上传并核对 DELETED-已删除';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."uploader_user_id" IS '上传人编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."submission_id" IS '绑定的提交快照编号（绑定后不再过期清理）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."expires_at" IS '未绑定附件的过期时间（过期且草稿不再引用时清理）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."creator" IS '创建者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."create_time" IS '创建时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."updater" IS '更新者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."update_time" IS '更新时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_attachment"."deleted" IS '是否删除';
+
+-- ----------------------------
+-- 表结构： dh_dataforge_fill_dispatch_template（迁移 0290）
+-- ----------------------------
+DROP TABLE IF EXISTS "datahub-center"."dh_dataforge_fill_dispatch_template";
+DROP SEQUENCE IF EXISTS "datahub-center"."dh_dataforge_fill_dispatch_template_seq";
+CREATE SEQUENCE "datahub-center"."dh_dataforge_fill_dispatch_template_seq"
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE TABLE "datahub-center"."dh_dataforge_fill_dispatch_template" (
+  "id" int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_fill_dispatch_template_seq'::regclass),
+  "plan_id" int8 NOT NULL,
+  "parent_org_id" int8 NOT NULL,
+  "reporting_org_id" int8 NOT NULL,
+  "org_name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL DEFAULT ''::character varying,
+  "org_code" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "org_path" varchar(500) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "assignee_user_ids" varchar(1000) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '[]'::character varying,
+  "deadline_offset_hours" int4 NOT NULL DEFAULT 0,
+  "sort" int4 NOT NULL DEFAULT 0,
+  "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" int2 NOT NULL DEFAULT 0,
+  CONSTRAINT "pk_dh_dataforge_fill_dispatch_template" PRIMARY KEY ("id"),
+  CONSTRAINT "ck_dh_dataforge_fill_dispatch_template_offset" CHECK (deadline_offset_hours >= 0 AND deadline_offset_hours <= 720)
+)
+;
+COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_dispatch_template" IS '数据填报-中间单位默认下发名单（周期任务每期生成时自动下发到下一级）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."plan_id" IS '采集计划编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."parent_org_id" IS '下发单位（上级报送组织）编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."reporting_org_id" IS '下级报送组织编号（须在下发单位的部门子树内）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."org_name" IS '下级组织名称快照';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."org_code" IS '下级组织编码快照';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."org_path" IS '下级组织路径快照';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."assignee_user_ids" IS '默认填报人 JSON 数组：[{"userId","userName","deptId"}]（编号为字符串）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."deadline_offset_hours" IS '截止时间比下发单位提前的小时数（0~720）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."sort" IS '显示顺序';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."id" IS '编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."creator" IS '创建者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."create_time" IS '创建时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."updater" IS '更新者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."update_time" IS '更新时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_dispatch_template"."deleted" IS '是否删除';
+
+CREATE UNIQUE INDEX "uk_dh_dataforge_fill_dispatch_template" ON "datahub-center"."dh_dataforge_fill_dispatch_template" USING btree (
+  "plan_id" "pg_catalog"."int8_ops" ASC NULLS LAST,
+  "parent_org_id" "pg_catalog"."int8_ops" ASC NULLS LAST,
+  "reporting_org_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+) WHERE deleted = 0;
+
+-- ----------------------------
+-- 表结构： dh_dataforge_fill_rollup_source（迁移 0290）
+-- ----------------------------
+DROP TABLE IF EXISTS "datahub-center"."dh_dataforge_fill_rollup_source";
+DROP SEQUENCE IF EXISTS "datahub-center"."dh_dataforge_fill_rollup_source_seq";
+CREATE SEQUENCE "datahub-center"."dh_dataforge_fill_rollup_source_seq"
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE TABLE "datahub-center"."dh_dataforge_fill_rollup_source" (
+  "id" int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_fill_rollup_source_seq'::regclass),
+  "work_item_id" int8 NOT NULL,
+  "child_work_item_id" int8 NOT NULL,
+  "child_submission_id" int8 NOT NULL,
+  "rolled_at" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" int2 NOT NULL DEFAULT 0,
+  CONSTRAINT "pk_dh_dataforge_fill_rollup_source" PRIMARY KEY ("id")
+)
+;
+COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_rollup_source" IS '数据填报-中间单位最近一次汇总纳入的下级提交（识别下级数据变化后需重新汇总）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."work_item_id" IS '汇总单位的组织实例编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."child_work_item_id" IS '下级组织实例编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."child_submission_id" IS '汇总时纳入的下级提交编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."rolled_at" IS '汇总时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."id" IS '编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."creator" IS '创建者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."create_time" IS '创建时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."updater" IS '更新者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."update_time" IS '更新时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_rollup_source"."deleted" IS '是否删除';
+
+CREATE INDEX "idx_dh_dataforge_fill_rollup_source_item" ON "datahub-center"."dh_dataforge_fill_rollup_source" USING btree (
+  "work_item_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+) WHERE deleted = 0;
+
+-- ----------------------------
+-- 表结构： dh_dataforge_fill_table_rule（迁移 0288）
+-- ----------------------------
+DROP TABLE IF EXISTS "datahub-center"."dh_dataforge_fill_table_rule";
+DROP SEQUENCE IF EXISTS "datahub-center"."dh_dataforge_fill_table_rule_seq";
+CREATE SEQUENCE "datahub-center"."dh_dataforge_fill_table_rule_seq"
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE TABLE "datahub-center"."dh_dataforge_fill_table_rule" (
+  "id" int8 NOT NULL DEFAULT nextval('"datahub-center".dh_dataforge_fill_table_rule_seq'::regclass),
+  "table_id" int8 NOT NULL,
+  "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "scope" varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
+  "expression" varchar(1000) COLLATE "pg_catalog"."default" NOT NULL,
+  "message" varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
+  "severity" int2 NOT NULL DEFAULT 1,
+  "field_code" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "sort" int4 NOT NULL DEFAULT 0,
+  "enabled" int2 NOT NULL DEFAULT 1,
+  "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
+  "update_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" int2 NOT NULL DEFAULT 0,
+  CONSTRAINT "pk_dh_dataforge_fill_table_rule" PRIMARY KEY ("id"),
+  CONSTRAINT "ck_dh_dataforge_fill_table_rule_scope" CHECK (scope::text = ANY (ARRAY['ROW'::character varying, 'TABLE'::character varying, 'PERIOD'::character varying]::text[])),
+  CONSTRAINT "ck_dh_dataforge_fill_table_rule_severity" CHECK (severity = ANY (ARRAY[1, 2])),
+  CONSTRAINT "ck_dh_dataforge_fill_table_rule_enabled" CHECK (enabled = ANY (ARRAY[0, 1]))
+)
+;
+CREATE INDEX "idx_dh_dataforge_fill_table_rule_table" ON "datahub-center"."dh_dataforge_fill_table_rule" USING btree (
+  "table_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+) WHERE deleted = 0;
+COMMENT ON TABLE "datahub-center"."dh_dataforge_fill_table_rule" IS '数据填报-填报表校验规则（行级、表级、跨期表达式规则，发布时固化进模板版本）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."id" IS '主键id';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."table_id" IS '填报表id';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."name" IS '规则名称';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."scope" IS '范围：ROW-行级 TABLE-表级（汇总） PERIOD-跨期（与上期比较）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."expression" IS '规则表达式（结果为假即违反；空值视为通过）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."message" IS '违反时的提示语';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."severity" IS '级别：1-错误（阻断提交） 2-警告';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."field_code" IS '问题定位字段码（行级规则高亮该单元格）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."sort" IS '排序';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."enabled" IS '是否启用：0-否 1-是';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."creator" IS '创建者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."create_time" IS '创建时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."updater" IS '更新者';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."update_time" IS '更新时间';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_rule"."deleted" IS '是否删除';
 
 -- ----------------------------
 -- 数据记录： dh_dataforge_fill_table_column
@@ -8591,6 +8843,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_table_version" (
   "release_user_id" int8,
   "release_time" timestamp(6),
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "rollup_schema" text COLLATE "pg_catalog"."default",
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8767,6 +9020,8 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_work_item" (
   "last_modify_user_id" int8,
   "last_modify_time" timestamp(6),
   "tenant_id" int8 NOT NULL DEFAULT 1,
+  "parent_work_item_id" int8,
+  "level" int2 NOT NULL DEFAULT 0,
   "creator" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
   "create_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updater" varchar(64) COLLATE "pg_catalog"."default" DEFAULT ''::character varying,
@@ -8774,7 +9029,7 @@ CREATE TABLE "datahub-center"."dh_dataforge_fill_work_item" (
   "deleted" int2 NOT NULL DEFAULT 0
 )
 ;
-COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."status" IS '主状态：0-待填报 1-填报中 2-提交校验中 3-待启动审批 4-审批中 5-整改中 6-待合并 7-合并中 8-合并失败 9-已合并 10-已取消';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."status" IS '主状态：0-待填报 1-填报中 2-提交校验中 3-待启动审批 4-审批中（含上级单位审核中） 5-整改中 6-待合并 7-合并中 8-合并失败 9-已合并 10-已取消 11-已汇入上级';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."overdue" IS '逾期标识（附加标志，不替代主状态）：0-未逾期 1-已逾期';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."submission_type" IS '报送类型：1-正常 2-零上报（本期无数据，显式确认）';
 COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."server_version" IS '服务端单调版本：草稿操作与提交冻结竞争同一版本做 CAS，防旧事务在快照后写入';
@@ -19598,6 +19853,7 @@ COMMENT ON TABLE "datahub-center"."system_mail_template" IS '邮件模版表';
 INSERT INTO "datahub-center"."system_mail_template" VALUES (13, '后台用户短信登录', 'admin-sms-login', 1, '奥特曼', '你猜我猜', '<p>您的验证码是{code}，名字是{name}</p>', '["code","name"]', 0, '3', '1', '2021-10-11 08:10:00', '1', '2023-12-02 19:51:14', 0);
 INSERT INTO "datahub-center"."system_mail_template" VALUES (14, '测试模版', 'test_01', 2, '芋艿', '一个标题', '<p>你是 {key01} 吗？</p><p><br></p><p>是的话，赶紧 {key02} 一下！</p>', '["key01","key02"]', 0, NULL, '1', '2023-01-26 01:27:40', '1', '2025-07-26 21:48:45', 0);
 INSERT INTO "datahub-center"."system_mail_template" VALUES (15, '3', '2', 2, '7', '4', '<p>45</p>', '[]', 1, '80', '1', '2023-01-27 15:50:35', '1', '2025-07-26 21:47:49', 1);
+INSERT INTO "datahub-center"."system_mail_template" VALUES (16, '【在线填报】填报提醒', 'fill_mail_notice', 1, '数据填报', '【填报提醒】{taskName}（{periodKey}）', '<p>{orgName}：</p><p>{taskName}（{periodKey}）{notice}</p><p>请登录系统，在“我的填报”中处理。</p>', '["taskName","periodKey","orgName","notice"]', 1, '在线填报邮件提醒；请确认发送账号后启用', '1', '2026-11-13 00:00:00', '1', '2026-11-13 00:00:00', 0);
 
 -- ----------------------------
 -- 表结构： system_menu
@@ -21612,6 +21868,8 @@ INSERT INTO "datahub-center"."system_notify_template" VALUES (6662, '质量告�
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6663, '填报-截止延期', 'fill_deadline_extended', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」的截止时间已延期至 {deadline}，请在截止前完成填报并提交。', 2, '["taskName","periodKey","orgName","deadline"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6664, '填报-结束填报', 'fill_task_closed', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」已由发起者结束填报，本期无需再填报或更正。', 2, '["taskName","periodKey","orgName"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (6665, '填报-合并失败退回整改', 'fill_merge_returned', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」的数据未能写入正式表，已退回整改：{reason}。请修改后重新提交审批。', 2, '["taskName","periodKey","orgName","reason"]', 0, '在线填报通知', '1', '2026-08-31 00:00:00', '1', '2026-08-31 00:00:00', 0);
+INSERT INTO "datahub-center"."system_notify_template" VALUES (6666, '填报-下级提交待审核', 'fill_child_submitted', '在线填报', '「{taskName}（{periodKey}）」下级单位「{orgName}」已提交数据，请在工作台“下级单位”中审核。', 2, '["taskName","periodKey","orgName"]', 0, '在线填报通知', '1', '2026-11-13 00:00:00', '1', '2026-11-13 00:00:00', 0);
+INSERT INTO "datahub-center"."system_notify_template" VALUES (6667, '填报-上级单位退回', 'fill_returned_by_parent', '在线填报', '「{taskName}（{periodKey}）/ {orgName}」的数据被上级单位退回：{reason}。请修改后重新提交。', 2, '["taskName","periodKey","orgName","reason"]', 0, '在线填报通知', '1', '2026-11-13 00:00:00', '1', '2026-11-13 00:00:00', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (1, '数据推送失败告警', 'dataforge_push_fail', '数据集成', '推送任务「{taskName}」已连续失败 {failCount} 次。最近错误：{errorInfo}', 2, '["taskName","failCount","errorInfo"]', 0, '数据推送连续失败站内信，接收人为发布人或创建人', '1', '2026-09-10 23:46:47.589359', '1', '2026-09-10 23:46:47.589359', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (2, '集市申请待审', 'market_apply_submit', '数据集市', '申请「{applyNo}」{title} 待您审批，资产：{assetName}。', 2, '["applyNo","title","assetName","checkNote","result"]', 0, '资源申请提交后通知资产技术/业务责任人', '1', '2026-09-11 00:03:38.152361', '1', '2026-09-11 00:03:38.152361', 0);
 INSERT INTO "datahub-center"."system_notify_template" VALUES (3, '集市申请已审', 'market_apply_checked', '数据集市', '申请「{applyNo}」{title} 已{result}。资产：{assetName}，说明：{checkNote}', 2, '["applyNo","title","assetName","checkNote","result"]', 0, '审批通过/驳回/开通或取消授权后通知申请人', '1', '2026-09-11 00:03:38.181868', '1', '2026-09-11 00:03:38.181868', 0);
@@ -23633,6 +23891,7 @@ INSERT INTO "datahub-center"."system_sms_template" VALUES (16, 1, 0, 'user-reset
 INSERT INTO "datahub-center"."system_sms_template" VALUES (17, 2, 0, 'bpm_task_timeout', '【工作流】任务审批超时', '您收到了一条超时的待办任务：{processInstanceName}-{taskName}，处理链接：{detailUrl}', '["processInstanceName","taskName","detailUrl"]', '', 'X', 4, 'DEBUG_DING_TALK', '1', '2024-08-16 21:59:15', '1', '2024-08-16 21:59:34', 0);
 INSERT INTO "datahub-center"."system_sms_template" VALUES (18, 1, 0, 'admin-reset-password', '后台用户 - 忘记密码', '您的验证码{code}，该验证码 5 分钟内有效，请勿泄漏于他人！', '["code"]', '', 'null', 4, 'DEBUG_DING_TALK', '1', '2025-03-16 14:19:34', '1', '2025-03-16 14:19:45', 0);
 INSERT INTO "datahub-center"."system_sms_template" VALUES (19, 1, 0, 'admin-sms-login', '后台用户短信登录', '您的验证码是{code}', '["code"]', '', '4372216', 4, 'DEBUG_DING_TALK', '1', '2025-04-08 09:36:03', '1', '2025-04-08 09:36:17', 0);
+INSERT INTO "datahub-center"."system_sms_template" VALUES (20, 2, 1, 'fill_sms_notice', '【在线填报】填报提醒', '{orgName}：{taskName}（{periodKey}）{notice}', '["taskName","periodKey","orgName","notice"]', '在线填报短信提醒；请选择实际渠道并填写服务商模板编号后启用', 'TODO', 2, 'ALIYUN', '1', '2026-11-13 00:00:00', '1', '2026-11-13 00:00:00', 0);
 
 -- ----------------------------
 -- 表结构： system_social_client
@@ -26233,7 +26492,7 @@ SELECT setval('"datahub-center"."system_mail_log_seq"', 1, false);
 -- ----------------------------
 -- 调整序列归属：
 -- ----------------------------
-SELECT setval('"datahub-center"."system_mail_template_seq"', 16, false);
+SELECT setval('"datahub-center"."system_mail_template_seq"', 17, false);
 
 -- ----------------------------
 -- 调整序列归属：
@@ -26323,7 +26582,7 @@ SELECT setval('"datahub-center"."system_sms_log_seq"', 1, false);
 -- ----------------------------
 -- 调整序列归属：
 -- ----------------------------
-SELECT setval('"datahub-center"."system_sms_template_seq"', 20, false);
+SELECT setval('"datahub-center"."system_sms_template_seq"', 21, false);
 
 -- ----------------------------
 -- 调整序列归属：
@@ -27977,6 +28236,33 @@ CREATE UNIQUE INDEX "uk_dh_dataforge_fill_work_item_task_org" ON "datahub-center
   "task_id" "pg_catalog"."int8_ops" ASC NULLS LAST,
   "reporting_org_id" "pg_catalog"."int8_ops" ASC NULLS LAST
 ) WHERE deleted = 0;
+-- 迁移 0290：多级下发与逐级汇总的新增列约束、索引与注释
+CREATE INDEX "idx_dh_dataforge_fill_work_item_parent" ON "datahub-center"."dh_dataforge_fill_work_item" USING btree (
+  "parent_work_item_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+) WHERE deleted = 0 AND parent_work_item_id IS NOT NULL;
+ALTER TABLE "datahub-center"."dh_dataforge_fill_draft_row" ADD CONSTRAINT "ck_dh_dataforge_fill_draft_row_source_kind" CHECK (source_kind IS NULL OR source_kind = ANY (ARRAY[1, 2]));
+ALTER TABLE "datahub-center"."dh_dataforge_fill_submission_row" ADD CONSTRAINT "ck_dh_dataforge_fill_submission_row_source_kind" CHECK (source_kind IS NULL OR source_kind = ANY (ARRAY[1, 2]));
+ALTER TABLE "datahub-center"."dh_dataforge_fill_submission" ADD CONSTRAINT "ck_dh_dataforge_fill_submission_review_mode" CHECK (review_mode = ANY (ARRAY[1, 2]));
+ALTER TABLE "datahub-center"."dh_dataforge_fill_table" ADD CONSTRAINT "ck_dh_dataforge_fill_table_rollup_mode" CHECK (rollup_mode::text = ANY (ARRAY['DETAIL'::character varying, 'GROUP'::character varying]::text[]));
+ALTER TABLE "datahub-center"."dh_dataforge_fill_table_column" ADD CONSTRAINT "ck_dh_dataforge_fill_table_column_rollup_func" CHECK (rollup_func IS NULL OR rollup_func::text = ANY (ARRAY[''::character varying, 'SUM'::character varying, 'MAX'::character varying, 'MIN'::character varying, 'COUNT'::character varying, 'FIRST'::character varying]::text[]));
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."parent_work_item_id" IS '上级组织实例编号；空表示由发起者直接下发的顶层实例';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_work_item"."level" IS '层级：顶层为 0，每下发一级加 1';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_draft_row"."source_kind" IS '行来源：空-本单位录入 1-下级明细 2-下级分组合计';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_draft_row"."source_org_id" IS '数据最初的报送组织编号（逐级汇总时向上传递；合并时写入正式表的来源组织列）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_draft_row"."source_work_item_id" IS '数据原始录入的组织实例编号（分组合计行为汇总单位实例）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_draft_row"."source_submission_id" IS '直接下级审核通过的提交编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_draft_row"."source_row_id" IS '数据原始录入的行标识（分组合计行为分组键摘要）；与 source_work_item_id 一起作为数据身份，重复汇总保持不变';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission_row"."source_kind" IS '行来源：空-本单位录入 1-下级明细 2-下级分组合计';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission_row"."source_org_id" IS '数据最初的报送组织编号（逐级汇总时向上传递；合并时写入正式表的来源组织列）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission_row"."source_work_item_id" IS '数据原始录入的组织实例编号（分组合计行为汇总单位实例）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission_row"."source_submission_id" IS '直接下级审核通过的提交编号';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission_row"."source_row_id" IS '数据原始录入的行标识（分组合计行为分组键摘要）；与 source_work_item_id 一起作为数据身份，重复汇总保持不变';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission"."review_mode" IS '审核方式：1-审批流程（顶层实例报给发起者） 2-上级单位审核（下级实例报给上级单位，不启动审批流程）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_submission"."reviewer_user_id" IS '上级单位审核人用户编号（review_mode=2）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."rollup_mode" IS '多级汇总方式：DETAIL-明细汇集（保留下级各行及来源组织） GROUP-分组合计（按分组字段计算）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table"."rollup_group_fields" IS '分组合计的分组字段码，英文逗号分隔（rollup_mode=GROUP 时必填）';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_column"."rollup_func" IS '分组合计的计算方式：SUM 合计 MAX 最大 MIN 最小 COUNT 计数（逐级相加） FIRST 取首个值；空表示不输出（分组字段除外）。不提供平均值：逐级对平均值再求平均会失真';
+COMMENT ON COLUMN "datahub-center"."dh_dataforge_fill_table_version"."rollup_schema" IS '发布时固化的多级汇总规则 JSON：{"mode","groupFields","funcs"}';
 
 -- ----------------------------
 -- 表主键结构： dh_dataforge_fill_work_item

@@ -58,6 +58,15 @@ public interface FillWorkItemService {
     int urgeByTask(Long taskId);
 
     /**
+     * 上级单位催办直接下级（未完成的），频控内的自动跳过；调用方已校验操作人是上级实例的有效填报人。
+     *
+     * @param parent 上级实例
+     * @param children 直接下级实例
+     * @return 实际催办的实例数
+     */
+    int urgeChildren(FillWorkItemDO parent, List<FillWorkItemDO> children);
+
+    /**
      * 延期截止时间（只推后不提前，清除逾期标记并解除硬截止锁定）
      *
      * @param reqVO 请求参数

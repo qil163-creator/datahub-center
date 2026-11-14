@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillDraftSnapshotRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillSubmissionPreviewRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillSubmissionRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillSubmitReqVO;
@@ -49,6 +50,9 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
 
     public static final String WS_STATUS_CHANGED = "fill-work-item-status-changed";
 
+    /** 协同房间消息：下级实例状态变化（上级工作台刷新“下级单位”） */
+    public static final String WS_CHILDREN_CHANGED = "fill-children-changed";
+
     @Resource
     private FillWorkItemMapper workItemMapper;
 
@@ -91,6 +95,15 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
     @Resource
     private FillCorrectionService correctionService;
 
+    @Resource
+    private FillPreviousPeriodService previousPeriodService;
+
+    @Resource
+    private FillControlService controlService;
+
+    @Resource
+    private FillHierarchyService hierarchyService;
+
     /**
      * 提交：状态与 serverVersion 的工作项 CAS 冻结草稿（旧编辑事务此后必然 CAS 失败），
      *  服务端重读草稿执行强校验；通过则生成不可变快照并经 Outbox 可靠启动 BPM，
@@ -107,6 +120,12 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
         workItemService.checkEditPermission(item, userId);
         Integer fromStatus = item.getStatus();
+        // 有下级时：下级须全部审核通过，且已按最新数据汇总
+        hierarchyService.checkReadyToSubmit(item);
+        // 人员、部门字段的可选范围来自 system 服务：在冻结（持有行锁）之前预取
+        FillTableVersionDO version = tableVersionService.getTableVersion(item.getTableVersionId());
+        Map<String, java.util.Set<String>> personScopes =
+                controlService.preloadPersonScopes(item, parseFields(version.getFieldSchema()));
 
         // 1. 冻结 CAS：状态 + serverVersion 同时匹配，并发提交只有一个成功
         int frozen = workItemMapper.compareAndSetStatusWithVersion(workItemId, fromStatus,
@@ -120,14 +139,19 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         }
 
         // 2. 重读服务器草稿并执行强校验（前端"校验通过"永远不作数）
-        FillTableVersionDO version = tableVersionService.getTableVersion(item.getTableVersionId());
         List<FillDraftRowDO> rows = draftRowMapper.selectListByWorkItemId(workItemId);
+        // 公式字段以服务端重算结果为准，重算后的值进入校验与不可变快照
+        applyFormulas(version, rows);
         // 存在进行中的数据更正时，本次提交强制为"更正"类型（含更正提交被驳回、撤回后的再次提交）
         boolean correcting = correctionService.hasActiveCorrection(workItemId);
         int submissionType = correcting ? FillSubmissionTypeEnum.CORRECTION.getType()
                 : (reqVO.getSubmissionType() != null
                 ? reqVO.getSubmissionType() : FillSubmissionTypeEnum.NORMAL.getType());
-        List<FillSubmitRespVO.Issue> issues = validate(version, rows, submissionType);
+        List<FillSubmitRespVO.Issue> issues = validate(version, rows, submissionType,
+                () -> previousPeriodService.findApprovedRows(item));
+        if (!FillSubmissionTypeEnum.EMPTY.getType().equals(submissionType)) {
+            validateControls(item, version, rows, issues, personScopes);
+        }
 
         validationIssueMapper.deleteDraftIssuesByWorkItemId(workItemId);
         boolean hasError = issues.stream()
@@ -167,9 +191,16 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                 .serverVersionAtSubmit(reqVO.getExpectedVersion() + 1)
                 .submitterUserId(userId)
                 .submitTime(LocalDateTime.now())
-                .approvalStatus(FillApprovalStatusEnum.WAIT_START.getStatus())
+                .approvalStatus(item.getParentWorkItemId() != null
+                        ? FillApprovalStatusEnum.APPROVING.getStatus() : FillApprovalStatusEnum.WAIT_START.getStatus())
+                .reviewMode(item.getParentWorkItemId() != null
+                        ? FillSubmissionDO.REVIEW_PARENT : FillSubmissionDO.REVIEW_BPM)
                 .build();
         submissionMapper.insert(submission);
+        // 快照引用的附件绑定到本次提交：绑定后不再过期清理（汇总行的附件已绑定在下级提交上）
+        controlService.bindAttachments(parseFields(version.getFieldSchema()),
+                convertList(rows.stream().filter(row -> row.getSourceKind() == null).toList(),
+                        row -> parseRowData(row.getData())), submission.getId());
         rows.forEach(row -> submissionRowMapper.insert(FillSubmissionRowDO.builder()
                 .submissionId(submission.getId())
                 .rowId(row.getRowId())
@@ -177,7 +208,41 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                 .data(row.getData())
                 .createUserId(row.getCreateUserId())
                 .lastModifyUserId(row.getLastModifyUserId())
+                .sourceKind(row.getSourceKind())
+                .sourceOrgId(row.getSourceOrgId())
+                .sourceWorkItemId(row.getSourceWorkItemId())
+                .sourceSubmissionId(row.getSourceSubmissionId())
+                .sourceRowId(row.getSourceRowId())
                 .build()));
+
+        // 4'. 下级实例：报给上级单位审核，不启动审批流程
+        boolean toParent = item.getParentWorkItemId() != null;
+        if (toParent) {
+            workItemMapper.compareAndSetStatus(workItemId,
+                    FillWorkItemStatusEnum.SUBMIT_VALIDATING.getStatus(), FillWorkItemStatusEnum.APPROVING.getStatus());
+            FillWorkItemDO update = new FillWorkItemDO();
+            update.setId(workItemId);
+            update.setCurrentSubmissionId(submission.getId());
+            update.setAttemptCount(attemptNo);
+            update.setSubmissionType(submissionType);
+            workItemMapper.updateById(update);
+            FillTaskDO task = taskMapper.selectById(item.getTaskId());
+            List<Long> parentAssignees = convertList(assigneeMapper.selectValidListByWorkItemId(
+                    item.getParentWorkItemId()), FillAssigneeDO::getUserId);
+            notifyService.sendToUsers(FillNotifyTypeEnum.CHILD_SUBMITTED, task, item, parentAssignees, null);
+            List<Long> otherAssignees = convertList(assigneeMapper.selectValidListByWorkItemId(workItemId),
+                    FillAssigneeDO::getUserId).stream().filter(id -> !Objects.equals(id, userId)).toList();
+            notifyService.sendToUsers(FillNotifyTypeEnum.SUBMITTED_BY_OTHER, task, item, otherAssignees, null);
+            registerStatusBroadcast(workItemId, FillWorkItemStatusEnum.APPROVING.getStatus());
+            hierarchyService.notifyChildrenChanged(item.getParentWorkItemId());
+            FillSubmitRespVO respVO = new FillSubmitRespVO();
+            respVO.setSuccess(true);
+            respVO.setSubmissionId(submission.getId());
+            respVO.setAttemptNo(attemptNo);
+            respVO.setRowCount(rows.size());
+            respVO.setIssues(issues);
+            return respVO;
+        }
 
         // 4. 实例进入"待启动审批"，其余在线人员立即只读
         workItemMapper.compareAndSetStatus(workItemId,
@@ -231,6 +296,17 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         // 撤回默认只能由该次实际提交人发起（V1.0 §11.3）
         if (!Objects.equals(submission.getSubmitterUserId(), userId)) {
             throw exception(FILL_SUBMISSION_NOT_SUBMITTER);
+        }
+        if (Integer.valueOf(FillSubmissionDO.REVIEW_PARENT).equals(submission.getReviewMode())) {
+            // 上级单位审核中：没有审批流程实例，直接撤回（与上级审核并发时以 CAS 为准）
+            if (submissionMapper.markReviewed(submission.getId(), FillApprovalStatusEnum.WITHDRAWN.getStatus(),
+                    null, StrUtil.nullToDefault(reason, "提交人撤回"), LocalDateTime.now()) == 0
+                    || workItemMapper.compareAndSetStatus(submission.getWorkItemId(),
+                    FillWorkItemStatusEnum.APPROVING.getStatus(), FillWorkItemStatusEnum.REWORKING.getStatus()) == 0) {
+                throw exception(FILL_WORK_ITEM_STATUS_INVALID, "上级已审核");
+            }
+            registerStatusBroadcast(submission.getWorkItemId(), FillWorkItemStatusEnum.REWORKING.getStatus());
+            return;
         }
         if (!FillApprovalStatusEnum.APPROVING.getStatus().equals(submission.getApprovalStatus())
                 || StrUtil.isBlank(submission.getProcessInstanceId())) {
@@ -288,13 +364,33 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
             respVO.setPeriodKey(task.getPeriodKey());
         }
         respVO.setFieldSchema(version.getFieldSchema());
-        respVO.setRows(convertList(submissionRowMapper.selectListBySubmissionId(submissionId), row -> {
+        List<FillSubmissionRowDO> snapshotRows = submissionRowMapper.selectListBySubmissionId(submissionId);
+        Map<Long, String> orgNames = new java.util.HashMap<>();
+        if (snapshotRows.stream().anyMatch(row -> row.getSourceOrgId() != null)) {
+            workItemMapper.selectListByTaskId(submission.getTaskId())
+                    .forEach(other -> orgNames.putIfAbsent(other.getReportingOrgId(), other.getOrgName()));
+        }
+        respVO.setRows(convertList(snapshotRows, row -> {
             FillSubmissionPreviewRespVO.Row rowVO = new FillSubmissionPreviewRespVO.Row();
             rowVO.setRowId(row.getRowId());
             rowVO.setRowOrder(row.getRowOrder());
             rowVO.setData(parseRowData(row.getData()));
+            rowVO.setSourceKind(row.getSourceKind());
+            rowVO.setSourceOrgName(row.getSourceOrgId() == null ? null
+                    : orgNames.getOrDefault(row.getSourceOrgId(), String.valueOf(row.getSourceOrgId())));
             return rowVO;
         }));
+        // 人员、部门、附件编号的显示名称（只解析快照中出现的编号）
+        Map<String, List<FillDraftSnapshotRespVO.RefOption>> refLabels = new LinkedHashMap<>();
+        controlService.resolveLabels(item, parseFields(version.getFieldSchema()),
+                        respVO.getRows().stream().map(FillSubmissionPreviewRespVO.Row::getData).toList())
+                .forEach((code, options) -> refLabels.put(code, convertList(options, option -> {
+                    FillDraftSnapshotRespVO.RefOption vo = new FillDraftSnapshotRespVO.RefOption();
+                    vo.setValue(option.value());
+                    vo.setLabel(option.label());
+                    return vo;
+                })));
+        respVO.setRefLabels(refLabels);
         // 上一次提交：供审批人对比整改前后的差异（预览权限即可读取，不依赖填报人专用的提交历史接口）
         respVO.setPreviousSubmissionId(submissionMapper.selectListByWorkItemId(submission.getWorkItemId()).stream()
                 .filter(other -> other.getAttemptNo() != null && submission.getAttemptNo() != null
@@ -323,6 +419,12 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
      * 校验提交快照预览权限：先查本地填报关系，不满足时再向 BPM 查询是否为该提交审批实例的参与者。
      * BPM 不可用时拒绝访问（fail closed），不放宽为仅凭接口权限码访问。
      */
+    @Override
+    public void checkSubmissionViewPermission(Long submissionId, Long userId) {
+        FillSubmissionDO submission = validateSubmissionExists(submissionId);
+        checkPreviewPermission(submission, workItemService.getWorkItemValidated(submission.getWorkItemId()), userId);
+    }
+
     private void checkPreviewPermission(FillSubmissionDO submission, FillWorkItemDO item, Long userId) {
         if (userId == null) {
             throw exception(FILL_SUBMISSION_PREVIEW_DENIED);
@@ -356,7 +458,8 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
      * @return 校验填报提交输入及状态结果集合
      */
     private List<FillSubmitRespVO.Issue> validate(FillTableVersionDO version,
-            List<FillDraftRowDO> rows, int submissionType) {
+            List<FillDraftRowDO> rows, int submissionType,
+            java.util.function.Supplier<List<Map<String, Object>>> previousRows) {
         List<FillSubmitRespVO.Issue> issues = new ArrayList<>();
         // 零上报：要求无数据行；正常提交：要求至少一行
         if (FillSubmissionTypeEnum.EMPTY.getType().equals(submissionType)) {
@@ -396,8 +499,8 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
                 }
                 // 字典
                 Object dictOptions = field.get("dictOptions");
-                if (dictOptions instanceof List<?> options && !options.isEmpty()
-                        && options.stream().noneMatch(option -> String.valueOf(option).equals(text))) {
+                if (dictOptions instanceof List<?> options
+                        && !FillFieldRuleValidator.optionsAllowed(options, Boolean.TRUE.equals(field.get("multiple")), text)) {
                     issues.add(issue("DICT", row.getRowId(), fieldCode, displayNo,
                             String.format("第 %s 行【%s】的值不在选择范围内", displayNo, fieldName)));
                     continue;
@@ -430,7 +533,65 @@ public class FillSubmissionServiceImpl implements FillSubmissionService {
         validateFieldUnique(fields, rows, issues);
         // UPSERT 策略：业务键组合在草稿内必须唯一，否则合并覆盖行为不确定
         validateBusinessKeyUnique(version, rows, issues);
+        validateExpressionRules(version, rows, issues, previousRows);
         return issues;
+    }
+
+    /**
+     * 模板配置的行级、表级、跨期表达式规则；级别由规则配置决定，警告不阻断提交。
+     */
+    private void validateExpressionRules(FillTableVersionDO version, List<FillDraftRowDO> rows,
+            List<FillSubmitRespVO.Issue> issues,
+            java.util.function.Supplier<List<Map<String, Object>>> previousRows) {
+        List<Map<String, Object>> data = convertList(rows, row -> parseRowData(row.getData()));
+        for (FillTemplateEvaluator.Violation violation
+                : FillTemplateEvaluator.evaluateRules(version.getValidationSchema(), data, previousRows)) {
+            if (issues.size() >= MAX_ISSUES) {
+                issues.add(issue("TOO_MANY_ISSUES", null, null, null, "问题数量超过 " + MAX_ISSUES + "，请先修正后再提交"));
+                return;
+            }
+            Integer index = violation.rowIndex();
+            if (index != null) {
+                issues.add(issue(violation.ruleCode(), rows.get(index).getRowId(), violation.fieldCode(), index + 1,
+                        String.format("第 %s 行：%s", index + 1, violation.message()), violation.severity()));
+            } else {
+                issues.add(issue(violation.ruleCode(), null, violation.fieldCode(), null,
+                        violation.message(), violation.severity()));
+            }
+        }
+    }
+
+    /** 级联、人员、部门、附件、图片字段：取值必须在当前可选范围内、附件必须属于本实例 */
+    private void validateControls(FillWorkItemDO item, FillTableVersionDO version, List<FillDraftRowDO> rows,
+            List<FillSubmitRespVO.Issue> issues, Map<String, java.util.Set<String>> personScopes) {
+        // 下级汇总生成的行已在下级提交时校验过（人员范围、附件归属都属于下级），只校验本单位录入的行
+        List<Integer> ownIndexes = new ArrayList<>();
+        for (int index = 0; index < rows.size(); index++) {
+            if (rows.get(index).getSourceKind() == null) {
+                ownIndexes.add(index);
+            }
+        }
+        List<Map<String, Object>> data = convertList(ownIndexes, index -> parseRowData(rows.get(index).getData()));
+        for (FillControlService.Issue issue
+                : controlService.validate(item, parseFields(version.getFieldSchema()), data, personScopes)) {
+            if (issues.size() >= MAX_ISSUES) {
+                return;
+            }
+            int rowIndex = ownIndexes.get(issue.rowIndex());
+            issues.add(issue(issue.ruleCode(), rows.get(rowIndex).getRowId(), issue.fieldCode(),
+                    rowIndex + 1, issue.message()));
+        }
+    }
+
+    /** 按模板公式重算每一行（仅修改内存中的行数据，草稿本身不变） */
+    private void applyFormulas(FillTableVersionDO version, List<FillDraftRowDO> rows) {
+        List<Map<String, Object>> data = convertList(rows, row -> parseRowData(row.getData()));
+        if (!FillTemplateEvaluator.applyFormulas(version.getFormulaSchema(), data)) {
+            return;
+        }
+        for (int index = 0; index < rows.size(); index++) {
+            rows.get(index).setData(JsonUtils.toJsonString(data.get(index)));
+        }
     }
 
     /**

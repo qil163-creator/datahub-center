@@ -83,4 +83,29 @@ public class FillTableDO extends BaseDO {
      */
     private Long currentVersionId;
 
+    /**
+     * 合并策略：APPEND/UPSERT/REPLACE_SCOPE，空值按 REPLACE_SCOPE，见 FillMergeStrategyEnum；发布时固化进模板版本
+     */
+    private String mergeStrategy;
+
+    /**
+     * UPSERT 业务键 fieldCode 列表（英文逗号分隔）；组织与所属期由系统自动并入业务键
+     */
+    private String businessKeyFields;
+
+    /**
+     * 录入页面冻结的前几列（0 表示不冻结）
+     */
+    private Integer freezeColumnCount;
+
+    /**
+     * 多级汇总方式：DETAIL-明细汇集 GROUP-分组合计
+     */
+    private String rollupMode;
+
+    /**
+     * 分组合计的分组字段码，英文逗号分隔
+     */
+    private String rollupGroupFields;
+
 }

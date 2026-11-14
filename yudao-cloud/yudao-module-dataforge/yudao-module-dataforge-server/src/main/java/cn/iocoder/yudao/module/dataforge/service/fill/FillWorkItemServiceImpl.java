@@ -98,6 +98,9 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     @Resource
     private AdminUserApi adminUserApi;
 
+    @Resource
+    private FillTaskAccessGuard accessGuard;
+
     /**
      * 我的填报：当前用户作为有效填报人的全部工作项
      *
@@ -169,6 +172,7 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     @Transactional(rollbackFor = Exception.class)
     public void updateAssignees(FillWorkItemAssigneeUpdateReqVO reqVO) {
         FillWorkItemDO item = validateWorkItemExists(reqVO.getWorkItemId());
+        accessGuard.checkInitiator(taskMapper.selectById(item.getTaskId()));
         validateAssignable(item);
         Long operator = SecurityFrameworkUtils.getLoginUserId();
         LocalDateTime now = LocalDateTime.now();
@@ -258,8 +262,10 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
             FillWorkItemStatusEnum status = FillWorkItemStatusEnum.of(item.getStatus());
             throw exception(FILL_WORK_ITEM_STATUS_INVALID, status != null ? status.getName() : item.getStatus());
         }
+        FillTaskDO task = taskMapper.selectById(item.getTaskId());
+        accessGuard.checkInitiator(task);
         int cooldownMinutes = resolveUrgeCooldownMinutes(item.getPlanId());
-        if (!tryUrge(item, taskMapper.selectById(item.getTaskId()), cooldownMinutes)) {
+        if (!tryUrge(item, task, cooldownMinutes)) {
             throw exception(FILL_URGE_TOO_FREQUENT, cooldownMinutes);
         }
     }
@@ -276,9 +282,32 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
         if (task == null) {
             throw exception(FILL_TASK_NOT_EXISTS);
         }
+        accessGuard.checkInitiator(task);
         int cooldownMinutes = resolveUrgeCooldownMinutes(task.getPlanId());
         int urged = 0;
         for (FillWorkItemDO item : workItemMapper.selectListByTaskId(taskId)) {
+            if (FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())
+                    && tryUrge(item, task, cooldownMinutes)) {
+                urged++;
+            }
+        }
+        return urged;
+    }
+
+    /**
+     * 上级单位催办自己的下级：对未完成（待填报/填报中/整改中）的直接下级发送催办，频控内的自动跳过。
+     * 调用方已校验操作人是上级实例的有效填报人。
+     *
+     * @param parent 上级实例
+     * @param children 直接下级实例
+     * @return 实际催办的实例数
+     */
+    @Override
+    public int urgeChildren(FillWorkItemDO parent, List<FillWorkItemDO> children) {
+        FillTaskDO task = taskMapper.selectById(parent.getTaskId());
+        int cooldownMinutes = resolveUrgeCooldownMinutes(parent.getPlanId());
+        int urged = 0;
+        for (FillWorkItemDO item : children) {
             if (FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())
                     && tryUrge(item, task, cooldownMinutes)) {
                 urged++;
@@ -311,7 +340,7 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     /**
      * 延期截止时间：只推后、不提前；同时清除逾期标记，硬截止锁定随之解除。
      *
-     * 数据范围：与任务催办、调整填报人一致，持有任务延期按钮权限即可操作平台内全部任务（发起者或授权管理员）。
+     * 数据范围：按钮权限之外，仅任务发起者（计划创建人）或超级管理员可操作，见 {@link FillTaskAccessGuard}。
      * 延期后的提醒与逾期由 Job 按新截止时间重新计算。
      *
      * @param reqVO 请求参数
@@ -324,6 +353,7 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
         if (task == null) {
             throw exception(FILL_TASK_NOT_EXISTS);
         }
+        accessGuard.checkInitiator(task);
         if (!FillTaskStatusEnum.PENDING.getStatus().equals(task.getStatus())
                 && !FillTaskStatusEnum.RUNNING.getStatus().equals(task.getStatus())) {
             throw exception(FILL_TASK_STATUS_INVALID);
@@ -445,6 +475,10 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
         if (assignee != null && FillAssigneeStateEnum.VALID.getState().equals(assignee.getState())) {
             return true;
         }
+        // 多级下发：上级各层实例的有效填报人可以查看（审核、汇总）下级
+        if (isAncestorAssignee(item, userId)) {
+            return true;
+        }
         FillTaskDO task = taskMapper.selectById(item.getTaskId());
         if (task != null && Objects.equals(task.getCreator(), String.valueOf(userId))) {
             return true;
@@ -490,6 +524,23 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
     }
 
     // ---------------------------------------------------------------- 内部方法
+
+    /** 多级下发的最大层数（防御异常数据形成的环） */
+    private static final int MAX_ANCESTOR_DEPTH = 10;
+
+    /** 是否是任一上级实例的有效填报人 */
+    private boolean isAncestorAssignee(FillWorkItemDO item, Long userId) {
+        Long parentId = item.getParentWorkItemId();
+        for (int depth = 0; parentId != null && depth < MAX_ANCESTOR_DEPTH; depth++) {
+            FillAssigneeDO assignee = assigneeMapper.selectByWorkItemIdAndUserId(parentId, userId);
+            if (assignee != null && FillAssigneeStateEnum.VALID.getState().equals(assignee.getState())) {
+                return true;
+            }
+            FillWorkItemDO parent = workItemMapper.selectById(parentId);
+            parentId = parent == null ? null : parent.getParentWorkItemId();
+        }
+        return false;
+    }
 
     /**
      * 校验工作项存在性。

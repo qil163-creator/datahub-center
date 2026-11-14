@@ -90,6 +90,41 @@ public interface FillTaskMapper extends BaseMapperX<FillTaskDO> {
      * @param excludeId 当前任务编号
      * @return 上期任务，没有时返回 null
      */
+    /**
+     * 同一计划中所属期在前的任务（按所属期倒序），用于选择任意历史期复用数据。
+     *
+     * @param planId 计划编号
+     * @param periodStart 当前任务所属期开始时间
+     * @param excludeId 当前任务编号
+     * @param limit 上限
+     * @return 历史任务
+     */
+    default java.util.List<FillTaskDO> selectEarlierTasks(Long planId, java.time.LocalDateTime periodStart,
+                                                         Long excludeId, int limit) {
+        return selectList(new LambdaQueryWrapperX<FillTaskDO>()
+                .eq(FillTaskDO::getPlanId, planId)
+                .lt(FillTaskDO::getPeriodStart, periodStart)
+                .ne(FillTaskDO::getId, excludeId)
+                .orderByDesc(FillTaskDO::getPeriodStart)
+                .orderByDesc(FillTaskDO::getId)
+                .last("LIMIT " + limit));
+    }
+
+    /**
+     * 查询计划最近若干期任务（按所属期倒序），用于期次汇总。
+     *
+     * @param planId 计划编号
+     * @param limit 上限
+     * @return 任务
+     */
+    default java.util.List<FillTaskDO> selectLatestByPlanId(Long planId, int limit) {
+        return selectList(new LambdaQueryWrapperX<FillTaskDO>()
+                .eq(FillTaskDO::getPlanId, planId)
+                .orderByDesc(FillTaskDO::getPeriodStart)
+                .orderByDesc(FillTaskDO::getId)
+                .last("LIMIT " + limit));
+    }
+
     default FillTaskDO selectPreviousTask(Long planId, java.time.LocalDateTime periodStart, Long excludeId) {
         return selectOne(new LambdaQueryWrapperX<FillTaskDO>()
                 .eq(FillTaskDO::getPlanId, planId)

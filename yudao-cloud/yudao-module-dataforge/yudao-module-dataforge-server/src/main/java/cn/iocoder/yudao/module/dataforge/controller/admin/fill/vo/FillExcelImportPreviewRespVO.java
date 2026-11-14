@@ -29,6 +29,34 @@ public class FillExcelImportPreviewRespVO {
     @Schema(description = "被忽略的 Excel 表头（未匹配到模板输入列）")
     private List<String> ignoredHeaders;
 
+    @Schema(description = "Excel 表头及其映射到的字段码（空表示忽略），供手工调整映射")
+    private List<HeaderMapping> headers;
+
+    @Schema(description = "可映射的模板输入字段")
+    private List<FieldOption> fields;
+
+    @Schema(description = "管理后台 - Excel 表头映射")
+    @lombok.Data
+    public static class HeaderMapping {
+
+        @Schema(description = "Excel 表头", example = "身份证号")
+        private String header;
+
+        @Schema(description = "映射到的字段码（空表示忽略）", example = "id_card")
+        private String fieldCode;
+    }
+
+    @Schema(description = "管理后台 - 可映射字段")
+    @lombok.Data
+    public static class FieldOption {
+
+        @Schema(description = "字段码", example = "id_card")
+        private String fieldCode;
+
+        @Schema(description = "字段名称", example = "身份证号")
+        private String name;
+    }
+
     @Schema(description = "逐行逐字段校验问题（displayRowNo 为 Excel 实际行号）")
     private List<FillSubmitRespVO.Issue> issues;
 

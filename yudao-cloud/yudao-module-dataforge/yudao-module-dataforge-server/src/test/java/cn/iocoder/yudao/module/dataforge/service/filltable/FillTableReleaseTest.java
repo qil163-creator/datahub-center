@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.FILL_TABLE_DATABASE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.FILL_TABLE_TARGET_ADD_COLUMN_UNSUPPORTED;
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.FILL_TABLE_TARGET_SCHEMA_MISMATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -202,6 +203,76 @@ class FillTableReleaseTest extends BaseMockitoUnitTest {
         observed.setPrecisionSize(precision);
         observed.setNullable(true);
         return observed;
+    }
+
+
+    // ---------------------------------------------------------------- 已发布模板新增字段
+
+    private final FillTableColumnDO score = FillTableColumnDO.builder()
+            .name("score_level").fieldCode("score_level").cnName("成绩等级")
+            .fieldType(ColumnMetaData.TYPE_STRING).fieldLength(20).nullable(0).build();
+
+    private cn.iocoder.yudao.framework.dbswitch.core.model.TableSchemaMetadata nativeSchema(
+            List<ColumnDescription> physicalColumns) {
+        var provenance = new cn.iocoder.yudao.framework.dbswitch.core.model.MetadataProvenance(
+                ProductTypeEnum.POSTGRESQL, "PostgreSQL", "16.4", "PG_CATALOG_V1", java.time.Instant.EPOCH);
+        return new cn.iocoder.yudao.framework.dbswitch.core.model.TableSchemaMetadata(physicalColumns,
+                List.of("student_id"), provenance,
+                cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.value(true),
+                cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.absent());
+    }
+
+    @Test
+    void republishingAddsNewTemplateColumnAsNullableThroughDbSwitchPlan() {
+        when(columns.selectListByTableId(1L)).thenReturn(List.of(studentName, studentId, score));
+        var before = existingColumns();
+        var after = existingColumns();
+        after.add(observedColumn("score_level", "varchar", 20));
+        stubExistingTarget(before);
+        when(targetDatabase.queryTableColumnsAndKeys(null, null, null, "public", "students"))
+                .thenReturn(new BasicTableMetadata(before, List.of("student_id")),
+                        new BasicTableMetadata(after, List.of("student_id")));
+        when(targetDatabase.queryTableSchema(any(), any(), any(), org.mockito.ArgumentMatchers.eq("public"),
+                org.mockito.ArgumentMatchers.eq("students"), org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn(nativeSchema(before));
+        when(tables.selectByIdForUpdate(1L)).thenReturn(table);
+
+        fillTableService.releaseFillTable(1L);
+
+        var ddl = ArgumentCaptor.forClass(String.class);
+        verify(targetDatabase).executeSql(isNull(), isNull(), isNull(), ddl.capture());
+        assertTrue(ddl.getValue().startsWith("ALTER TABLE"), ddl.getValue());
+        assertTrue(ddl.getValue().contains("\"score_level\""), ddl.getValue());
+        assertTrue(!ddl.getValue().toUpperCase().contains("NOT NULL"), ddl.getValue());
+        verify(versions).insert(any(FillTableVersionDO.class));
+    }
+
+    @Test
+    void addingColumnIsRefusedWithoutVerifiedNativeSchemaAndRunsNoDdl() {
+        when(columns.selectListByTableId(1L)).thenReturn(List.of(studentName, studentId, score));
+        stubExistingTarget(existingColumns());
+        when(targetDatabase.queryTableSchema(any(), any(), any(), any(), any(), org.mockito.ArgumentMatchers.anyInt()))
+                .thenThrow(new UnsupportedOperationException("当前元数据实现不支持有界表结构读取"));
+
+        var failure = assertThrows(ServiceException.class, () -> fillTableService.releaseFillTable(1L));
+
+        assertEquals(FILL_TABLE_TARGET_ADD_COLUMN_UNSUPPORTED.getCode(), failure.getCode());
+        assertTrue(failure.getMessage().contains("score_level"));
+        verify(targetDatabase, never()).executeSql(any(), any(), any(), anyString());
+        verifyNoInteractions(versions);
+    }
+
+    @Test
+    void columnsAreValidatedBeforeAnyDdlRuns() {
+        when(columns.selectListByTableId(1L)).thenReturn(List.of(studentName, studentId, score));
+        var physicalColumns = existingColumns();
+        physicalColumns.getFirst().setPrecisionSize(12);
+        stubExistingTarget(physicalColumns);
+
+        var failure = assertThrows(ServiceException.class, () -> fillTableService.releaseFillTable(1L));
+
+        assertEquals(FILL_TABLE_TARGET_SCHEMA_MISMATCH.getCode(), failure.getCode());
+        verify(targetDatabase, never()).executeSql(any(), any(), any(), anyString());
     }
 
 }

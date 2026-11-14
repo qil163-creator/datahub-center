@@ -115,6 +115,23 @@ class FillMergeJdbcWriterPostgreSqlTest {
     }
 
     @Test
+    void replaceScopesClearsEveryOrgOfTheSubtreeInOneTransaction() {
+        // 多级汇总：顶层组织 1 的提交含下级组织 2 的行，两个组织的旧数据都被替换；组织 3 的数据不受影响
+        jdbc.update("INSERT INTO fill_target VALUES ('y', 3.00, 3, '2026-10-03', NULL, NULL, '其他', 3, '2026-10', 300, 'r8')");
+        List<Object[]> rows = new ArrayList<>();
+        rows.add(row("c", "上级", 1, 101));
+        rows.add(row("e", "下级", 2, 101));
+
+        int written = FillMergeJdbcWriter.replaceScopes(dataSource, TARGET, FIELDS, rows,
+                List.of("source_org_id", "period_key"), List.of(List.of(1L, "2026-10"), List.of(2L, "2026-10")));
+
+        assertEquals(2, written);
+        assertEquals(List.of("c"), rowsOfOrg(1).stream().map(item -> item.get("id")).toList());
+        assertEquals(List.of("e"), rowsOfOrg(2).stream().map(item -> item.get("id")).toList());
+        assertEquals(1, rowsOfOrg(3).size());
+    }
+
+    @Test
     void replaceScopeFailureKeepsDataBeforeMerge() {
         List<Object[]> rows = List.of(row("c", "新", 1, 101),
                 row("d", "超过十个字符的备注内容会被目标列拒绝", 1, 101));

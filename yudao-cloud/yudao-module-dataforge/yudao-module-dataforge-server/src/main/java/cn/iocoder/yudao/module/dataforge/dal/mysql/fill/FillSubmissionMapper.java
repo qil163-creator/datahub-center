@@ -60,4 +60,27 @@ public interface FillSubmissionMapper extends BaseMapperX<FillSubmissionDO> {
                 .last("LIMIT " + limit));
     }
 
+    /**
+     * 上级单位审核结论（CAS：只处理仍在等待上级审核的提交）。
+     *
+     * @param id 提交编号
+     * @param approvalStatus 审核结论（审批通过 / 驳回）
+     * @param reviewerUserId 审核人
+     * @param reason 审核意见
+     * @param endTime 审核时间
+     * @return 更新行数
+     */
+    default int markReviewed(Long id, Integer approvalStatus, Long reviewerUserId, String reason,
+                             java.time.LocalDateTime endTime) {
+        return update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<FillSubmissionDO>()
+                .set(FillSubmissionDO::getApprovalStatus, approvalStatus)
+                .set(FillSubmissionDO::getReviewerUserId, reviewerUserId)
+                .set(FillSubmissionDO::getApprovalReason, reason)
+                .set(FillSubmissionDO::getApprovalEndTime, endTime)
+                .eq(FillSubmissionDO::getId, id)
+                .eq(FillSubmissionDO::getReviewMode, FillSubmissionDO.REVIEW_PARENT)
+                .eq(FillSubmissionDO::getApprovalStatus,
+                        cn.iocoder.yudao.module.dataforge.enums.fill.FillApprovalStatusEnum.APPROVING.getStatus()));
+    }
+
 }

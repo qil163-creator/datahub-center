@@ -17,6 +17,16 @@ export namespace DataforgeFillTableApi {
     orgId?: number; // 单位id
     orgName?: string; // 单位名称
     createTime?: string;
+    /** 合并策略：REPLACE_SCOPE-范围替换（默认） APPEND-追加 UPSERT-更新插入 */
+    mergeStrategy?: string;
+    /** UPSERT 业务键字段码，英文逗号分隔 */
+    businessKeyFields?: string;
+    /** 录入页面冻结的前几列（0 表示不冻结） */
+    freezeColumnCount?: number;
+    /** 多级汇总方式：DETAIL-明细汇集（默认） GROUP-分组合计 */
+    rollupMode?: string;
+    /** 分组合计的分组字段码，英文逗号分隔 */
+    rollupGroupFields?: string;
   }
 
   /** 填报表字段 */
@@ -45,6 +55,42 @@ export namespace DataforgeFillTableApi {
     uniqueFlag?: number; // 同一次填报内取值唯一：0-否 1-是
     ruleSeverity?: number; // 规则级别：1-错误（阻断提交） 2-警告
     dictType?: string; // 选择值来源的系统字典类型
+    /** 行内公式；设置后为只读计算列，提交时由服务端重算 */
+    formulaExpr?: string;
+    /** 录入列宽（像素） */
+    columnWidth?: number;
+    /** 表头分组：相邻同名字段合并为上一级表头 */
+    headerGroup?: string;
+    /** 数据表下拉：来源数据源（发布时读取取值固化） */
+    refDatabaseId?: null | number | string;
+    refTableName?: string;
+    refValueColumn?: string;
+    /** 级联：上级字段码与来源表中的上级取值列 */
+    refParentField?: string;
+    refParentColumn?: string;
+    /** 人员/部门选择范围：ORG-报送组织及下级 ALL-全部 */
+    refScope?: string;
+    /** 分组合计的计算方式：SUM MAX MIN COUNT FIRST，空表示不输出 */
+    rollupFunc?: string;
+  }
+
+  /** 填报表校验规则（行级 / 表级 / 跨期） */
+  export interface FillTableRule {
+    id?: number;
+    tableId?: number;
+    name?: string;
+    /** ROW-行级 TABLE-表级（汇总） PERIOD-跨期（与上期比较） */
+    scope?: 'PERIOD' | 'ROW' | 'TABLE';
+    /** 规则表达式：结果为假即违反，空值视为通过 */
+    expression?: string;
+    message?: string;
+    /** 1-错误（阻断提交） 2-警告 */
+    severity?: number;
+    /** 问题定位字段码 */
+    fieldCode?: string;
+    sort?: number;
+    /** 0-停用 1-启用 */
+    enabled?: number;
   }
 }
 
@@ -113,6 +159,28 @@ export function updateFillTableColumn(
 /** 删除填报表字段 */
 export function deleteFillTableColumn(id: number) {
   return requestClient.delete(`/dataforge/fill-table-column/delete?id=${id}`);
+}
+
+/** 查询填报表校验规则 */
+export function getFillTableRuleList(tableId: number | string) {
+  return requestClient.get<DataforgeFillTableApi.FillTableRule[]>(
+    `/dataforge/fill-table-rule/list-by-table?tableId=${tableId}`,
+  );
+}
+
+/** 新增填报表校验规则 */
+export function createFillTableRule(data: DataforgeFillTableApi.FillTableRule) {
+  return requestClient.post<number>('/dataforge/fill-table-rule/create', data);
+}
+
+/** 修改填报表校验规则 */
+export function updateFillTableRule(data: DataforgeFillTableApi.FillTableRule) {
+  return requestClient.put('/dataforge/fill-table-rule/update', data);
+}
+
+/** 删除填报表校验规则 */
+export function deleteFillTableRule(id: number | string) {
+  return requestClient.delete(`/dataforge/fill-table-rule/delete?id=${id}`);
 }
 
 /** 下载 Excel 模板（含必填标记与字典下拉） */

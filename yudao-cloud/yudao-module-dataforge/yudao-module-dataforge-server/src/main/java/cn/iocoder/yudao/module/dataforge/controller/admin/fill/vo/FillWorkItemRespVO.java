@@ -69,4 +69,10 @@ public class FillWorkItemRespVO {
     @Schema(description = "当前有效填报人")
     private List<FillAssigneeRespVO> assignees;
 
+    @Schema(description = "上级实例编号；空表示由发起者直接下发的顶层实例", example = "11")
+    private Long parentWorkItemId;
+
+    @Schema(description = "层级：顶层为 0", example = "0")
+    private Integer level;
+
 }

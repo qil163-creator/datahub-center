@@ -157,6 +157,7 @@ class FillRemindRulesTest {
 
     private FillWorkItemServiceImpl workItemService() {
         FillWorkItemServiceImpl service = new FillWorkItemServiceImpl();
+        ReflectionTestUtils.setField(service, "accessGuard", org.mockito.Mockito.mock(FillTaskAccessGuard.class));
         ReflectionTestUtils.setField(service, "workItemMapper", workItemMapper);
         ReflectionTestUtils.setField(service, "assigneeMapper", assigneeMapper);
         ReflectionTestUtils.setField(service, "taskMapper", taskMapper);

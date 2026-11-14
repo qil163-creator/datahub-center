@@ -58,9 +58,14 @@ public class FillExcelController {
     @Operation(summary = "Excel 导入预检", description = "解析并逐行逐字段校验，不写草稿；返回数据行供确认时回传")
     @Parameter(name = "id", description = "工作项编号", required = true)
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")
+    @Parameter(name = "mapping", description = "手工表头映射 JSON：{\"Excel 表头\": \"字段码\"}，值为空串表示忽略该列")
     public CommonResult<FillExcelImportPreviewRespVO> previewImport(
-            @PathVariable("id") Long id, @RequestParam("file") MultipartFile file) {
-        return success(excelService.previewImport(id, file));
+            @PathVariable("id") Long id, @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "mapping", required = false) String mapping) {
+        java.util.Map<String, String> headerMapping = cn.hutool.core.util.StrUtil.isBlank(mapping) ? null
+                : cn.iocoder.yudao.framework.common.util.json.JsonUtils.parseObject(mapping,
+                new tools.jackson.core.type.TypeReference<java.util.Map<String, String>>() { });
+        return success(excelService.previewImport(id, file, headerMapping));
     }
 
     /**

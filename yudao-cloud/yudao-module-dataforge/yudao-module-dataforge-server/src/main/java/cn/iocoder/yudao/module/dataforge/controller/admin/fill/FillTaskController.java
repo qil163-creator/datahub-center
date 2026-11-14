@@ -10,16 +10,21 @@ import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskGenera
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskPageReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskProgressRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskRespVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillTaskSummaryRespVO;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillTaskService;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillTaskSummaryService;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillWorkItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -39,6 +44,51 @@ public class FillTaskController {
 
     @Resource
     private FillWorkItemService workItemService;
+
+    @Resource
+    private FillTaskSummaryService summaryService;
+
+    /**
+     * 获得任务汇总：各组织报送状态与审批通过数据的数值合计。
+     *
+     * @param id 任务编号
+     * @return 汇总结果
+     */
+    @GetMapping("/summary")
+    @Operation(summary = "获得任务汇总", description = "仅任务发起者与超级管理员；合计只统计审批通过的组织")
+    @Parameter(name = "id", description = "任务编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:query')")
+    public CommonResult<FillTaskSummaryRespVO> getTaskSummary(@RequestParam("id") Long id) {
+        return success(summaryService.getSummary(id));
+    }
+
+    /**
+     * 导出未报单位清单。
+     *
+     * @param id 任务编号
+     * @param response 响应
+     */
+    @GetMapping("/export-unreported")
+    @Operation(summary = "导出未报单位清单", description = "待填报、填报中、整改中以及结束填报时取消的组织")
+    @Parameter(name = "id", description = "任务编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:export')")
+    public void exportUnreported(@RequestParam("id") Long id, HttpServletResponse response) throws IOException {
+        summaryService.exportUnreported(id, response);
+    }
+
+    /**
+     * 导出审批通过的汇总数据。
+     *
+     * @param id 任务编号
+     * @param response 响应
+     */
+    @GetMapping("/export-data")
+    @Operation(summary = "导出汇总数据", description = "全部审批通过组织的数据行，首列为报送组织")
+    @Parameter(name = "id", description = "任务编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-task:export')")
+    public void exportData(@RequestParam("id") Long id, HttpServletResponse response) throws IOException {
+        summaryService.exportData(id, response);
+    }
 
     /**
      * 获得采集任务分页。

@@ -5,9 +5,11 @@ import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanPageReqVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanPeriodSummaryRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanSaveReqVO;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillPlanService;
+import cn.iocoder.yudao.module.dataforge.service.fill.FillTaskSummaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +34,23 @@ public class FillPlanController {
 
     @Resource
     private FillPlanService planService;
+
+    @Resource
+    private FillTaskSummaryService summaryService;
+
+    /**
+     * 获得计划期次汇总：最近 12 期 × 报送组织的状态矩阵。
+     *
+     * @param planId 计划编号
+     * @return 期次汇总
+     */
+    @GetMapping("/period-summary")
+    @Operation(summary = "获得计划期次汇总", description = "仅计划创建人与超级管理员")
+    @Parameter(name = "planId", description = "计划编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:query')")
+    public CommonResult<FillPlanPeriodSummaryRespVO> getPeriodSummary(@RequestParam("planId") Long planId) {
+        return success(summaryService.getPeriodSummary(planId));
+    }
 
     /**
      * 创建采集计划。

@@ -91,6 +91,35 @@ final class FillMergeJdbcWriter {
     }
 
     /**
+     * 在一个事务内按多组范围删除后整批插入（多级汇总：顶层实例的数据覆盖其下各级组织，逐个组织清理旧数据）。
+     *
+     * @param dataSource 目标库数据源
+     * @param target 目标表
+     * @param fieldNames 写入列，顺序与每行数据一致
+     * @param rows 新数据
+     * @param scopeColumns 划定范围的列
+     * @param scopeValueSets 每组范围的值，与范围列一一对应
+     * @return 写入行数
+     */
+    static int replaceScopes(DataSource dataSource, Target target, List<String> fieldNames, List<Object[]> rows,
+            List<String> scopeColumns, List<List<Object>> scopeValueSets) {
+        return inTransaction(dataSource, connection -> {
+            String deleteSql = "DELETE FROM " + target.tableRef() + " WHERE " + conditions(target, scopeColumns);
+            try (PreparedStatement statement = connection.prepareStatement(deleteSql)) {
+                statement.setQueryTimeout(QUERY_TIMEOUT_SECONDS);
+                for (List<Object> scopeValues : scopeValueSets) {
+                    for (int index = 0; index < scopeValues.size(); index++) {
+                        statement.setObject(index + 1, scopeValues.get(index));
+                    }
+                    statement.executeUpdate();
+                }
+            }
+            insertAll(connection, target, fieldNames, columnTypes(connection, target, fieldNames), rows);
+            return rows.size();
+        });
+    }
+
+    /**
      * 同一组织实例此前的提交在正式表里留下、本次提交已不再包含的行。
      *
      * @param scopeColumns 划定范围的列（组织、所属期）

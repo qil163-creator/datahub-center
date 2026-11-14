@@ -22,6 +22,7 @@
 | `dataforge-server` | `fillOverdueJob` | 在线填报逾期扫描 | `0 0/5 * * * ?` |
 | `dataforge-server` | `fillRemindJob` | 在线填报截止提醒 | `0 0/30 * * * ?` |
 | `dataforge-server` | `fillBpmReconcileJob` | 在线填报审批状态对账 | `0 0/30 * * * ?` |
+| `dataforge-server` | `fillAttachmentCleanupJob` | 在线填报附件清理：上传意图按操作键对账，过期且未被草稿引用的附件删除受管文件 | `0 15 * * * ?` |
 | `governance-server` | `metaCollectTaskJob` | 单平台采集排期、持久队列消费和失联租约恢复；执行前核验执行人权限，手动模式也需启用以恢复等待实例 | 建议 `0 * * * * ?` |
 | `governance-server` | `governanceQualityTaskJob` | 质量任务及模板扫描 | `0 * * * * ?` |
 | `governance-server` | `qualityRunRecoveryJob` | 待执行质检恢复 | `0 * * * * ?` |

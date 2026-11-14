@@ -25,6 +25,7 @@ export const WORK_ITEM_STATUS_TEXT: Record<number, StatusDisplay> = {
   8: { color: 'error', text: '合并失败' },
   9: { color: 'success', text: '已合并' },
   10: { color: 'default', text: '已取消' },
+  11: { color: 'success', text: '已汇入上级' },
 };
 
 export const WORK_ITEM_STATUS_OPTIONS = toOptions(WORK_ITEM_STATUS_TEXT);

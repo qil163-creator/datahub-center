@@ -16,17 +16,17 @@ import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillPlanDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillPlanOrgAssigneeDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillPlanOrgDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillSubmissionDO;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillSubmissionMapper;
+import cn.iocoder.yudao.module.dataforge.enums.fill.FillApprovalStatusEnum;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillTaskDO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillWorkItemDO;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillAssigneeMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanOrgAssigneeMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillPlanOrgMapper;
-import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillSubmissionMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillTaskMapper;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillWorkItemMapper;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillAssigneeSourceEnum;
-import cn.iocoder.yudao.module.dataforge.enums.fill.FillApprovalStatusEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillAssigneeStateEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillNotifyTypeEnum;
 import cn.iocoder.yudao.module.dataforge.enums.fill.FillPeriodTypeEnum;
@@ -94,13 +94,22 @@ public class FillTaskServiceImpl implements FillTaskService {
     private FillCorrectionService correctionService;
 
     @Resource
-    private FillSubmissionMapper submissionMapper;
-
-    @Resource
     private FillDraftService draftService;
 
     @Resource
     private FillCollabService collabService;
+
+    @Resource
+    private FillTaskAccessGuard accessGuard;
+
+    @Resource
+    private FillPreviousPeriodService previousPeriodService;
+
+    @Resource
+    private FillHierarchyService hierarchyService;
+
+    @Resource
+    private FillSubmissionMapper submissionMapper;
 
     /** 单次扫描开放的任务数上限 */
     private static final int OPEN_SCAN_LIMIT = 200;
@@ -181,6 +190,7 @@ public class FillTaskServiceImpl implements FillTaskService {
                     .attemptCount(0)
                     .draftRowCount(0)
                     .deadlineTime(period.deadlineTime())
+                    .level(0)
                     .build();
             workItemMapper.insert(workItem);
 
@@ -202,6 +212,12 @@ public class FillTaskServiceImpl implements FillTaskService {
             }
             notifyService.sendToUsers(FillNotifyTypeEnum.ASSIGNED, task, workItem,
                     convertList(defaults, FillPlanOrgAssigneeDO::getUserId), null);
+        }
+        // 多级下发：各中间单位保存过默认下发名单的，按名单自动下发到下一级（逐级递归）
+        for (FillWorkItemDO top : workItemMapper.selectListByTaskId(task.getId())) {
+            if (top.getParentWorkItemId() == null) {
+                hierarchyService.applyDispatchTemplates(task, top);
+            }
         }
         FillTaskDO countUpdate = new FillTaskDO();
         countUpdate.setId(task.getId());
@@ -229,15 +245,9 @@ public class FillTaskServiceImpl implements FillTaskService {
      * 把同一组织上一期最新一次审批通过的快照带入本期草稿；零上报、未通过或上期未纳入该组织时跳过。
      */
     private void prefillLastPeriod(FillTaskDO previousTask, FillWorkItemDO workItem, Long operatorUserId) {
-        FillWorkItemDO previous = workItemMapper.selectByTaskIdAndOrgId(previousTask.getId(),
+        FillSubmissionDO submission = previousPeriodService.findApprovedSubmission(previousTask,
                 workItem.getReportingOrgId());
-        if (previous == null || previous.getCurrentSubmissionId() == null) {
-            return;
-        }
-        FillSubmissionDO submission = submissionMapper.selectById(previous.getCurrentSubmissionId());
-        if (submission == null
-                || !FillApprovalStatusEnum.APPROVED.getStatus().equals(submission.getApprovalStatus())
-                || FillSubmissionTypeEnum.EMPTY.getType().equals(submission.getSubmissionType())) {
+        if (submission == null || FillSubmissionTypeEnum.EMPTY.getType().equals(submission.getSubmissionType())) {
             return;
         }
         int rows = draftService.prefillFromSubmission(workItem, submission.getId(), operatorUserId);
@@ -313,6 +323,7 @@ public class FillTaskServiceImpl implements FillTaskService {
         if (task == null) {
             throw exception(FILL_TASK_NOT_EXISTS);
         }
+        accessGuard.checkInitiator(task);
         if (StrUtil.isBlank(task.getProcessDefinitionKey())) {
             throw exception(FILL_TASK_PROCESS_NOT_CONFIGURED);
         }
@@ -392,9 +403,12 @@ public class FillTaskServiceImpl implements FillTaskService {
         if (task == null) {
             throw exception(FILL_TASK_NOT_EXISTS);
         }
-        List<FillWorkItemDO> items = workItemMapper.selectListByTaskId(id);
+        // 完成率只按顶层实例计算：下级数据随上级一起上报，不单独计入
+        List<FillWorkItemDO> all = workItemMapper.selectListByTaskId(id);
+        List<FillWorkItemDO> items = all.stream().filter(item -> item.getParentWorkItemId() == null).toList();
         FillTaskProgressRespVO respVO = new FillTaskProgressRespVO();
         respVO.setTaskId(id);
+        respVO.setChildOrgCount(all.size() - items.size());
         respVO.setTotalOrgCount(items.size());
         respVO.setStatusCounts(items.stream()
                 .collect(Collectors.groupingBy(FillWorkItemDO::getStatus, Collectors.counting())));
@@ -457,7 +471,7 @@ public class FillTaskServiceImpl implements FillTaskService {
      *     <li>没有仍在进行中的实例时立即结束：有已合并组织为"已完成"，否则为"已取消"。</li>
      * </ul>
      * 审批中的实例结束后若被驳回会回到整改中，可再次执行本操作取消。
-     * 数据范围：与任务催办、延期一致，持有任务取消按钮权限即可操作平台内全部任务（发起者或授权管理员）。
+     * 数据范围：按钮权限之外，仅任务发起者（计划创建人）或超级管理员可操作，见 {@link FillTaskAccessGuard}。
      *
      * @param id 任务编号
      * @return 结束结果
@@ -469,6 +483,7 @@ public class FillTaskServiceImpl implements FillTaskService {
         if (task == null) {
             throw exception(FILL_TASK_NOT_EXISTS);
         }
+        accessGuard.checkInitiator(task);
         if (!FillTaskStatusEnum.PENDING.getStatus().equals(task.getStatus())
                 && !FillTaskStatusEnum.RUNNING.getStatus().equals(task.getStatus())) {
             throw exception(FILL_TASK_STATUS_INVALID);
@@ -479,7 +494,23 @@ public class FillTaskServiceImpl implements FillTaskService {
         List<FillWorkItemDO> cancelled = new ArrayList<>();
         List<FillWorkItemDO> restored = new ArrayList<>();
         List<FillWorkItemDO> items = workItemMapper.selectListByTaskId(id);
+        // 下级实例：未提交的取消；等待上级审核的终止审核并取消；已汇入上级的保持不变。下级不计入任务完成判断
         for (FillWorkItemDO item : items) {
+            if (item.getParentWorkItemId() == null) {
+                continue;
+            }
+            Integer before = item.getStatus();
+            Integer finalStatus = closeChildWorkItem(item);
+            if (FillWorkItemStatusEnum.CANCELLED.getStatus().equals(finalStatus)
+                    && !FillWorkItemStatusEnum.CANCELLED.getStatus().equals(before)) {
+                item.setStatus(finalStatus);
+                cancelled.add(item);
+            }
+        }
+        for (FillWorkItemDO item : items) {
+            if (item.getParentWorkItemId() != null) {
+                continue;
+            }
             Integer finalStatus = closeWorkItem(item);
             if (FillWorkItemStatusEnum.MERGED.getStatus().equals(finalStatus)) {
                 merged++;
@@ -554,6 +585,33 @@ public class FillTaskServiceImpl implements FillTaskService {
                 return FillWorkItemStatusEnum.CANCELLED.getStatus();
             }
             status = latest.getStatus();
+        }
+        return status;
+    }
+
+    /**
+     * 结束填报时处理下级实例。
+     *
+     * @param item 下级实例
+     * @return 处理后的状态
+     */
+    private Integer closeChildWorkItem(FillWorkItemDO item) {
+        Integer status = item.getStatus();
+        if (FillWorkItemStatusEnum.APPROVING.getStatus().equals(status) && item.getCurrentSubmissionId() != null) {
+            FillSubmissionDO submission = submissionMapper.selectById(item.getCurrentSubmissionId());
+            if (submission != null && Integer.valueOf(FillSubmissionDO.REVIEW_PARENT).equals(submission.getReviewMode())
+                    && submissionMapper.markReviewed(submission.getId(), FillApprovalStatusEnum.TERMINATED.getStatus(),
+                    null, "发起者结束填报", LocalDateTime.now()) > 0
+                    && workItemMapper.compareAndSetStatus(item.getId(), status,
+                    FillWorkItemStatusEnum.CANCELLED.getStatus()) > 0) {
+                return FillWorkItemStatusEnum.CANCELLED.getStatus();
+            }
+            return status;
+        }
+        if (FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(status)
+                && workItemMapper.compareAndSetStatus(item.getId(), status,
+                FillWorkItemStatusEnum.CANCELLED.getStatus()) > 0) {
+            return FillWorkItemStatusEnum.CANCELLED.getStatus();
         }
         return status;
     }

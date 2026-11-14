@@ -24,4 +24,13 @@ public class FillOperationApplyRespVO {
     @Schema(description = "应用后的草稿行数", example = "120")
     private Integer draftRowCount;
 
+    @Schema(description = "导入：新增行数", example = "10")
+    private Integer addedCount;
+
+    @Schema(description = "导入：按唯一标识覆盖的行数", example = "2")
+    private Integer updatedCount;
+
+    @Schema(description = "导入：按唯一标识跳过的行数", example = "1")
+    private Integer skippedCount;
+
 }

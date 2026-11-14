@@ -27,7 +27,9 @@ public enum FillWorkItemStatusEnum {
     MERGING(7, "合并中"),
     MERGE_FAILED(8, "合并失败"),
     MERGED(9, "已合并"),
-    CANCELLED(10, "已取消");
+    CANCELLED(10, "已取消"),
+    /** 下级数据经上级单位审核通过，随上级一起上报，不单独写入正式表 */
+    ROLLED_UP(11, "已汇入上级");
 
     private final Integer status;
 
@@ -44,6 +46,10 @@ public enum FillWorkItemStatusEnum {
     /** 允许发起提交的状态 */
     public static final Set<Integer> SUBMITTABLE_STATUSES = Set.of(
             PENDING.status, FILLING.status, REWORKING.status);
+
+    /** 已结束：不再需要处理（顶层已合并、下级已汇入上级、已取消） */
+    public static final Set<Integer> FINISHED_STATUSES = Set.of(
+            MERGED.status, ROLLED_UP.status, CANCELLED.status);
 
     /** 禁止普通撤回/取消的状态（合并链路已开始） */
     public static final Set<Integer> MERGE_PIPELINE_STATUSES = Set.of(

@@ -23,6 +23,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FillSubmissionDO extends BaseDO {
 
+    /** 审核方式：审批流程（顶层实例报给发起者） */
+    public static final int REVIEW_BPM = 1;
+    /** 审核方式：上级单位审核（下级实例报给上级单位） */
+    public static final int REVIEW_PARENT = 2;
+
     /**
      * 主键id
      */
@@ -103,5 +108,15 @@ public class FillSubmissionDO extends BaseDO {
      * 审批结果意见（详细意见在 BPM 流程历史）
      */
     private String approvalReason;
+
+    /**
+     * 审核方式：1-审批流程 2-上级单位审核（见 {@link #REVIEW_BPM}、{@link #REVIEW_PARENT}）
+     */
+    private Integer reviewMode;
+
+    /**
+     * 上级单位审核人用户编号
+     */
+    private Long reviewerUserId;
 
 }

@@ -218,6 +218,24 @@ public class FillWorkItemController {
      * @param reqVO 请求参数
      * @return 填报提交响应数据
      */
+    @GetMapping("/{id}/reuse-sources")
+    @Operation(summary = "可复用的历史期次", description = "同一计划、同一报送组织更早期次中审批通过且有数据的提交（最近 24 期）")
+    @Parameter(name = "id", description = "组织实例编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:my')")
+    public CommonResult<java.util.List<cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseSourceRespVO>>
+    getReuseSources(@PathVariable("id") Long id) {
+        return success(draftService.getReuseSources(id));
+    }
+
+    @PostMapping("/{id}/reuse")
+    @Operation(summary = "复用历史期次数据", description = "把选中期次的数据追加或替换到草稿，经草稿操作通道写入并记操作日志")
+    @Parameter(name = "id", description = "组织实例编号", required = true)
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")
+    public CommonResult<FillOperationApplyRespVO> reuse(@PathVariable("id") Long id,
+            @Valid @RequestBody cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseReqVO reqVO) {
+        return success(draftService.reuse(id, reqVO));
+    }
+
     @PostMapping("/{id}/submit")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "提交填报数据", bizNo = "{{(#id) ?: 0}}",
             success = "提交了填报工作项【{{(#id) ?: '未设置'}}】，提交草稿版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】，提交类型【{{(#reqVO.submissionType) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",

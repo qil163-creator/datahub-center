@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseReqVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseSourceRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillDraftSnapshotRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyRespVO;
@@ -45,6 +47,51 @@ public interface FillDraftService {
      * @param operatorUserId 记入操作日志的操作人
      * @return 带入的行数，0 表示跳过
      */
+    /**
+     * 可复用的历史数据：同一计划、同一报送组织更早期次中审批通过且非零上报的提交（最近 24 期）。
+     *
+     * @param workItemId 工作项编号
+     * @return 可复用来源
+     */
+    List<FillReuseSourceRespVO> getReuseSources(Long workItemId);
+
+    /**
+     * 复用历史数据：把选中期次的数据行经草稿操作通道写入（追加或整体替换），只带入当前模板中
+     * 可编辑、未隐藏、非主键的字段。
+     *
+     * @param workItemId 工作项编号
+     * @param reqVO 请求参数
+     * @return 操作应用结果
+     */
+    FillOperationApplyRespVO reuse(Long workItemId,
+            FillReuseReqVO reqVO);
+
     int prefillFromSubmission(FillWorkItemDO item, Long sourceSubmissionId, Long operatorUserId);
+
+    /**
+     * 汇总生成的一行。
+     *
+     * @param data 行数据
+     * @param sourceKind 行来源：1-下级明细 2-下级分组合计
+     * @param sourceOrgId 数据最初的报送组织（分组合计行为汇总单位）
+     * @param sourceWorkItemId 数据原始录入的实例（分组合计行为汇总单位实例）
+     * @param sourceSubmissionId 直接下级审核通过的提交（分组合计行为空）
+     * @param sourceRowId 数据原始录入的行（分组合计行为分组键摘要）
+     */
+    record RollupRow(java.util.Map<String, Object> data, Integer sourceKind, Long sourceOrgId,
+                     Long sourceWorkItemId, Long sourceSubmissionId, String sourceRowId) {
+    }
+
+    /**
+     * 汇总写入：替换此前由汇总生成的行，本单位录入的行不受影响。调用方须处于事务中。
+     *
+     * @param item 汇总单位的工作项
+     * @param rows 汇总生成的行
+     * @param expectedVersion 客户端已同步到的服务端版本
+     * @param operatorUserId 操作人
+     * @return 汇总后的草稿行数
+     */
+    int replaceRollupRows(FillWorkItemDO item, java.util.List<RollupRow> rows, long expectedVersion,
+                          Long operatorUserId);
 
 }

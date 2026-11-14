@@ -18,27 +18,37 @@ import {
   Switch,
   Table,
   Tag,
+  TextArea,
 } from 'antdv-next';
 
+import {
+  getDatabaseSimpleList,
+  getDatabaseTableList,
+  getDatabaseTableMeta,
+} from '#/api/dataforge/database';
 import {
   createFillTableColumn,
   deleteFillTableColumn,
   getFillTableColumnList,
   updateFillTableColumn,
 } from '#/api/dataforge/filltable';
-
 import { getSimpleDictTypeList } from '#/api/system/dict/type';
+import { validateExpression } from '#/views/dataforge/fill/workbench/fill-expression';
 
 import {
   describeColumnRules,
   FIELD_TYPE_OPTIONS,
   FILL_TYPE_OPTIONS,
   fillTableOptionLabel,
+  FORMULA_HINT,
+  ID_FILL_TYPES,
   PK_TYPE_OPTIONS,
   rangePlaceholder,
+  ROLLUP_FUNC_OPTIONS,
   RULE_SEVERITY_OPTIONS,
   supportsRange,
 } from '../data';
+import RulesPanel from './rules-panel.vue';
 
 defineOptions({ name: 'DataforgeFillTableColumns' });
 
@@ -58,6 +68,7 @@ const tableColumns = [
   { title: '必填', key: 'nullable', width: 60 },
   { title: '录入', key: 'fillType', width: 90 },
   { title: '规则', key: 'rules', width: 180 },
+  { title: '公式 / 布局', key: 'designer', width: 180 },
   { title: '查询', key: 'ifQuery', width: 60 },
   { title: '隐藏', key: 'fillHide', width: 60 },
   { title: '操作', key: 'actions', width: 160, fixed: 'right' as const },
@@ -103,11 +114,84 @@ function defaultColumn(): DataforgeFillTableApi.FillTableColumn {
     uniqueFlag: 0,
     ruleSeverity: 1,
     dictType: '',
+    formulaExpr: '',
+    columnWidth: undefined,
+    headerGroup: '',
+    refDatabaseId: null,
+    refTableName: '',
+    refValueColumn: '',
+    refParentField: '',
+    refParentColumn: '',
+    refScope: 'ORG',
+    rollupFunc: '',
   };
 }
 
-/** 选择值来源：手工维护或系统字典 */
-const optionSource = ref<'dict' | 'manual'>('manual');
+/** 选择值来源：手工维护、系统字典或数据表（发布时固化） */
+const optionSource = ref<'dict' | 'manual' | 'table'>('manual');
+
+// ---------------------------------------------------------------- 数据表取值
+const databaseOptions = ref<{ label: string; value: number | string }[]>([]);
+const tableOptions = ref<{ label: string; value: string }[]>([]);
+const refColumnOptions = ref<{ label: string; value: string }[]>([]);
+let refRequest = 0;
+
+async function loadDatabases() {
+  if (databaseOptions.value.length > 0) return;
+  const list = await getDatabaseSimpleList();
+  databaseOptions.value = list.map((item) => ({ label: item.name ?? String(item.id), value: item.id }));
+}
+
+async function loadRefTables() {
+  const request = ++refRequest;
+  tableOptions.value = [];
+  if (!editModel.refDatabaseId) return;
+  const tables = await getDatabaseTableList(editModel.refDatabaseId, { silentError: true });
+  if (request !== refRequest) return;
+  tableOptions.value = tables.map((table) => ({
+    label: table.remarks ? `${table.tableName}（${table.remarks}）` : table.tableName,
+    value: table.tableName,
+  }));
+}
+
+async function loadRefColumns() {
+  const request = ++refRequest;
+  refColumnOptions.value = [];
+  if (!editModel.refDatabaseId || !editModel.refTableName) return;
+  const meta = await getDatabaseTableMeta(editModel.refDatabaseId, editModel.refTableName, {
+    silentError: true,
+  });
+  if (request !== refRequest) return;
+  refColumnOptions.value = (meta.columns ?? []).map((column) => ({
+    label: column.fieldName,
+    value: column.fieldName,
+  }));
+}
+
+async function changeRefDatabase(value: any) {
+  editModel.refDatabaseId = value ?? null;
+  editModel.refTableName = '';
+  editModel.refValueColumn = '';
+  editModel.refParentColumn = '';
+  await loadRefTables();
+}
+
+async function changeRefTable(value: any) {
+  editModel.refTableName = value ?? '';
+  editModel.refValueColumn = '';
+  editModel.refParentColumn = '';
+  await loadRefColumns();
+}
+
+/** 级联上级候选：本表其他下拉选择字段 */
+const parentFieldOptions = computed(() =>
+  columns.value
+    .filter((column) => column.fillType === 2 && column.fieldCode !== editModel.fieldCode)
+    .map((column) => ({
+      label: `${column.cnName}（${column.fieldCode ?? column.name}）`,
+      value: column.fieldCode ?? column.name ?? '',
+    })),
+);
 const dictTypeOptions = ref<{ label: string; value: string }[]>([]);
 let dictTypesLoading: null | Promise<void> = null;
 function loadDictTypes() {
@@ -124,16 +208,29 @@ function loadDictTypes() {
   return dictTypesLoading;
 }
 function syncOptionSource() {
-  optionSource.value = editModel.dictType?.trim() ? 'dict' : 'manual';
+  optionSource.value = editModel.refDatabaseId
+    ? 'table'
+    : editModel.dictType?.trim()
+      ? 'dict'
+      : 'manual';
   if (optionSource.value === 'dict') void loadDictTypes();
-}
-function changeOptionSource(value: 'dict' | 'manual') {
-  optionSource.value = value;
-  if (value === 'dict') {
-    void loadDictTypes();
-  } else {
-    editModel.dictType = '';
+  if (optionSource.value === 'table') {
+    void loadDatabases();
+    void loadRefTables().then(loadRefColumns);
   }
+}
+function changeOptionSource(value: 'dict' | 'manual' | 'table') {
+  optionSource.value = value;
+  if (value !== 'dict') editModel.dictType = '';
+  if (value !== 'table') {
+    editModel.refDatabaseId = null;
+    editModel.refTableName = '';
+    editModel.refValueColumn = '';
+    editModel.refParentField = '';
+    editModel.refParentColumn = '';
+  }
+  if (value === 'dict') void loadDictTypes();
+  if (value === 'table') void loadDatabases();
 }
 // 切换字段类型后，不适用的规则一并清空，避免保存后被后端拒绝
 function changeFieldType(value: number) {
@@ -158,6 +255,22 @@ const hasAnyRule = computed(
 const editModel =
   reactive<DataforgeFillTableApi.FillTableColumn>(defaultColumn());
 const isEditColumn = computed(() => !!editModel.id);
+
+/** 下拉选择与多选都需要配置可选项 */
+function isSelectType(fillType?: number) {
+  return fillType === 2 || fillType === 3;
+}
+
+/** 公式实时校验：可引用本表其他字段 */
+const formulaError = computed(() => {
+  const formula = editModel.formulaExpr?.trim();
+  if (!formula) return undefined;
+  const self = editModel.fieldCode ?? editModel.name;
+  const codes = columns.value
+    .map((column) => column.fieldCode ?? column.name ?? '')
+    .filter((code) => code && code !== self);
+  return validateExpression(formula, 'FORMULA', codes);
+});
 
 function handleAddColumn() {
   Object.assign(editModel, defaultColumn());
@@ -185,7 +298,7 @@ async function handleSaveColumn() {
     return;
   }
   if (
-    editModel.fillType === 2 &&
+    isSelectType(editModel.fillType) &&
     optionSource.value === 'dict' &&
     !editModel.dictType?.trim()
   ) {
@@ -193,15 +306,35 @@ async function handleSaveColumn() {
     return;
   }
   if (
-    editModel.fillType === 2 &&
+    isSelectType(editModel.fillType) &&
     optionSource.value === 'manual' &&
     !editModel.fillValues?.trim()
   ) {
     message.warning('下拉选择类型必须填写选择值（英文逗号分隔）');
     return;
   }
-  if (editModel.fillType !== 2 || optionSource.value === 'manual') {
+  if (!isSelectType(editModel.fillType) || optionSource.value === 'manual') {
     editModel.dictType = '';
+  }
+  if (formulaError.value) {
+    message.warning(`公式无效：${formulaError.value}`);
+    return;
+  }
+  if (
+    isSelectType(editModel.fillType) &&
+    optionSource.value === 'table' &&
+    (!editModel.refDatabaseId || !editModel.refTableName || !editModel.refValueColumn)
+  ) {
+    message.warning('请选择来源数据源、表和取值列');
+    return;
+  }
+  if (editModel.refParentField && !editModel.refParentColumn) {
+    message.warning('级联字段需要指定来源表中的上级取值列');
+    return;
+  }
+  if (ID_FILL_TYPES.has(editModel.fillType ?? 0) && editModel.fieldType !== 2) {
+    message.warning('人员、部门、附件、图片字段保存编号，数据类型须为字符串');
+    return;
   }
   await (isEditColumn.value
     ? updateFillTableColumn(editModel)
@@ -226,7 +359,7 @@ const getTitle = computed(() =>
 const [ModalComponent, modalApi] = useVbenModal({
   showCancelButton: false,
   showConfirmButton: false,
-  class: 'w-[1080px]',
+  class: 'w-[1200px]',
   async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
       columns.value = [];
@@ -261,7 +394,7 @@ const [ModalComponent, modalApi] = useVbenModal({
         :data-source="columns"
         :loading="loading"
         :pagination="false"
-        :scroll="{ x: 900, y: 420 }"
+        :scroll="{ x: 1080, y: 360 }"
         row-key="id"
         size="small"
       >
@@ -297,6 +430,22 @@ const [ModalComponent, modalApi] = useVbenModal({
             </template>
             <span v-else>-</span>
           </template>
+          <template v-else-if="column.key === 'designer'">
+            <Tag v-if="record.formulaExpr" color="blue" class="mb-1">
+              公式：{{ record.formulaExpr }}
+            </Tag>
+            <Tag v-if="record.headerGroup" class="mb-1">
+              分组：{{ record.headerGroup }}
+            </Tag>
+            <Tag v-if="record.columnWidth" class="mb-1">
+              宽 {{ record.columnWidth }}
+            </Tag>
+            <span
+              v-if="!record.formulaExpr && !record.headerGroup && !record.columnWidth"
+            >
+              -
+            </span>
+          </template>
           <template v-else-if="column.key === 'ifQuery'">
             {{ record.ifQuery === 1 ? '是' : '否' }}
           </template>
@@ -328,6 +477,11 @@ const [ModalComponent, modalApi] = useVbenModal({
           </template>
         </template>
       </Table>
+      <RulesPanel
+        :columns="columns"
+        :editable="editable"
+        :table-id="fillTable?.id"
+      />
     </div>
 
     <!-- 字段编辑弹窗 -->
@@ -400,19 +554,20 @@ const [ModalComponent, modalApi] = useVbenModal({
             :options="FILL_TYPE_OPTIONS"
           />
         </div>
-        <div v-if="editModel.fillType === 2" class="form-item">
+        <div v-if="isSelectType(editModel.fillType)" class="form-item">
           <label class="form-item__label">选择值来源</label>
           <RadioGroup
             :value="optionSource"
             :options="[
               { label: '手工维护', value: 'manual' },
               { label: '系统字典', value: 'dict' },
+              { label: '数据表', value: 'table' },
             ]"
             @update:value="(value: any) => changeOptionSource(value)"
           />
         </div>
         <div
-          v-if="editModel.fillType === 2 && optionSource === 'manual'"
+          v-if="isSelectType(editModel.fillType) && optionSource === 'manual'"
           class="form-item"
         >
           <label class="form-item__label form-item__label--required">
@@ -425,7 +580,7 @@ const [ModalComponent, modalApi] = useVbenModal({
           />
         </div>
         <div
-          v-if="editModel.fillType === 2 && optionSource === 'dict'"
+          v-if="isSelectType(editModel.fillType) && optionSource === 'dict'"
           class="form-item"
         >
           <label class="form-item__label form-item__label--required">
@@ -444,6 +599,93 @@ const [ModalComponent, modalApi] = useVbenModal({
               发布时固化字典当前启用项的显示名称作为可选值；之后字典变化不影响已发布版本。
             </p>
           </div>
+        </div>
+        <template v-if="isSelectType(editModel.fillType) && optionSource === 'table'">
+          <div class="form-item">
+            <label class="form-item__label form-item__label--required">来源数据源</label>
+            <Select
+              :options="databaseOptions"
+              :value="editModel.refDatabaseId ?? undefined"
+              class="w-full"
+              placeholder="选择数据源"
+              show-search
+              option-filter-prop="label"
+              @update:value="changeRefDatabase"
+            />
+          </div>
+          <div class="form-item">
+            <label class="form-item__label form-item__label--required">来源表</label>
+            <Select
+              :options="tableOptions"
+              :value="editModel.refTableName || undefined"
+              class="w-full"
+              placeholder="选择表"
+              show-search
+              option-filter-prop="label"
+              @update:value="changeRefTable"
+            />
+          </div>
+          <div class="form-item">
+            <label class="form-item__label form-item__label--required">取值列</label>
+            <Select
+              v-model:value="editModel.refValueColumn"
+              :options="refColumnOptions"
+              class="w-full"
+              placeholder="去重后作为可选项"
+              show-search
+            />
+          </div>
+          <div class="form-item">
+            <label class="form-item__label">级联上级</label>
+            <Select
+              v-model:value="editModel.refParentField"
+              :options="parentFieldOptions"
+              allow-clear
+              class="w-full"
+              placeholder="不级联"
+            />
+          </div>
+          <div v-if="editModel.refParentField" class="form-item">
+            <label class="form-item__label form-item__label--required">上级取值列</label>
+            <Select
+              v-model:value="editModel.refParentColumn"
+              :options="refColumnOptions"
+              class="w-full"
+              placeholder="来源表中对应上级取值的列"
+              show-search
+            />
+          </div>
+          <div class="form-item form-item--wide">
+            <label class="form-item__label"></label>
+            <p class="rule-hint">
+              发布模板时读取一次来源表的去重取值（最多 5000 个）固化进模板版本，填报人不直接访问来源表；来源表变化后需重新发布。取值列或上级列被数据安全识别为敏感数据时不能发布（取值会原样展示给全部填报人）。
+            </p>
+          </div>
+        </template>
+        <div class="form-item">
+          <label class="form-item__label">分组合计</label>
+          <Select
+            v-model:value="editModel.rollupFunc"
+            :options="ROLLUP_FUNC_OPTIONS"
+            class="w-full"
+            placeholder="多级汇总为分组合计时的计算方式"
+          />
+        </div>
+        <div v-if="editModel.fillType === 4 || editModel.fillType === 5" class="form-item">
+          <label class="form-item__label">选择范围</label>
+          <RadioGroup
+            v-model:value="editModel.refScope"
+            :options="[
+              { label: '报送组织及下级', value: 'ORG' },
+              { label: '全部', value: 'ALL' },
+            ]"
+          />
+        </div>
+        <div v-if="ID_FILL_TYPES.has(editModel.fillType ?? 0)" class="form-item form-item--wide">
+          <label class="form-item__label"></label>
+          <p class="rule-hint">
+            单元格保存{{ editModel.fillType === 4 ? '人员' : editModel.fillType === 5 ? '部门' : '附件' }}编号（录入时显示名称）；字段须为字符串，{{ (editModel.fillType ?? 0) >= 6 ? '附件可多个，长度不小于 200；图片 ≤5MB，附件 ≤20MB' : '长度不小于 20' }}。
+          </p>
         </div>
         <div v-if="supportsRange(editModel.fieldType)" class="form-item">
           <label class="form-item__label">最小值</label>
@@ -535,6 +777,38 @@ const [ModalComponent, modalApi] = useVbenModal({
             :options="PK_TYPE_OPTIONS"
           />
         </div>
+        <div class="form-item form-item--wide">
+          <label class="form-item__label">公式</label>
+          <div class="min-w-0 flex-1">
+            <TextArea
+              v-model:value="editModel.formulaExpr"
+              :maxlength="1000"
+              :rows="2"
+              placeholder="留空表示由填报人录入"
+            />
+            <p v-if="formulaError" class="rule-error">{{ formulaError }}</p>
+            <p class="rule-hint">{{ FORMULA_HINT }}</p>
+          </div>
+        </div>
+        <div class="form-item">
+          <label class="form-item__label">列宽</label>
+          <InputNumber
+            v-model:value="editModel.columnWidth"
+            :max="600"
+            :min="60"
+            class="w-full"
+            placeholder="默认 140 像素"
+          />
+        </div>
+        <div class="form-item">
+          <label class="form-item__label">表头分组</label>
+          <Input
+            v-model:value="editModel.headerGroup"
+            :maxlength="50"
+            allow-clear
+            placeholder="相邻同名字段合并为上一级表头"
+          />
+        </div>
         <div class="form-item">
           <label class="form-item__label">顺序</label>
           <InputNumber
@@ -562,6 +836,16 @@ const [ModalComponent, modalApi] = useVbenModal({
   gap: 12px;
   align-items: flex-start;
   min-width: 0;
+}
+
+.form-item--wide {
+  grid-column: 1 / -1;
+}
+
+.rule-error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: hsl(var(--destructive));
 }
 
 .form-item--switches {

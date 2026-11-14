@@ -5,6 +5,8 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseReqVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillReuseSourceRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillDraftSnapshotRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillOperationApplyRespVO;
@@ -39,6 +41,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -82,6 +85,21 @@ public class FillDraftServiceImpl implements FillDraftService {
     private FillSubmissionRowMapper submissionRowMapper;
 
     @Resource
+    private FillControlService controlService;
+
+    @Resource
+    private FillPreviousPeriodService previousPeriodService;
+
+    @Resource
+    private cn.iocoder.yudao.module.dataforge.dal.mysql.fill.FillSubmissionMapper submissionMapper;
+
+    /** 可复用历史期次的查询上限 */
+    private static final int REUSE_SOURCE_LIMIT = 24;
+
+    /** 复用方式：替换全部草稿行 */
+    static final int REUSE_MODE_REPLACE = 2;
+
+    @Resource
     private FillTaskMapper taskMapper;
 
     @Resource
@@ -120,9 +138,11 @@ public class FillDraftServiceImpl implements FillDraftService {
         }
         respVO.setFieldSchema(version.getFieldSchema());
         respVO.setFormulaSchema(version.getFormulaSchema());
+        respVO.setLayoutSnapshot(version.getLayoutSnapshot());
         respVO.setValidationSchema(version.getValidationSchema());
         respVO.setEditable(isEditable(item, userId));
-        respVO.setRows(convertList(draftRowMapper.selectListByWorkItemId(workItemId), row -> {
+        List<FillDraftRowDO> draftRows = draftRowMapper.selectListByWorkItemId(workItemId);
+        respVO.setRows(convertList(draftRows, row -> {
             FillDraftSnapshotRespVO.Row rowVO = new FillDraftSnapshotRespVO.Row();
             rowVO.setRowId(row.getRowId());
             rowVO.setRowOrder(row.getRowOrder());
@@ -130,8 +150,23 @@ public class FillDraftServiceImpl implements FillDraftService {
             rowVO.setRowVersion(row.getRowVersion());
             rowVO.setCreateUserId(row.getCreateUserId());
             rowVO.setLastModifyUserId(row.getLastModifyUserId());
+            rowVO.setSourceKind(row.getSourceKind());
+            rowVO.setSourceOrgId(row.getSourceOrgId());
             return rowVO;
         }));
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> fields = version.getFieldSchema() == null
+                ? List.of() : (List<Map<String, Object>>) (List<?>) JsonUtils.parseObject(version.getFieldSchema(), List.class);
+        Map<String, List<FillControlService.Option>> refOptions = controlService.resolveOptions(item,
+                fields == null ? List.of() : fields, convertList(draftRows, row -> parseRowData(row.getData())));
+        Map<String, List<FillDraftSnapshotRespVO.RefOption>> refOptionVOs = new LinkedHashMap<>();
+        refOptions.forEach((code, options) -> refOptionVOs.put(code, convertList(options, option -> {
+            FillDraftSnapshotRespVO.RefOption vo = new FillDraftSnapshotRespVO.RefOption();
+            vo.setValue(option.value());
+            vo.setLabel(option.label());
+            return vo;
+        })));
+        respVO.setRefOptions(refOptionVOs);
         return respVO;
     }
 
@@ -293,6 +328,96 @@ public class FillDraftServiceImpl implements FillDraftService {
      * @return 带入的行数，0 表示跳过
      */
     @Override
+    public List<FillReuseSourceRespVO> getReuseSources(
+            Long workItemId) {
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
+        workItemService.checkViewPermission(item, userId);
+        FillTaskDO task = taskMapper.selectById(item.getTaskId());
+        List<FillReuseSourceRespVO> sources = new ArrayList<>();
+        if (task == null || task.getPeriodStart() == null) {
+            return sources;
+        }
+        for (FillTaskDO earlier : taskMapper.selectEarlierTasks(task.getPlanId(), task.getPeriodStart(), task.getId(),
+                REUSE_SOURCE_LIMIT)) {
+            var submission = previousPeriodService.findApprovedSubmission(earlier, item.getReportingOrgId());
+            if (submission == null || submission.getRowCount() == null || submission.getRowCount() == 0) {
+                continue;
+            }
+            var source = new FillReuseSourceRespVO();
+            source.setSubmissionId(submission.getId());
+            source.setTaskId(earlier.getId());
+            source.setTaskName(earlier.getName());
+            source.setPeriodKey(earlier.getPeriodKey());
+            source.setRowCount(submission.getRowCount());
+            source.setSubmitTime(submission.getSubmitTime());
+            sources.add(source);
+        }
+        return sources;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public FillOperationApplyRespVO reuse(Long workItemId,
+            FillReuseReqVO reqVO) {
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
+        workItemService.checkEditPermission(item, userId);
+        // 来源必须在可复用列表内：同计划、同组织、更早期次、审批通过、有数据
+        boolean allowed = getReuseSources(workItemId).stream()
+                .anyMatch(source -> Objects.equals(source.getSubmissionId(), reqVO.getSubmissionId()));
+        if (!allowed) {
+            throw exception(FILL_OPERATION_INVALID, "所选期次的数据不可复用");
+        }
+        FieldSchemaIndex schema = parseFieldSchema(item.getTableVersionId());
+        List<FillOperationApplyReqVO.OperationItem> adds = new ArrayList<>();
+        for (FillSubmissionRowDO sourceRow : submissionRowMapper.selectListBySubmissionId(reqVO.getSubmissionId())) {
+            // 历史上由下级汇总生成的行不带入：本期应由下级重新上报
+            if (sourceRow.getSourceKind() != null) {
+                continue;
+            }
+            Map<String, Object> data = new LinkedHashMap<>();
+            parseRowData(sourceRow.getData()).forEach((fieldCode, value) -> {
+                if (value != null && schema.prefillFields.contains(fieldCode)) {
+                    data.put(fieldCode, value);
+                }
+            });
+            if (data.isEmpty()) {
+                continue;
+            }
+            FillOperationApplyReqVO.OperationItem add = new FillOperationApplyReqVO.OperationItem();
+            add.setClientOpId("reuse-" + IdUtil.fastSimpleUUID());
+            add.setOpType(FillOperationTypeEnum.ADD_ROW.getType());
+            add.setRowId("ru" + IdUtil.fastSimpleUUID());
+            add.setValue(data);
+            adds.add(add);
+        }
+        // 没有可带入的值时不动现有草稿（替换模式也不清空）
+        if (adds.isEmpty()) {
+            throw exception(FILL_OPERATION_INVALID, "所选期次没有可带入的数据");
+        }
+        List<FillOperationApplyReqVO.OperationItem> operations = new ArrayList<>();
+        if (Integer.valueOf(REUSE_MODE_REPLACE).equals(reqVO.getMode())) {
+            for (FillDraftRowDO existing : draftRowMapper.selectListByWorkItemId(workItemId)) {
+                if (existing.getSourceKind() != null) {
+                    continue;
+                }
+                FillOperationApplyReqVO.OperationItem remove = new FillOperationApplyReqVO.OperationItem();
+                remove.setClientOpId("reuse-" + IdUtil.fastSimpleUUID());
+                remove.setOpType(FillOperationTypeEnum.REMOVE_ROW.getType());
+                remove.setRowId(existing.getRowId());
+                operations.add(remove);
+            }
+        }
+        operations.addAll(adds);
+        FillOperationApplyReqVO applyReqVO = new FillOperationApplyReqVO();
+        applyReqVO.setExpectedVersion(reqVO.getExpectedVersion());
+        applyReqVO.setClientSessionId("reuse");
+        applyReqVO.setOperations(operations);
+        return applyOperations(workItemId, applyReqVO);
+    }
+
+    @Override
     public int prefillFromSubmission(FillWorkItemDO item, Long sourceSubmissionId, Long operatorUserId) {
         if (item == null || sourceSubmissionId == null
                 || !FillWorkItemStatusEnum.EDITABLE_STATUSES.contains(item.getStatus())) {
@@ -301,6 +426,9 @@ public class FillDraftServiceImpl implements FillDraftService {
         FieldSchemaIndex schema = parseFieldSchema(item.getTableVersionId());
         List<Map<String, Object>> rowsData = new ArrayList<>();
         for (FillSubmissionRowDO sourceRow : submissionRowMapper.selectListBySubmissionId(sourceSubmissionId)) {
+            if (sourceRow.getSourceKind() != null) {
+                continue;
+            }
             Map<String, Object> data = new LinkedHashMap<>();
             parseRowData(sourceRow.getData()).forEach((fieldCode, value) -> {
                 if (value != null && schema.prefillFields.contains(fieldCode)) {
@@ -355,6 +483,97 @@ public class FillDraftServiceImpl implements FillDraftService {
         return rowsData.size();
     }
 
+    /**
+     * 汇总写入：删除此前由汇总生成的行，再写入本次汇总的行（带来源）。
+     *
+     * <p>以一次版本 CAS 预留全部操作的 serverVersion（同时锁定工作项行、确认客户端看到的是最新草稿），
+     * 每行记一条 REMOVE_ROW / ADD_ROW 操作日志，事务提交后提示协同房间重新加载。本单位录入的行不受影响。</p>
+     *
+     * @param item 汇总单位的工作项
+     * @param rows 汇总生成的行
+     * @param expectedVersion 客户端已同步到的服务端版本
+     * @param operatorUserId 操作人
+     * @return 汇总后的草稿行数
+     */
+    @Override
+    public int replaceRollupRows(FillWorkItemDO item, List<RollupRow> rows, long expectedVersion,
+                                 Long operatorUserId) {
+        List<FillDraftRowDO> previous = draftRowMapper.selectListByWorkItemId(item.getId()).stream()
+                .filter(row -> row.getSourceKind() != null).toList();
+        long steps = (long) previous.size() + rows.size();
+        if (steps == 0) {
+            return Math.toIntExact(draftRowMapper.selectCount(FillDraftRowDO::getWorkItemId, item.getId()));
+        }
+        if (workItemMapper.advanceServerVersionBy(item.getId(), expectedVersion, steps, operatorUserId) == 0) {
+            throw exception(FILL_WORK_ITEM_VERSION_CONFLICT);
+        }
+        if (FillWorkItemStatusEnum.PENDING.getStatus().equals(item.getStatus())) {
+            workItemMapper.compareAndSetStatus(item.getId(),
+                    FillWorkItemStatusEnum.PENDING.getStatus(), FillWorkItemStatusEnum.FILLING.getStatus());
+        }
+        long version = expectedVersion;
+        for (FillDraftRowDO row : previous) {
+            draftRowMapper.deleteById(row.getId());
+            operationMapper.insert(FillOperationDO.builder()
+                    .workItemId(item.getId())
+                    .serverVersion(++version)
+                    .clientOpId("ru-" + IdUtil.fastSimpleUUID())
+                    .clientSessionId("rollup")
+                    .opType(FillOperationTypeEnum.REMOVE_ROW.getType())
+                    .rowId(row.getRowId())
+                    .oldValue(row.getData())
+                    .operatorUserId(operatorUserId)
+                    .build());
+        }
+        FillDraftRowDO last = draftRowMapper.selectLastByWorkItemId(item.getId());
+        BigDecimal order = last == null ? BigDecimal.ZERO : last.getRowOrder();
+        for (RollupRow row : rows) {
+            String dataJson = JsonUtils.toJsonString(row.data());
+            order = order.add(ORDER_GAP);
+            // 行标识含已删行全局唯一，每次汇总重新签发；数据身份由来源列（原始录入实例 + 行）表示
+            String rowId = "ru" + IdUtil.fastSimpleUUID();
+            draftRowMapper.insert(FillDraftRowDO.builder()
+                    .workItemId(item.getId())
+                    .rowId(rowId)
+                    .rowOrder(order)
+                    .data(dataJson)
+                    .rowVersion(0L)
+                    .createUserId(operatorUserId)
+                    .lastModifyUserId(operatorUserId)
+                    .sourceKind(row.sourceKind())
+                    .sourceOrgId(row.sourceOrgId())
+                    .sourceWorkItemId(row.sourceWorkItemId())
+                    .sourceSubmissionId(row.sourceSubmissionId())
+                    .sourceRowId(row.sourceRowId())
+                    .build());
+            operationMapper.insert(FillOperationDO.builder()
+                    .workItemId(item.getId())
+                    .serverVersion(++version)
+                    .clientOpId("ru-" + IdUtil.fastSimpleUUID())
+                    .clientSessionId("rollup")
+                    .opType(FillOperationTypeEnum.ADD_ROW.getType())
+                    .rowId(rowId)
+                    .newValue(dataJson)
+                    .operatorUserId(operatorUserId)
+                    .build());
+        }
+        int rowCount = Math.toIntExact(draftRowMapper.selectCount(FillDraftRowDO::getWorkItemId, item.getId()));
+        FillWorkItemDO update = new FillWorkItemDO();
+        update.setId(item.getId());
+        update.setDraftRowCount(rowCount);
+        workItemMapper.updateById(update);
+        long finalVersion = version;
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    collabService.notifyOperationApplied(item.getId(), finalVersion, operatorUserId);
+                }
+            });
+        }
+        return rowCount;
+    }
+
     // ---------------------------------------------------------------- 操作执行
 
     /** @return [oldValueJson, newValueJson] */
@@ -372,6 +591,9 @@ public class FillDraftServiceImpl implements FillDraftService {
         FillDraftRowDO row = draftRowMapper.selectByWorkItemIdAndRowId(workItemId, op.getRowId());
         if (row == null) {
             throw exception(FILL_DRAFT_ROW_NOT_EXISTS);
+        }
+        if (row.getSourceKind() != null) {
+            throw exception(FILL_ROLLUP_ROW_READONLY, row.getRowId());
         }
         Map<String, Object> data = parseRowData(row.getData());
         String oldValueJson = toJson(data.get(op.getFieldCode()));
@@ -426,6 +648,9 @@ public class FillDraftServiceImpl implements FillDraftService {
         FillDraftRowDO row = draftRowMapper.selectByWorkItemIdAndRowId(workItemId, op.getRowId());
         if (row == null) {
             throw exception(FILL_DRAFT_ROW_NOT_EXISTS);
+        }
+        if (row.getSourceKind() != null) {
+            throw exception(FILL_ROLLUP_ROW_READONLY, row.getRowId());
         }
         draftRowMapper.deleteById(row.getId());
         return row.getData();

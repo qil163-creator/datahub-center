@@ -33,7 +33,9 @@ public class FillTableColumnSaveReqVO {
     @NotNull(message = "数据类型不能为空")
     private Integer fieldType;
 
-    @Schema(description = "录入类型：1-手工录入 2-选择", example = "1")
+    @Schema(description = "录入类型：1-手工录入 2-选择 3-多选（英文逗号分隔） 4-人员 5-部门 6-附件 7-图片", example = "1")
+    @jakarta.validation.constraints.Min(value = 1, message = "录入类型不合法")
+    @jakarta.validation.constraints.Max(value = 7, message = "录入类型不合法")
     private Integer fillType;
 
     @Schema(description = "选择值（英文逗号分隔）", example = "男,女")
@@ -88,5 +90,45 @@ public class FillTableColumnSaveReqVO {
     @Schema(description = "选择值来源的系统字典类型", example = "common_status")
     @Size(max = 100, message = "字典类型不能超过 100 个字符")
     private String dictType;
+
+    @Schema(description = "行内公式，例如 unit_price * quantity；设置后字段只读，由系统计算", example = "unit_price * quantity")
+    @Size(max = 1000, message = "公式不能超过 1000 个字符")
+    private String formulaExpr;
+
+    @Schema(description = "录入页面列宽（像素，60~600）", example = "140")
+    @jakarta.validation.constraints.Min(value = 60, message = "列宽不能小于 60")
+    @jakarta.validation.constraints.Max(value = 600, message = "列宽不能大于 600")
+    private Integer columnWidth;
+
+    @Schema(description = "表头分组名称：相邻同名字段合并为上一级表头", example = "收入情况")
+    @Size(max = 50, message = "表头分组名称不能超过 50 个字符")
+    private String headerGroup;
+
+    @Schema(description = "数据表下拉：来源数据源编号", example = "2")
+    private Long refDatabaseId;
+
+    @Schema(description = "数据表下拉：来源表名", example = "md_region")
+    @Size(max = 128, message = "来源表名不能超过 128 个字符")
+    private String refTableName;
+
+    @Schema(description = "数据表下拉：取值列", example = "region_code")
+    @Size(max = 128, message = "取值列不能超过 128 个字符")
+    private String refValueColumn;
+
+    @Schema(description = "级联：上级字段码", example = "province")
+    @Size(max = 64, message = "上级字段码不能超过 64 个字符")
+    private String refParentField;
+
+    @Schema(description = "级联：来源表中对应上级取值的列", example = "province_code")
+    @Size(max = 128, message = "上级取值列不能超过 128 个字符")
+    private String refParentColumn;
+
+    @Schema(description = "人员/部门选择范围：ORG-报送组织及下级 ALL-全部", example = "ORG")
+    @jakarta.validation.constraints.Pattern(regexp = "^(|ORG|ALL)$", message = "选择范围不合法")
+    private String refScope;
+
+    @Schema(description = "分组合计的计算方式：SUM MAX MIN COUNT FIRST，空表示不输出", example = "SUM")
+    @jakarta.validation.constraints.Pattern(regexp = "^(|SUM|MAX|MIN|COUNT|FIRST)$", message = "汇总计算方式不合法")
+    private String rollupFunc;
 
 }

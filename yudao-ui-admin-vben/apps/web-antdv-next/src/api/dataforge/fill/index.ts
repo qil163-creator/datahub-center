@@ -11,8 +11,12 @@ export namespace DataforgeFillApi {
     periodKey?: string;
     reportingOrgId?: number;
     orgName?: string;
-    /** 0待填报 1填报中 2提交校验中 3待启动审批 4审批中 5整改中 6待合并 7合并中 8合并失败 9已合并 10已取消 */
+    /** 0待填报 1填报中 2提交校验中 3待启动审批 4审批中 5整改中 6待合并 7合并中 8合并失败 9已合并 10已取消 11已汇入上级 */
     status: number;
+    /** 上级实例编号；空表示由发起者直接下发的顶层实例 */
+    parentWorkItemId?: number | string;
+    /** 层级：顶层为 0 */
+    level?: number;
     overdue?: number;
     submissionType?: number;
     attemptCount?: number;
@@ -34,6 +38,9 @@ export namespace DataforgeFillApi {
     rowVersion: number;
     createUserId?: number;
     lastModifyUserId?: number;
+    /** 行来源：空-本单位录入 1-下级明细 2-下级分组合计（汇总行只读） */
+    sourceKind?: number;
+    sourceOrgId?: number | string;
   }
 
   /** 草稿全量快照 */
@@ -49,6 +56,10 @@ export namespace DataforgeFillApi {
     editable: boolean;
     fieldSchema: string;
     formulaSchema?: string;
+    /** 录入布局 JSON（冻结列等） */
+    layoutSnapshot?: string;
+    /** 编号类字段选项：人员/部门为可选范围，附件/图片为已引用附件名称；key 为 fieldCode */
+    refOptions?: Record<string, Array<{ label: string; value: string }>>;
     validationSchema?: string;
     rows: DraftRow[];
   }
@@ -86,6 +97,10 @@ export namespace DataforgeFillApi {
     appliedCount: number;
     duplicateCount: number;
     draftRowCount: number;
+    /** Excel 导入：新增、按唯一标识覆盖、因重复跳过的行数 */
+    addedCount?: number;
+    updatedCount?: number;
+    skippedCount?: number;
   }
 
   /** 校验问题 */
@@ -138,11 +153,17 @@ export namespace DataforgeFillApi {
       data: Record<string, unknown>;
       rowId: string;
       rowOrder: number | string;
+      /** 行来源：空-本单位录入 1-下级明细 2-下级分组合计 */
+      sourceKind?: number;
+      /** 来源报送组织名称（下级汇总的行） */
+      sourceOrgName?: string;
     }[];
     /** 同一填报实例上一次提交的编号；首次提交为空 */
     previousSubmissionId?: number | string;
     /** 提交时产生的警告（不阻断提交） */
     warnings?: ValidationIssue[];
+    /** 人员、部门、附件、图片字段的显示名称：fieldCode → 快照中出现的编号与名称 */
+    refLabels?: Record<string, { label: string; value: string }[]>;
   }
 
   /** 采集计划目标组织 */
@@ -252,6 +273,8 @@ export namespace DataforgeFillApi {
     overdueCount: number;
     completionRate: number;
     statusCounts: Record<number, number>;
+    /** 中间单位向下下发的下级实例数（不计入完成率） */
+    childOrgCount?: number;
   }
 
   /** 结束填报结果 */
@@ -305,6 +328,110 @@ export namespace DataforgeFillApi {
     ignoredHeaders: string[];
     issues: ValidationIssue[];
     rows: Record<string, unknown>[];
+    /** Excel 表头与模板输入列的对应（fieldCode 为空表示忽略该列） */
+    headers?: { fieldCode?: string; header: string }[];
+    /** 可映射的模板输入列 */
+    fields?: { fieldCode: string; name: string }[];
+  }
+
+  /** 下级实例 */
+  export interface ChildItem {
+    workItemId: number | string;
+    reportingOrgId: number | string;
+    orgName?: string;
+    level?: number;
+    status: number;
+    overdue?: number;
+    deadlineTime?: number | string;
+    draftRowCount?: number;
+    currentSubmissionId?: number | string;
+    approvalStatus?: number;
+    submitTime?: number | string;
+    /** 当前提交等待本单位审核 */
+    awaitingReview?: boolean;
+    /** 审核通过的数据已纳入最近一次汇总 */
+    included?: boolean;
+    childCount?: number;
+    assignees?: { userId: number | string; userName?: string }[];
+  }
+
+  /** 下级与汇总状态 */
+  export interface Children {
+    children: ChildItem[];
+    rollup: {
+      blockReason?: string;
+      lastRolledAt?: number | string;
+      mode: 'DETAIL' | 'GROUP';
+      readyToSubmit: boolean;
+      reviewingCount: number;
+      rolledUpCount: number;
+      stale: boolean;
+      totalCount: number;
+      unfinishedCount: number;
+    };
+  }
+
+  /** 可下发的下级组织 */
+  export interface DispatchCandidate {
+    deptId: number | string;
+    name: string;
+    parentId?: number | string;
+    inTask: boolean;
+    defaultAssignees?: { userId: number | string; userName?: string }[];
+    defaultOffsetHours?: number;
+  }
+
+  /** 可复用的历史期次 */
+  export interface ReuseSource {
+    submissionId: number | string;
+    taskId: number | string;
+    taskName: string;
+    periodKey: string;
+    rowCount: number;
+    submitTime?: number | string;
+  }
+
+  /** 任务汇总 */
+  export interface TaskSummary {
+    taskId: number | string;
+    taskName: string;
+    periodKey: string;
+    fields: { fieldCode: string; name: string }[];
+    orgs: {
+      approved: boolean;
+      level?: number;
+      orgName: string;
+      overdue?: number;
+      parentWorkItemId?: number | string;
+      rowCount?: number;
+      status: number;
+      submitTime?: number | string;
+      /** fieldCode → 十进制字符串（中间单位含下级汇入的数据） */
+      totals: Record<string, string>;
+      workItemId: number | string;
+    }[];
+    totals: Record<string, string>;
+    approvedCount: number;
+    unreportedCount: number;
+  }
+
+  /** 计划期次汇总 */
+  export interface PlanPeriodSummary {
+    periods: {
+      mergedCount: number;
+      periodKey: string;
+      status: number;
+      taskId: number | string;
+      totalCount: number;
+    }[];
+    orgs: {
+      orgName: string;
+      /** taskId → 0/1 */
+      overdue: Record<string, number>;
+      reportingOrgId: number | string;
+      /** taskId → 工作项状态 */
+      statuses: Record<string, number>;
+    }[];
   }
 
   /** 合并批次 */
@@ -616,13 +743,20 @@ export function downloadWorkItemExcelTemplate(workItemId: number | string) {
   );
 }
 
-/** Excel 导入预检（不写草稿） */
+/**
+ * Excel 导入预检（不写草稿）。
+ * mapping 为手工列映射（表头 → 字段码，空字符串表示忽略该列）；不传时按表头名称自动匹配。
+ */
 export function previewWorkItemExcelImport(
   workItemId: number | string,
   file: File,
+  mapping?: Record<string, string>,
 ) {
   const formData = new FormData();
   formData.append('file', file);
+  if (mapping) {
+    formData.append('mapping', JSON.stringify(mapping));
+  }
   return requestClient.post<DataforgeFillApi.ExcelImportPreview>(
     `/dataforge/fill-work-item/${workItemId}/excel/import/preview`,
     formData,
@@ -633,6 +767,10 @@ export function previewWorkItemExcelImport(
 export function confirmWorkItemExcelImport(
   workItemId: number | string,
   data: {
+    /** 唯一标识字段（最多 5 个，仅追加模式生效） */
+    duplicateKeys?: string[];
+    /** 与已有数据重复时：SKIP 跳过 / OVERWRITE 覆盖 */
+    duplicateMode?: 'OVERWRITE' | 'SKIP';
     expectedVersion: number;
     mode: number;
     rows: Record<string, unknown>[];
@@ -648,6 +786,136 @@ export function confirmWorkItemExcelImport(
 export function exportWorkItemExcel(workItemId: number | string) {
   return requestClient.download(
     `/dataforge/fill-work-item/${workItemId}/excel/export`,
+  );
+}
+
+// ==================== 多级下发与逐级汇总 ====================
+
+/** 直接下级与汇总状态 */
+export function getWorkItemChildren(workItemId: number | string) {
+  return requestClient.get<DataforgeFillApi.Children>(
+    `/dataforge/fill-work-item/${workItemId}/children`,
+  );
+}
+
+/** 可下发的下级组织（本单位部门子树内） */
+export function getDispatchCandidates(workItemId: number | string) {
+  return requestClient.get<DataforgeFillApi.DispatchCandidate[]>(
+    `/dataforge/fill-work-item/${workItemId}/dispatch-candidates`,
+  );
+}
+
+/** 向下级下发，返回新下发的实例数 */
+export function dispatchChildren(
+  workItemId: number | string,
+  data: {
+    orgs: {
+      assigneeUserIds: Array<number | string>;
+      /** 毫秒时间戳（后端 LocalDateTime 按时间戳反序列化） */
+      deadlineTime: number;
+      reportingOrgId: number | string;
+    }[];
+    saveAsDefault?: boolean;
+  },
+) {
+  return requestClient.post<number>(
+    `/dataforge/fill-work-item/${workItemId}/dispatch`,
+    data,
+  );
+}
+
+/** 汇总下级数据（替换上一次汇总的行） */
+export function rollupChildren(workItemId: number | string, expectedVersion: number) {
+  return requestClient.post<{
+    childCount: number;
+    draftRowCount: number;
+    rollupRowCount: number;
+  }>(
+    `/dataforge/fill-work-item/${workItemId}/rollup?expectedVersion=${expectedVersion}`,
+  );
+}
+
+/** 催办未完成的下级，返回催办数 */
+export function urgeChildren(workItemId: number | string) {
+  return requestClient.post<number>(
+    `/dataforge/fill-work-item/${workItemId}/urge-children`,
+  );
+}
+
+/** 上级单位审核下级提交 */
+export function reviewChild(data: {
+  approve: boolean;
+  childWorkItemId: number | string;
+  reason?: string;
+}) {
+  return requestClient.put('/dataforge/fill-work-item/child/review', data);
+}
+
+/** 退回已汇入的下级 */
+export function returnChild(data: { childWorkItemId: number | string; reason: string }) {
+  return requestClient.put('/dataforge/fill-work-item/child/return', data);
+}
+
+/** 撤销下发（仅未提交的下级），返回取消的实例数 */
+export function cancelChild(data: { childWorkItemId: number | string; reason?: string }) {
+  return requestClient.put<number>('/dataforge/fill-work-item/child/cancel', data);
+}
+
+/** 调整下级截止时间（毫秒时间戳，不能晚于本单位截止时间） */
+export function updateChildDeadline(data: {
+  childWorkItemId: number | string;
+  deadlineTime: number;
+}) {
+  return requestClient.put('/dataforge/fill-work-item/child/deadline', data);
+}
+
+// ==================== 复用历史数据 ====================
+
+/** 可复用的历史期次（同计划、同组织、更早期次、审批通过且有数据，最近 24 期） */
+export function getReuseSources(workItemId: number | string) {
+  return requestClient.get<DataforgeFillApi.ReuseSource[]>(
+    `/dataforge/fill-work-item/${workItemId}/reuse-sources`,
+  );
+}
+
+/** 把所选期次的数据带入草稿：1-追加 2-替换全部草稿行 */
+export function reuseHistoryData(
+  workItemId: number | string,
+  data: {
+    expectedVersion: number;
+    mode: number;
+    submissionId: number | string;
+  },
+) {
+  return requestClient.post<DataforgeFillApi.OperationApplyResp>(
+    `/dataforge/fill-work-item/${workItemId}/reuse`,
+    data,
+  );
+}
+
+// ==================== 结果汇总 ====================
+
+/** 任务汇总：各组织报送状态与审批通过数据的数值合计 */
+export function getTaskSummary(id: number | string) {
+  return requestClient.get<DataforgeFillApi.TaskSummary>(
+    `/dataforge/fill-task/summary?id=${id}`,
+  );
+}
+
+/** 导出未报单位清单 */
+export function exportTaskUnreported(id: number | string) {
+  return requestClient.download(`/dataforge/fill-task/export-unreported?id=${id}`);
+}
+
+/** 导出审批通过的汇总数据 */
+export function exportTaskData(id: number | string) {
+  return requestClient.download(`/dataforge/fill-task/export-data?id=${id}`);
+}
+
+/** 计划期次汇总：最近 12 期 × 报送组织的状态矩阵 */
+export function getPlanPeriodSummary(planId: number | string) {
+  return requestClient.get<DataforgeFillApi.PlanPeriodSummary>(
+    `/dataforge/fill-plan/period-summary?planId=${planId}`,
   );
 }
 
@@ -717,4 +985,28 @@ export function switchTaskProcessDefinition(id: number) {
   return requestClient.put<string>(
     `/dataforge/fill-task/switch-process-definition?id=${id}`,
   );
+}
+
+// ==================== 附件与图片字段 ====================
+
+export interface FillAttachment {
+  /** 附件编号（单元格保存的值） */
+  id: number | string;
+  name: string;
+  contentType?: string;
+  size?: number;
+}
+
+/** 上传附件或图片（图片 ≤5MB，附件 ≤20MB），返回的编号写入单元格 */
+export function uploadFillAttachment(data: {
+  fieldCode: string;
+  file: File;
+  workItemId: number | string;
+}) {
+  return requestClient.upload<FillAttachment>('/dataforge/fill-attachment/upload', data);
+}
+
+/** 下载附件或图片 */
+export function downloadFillAttachment(id: number | string) {
+  return requestClient.download(`/dataforge/fill-attachment/download?id=${id}`);
 }

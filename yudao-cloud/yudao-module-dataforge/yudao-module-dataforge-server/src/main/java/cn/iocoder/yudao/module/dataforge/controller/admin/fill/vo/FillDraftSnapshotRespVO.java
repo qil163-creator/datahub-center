@@ -50,11 +50,28 @@ public class FillDraftSnapshotRespVO {
     @Schema(description = "公式定义 JSON")
     private String formulaSchema;
 
+    @Schema(description = "录入布局 JSON（冻结列等）")
+    private String layoutSnapshot;
+
     @Schema(description = "校验规则 JSON")
     private String validationSchema;
 
     @Schema(description = "草稿行（按 rowOrder 升序）")
     private List<Row> rows;
+
+    @Schema(description = "编号类字段的选项：人员/部门为可选范围，附件/图片为已引用附件的名称；key 为 fieldCode")
+    private java.util.Map<String, List<RefOption>> refOptions;
+
+    @Schema(description = "管理后台 - 编号类字段选项")
+    @Data
+    public static class RefOption {
+
+        @Schema(description = "编号（单元格保存的值）", example = "12")
+        private String value;
+
+        @Schema(description = "显示名称", example = "张三")
+        private String label;
+    }
 
     @Schema(description = "管理后台 - 草稿行")
     @Data
@@ -77,6 +94,12 @@ public class FillDraftSnapshotRespVO {
 
         @Schema(description = "行最后修改人编号")
         private Long lastModifyUserId;
+
+        @Schema(description = "行来源：空-本单位录入 1-下级明细 2-下级分组合计（汇总行只读）")
+        private Integer sourceKind;
+
+        @Schema(description = "数据最初的报送组织编号")
+        private Long sourceOrgId;
 
     }
 

@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
@@ -129,7 +130,8 @@ public class FillExcelServiceImpl implements FillExcelService {
                     header.applyFont(field.name.length(), field.name.length() + 3, requiredFont);
                 }
                 headerRow.createCell(columnIndex).setCellValue(header);
-                if (CollUtil.isNotEmpty(field.dictOptions)) {
+                // Excel 下拉只支持单选；多选列按“英文逗号分隔”录入，导入时逐项校验
+                if (CollUtil.isNotEmpty(field.dictOptions) && !field.multiple) {
                     createDictValidation(sheet, dictionarySheet, columnIndex, field);
                 }
                 sheet.setColumnWidth(columnIndex, 6000);
@@ -149,7 +151,7 @@ public class FillExcelServiceImpl implements FillExcelService {
      * @return 填报Excel导入预览响应数据
      */
     @Override
-    public FillExcelImportPreviewRespVO previewImport(Long workItemId, MultipartFile file) {
+    public FillExcelImportPreviewRespVO previewImport(Long workItemId, MultipartFile file, Map<String, String> mapping) {
         Long userId = SecurityFrameworkUtils.getLoginUserId();
         FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
         workItemService.checkEditPermission(item, userId);
@@ -161,6 +163,7 @@ public class FillExcelServiceImpl implements FillExcelService {
         List<FillSubmitRespVO.Issue> issues = new ArrayList<>();
         List<String> matchedColumns = new ArrayList<>();
         List<String> ignoredHeaders = new ArrayList<>();
+        List<FillExcelImportPreviewRespVO.HeaderMapping> headerMappings = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -176,11 +179,24 @@ public class FillExcelServiceImpl implements FillExcelService {
                     continue;
                 }
                 String normalized = normalizeHeader(header);
-                FieldMeta matched = fields.stream()
-                        .filter(field -> field.name.equals(normalized) || field.fieldCode.equals(normalized))
-                        .findFirst().orElse(null);
+                FieldMeta matched;
+                if (mapping != null && mapping.containsKey(header)) {
+                    // 手工映射优先：空串表示忽略该列
+                    String target = StrUtil.trimToEmpty(mapping.get(header));
+                    matched = fields.stream().filter(field -> field.fieldCode.equals(target)).findFirst().orElse(null);
+                } else {
+                    matched = fields.stream()
+                            .filter(field -> field.name.equals(normalized) || field.fieldCode.equals(normalized))
+                            .findFirst().orElse(null);
+                }
+                FillExcelImportPreviewRespVO.HeaderMapping headerMapping = new FillExcelImportPreviewRespVO.HeaderMapping();
+                headerMapping.setHeader(header);
+                headerMapping.setFieldCode(matched == null ? "" : matched.fieldCode);
+                headerMappings.add(headerMapping);
                 if (matched == null) {
                     ignoredHeaders.add(header);
+                } else if (columnMapping.containsValue(matched)) {
+                    throw exception(FILL_EXCEL_FILE_INVALID, "多个表头映射到了同一字段【" + matched.name + "】");
                 } else {
                     columnMapping.put(cell.getColumnIndex(), matched);
                     matchedColumns.add(matched.name);
@@ -227,6 +243,13 @@ public class FillExcelServiceImpl implements FillExcelService {
         respVO.setErrorCount(issues.size());
         respVO.setMatchedColumns(matchedColumns);
         respVO.setIgnoredHeaders(ignoredHeaders);
+        respVO.setHeaders(headerMappings);
+        respVO.setFields(fields.stream().map(field -> {
+            FillExcelImportPreviewRespVO.FieldOption option = new FillExcelImportPreviewRespVO.FieldOption();
+            option.setFieldCode(field.fieldCode);
+            option.setName(field.name);
+            return option;
+        }).toList());
         respVO.setIssues(issues);
         respVO.setRows(rows);
         return respVO;
@@ -254,7 +277,11 @@ public class FillExcelServiceImpl implements FillExcelService {
         // 转为草稿操作，经 applyOperations 原子应用：版本 CAS、操作日志、协同广播全部复用
         List<FillOperationApplyReqVO.OperationItem> operations = new ArrayList<>();
         if (reqVO.getMode() == MODE_REPLACE) {
+            // 只替换本单位录入的行；下级汇总生成的行由汇总维护
             for (FillDraftRowDO existing : draftRowMapper.selectListByWorkItemId(workItemId)) {
+                if (existing.getSourceKind() != null) {
+                    continue;
+                }
                 FillOperationApplyReqVO.OperationItem remove = new FillOperationApplyReqVO.OperationItem();
                 remove.setClientOpId("imp-" + IdUtil.fastSimpleUUID());
                 remove.setOpType(FillOperationTypeEnum.REMOVE_ROW.getType());
@@ -262,7 +289,22 @@ public class FillExcelServiceImpl implements FillExcelService {
                 operations.add(remove);
             }
         }
-        for (Map<String, Object> row : reqVO.getRows()) {
+        List<String> keys = reqVO.getMode() == MODE_APPEND && CollUtil.isNotEmpty(reqVO.getDuplicateKeys())
+                ? reqVO.getDuplicateKeys().stream().filter(StrUtil::isNotBlank).distinct().toList() : List.of();
+        if (!keys.isEmpty()) {
+            Set<String> inputCodes = inputFields(item.getTableVersionId()).stream()
+                    .map(field -> field.fieldCode).collect(java.util.stream.Collectors.toSet());
+            if (!inputCodes.containsAll(keys)) {
+                throw exception(FILL_OPERATION_INVALID, "唯一标识必须是模板中的录入字段");
+            }
+        }
+        List<ExistingRow> existing = keys.isEmpty() ? List.of()
+                : draftRowMapper.selectListByWorkItemId(workItemId).stream()
+                .filter(row -> row.getSourceKind() == null)
+                .map(row -> new ExistingRow(row.getRowId(), parseRowData(row.getData()))).toList();
+        ImportPlan plan = planImport(reqVO.getRows(), existing, keys,
+                "OVERWRITE".equals(reqVO.getDuplicateMode()));
+        for (Map<String, Object> row : plan.adds()) {
             FillOperationApplyReqVO.OperationItem add = new FillOperationApplyReqVO.OperationItem();
             add.setClientOpId("imp-" + IdUtil.fastSimpleUUID());
             add.setOpType(FillOperationTypeEnum.ADD_ROW.getType());
@@ -270,12 +312,105 @@ public class FillExcelServiceImpl implements FillExcelService {
             add.setValue(row);
             operations.add(add);
         }
+        plan.updates().forEach((rowId, row) -> row.forEach((fieldCode, value) -> {
+            FillOperationApplyReqVO.OperationItem set = new FillOperationApplyReqVO.OperationItem();
+            set.setClientOpId("imp-" + IdUtil.fastSimpleUUID());
+            set.setOpType(FillOperationTypeEnum.SET_CELL.getType());
+            set.setRowId(rowId);
+            set.setFieldCode(fieldCode);
+            set.setValue(value);
+            operations.add(set);
+        }));
+        if (operations.isEmpty()) {
+            throw exception(FILL_OPERATION_INVALID, "全部数据与已有行重复，已跳过 " + plan.skipped() + " 行");
+        }
 
         FillOperationApplyReqVO applyReqVO = new FillOperationApplyReqVO();
         applyReqVO.setExpectedVersion(reqVO.getExpectedVersion());
         applyReqVO.setClientSessionId("excel-import");
         applyReqVO.setOperations(operations);
-        return draftService.applyOperations(workItemId, applyReqVO);
+        FillOperationApplyRespVO respVO = draftService.applyOperations(workItemId, applyReqVO);
+        respVO.setAddedCount(plan.adds().size());
+        respVO.setUpdatedCount(plan.updates().size());
+        respVO.setSkippedCount(plan.skipped());
+        return respVO;
+    }
+
+    /** 已有草稿行 */
+    record ExistingRow(String rowId, Map<String, Object> data) {
+    }
+
+    /**
+     * 导入计划：新增的行、按唯一标识覆盖的行（rowId → 导入值）、跳过的行数。
+     */
+    record ImportPlan(List<Map<String, Object>> adds, Map<String, Map<String, Object>> updates, int skipped) {
+    }
+
+    /**
+     * 按唯一标识规划导入：标识全为空的行直接新增；与已有行重复时跳过或覆盖；文件内重复时，
+     * 跳过模式保留第一行，覆盖模式以最后一行为准。
+     *
+     * @param rows 导入行
+     * @param existing 已有草稿行
+     * @param keys 唯一标识字段码（为空表示不查重）
+     * @param overwrite 是否覆盖
+     * @return 导入计划
+     */
+    static ImportPlan planImport(List<Map<String, Object>> rows, List<ExistingRow> existing, List<String> keys,
+                                 boolean overwrite) {
+        if (keys.isEmpty()) {
+            return new ImportPlan(rows, Map.of(), 0);
+        }
+        Map<String, String> existingByKey = new java.util.HashMap<>();
+        for (ExistingRow row : existing) {
+            String key = keyOf(row.data(), keys);
+            if (key != null) {
+                existingByKey.putIfAbsent(key, row.rowId());
+            }
+        }
+        Map<String, Map<String, Object>> addsByKey = new LinkedHashMap<>();
+        List<Map<String, Object>> adds = new ArrayList<>();
+        Map<String, Map<String, Object>> updates = new LinkedHashMap<>();
+        int skipped = 0;
+        for (Map<String, Object> row : rows) {
+            String key = keyOf(row, keys);
+            if (key == null) {
+                adds.add(row);
+                continue;
+            }
+            String existingRowId = existingByKey.get(key);
+            if (existingRowId != null) {
+                if (overwrite) {
+                    if (updates.put(existingRowId, row) != null) {
+                        skipped++;
+                    }
+                } else {
+                    skipped++;
+                }
+                continue;
+            }
+            if (addsByKey.containsKey(key)) {
+                skipped++;
+                if (overwrite) {
+                    addsByKey.put(key, row);
+                }
+                continue;
+            }
+            addsByKey.put(key, row);
+        }
+        adds.addAll(addsByKey.values());
+        return new ImportPlan(adds, updates, skipped);
+    }
+
+    private static String keyOf(Map<String, Object> data, List<String> keys) {
+        StringBuilder key = new StringBuilder();
+        boolean any = false;
+        for (String code : keys) {
+            String value = data.get(code) == null ? "" : String.valueOf(data.get(code)).trim();
+            any |= !value.isEmpty();
+            key.append(value).append('\u0001');
+        }
+        return any ? key.toString() : null;
     }
 
     /**
@@ -291,6 +426,11 @@ public class FillExcelServiceImpl implements FillExcelService {
         workItemService.checkViewPermission(item, userId);
         List<FieldMeta> fields = visibleFields(item.getTableVersionId());
         List<FillDraftRowDO> rows = draftRowMapper.selectListByWorkItemId(workItemId);
+        // 公式列不存草稿，导出时按模板公式计算
+        List<Map<String, Object>> rowData = new java.util.ArrayList<>(rows.size());
+        rows.forEach(row -> rowData.add(parseRowData(row.getData())));
+        FillTemplateEvaluator.applyFormulas(
+                tableVersionService.getTableVersion(item.getTableVersionId()).getFormulaSchema(), rowData);
 
         try (Workbook book = new XSSFWorkbook()) {
             Sheet sheet = book.createSheet("数据");
@@ -300,8 +440,7 @@ public class FillExcelServiceImpl implements FillExcelService {
                 sheet.setColumnWidth(columnIndex, 6000);
             }
             int rowNum = 1;
-            for (FillDraftRowDO draftRow : rows) {
-                Map<String, Object> data = parseRowData(draftRow.getData());
+            for (Map<String, Object> data : rowData) {
                 Row excelRow = sheet.createRow(rowNum++);
                 for (int columnIndex = 0; columnIndex < fields.size(); columnIndex++) {
                     FieldMeta field = fields.get(columnIndex);
@@ -342,7 +481,7 @@ public class FillExcelServiceImpl implements FillExcelService {
             if (StrUtil.isBlank(text)) {
                 continue;
             }
-            if (CollUtil.isNotEmpty(field.dictOptions) && !field.dictOptions.contains(text)) {
+            if (!FillFieldRuleValidator.optionsAllowed(field.dictOptions, field.multiple, text)) {
                 issues.add(issue("DICT", field.fieldCode, excelRowNo,
                         String.format("第 %s 行【%s】的值不在选择范围内", excelRowNo, field.name)));
                 continue;
@@ -566,6 +705,7 @@ public class FillExcelServiceImpl implements FillExcelService {
             meta.hidden = Boolean.TRUE.equals(map.get("hidden"));
             meta.editable = !Boolean.FALSE.equals(map.get("editable"));
             meta.length = map.get("length") instanceof Number number ? number.intValue() : null;
+            meta.multiple = Boolean.TRUE.equals(map.get("multiple"));
             Map<String, Object> schema = new java.util.LinkedHashMap<>();
             map.forEach((key, value) -> schema.put(String.valueOf(key), value));
             meta.schema = schema;
@@ -631,6 +771,9 @@ public class FillExcelServiceImpl implements FillExcelService {
         private Integer length;
 
         private List<String> dictOptions;
+
+        /** 多选字段：取值为英文逗号分隔的多个可选项 */
+        private boolean multiple;
 
         /** 发布版本固化的完整字段 schema，供取值范围/格式规则校验使用 */
         private Map<String, Object> schema = Map.of();

@@ -56,7 +56,7 @@ public class FillTableColumnDO extends BaseDO {
     private Integer fieldType;
 
     /**
-     * 录入类型：1-手工录入 2-选择
+     * 录入类型：1-手工录入 2-选择 3-多选（取值为英文逗号分隔的多个可选项） 4-人员 5-部门 6-附件 7-图片（存编号）
      */
     private Integer fillType;
 
@@ -147,6 +147,51 @@ public class FillTableColumnDO extends BaseDO {
     private String dictType;
 
     /**
+     * 行内公式（FillExpression 语法，引用本表字段码）；设置后该字段为只读计算列，提交时由服务端重算
+     */
+    private String formulaExpr;
+
+    /**
+     * 录入页面列宽（像素，空值按默认宽度）
+     */
+    private Integer columnWidth;
+
+    /**
+     * 表头分组名称：相邻且同名的字段在录入页面合并为上一级表头，空值表示不分组
+     */
+    private String headerGroup;
+
+    /**
+     * 数据表下拉：取值来源数据源编号（设置后发布时读取取值并固化进模板版本）
+     */
+    private Long refDatabaseId;
+
+    /**
+     * 数据表下拉：来源表名
+     */
+    private String refTableName;
+
+    /**
+     * 数据表下拉：取值列（去重后作为可选项）
+     */
+    private String refValueColumn;
+
+    /**
+     * 级联：上级字段码（本模板内的另一个选择字段），为空表示不级联
+     */
+    private String refParentField;
+
+    /**
+     * 级联：来源表中与上级字段取值对应的列
+     */
+    private String refParentColumn;
+
+    /**
+     * 人员/部门选择的可选范围：ORG-报送组织及下级（默认） ALL-全部启用的人员或部门
+     */
+    private String refScope;
+
+    /**
      * 转换为 dbswitch 的列描述，用于生成建表 DDL
      *
      * 注意：UUID 主键由应用生成字符串，不映射为数据库自增（修正 srt-cloud 的问题）
@@ -164,5 +209,10 @@ public class FillTableColumnDO extends BaseDO {
         description.setAutoIncrement(false);
         return description;
     }
+
+    /**
+     * 分组合计的计算方式：SUM MAX MIN COUNT FIRST；空表示不输出（分组字段除外）
+     */
+    private String rollupFunc;
 
 }

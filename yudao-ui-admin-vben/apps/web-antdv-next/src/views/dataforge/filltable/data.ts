@@ -15,6 +15,97 @@ export const FILL_TABLE_STATUS_OPTIONS = [
   { label: '已发布', value: 1, color: 'success' },
 ];
 
+/** 合并策略：审批通过后数据写入正式表的方式 */
+export const MERGE_STRATEGY_OPTIONS = [
+  {
+    label: '范围替换：按组织 + 所属期整体替换（默认）',
+    value: 'REPLACE_SCOPE',
+  },
+  { label: '更新插入：按业务键新增或更新', value: 'UPSERT' },
+  { label: '追加：每次上报都新增记录（不支持数据更正）', value: 'APPEND' },
+];
+
+/** 系统生成的 UUID 主键：不作为业务键候选 */
+function isGeneratedKey(column: DataforgeFillTableApi.FillTableColumn) {
+  return column.pk === 1 && column.pkType === 1;
+}
+
+/** 业务键候选：必填、非系统生成主键的字段 */
+export function businessKeyOptions(
+  columns: DataforgeFillTableApi.FillTableColumn[],
+) {
+  return columns
+    .filter((column) => column.nullable === 0 && !isGeneratedKey(column))
+    .map((column) => ({
+      label: `${column.cnName ?? column.name}（${column.fieldCode ?? column.name}）`,
+      value: column.fieldCode ?? column.name ?? '',
+    }));
+}
+
+/** 分组字段候选：可见字段 */
+export function rollupGroupOptions(
+  columns: DataforgeFillTableApi.FillTableColumn[],
+) {
+  return columns
+    .filter((column) => column.fillHide !== 1)
+    .map((column) => ({
+      label: `${column.cnName ?? column.name}（${column.fieldCode ?? column.name}）`,
+      value: column.fieldCode ?? column.name ?? '',
+    }));
+}
+
+/** 多级汇总方式 */
+export const ROLLUP_MODE_OPTIONS = [
+  { label: '明细汇集：保留下级各行并标注来源组织（默认）', value: 'DETAIL' },
+  { label: '分组合计：按分组字段计算合计、最大、最小、计数', value: 'GROUP' },
+];
+
+/** 分组合计的计算方式（不提供平均值：逐级对平均值求平均会失真） */
+export const ROLLUP_FUNC_OPTIONS = [
+  { label: '不输出', value: '' },
+  { label: '合计', value: 'SUM' },
+  { label: '最大', value: 'MAX' },
+  { label: '最小', value: 'MIN' },
+  { label: '计数（逐级相加）', value: 'COUNT' },
+  { label: '取首个值', value: 'FIRST' },
+];
+
+/** 表单值（业务键、分组字段为数组）→ 接口值（逗号分隔） */
+export function toFillTableSaveData(
+  values: DataforgeFillTableApi.FillTable & {
+    businessKeyList?: string[];
+    rollupGroupList?: string[];
+  },
+): DataforgeFillTableApi.FillTable {
+  const { businessKeyList, rollupGroupList, ...rest } = values;
+  const rollupMode = rest.rollupMode || 'DETAIL';
+  return {
+    ...rest,
+    businessKeyFields:
+      rest.mergeStrategy === 'UPSERT' ? (businessKeyList ?? []).join(',') : '',
+    rollupGroupFields:
+      rollupMode === 'GROUP' ? (rollupGroupList ?? []).join(',') : '',
+    rollupMode,
+  };
+}
+
+/** 接口值 → 表单值 */
+export function toFillTableFormValues(detail: DataforgeFillTableApi.FillTable) {
+  return {
+    ...detail,
+    businessKeyList: (detail.businessKeyFields ?? '')
+      .split(',')
+      .map((key) => key.trim())
+      .filter(Boolean),
+    mergeStrategy: detail.mergeStrategy || 'REPLACE_SCOPE',
+    rollupGroupList: (detail.rollupGroupFields ?? '')
+      .split(',')
+      .map((key) => key.trim())
+      .filter(Boolean),
+    rollupMode: detail.rollupMode || 'DETAIL',
+  };
+}
+
 /** 字段数据类型（dbswitch 逻辑类型） */
 export const FIELD_TYPE_OPTIONS = [
   { label: '字符串', value: 2 },
@@ -30,7 +121,15 @@ export const FIELD_TYPE_OPTIONS = [
 export const FILL_TYPE_OPTIONS = [
   { label: '手工录入', value: 1 },
   { label: '下拉选择', value: 2 },
+  { label: '多选', value: 3 },
+  { label: '人员', value: 4 },
+  { label: '部门', value: 5 },
+  { label: '附件', value: 6 },
+  { label: '图片', value: 7 },
 ];
+
+/** 人员、部门、附件、图片字段保存编号，需要字符串类型 */
+export const ID_FILL_TYPES = new Set([4, 5, 6, 7]);
 
 /** 主键类型 */
 export const PK_TYPE_OPTIONS = [
@@ -138,6 +237,69 @@ export function useFormSchema(): VbenFormSchema[] {
       },
     },
     {
+      fieldName: 'mergeStrategy',
+      label: '合并策略',
+      component: 'Select',
+      defaultValue: 'REPLACE_SCOPE',
+      help: '审批通过后，数据写入正式表的方式。发布时固化进模板版本，修改后需重新发布。',
+      componentProps: {
+        options: MERGE_STRATEGY_OPTIONS,
+        placeholder: '请选择合并策略',
+      },
+    },
+    {
+      fieldName: 'businessKeyList',
+      label: '业务键',
+      component: 'Select',
+      help: '从必填字段中选择；组织与所属期由系统自动并入业务键。新建的表请先保存并添加字段，再回来选择。',
+      componentProps: {
+        mode: 'multiple',
+        options: [],
+        placeholder: '请选择业务键字段',
+      },
+      dependencies: {
+        triggerFields: ['mergeStrategy'],
+        resolve: ({ values }) => {
+          const upsert = values.mergeStrategy === 'UPSERT';
+          return { rules: upsert ? 'selectRequired' : null, show: upsert };
+        },
+      },
+    },
+    {
+      fieldName: 'rollupMode',
+      label: '多级汇总',
+      component: 'Select',
+      defaultValue: 'DETAIL',
+      help: '中间单位汇总下级数据的方式。分组合计时，在字段设置里为数值字段选择“合计/最大/最小/计数”。发布时固化。',
+      componentProps: { options: ROLLUP_MODE_OPTIONS },
+    },
+    {
+      fieldName: 'rollupGroupList',
+      label: '分组字段',
+      component: 'Select',
+      help: '分组合计按这些字段的取值分组；新建的表请先保存并添加字段，再回来选择。',
+      componentProps: {
+        mode: 'multiple',
+        options: [],
+        placeholder: '请选择分组字段',
+      },
+      dependencies: {
+        triggerFields: ['rollupMode'],
+        resolve: ({ values }) => {
+          const group = values.rollupMode === 'GROUP';
+          return { rules: group ? 'selectRequired' : null, show: group };
+        },
+      },
+    },
+    {
+      fieldName: 'freezeColumnCount',
+      label: '冻结列数',
+      component: 'InputNumber',
+      defaultValue: 0,
+      help: '录入页面横向滚动时，前几列保持可见（0 表示不冻结）',
+      componentProps: { class: 'w-full', max: 10, min: 0, precision: 0 },
+    },
+    {
       fieldName: 'description',
       label: '描述',
       component: 'TextArea',
@@ -240,6 +402,32 @@ export const RULE_SEVERITY_OPTIONS = [
   { label: '错误（阻断提交）', value: 1 },
   { label: '警告（可提交）', value: 2 },
 ];
+
+/** 校验规则范围 */
+export const RULE_SCOPE_OPTIONS = [
+  { label: '行级', value: 'ROW' },
+  { label: '表级', value: 'TABLE' },
+  { label: '跨期', value: 'PERIOD' },
+];
+
+/** 各范围的表达式示例（与后端 FillExpression 语法一致） */
+export function ruleExamples(scope: string) {
+  switch (scope) {
+    case 'PERIOD': {
+      return 'ABS(SUM(amount) - PREV_SUM(amount)) <= PREV_SUM(amount) * 0.3（与上期相比波动不超过 30%）';
+    }
+    case 'TABLE': {
+      return 'SUM(amount) <= 1000000、COUNT(name) >= 1';
+    }
+    default: {
+      return 'total = item_a + item_b、end_date >= start_date、IF(type = \'收入\', amount > 0, TRUE)';
+    }
+  }
+}
+
+/** 公式写法说明 */
+export const FORMULA_HINT =
+  '引用本表字段码，如 unit_price * quantity、ROUND(a / b * 100, 2)；支持 + - * / %、ROUND ABS MIN MAX IF COALESCE LEN。设置后该列只读，由系统计算';
 
 /** 数值与日期时间字段可设置取值范围 */
 export function supportsRange(fieldType?: number) {

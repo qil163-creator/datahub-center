@@ -15,7 +15,8 @@ public enum FillAssigneeSourceEnum {
     PLAN_DEFAULT(1, "计划默认填报人"),
     INITIATOR(2, "发起者指定"),
     TRANSFER(3, "转派接收"),
-    ADMIN_REASSIGN(4, "管理员重新分配");
+    ADMIN_REASSIGN(4, "管理员重新分配"),
+    PARENT_DISPATCH(5, "上级单位下发");
 
     private final Integer source;
 

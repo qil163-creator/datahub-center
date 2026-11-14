@@ -8,8 +8,12 @@ import cn.iocoder.yudao.framework.dbswitch.core.database.AbstractDatabase;
 import cn.iocoder.yudao.framework.dbswitch.core.model.BasicTableMetadata;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnMetaData;
+import cn.iocoder.yudao.framework.dbswitch.core.model.TableSchemaMetadata;
+import cn.iocoder.yudao.framework.dbswitch.core.schema.DdlPlan;
+import cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaDiff;
 import cn.iocoder.yudao.framework.dbswitch.core.service.IMetaDataByJdbcService;
 import cn.iocoder.yudao.framework.dbswitch.core.util.GenerateSqlUtils;
+import cn.iocoder.yudao.module.dataforge.enums.fill.FillMergeStrategyEnum;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillMergeServiceImpl;
 import cn.iocoder.yudao.module.dataforge.service.fill.FillTableVersionService;
 import cn.hutool.core.util.StrUtil;
@@ -86,11 +90,17 @@ public class FillTableServiceImpl implements FillTableService {
      */
     private static final int TEMPLATE_VALID_ROWS = 10000;
 
+    /** 自动加列前读取目标表原生结构的总期限（毫秒） */
+    private static final int SCHEMA_READ_TIMEOUT_MILLIS = 15_000;
+
     @Resource
     private FillTableMapper fillTableMapper;
 
     @Resource
     private FillTableColumnMapper columnMapper;
+
+    @Resource
+    private cn.iocoder.yudao.module.dataforge.dal.mysql.filltable.FillTableRuleMapper ruleMapper;
 
     @Resource
     private FillTableVersionService tableVersionService;
@@ -154,6 +164,14 @@ public class FillTableServiceImpl implements FillTableService {
         if (database == null) {
             throw exception(FILL_TABLE_DATABASE_NOT_EXISTS);
         }
+        // 空串而非 null：updateById 忽略 null，切换策略时才能清除旧业务键；完整性在发布时按字段校验
+        reqVO.setMergeStrategy(StrUtil.emptyToDefault(StrUtil.trim(reqVO.getMergeStrategy()),
+                FillMergeStrategyEnum.REPLACE_SCOPE.getStrategy()));
+        reqVO.setBusinessKeyFields(FillMergeStrategyEnum.UPSERT.getStrategy().equals(reqVO.getMergeStrategy())
+                ? StrUtil.trimToEmpty(reqVO.getBusinessKeyFields()) : "");
+        if (reqVO.getFreezeColumnCount() == null) {
+            reqVO.setFreezeColumnCount(0);
+        }
     }
 
     /**
@@ -168,6 +186,7 @@ public class FillTableServiceImpl implements FillTableService {
         validateNotReleased(fillTable);
         fillTableMapper.deleteById(id);
         columnMapper.deleteByTableId(id);
+        ruleMapper.deleteByTableId(id);
     }
 
     /**
@@ -255,6 +274,7 @@ public class FillTableServiceImpl implements FillTableService {
                 pkNames.add(description.getFieldName());
             }
         }
+        List<ColumnDescription> templateColumns = List.copyOf(columnDescriptions);
         // 系统来源列（V1.0 §21.3）：合并写入强制携带，支撑来源追踪与三类合并策略的幂等清理
         columnDescriptions.add(buildSystemColumn(FillMergeServiceImpl.SYS_COL_ORG_ID,
                 ColumnMetaData.TYPE_BIGNUMBER, null, "来源报送组织编号（系统列）"));
@@ -278,7 +298,16 @@ public class FillTableServiceImpl implements FillTableService {
             }
             BasicTableMetadata actual = metaDataService.queryTableColumnsAndKeys(
                     conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), conn.getSchema(), tableName);
-            validateTargetSchema(tableName, dialect, columnDescriptions, pkNames, actual);
+            // 模板新增的普通字段：先确认其余结构一致，再只增不减地补到已有物理表上
+            List<ColumnDescription> additions = missingTemplateColumns(tableName, templateColumns, actual);
+            Set<String> additionNames = new HashSet<>(convertList(additions, ColumnDescription::getFieldName));
+            validateTargetSchema(tableName, dialect, columnDescriptions, pkNames, actual, additionNames);
+            if (!additions.isEmpty()) {
+                addTemplateColumns(conn, metaDataService, dialect, tableName, additions);
+                actual = metaDataService.queryTableColumnsAndKeys(
+                        conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), conn.getSchema(), tableName);
+                validateTargetSchema(tableName, dialect, columnDescriptions, pkNames, actual, Set.of());
+            }
         } else {
             // UUID 主键由应用生成字符串，DDL 不使用数据库自增。
             List<String> ddlList = GenerateSqlUtils.getDDLCreateTableSQL(
@@ -291,12 +320,68 @@ public class FillTableServiceImpl implements FillTableService {
         tableVersionService.completeTableRelease(snapshot);
     }
 
+    /**
+     * 已有物理表上缺少、需要新增的模板字段；系统列与主键不在此列，缺失时仍按结构不一致拒绝。
+     */
+    private List<ColumnDescription> missingTemplateColumns(String tableName, List<ColumnDescription> templateColumns,
+                                                           BasicTableMetadata actual) {
+        Set<String> existing = convertSet(actual.columns(), ColumnDescription::getFieldName);
+        List<ColumnDescription> additions = new ArrayList<>();
+        for (ColumnDescription column : templateColumns) {
+            if (existing.contains(column.getFieldName())) {
+                continue;
+            }
+            if (column.isPk()) {
+                throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName,
+                        "主键字段【" + column.getFieldName() + "】不能在已有表上新增");
+            }
+            additions.add(column);
+        }
+        return additions;
+    }
+
+    /**
+     * 通过 DB Switch 的加法式变更计划补列：只生成可空、非键、无默认值的 ADD COLUMN，
+     * 目标库产品或表结构未经验证时整体拒绝，不执行任何 DDL。
+     * 新增列在库中允许为空（存量行没有值），模板上的必填要求由填报端校验保证。
+     */
+    private void addTemplateColumns(AccessDatabaseResolver.ConnectionInfo conn, IMetaDataByJdbcService metaDataService,
+                                    AbstractDatabase dialect, String tableName, List<ColumnDescription> additions) {
+        String names = String.join("、", convertList(additions, ColumnDescription::getFieldName));
+        List<ColumnDescription> nullableAdditions = convertList(additions, column -> {
+            ColumnDescription copy = column.copy();
+            copy.setNullable(true);
+            return copy;
+        });
+        TableSchemaMetadata schema;
+        try {
+            schema = metaDataService.queryTableSchema(conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(),
+                    conn.getSchema(), tableName, SCHEMA_READ_TIMEOUT_MILLIS);
+        } catch (RuntimeException ex) {
+            log.warn("[addTemplateColumns][目标表({}) 原生结构读取失败：{}]", tableName, ex.getMessage());
+            throw exception(FILL_TABLE_TARGET_ADD_COLUMN_UNSUPPORTED, tableName, names, "无法读取目标表的原生结构");
+        }
+        DdlPlan plan = new SchemaDiff().planAddColumns(dialect, conn.getSchema(), tableName, nullableAdditions, schema);
+        if (!plan.ready()) {
+            String reasons = String.join("；", convertList(plan.diagnostics(),
+                    diagnostic -> diagnostic.code() + "(" + diagnostic.objectName() + ")"));
+            throw exception(FILL_TABLE_TARGET_ADD_COLUMN_UNSUPPORTED, tableName, names, reasons);
+        }
+        for (DdlPlan.Step step : plan.steps()) {
+            metaDataService.executeSql(conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), step.sql());
+        }
+        log.info("[addTemplateColumns][目标表({}) 已新增字段 {}]", tableName, names);
+    }
+
     private void validateTargetSchema(String tableName, AbstractDatabase dialect, List<ColumnDescription> expected,
-                                      List<String> primaryKeys, BasicTableMetadata actual) {
+                                      List<String> primaryKeys, BasicTableMetadata actual, Set<String> pendingAdditions) {
         Map<String, ColumnDescription> actualColumns = convertMap(actual.columns(), ColumnDescription::getFieldName);
         for (ColumnDescription column : expected) {
             String name = column.getFieldName();
             ColumnDescription target = actualColumns.remove(name);
+            if (target == null && pendingAdditions.contains(name)) {
+                continue;
+            }
             if (target == null) {
                 throw exception(FILL_TABLE_TARGET_SCHEMA_MISMATCH, tableName, "缺少字段【" + name + "】");
             }
@@ -328,8 +413,10 @@ public class FillTableServiceImpl implements FillTableService {
         }
         boolean nullable = !notNull && !primaryKeys.contains(name);
         String type = SqlTypeSemantics.canonicalName(declaredType);
+        // 模板可空则库中必须可空；模板必填时库中可以更宽松（后加的必填列只能可空），必填由填报端校验
+        boolean nullabilityCompatible = !nullable || actual.isNullable();
         if (!type.equals(SqlTypeSemantics.canonicalName(SqlTypeSemantics.metadataTypeName(actual)))
-                || nullable != actual.isNullable() || actual.isAutoIncrement()) {
+                || !nullabilityCompatible || actual.isAutoIncrement()) {
             return false;
         }
         // JDBC 对字符类型报告长度，对定点数报告总精度和小数位，对时间类型报告小数位。

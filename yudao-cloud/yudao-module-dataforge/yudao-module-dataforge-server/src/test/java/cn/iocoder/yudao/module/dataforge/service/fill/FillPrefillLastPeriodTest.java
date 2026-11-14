@@ -143,7 +143,10 @@ class FillPrefillLastPeriodTest {
         ReflectionTestUtils.setField(service, "planOrgMapper", planOrgMapper);
         ReflectionTestUtils.setField(service, "planOrgAssigneeMapper", planOrgAssigneeMapper);
         ReflectionTestUtils.setField(service, "notifyService", mock(FillNotifyService.class));
-        ReflectionTestUtils.setField(service, "submissionMapper", submissionMapper);
+        FillPreviousPeriodService previousPeriodService = new FillPreviousPeriodService();
+        ReflectionTestUtils.setField(previousPeriodService, "workItemMapper", workItemMapper);
+        ReflectionTestUtils.setField(previousPeriodService, "submissionMapper", submissionMapper);
+        ReflectionTestUtils.setField(service, "previousPeriodService", previousPeriodService);
         ReflectionTestUtils.setField(service, "draftService", prefillDraftService);
         doAnswer(invocation -> {
             FillTaskDO task = invocation.getArgument(0);

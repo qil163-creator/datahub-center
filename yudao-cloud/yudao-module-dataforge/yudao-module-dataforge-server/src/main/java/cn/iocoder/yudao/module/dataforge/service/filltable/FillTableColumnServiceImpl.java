@@ -83,6 +83,11 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
         // 字段码永久不可变：改名也保留首次分配的 fieldCode；存量空值兜底取当前字段名
         update.setFieldCode(old.getFieldCode() != null ? old.getFieldCode() : old.getName());
         columnMapper.updateById(update);
+        // updateById 忽略空值：可清空的数值配置单独显式写入
+        columnMapper.update(null, com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaUpdate(FillTableColumnDO.class)
+                .set(FillTableColumnDO::getRefDatabaseId, updateReqVO.getRefDatabaseId())
+                .set(FillTableColumnDO::getColumnWidth, updateReqVO.getColumnWidth())
+                .eq(FillTableColumnDO::getId, old.getId()));
     }
 
     /**
@@ -146,6 +151,23 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
         if (ruleError != null) {
             throw exception(FILL_TABLE_COLUMN_RULE_INVALID, ruleError);
         }
+        String keyError = cn.iocoder.yudao.module.dataforge.service.fill.FillTableVersionServiceImpl.generatedKeyError(
+                reqVO.getPk(), reqVO.getPkType(), reqVO.getFieldType(), reqVO.getFieldLength());
+        if (keyError != null) {
+            throw exception(FILL_TABLE_COLUMN_RULE_INVALID, "该字段" + keyError);
+        }
+        validateFormula(reqVO);
+        boolean select = reqVO.getFillType() != null && (reqVO.getFillType() == 2 || reqVO.getFillType() == 3);
+        if (reqVO.getRefDatabaseId() != null) {
+            if (!select || StrUtil.isNotBlank(reqVO.getDictType())) {
+                throw exception(FILL_TABLE_REF_SOURCE_INVALID, reqVO.getCnName(), "数据表取值只用于下拉选择或多选，且不能同时绑定字典");
+            }
+            if (StrUtil.isBlank(reqVO.getRefTableName()) || StrUtil.isBlank(reqVO.getRefValueColumn())) {
+                throw exception(FILL_TABLE_REF_SOURCE_INVALID, reqVO.getCnName(), "请选择来源表和取值列");
+            }
+        } else if (StrUtil.isNotBlank(reqVO.getRefParentField())) {
+            throw exception(FILL_TABLE_REF_SOURCE_INVALID, reqVO.getCnName(), "级联只支持数据表取值的下拉字段");
+        }
         if (reqVO.getUniqueFlag() != null && reqVO.getUniqueFlag() != 0 && reqVO.getUniqueFlag() != 1) {
             throw exception(FILL_TABLE_COLUMN_RULE_INVALID, "唯一规则只能是开启或关闭");
         }
@@ -157,8 +179,35 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
             if (!usable) {
                 throw exception(FILL_TABLE_COLUMN_DICT_INVALID, reqVO.getDictType());
             }
-            // 选择值来自字典时，录入类型固定为“选择”
-            reqVO.setFillType(2);
+            // 选择值来自字典时，录入类型为“选择”或“多选”
+            if (reqVO.getFillType() == null || reqVO.getFillType() != 3) {
+                reqVO.setFillType(2);
+            }
+        }
+    }
+
+    /**
+     * 公式：语法、引用字段（本表已有字段）与自引用；完整的循环引用检查在发布时进行。
+     */
+    private void validateFormula(FillTableColumnSaveReqVO reqVO) {
+        if (StrUtil.isBlank(reqVO.getFormulaExpr())) {
+            return;
+        }
+        String label = "字段【" + reqVO.getCnName() + "】的公式";
+        if (reqVO.getPk() != null && reqVO.getPk() == 1) {
+            throw exception(FILL_TABLE_EXPRESSION_INVALID, label, "主键字段不能设置公式");
+        }
+        FillTableColumnDO old = reqVO.getId() == null ? null : columnMapper.selectById(reqVO.getId());
+        String selfCode = old != null && old.getFieldCode() != null ? old.getFieldCode() : reqVO.getName();
+        java.util.Set<String> fieldCodes = new java.util.HashSet<>(cn.iocoder.yudao.framework.common.util.collection
+                .CollectionUtils.convertSet(columnMapper.selectListByTableId(reqVO.getTableId()),
+                        FillTableColumnDO::getFieldCode));
+        fieldCodes.add(selfCode);
+        var expression = cn.iocoder.yudao.module.dataforge.service.fill.FillTemplateExpressions.compile(
+                reqVO.getFormulaExpr(), cn.iocoder.yudao.module.dataforge.service.fill.FillExpression.Scope.FORMULA,
+                fieldCodes, label);
+        if (expression.fieldRefs().contains(selfCode)) {
+            throw exception(FILL_TABLE_EXPRESSION_INVALID, label, "不能引用字段自身");
         }
     }
 
@@ -171,6 +220,13 @@ public class FillTableColumnServiceImpl implements FillTableColumnService {
         reqVO.setRegexPattern(StrUtil.trimToEmpty(reqVO.getRegexPattern()));
         reqVO.setRegexMessage(StrUtil.trimToEmpty(reqVO.getRegexMessage()));
         reqVO.setDictType(StrUtil.trimToEmpty(reqVO.getDictType()));
+        reqVO.setFormulaExpr(StrUtil.trimToEmpty(reqVO.getFormulaExpr()));
+        reqVO.setHeaderGroup(StrUtil.trimToEmpty(reqVO.getHeaderGroup()));
+        reqVO.setRefTableName(StrUtil.trimToEmpty(reqVO.getRefTableName()));
+        reqVO.setRefValueColumn(StrUtil.trimToEmpty(reqVO.getRefValueColumn()));
+        reqVO.setRefParentField(StrUtil.trimToEmpty(reqVO.getRefParentField()));
+        reqVO.setRefParentColumn(StrUtil.trimToEmpty(reqVO.getRefParentColumn()));
+        reqVO.setRefScope(StrUtil.trimToEmpty(reqVO.getRefScope()));
         if (reqVO.getUniqueFlag() == null) {
             reqVO.setUniqueFlag(0);
         }

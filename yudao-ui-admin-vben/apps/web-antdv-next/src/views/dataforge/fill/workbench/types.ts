@@ -17,12 +17,40 @@ export interface FillFieldSchema {
   editable: boolean;
   /** fieldType=dict 时的字典选项 */
   dictOptions?: string[];
+  /** 多选：取值为英文逗号分隔的多个可选项 */
+  multiple?: boolean;
+  /** 编号类字段：单元格保存编号，显示为“名称（编号）” */
+  refKind?: 'ATTACHMENT' | 'DEPT' | 'IMAGE' | 'USER';
+  /** 编号类字段的选项（人员/部门为可选范围，附件为已上传附件） */
+  refOptions?: Array<{ label: string; value: string }>;
+  /** 级联：上级字段码 */
+  cascadeParent?: string;
+  /** 级联：上级取值 → 可选项 */
+  cascadeOptions?: Record<string, string[]>;
   /** 小数位数（fieldType=decimal） */
   scale?: number;
   /** 列宽（px） */
   width?: number;
   /** 服务端权威公式的 fieldCode 表达式（仅用于前端即时显示重算） */
   formula?: string;
+  /** 表头分组：相邻同名字段合并为上一级表头 */
+  headerGroup?: string;
+  /** 后端逻辑类型（1 小数 2 字符串 3 日期 5 整数 6 长整型 9 日期时间 10 时间），公式结果按它舍入 */
+  logicalType?: number;
+}
+
+/** 模板公式（已按依赖顺序排列） */
+export interface FillFormula {
+  expression: string;
+  fieldCode: string;
+  fieldType?: number;
+  scale?: number;
+}
+
+/** 录入布局 */
+export interface FillLayout {
+  /** 冻结的前几列 */
+  freezeColumnCount?: number;
 }
 
 /** 一行草稿数据 */
@@ -70,11 +98,23 @@ export interface SheetEditorAdapter {
     holderUserId?: null | number,
   ) => void;
   setReadonly: (readonly: boolean) => void;
+  /** 读取单元格保存值（编号类字段返回编号） */
+  getCellValue: (rowId: string, fieldCode: string) => string;
+  /** 由页面写入单元格（附件上传等），产生领域操作；labels 用于显示编号对应的名称 */
+  setCellValue: (
+    rowId: string,
+    fieldCode: string,
+    value: string,
+    labels?: Array<{ label: string; value: string }>,
+  ) => void;
 }
 
 export interface SheetEditorOptions {
   container: HTMLElement;
   fields: FillFieldSchema[];
+  /** 模板公式（依赖顺序），本地即时重算展示，服务端提交时为准 */
+  formulas?: FillFormula[];
+  layout?: FillLayout;
   /** 本地编辑产生领域操作时回调 */
   onOperation: (op: DomainOperation) => void;
   /** 选区变化：用于申请/释放单元格锁 */

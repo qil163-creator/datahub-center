@@ -124,4 +124,14 @@ public class FillWorkItemDO extends BaseDO {
      */
     private LocalDateTime lastModifyTime;
 
+    /**
+     * 上级组织实例编号；空表示由发起者直接下发的顶层实例
+     */
+    private Long parentWorkItemId;
+
+    /**
+     * 层级：顶层为 0，每下发一级加 1
+     */
+    private Integer level;
+
 }

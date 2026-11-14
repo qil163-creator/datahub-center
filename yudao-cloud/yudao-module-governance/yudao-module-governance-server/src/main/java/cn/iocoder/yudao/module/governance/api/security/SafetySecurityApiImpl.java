@@ -55,4 +55,13 @@ public class SafetySecurityApiImpl implements SafetySecurityApi {
         return success(dynamicMaskService.maskRows(reqDTO));
     }
 
+    /**
+     * 持久化前脱敏（不看白名单豁免，失败关闭）。
+     */
+    @Override
+    public CommonResult<cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO> maskForStorage(
+            cn.iocoder.yudao.module.governance.api.security.dto.SafetyStorageMaskReqDTO reqDTO) {
+        return success(dynamicMaskService.maskForStorage(reqDTO.getColumns(), reqDTO.getRows()));
+    }
+
 }

@@ -77,8 +77,8 @@ const planSteps: DataforgeWizardStep[] = [
   {
     title: '报送与提醒',
     description: '哪些组织、由谁填报',
-    hint: '指定目标组织与填报人，并配置截止前提醒和催办频率',
-    fields: ['orgs', 'remindHoursBeforeDeadline', 'remindUrgeCooldownMinutes'],
+    hint: '指定目标组织与填报人，并配置截止前提醒、催办频率和短信/邮件附加渠道',
+    fields: ['orgs', 'remindHoursBeforeDeadline', 'remindUrgeCooldownMinutes', 'remindChannels'],
   },
   {
     title: '确认提交',

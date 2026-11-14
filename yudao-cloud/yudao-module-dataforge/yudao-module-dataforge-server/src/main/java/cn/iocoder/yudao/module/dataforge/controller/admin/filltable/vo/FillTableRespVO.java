@@ -45,4 +45,19 @@ public class FillTableRespVO {
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
+    @Schema(description = "合并策略：REPLACE_SCOPE/APPEND/UPSERT", example = "REPLACE_SCOPE")
+    private String mergeStrategy;
+
+    @Schema(description = "UPSERT 业务键字段码（英文逗号分隔）", example = "student_no")
+    private String businessKeyFields;
+
+    @Schema(description = "录入页面冻结的前几列", example = "2")
+    private Integer freezeColumnCount;
+
+    @Schema(description = "多级汇总方式：DETAIL-明细汇集 GROUP-分组合计", example = "DETAIL")
+    private String rollupMode;
+
+    @Schema(description = "分组合计的分组字段码，英文逗号分隔", example = "region,category")
+    private String rollupGroupFields;
+
 }

@@ -25,6 +25,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class FillSubmissionRowDO extends BaseDO {
 
+    /** 行来源：下级明细 */
+    public static final int SOURCE_DETAIL = 1;
+    /** 行来源：下级分组合计 */
+    public static final int SOURCE_GROUP = 2;
+
     /**
      * 主键id
      */
@@ -61,5 +66,30 @@ public class FillSubmissionRowDO extends BaseDO {
      * 行最后修改人编号（多人共同填报的来源审计）
      */
     private Long lastModifyUserId;
+
+    /**
+     * 行来源：空-本单位录入 1-下级明细 2-下级分组合计（见 {@link #SOURCE_DETAIL}、{@link #SOURCE_GROUP}）
+     */
+    private Integer sourceKind;
+
+    /**
+     * 数据最初的报送组织编号（逐级汇总时向上传递；分组合计行为汇总单位）
+     */
+    private Long sourceOrgId;
+
+    /**
+     * 数据原始录入的组织实例编号（分组合计行为汇总单位实例）
+     */
+    private Long sourceWorkItemId;
+
+    /**
+     * 直接下级审核通过的提交编号
+     */
+    private Long sourceSubmissionId;
+
+    /**
+     * 数据原始录入的行标识（分组合计行为分组键摘要）；与 sourceWorkItemId 一起作为数据身份
+     */
+    private String sourceRowId;
 
 }

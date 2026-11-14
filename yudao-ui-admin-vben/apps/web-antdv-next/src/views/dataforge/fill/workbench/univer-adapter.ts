@@ -21,12 +21,15 @@ import { UniverSheetsDataValidationPreset } from '@univerjs/preset-sheets-data-v
 import UniverPresetSheetsDataValidationZhCN from '@univerjs/preset-sheets-data-validation/locales/zh-CN';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
 
+import { compileExpression, toFieldValue } from './fill-expression';
+import { formatRefDisplay, parseRefDisplay } from './ref-display';
+
 import '@univerjs/preset-sheets-core/lib/index.css';
 import '@univerjs/preset-sheets-data-validation/lib/index.css';
 
 /** 数据区之外预留的空行数（供新增行使用） */
 const ROW_BUFFER = 100;
-/** 表头占用的表格行 */
+/** 第一行表头所在的表格行（有表头分组时分组名占这一行，字段名在下一行） */
 const HEADER_ROW = 0;
 
 /** 写类 mutation：只读模式或锁定目标时统一在此收口拦截 */
@@ -71,18 +74,29 @@ interface CommandLike {
 
 export class UniverSheetAdapter implements SheetEditorAdapter {
   private applyingInternal = false;
+  /** 数据区起始的表格行：无表头分组时 1，有分组时 2 */
+  private readonly dataStart: number;
   private readonly disposables: Array<{ dispose: () => void }> = [];
   private disposed = false;
   private readonly fieldIndexByCode = new Map<string, number>();
   private readonly fields: FillFieldSchema[];
   /** key = rowId\\0fieldCode，整行锁 fieldCode 为空 */
   private readonly foreignLocks = new Map<string, number>();
+  private readonly formulas: Array<{
+    colIndex: number;
+    evaluate: ReturnType<typeof compileExpression>['evaluate'];
+    fieldType?: number;
+    scale?: number;
+  }> = [];
+  private readonly freezeColumnCount: number;
   private readonly onOperation: (op: DomainOperation) => void;
   private readonly onSelectionChange?: (cell?: {
     fieldCode: string;
     rowId: string;
   }) => void;
   private readonly: boolean;
+  /** 编号类字段：fieldCode → (编号 → 名称) */
+  private readonly refLabels = new Map<string, Map<string, string>>();
   /** 表格数据区第 i 行（sheet 行 i+1）对应的 rowId */
   private rowIds: string[];
   private rowSeq = 0;
@@ -98,6 +112,34 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     this.fields.forEach((field, index) =>
       this.fieldIndexByCode.set(field.fieldCode, index),
     );
+    this.dataStart = this.fields.some((field) => field.headerGroup) ? 2 : 1;
+    for (const field of this.fields) {
+      if (field.refKind) {
+        this.refLabels.set(
+          field.fieldCode,
+          new Map((field.refOptions ?? []).map((option) => [String(option.value), option.label])),
+        );
+      }
+    }
+    this.freezeColumnCount = Math.max(
+      0,
+      Math.min(options.layout?.freezeColumnCount ?? 0, this.fields.length),
+    );
+    for (const formula of options.formulas ?? []) {
+      const colIndex = this.fieldIndexByCode.get(formula.fieldCode);
+      if (colIndex === undefined) continue;
+      try {
+        this.formulas.push({
+          colIndex,
+          evaluate: compileExpression(formula.expression, 'FORMULA').evaluate,
+          fieldType: formula.fieldType,
+          scale: formula.scale,
+        });
+      } catch (error) {
+        // 发布时服务端已校验；这里只影响本地即时显示，提交仍以服务端重算为准
+        console.warn('[fill] 公式无法在本地计算', formula.fieldCode, error);
+      }
+    }
 
     const { univer, univerAPI } = createUniver({
       locale: LocaleType.ZH_CN,
@@ -123,6 +165,12 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     this.installCommandGuards();
     this.installSelectionHooks();
     this.installDictValidations(options.rows.length);
+    this.installRefValidations(options.rows.length);
+    // 公式列不存草稿：载入后按模板公式计算显示值；级联字段按每行上级取值收窄可选项
+    for (let index = 0; index < this.rowIds.length; index++) {
+      this.recomputeFormulaCells(index + this.dataStart);
+      this.refreshCascade(index + this.dataStart);
+    }
   }
 
   /** 应用远端（其他填报人）已确认的操作：内部写入不重复发出 operation 事件 */
@@ -136,7 +184,7 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         const index = this.rowIds.indexOf(op.rowId);
         const sheet = this.getActiveSheet();
         if (index === -1 || !sheet) return;
-        this.runInternal(() => sheet.deleteRows(index + 1, 1));
+        this.runInternal(() => sheet.deleteRows(index + this.dataStart, 1));
         this.rowIds.splice(index, 1);
         break;
       }
@@ -146,11 +194,12 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         if (rowIndex === -1 || colIndex === undefined) return;
         this.runInternal(() => {
           this.getActiveSheet()
-            ?.getRange(rowIndex + 1, colIndex, 1, 1)
-            .setValue(op.value as string);
+            ?.getRange(rowIndex + this.dataStart, colIndex, 1, 1)
+            .setValue(this.toDisplay(this.fields[colIndex]!, op.value));
         });
+        this.refreshCascade(rowIndex + this.dataStart);
         // 远端输入变化后本地重算展示公式列（服务端仍是权威）
-        this.recomputeFormulaCells(rowIndex + 1, [colIndex]);
+        this.recomputeFormulaCells(rowIndex + this.dataStart);
         break;
       }
     }
@@ -181,24 +230,58 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
       : undefined;
     const range =
       colIndex === undefined
-        ? sheet.getRange(rowIndex + 1, 0, 1, this.fields.length)
-        : sheet.getRange(rowIndex + 1, colIndex, 1, 1);
+        ? sheet.getRange(rowIndex + this.dataStart, 0, 1, this.fields.length)
+        : sheet.getRange(rowIndex + this.dataStart, colIndex, 1, 1);
     range.activate();
+  }
+
+  getCellValue(rowId: string, fieldCode: string): string {
+    const rowIndex = this.rowIds.indexOf(rowId);
+    const colIndex = this.fieldIndexByCode.get(fieldCode);
+    const sheet = this.getActiveSheet();
+    if (rowIndex === -1 || colIndex === undefined || !sheet) return '';
+    const raw = sheet.getRange(rowIndex + this.dataStart, colIndex, 1, 1).getValue();
+    const field = this.fields[colIndex]!;
+    return field.refKind ? this.toValue(field, raw) : String(raw ?? '');
   }
 
   getRows(): FillRowData[] {
     const sheet = this.getActiveSheet();
     if (!sheet || this.rowIds.length === 0) return [];
     const values = sheet
-      .getRange(1, 0, this.rowIds.length, this.fields.length)
+      .getRange(this.dataStart, 0, this.rowIds.length, this.fields.length)
       .getValues();
     return this.rowIds.map((rowId, rowIndex) => {
       const data: Record<string, unknown> = {};
       this.fields.forEach((field, colIndex) => {
-        data[field.fieldCode] = values?.[rowIndex]?.[colIndex] ?? null;
+        const value = values?.[rowIndex]?.[colIndex] ?? null;
+        data[field.fieldCode] = field.refKind ? this.toValue(field, value) || null : value;
       });
       return { data, rowId };
     });
+  }
+
+  setCellValue(
+    rowId: string,
+    fieldCode: string,
+    value: string,
+    labels?: Array<{ label: string; value: string }>,
+  ): void {
+    const rowIndex = this.rowIds.indexOf(rowId);
+    const colIndex = this.fieldIndexByCode.get(fieldCode);
+    const sheet = this.getActiveSheet();
+    if (rowIndex === -1 || colIndex === undefined || !sheet || this.readonly) return;
+    const field = this.fields[colIndex]!;
+    for (const option of labels ?? []) {
+      this.refLabels.get(fieldCode)?.set(String(option.value), option.label);
+    }
+    const sheetRow = rowIndex + this.dataStart;
+    this.runInternal(() => {
+      sheet.getRange(sheetRow, colIndex, 1, 1).setValue(this.toDisplay(field, value));
+    });
+    this.onOperation({ fieldCode, rowId, type: 'setCell', value: value || null });
+    this.recomputeFormulaCells(sheetRow);
+    this.refreshCascade(sheetRow);
   }
 
   setForeignLock(
@@ -232,19 +315,22 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
       ? this.rowIds.indexOf(afterRowId)
       : this.rowIds.length - 1;
     const insertIndex = afterIndex >= 0 ? afterIndex + 1 : this.rowIds.length;
-    const sheetRow = insertIndex + 1;
+    const sheetRow = insertIndex + this.dataStart;
     this.runInternal(() => {
       sheet.insertRowAfter(sheetRow - 1);
       if (data) {
         for (const [fieldCode, value] of Object.entries(data)) {
           const colIndex = this.fieldIndexByCode.get(fieldCode);
           if (colIndex !== undefined && value !== undefined && value !== null) {
-            sheet.getRange(sheetRow, colIndex, 1, 1).setValue(value as string);
+            sheet
+              .getRange(sheetRow, colIndex, 1, 1)
+              .setValue(this.toDisplay(this.fields[colIndex]!, value));
           }
         }
       }
     });
     this.rowIds.splice(insertIndex, 0, rowId);
+    this.recomputeFormulaCells(sheetRow);
   }
 
   private buildWorkbookData(rows: FillRowData[]): Record<string, unknown> {
@@ -253,14 +339,43 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
       Record<number, Record<string, unknown>>
     > = {};
 
-    const headerCells: Record<number, Record<string, unknown>> = {};
+    const fieldHeader = (field: FillFieldSchema) =>
+      field.required ? `${field.name} *` : field.name;
+    const mergeData: Array<{
+      endColumn: number;
+      endRow: number;
+      startColumn: number;
+      startRow: number;
+    }> = [];
+    const groupCells: Record<number, Record<string, unknown>> = {};
+    const nameCells: Record<number, Record<string, unknown>> = {};
     this.fields.forEach((field, colIndex) => {
-      headerCells[colIndex] = {
-        s: 'headerStyle',
-        v: field.required ? `${field.name} *` : field.name,
-      };
+      nameCells[colIndex] = { s: 'headerStyle', v: fieldHeader(field) };
     });
-    cellData[HEADER_ROW] = headerCells;
+    if (this.dataStart === 1) {
+      cellData[HEADER_ROW] = nameCells;
+    } else {
+      // 两行表头：相邻同名分组横向合并；未分组的字段纵向合并两行
+      let colIndex = 0;
+      while (colIndex < this.fields.length) {
+        const group = this.fields[colIndex]!.headerGroup;
+        let end = colIndex;
+        while (group && this.fields[end + 1]?.headerGroup === group) end += 1;
+        if (group) {
+          groupCells[colIndex] = { s: 'headerStyle', v: group };
+          if (end > colIndex) {
+            mergeData.push({ endColumn: end, endRow: HEADER_ROW, startColumn: colIndex, startRow: HEADER_ROW });
+          }
+        } else {
+          groupCells[colIndex] = nameCells[colIndex]!;
+          nameCells[colIndex] = { s: 'headerStyle', v: '' };
+          mergeData.push({ endColumn: colIndex, endRow: HEADER_ROW + 1, startColumn: colIndex, startRow: HEADER_ROW });
+        }
+        colIndex = end + 1;
+      }
+      cellData[HEADER_ROW] = groupCells;
+      cellData[HEADER_ROW + 1] = nameCells;
+    }
 
     rows.forEach((row, rowIndex) => {
       const rowCells: Record<number, Record<string, unknown>> = {};
@@ -271,10 +386,12 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
           v:
             value === undefined || value === null
               ? ''
-              : (value as number | string),
+              : field.refKind
+                ? this.toDisplay(field, value)
+                : (value as number | string),
         };
       });
-      cellData[rowIndex + 1] = rowCells;
+      cellData[rowIndex + this.dataStart] = rowCells;
     });
 
     const columnData: Record<number, { w: number }> = {};
@@ -292,10 +409,16 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
           cellData,
           columnCount: this.fields.length,
           columnData,
-          freeze: { startColumn: -1, startRow: 1, xSplit: 0, ySplit: 1 },
+          freeze: {
+            startColumn: this.freezeColumnCount > 0 ? this.freezeColumnCount : -1,
+            startRow: this.dataStart,
+            xSplit: this.freezeColumnCount,
+            ySplit: this.dataStart,
+          },
           id: 'data-sheet',
+          mergeData,
           name: '填报数据',
-          rowCount: rows.length + ROW_BUFFER,
+          rowCount: rows.length + this.dataStart - 1 + ROW_BUFFER,
         },
       },
       styles: {
@@ -336,13 +459,13 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     const colIndex = range?.getColumn?.();
     if (
       sheetRow === undefined ||
-      sheetRow <= HEADER_ROW ||
+      sheetRow < this.dataStart ||
       colIndex === undefined
     ) {
       this.onSelectionChange(undefined);
       return;
     }
-    const rowId = this.rowIds[sheetRow - 1];
+    const rowId = this.rowIds[sheetRow - this.dataStart];
     const field = this.fields[colIndex];
     if (!rowId || !field) {
       this.onSelectionChange(undefined);
@@ -361,8 +484,8 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     if (!matrix) return;
     for (const [rowKey, cols] of Object.entries(matrix)) {
       const sheetRow = Number(rowKey);
-      if (sheetRow === HEADER_ROW || !cols) continue;
-      const rowIndex = sheetRow - 1;
+      if (sheetRow < this.dataStart || !cols) continue;
+      const rowIndex = sheetRow - this.dataStart;
       let rowId = this.rowIds[rowIndex];
       if (!rowId) {
         // 粘贴/编辑越过现有数据区：为缓冲区行按需分配 rowId（正式版由服务端签发）
@@ -381,14 +504,16 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         const colIndex = Number(colKey);
         const field = this.fields[colIndex];
         if (!field) continue;
+        const raw = cell?.v ?? null;
         this.onOperation({
           fieldCode: field.fieldCode,
           rowId,
           type: 'setCell',
-          value: cell?.v ?? null,
+          value: field.refKind ? this.toValue(field, raw) || null : raw,
         });
       }
-      this.recomputeFormulaCells(sheetRow, Object.keys(cols).map(Number));
+      this.recomputeFormulaCells(sheetRow);
+      this.refreshCascade(sheetRow);
     }
   }
 
@@ -424,11 +549,11 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
       command.id === REMOVE_ROW_MUTATION
     ) {
       const range = (command.params as { range?: { startRow: number } })?.range;
-      if (range && range.startRow <= HEADER_ROW) {
+      if (range && range.startRow < this.dataStart) {
         throw new CommandBlockedError('表头行不允许插入或删除');
       }
       if (range) {
-        const rowId = this.rowIds[range.startRow - 1];
+        const rowId = this.rowIds[range.startRow - this.dataStart];
         if (rowId && this.isForeignLocked(rowId)) {
           throw new CommandBlockedError('该行正被其他填报人编辑');
         }
@@ -442,7 +567,7 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     )?.cellValue;
     if (!matrix) return;
     for (const [rowKey, cols] of Object.entries(matrix)) {
-      if (Number(rowKey) === HEADER_ROW) {
+      if (Number(rowKey) < this.dataStart) {
         throw new CommandBlockedError('表头不允许编辑');
       }
       if (!cols) continue;
@@ -454,7 +579,10 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         if (!field.editable) {
           throw new CommandBlockedError(`"${field.name}"为公式/系统列，只读`);
         }
-        const rowId = this.rowIds[Number(rowKey) - 1];
+        if (field.refKind === 'ATTACHMENT' || field.refKind === 'IMAGE') {
+          throw new CommandBlockedError(`"${field.name}"请使用工具栏的“上传附件”按钮`);
+        }
+        const rowId = this.rowIds[Number(rowKey) - this.dataStart];
         if (rowId && this.isForeignLocked(rowId, field.fieldCode)) {
           throw new CommandBlockedError('该单元格正被其他填报人编辑');
         }
@@ -470,8 +598,8 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         const range = (
           command.params as { range?: { endRow: number; startRow: number } }
         )?.range;
-        if (!range || range.startRow <= HEADER_ROW) return;
-        const insertAt = range.startRow - 1;
+        if (!range || range.startRow < this.dataStart) return;
+        const insertAt = range.startRow - this.dataStart;
         const count = range.endRow - range.startRow + 1;
         for (let i = 0; i < count; i++) {
           const rowId = this.generateRowId();
@@ -489,8 +617,8 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
         const range = (
           command.params as { range?: { endRow: number; startRow: number } }
         )?.range;
-        if (!range || range.startRow <= HEADER_ROW) return;
-        const removeAt = range.startRow - 1;
+        if (!range || range.startRow < this.dataStart) return;
+        const removeAt = range.startRow - this.dataStart;
         const count = range.endRow - range.startRow + 1;
         const removed = this.rowIds.splice(removeAt, count);
         for (const rowId of removed) {
@@ -529,15 +657,39 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     const sheet = this.getActiveSheet();
     if (!sheet) return;
     this.fields.forEach((field, colIndex) => {
-      if (field.fieldType !== 'dict' || !field.dictOptions?.length) return;
-      const range = sheet.getRange(1, colIndex, dataRowCount + ROW_BUFFER, 1);
+      if (field.fieldType !== 'dict' || !field.dictOptions?.length || field.cascadeParent) return;
+      const range = sheet.getRange(this.dataStart, colIndex, dataRowCount + ROW_BUFFER, 1);
       const rule = this.univerAPI
         .newDataValidation()
-        .requireValueInList(field.dictOptions, false, true)
+        .requireValueInList(field.dictOptions, !!field.multiple, true)
         .setOptions({
-          error: `请从字典中选择：${field.dictOptions.join(' / ')}`,
+          error: field.multiple
+            ? `请从以下选项中选择一项或多项：${field.dictOptions.join(' / ')}`
+            : `请从字典中选择：${field.dictOptions.join(' / ')}`,
           showErrorMessage: true,
         })
+        .build();
+      range.setDataValidation(rule);
+    });
+  }
+
+  /** 人员、部门字段：下拉显示“名称（编号）”；级联字段的新增行使用全部可选项 */
+  private installRefValidations(dataRowCount: number): void {
+    const sheet = this.getActiveSheet();
+    if (!sheet) return;
+    this.fields.forEach((field, colIndex) => {
+      let options: string[] = [];
+      if (field.refKind === 'USER' || field.refKind === 'DEPT') {
+        options = (field.refOptions ?? []).map((option) => `${option.label}（${option.value}）`);
+      } else if (field.cascadeParent && field.dictOptions?.length) {
+        options = field.dictOptions;
+      }
+      if (options.length === 0) return;
+      const range = sheet.getRange(this.dataStart, colIndex, dataRowCount + ROW_BUFFER, 1);
+      const rule = this.univerAPI
+        .newDataValidation()
+        .requireValueInList(options, false, true)
+        .setOptions({ error: `请从可选${field.refKind === 'DEPT' ? '部门' : field.refKind ? '人员' : '项'}中选择`, showErrorMessage: true })
         .build();
       range.setDataValidation(rule);
     });
@@ -586,39 +738,63 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
   }
 
   /**
-   * 公式列即时重算（服务端为权威）。当前仅支持 "a * b" 形式的两字段乘法。
+   * 公式列即时重算（服务端为权威）：按模板给出的依赖顺序逐个计算，结果按字段小数位舍入显示。
    */
-  private recomputeFormulaCells(sheetRow: number, changedCols: number[]): void {
-    for (const [colIndex, field] of this.fields.entries()) {
-      if (!field.formula) continue;
-      const match = field.formula.match(/^\s*(\w+)\s*\*\s*(\w+)\s*$/);
-      if (!match) continue;
-      const [, leftCode, rightCode] = match;
-      const leftIndex = this.fieldIndexByCode.get(leftCode!);
-      const rightIndex = this.fieldIndexByCode.get(rightCode!);
-      if (leftIndex === undefined || rightIndex === undefined) continue;
-      if (!changedCols.includes(leftIndex) && !changedCols.includes(rightIndex))
-        continue;
-
-      const sheet = this.getActiveSheet();
-      if (!sheet) continue;
-      // 空单元格不是 0：任一操作数为空时公式列保持空白，与服务端“缺值不计算”一致
-      const toNumber = (value: unknown) =>
-        value === null || value === undefined || String(value).trim() === ''
-          ? Number.NaN
-          : Number(value);
-      const left = toNumber(sheet.getRange(sheetRow, leftIndex, 1, 1).getValue());
-      const right = toNumber(
-        sheet.getRange(sheetRow, rightIndex, 1, 1).getValue(),
-      );
-      const result =
-        Number.isFinite(left) && Number.isFinite(right)
-          ? Math.round(left * right * 100) / 100
-          : '';
-      this.runInternal(() => {
-        sheet.getRange(sheetRow, colIndex, 1, 1).setValue(result);
-      });
+  private recomputeFormulaCells(sheetRow: number): void {
+    if (this.formulas.length === 0) return;
+    const sheet = this.getActiveSheet();
+    if (!sheet) return;
+    const values = sheet.getRange(sheetRow, 0, 1, this.fields.length).getValues()?.[0] ?? [];
+    const row: Record<string, unknown> = {};
+    this.fields.forEach((field, colIndex) => {
+      row[field.fieldCode] = values[colIndex];
+    });
+    for (const formula of this.formulas) {
+      let result = '';
+      try {
+        result = toFieldValue(
+          formula.evaluate({ field: (code) => row[code] }),
+          formula.fieldType,
+          formula.scale,
+        );
+      } catch {
+        result = '';
+      }
+      const field = this.fields[formula.colIndex]!;
+      row[field.fieldCode] = result;
+      if (String(values[formula.colIndex] ?? '') !== result) {
+        this.runInternal(() => {
+          sheet.getRange(sheetRow, formula.colIndex, 1, 1).setValue(result);
+        });
+      }
     }
+  }
+
+  /** 级联字段：按本行上级取值收窄可选项；上级为空时允许全部可选项 */
+  private refreshCascade(sheetRow: number): void {
+    const sheet = this.getActiveSheet();
+    if (!sheet) return;
+    this.fields.forEach((field, colIndex) => {
+      if (!field.cascadeParent || !field.cascadeOptions) return;
+      const parentIndex = this.fieldIndexByCode.get(field.cascadeParent);
+      const parentValue =
+        parentIndex === undefined
+          ? ''
+          : String(sheet.getRange(sheetRow, parentIndex, 1, 1).getValue() ?? '').trim();
+      const options = parentValue
+        ? (field.cascadeOptions[parentValue] ?? [])
+        : (field.dictOptions ?? []);
+      if (options.length === 0) return;
+      const rule = this.univerAPI
+        .newDataValidation()
+        .requireValueInList(options, !!field.multiple, true)
+        .setOptions({
+          error: parentValue ? `“${parentValue}”下可选：${options.join(' / ')}` : '请先选择上级字段',
+          showErrorMessage: true,
+        })
+        .build();
+      this.runInternal(() => sheet.getRange(sheetRow, colIndex, 1, 1).setDataValidation(rule));
+    });
   }
 
   private runInternal(action: () => void): void {
@@ -628,5 +804,14 @@ export class UniverSheetAdapter implements SheetEditorAdapter {
     } finally {
       this.applyingInternal = false;
     }
+  }
+
+  private toDisplay(field: FillFieldSchema, value: unknown): string {
+    if (!field.refKind) return value === null || value === undefined ? '' : String(value);
+    return formatRefDisplay(value, this.refLabels.get(field.fieldCode) ?? new Map());
+  }
+
+  private toValue(field: FillFieldSchema, display: unknown): string {
+    return parseRefDisplay(display, this.refLabels.get(field.fieldCode) ?? new Map());
   }
 }

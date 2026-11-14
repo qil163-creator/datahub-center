@@ -32,4 +32,7 @@ public class FillTaskProgressRespVO {
     @Schema(description = "各状态数量：key=工作项状态值，value=数量")
     private Map<Integer, Long> statusCounts;
 
+    @Schema(description = "中间单位向下下发的下级实例数（不计入完成率）", example = "6")
+    private Integer childOrgCount;
+
 }

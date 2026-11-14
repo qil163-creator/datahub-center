@@ -25,6 +25,14 @@ public class FillExcelImportConfirmReqVO {
     @NotNull(message = "expectedVersion 不能为空")
     private Long expectedVersion;
 
+    @Schema(description = "追加时判断重复的唯一标识字段码（为空表示不查重）", example = "[\"id_card\"]")
+    @jakarta.validation.constraints.Size(max = 5, message = "唯一标识最多 5 个字段")
+    private List<String> duplicateKeys;
+
+    @Schema(description = "遇到重复数据：SKIP-跳过 OVERWRITE-覆盖（用导入值更新已有行）", example = "SKIP")
+    @jakarta.validation.constraints.Pattern(regexp = "^(|SKIP|OVERWRITE)$", message = "重复处理方式不合法")
+    private String duplicateMode;
+
     @Schema(description = "预检返回的数据行（fieldCode -> 值）", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "导入数据行不能为空")
     private List<Map<String, Object>> rows;

@@ -24,7 +24,7 @@ public interface FillExcelService {
     /**
      * 导入预检：解析 + 逐行逐字段校验，不写草稿
      */
-    FillExcelImportPreviewRespVO previewImport(Long workItemId, MultipartFile file);
+    FillExcelImportPreviewRespVO previewImport(Long workItemId, MultipartFile file, java.util.Map<String, String> mapping);
 
     /**
      * 导入确认：将预检行经草稿操作通道原子写入（追加或整体替换）

@@ -50,4 +50,15 @@ public interface SafetySecurityApi {
     CommonResult<cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO> maskRows(
             @Valid @RequestBody cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskReqDTO reqDTO);
 
+    /**
+     * 持久化前脱敏：结果会被保存并展示给多个用户（如填报模板固化的下拉取值），没有确定的查看者。
+     * <p>
+     * 不看场景开关、不看白名单豁免：列来源命中分类、被标记敏感，或来源无法追溯且涉及敏感表时整体替换为不可逆掩码，
+     * 并在 maskedColumns 中说明原因。分类无法解析时返回错误，调用方须失败关闭。不写访问审计。
+     */
+    @PostMapping(PREFIX + "/mask-for-storage")
+    @Operation(summary = "持久化前脱敏（不看白名单豁免，失败关闭）")
+    CommonResult<cn.iocoder.yudao.module.governance.api.security.dto.SafetyDynamicMaskRespDTO> maskForStorage(
+            @Valid @RequestBody cn.iocoder.yudao.module.governance.api.security.dto.SafetyStorageMaskReqDTO reqDTO);
+
 }

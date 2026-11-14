@@ -34,6 +34,32 @@ public final class FillFieldRuleValidator {
     }
 
     /** 单元格规则违反项；detail 不含行号和字段名，由调用方拼接。 */
+    /**
+     * 选择类字段的取值是否都在可选项内；多选字段按英文逗号分隔逐项检查。
+     *
+     * @param options 可选项（为空表示不限制）
+     * @param multiple 是否多选
+     * @param text 已去除首尾空白的非空取值
+     * @return 是否合法
+     */
+    public static boolean optionsAllowed(java.util.Collection<?> options, boolean multiple, String text) {
+        if (options == null || options.isEmpty()) {
+            return true;
+        }
+        java.util.Set<String> allowed = new java.util.HashSet<>();
+        options.forEach(option -> allowed.add(String.valueOf(option)));
+        if (!multiple) {
+            return allowed.contains(text);
+        }
+        for (String item : text.split(",")) {
+            String value = item.trim();
+            if (!value.isEmpty() && !allowed.contains(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public record Violation(String ruleCode, int severity, String detail) {
     }
 

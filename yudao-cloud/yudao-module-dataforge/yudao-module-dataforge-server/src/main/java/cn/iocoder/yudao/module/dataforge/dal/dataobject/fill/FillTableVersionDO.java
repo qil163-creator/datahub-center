@@ -121,4 +121,9 @@ public class FillTableVersionDO extends BaseDO {
      */
     private LocalDateTime releaseTime;
 
+    /**
+     * 发布时固化的多级汇总规则 JSON：{"mode","groupFields","funcs"}
+     */
+    private String rollupSchema;
+
 }

@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import type { DomainOperation, FillFieldSchema, FillRowData } from './types';
+import type {
+  DomainOperation,
+  FillFieldSchema,
+  FillFormula,
+  FillLayout,
+  FillRowData,
+} from './types';
 
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
@@ -9,6 +15,8 @@ defineOptions({ name: 'DataforgeFillSheetEditor' });
 
 const props = defineProps<{
   fields: FillFieldSchema[];
+  formulas?: FillFormula[];
+  layout?: FillLayout;
   readonly?: boolean;
   rows: FillRowData[];
 }>();
@@ -30,6 +38,8 @@ onMounted(() => {
   adapter = new UniverSheetAdapter({
     container: containerRef.value,
     fields: props.fields,
+    formulas: props.formulas,
+    layout: props.layout,
     onOperation: (op) => emit('operation', op),
     onSelectionChange: (cell) => emit('selection', cell),
     readonly: props.readonly,

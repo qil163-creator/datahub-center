@@ -27,7 +27,7 @@ public class FillTableColumnRespVO {
     @Schema(description = "数据类型：1-小数 2-字符串 3-日期 5-整数 6-长整型 9-日期时间 10-时间", example = "2")
     private Integer fieldType;
 
-    @Schema(description = "录入类型：1-手工录入 2-选择", example = "1")
+    @Schema(description = "录入类型：1-手工录入 2-选择 3-多选 4-人员 5-部门 6-附件 7-图片", example = "1")
     private Integer fillType;
 
     @Schema(description = "选择值（英文逗号分隔）", example = "男,女")
@@ -80,5 +80,35 @@ public class FillTableColumnRespVO {
 
     @Schema(description = "选择值来源的系统字典类型", example = "common_status")
     private String dictType;
+
+    @Schema(description = "行内公式", example = "unit_price * quantity")
+    private String formulaExpr;
+
+    @Schema(description = "录入页面列宽（像素）", example = "140")
+    private Integer columnWidth;
+
+    @Schema(description = "表头分组名称", example = "收入情况")
+    private String headerGroup;
+
+    @Schema(description = "数据表下拉：来源数据源编号", example = "2")
+    private Long refDatabaseId;
+
+    @Schema(description = "数据表下拉：来源表名", example = "md_region")
+    private String refTableName;
+
+    @Schema(description = "数据表下拉：取值列", example = "region_code")
+    private String refValueColumn;
+
+    @Schema(description = "级联：上级字段码", example = "province")
+    private String refParentField;
+
+    @Schema(description = "级联：来源表中对应上级取值的列", example = "province_code")
+    private String refParentColumn;
+
+    @Schema(description = "人员/部门选择范围：ORG-报送组织及下级 ALL-全部", example = "ORG")
+    private String refScope;
+
+    @Schema(description = "分组合计的计算方式：SUM MAX MIN COUNT FIRST，空表示不输出", example = "SUM")
+    private String rollupFunc;
 
 }
