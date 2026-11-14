@@ -18,19 +18,18 @@ describe('field import rules', () => {
   });
 
   it('detaches identities and primary keys when copying from another logic table', () => {
-    const copied = logicTableField(
-      {
-        fieldUid: 'other-model-uid',
-        sourceAttrUid: 'src',
-        fieldName: 'customer_id',
-        pkFlag: true,
-        fieldCategory: 'PRIMARY_KEY',
-        sort: 3,
-      },
-      'dimension',
-    );
+    const source = {
+      fieldUid: 'other-model-uid',
+      sourceAttrUid: 'src',
+      fieldName: 'customer_id',
+      pkFlag: true,
+      fieldCategory: 'PRIMARY_KEY',
+      sort: 3,
+    };
+    const copied = logicTableField(source, 'dimension') as Record<string, unknown>;
     expect(copied.fieldUid).toBeUndefined();
     expect(copied.sourceAttrUid).toBeUndefined();
+    expect(copied.fieldName).toBe('customer_id');
     expect(copied.sort).toBeUndefined();
     expect(copied.pkFlag).toBe(false);
     expect(copied.fieldCategory).toBe('ATTRIBUTE');

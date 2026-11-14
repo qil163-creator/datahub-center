@@ -20,8 +20,11 @@ export function sanitizeFieldName(raw: string | undefined, fallback: string) {
   return name.slice(0, 64);
 }
 
+/** 后端字段还会带回来源属性标识，前端类型未声明，引入时一并去掉。 */
+type FieldWithSource = Field & { sourceAttrUid?: string };
+
 /** 引入的字段一律重新生成稳定标识；其他模型的标识不能带进当前设计。 */
-function detach(field: Field): Field {
+function detach(field: FieldWithSource): Field {
   const { fieldUid: _uid, sourceAttrUid: _source, sort: _sort, ...rest } = field;
   return rest;
 }
