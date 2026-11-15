@@ -130,7 +130,9 @@ class ContinuationRepairTest(unittest.TestCase):
     def test_adopted_repair_passes_in_clean_crlf_checkout(self):
         self.checkpoint()
         clone = self.root / "clone"
-        self.git("-c", "core.autocrlf=true", "clone", "-q", str(self.root), str(clone))
+        # 写入克隆仓库自身配置，模拟 autocrlf=true 的 Windows 检出；只在 clone 命令上 -c
+        # 时配置不落盘，门禁随后用 hash-object 核验换行时会依赖本机全局设置。
+        self.git("clone", "-q", "-c", "core.autocrlf=true", str(self.root), str(clone))
         self.root = clone
         self.assertIn(b"\r\n", (clone / next(iter(self.archives))).read_bytes())
         self.run_modes(accepted=True)

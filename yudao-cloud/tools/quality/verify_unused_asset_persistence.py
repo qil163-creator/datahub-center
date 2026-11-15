@@ -27,7 +27,7 @@ def previous_baseline() -> str:
     revisions = subprocess.run(["git", "rev-list", "HEAD", "--", BASELINE_PATH], cwd=ROOT,
                                check=True, capture_output=True, text=True).stdout.splitlines()
     for revision in revisions:
-        result = subprocess.run(["git", "show", f"{revision}:{BASELINE_PATH}"], cwd=ROOT,
+        result = subprocess.run(["git", "show", f"{revision}:./{BASELINE_PATH}"], cwd=ROOT,
                                 check=True, capture_output=True)
         content = result.stdout.decode("utf-8-sig")
         if content.splitlines()[0] == "-- Included migrations through: 0194":

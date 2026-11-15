@@ -13,6 +13,7 @@ from common import (
     classify_findings,
     cli_guard,
     default_base_ref,
+    in_git_work_tree,
     load_git_files,
     normalize_path,
     print_report,
@@ -516,7 +517,7 @@ def pinned_checkout_bytes(repo_root: Path, path: str, content: bytes) -> bytes:
                 if path == CONTINUATION_PATH else {checksums.get(path)})
     normalized = content.replace(b"\r\n", b"\n")
     if (content != normalized and hashlib.sha256(normalized).hexdigest() in accepted
-            and (repo_root / ".git").exists()
+            and in_git_work_tree(repo_root)
             and git_line_endings_equivalent(repo_root, path, content, normalized)):
         return normalized
     return content
@@ -586,7 +587,7 @@ def continuation_history_findings(
 ) -> list[Finding]:
     # 声明采用后，规划过程不得接受重新固定校验值的归档或重写的来源信息；
     # 即使导出的测试夹具没有 Git 信息，也仍须执行结构和哈希校验。
-    if not (repo_root / ".git").exists():
+    if not in_git_work_tree(repo_root):
         return []
     ref = default_base_ref(base_ref)
     snapshot = load_git_files(repo_root, ref, is_migration_or_baseline)

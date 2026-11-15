@@ -74,11 +74,24 @@ def run_git(
     return process.stdout
 
 
+def in_git_work_tree(repo_root: Path) -> bool:
+    # yudao-cloud 可能是 Git 根，也可能是单仓里的子目录（此时它下面没有 .git），
+    # 因此询问 Git 而不是检查 repo_root/.git 是否存在；不在工作树中时返回 False。
+    process = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--is-inside-work-tree"],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    return process.returncode == 0 and process.stdout.strip() == b"true"
+
+
 def validate_git_ref(repo_root: Path, ref: str) -> None:
     run_git(repo_root, ["rev-parse", "--verify", f"{ref}^{{commit}}"])
 
 
 def list_git_files(repo_root: Path, ref: str) -> list[str]:
+    # 不加 --full-tree：在子目录中只列出 repo_root 之下的文件，路径相对 repo_root。
     raw = run_git(repo_root, ["ls-tree", "-r", "--name-only", "-z", ref])
     assert isinstance(raw, bytes)
     return [item.decode("utf-8") for item in raw.split(b"\0") if item]
@@ -94,7 +107,9 @@ def load_git_files(
     for path in list_git_files(repo_root, ref):
         if not predicate(path):
             continue
-        raw = run_git(repo_root, ["show", f"{ref}:{path}"])
+        # "<ref>:./<path>" 按 repo_root（git -C 的目录）解析；"<ref>:<path>" 会按 Git 根解析，
+        # 在 yudao-cloud 作为单仓子目录时找不到文件。
+        raw = run_git(repo_root, ["show", f"{ref}:./{path}"])
         assert isinstance(raw, bytes)
         result[normalize_path(path)] = raw
     return result

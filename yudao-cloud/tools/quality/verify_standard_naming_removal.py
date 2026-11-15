@@ -32,7 +32,7 @@ def previous_baseline() -> str:
     revisions = subprocess.run(["git", "rev-list", "HEAD", "--", BASELINE_PATH], cwd=ROOT,
                                check=True, capture_output=True, text=True).stdout.splitlines()
     for revision in revisions:
-        result = subprocess.run(["git", "show", f"{revision}:{BASELINE_PATH}"], cwd=ROOT,
+        result = subprocess.run(["git", "show", f"{revision}:./{BASELINE_PATH}"], cwd=ROOT,
                                 check=True, capture_output=True)
         content = result.stdout.decode("utf-8-sig")
         if all(f'CREATE TABLE "datahub-center"."{table}"' in content for table in BUSINESS_TABLES):
