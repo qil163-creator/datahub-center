@@ -91,12 +91,13 @@ const usageLabel = computed(() => {
 });
 const columns = { xs: 1, sm: 2, lg: 3 };
 
+/** 两个详情路由都声明了所属列表的 activePath；缺失时再按路由名判断，默认回到数据研发。 */
 function back() {
-  void router.push(
-    route.name === 'BasicDataforgeDatabaseDetail'
-      ? '/basic/database'
-      : '/develop/database',
-  );
+  const basic =
+    route.meta.activePath === '/basic/database' ||
+    (route.meta.activePath === undefined &&
+      route.name === 'BasicDataforgeDatabaseDetail');
+  void router.push(basic ? '/basic/database' : '/develop/database');
 }
 
 async function loadMonitor() {
@@ -296,7 +297,6 @@ onBeforeUnmount(() => {
             :class="{ 'detail-tabs--records': ['logs', 'alarms', 'rules'].includes(activeTab) }"
           >
             <TabPane v-if="supportsMetadata" key="monitor" tab="运行监控">
-
               <Alert
                 v-if="collectError"
                 class="mb-4"

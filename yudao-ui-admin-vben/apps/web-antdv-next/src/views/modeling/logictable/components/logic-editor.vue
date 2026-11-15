@@ -51,8 +51,8 @@ import {
   newLogicField,
   validateLogicFields,
 } from '../editor-state';
-import { QdIcon } from '../icons';
 import { mergeImportedFields } from '../field-import-state';
+import { QdIcon } from '../icons';
 import { useLogicOptions } from '../options';
 import FieldGrid from './field-grid.vue';
 import FieldImportModal from './field-import-modal.vue';

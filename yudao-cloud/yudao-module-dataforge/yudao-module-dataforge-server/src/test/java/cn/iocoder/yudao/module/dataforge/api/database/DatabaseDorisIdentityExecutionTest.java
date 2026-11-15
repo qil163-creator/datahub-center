@@ -58,6 +58,8 @@ class DatabaseDorisIdentityExecutionTest {
         when(rows.getObject(1)).thenReturn(9007199254740993L);
         ReflectionTestUtils.setField(api, "dbSwitchRuntime", runtime);
         ReflectionTestUtils.setField(api, "databaseResolver", resolver);
+        ReflectionTestUtils.setField(api, "dynamicMaskSupport",
+                cn.iocoder.yudao.module.dataforge.service.database.DatabaseDynamicMaskSupportTest.passThrough());
     }
 
     private DatabaseQueryReqDTO request() {

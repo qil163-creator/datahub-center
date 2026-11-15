@@ -58,6 +58,12 @@ vi.mock('#/api/modeling/tablemodel', () => ({
   saveTableModelDraft: vi.fn(async () => true),
   publishTableModel: vi.fn(),
 }));
+vi.mock('./version-panel.vue', () => ({
+  default: defineComponent({
+    props: { modelId: { type: [String, Number], required: true }, modelName: { type: String, default: '' } },
+    setup: (props) => () => h('div', { 'data-test-version-panel': String(props.modelId) }, `版本面板 ${props.modelName ?? ''}`),
+  }),
+}));
 vi.mock('./field-modal.vue', () => ({
   default: defineComponent({
     emits: ['submit'],
@@ -217,7 +223,7 @@ describe('逻辑模型详情', () => {
   });
 
   it.each(['SOURCE', 'DIMENSION', 'DETAIL', 'SUMMARY', 'APPLICATION'] as const)(
-    '%s 表详情版本页签仅显示占位，不提供发布或修订入口',
+    '%s 表详情版本页签展示只读版本面板，不提供发布或修订入口',
     async (tableType) => {
       vi.mocked(api.getTableModel).mockResolvedValue({ ...model(), tableType });
       await mount();
@@ -228,7 +234,8 @@ describe('逻辑模型详情', () => {
       expect(tab).toBeDefined();
       tab!.click();
       await flush();
-      expect(host.textContent).toContain('暂未实现');
+      const panel = host.querySelector('[data-test-version-panel]');
+      expect(panel?.getAttribute('data-test-version-panel')).toBe(id);
       expect(api.getTableModelDesign).toHaveBeenCalledTimes(1);
       expect(api.saveTableModelDraft).not.toHaveBeenCalled();
       expect(api.publishTableModel).not.toHaveBeenCalled();

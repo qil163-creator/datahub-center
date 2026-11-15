@@ -233,7 +233,7 @@ describe('数据连接详情返回入口', () => {
       harness.access.codes = [];
       await mountPage();
       expect(host.textContent).toContain('暂无连接查询权限');
-      button('返回连接管理').click();
+      button('返回').click();
       expect(harness.push).toHaveBeenCalledExactlyOnceWith(activePath);
       expect(harness.getDatabase).not.toHaveBeenCalled();
     },

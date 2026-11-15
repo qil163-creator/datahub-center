@@ -107,6 +107,8 @@ vi.mock('#/components/text-ellipsis-cell', () => ({
 }));
 vi.mock('./detail.vue', () => ({ default: () => null }));
 vi.mock('./form.vue', () => ({ default: () => null }));
+vi.mock('./relation-graph-modal.vue', () => ({ default: () => null }));
+vi.mock('./version-modal.vue', () => ({ default: () => null }));
 
 function entity(id: BusinessEntityApi.Id, name: string): Entity {
   return {
