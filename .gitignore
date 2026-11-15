@@ -1,4 +1,5 @@
 .idea/
 .DS_Store
 /yudao-cloud/E:/
-/yudao-cloud/sql/postgresql/datahub-center.sql
+# 本地数据库整库导出（含数据）放这里，不进版本库；sql/postgresql/datahub-center.sql 是受控的新库基线。
+/yudao-cloud/sql/postgresql/local/

@@ -71,6 +71,8 @@ application-my.yaml
 /sql/*
 !/sql/postgresql/
 /sql/postgresql/*
+# 新库全量基线随迁移交付；本地整库导出放在 sql/postgresql/local/，仍被上一条规则忽略。
+!/sql/postgresql/datahub-center.sql
 !/sql/postgresql/migrations/
 /sql/postgresql/migrations/*
 !/sql/postgresql/migrations/[0-9][0-9][0-9][0-9]_*.sql
