@@ -7,6 +7,7 @@ import {
   getDevDirList,
   getDevRecordTaskLog,
   getDevRuntimeProfiles,
+  getDevSchedulableProducts,
   getDevTask,
   getDevTaskListByDir,
   getDevTaskPage,
@@ -206,6 +207,13 @@ describe('研发接口跨端契约', () => {
     getDevRuntimeProfiles();
     expect(requestClient.get).toHaveBeenCalledWith(
       '/dataforge/dev-task/runtime-profiles',
+    );
+  });
+
+  it('可调度产品清单从研发任务API获取', () => {
+    getDevSchedulableProducts();
+    expect(requestClient.get).toHaveBeenCalledWith(
+      '/dataforge/dev-task/schedulable-products',
     );
   });
 

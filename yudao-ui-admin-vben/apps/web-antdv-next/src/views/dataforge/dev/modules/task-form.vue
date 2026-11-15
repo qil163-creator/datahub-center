@@ -41,6 +41,11 @@ import {
   normalizeDirectoryId,
 } from '../list-model';
 import { newNativeProgramConfig } from '../native-model';
+import {
+  isSchedulableDatabase,
+  loadSchedulableProducts,
+  schedulableDatabaseOption,
+} from '../schedulable-database';
 import { devTaskTypeOptions, newDevelopmentTask } from '../workload-mode';
 import ProgramConfigFields from './program-config-fields.vue';
 import QualityTaskField from './quality-task-field.vue';
@@ -66,7 +71,9 @@ const directories = ref<DataforgeDevApi.Dir[]>([]);
 const dirTree = computed(() =>
   buildDirectorySelectTree(directories.value, formData.dirId),
 );
-const databases = ref<{ label: string; value: DataforgeDevApi.Id }[]>([]);
+const databases = ref<{ disabled: boolean; label: string; value: string }[]>(
+  [],
+);
 const users = ref<{ label: string; mobile?: string; value: string }[]>([]);
 const ownerOptions = computed(() => {
   const options = [...users.value];
@@ -186,13 +193,15 @@ async function open(
   databases.value = [];
   users.value = [];
   try {
-    const [task, dirs, tasks, databaseList, userList] = await Promise.all([
-      id ? getDevTask(id) : Promise.resolve(undefined),
-      getDevDirList(),
-      getDevTaskListByDir(),
-      getDatabaseSimpleList(),
-      getSimpleUserList(),
-    ]);
+    const [task, dirs, tasks, databaseList, userList, schedulable] =
+      await Promise.all([
+        id ? getDevTask(id) : Promise.resolve(undefined),
+        getDevDirList(),
+        getDevTaskListByDir(),
+        getDatabaseSimpleList(),
+        getSimpleUserList(),
+        loadSchedulableProducts(),
+      ]);
     if (seq !== openSeq || !visible.value) return;
     if (task) {
       Object.assign(formData, task, {
@@ -231,10 +240,13 @@ async function open(
         label: item.name ?? String(item.id),
         value: String(item.id),
       }));
-    databases.value = databaseList.map((item) => ({
-      label: item.name ?? String(item.id),
-      value: String(item.id),
-    }));
+    databases.value = databaseList.map((item) =>
+      schedulableDatabaseOption({
+        label: item.name ?? String(item.id),
+        value: item.id,
+        schedulable: isSchedulableDatabase(item.productId, schedulable),
+      }),
+    );
   } catch {
     if (seq === openSeq) loadFailed.value = true;
   } finally {

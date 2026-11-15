@@ -226,8 +226,6 @@ public interface ErrorCodeConstants {
     ErrorCode DEV_RECORD_NOT_RUNNING = new ErrorCode(1_500_020_015, "该运行实例不在运行中");
     ErrorCode DEV_TASK_ONLINE_CANNOT_MODIFY = new ErrorCode(1_500_020_017, "任务已上线，请先下线后再操作");
     ErrorCode DEV_TASK_TYPE_NOT_SUPPORTED = new ErrorCode(1_500_020_018, "不支持的任务类型：{}");
-    ErrorCode DEV_DS_DATASOURCE_EMPTY = new ErrorCode(1_500_020_019,
-            "集群任务需要配置 DolphinScheduler 数据源编号与类型");
     ErrorCode DEV_DS_SUBMIT_FAILED = new ErrorCode(1_500_020_020, "提交 DolphinScheduler 失败：{}");
     ErrorCode DEV_DS_NOT_CONFIGURED = new ErrorCode(1_500_020_021,
             "尚未配置 DolphinScheduler（dolphinscheduler.server-url / dataforge.dev.ds-project-code）");
@@ -241,6 +239,7 @@ public interface ErrorCodeConstants {
     ErrorCode DEV_PROGRAM_CONFIG_INVALID = new ErrorCode(1_500_020_031, "任务程序配置无效：{}");
     ErrorCode DEV_NATIVE_RUNTIME_NOT_READY = new ErrorCode(1_500_020_032,
             "该任务的原生引擎执行尚未接通，可先保存草稿；不能通过普通 SQL 通道执行");
+    ErrorCode DEV_DS_DATASOURCE_UNSUPPORTED = new ErrorCode(1_500_020_033, "该数据源暂不支持调度执行：{}");
     // ----- 补数据 -----
     ErrorCode DEV_BACKFILL_NOT_EXISTS = new ErrorCode(1_500_020_040, "补数据批次不存在");
     ErrorCode DEV_BACKFILL_RANGE_INVALID = new ErrorCode(1_500_020_041, "补数据日期区间无效：{}");

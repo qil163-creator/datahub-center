@@ -348,6 +348,11 @@ export function getDevRuntimeProfiles() {
   );
 }
 
+/** 可调度执行 SQL 任务的数据库产品，取值与数据源 productId 一致；仅用于界面提示，后端保存与提交时仍会校验。 */
+export function getDevSchedulableProducts() {
+  return requestClient.get<string[]>('/dataforge/dev-task/schedulable-products');
+}
+
 export function createDevTask(data: DataforgeDevApi.Task) {
   return requestClient.post<DataforgeDevApi.Id>(
     '/dataforge/dev-task/create',

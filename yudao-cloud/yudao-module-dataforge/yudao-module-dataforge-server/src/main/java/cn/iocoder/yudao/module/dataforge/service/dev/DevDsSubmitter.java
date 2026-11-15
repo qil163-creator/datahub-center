@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
 import cn.iocoder.yudao.framework.dolphinscheduler.DolphinSchedulerClient;
 import cn.iocoder.yudao.framework.dolphinscheduler.request.CreateWorkflowDefinitionRequest;
 import cn.iocoder.yudao.framework.dolphinscheduler.request.TriggerWorkflowDefinitionRequest;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
@@ -36,8 +34,6 @@ public class DevDsSubmitter {
 
     private static final DateTimeFormatter LOG_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private static final Pattern JDBC_URL_PATTERN =
-            Pattern.compile("jdbc:[\\w:]+://([^:/?;]+)(?::(\\d+))?(?:[/;]([^?;]+))?.*");
 
     @Resource
     private DolphinSchedulerClient dsClient;
@@ -530,7 +526,10 @@ public class DevDsSubmitter {
             buildNativeParams(task);
             return;
         }
-        authorizeScript(task);
+        if (authorizeScript(task).product() != null) {
+            // 只解析本地连接配置、不访问调度器：地址无法对应到调度器数据源时在保存阶段即拒绝，而不是等到提交运行。
+            DevDsDatasourceAdapter.target(databaseResolver.resolve(task.getDatabaseId(), DATABASE_NOT_EXISTS));
+        }
     }
 
     /**
@@ -1085,7 +1084,7 @@ public class DevDsSubmitter {
         if (!Objects.equals(expectedRevision, conn.getConfigurationRevision())) {
             throw exception(DEV_TASK_DEPENDENCY_INVALID, "数据源配置在脚本授权后发生变化，请重试");
         }
-        String dsType = mapDsType(conn.getProductType());
+        String dsType = DevDsDatasourceAdapter.dsType(conn.getProductType());
         // 目标端修改或凭据轮换时创建新的 DS 数据源，保留正在运行的快照。
         String revision = cn.hutool.crypto.digest.DigestUtil.sha256Hex(String.valueOf(database.getUpdateTime()))
                 .substring(0, 16);
@@ -1102,51 +1101,21 @@ public class DevDsSubmitter {
                 }
             }
         }
-        // 创建数据源（拆解 JDBC URL）
-        Matcher matcher = JDBC_URL_PATTERN.matcher(StrUtil.nullToEmpty(conn.getJdbcUrl()));
-        if (!matcher.matches()) {
-            throw exception(DEV_DS_SUBMIT_FAILED,
-                    "当前调度器适配不能可靠解析此连接地址，请由管理员完善该产品的数据源适配");
-        }
+        // 创建数据源：按产品严格解析平台实际使用的连接地址，不能一一对应时拒绝
+        DevDsDatasourceAdapter.Target target = DevDsDatasourceAdapter.target(conn);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("name", dsName);
         body.put("note", "数据中台自动同步（数据源编号 " + task.getDatabaseId() + "）");
-        body.put("type", dsType);
-        body.put("host", matcher.group(1));
-        body.put("port", matcher.group(2) == null ? defaultPort(dsType) : Integer.parseInt(matcher.group(2)));
-        String databaseName = matcher.group(3);
-        Map<String, String> properties = new LinkedHashMap<>();
-        String jdbcUrl = conn.getJdbcUrl();
-        if (jdbcUrl.contains("?")) {
-            for (String pair : jdbcUrl.substring(jdbcUrl.indexOf('?') + 1).split("&")) {
-                int equals = pair.indexOf('=');
-                if (equals > 0) {
-                    properties.put(java.net.URLDecoder.decode(pair.substring(0, equals),
-                                    java.nio.charset.StandardCharsets.UTF_8),
-                            java.net.URLDecoder.decode(pair.substring(equals + 1),
-                                    java.nio.charset.StandardCharsets.UTF_8));
-                }
-            }
-        } else if ("SQLSERVER".equals(dsType) && jdbcUrl.contains(";")) {
-            for (String pair : jdbcUrl.substring(jdbcUrl.indexOf(';') + 1).split(";")) {
-                int equals = pair.indexOf('=');
-                if (equals > 0) {
-                    String key = pair.substring(0, equals).trim();
-                    if ("databaseName".equalsIgnoreCase(key)) {
-                        databaseName = pair.substring(equals + 1);
-                    } else {
-                        properties.put(key, pair.substring(equals + 1));
-                    }
-                }
-            }
+        body.put("type", target.type());
+        body.put("host", target.host());
+        body.put("port", target.port());
+        body.put("database", target.database());
+        if (target.connectType() != null) {
+            body.put("connectType", target.connectType());
         }
-        body.put("database", StrUtil.blankToDefault(databaseName, conn.getSchema()));
         body.put("userName", conn.getUsername());
         body.put("password", conn.getPassword());
-        if ("POSTGRESQL".equals(dsType) && StrUtil.isNotBlank(conn.getSchema())) {
-            properties.putIfAbsent("currentSchema", conn.getSchema());
-        }
-        body.put("other", properties);
+        body.put("other", target.other());
         JSONObject response = dsClient.dataSource().createDataSource(body);
         appendLog(logBuffer, "已在 DS 同步创建数据源 " + dsName + "（类型 " + dsType + "）");
         Integer id = response.getJSONObject("data") == null
@@ -1168,49 +1137,6 @@ public class DevDsSubmitter {
             }
         }
         return new DsDatasource(id, dsType);
-    }
-
-    /**
-     * dbswitch 产品类型 → DS 数据源类型
-     */
-    private String mapDsType(ProductTypeEnum productType) {
-        if (productType == null) {
-            throw exception(DEV_DS_DATASOURCE_EMPTY);
-        }
-        return switch (productType) {
-            case MYSQL, MARIADB, TIDB -> "MYSQL";
-            case POSTGRESQL, KINGBASE, OPENGAUSS, GREENPLUM -> "POSTGRESQL";
-            case ORACLE -> "ORACLE";
-            case SQLSERVER -> "SQLSERVER";
-            case HIVE -> "HIVE";
-            case DM -> "DAMENG";
-            case OCEANBASE -> "OCEANBASE";
-            case DORIS, STARROCKS -> "STARROCKS";
-            case CLICKHOUSE -> "CLICKHOUSE";
-            case DB2 -> "DB2";
-            default -> throw exception(DEV_DS_SUBMIT_FAILED,
-                    "数据源类型 " + productType + " 暂不支持自动同步到 DolphinScheduler，请由管理员完善该产品的数据源适配");
-        };
-    }
-
-    /**
-     * 获取开发调度平台提交器的默认端口。
-     *
-     * @param dsType 调度平台类型
-     * @return 默认端口数值
-     */
-    private int defaultPort(String dsType) {
-        return switch (dsType) {
-            case "MYSQL", "OCEANBASE", "STARROCKS" -> 3306;
-            case "POSTGRESQL" -> 5432;
-            case "ORACLE" -> 1521;
-            case "SQLSERVER" -> 1433;
-            case "HIVE", "SPARK" -> 10000;
-            case "DAMENG" -> 5236;
-            case "CLICKHOUSE" -> 8123;
-            case "DB2" -> 50000;
-            default -> 0;
-        };
     }
 
     /**

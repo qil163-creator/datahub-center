@@ -251,6 +251,45 @@ describe('工作台属性配置草稿', () => {
       }),
     );
   });
+  it('不可调度的数据源标注回显且不能被选中', async () => {
+    const { saved } = await mount(
+      { taskType: 'SQL', databaseId: '9007199254740993', dbType: 'MYSQL' },
+      {
+        databases: [
+          {
+            value: '9007199254740993',
+            label: '业务库',
+            productId: 'MYSQL',
+            schedulable: true,
+          },
+          {
+            value: '9007199254740995',
+            label: '分析库',
+            productId: 'CLICKHOUSE',
+            schedulable: false,
+          },
+        ],
+      },
+    );
+    const select = host!.querySelector<HTMLSelectElement>(
+      '[aria-label="数据源连接"]',
+    )!;
+    const blocked = [...select.options].find(
+      (option) => option.value === '9007199254740995',
+    )!;
+    expect(blocked.textContent).toBe('分析库（暂不支持调度）');
+    expect(blocked.disabled).toBe(true);
+    select.value = '9007199254740995';
+    select.dispatchEvent(new Event('change'));
+    await nextTick();
+    button('保存').click();
+    expect(saved).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        databaseId: '9007199254740993',
+        dbType: 'MYSQL',
+      }),
+    );
+  });
   it('自定义JDBC参数可以增删并保留大连接编号字符串', async () => {
     const { saved } = await mount(
       { taskType: 'SQL', databaseId: '9007199254740993', dbType: 'MYSQL' },

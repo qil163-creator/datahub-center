@@ -19,10 +19,13 @@ import {
   PARAM_TYPE_OPTIONS,
   PRIORITY_OPTIONS,
 } from '../list-model';
+import { schedulableDatabaseOption } from '../schedulable-database';
 
 interface DatabaseOption {
   label: string;
   productId?: string;
+  /** 能否调度执行 SQL 任务；未知时为 undefined，不做限制。 */
+  schedulable?: boolean;
   value: DataforgeDevApi.Id;
 }
 type ProgramNumber =
@@ -261,7 +264,7 @@ function chooseDatabase(value: unknown) {
   const selected = props.databases.find(
     (item) => String(item.value) === String(value),
   );
-  if (!props.readonly && selected) {
+  if (!props.readonly && selected && selected.schedulable !== false) {
     draft.value.databaseId = selected.value;
     draft.value.dbType = selected.productId ?? draft.value.dbType;
   }
@@ -518,12 +521,7 @@ function save() {
           :value="
             draft.databaseId == null ? undefined : String(draft.databaseId)
           "
-          :options="
-            databases.map((item) => ({
-              label: item.label,
-              value: String(item.value),
-            }))
-          "
+          :options="databases.map(schedulableDatabaseOption)"
           :disabled="readonly"
           show-search
           option-filter-prop="label"

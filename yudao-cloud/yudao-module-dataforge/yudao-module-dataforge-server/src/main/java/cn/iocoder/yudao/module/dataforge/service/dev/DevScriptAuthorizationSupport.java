@@ -74,6 +74,8 @@ public class DevScriptAuthorizationSupport {
                 || !route.getProductType().name().equals(task.getDbType())) {
             throw exception(DEV_TASK_DEPENDENCY_INVALID, "数据源产品或配置修订不可核验，请重新保存数据源绑定");
         }
+        // 先按产品给出明确原因，避免未接入的产品落到下面笼统的“未通过受管执行校验”。
+        DevDsDatasourceAdapter.requireSchedulable(route.getProductType());
         try {
             var config = DevTaskDefinition.readExecutionConfig(task.getExecutionConfigJson());
             List<String> input = statements(task, route.getProductType(), config);

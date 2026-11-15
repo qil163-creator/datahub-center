@@ -75,6 +75,18 @@ public class DevTaskController {
     }
 
     /**
+     * 获得可调度执行 SQL 任务的数据库产品，取值与数据源的 productId 一致；仅用于界面提示，保存与提交时后端仍会校验。
+     *
+     * @return 按名称排序的产品标识
+     */
+    @GetMapping("/schedulable-products")
+    @Operation(summary = "获得可调度执行 SQL 任务的数据库产品")
+    @PreAuthorize("@ss.hasPermission('dataforge:dev-task:query')")
+    public CommonResult<List<String>> schedulableProducts() {
+        return success(cn.iocoder.yudao.module.dataforge.service.dev.DevDsDatasourceAdapter.schedulableProducts());
+    }
+
+    /**
      * 创建开发任务。
      *
      * @param createReqVO 创建参数

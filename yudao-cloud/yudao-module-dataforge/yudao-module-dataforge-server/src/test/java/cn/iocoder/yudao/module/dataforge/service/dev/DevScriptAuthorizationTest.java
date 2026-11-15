@@ -18,10 +18,13 @@ import cn.iocoder.yudao.module.dataforge.model.dev.DevExecutionConfig;
 import cn.iocoder.yudao.module.dataforge.service.access.AccessDatabaseResolver;
 import cn.iocoder.yudao.module.dataforge.service.security.ExecutionAccessService;
 import org.junit.jupiter.api.*;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Map;
 
+import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DEV_DS_DATASOURCE_UNSUPPORTED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -164,6 +167,53 @@ class DevScriptAuthorizationTest {
             assertFalse(error.getMessage().contains("bad syntax"));
         }
         verifyNoInteractions(ds);
+    }
+
+    @Test void productsOutsideManagedSqlAuthorizationFailByNameBeforeParsing() {
+        route.setProductType(ProductTypeEnum.CLICKHOUSE);
+        var task = task("SELECT id FROM samples", "QUERY"); task.setDbType("CLICKHOUSE");
+        var error = assertThrows(ServiceException.class, () -> scripts.authorize(task));
+        assertEquals(DEV_DS_DATASOURCE_UNSUPPORTED.getCode(), error.getCode());
+        assertTrue(error.getMessage().contains("CLICKHOUSE"));
+    }
+
+    @Test void saveRejectsAnAddressTheSchedulerCannotMapWithoutContactingIt() {
+        when(resolver.resolve(eq(2L), any())).thenReturn(route);
+        var submitter = new DevDsSubmitter(); var ds = mock(DolphinSchedulerClient.class);
+        ReflectionTestUtils.setField(submitter, "scriptAuthorizationSupport", scripts);
+        ReflectionTestUtils.setField(submitter, "databaseResolver", resolver);
+        ReflectionTestUtils.setField(submitter, "dsClient", ds);
+        route.setJdbcUrl("jdbc:postgresql://h1:5432,h2:5432/review");
+        var error = assertThrows(ServiceException.class,
+                () -> submitter.validateForSave(task("CREATE TABLE created(id int)", "NON_QUERY")));
+        assertEquals(DEV_DS_DATASOURCE_UNSUPPORTED.getCode(), error.getCode());
+        route.setJdbcUrl("jdbc:postgresql://db.example:5432/review");
+        assertDoesNotThrow(() -> submitter.validateForSave(task("CREATE TABLE created(id int)", "NON_QUERY")));
+        verifyNoInteractions(ds);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Test void anOracleServiceNameDataSourceIsCreatedWithItsConnectType() {
+        route.setProductType(ProductTypeEnum.ORACLE); route.setSchema("APP"); route.setUsername("reader");
+        route.setJdbcUrl("jdbc:oracle:thin:@//db.example:1522/review.pdb");
+        var submitter = new DevDsSubmitter(); var ds = mock(DolphinSchedulerClient.class); var sources = mock(DataSourceApi.class);
+        ReflectionTestUtils.setField(submitter, "databaseMapper", databases);
+        ReflectionTestUtils.setField(submitter, "databaseResolver", resolver);
+        ReflectionTestUtils.setField(submitter, "dsClient", ds); when(ds.dataSource()).thenReturn(sources);
+        when(sources.queryDataSourceListPaging(anyString(), eq(1), eq(10))).thenReturn(new JSONObject().set("data",
+                new JSONObject().set("totalList", new JSONArray())));
+        when(sources.createDataSource(anyMap())).thenReturn(new JSONObject().set("data", new JSONObject().set("id", 12)));
+        var task = task("SELECT 1 FROM DUAL", "QUERY"); task.setDbType("ORACLE");
+        ReflectionTestUtils.invokeMethod(submitter, "resolveDsDatasource", task, new StringBuilder(), "revision-fixture");
+        ArgumentCaptor<Map> body = ArgumentCaptor.forClass(Map.class);
+        verify(sources).createDataSource(body.capture());
+        assertEquals("ORACLE", body.getValue().get("type"));
+        assertEquals("db.example", body.getValue().get("host"));
+        assertEquals(1522, body.getValue().get("port"));
+        assertEquals("review.pdb", body.getValue().get("database"));
+        assertEquals("ORACLE_SERVICE_NAME", body.getValue().get("connectType"));
+        assertEquals("reader", body.getValue().get("userName"));
+        assertEquals(Map.of(), body.getValue().get("other"));
     }
 
     private DevTaskDO task(String sql, String type) {

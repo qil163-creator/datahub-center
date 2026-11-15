@@ -88,6 +88,10 @@ import WorkbenchExecutionPanel from './modules/workbench-execution-panel.vue';
 import WorkbenchLineagePanel from './modules/WorkbenchLineagePanel.vue';
 import WorkbenchPropertiesPanel from './modules/WorkbenchPropertiesPanel.vue';
 import { DEV_REFERENCE_ASSETS } from './reference-assets';
+import {
+  isSchedulableDatabase,
+  loadSchedulableProducts,
+} from './schedulable-database';
 import { normalizeDevDatabaseType } from './task-icon-model';
 import {
   hasUnsavedContent,
@@ -240,6 +244,8 @@ const databases = ref<
   {
     label: string;
     productId?: string;
+    /** 能否调度执行 SQL 任务；清单未能读取时为 undefined。 */
+    schedulable?: boolean;
     typeName?: string;
     value: DataforgeDevApi.Id;
   }[]
@@ -584,13 +590,17 @@ async function loadConnectionTables(node: unknown) {
 
 async function loadDatabases() {
   const seq = contextSeq;
-  const list = await getDatabaseSimpleList();
+  const [list, schedulable] = await Promise.all([
+    getDatabaseSimpleList(),
+    loadSchedulableProducts(),
+  ]);
   if (seq !== contextSeq) return;
   databases.value = list.map((item) => ({
     label: item.name ?? String(item.id),
     value: String(item.id),
     typeName: item.databaseTypeName,
     productId: item.productId,
+    schedulable: isSchedulableDatabase(item.productId, schedulable),
   }));
 }
 
