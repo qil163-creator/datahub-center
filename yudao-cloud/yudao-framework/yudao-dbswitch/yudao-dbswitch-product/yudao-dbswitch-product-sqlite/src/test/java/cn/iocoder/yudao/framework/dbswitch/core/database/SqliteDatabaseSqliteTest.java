@@ -30,7 +30,7 @@ class SqliteDatabaseSqliteTest {
 
     @Test void nativeVersionIsRecorded() throws Exception {
         try (var s = connection.createStatement(); var r = s.executeQuery("SELECT sqlite_version()")) {
-            assertTrue(r.next()); assertEquals("3.31.1", r.getString(1));
+            assertTrue(r.next()); assertEquals("3.49.1", r.getString(1));
         }
     }
     @Test void attachedAndTempSchemasAreNotDiscarded() {

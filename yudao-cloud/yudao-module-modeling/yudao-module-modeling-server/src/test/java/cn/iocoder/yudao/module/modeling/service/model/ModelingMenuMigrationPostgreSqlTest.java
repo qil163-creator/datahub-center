@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -74,9 +72,6 @@ class ModelingMenuMigrationPostgreSqlTest {
     }
 
     private String migration() throws Exception {
-        Path root = Path.of("").toAbsolutePath();
-        while (root != null && !Files.isDirectory(root.resolve("sql/postgresql/migrations"))) root = root.getParent();
-        if (root == null) throw new IllegalStateException("没有找到仓库根目录");
-        return Files.readString(root.resolve("sql/postgresql/migrations/0080_modeling_closed-loop-menu.sql"));
+        return ModelingMigrationTestSupport.migrationSql("sql/postgresql/migrations/0080_modeling_closed-loop-menu.sql");
     }
 }

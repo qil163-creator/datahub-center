@@ -21,7 +21,7 @@ class NativeLocalDeploymentTest {
     @Test void flinkLocalAndStandaloneKeepAttachedLifecycleAndResources() {
         var local = NativeTaskParameters.flink(flink(), NativeTaskParameters.FlinkDeployment.LOCAL, null);
         String script = String.valueOf(local.taskParams().get("initScript"));
-        assertEquals("LOCAL", local.taskParams().get("deployMode")); assertTrue(script.contains("execution.target' = 'local"));
+        assertEquals("local", local.taskParams().get("deployMode")); assertTrue(script.contains("execution.target' = 'local"));
         assertTrue(script.contains("execution.attached' = 'true")); assertTrue(script.contains("taskmanager.numberOfTaskSlots' = '2"));
         assertTrue(script.contains("sql-client.execution.result-mode' = 'TABLEAU"));
         assertTrue(script.contains("jobmanager.memory.process.size' = '1G")); assertFalse(script.contains("yarn.application"));

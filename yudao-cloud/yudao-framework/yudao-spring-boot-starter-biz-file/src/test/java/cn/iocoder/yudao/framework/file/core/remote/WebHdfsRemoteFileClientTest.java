@@ -179,7 +179,7 @@ class WebHdfsRemoteFileClientTest {
                 case "MKDIRS" -> { directories.add(path); respond(exchange, 200, Map.of("boolean", true)); }
                 case "RENAME" -> {
                     String target = query.get("destination");
-                    boolean accepted = !exists(target) && exists(path) && !(refuseCommit && path.contains(".remote-file-upload-"));
+                    boolean accepted = !exists(target) && exists(path) && !(refuseCommit && path.contains("remote-file-upload-"));
                     if (accepted) {
                         if (files.containsKey(path)) files.put(target, files.remove(path));
                         else { directories.remove(path); directories.add(target); }

@@ -95,7 +95,7 @@ class MigrationTerminationPostgreSqlTest {
                     return new DbSwitchTableResult();
                 });
                 handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class), any(MigrationRequest.class), eq(0),
-                        any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                        any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
                 service.run();
             } catch (Throwable t) { failure.set(t); }
         }, "migration-physical-exit-jdbc-test");

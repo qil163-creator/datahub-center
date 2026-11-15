@@ -11,8 +11,6 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -336,7 +334,7 @@ class ModelingLegacyDataMigrationPostgreSqlTest {
     }
 
     private void executeFile(String relativePath) throws Exception {
-        execute(Files.readString(repoFile(relativePath)));
+        execute(ModelingMigrationTestSupport.migrationSql(relativePath));
     }
 
     private void execute(String sql) throws SQLException {
@@ -350,15 +348,4 @@ class ModelingLegacyDataMigrationPostgreSqlTest {
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
 
-    private static Path repoFile(String relativePath) {
-        Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-        while (current != null) {
-            Path candidate = current.resolve(relativePath);
-            if (Files.isRegularFile(candidate)) {
-                return candidate;
-            }
-            current = current.getParent();
-        }
-        throw new IllegalStateException("未找到仓库迁移文件：" + relativePath);
-    }
 }

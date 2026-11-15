@@ -42,7 +42,8 @@ class MigrationHookAnalyzePlanTest {
 
     @ParameterizedTest
     @EnumSource(value = ProductTypeEnum.class, names = {"POSTGRESQL", "SQLITE3", "UNKNOWN", "MONGODB",
-            "ELASTICSEARCH", "INFLUXDB3"}, mode = EnumSource.Mode.EXCLUDE)
+            "ELASTICSEARCH", "INFLUXDB3", "GBASE8C", "GAUSSDB", "PHOENIX", "SAPHANA", "PRESTO", "ODPS", "NEO4J",
+            "MILVUS", "INFLUXDB2"}, mode = EnumSource.Mode.EXCLUDE)
     void statisticsAdmissionIsNotInferredForOtherProducts(ProductTypeEnum product) {
         assertThrows(IllegalArgumentException.class,
                 () -> SqlScriptPlan.parseMigrationHook(product, "ANALYZE main.fixture"));

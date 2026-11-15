@@ -80,6 +80,9 @@ class SupplyPublishedApiDocumentHttpContractTest {
         context.addBeanFactoryPostProcessor(factory -> {
             factory.registerSingleton("bindingService", mock(SupplyApiBindingService.class));
             factory.registerSingleton("publishedDocumentService", mock(SupplyPublishedApiDocumentService.class));
+            // 端点还直接注入接口与调用日志 Mapper；HTTP 契约验证不访问数据库。
+            factory.registerSingleton("apiMapper", mock(cn.iocoder.yudao.module.supply.dal.mysql.dataapi.DataApiMapper.class));
+            factory.registerSingleton("apiLogMapper", mock(cn.iocoder.yudao.module.supply.dal.mysql.apilog.ApiLogMapper.class));
         });
         context.register(Config.class);
         context.refresh();

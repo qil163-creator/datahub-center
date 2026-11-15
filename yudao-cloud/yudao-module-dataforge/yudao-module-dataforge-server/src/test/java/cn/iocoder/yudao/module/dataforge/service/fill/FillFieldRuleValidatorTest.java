@@ -101,7 +101,8 @@ class FillFieldRuleValidatorTest {
 
     @Test
     void catastrophicRegexIsStoppedByTheTimeBudget() {
-        Map<String, Object> evil = field("fieldType", 2, "regex", "(a+)+$");
+        // JDK 25 已优化 (a+)+$ 这类经典回溯；(.*a){12} 在整串匹配失败时仍是指数级回溯，能真实触发时间预算。
+        Map<String, Object> evil = field("fieldType", 2, "regex", "(.*a){12}");
         String input = "a".repeat(1900) + "b";
         long start = System.nanoTime();
         List<FillFieldRuleValidator.Violation> result = FillFieldRuleValidator.checkValue(evil, input);

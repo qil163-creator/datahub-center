@@ -58,6 +58,9 @@ class AssetQualityTaskServiceImplTest extends BaseMockitoUnitTest {
 
     @BeforeEach
     void binding() {
+        // 同步成功后用 LambdaUpdateWrapper 回写引擎编号，纯 Mockito 测试需先登记实体元数据，否则结果取决于同 JVM 中其他测试是否已初始化。
+        com.baomidou.mybatisplus.core.metadata.TableInfoHelper.initTableInfo(new org.apache.ibatis.builder.MapperBuilderAssistant(
+                new com.baomidou.mybatisplus.core.MybatisConfiguration(), ""), AssetQualityTaskDO.class);
         var asset = DataAssetDO.builder().id(1L).datasourceId(3L).metaTableId(4L).tableName("source_table").build();
         lenient().when(dataAssetMapper.selectById(1L)).thenReturn(asset);
         var table = new MetadataTableRespDTO(); table.setId(4L); table.setDatasourceId(3L); table.setTableName("source_table");

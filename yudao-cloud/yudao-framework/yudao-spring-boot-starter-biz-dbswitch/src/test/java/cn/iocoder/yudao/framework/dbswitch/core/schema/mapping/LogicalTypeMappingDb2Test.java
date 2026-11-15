@@ -35,7 +35,10 @@ class LogicalTypeMappingDb2Test {
     private final List<Runnable> cleanup = new ArrayList<>();
     private DbSwitchRuntime runtime;
 
-    @BeforeAll static void driver() throws Exception { Class.forName("com.ibm.db2.jcc.DB2Driver"); }
+    // 驱动只在配置了真实 DB2 时需要；黄金表与驱动事实用例是纯映射检查，不能因测试类路径缺驱动而整体失败。
+    @BeforeAll static void driver() throws Exception {
+        if (System.getProperty("datahub.test.db2.url") != null) Class.forName("com.ibm.db2.jcc.DB2Driver");
+    }
 
     @BeforeEach void setup() throws Exception {
         runtime = DbSwitchRuntime.standalone();

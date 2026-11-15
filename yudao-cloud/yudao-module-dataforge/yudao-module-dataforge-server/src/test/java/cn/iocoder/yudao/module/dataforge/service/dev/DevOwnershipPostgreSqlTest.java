@@ -29,7 +29,7 @@ class DevOwnershipPostgreSqlTest {
             sql.execute("CREATE UNIQUE INDEX IF NOT EXISTS dev_one_active ON dh_dataforge_dev_record(tenant_id,task_id)"
                     + " WHERE deleted=0 AND version_id IS NOT NULL AND status IN('SUBMITTING','RUNNING','UNKNOWN','CANCEL_REQUESTED')");
             sql.execute("TRUNCATE dh_dataforge_dev_record");
-            sql.execute("INSERT INTO dh_dataforge_dev_record(id,task_id,status,version_id,lease_owner) VALUES(1,10,'RUNNING',100,'owner'),(2,10,'WAITING',100,null),(3,10,'RUNNING',100,'other-tenant')");
+            sql.execute("INSERT INTO dh_dataforge_dev_record(id,task_id,status,version_id,lease_owner) VALUES(1,10,'RUNNING',100,'owner'),(2,10,'WAITING',100,null),(3,11,'RUNNING',100,'other-task')");
             var config = new MybatisConfiguration();
             config.setEnvironment(new Environment("dev-pg", new JdbcTransactionFactory(), source));
         cn.iocoder.yudao.module.dataforge.support.SingleTenantPostgreSqlFixture.upgrade(source);
@@ -53,10 +53,12 @@ class DevOwnershipPostgreSqlTest {
              Statement sql = connection.createStatement()) {
             sql.execute("DROP SEQUENCE IF EXISTS dev_plan_probe_seq");
             sql.execute("CREATE SEQUENCE dev_plan_probe_seq");
-            var plan = new SqlExecutionPlanService(() -> DriverManager.getConnection(
-                    POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())).explain(ProductTypeEnum.POSTGRESQL,
-                    "SELECT nextval('dev_plan_probe_seq'), ';' AS separator", 20, 10);
-            assertFalse(plan.getRows().isEmpty());
+            var planner = new SqlExecutionPlanService(() -> DriverManager.getConnection(
+                    POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword()));
+            assertFalse(planner.explain(ProductTypeEnum.POSTGRESQL, "SELECT ';' AS separator", 20, 10).getRows().isEmpty());
+            // 带副作用的函数在只读分类阶段即被拒绝，连 EXPLAIN 都不会发到数据库。
+            assertThrows(IllegalArgumentException.class, () -> planner.explain(ProductTypeEnum.POSTGRESQL,
+                    "SELECT nextval('dev_plan_probe_seq'), ';' AS separator", 20, 10));
             try (var rs = sql.executeQuery("SELECT is_called FROM dev_plan_probe_seq")) {
                 assertTrue(rs.next()); assertFalse(rs.getBoolean(1));
             }

@@ -35,12 +35,19 @@ class PostgresOctetTextMappingTest {
         assertEquals(TypeFidelity.UNSUPPORTED, result.fidelity()); assertNull(result.value());
     }
 
-    @Test void textKeysLargeDomainsAndOversizedBoundsStayUnsupported() {
+    @Test void textKeysAndOversizedVaryingBoundsStayUnsupported() {
         assertEquals(TypeFidelity.UNSUPPORTED, map(text(12), true).fidelity());
-        assertEquals(TypeFidelity.UNSUPPORTED, map(new CharacterType(StorageKind.LARGE, null, LengthUnit.OCTETS,
-                2147483647L, "utf8mb4", Comparison.BINARY_NO_PAD, null, true), false).fidelity());
         assertEquals(TypeFidelity.UNSUPPORTED, map(text(1073741824L), false).fidelity());
         assertEquals(TypeFidelity.EXACT, map(text(1073741823L), false).fidelity());
+    }
+
+    /** 源端大文本（如 Doris STRING）超出 PostgreSQL 单字段上限：按 LOSSY 映射，超长值在写入前由 CHECK 拒绝。 */
+    @Test void largeOctetTextBeyondTheFieldLimitIsLossyNotSilentlyTruncated() {
+        var large = map(new CharacterType(StorageKind.LARGE, null, LengthUnit.OCTETS,
+                2147483647L, "utf8mb4", Comparison.BINARY_NO_PAD, null, true), false);
+        assertEquals(TypeFidelity.LOSSY, large.fidelity());
+        assertTrue(large.issues().stream().anyMatch(i -> i.code().equals("LENGTH_EXCEEDS_TARGET")));
+        assertTrue(large.value().checkTemplate().contains("pg_catalog.octet_length({column}) <= 1073741823"));
     }
 
     @ParameterizedTest

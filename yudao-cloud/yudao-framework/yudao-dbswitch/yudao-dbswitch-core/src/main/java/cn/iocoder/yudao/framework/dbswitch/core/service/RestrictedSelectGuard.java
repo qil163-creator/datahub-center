@@ -331,6 +331,16 @@ public final class RestrictedSelectGuard {
         return quotePhysicalIdentifier(product, schema) + "." + quotePhysicalIdentifier(product, table);
     }
 
+    /** 判断产品是否已验证物理标识符引用；放行范围与 {@link #quotePhysicalIdentifier} 完全一致。 */
+    public static boolean supportsPhysicalIdentifier(ProductTypeEnum product) {
+        try {
+            quotePhysicalIdentifier(product, "probe");
+            return true;
+        } catch (UnsupportedOperationException unsupported) {
+            return false;
+        }
+    }
+
     /** 已验证产品的单个物理标识符安全引用，不处理 SQL 表达式。 */
     public static String quotePhysicalIdentifier(ProductTypeEnum product, String name) {
         if (product == ProductTypeEnum.ORACLE) {

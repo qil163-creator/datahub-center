@@ -15,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Parser/lexer contracts only; vendor execution compatibility requires a real target engine. */
 class MigrationHookPlanTest {
     @ParameterizedTest
-    @EnumSource(value = ProductTypeEnum.class, names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3"},
+    @EnumSource(value = ProductTypeEnum.class, names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3", "GBASE8C", "GAUSSDB", "PHOENIX",
+            "SAPHANA", "PRESTO", "ODPS", "NEO4J", "MILVUS", "INFLUXDB2"},
             mode = EnumSource.Mode.EXCLUDE)
     void ordinarySqlPlansWithTheProductsDialectAndRetainsEveryToken(ProductTypeEnum product) {
         List<String> statements = new ArrayList<>(List.of(
@@ -43,7 +44,8 @@ class MigrationHookPlanTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ProductTypeEnum.class, names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3"},
+    @EnumSource(value = ProductTypeEnum.class, names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3", "GBASE8C", "GAUSSDB", "PHOENIX",
+            "SAPHANA", "PRESTO", "ODPS", "NEO4J", "MILVUS", "INFLUXDB2"},
             mode = EnumSource.Mode.EXCLUDE)
     void transactionProcedureDirectivesAndUnboundInputCannotReachTheFirstStep(ProductTypeEnum product) {
         for (String rejected : List.of("COMMIT", "ROLLBACK", "BEGIN", "SAVEPOINT fixture", "CALL fixture()",

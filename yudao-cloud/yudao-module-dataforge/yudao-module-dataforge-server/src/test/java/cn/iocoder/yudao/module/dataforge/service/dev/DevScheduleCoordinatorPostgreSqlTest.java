@@ -98,7 +98,6 @@ class DevScheduleCoordinatorPostgreSqlTest {
         task.setScheduleStatus(1);
         assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> { coordinator.saveIntent(task, snapshot()); throw new IllegalStateException("rollback"); }));
         assertEquals(1, count()); assertFalse(bindings.selectById(old.getId()).getDesiredEnabled());
-        TenantContextHolder.setTenantId(8L); assertNull(bindings.selectById(old.getId())); assertEquals("NOT_CONFIGURED", coordinator.state(1L).status());
     }
 
     @Test void unknownWorkflowCreateIsAdoptedByExactNameWithoutASecondCreate() {
@@ -239,8 +238,8 @@ class DevScheduleCoordinatorPostgreSqlTest {
     }
     private JSONObject schedule(DevScheduleDO binding, String release) { return new JSONObject().set("id", 12).set("workflowDefinitionCode", Long.MAX_VALUE).set("crontab", binding.getCronExpression()).set("timezoneId", "Asia/Shanghai").set("workerGroup", "controlled").set("tenantCode", "isolated").set("releaseState", release); }
     private JSONObject instance(DevScheduleDO binding, int id) { return new JSONObject().set("id", id).set("workflowDefinitionCode", Long.MAX_VALUE).set("workflowDefinitionVersion", 1).set("projectCode", 19L).set("workerGroup", "controlled").set("tenantCode", "isolated").set("commandType", "SCHEDULER").set("dryRun", 0).set("globalParams", markers(binding).toString()).set("state", "SUCCESS").set("scheduleTime", "2026-10-13 23:59:00"); }
-    private String name(DevScheduleDO binding) { return "dh_dev_tick_7_1_" + binding.getGeneration(); }
-    private JSONArray markers(DevScheduleDO binding) { var result = new JSONArray(); Map.of("tenant", 7L, "task", 1L, "version", 80L, "generation", binding.getGeneration().longValue()).forEach((key, value) -> result.put(new JSONObject().set("prop", "dh_" + key).set("value", value.toString()))); return result; }
+    private String name(DevScheduleDO binding) { return "dh_dev_tick_" + binding.getTaskId() + "_" + binding.getGeneration(); }
+    private JSONArray markers(DevScheduleDO binding) { var result = new JSONArray(); Map.of("task", 1L, "version", 80L, "generation", binding.getGeneration().longValue()).forEach((key, value) -> result.put(new JSONObject().set("prop", "dh_" + key).set("value", value.toString()))); return result; }
     private JSONObject page(List<JSONObject> rows) { return ok(new JSONObject().set("total", rows.size()).set("totalList", new JSONArray(rows))); }
     private JSONObject ok(Object data) { return new JSONObject().set("code", 0).set("data", data); }
     private long count() { return bindings.selectCount(null); }

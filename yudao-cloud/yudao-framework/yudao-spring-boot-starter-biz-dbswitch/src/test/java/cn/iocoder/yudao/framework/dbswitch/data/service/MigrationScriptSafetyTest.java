@@ -52,7 +52,7 @@ class MigrationScriptSafetyTest {
         var service = new MigrationService(properties, ignored -> { }, null, runtime);
         try (var factories = factories(target, source); var handlers = mockStatic(MigrationHandler.class)) {
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class), eq(properties),
-                    anyInt(), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    anyInt(), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var result = service.run();
             assertFalse(result.getIfAllSuccess().get());
             assertEquals(1, result.getTotalTableFailCount().get());
@@ -80,7 +80,7 @@ class MigrationScriptSafetyTest {
         var service = new MigrationService(properties, ignored -> { });
         try (var factories = factories(target, source); var handlers = mockStatic(MigrationHandler.class)) {
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class), eq(properties),
-                    eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var result = service.run();
             assertFalse(result.getIfAllSuccess().get());
             assertEquals(1, result.getTotalTableFailCount().get());
@@ -102,7 +102,7 @@ class MigrationScriptSafetyTest {
         var service = new MigrationService(properties, ignored -> { });
         try (var factories = factories(target, source); var handlers = mockStatic(MigrationHandler.class)) {
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class), eq(properties),
-                    eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var result = service.run();
             assertFalse(result.getIfAllSuccess().get());
             assertSame(committed, result.getTableResultList().getFirst());
@@ -189,7 +189,7 @@ class MigrationScriptSafetyTest {
         var service = new MigrationService(properties, ignored -> { });
         try (var factories = factories(target, source); var handlers = mockStatic(MigrationHandler.class)) {
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class), eq(properties),
-                    eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var result = service.run();
             assertFalse(result.getIfAllSuccess().get());
             assertEquals(23, result.getTotalRowCount().get());

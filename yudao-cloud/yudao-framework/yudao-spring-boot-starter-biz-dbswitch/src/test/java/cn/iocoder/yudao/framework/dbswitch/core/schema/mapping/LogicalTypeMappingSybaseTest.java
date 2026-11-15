@@ -37,6 +37,8 @@ class LogicalTypeMappingSybaseTest {
     private DbSwitchRuntime runtime;
 
     @BeforeAll static void driver() throws Exception {
+        // 驱动只在配置了真实 Sybase 时需要；黄金表与驱动事实用例是纯映射检查。
+        if (System.getProperty("datahub.test.sybase.url") == null) return;
         // jconn4 does not self-register; the fixture registers it once for DriverManager pools.
         DriverManager.registerDriver((Driver) Class.forName("com.sybase.jdbc4.jdbc.SybDriver").getDeclaredConstructor().newInstance());
     }

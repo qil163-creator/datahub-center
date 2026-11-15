@@ -53,8 +53,8 @@ class FtpRemoteFileClientTest {
             public FtpletResult beforeCommand(FtpSession session, FtpRequest request) throws FtpException {
                 if (request.getCommand().equals("RNTO") && session.getRenameFrom() != null) {
                     String source = session.getRenameFrom().getName();
-                    if ((refuseCommit && source.startsWith(".remote-file-upload-"))
-                            || (refuseRestore && source.startsWith(".remote-file-backup-"))) {
+                    if ((refuseCommit && source.startsWith("remote-file-upload-"))
+                            || (refuseRestore && source.startsWith("remote-file-backup-"))) {
                         session.write(new DefaultFtpReply(550, "isolated failure fixture"));
                         return FtpletResult.SKIP;
                     }
@@ -206,7 +206,7 @@ class FtpRemoteFileClientTest {
         try (var paths = Files.list(home.resolve("scope"))) {
             List<Path> remaining = paths.toList();
             assertThat(remaining).hasSize(1);
-            assertThat(remaining.getFirst().getFileName().toString()).startsWith(".remote-file-backup-");
+            assertThat(remaining.getFirst().getFileName().toString()).startsWith("remote-file-backup-");
             assertThat(Files.readString(remaining.getFirst())).isEqualTo("original");
         }
     }

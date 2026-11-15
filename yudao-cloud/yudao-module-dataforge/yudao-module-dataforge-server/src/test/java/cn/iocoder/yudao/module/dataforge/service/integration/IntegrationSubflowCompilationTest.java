@@ -63,7 +63,8 @@ class IntegrationSubflowCompilationTest {
     }
 
     @Test void publishedTypedSubflowCompilesIntoBothNativeEnginesAndRetainsDesignIdentity() {
-        for (String engine : List.of("SPARK", "FLINK")) {
+        // 子流程调用目前只对 Spark 开放；Flink 只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS）。
+        for (String engine : List.of("SPARK")) {
             var task = task(engine); String flow = flow(Map.of("label", "literal-child"));
             var step = compiler.compile(task, flow).getFirst();
             assertEquals(engine, step.taskType()); assertTrue(JSONUtil.toJsonStr(step.parameters()).contains("literal-child"));

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /** 仅支持显式配置的 WebHDFS 简单认证，不使用 Kerberos 或 HTTP 密码认证。 */
 final class WebHdfsRemoteFileClient implements RemoteFileClient {
@@ -83,7 +82,7 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         RemoteFileStreams.validateUploadSize(size);
         guard(RemoteFilePaths.parent(path), true);
         RemoteFileOperations.checkUploadTarget(this, path, overwrite);
-        String temporary = RemoteFilePaths.child(RemoteFilePaths.parent(path), ".remote-file-upload-" + UUID.randomUUID());
+        String temporary = RemoteFilePaths.child(RemoteFilePaths.parent(path), RemoteFileOperations.uploadName());
         String absolute = RemoteFilePaths.resolve(config.rootPath(), temporary);
         URI initial = operationUri(absolute, "CREATE", Map.of("overwrite", "false", "createparent", "false"));
         HttpURLConnection first = open(initial, "PUT");

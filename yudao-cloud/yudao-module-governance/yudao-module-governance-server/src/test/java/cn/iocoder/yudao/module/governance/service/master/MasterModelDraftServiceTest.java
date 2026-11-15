@@ -46,6 +46,13 @@ class MasterModelDraftServiceTest extends BaseMockitoUnitTest {
     @Mock private com.mzt.logapi.service.ILogRecordService audit;
     @InjectMocks private MasterModelServiceImpl service;
 
+    // 服务用 LambdaUpdateWrapper 更新模型；纯 Mockito 测试需先登记实体元数据，否则结果取决于同 JVM 中其他测试是否已初始化。
+    @org.junit.jupiter.api.BeforeEach
+    void registerEntityMetadata() {
+        com.baomidou.mybatisplus.core.metadata.TableInfoHelper.initTableInfo(new org.apache.ibatis.builder.MapperBuilderAssistant(
+                new com.baomidou.mybatisplus.core.MybatisConfiguration(), ""), MasterModelDO.class);
+    }
+
     @Test
     void emptyDraftOnlyWritesPlatformDefinition() {
         enabledDomain();

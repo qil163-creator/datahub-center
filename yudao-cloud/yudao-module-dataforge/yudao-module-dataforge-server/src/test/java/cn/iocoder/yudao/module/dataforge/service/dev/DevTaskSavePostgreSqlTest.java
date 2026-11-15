@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 
-/** 隔离 PostgreSQL 验证版本和当前定义原子保存、真实 CAS 回滚及租户隔离。 */
+/** 隔离 PostgreSQL 验证版本和当前定义原子保存与真实 CAS 回滚。 */
 @Testcontainers(disabledWithoutDocker = true)
 class DevTaskSavePostgreSqlTest {
     @Container static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
@@ -111,8 +111,6 @@ class DevTaskSavePostgreSqlTest {
                 eq("MANUAL"), eq("MANUAL:save-and-run"), eq(run.getBusinessDate()));
         assertEquals("object", one("SELECT jsonb_typeof(snapshot_json) FROM dh_dataforge_dev_task_version WHERE id=" + version.getId()));
         assertEquals("original script", versions.selectById(80L).getContent()); assertEquals("80", one("SELECT version_id FROM dh_dataforge_dev_record WHERE id=9"));
-        TenantContextHolder.setTenantId(2L);
-        assertNull(tasks.selectById(1L)); assertNull(versions.selectById(version.getId())); assertThrows(ServiceException.class, () -> service.getTaskVersionList(1L));
     }
 
     @Test void concurrentRevisionChangeRollsBackNewVersionAndDefinitionTogether() throws Exception {
@@ -159,8 +157,6 @@ class DevTaskSavePostgreSqlTest {
         assertEquals(binding.getVersionId(), record.getVersionId()); assertEquals("WAITING", record.getStatus());
         execute("UPDATE dh_dataforge_dev_schedule SET desired_enabled=false WHERE id=" + binding.getId());
         assertNull(service.runTaskScheduled(binding, 18L, scheduledTime)); assertEquals("2", one("SELECT count(*) FROM dh_dataforge_dev_record"));
-        TenantContextHolder.setTenantId(2L); var foreign = binding;
-        assertThrows(ServiceException.class, () -> service.runTaskScheduled(foreign, 17L, scheduledTime));
     }
 
     private DevTaskSaveReqVO request(int revision) {

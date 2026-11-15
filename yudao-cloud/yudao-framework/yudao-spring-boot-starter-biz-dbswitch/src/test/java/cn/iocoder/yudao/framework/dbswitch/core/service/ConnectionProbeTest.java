@@ -61,6 +61,10 @@ class ConnectionProbeTest {
             if (product == ProductTypeEnum.OCEANBASE) {
                 mode(connection, "MYSQL"); expected = ProductTypeEnum.MYSQL.getTestSql();
             }
+            // MySQL 兼容的 OLAP 产品固定执行 SELECT 1，不依赖 Connector/J 对 /* ping */ 注释的协议捷径。
+            if (database instanceof cn.iocoder.yudao.framework.dbswitch.core.database.impl.DatabaseMysqlCompatibleOlapImpl) {
+                expected = "SELECT 1";
+            }
             var statement = sqlReply(connection, expected, true);
             database.probeConnection(connection, 3);
             verify(statement).executeQuery(expected);

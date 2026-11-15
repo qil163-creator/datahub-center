@@ -860,6 +860,9 @@ public class DataAccessExecutor {
             // 原文校验失败属于准备失败，不能误记为已发送作业。
             String seatunnelConfig = seatunnel && StrUtil.isBlank(task.getSeatunnelJobId())
                     ? remoteConfig(snapshot) : null;
+            if (!seatunnel && !api) {
+                requireSingleManagedSource(snapshot);
+            }
             if (handle.cancelSignalled || coordinator.shouldStop(handle.lease)) {
                 coordinator.releaseBeforeExecution(handle.lease, "执行前取消");
                 return;
@@ -1171,6 +1174,20 @@ public class DataAccessExecutor {
      * @param successTables 成功表
      * @param failTables 失败表
      */
+    /**
+     * 数据库同步只为一个受管理源填充连接与同步绑定；多源配置不能借用第一个源的身份执行，
+     * 在发出任何副作用之前按准备失败处理，避免把未写入任何数据的运行记成待核对的已执行。
+     */
+    private static void requireSingleManagedSource(DataAccessDO snapshot) {
+        if (snapshot.getDataAccessJson() == null) {
+            throw new IllegalStateException("任务未配置同步内容");
+        }
+        var request = AccessTaskConfigMapper.toRuntime(snapshot.getDataAccessJson(), snapshot.getTargetDatabaseId());
+        if (request.getSource() == null || request.getSource().size() != 1) {
+            throw new IllegalArgumentException("数据库同步只支持单个受管理源");
+        }
+    }
+
     private void executeDbswitch(DataAccessDO dataAccess, DataAccessTaskDO task, RunningTask runningTask,
             StringBuffer realTimeLog, AtomicLong totalRows, AtomicLong totalBytes,
             AtomicLong successTables, AtomicLong failTables) throws Exception {

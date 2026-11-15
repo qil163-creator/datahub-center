@@ -33,7 +33,10 @@ class JdbcMetadataBudgetTest {
     void dataAndExecutionMethodsNeverUseTheMetadataProvider(String method) throws Exception {
         var metadata = mock(JdbcConnectionProvider.class); var workload = mock(JdbcConnectionProvider.class);
         var products = mock(DbSwitchProductRegistry.class);
-        when(products.metadata(PRODUCT)).thenReturn(mock(AbstractDatabase.class));
+        var dialect = mock(AbstractDatabase.class);
+        // 分页读取先经方言改写 JDBC 地址（如 Doris）；默认实现原样返回。
+        when(dialect.preparePageQueryJdbcUrl(URL)).thenReturn(URL);
+        when(products.metadata(PRODUCT)).thenReturn(dialect);
         when(workload.open(URL, null, null)).thenThrow(new SQLTimeoutException("Workload budget exhausted"));
         var facade = new MetaDataByJdbcServiceImpl(PRODUCT, products, metadata, workload);
         try {

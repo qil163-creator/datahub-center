@@ -45,6 +45,7 @@ class DataApiEtlBatchPostgreSqlTest extends cn.iocoder.yudao.module.supply.servi
              breaker_open_seconds int,alarm_enabled int,config_type text,database_id bigint,table_name text,sql_text text,forward_url text,
              forward_method text,request_params jsonb,response_fields jsonb,remark text,provider_dept_id bigint,resource_ref text,
              owner_user_id bigint,active_release_id bigint,draft_revision int,draft_json jsonb,contract_hash text,row_version int,
+             max_concurrency int,timeout_seconds int,indicator_config_json text,
              creator text,updater text,create_time timestamp default now(),update_time timestamp default now(),deleted smallint default 0);
             CREATE SEQUENCE dh_supply_api_release_seq;
             CREATE TABLE dh_supply_api_release(id bigint PRIMARY KEY,api_id bigint,revision int,api_version text,

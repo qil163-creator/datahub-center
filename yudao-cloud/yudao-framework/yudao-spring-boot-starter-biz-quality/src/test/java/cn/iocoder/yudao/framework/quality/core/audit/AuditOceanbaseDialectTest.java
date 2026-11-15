@@ -29,9 +29,23 @@ class AuditOceanbaseDialectTest {
         }
     }
 
+    /** 除 OceanBase 模式核对外，只有 PostgreSQL 系需要核对 standard_conforming_strings；其他产品不做额外探测。 */
     @Test void otherProductSqlContractsDoNotRequireAnExtraProbe() throws Exception {
-        var connection = mock(Connection.class);
-        for (var product : ProductTypeEnum.values()) if (product != ProductTypeEnum.OCEANBASE) AuditSqlDialect.validateConnection(connection, product);
-        verifyNoInteractions(connection);
+        for (var product : ProductTypeEnum.values()) {
+            if (product == ProductTypeEnum.OCEANBASE) continue;
+            var connection = mock(Connection.class); var statement = mock(Statement.class); var rows = mock(ResultSet.class);
+            when(connection.createStatement()).thenReturn(statement);
+            when(statement.executeQuery("SHOW standard_conforming_strings")).thenReturn(rows);
+            when(rows.next()).thenReturn(true, false); when(rows.getString(1)).thenReturn("on");
+            AuditSqlDialect.validateConnection(connection, product);
+            if (product.isLikePostgres()) {
+                verify(statement).executeQuery("SHOW standard_conforming_strings");
+                verify(statement).close(); verify(rows).close();
+            } else {
+                verifyNoInteractions(connection);
+            }
+            verify(connection, never()).prepareStatement(anyString());
+            verify(connection, never()).close();
+        }
     }
 }

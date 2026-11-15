@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class IntegrationScriptPublicationCompilationTest {
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），Kafka 写入不在其中；该组件重新对 Flink 开放后恢复")
     @Test void checkSchemaPublicationAndExecutionCarrySeparatePurposesAndNoSourceInNativeArguments() {
         var compiler = new IntegrationFlowCompiler(); var support = mock(IntegrationNativeScriptBindingSupport.class); var runtime = new IntegrationRuntimeProperties();
         runtime.setNativeKafkaBindings(Map.of(1L, new EtlNativeConnectorCompiler.KafkaBinding("managed:9092", Set.of("source"), Set.of("target"), EtlNativeConnectorCompiler.Authentication.NONE, true)));

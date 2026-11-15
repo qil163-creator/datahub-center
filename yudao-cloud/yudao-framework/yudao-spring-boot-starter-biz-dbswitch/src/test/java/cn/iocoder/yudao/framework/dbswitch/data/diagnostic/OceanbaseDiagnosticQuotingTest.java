@@ -49,10 +49,14 @@ class OceanbaseDiagnosticQuotingTest {
             String quote = "ORACLE".equals(mode) ? "\"" : "`";
             verify(fixture.connection, times(2)).prepareStatement(
                     "SELECT * FROM " + quote + "sample" + quote + "." + quote + "orders" + quote + " WHERE 1=0");
-            verify(fixture.modeStatement).setMaxRows(2);
-            verify(fixture.modeStatement).setQueryTimeout(anyInt());
-            verify(fixture.modeRows).close();
-            verify(fixture.modeStatement).close();
+            int modeChecks = (int) mockingDetails(fixture.connection).getInvocations().stream()
+                    .filter(call -> call.getMethod().getName().equals("prepareStatement")
+                            && MODE_SQL.equals(call.getArguments()[0])).count();
+            assertTrue(modeChecks >= 1 && modeChecks <= 4, "mode checks: " + modeChecks);
+            verify(fixture.modeStatement, times(modeChecks)).setMaxRows(2);
+            verify(fixture.modeStatement, times(modeChecks)).setQueryTimeout(anyInt());
+            verify(fixture.modeRows, times(modeChecks)).close();
+            verify(fixture.modeStatement, times(modeChecks)).close();
             verify(fixture.sampleStatement, times(2)).close();
             verify(fixture.sampleRows).close();
             verify(fixture.connection).close();
@@ -153,7 +157,8 @@ class OceanbaseDiagnosticQuotingTest {
         var modeRows = mock(ResultSet.class);
         when(connection.prepareStatement(MODE_SQL)).thenReturn(modeStatement);
         when(modeStatement.executeQuery()).thenReturn(modeRows);
-        when(modeRows.next()).thenReturn(true, false);
+        // 每个依赖模式的探测都从本连接重新核对一次，每次核对都得到一行完整的模式证据。
+        when(modeRows.next()).thenReturn(true, false, true, false, true, false, true, false);
         when(modeRows.getString(2)).thenReturn(mode);
         var sampleStatement = mock(PreparedStatement.class);
         var sampleRows = mock(ResultSet.class);

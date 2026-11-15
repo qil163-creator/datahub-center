@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.infra.service.file;
 
+import cn.iocoder.yudao.module.infra.api.file.ManagedFileApi;
 import cn.iocoder.yudao.module.infra.dal.dataobject.file.FileDO;
 import cn.iocoder.yudao.module.infra.dal.mysql.file.FileMapper;
 import cn.iocoder.yudao.module.infra.framework.file.core.client.FileClient;
@@ -24,7 +25,7 @@ class UserFileContentReadTest {
     }
 
     @Test void readsOnlyWithBoundedStorageApiAndOmitsStorageCoordinates() throws Exception {
-        when(client.getContent(file.getPath(), 20L * 1024 * 1024)).thenReturn(new byte[]{1, 2});
+        when(client.getContent(file.getPath(), ManagedFileApi.MAX_USER_UPLOAD_BYTES)).thenReturn(new byte[]{1, 2});
         var result = service.readUserUpload(77L, 42L);
         assertEquals("upload.jsonl", result.getName()); assertArrayEquals(new byte[]{1, 2}, result.getContent());
         verify(client, never()).getContent(anyString());
@@ -38,9 +39,9 @@ class UserFileContentReadTest {
     }
 
     @Test void limitsAreCheckedBeforeReadingAndActualLengthMustMatch() throws Exception {
-        file.setSize(20L * 1024 * 1024 + 1);
+        file.setSize(ManagedFileApi.MAX_USER_UPLOAD_BYTES + 1);
         assertThrows(Exception.class, () -> service.readUserUpload(77L, 42L)); verifyNoInteractions(client);
-        file.setSize(2L); when(client.getContent(file.getPath(), 20L * 1024 * 1024)).thenReturn(new byte[]{1});
+        file.setSize(2L); when(client.getContent(file.getPath(), ManagedFileApi.MAX_USER_UPLOAD_BYTES)).thenReturn(new byte[]{1});
         assertThrows(Exception.class, () -> service.readUserUpload(77L, 42L));
     }
 

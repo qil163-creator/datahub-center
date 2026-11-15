@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 final class FtpRemoteFileClient implements RemoteFileClient {
     private final StreamingFtp ftp = new StreamingFtp();
@@ -85,7 +84,7 @@ final class FtpRemoteFileClient implements RemoteFileClient {
         String parent = RemoteFilePaths.parent(path);
         guard(parent, true);
         RemoteFileOperations.checkUploadTarget(this, path, overwrite);
-        String temporary = RemoteFilePaths.child(parent, ".remote-file-upload-" + UUID.randomUUID());
+        String temporary = RemoteFilePaths.child(parent, RemoteFileOperations.uploadName());
         String resolved = RemoteFilePaths.resolve(root, temporary);
         boolean stored = false;
         try {

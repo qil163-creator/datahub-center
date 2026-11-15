@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Timeout;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -116,7 +115,7 @@ class ModelSingleTargetMigrationPostgreSqlTest {
     }
 
     @Test
-    void freshBaselineRetiresEnvironmentConfigurationAndPreservesDeployEvidence() throws Exception {
+    void freshBaselineRetiresEnvironmentConfigurationAndLegacyDeployRecords() throws Exception {
         apply("sql/postgresql/datahub-center.sql");
         assertEquals(0, count("SELECT count(*) FROM system_menu WHERE permission='modeling:workspace:environment'"));
         assertEquals(0, count("SELECT count(*) FROM system_menu WHERE permission='modeling:workspace:environment'"
@@ -125,14 +124,13 @@ class ModelSingleTargetMigrationPostgreSqlTest {
         assertEquals(0, count("SELECT count(*) FROM system_menu WHERE permission IN"
                 + " ('modeling:workspace:approval','modeling:workspace:collaboration','modeling:workspace:inbox')"
                 + " AND type=3 AND deleted=0 AND status=0"));
-        assertEquals(List.of("false:true"), rows("SELECT (to_regclass('dh_modeling_environment_target') IS NOT NULL)::text"
+        // 0141 已移除旧发布记录表，新库基线中环境目标与旧发布记录都不再存在。
+        assertEquals(List.of("false:false"), rows("SELECT (to_regclass('dh_modeling_environment_target') IS NOT NULL)::text"
                 + " || ':' || (to_regclass('dh_modeling_deploy_record') IS NOT NULL)::text"));
-        String migration = Files.readString(ModelingMigrationTestSupport.repoFile(MIGRATION)).replace("\r\n", "\n").strip();
-        assertEquals(migration, ModelingMigrationTestSupport.baselineBlock("-- Migration: 0120 ").strip());
     }
 
     private void apply(String relative) throws Exception {
-        String sql = Files.readString(ModelingMigrationTestSupport.repoFile(relative))
+        String sql = ModelingMigrationTestSupport.migrationSql(relative)
                 .replace("\"datahub-center\"", "\"" + schema + "\"")
                 .replace("'datahub-center'", "'" + schema + "'");
         execute(sql);

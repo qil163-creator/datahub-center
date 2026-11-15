@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * SQLite 3.31.1 file catalog. The temporary database is the test directory, not a stand-in for getColumns.
+ * SQLite 3.49.1 file catalog. 3.49 的 pragma 返回规范化的大写声明类型，生成列类型不再带 GENERATED ALWAYS 后缀；
+ * 驱动的空值约束对 NOT NULL 列已正确，对 INTEGER PRIMARY KEY 报告可空（与 pragma notnull 一致）。 The temporary database is the test directory, not a stand-in for getColumns.
  */
 @Timeout(60)
 class Sqlite3CatalogColumnsTest {
@@ -67,7 +67,7 @@ class Sqlite3CatalogColumnsTest {
             var metadata = Sqlite3CatalogColumns.read(connection, "main", "affinity", 10);
             assertTrue(metadata.provenance().nativeProduct(ProductTypeEnum.SQLITE3));
             assertEquals("SQLITE_CATALOG_V1", metadata.provenance().method());
-            assertEquals("3.31.1", metadata.provenance().serverVersion());
+            assertEquals("3.49.1", metadata.provenance().serverVersion());
             assertEquals(MetadataValue.State.VALUE, metadata.existence().state());
             assertEquals(MetadataValue.State.ABSENT, metadata.additionalObjects().state());
             assertTrue(metadata.primaryKeys().isEmpty());
@@ -84,8 +84,8 @@ class Sqlite3CatalogColumnsTest {
             absentNumbers(column(metadata, "c_boolean"), Types.BOOLEAN, "BOOLEAN", false);
             absentNumbers(column(metadata, "c_date"), Types.DATE, "DATE", false);
             absentNumbers(column(metadata, "c_datetime"), Types.DATE, "DATETIME", false);
-            absentNumbers(column(metadata, "c_lower"), Types.INTEGER, "integer", true);
-            assertEquals("integer", evidence(column(metadata, "c_lower")).nativeType().value());
+            absentNumbers(column(metadata, "c_lower"), Types.INTEGER, "INTEGER", true);
+            assertEquals("INTEGER", evidence(column(metadata, "c_lower")).nativeType().value());
 
             var varchar = column(metadata, "c_varchar");
             assertEquals("VARCHAR(20)", evidence(varchar).nativeType().value());
@@ -157,8 +157,7 @@ class Sqlite3CatalogColumnsTest {
             var note = column(collated, "note");
             assertEquals("TEXT", evidence(note).nativeType().value());
             assertEquals(false, evidence(note).nullable().value());
-            assertTrue(note.isNullable());
-            assertNotEquals(note.isNullable(), evidence(note).nullable().value());
+            assertFalse(note.isNullable());
 
             exec(connection, "CREATE TABLE literal_word(note TEXT DEFAULT 'COLLATE')");
             var literal = Sqlite3CatalogColumns.read(connection, "main", "literal_word", 10);
@@ -185,7 +184,7 @@ class Sqlite3CatalogColumnsTest {
             assertEquals(java.util.List.of("id"), plain.primaryKeys());
             var plainId = column(plain, "id");
             assertTrue(plainId.isPk());
-            assertFalse(plainId.isNullable());
+            assertTrue(plainId.isNullable());
             assertEquals(true, evidence(plainId).nullable().value());
             assertEquals("INTEGER", evidence(plainId).nativeType().value());
             assertEquals(MetadataValue.State.ABSENT, evidence(plainId).identity().state());
@@ -205,7 +204,7 @@ class Sqlite3CatalogColumnsTest {
             assertTrue(generated.isAutoIncrement());
             assertEquals(MetadataValue.State.ABSENT, evidence(generated).identity().state());
             assertEquals(MetadataValue.State.ABSENT, evidence(generated).sequence().state());
-            assertFalse(generated.isNullable());
+            assertTrue(generated.isNullable());
             assertEquals(true, evidence(generated).nullable().value());
         }
     }
@@ -247,11 +246,13 @@ class Sqlite3CatalogColumnsTest {
             var metadata = Sqlite3CatalogColumns.read(connection, "main", "gen", 10);
             assertEquals(java.util.List.of("id", "doubled", "virt"), metadata.columns().stream().map(ColumnDescription::getFieldName).toList());
             assertEquals(MetadataValue.State.ABSENT, evidence(column(metadata, "id")).generatedExpression().state());
-            assertEquals("INTEGER GENERATED ALWAYS", evidence(column(metadata, "doubled")).nativeType().value());
+            assertEquals("INTEGER", evidence(column(metadata, "doubled")).nativeType().value());
             assertEquals(MetadataValue.State.UNKNOWN, evidence(column(metadata, "doubled")).generatedExpression().state());
             assertEquals(MetadataValue.State.UNKNOWN, evidence(column(metadata, "virt")).generatedExpression().state());
             assertEquals(MetadataValue.State.ABSENT, evidence(column(metadata, "doubled")).characterLength().state());
-            assertEquals("NATIVE_TYPE_UNRECOGNIZED", codes(column(metadata, "doubled")));
+            // 3.49 的生成列声明类型就是普通 INTEGER，按整数亲和性给出与普通整数列相同的提示。
+            assertEquals(codes(column(metadata, "id")), codes(column(metadata, "doubled")));
+            assertEquals("DECLARED_TYPE_AFFINITY_NOT_STRICT,INT64_OVERFLOW_STORED_AS_REAL", codes(column(metadata, "doubled")));
         }
     }
 
@@ -290,7 +291,8 @@ class Sqlite3CatalogColumnsTest {
         try (var actual = open()) {
             var jdbc = org.mockito.Mockito.mock(java.sql.DatabaseMetaData.class);
             org.mockito.Mockito.when(jdbc.getDatabaseProductName()).thenReturn("SQLite");
-            org.mockito.Mockito.when(jdbc.getDatabaseProductVersion()).thenReturn("3.49.1");
+            // JDBC 自报的另一已验证版本不能替代实际观测到的 3.49.1 引擎版本。
+            org.mockito.Mockito.when(jdbc.getDatabaseProductVersion()).thenReturn("3.31.1");
             var facade = org.mockito.Mockito.mock(Connection.class);
             org.mockito.Mockito.when(facade.getMetaData()).thenReturn(jdbc);
             org.mockito.Mockito.when(facade.createStatement()).thenAnswer(ignored -> actual.createStatement());

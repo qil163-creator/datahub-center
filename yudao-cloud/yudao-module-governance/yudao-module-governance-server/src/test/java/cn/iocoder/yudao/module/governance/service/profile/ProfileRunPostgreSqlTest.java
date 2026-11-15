@@ -228,6 +228,11 @@ class ProfileRunPostgreSqlTest extends StandardPostgreSqlIntegrationTestBase {
     @Import(ProfileResultWriter.class)
     static class ProfileConfig {
 
+        /** 结果写入用 BaseMapperX.insertBatch，它经 SpringUtil 取数据源判断数据库类型；不能依赖其他测试遗留的静态容器。 */
+        @org.springframework.context.annotation.Bean
+        static cn.hutool.extra.spring.SpringUtil springUtil() {
+            return new cn.hutool.extra.spring.SpringUtil();
+        }
     }
 
 }

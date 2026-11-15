@@ -25,7 +25,8 @@ import static org.mockito.Mockito.*;
 class MigrationHookExecutionTest {
     @ParameterizedTest
     @EnumSource(value = ProductTypeEnum.class, mode = EnumSource.Mode.EXCLUDE,
-            names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3"})
+            names = {"UNKNOWN", "MONGODB", "ELASTICSEARCH", "INFLUXDB3", "GBASE8C", "GAUSSDB", "PHOENIX",
+                    "SAPHANA", "PRESTO", "ODPS", "NEO4J", "MILVUS", "INFLUXDB2"})
     void allJdbcProductsExecuteBothSourceAndTargetHooksThroughTheMigrationService(ProductTypeEnum product)
             throws Exception {
         var request = request(product);
@@ -43,7 +44,7 @@ class MigrationHookExecutionTest {
             factories.when(() -> DataSourceUtils.createSourceDataSource(any(), any(ThreadFactory.class),
                     any(), any(), any(), any())).thenReturn(source.dataSource);
             handlers.when(() -> MigrationHandler.createInstance(any(), eq(request), eq(0), any(), any(),
-                    isNull(), any(), isNull())).thenReturn(handler);
+                    isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var service = new MigrationService(request, ignored -> { });
             assertTrue(service.run().getIfAllSuccess().get());
             assertEquals(List.of("target-before", "source-before", "source-after", "target-after"),

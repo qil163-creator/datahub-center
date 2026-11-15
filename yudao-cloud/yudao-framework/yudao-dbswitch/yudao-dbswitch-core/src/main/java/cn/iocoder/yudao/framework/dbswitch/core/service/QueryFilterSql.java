@@ -27,7 +27,9 @@ public final class QueryFilterSql {
     /** Product capability for this predicate only, separate from portable field applicability. */
     public static boolean supports(ProductTypeEnum product, QueryFilterOperator operator) {
         if (product == null || operator == null || product == ProductTypeEnum.UNKNOWN
-                || product == ProductTypeEnum.MONGODB || product == ProductTypeEnum.ELASTICSEARCH) {
+                || product == ProductTypeEnum.MONGODB || product == ProductTypeEnum.ELASTICSEARCH
+                // 列名必须经已验证的物理标识符引用，未验证引用的产品不能声明支持后再在渲染时失败。
+                || !RestrictedSelectGuard.supportsPhysicalIdentifier(product)) {
             return false;
         }
         if (operator == QueryFilterOperator.CONTAINS || operator == QueryFilterOperator.NOT_CONTAINS) {

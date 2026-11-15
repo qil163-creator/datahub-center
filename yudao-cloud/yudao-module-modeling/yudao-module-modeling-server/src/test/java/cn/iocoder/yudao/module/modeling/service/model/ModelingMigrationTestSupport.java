@@ -60,9 +60,9 @@ final class ModelingMigrationTestSupport {
 
     static void migrate(Connection connection, String namespace) throws Exception {
         try (Statement statement = connection.createStatement()) {
-            statement.execute(schemaSql(Files.readString(repoFile(MIGRATION)), namespace));
-            statement.execute(schemaSql(Files.readString(repoFile(STRUCTURED_FIELDS_MIGRATION)), namespace));
-            statement.execute(schemaSql(Files.readString(repoFile(REVIEW_WORKSPACE_MIGRATION)), namespace));
+            statement.execute(schemaSql(migrationSql(MIGRATION), namespace));
+            statement.execute(schemaSql(migrationSql(STRUCTURED_FIELDS_MIGRATION), namespace));
+            statement.execute(schemaSql(migrationSql(REVIEW_WORKSPACE_MIGRATION), namespace));
         }
     }
 
@@ -87,18 +87,43 @@ final class ModelingMigrationTestSupport {
         String baseline = Files.readString(repoFile("sql/postgresql/datahub-center.sql")).replace("\r\n", "\n");
         int start = baseline.indexOf(header);
         if (start < 0) throw new AssertionError("基线缺少 Modeling 扩展：" + header);
+        return blockFrom(baseline, start, header);
+    }
+
+    /**
+     * 读取编号迁移。0133 之前的迁移已归档，迁移目录只保留 0133 起的文件；
+     * 已归档的迁移改读基线逐字收录的同号区块，目录中仍存在的迁移照常读文件。
+     */
+    static String migrationSql(String relative) throws Exception {
+        Path file = findRepoFile(relative);
+        if (file != null) return Files.readString(file);
+        String name = Path.of(relative).getFileName().toString();
+        if (!name.matches("[0-9]{4}_.*[.]sql")) throw new IllegalStateException("Repository file not found: " + relative);
+        String baseline = Files.readString(repoFile("sql/postgresql/datahub-center.sql")).replace("\r\n", "\n");
+        var header = Pattern.compile("(?m)^-- Migration: " + name.substring(0, 4) + "(?=[ \n])").matcher(baseline);
+        if (!header.find()) throw new IllegalStateException("迁移已归档且基线未收录：" + relative);
+        return blockFrom(baseline, header.start(), relative);
+    }
+
+    private static String blockFrom(String baseline, int start, String label) {
         int end = baseline.indexOf("\nCOMMIT;", start);
-        if (end < 0) throw new AssertionError("基线 Modeling 扩展事务未闭合：" + header);
+        if (end < 0) throw new AssertionError("基线 Modeling 扩展事务未闭合：" + label);
         return baseline.substring(start, end + "\nCOMMIT;".length());
     }
 
     static Path repoFile(String relative) {
+        Path file = findRepoFile(relative);
+        if (file == null) throw new IllegalStateException("Repository file not found: " + relative);
+        return file;
+    }
+
+    private static Path findRepoFile(String relative) {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null) {
             Path candidate = current.resolve(relative);
             if (Files.isRegularFile(candidate)) return candidate;
             current = current.getParent();
         }
-        throw new IllegalStateException("Repository file not found: " + relative);
+        return null;
     }
 }

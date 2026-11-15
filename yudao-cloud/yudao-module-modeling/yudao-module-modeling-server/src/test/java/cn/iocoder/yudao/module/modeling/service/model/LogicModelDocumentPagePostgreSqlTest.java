@@ -53,7 +53,14 @@ class LogicModelDocumentPagePostgreSqlTest {
                         layer_id bigint, subject_domain_id bigint, table_type varchar(32), classification_status varchar(32),
                         data_domain_id bigint, biz_category_id bigint, table_case integer, document_type varchar(32),
                         document_id bigint, contact_user_id bigint, contact_number varchar(64), enabled integer,
-                        remark text, pos_x integer, pos_y integer, creator varchar(64), updater varchar(64),
+                        remark text, pos_x integer, pos_y integer, type_config jsonb, published_by bigint,
+                        published_time timestamp,
+                        -- 0208 重建逻辑模型主表时新增的 qData 归属字段
+                        table_name_notation varchar(128), source_system_id bigint, datasource_id bigint,
+                        db_type varchar(32), db_name varchar(128), schema_name varchar(128), entity_id bigint,
+                        obj_type varchar(8), business_type varchar(8), data_timeliness varchar(8),
+                        statistics_str varchar(500), grain_entity_ids varchar(1024), owner_name varchar(64),
+                        owner_phone varchar(32), creator varchar(64), updater varchar(64),
                         create_time timestamp, update_time timestamp, deleted smallint NOT NULL DEFAULT 0
                     );
                     INSERT INTO dh_modeling_logic_model (id, name, code, status, document_id, deleted) VALUES

@@ -67,7 +67,7 @@ class MigrationTerminationTest {
             var handler = mock(MigrationHandler.class);
             when(handler.get()).thenThrow(failure);
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class),
-                    eq(properties), eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    eq(properties), eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             var result = service.run();
             assertEquals(1, result.getTotalTableFailCount().get());
             assertNotNull(callback.get());
@@ -186,7 +186,7 @@ class MigrationTerminationTest {
                     return new DbSwitchTableResult();
                 });
                 handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class),
-                        eq(properties), eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                        eq(properties), eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
                 service.run();
             } catch (Throwable t) {
                 failure.set(t);
@@ -331,7 +331,7 @@ class MigrationTerminationTest {
                     return new DbSwitchTableResult();
                 });
                 handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class),
-                        eq(properties), eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                        eq(properties), eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
                 service.run();
             } catch (Throwable t) {
                 failure.set(t);
@@ -379,7 +379,7 @@ class MigrationTerminationTest {
         }));
         try (var ignored = dataSources(); var receipts = ownedReceipts(); var handlers = mockStatic(MigrationHandler.class)) {
             handlers.when(() -> MigrationHandler.createInstance(any(TableDescription.class),
-                    eq(properties), eq(0), any(), any(), isNull(), any(), isNull())).thenReturn(handler);
+                    eq(properties), eq(0), any(), any(), isNull(), any(), isNull(), isNull())).thenReturn(handler);
             service.run();
             assertEquals("UNCONFIRMED", termination(service));
             var exit = physicalExit(service);

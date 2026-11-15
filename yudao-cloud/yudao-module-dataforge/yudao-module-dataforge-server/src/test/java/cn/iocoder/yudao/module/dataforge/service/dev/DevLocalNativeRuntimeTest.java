@@ -66,7 +66,7 @@ class DevLocalNativeRuntimeTest {
         var profile = profile("FLINK"); properties.setProfiles(List.of(profile));
         var task = DevNativeRuntimeTest.task("FLINK_SQL",profile);
         var params = DevNativeParameters.build(task,profile,"dh_native_41").taskParams();
-        assertEquals("LOCAL",params.get("deployMode")); assertEquals("",params.get("yarnQueue"));
+        assertEquals("local",params.get("deployMode")); assertEquals("",params.get("yarnQueue"));
         assertTrue(String.valueOf(params.get("initScript")).contains("'execution.target' = 'local'"));
         assertTrue(String.valueOf(params.get("initScript")).contains("'pipeline.name' = 'dh_native_41'"));
         assertFalse(String.valueOf(params.get("initScript")).contains("SET 'yarn."));

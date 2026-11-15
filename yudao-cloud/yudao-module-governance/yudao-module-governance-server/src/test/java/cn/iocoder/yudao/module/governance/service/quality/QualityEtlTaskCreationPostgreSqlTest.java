@@ -67,13 +67,8 @@ class QualityEtlTaskCreationPostgreSqlTest {
         var root = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (root != null && !Files.isDirectory(root.resolve("sql/postgresql/migrations"))) root = root.getParent();
         assertNotNull(root);
-        Path migration = root.resolve("sql/postgresql/drafts/governance_etl-task-creation.sql");
-        if (!Files.exists(migration)) {
-            try (var paths = Files.list(root.resolve("sql/postgresql/migrations"))) {
-                migration = paths.filter(path -> path.getFileName().toString().endsWith("_governance_etl-task-creation.sql")).findFirst().orElseThrow();
-            }
-        }
-        String ddl = Files.readString(migration).replace("\"datahub-center\"", "\"" + schema + "\"");
+        String ddl = cn.iocoder.yudao.module.governance.support.SingleTenantPostgreSqlFixture
+                .archivedMigration("0104_governance_etl-task-creation.sql").replace("\"datahub-center\"", "\"" + schema + "\"");
         sql(ddl); sql(ddl);
         cn.iocoder.yudao.module.governance.support.SingleTenantPostgreSqlFixture.upgrade(control, schema);
         var ds = new DriverManagerDataSource(POSTGRES.getJdbcUrl() + (POSTGRES.getJdbcUrl().contains("?") ? "&" : "?") + "currentSchema=" + schema,
@@ -113,7 +108,8 @@ class QualityEtlTaskCreationPostgreSqlTest {
                 .when(executor).validateEtlDraftRules(any(), any(), anyList(), anyList());
         app.getBeanFactory().registerSingleton("masterDatabaseResolver", databases); app.registerBean(DatabaseApi.class, () -> databaseApi);
         app.getBeanFactory().registerSingleton("qualityTaskExecutor", executor);
-        app.registerBean(QualityTaskEvaluationService.class, () -> mock(QualityTaskEvaluationService.class));
+        // 作为现成单例登记：registerBean 会对 mock 再做 @Resource 注入，而该服务的真实依赖不是本用例的验证对象。
+        app.getBeanFactory().registerSingleton("qualityTaskEvaluationService", mock(QualityTaskEvaluationService.class));
         app.registerBean(QualityTaskServiceImpl.class); app.registerBean(QualityCheckObjectServiceImpl.class);
         app.registerBean(QualityEtlTaskCreationService.class); app.refresh(); service = app.getBean(QualityEtlTaskCreationService.class);
         login(99L);

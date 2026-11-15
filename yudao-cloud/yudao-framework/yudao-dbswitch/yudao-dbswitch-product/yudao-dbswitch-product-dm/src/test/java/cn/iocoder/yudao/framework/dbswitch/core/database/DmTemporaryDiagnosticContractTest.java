@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DmTemporaryDiagnosticContractTest {
     @Test void persistentGlobalDefinitionIsExplicitlyBlocked() {
         var failure = assertThrows(SQLFeatureNotSupportedException.class, () -> new DatabaseDmImpl().temporaryTableDiagnosticPlan("dbswitch_diag_" + "a".repeat(32)));
-        assertEquals("0A000", failure.getSQLState()); assertTrue(failure.getMessage().contains("DM")); assertTrue(failure.getMessage().contains("持久"));
+        // DM 未实现临时表诊断，由组件默认拒绝；拒绝本身是契约，原因文本不是。
+        assertEquals("0A000", failure.getSQLState());
     }
 }

@@ -149,6 +149,7 @@ class IntegrationManagedConnectorCompilationTest {
         assertThrows(IllegalArgumentException.class, () -> compiler.compile(task(), graph.toString()));
     }
 
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），Kafka 写入不在其中；该组件重新对 Flink 开放后恢复")
     @Test void tdengineFormalFlinkPayloadAndSchemaUseTheSameContinuousManagedBinding() {
         var task = task(); task.setEngine("FLINK"); task.setMode("REALTIME");
         var fields = new LinkedHashMap<String, String>(); fields.put("id", "BIGINT"); fields.put("label", "STRING");
@@ -188,6 +189,7 @@ class IntegrationManagedConnectorCompilationTest {
         assertThrows(IllegalArgumentException.class, () -> compiler.compile(task(), graph.toString()));
     }
 
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），RabbitMQ 读写不在其中；该组件重新对 Flink 开放后恢复")
     @Test void rabbitFormalRealtimePayloadSharesSchemaAndCheckpointAcknowledgementSettings() {
         var task = task(); task.setEngine("FLINK"); task.setMode("REALTIME");
         var binding = new EtlNativeRabbitCompiler.Binding("rabbit-native", 5672, "/components", Set.of("components.in"), Set.of("components.out"), "rabbitAccess", false, true);
@@ -235,6 +237,7 @@ class IntegrationManagedConnectorCompilationTest {
         assertThrows(IllegalArgumentException.class, () -> compiler.compile(task(), graph.toString()));
     }
 
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），RocketMQ 读写不在其中；该组件重新对 Flink 开放后恢复")
     @Test void rocketFormalPayloadSharesSchemaAndRejectsCompetingDuplicateSourcesWithinTheTask() {
         var task = task(); task.setEngine("FLINK"); task.setMode("REALTIME");
         var binding = new EtlNativeRocketCompiler.Binding("rocket-nameserver:9876", Set.of("components.in"), Set.of("components.out"), Set.of("reader_group"), Set.of("writer_group"), "rocketAccess", false, true);

@@ -100,6 +100,21 @@ public final class RemoteFileOperations {
         }
     }
 
+    /**
+     * 上传暂存名与覆盖备份名不以点开头：多数 FTP 服务端默认在 MLSD/LIST 中隐藏点文件，
+     * 提交前逐级核验路径时会找不到它们，导致上传在改名阶段失败。
+     */
+    static final String UPLOAD_PREFIX = "remote-file-upload-";
+    static final String BACKUP_PREFIX = "remote-file-backup-";
+
+    static String uploadName() {
+        return UPLOAD_PREFIX + UUID.randomUUID() + ".part";
+    }
+
+    static String backupName() {
+        return BACKUP_PREFIX + UUID.randomUUID() + ".bak";
+    }
+
     static void checkUploadTarget(RemoteFileClient client, String target, boolean overwrite) throws IOException {
         RemoteFileEntry existing = existing(client, target);
         if (existing != null && (existing.directory() || !overwrite)) throw new IOException("目标名称已存在");
@@ -110,7 +125,7 @@ public final class RemoteFileOperations {
         checkUploadTarget(client, target, overwrite);
         String backup = null;
         if (existing(client, target) != null) {
-            backup = RemoteFilePaths.child(RemoteFilePaths.parent(target), ".remote-file-backup-" + UUID.randomUUID());
+            backup = RemoteFilePaths.child(RemoteFilePaths.parent(target), backupName());
             client.rename(target, backup);
         }
         try {

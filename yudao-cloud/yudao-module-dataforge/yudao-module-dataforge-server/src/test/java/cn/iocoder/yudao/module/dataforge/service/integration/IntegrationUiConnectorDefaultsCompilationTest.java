@@ -72,6 +72,7 @@ class IntegrationUiConnectorDefaultsCompilationTest {
         assertRenamed("odps");
     }
 
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），RabbitMQ 读写不在其中；该组件重新对 Flink 开放后恢复")
     @Test void rabbitEditorEmptyJsonDefaultsAndRenameSinkReachFormalCheckpointedFlinkPayload() {
         realtime(); secret("rabbit.fixture");
         when(rabbit.require(any(), anyLong(), anyString(), anyMap())).thenReturn(new EtlNativeRabbitCompiler.Binding("rabbit-native", 5672, "/components",
@@ -79,6 +80,7 @@ class IntegrationUiConnectorDefaultsCompilationTest {
         assertRenamed("rabbitmq");
     }
 
+    @org.junit.jupiter.api.Disabled("当前 Flink 任务只开放 12 个组件（IntegrationComponentCapabilitiesService.FLINK_COMPONENTS），RocketMQ 读写不在其中；该组件重新对 Flink 开放后恢复")
     @Test void rocketEditorGroupOffsetAndRenameDefaultsAreConsumedWithoutHiddenParameters() {
         realtime(); secret("rocket.fixture");
         when(rocket.require(any(), anyLong(), anyString(), anyMap())).thenReturn(new EtlNativeRocketCompiler.Binding("rocket-nameserver:9876",

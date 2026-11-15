@@ -15,6 +15,27 @@ public final class SingleTenantPostgreSqlFixture {
     private SingleTenantPostgreSqlFixture() {
     }
 
+    /**
+     * 读取编号迁移原文。迁移目录只保留 0133 起的文件；更早的迁移已归档，
+     * 新库基线在 BEGIN/END MIGRATION BASELINE SYNC 标记之间逐字收录，从基线截取同一段 SQL。
+     */
+    public static String archivedMigration(String fileName) throws Exception {
+        if (!fileName.matches("[0-9]{4}_[a-z0-9_-]+[.]sql")) throw new IllegalArgumentException("迁移文件名无效");
+        java.nio.file.Path root = java.nio.file.Path.of(System.getProperty("user.dir")).toAbsolutePath();
+        while (root != null && !java.nio.file.Files.exists(root.resolve("sql/postgresql/datahub-center.sql"))) {
+            root = root.getParent();
+        }
+        if (root == null) throw new IllegalStateException("找不到新库基线");
+        java.nio.file.Path file = root.resolve("sql/postgresql/migrations").resolve(fileName);
+        if (java.nio.file.Files.exists(file)) return java.nio.file.Files.readString(file);
+        String baseline = java.nio.file.Files.readString(root.resolve("sql/postgresql/datahub-center.sql"));
+        String begin = "-- BEGIN MIGRATION BASELINE SYNC " + fileName + "\n";
+        int from = baseline.indexOf(begin);
+        int to = from < 0 ? -1 : baseline.indexOf("-- END MIGRATION BASELINE SYNC", from);
+        if (from < 0 || to < 0) throw new IllegalStateException("迁移已归档且基线未收录：" + fileName);
+        return baseline.substring(from + begin.length(), to);
+    }
+
     public static void upgrade(JdbcTemplate database, String schema) throws Exception {
         database.execute(migration(schema));
     }

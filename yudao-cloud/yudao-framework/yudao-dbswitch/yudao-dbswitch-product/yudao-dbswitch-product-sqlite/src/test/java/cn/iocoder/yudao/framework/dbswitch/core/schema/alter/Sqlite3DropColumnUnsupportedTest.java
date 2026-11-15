@@ -31,21 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * sqlite-jdbc 3.31.1 file database. {@code ALTER TABLE ... DROP COLUMN} is a syntax error,
- * so nullable ADD COLUMN reverse SQL stays blank. This does not mark DDL_ALTER verified
- * and does not emit a table-rebuild substitute.
+ * sqlite-jdbc 3.49.1 file database. The engine accepts {@code ALTER TABLE ... DROP COLUMN} since 3.35,
+ * but the component still declares only nullable ADD COLUMN: reverse SQL stays blank, DDL_ALTER is not
+ * marked verified, and no table-rebuild substitute is emitted.
  */
 @Timeout(60)
 class Sqlite3DropColumnUnsupportedTest {
-    private static final String SQLITE_ERROR =
-            "[SQLITE_ERROR] SQL error or missing database (near \"DROP\": syntax error)";
-    private static final String SOURCE_ID =
-            "2020-01-27 19:55:54 3bfa9cc97da10598521b342961df8f5f68c7388fa117345eeb516eaa837balt2";
-
     private final DatabaseSqliteImpl database = new DatabaseSqliteImpl();
 
     @TempDir Path directory;
@@ -56,27 +50,18 @@ class Sqlite3DropColumnUnsupportedTest {
     }
 
     @Test
-    void fileDatabaseRefusesDropColumnAndLeavesTheAddedColumn() throws Exception {
+    void fileDatabaseAppliesTheGeneratedNullableAddColumn() throws Exception {
         ColumnDescription note = column("note");
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + directory.resolve("drop.db").toAbsolutePath())) {
             var meta = connection.getMetaData();
             assertEquals("SQLite JDBC", meta.getDriverName());
-            assertEquals("3.31.1", meta.getDriverVersion());
-            assertEquals("3.31.1", meta.getDatabaseProductVersion());
-            assertEquals("3.31.1", scalar(connection, "select sqlite_version()"));
-            assertEquals(SOURCE_ID, scalar(connection, "select sqlite_source_id()"));
+            assertEquals("3.49.1.0", meta.getDriverVersion());
+            assertEquals("3.49.1", meta.getDatabaseProductVersion());
+            assertEquals("3.49.1", scalar(connection, "select sqlite_version()"));
 
             exec(connection, "CREATE TABLE \"items\"(\"id\" INTEGER)");
             exec(connection, "INSERT INTO \"items\"(\"id\") VALUES (1)");
             exec(connection, database.getAddColumnSql("main", "items", note));
-            assertEquals(List.of("id:INTEGER", "note:TEXT"), columns(connection));
-            assertNull(scalar(connection, "select \"note\" from \"items\""));
-
-            assertDropRefused(connection, "ALTER TABLE \"main\".\"items\" DROP COLUMN \"note\"");
-            assertDropRefused(connection, "ALTER TABLE items DROP COLUMN note");
-            assertDropRefused(connection, "ALTER TABLE \"items\" DROP COLUMN \"note\"");
-            assertDropRefused(connection, "ALTER TABLE main.items DROP COLUMN note");
-
             assertEquals(List.of("id:INTEGER", "note:TEXT"), columns(connection));
             assertNull(scalar(connection, "select \"note\" from \"items\""));
         }
@@ -120,14 +105,6 @@ class Sqlite3DropColumnUnsupportedTest {
             assertEquals("SQLITE3_NULLABLE_ADD_COLUMN_NO_DEFAULT_QUOTED",
                     manifest.path("operations").path("DDL_ALTER").path("reason").asText());
         }
-    }
-
-    private static void assertDropRefused(Connection connection, String sql) {
-        SQLException failure = assertThrows(SQLException.class, () -> exec(connection, sql));
-        assertEquals("org.sqlite.SQLiteException", failure.getClass().getName());
-        assertEquals(1, failure.getErrorCode());
-        assertNull(failure.getSQLState());
-        assertEquals(SQLITE_ERROR, failure.getMessage());
     }
 
     private static void exec(Connection connection, String sql) throws SQLException {

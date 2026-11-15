@@ -13,23 +13,20 @@ import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** 真实 PostgreSQL 验证程序配置迁移、重放与 JSON 对象边界，历史任务不补造配置。 */
+/**
+ * 真实 PostgreSQL 验证程序配置结构、重放与 JSON 对象边界，历史任务不补造配置。
+ * 0121 已随早期迁移归档并入新库基线，迁移目录只保留 0133 起的文件，因此以基线收录的 0121 片段为准。
+ */
 @Testcontainers(disabledWithoutDocker = true)
 class DevProgramConfigMigrationPostgreSqlTest {
 
-    private static final String MIGRATION = "sql/postgresql/migrations/0121_dataforge_dev-program-config.sql";
     private static final String BASELINE = "sql/postgresql/datahub-center.sql";
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Test
-    void migrationPreservesLegacyNullAcceptsObjectsRejectsOtherJsonAndIsRepeatable() throws Exception {
-        verifyDelta(Files.readString(root().resolve(MIGRATION)));
-    }
-
-    @Test
-    void newDatabaseBaselineContainsTheSameProgramConfigContract() throws Exception {
+    void baselineProgramConfigPreservesLegacyNullAcceptsObjectsRejectsOtherJsonAndIsRepeatable() throws Exception {
         String baseline = Files.readString(root().resolve(BASELINE));
         int highest;
         try (var files = Files.list(root().resolve("sql/postgresql/migrations"))) {
@@ -39,9 +36,10 @@ class DevProgramConfigMigrationPostgreSqlTest {
         assertTrue(baseline.startsWith("-- Included migrations through: " + String.format("%04d", highest)));
         int start = baseline.indexOf("-- 新库同步增量：0121_dataforge_dev-program-config.sql");
         assertTrue(start >= 0, "新库基线必须包含程序配置增量");
-        // 只验证本次新增的基线结构，完整平台基线初始化由平台安装验收覆盖。
-        int end = baseline.indexOf("-- 新库同步增量：", start + 1);
-        verifyDelta(baseline.substring(start, end < 0 ? baseline.length() : end));
+        // 只验证 0121 自身的单个事务；其后紧跟的 0123 没有同步标记，不能截到下一个标记为止。
+        int end = baseline.indexOf("\nCOMMIT;", start);
+        assertTrue(end > start, "0121 片段必须以 COMMIT 结束");
+        verifyDelta(baseline.substring(start, end + "\nCOMMIT;".length()));
     }
 
     private static void verifyDelta(String migration) throws Exception {
@@ -85,8 +83,8 @@ class DevProgramConfigMigrationPostgreSqlTest {
 
     private static Path root() {
         Path current = Path.of("").toAbsolutePath();
-        while (current != null && !Files.exists(current.resolve(MIGRATION))) current = current.getParent();
-        assertNotNull(current, "缺少仓库迁移 " + MIGRATION);
+        while (current != null && !Files.exists(current.resolve(BASELINE))) current = current.getParent();
+        assertNotNull(current, "缺少新库基线 " + BASELINE);
         return current;
     }
 }

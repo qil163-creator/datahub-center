@@ -37,9 +37,14 @@ class AssetEtlBatchBindingPostgreSqlTest {
         sql("CREATE TABLE dh_asset_data_asset(id bigint primary key,tenant_id bigint,catalog_revision bigint,datasource_id bigint,schema_name text,table_name text,deleted smallint default 0)");
         sql("INSERT INTO dh_asset_data_asset VALUES(10,7,3,20,'dwd','orders',0)");
         var root = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-        while (root != null && !Files.exists(root.resolve("sql/postgresql/migrations/0094_asset_etl-batch-binding.sql"))) root = root.getParent();
+        while (root != null && !Files.exists(root.resolve("sql/postgresql/datahub-center.sql"))) root = root.getParent();
         assertNotNull(root);
-        String migration = Files.readString(root.resolve("sql/postgresql/migrations/0094_asset_etl-batch-binding.sql")).replace("\"datahub-center\"", "\"" + schema + "\"");
+        // 0094 已归档，迁移目录只保留 0133 起的文件；新库基线原文收录了它，从基线截取同一段 SQL。
+        String baseline = Files.readString(root.resolve("sql/postgresql/datahub-center.sql"));
+        int from = baseline.indexOf("-- BEGIN ETL IMPLEMENTATION 0094_asset_etl-batch-binding.sql");
+        int to = baseline.indexOf("-- END ETL IMPLEMENTATION 0094_asset_etl-batch-binding.sql");
+        assertTrue(from >= 0 && to > from, "新库基线必须原文收录 0094");
+        String migration = baseline.substring(from, to).replace("\"datahub-center\"", "\"" + schema + "\"");
         sql(migration); sql(migration);
         sql(Files.readString(root.resolve("sql/postgresql/migrations/0169_datahub_remove-business-tenancy.sql"))
                 .replace("datahub-center", schema));

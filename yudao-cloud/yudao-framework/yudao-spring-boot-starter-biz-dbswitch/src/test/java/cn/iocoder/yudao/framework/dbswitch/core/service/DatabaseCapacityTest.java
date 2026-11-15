@@ -25,14 +25,21 @@ class DatabaseCapacityTest {
         var dialect = mock(AbstractDatabase.class);
         var metadata = mock(JdbcConnectionProvider.class);
         var workload = mock(JdbcConnectionProvider.class);
-        var connection = mock(Connection.class);
+        // 原生调用只接受受控驱动运行时的连接；普通连接会被当作不支持而拒绝。
+        var connection = mock(Connection.class, org.mockito.Mockito.withSettings().extraInterfaces(
+                cn.iocoder.yudao.framework.dbswitch.driver.DriverNativeAccess.ConnectionAccess.class));
+        when(((cn.iocoder.yudao.framework.dbswitch.driver.DriverNativeAccess.ConnectionAccess) connection)
+                .invokeNative(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyLong()))
+                .thenAnswer(call -> ((java.util.concurrent.Callable<?>) call.getArgument(0)).call());
         when(products.metadata(ProductTypeEnum.POSTGRESQL)).thenReturn(dialect);
         when(metadata.open("jdbc:fixture:capacity", null, null)).thenReturn(connection);
         when(dialect.queryDatabaseUsedBytes(connection, 2)).thenThrow(new SQLException("unavailable"));
         var facade = new MetaDataByJdbcServiceImpl(ProductTypeEnum.POSTGRESQL, products, metadata, workload);
         assertThrows(IllegalStateException.class, () -> facade.queryDatabaseUsedBytes("jdbc:fixture:capacity", null, null, 1500));
         verify(connection).close();
-        verify(connection).setNetworkTimeout(any(), eq(1500));
+        // 期限由受控驱动运行时的原生调用执行，而不是 setNetworkTimeout。
+        verify((cn.iocoder.yudao.framework.dbswitch.driver.DriverNativeAccess.ConnectionAccess) connection)
+                .invokeNative(any(), eq(1500L));
         verifyNoInteractions(workload);
     }
 

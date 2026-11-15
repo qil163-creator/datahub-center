@@ -94,6 +94,13 @@ class QueryFilterSqlTest {
         }
         assertFalse(QueryFilterSql.supports(null, EQ));
         assertFalse(QueryFilterSql.supports(ProductTypeEnum.POSTGRESQL, null));
+        // 物理标识符引用尚未验证的产品不能声明过滤能力，否则渲染时才会失败。
+        for (ProductTypeEnum product : ProductTypeEnum.values()) {
+            if (!RestrictedSelectGuard.supportsPhysicalIdentifier(product)) {
+                assertFalse(QueryFilterSql.supports(product, EQ), product.name());
+            }
+        }
+        assertFalse(QueryFilterSql.supports(ProductTypeEnum.GBASE8C, EQ));
         assertThrows(IllegalArgumentException.class, () -> render(TYPE_BOOLEAN, GT, true));
         assertThrows(IllegalArgumentException.class, () -> render(TYPE_INTEGER, CONTAINS, 4L));
         assertThrows(IllegalArgumentException.class, () -> render(TYPE_BINARY, EQ, new byte[]{1}));

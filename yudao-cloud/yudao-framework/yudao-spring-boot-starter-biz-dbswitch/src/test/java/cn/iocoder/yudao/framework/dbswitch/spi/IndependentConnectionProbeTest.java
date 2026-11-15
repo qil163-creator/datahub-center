@@ -174,6 +174,13 @@ class IndependentConnectionProbeTest {
         when(session.run(eq("RETURN 1 AS connected"), any(org.neo4j.driver.TransactionConfig.class))).thenReturn(result);
         when(result.single()).thenReturn(record);
         when(record.get("connected")).thenReturn(org.neo4j.driver.Values.value(1));
+        // 常量返回之后还会读取当前账号目录，证明认证身份可用。
+        var identity = mock(org.neo4j.driver.Result.class);
+        var user = mock(org.neo4j.driver.Record.class);
+        when(session.run(eq("SHOW CURRENT USER YIELD user RETURN user"), any(org.neo4j.driver.TransactionConfig.class)))
+                .thenReturn(identity);
+        when(identity.single()).thenReturn(user);
+        when(user.get("user")).thenReturn(org.neo4j.driver.Values.value("fixture-user"));
         try (var factory = mockStatic(org.neo4j.driver.GraphDatabase.class)) {
             factory.when(() -> org.neo4j.driver.GraphDatabase.driver(any(java.net.URI.class),
                     any(org.neo4j.driver.AuthToken.class), any(org.neo4j.driver.Config.class))).thenReturn(driver);
@@ -184,6 +191,7 @@ class IndependentConnectionProbeTest {
             var order = inOrder(driver, session);
             order.verify(driver).verifyConnectivity(); order.verify(driver).session(config.capture());
             order.verify(session).run(eq("RETURN 1 AS connected"), any(org.neo4j.driver.TransactionConfig.class));
+            order.verify(session).run(eq("SHOW CURRENT USER YIELD user RETURN user"), any(org.neo4j.driver.TransactionConfig.class));
             assertEquals("target", config.getValue().database().orElseThrow());
             verify(session).close(); verify(driver).close();
         }

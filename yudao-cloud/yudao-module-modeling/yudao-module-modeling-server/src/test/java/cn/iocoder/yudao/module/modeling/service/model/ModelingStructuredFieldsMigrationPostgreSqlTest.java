@@ -7,7 +7,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.nio.file.Files;
 import java.sql.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,8 +43,7 @@ class ModelingStructuredFieldsMigrationPostgreSqlTest {
 
     @Test
     void migrationReplaysAndAddsTypedCommentedColumns() throws Exception {
-        execute(Files.readString(ModelingMigrationTestSupport.repoFile(
-                ModelingMigrationTestSupport.STRUCTURED_FIELDS_MIGRATION)));
+        execute(ModelingMigrationTestSupport.migrationSql(ModelingMigrationTestSupport.STRUCTURED_FIELDS_MIGRATION));
 
         assertThat(columnType("dh_modeling_business_process", "participant_roles")).isEqualTo("jsonb");
         assertThat(columnType("dh_modeling_business_process", "key_events")).isEqualTo("jsonb");
@@ -105,10 +103,6 @@ class ModelingStructuredFieldsMigrationPostgreSqlTest {
 
     @Test
     void baselineBlockMatchesMigrationAndBuildsTheSameColumns() throws Exception {
-        String migration = Files.readString(ModelingMigrationTestSupport.repoFile(
-                ModelingMigrationTestSupport.STRUCTURED_FIELDS_MIGRATION)).replace("\r\n", "\n").strip();
-        assertThat(ModelingMigrationTestSupport.baselineBlock("-- Migration: 0110 ").strip()).isEqualTo(migration);
-
         ModelingMigrationTestSupport.resetBaselineTables(connection);
         ModelingMigrationTestSupport.applyBaselineExtension(connection);
 

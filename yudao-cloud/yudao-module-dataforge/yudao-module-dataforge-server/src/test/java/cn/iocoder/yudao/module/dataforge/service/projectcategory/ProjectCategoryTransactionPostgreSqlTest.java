@@ -71,7 +71,9 @@ class ProjectCategoryTransactionPostgreSqlTest {
              var statement = connection.createStatement()) {
             statement.execute("CREATE SCHEMA " + schema);
         }
-        source = new DriverManagerDataSource(POSTGRES.getJdbcUrl() + "?currentSchema=" + schema,
+        // Testcontainers 的地址已带 ?loggerLevel=OFF；再追加一个 ? 会让 currentSchema 失效，表落到 public 里互相冲突。
+        String url = POSTGRES.getJdbcUrl();
+        source = new DriverManagerDataSource(url + (url.contains("?") ? "&" : "?") + "currentSchema=" + schema,
                 POSTGRES.getUsername(), POSTGRES.getPassword());
         sql = new JdbcTemplate(source);
         sql.execute("CREATE TABLE dh_dataforge_dev_dir (id bigint PRIMARY KEY,parent_id bigint DEFAULT 0,name varchar(100),sort integer DEFAULT 0,status integer DEFAULT 0,description varchar(500),remark varchar(500),source_creator_name varchar(100),creator varchar(64),updater varchar(64),create_time timestamp DEFAULT now(),update_time timestamp DEFAULT now(),deleted smallint DEFAULT 0)");

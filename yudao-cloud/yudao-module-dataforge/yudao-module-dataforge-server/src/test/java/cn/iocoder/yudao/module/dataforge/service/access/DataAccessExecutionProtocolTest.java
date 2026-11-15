@@ -426,7 +426,12 @@ class DataAccessExecutionProtocolTest {
     @Test void multiSourceCannotBorrowFirstSourceBinding() {
         var coordinator = mock(AccessRunCoordinator.class); var executor = dbswitchFixture(coordinator);
         var run = coordinator.run(31L);
-        run.setConfigJson(run.getConfigJson().replace("\"source\":[{}]", "\"source\":[{},{}]"));
+        String single = "\"source\":[{\"sourceTableNames\":[\"orders\"]}]";
+        String original = run.getConfigJson();
+        run.setConfigJson(original.replace(single,
+                "\"source\":[{\"sourceTableNames\":[\"orders\"]},{\"sourceTableNames\":[\"orders\"]}]"));
+        // 替换必须真的生效，否则用例会悄悄退化成单源执行。
+        assertNotEquals(original, run.getConfigJson());
         try (var engine = mockConstruction(MigrationService.class)) {
             assertTrue(executor.submit(31L)); assertTrue(engine.constructed().isEmpty());
             verify(coordinator, never()).startEffects(any(), any());
