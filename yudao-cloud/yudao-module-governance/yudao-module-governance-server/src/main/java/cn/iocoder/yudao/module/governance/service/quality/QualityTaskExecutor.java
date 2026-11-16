@@ -9,6 +9,9 @@ import cn.iocoder.yudao.framework.dbswitch.core.model.ReadSnapshot;
 import cn.iocoder.yudao.framework.quality.core.audit.AuditRuleContext;
 import cn.iocoder.yudao.framework.quality.core.audit.AuditKeySnapshot;
 import cn.iocoder.yudao.framework.quality.core.audit.AuditSqlGenerator;
+import cn.iocoder.yudao.framework.quality.core.audit.AuditWhereVariables;
+import cn.iocoder.yudao.framework.quality.core.audit.generator.RowCountFluctuationGenerator;
+import cn.iocoder.yudao.framework.quality.core.audit.metric.RowCountFluctuation;
 import cn.iocoder.yudao.framework.quality.core.audit.AuditSqlRegistry;
 import cn.iocoder.yudao.module.governance.dal.dataobject.quality.*;
 import cn.iocoder.yudao.module.governance.dal.mysql.quality.*;
@@ -26,6 +29,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -182,6 +186,9 @@ public class QualityTaskExecutor {
             if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA) {
                 throw new IllegalArgumentException("结构与元信息稽查以字段计数，不能用于 ETL 行准入");
             }
+            if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC) {
+                throw new IllegalArgumentException("表级指标检测不按行判定，不能用于 ETL 行准入");
+            }
             if ("RECORD_COMPLETENESS_VALIDATION".equals(generator.getStrategyKey())) {
                 generator.validateConfig(buildContext(connection, object, rule));
                 continue;
@@ -223,7 +230,7 @@ public class QualityTaskExecutor {
         }
         for (QualityRuleDO rule : rules) {
             var generator = auditSqlRegistry.getGenerator(rule.getStrategyKey());
-            if (generator == null || generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA) {
+            if (generator == null || generator.getExecutionMode() != AuditSqlGenerator.ExecutionMode.ROW) {
                 throw exception(cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.QUALITY_RUN_NOT_READY);
             }
         }
@@ -615,6 +622,9 @@ public class QualityTaskExecutor {
         }
         // 失败重试：任务的 retry_count 对规则级执行出错生效（判定未通过不重试）
         int maxAttempts = 1 + Math.max(0, task.getRetryCount() == null ? 0 : task.getRetryCount());
+        LocalDate bizDate = businessDate(instanceId, checkTime);
+        auditLog.setBizDate(bizDate);
+        String whereTemplate = null;
         long[] counts = null;
         String locationSql = null;
         AuditRuleContext context = null;
@@ -654,9 +664,16 @@ public class QualityTaskExecutor {
                         cn.iocoder.yudao.framework.quality.core.audit.AuditSqlDialect.validateConnection(connection,
                                 conn.getProductType());
                         context = buildContext(conn, object, rule);
+                        // Where 条件中的 ${bizdate} 等变量按本次实例的业务日期替换；指标口径仍按模板计算
+                        whereTemplate = context.getWhereClause();
+                        context.setWhereClause(AuditWhereVariables.render(whereTemplate, bizDate));
                         boolean metadata = generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA;
+                        boolean metric = generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC;
                         if (metadata && etlBatchScope != null) {
                             throw new IllegalArgumentException("结构与元信息稽查不能用于 ETL 行准入");
+                        }
+                        if (metric && etlBatchScope != null) {
+                            throw new IllegalArgumentException("表级指标检测不能用于 ETL 行准入");
                         }
                         if (metadata || "RECORD_COMPLETENESS_VALIDATION".equals(generator.getStrategyKey())) {
                             evaluationService.populateMetadata(connection, context, generator);
@@ -687,9 +704,12 @@ public class QualityTaskExecutor {
                         if (metadata) {
                             auditLog.setCheckField("表结构（计数单位：字段）");
                         }
+                        if (metric) {
+                            auditLog.setCheckField("表行数");
+                        }
                         String countSql = generator.buildCountSql(context);
                         AuditKeySnapshot snapshot = null;
-                        if (!metadata && keyDefinition.configured() && keyDefinition.valid()) {
+                        if (!metadata && !metric && keyDefinition.configured() && keyDefinition.valid()) {
                             try {
                                 snapshot = keyDefinition.composite()
                                         ? AuditKeySnapshot.readComposite(connection, generator, context,
@@ -713,7 +733,7 @@ public class QualityTaskExecutor {
                             throw new IllegalStateException("ETL批次准入行数与实际受检范围不一致");
                         }
                         auditLog.setResultSql(countSql);
-                        locationSql = generator.buildErrorDataSql(context, ISSUE_DETAIL_LIMIT);
+                        locationSql = metric ? null : generator.buildErrorDataSql(context, ISSUE_DETAIL_LIMIT);
                     } else {
                         // 自定义 SQL 规则：规则内容即「问题行查询」，命中行计为失败
                         String errorSql = "SELECT COUNT(*) FROM (" + StrUtil.removeSuffix(
@@ -729,7 +749,9 @@ public class QualityTaskExecutor {
                     LocalDateTime countFinishedAt = LocalDateTime.now();
                     // 基础计数、机构计数与展示用主键在同一规则快照内完成。
                     boolean metadata = generator != null && generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA;
-                    orgRead = metadata ? null : readOrgCounts(connection, task, rule, generator, context, readSnapshot);
+                    boolean metric = generator != null && generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC;
+                    orgRead = metadata || metric ? null
+                            : readOrgCounts(connection, task, rule, generator, context, readSnapshot);
                     if (counts[1] > 0 && shouldCollectIssueDetail(rule.getCollectIssueDetail())
                             && !metadata && keyDefinition.valid() && !keyDefinition.composite()) {
                         try (var checkpoint = readSnapshot == null ? null : readSnapshot.checkpoint()) {
@@ -803,17 +825,31 @@ public class QualityTaskExecutor {
         }
         long total = counts[0];
         long fail = counts[1];
-        auditLog.setTotalCount(total);
-        auditLog.setFailCount(fail);
-        auditLog.setPassRate(rate(total - fail, total));
-        if (total <= 0) {
-            auditLog.setResultType(QualityAuditLogDO.RESULT_SKIPPED);
-            auditLog.setErrorDetail("无样本，不产生合格结论");
+        boolean metricRule = generator != null && generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC;
+        if (metricRule) {
+            try {
+                applyRowCountVerdict(task, object, rule, context, whereTemplate, auditLog, total, checkTime);
+                fail = auditLog.getFailCount();
+            } catch (RuntimeException invalid) {
+                auditLog.setResultType(QualityAuditLogDO.RESULT_ERROR);
+                auditLog.setErrorDetail(StrUtil.maxLength("表行数波动判定失败：" + invalid.getMessage(), 2000));
+                auditLog.setCostMs(System.currentTimeMillis() - startMs);
+                auditLogMapper.insert(auditLog);
+                return auditLog;
+            }
         } else {
-            auditLog.setResultType(judgeFail(rule, total, fail)
-                    ? QualityAuditLogDO.RESULT_FAIL : QualityAuditLogDO.RESULT_PASS);
+            auditLog.setTotalCount(total);
+            auditLog.setFailCount(fail);
+            auditLog.setPassRate(rate(total - fail, total));
+            if (total <= 0) {
+                auditLog.setResultType(QualityAuditLogDO.RESULT_SKIPPED);
+                auditLog.setErrorDetail("无样本，不产生合格结论");
+            } else {
+                auditLog.setResultType(judgeFail(rule, total, fail)
+                        ? QualityAuditLogDO.RESULT_FAIL : QualityAuditLogDO.RESULT_PASS);
+            }
+            auditLog.setIndexValue(String.valueOf(fail));
         }
-        auditLog.setIndexValue(String.valueOf(fail));
         QualityReadEvidence finalRead = JsonUtils.parseObject(auditLog.getReadEvidence(), QualityReadEvidence.class);
         // 最后一个批次观察覆盖基础计数和机构分组读取，不能在机构读取之前结束观察区间。
         if (finalRead != null) {
@@ -832,7 +868,7 @@ public class QualityTaskExecutor {
         }
         auditLog.setCostMs(System.currentTimeMillis() - startMs);
         auditLogMapper.insert(auditLog);
-        if (fail > 0 && shouldCollectIssueDetail(rule.getCollectIssueDetail())) {
+        if (!metricRule && fail > 0 && shouldCollectIssueDetail(rule.getCollectIssueDetail())) {
             // 主键留存：规则参数配置了 pkColumn 时留存问题行主键值（表外留存，不复制业务数据）
             // 复合键不塞进旧单列 CSV 展示字段；覆盖证明使用有序元组摘要。
             // 全部合计口径留存
@@ -852,6 +888,75 @@ public class QualityTaskExecutor {
             collectOrgIssues(instanceId, task, object, rule, generator, context, auditLog, checkTime, orgRead);
         }
         return auditLog;
+    }
+
+    /**
+     * 表行数波动判定：按同一任务、检查对象与口径取历史基准（保存任务会重建评测，不按评测编号区分），计入一个检查项。
+     *
+     * <p>通过计 1/0，不通过计 1/1；没有历史基准且未违反固定区间时记为“跳过”（0/0），只保存本次行数供下次比较。
+     * 行数写入 metric_value 与 indexValue，判定说明写入 errorDetail。表级指标不产生问题行。</p>
+     */
+    private void applyRowCountVerdict(QualityTaskDO task, QualityCheckObjectDO object, QualityRuleDO rule,
+            AuditRuleContext context, String whereTemplate, QualityAuditLogDO auditLog, long rowCount,
+            LocalDateTime checkTime) {
+        RowCountFluctuation.Config config = RowCountFluctuation.parse(RowCountFluctuation.pick(context.getConfig()));
+        // 口径按 Where 模板计算：含 ${bizdate} 的条件每天取值不同，但仍是同一口径，可逐日比较
+        String scope = cn.hutool.crypto.digest.DigestUtil.sha256Hex(context.getTableName() + "\n"
+                + StrUtil.nullToEmpty(whereTemplate));
+        RowCountFluctuation.Verdict verdict;
+        if (config.dynamic()) {
+            List<BigDecimal> history = auditLogMapper.selectMetricHistory(task.getId(), object.getId(),
+                    RowCountFluctuationGenerator.METRIC_KEY, scope,
+                    checkTime, config.sameWeekday() ? checkTime.getDayOfWeek().getValue() : null,
+                    config.historySize());
+            verdict = RowCountFluctuation.evaluateDynamic(config, rowCount, history);
+        } else {
+            RowCountFluctuation.Window window = config.baselineWindow(checkTime);
+            QualityAuditLogDO baseline = auditLogMapper.selectMetricBaseline(task.getId(), object.getId(),
+                    RowCountFluctuationGenerator.METRIC_KEY, scope,
+                    window.before(), window.target(), window.from(), window.to());
+            verdict = RowCountFluctuation.evaluate(config, rowCount,
+                    baseline == null ? null : baseline.getMetricValue().longValueExact(),
+                    baseline == null ? null : baseline.getCheckTime());
+        }
+        auditLog.setMetricKey(RowCountFluctuationGenerator.METRIC_KEY);
+        auditLog.setMetricValue(BigDecimal.valueOf(rowCount));
+        auditLog.setMetricScope(scope);
+        auditLog.setMetricLower(verdict.lowerBound());
+        auditLog.setMetricUpper(verdict.upperBound());
+        auditLog.setIndexValue(String.valueOf(rowCount));
+        auditLog.setErrorDetail(StrUtil.maxLength(verdict.message(), 2000));
+        switch (verdict.status()) {
+            case PASS -> {
+                auditLog.setTotalCount(1L);
+                auditLog.setFailCount(0L);
+                auditLog.setPassRate(rate(1, 1));
+                auditLog.setResultType(QualityAuditLogDO.RESULT_PASS);
+            }
+            case FAIL -> {
+                auditLog.setTotalCount(1L);
+                auditLog.setFailCount(1L);
+                auditLog.setPassRate(rate(0, 1));
+                auditLog.setResultType(QualityAuditLogDO.RESULT_FAIL);
+            }
+            case NO_BASELINE -> {
+                auditLog.setTotalCount(0L);
+                auditLog.setFailCount(0L);
+                auditLog.setPassRate(BigDecimal.ZERO);
+                auditLog.setResultType(QualityAuditLogDO.RESULT_SKIPPED);
+            }
+        }
+    }
+
+    /**
+     * 业务日期：实例调度时间（无则开始时间、本次检测时间）的前一天，用于替换 Where 条件中的 ${bizdate} 等变量。
+     */
+    private LocalDate businessDate(Long instanceId, LocalDateTime checkTime) {
+        QualityTaskInstanceDO instance = instanceMapper == null || instanceId == null ? null
+                : instanceMapper.selectById(instanceId);
+        LocalDateTime base = instance == null ? null
+                : instance.getScheduleTime() != null ? instance.getScheduleTime() : instance.getStartTime();
+        return (base == null ? checkTime : base).toLocalDate().minusDays(1);
     }
 
     /**

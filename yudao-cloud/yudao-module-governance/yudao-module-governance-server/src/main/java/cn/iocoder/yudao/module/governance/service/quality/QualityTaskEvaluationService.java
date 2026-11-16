@@ -15,6 +15,7 @@ import cn.iocoder.yudao.framework.dbswitch.data.query.QueryRuntime;
 import cn.iocoder.yudao.framework.dbswitch.driver.ConnectionBudget;
 
 import java.time.Duration;
+import java.time.LocalDate;
 
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.task.*;
 import cn.iocoder.yudao.module.governance.dal.dataobject.quality.*;
@@ -131,7 +132,9 @@ public class QualityTaskEvaluationService {
                     "检查小数位数是否符合业务定义", false),
             item("111", "ENUM_VALIDATION", "枚举值校验", "COMPLETENESS", "检查字段值是否在字典或枚举集中", false),
             item("112", "FOREIGN_KEY_VALIDATION", "主数据引用一致性校验", "COMPLETENESS",
-                    "检查引用字段是否在主数据中存在", false));
+                    "检查引用字段是否在主数据中存在", false),
+            item("120", "ROW_COUNT_FLUCTUATION", "表行数波动检测", "COMPLETENESS",
+                    "统计（可带过滤条件的）表行数，按环比或同比的增降幅上限及固定行数区间判定，计数单位为检查项", false));
 
     /**
      * 创建包含策略编码、名称、维度和样例的评估目录项。
@@ -377,8 +380,11 @@ public class QualityTaskEvaluationService {
         }
         boolean metadata = registry.getGenerator(input.getStrategyKey())
                 .getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA;
+        // 表级指标的字段只用于授权过滤条件中引用的列，可以为空
+        boolean metric = registry.getGenerator(input.getStrategyKey())
+                .getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC;
         boolean entireRecord = "RECORD_COMPLETENESS_VALIDATION".equals(input.getStrategyKey());
-        if (input.getColumnNames() == null || !metadata && !entireRecord && input.getColumnNames().isEmpty()
+        if (input.getColumnNames() == null || !metadata && !metric && !entireRecord && input.getColumnNames().isEmpty()
                 || new HashSet<>(input.getColumnNames()).size() != input.getColumnNames().size()) {
             throw invalid("请选择不重复的检查字段");
         }
@@ -405,11 +411,18 @@ public class QualityTaskEvaluationService {
         try {
             context(ProductTypeEnum.POSTGRESQL, "quality_validation", input);
             if (StrUtil.isNotBlank(input.getWhereClause())) {
+                String sampleWhere;
+                try {
+                    // 日期变量按示例日期替换后再做条件白名单校验，执行时再按实例业务日期替换
+                    sampleWhere = AuditWhereVariables.render(input.getWhereClause(), LocalDate.of(2000, 1, 1));
+                } catch (IllegalArgumentException variable) {
+                    throw invalid(variable.getMessage());
+                }
                 try {
                     RestrictedSelectGuard.restrictProjectionWithRowFilters(ProductTypeEnum.POSTGRESQL,
                             "SELECT * FROM public.quality_validation", "public", "quality_validation",
                             input.getColumnNames(),
-                            new HashSet<>(input.getColumnNames()), List.of(input.getWhereClause()));
+                            new HashSet<>(input.getColumnNames()), List.of(sampleWhere));
                 } catch (IllegalArgumentException | UnsupportedOperationException failure) {
                     throw invalid("Where 条件仅支持所选检查字段的基本比较和布尔组合，不支持函数、参数或子查询");
                 }
@@ -537,6 +550,8 @@ public class QualityTaskEvaluationService {
                 request.getEvaluation());
         var generator = registry.getGenerator(request.getEvaluation().getStrategyKey());
         int limit = request.getLimit() == null ? 100 : Math.max(1, Math.min(100, request.getLimit()));
+        // 抽查没有调度实例，业务日期按今天的前一天
+        renderWhere(context, LocalDate.now().minusDays(1));
         var problems = generatedRows(connection, actor, generator, context, true, limit);
         var normal = generatedRows(connection, actor, generator, context, false, limit);
         return new SpotResult(problems.columns(), problems.rows(), normal.rows());
@@ -576,6 +591,10 @@ public class QualityTaskEvaluationService {
         var context = context(connection.getProductType(),
                 physicalTable(connection.getProductType(), object.getTableName(), connection.getSchema()), input);
         int maximum = Math.max(1, Math.min(1000, limit));
+        // 回源按当次检测记录的业务日期替换变量，历史记录没有业务日期时按检测日期前一天
+        renderWhere(context, audit.getBizDate() != null ? audit.getBizDate()
+                : audit.getCheckTime() != null ? audit.getCheckTime().toLocalDate().minusDays(1)
+                : LocalDate.now().minusDays(1));
         return generatedRows(connection, actor,
                 registry.getGenerator(input.getStrategyKey()), context, true, maximum);
     }
@@ -619,6 +638,9 @@ public class QualityTaskEvaluationService {
     /** SQL 仅来自封闭生成器；结构检查只返回列名及结构问题，不返回源表记录。 */
     private FrozenRows generatedRows(MasterDatabaseResolver.ConnectionInfo connection, Long actor,
             AuditSqlGenerator generator, AuditRuleContext context, boolean errors, int limit) {
+        if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC) {
+            throw invalid("表级指标检测没有行级数据，不支持抽查");
+        }
         String scope = "quality-generated:" + actor + ":" + UUID.randomUUID();
         var budget = new OperationBudget(Duration.ofSeconds(15), Duration.ofSeconds(15), Duration.ofSeconds(2),
                 limit + 4L, 16L * 1024 * 1024, 1024L * 1024, Math.min(1000, limit + 1)); // 包括同连接模式验证行
@@ -757,6 +779,15 @@ public class QualityTaskEvaluationService {
                 input.getStrategyKey(), input.getColumnNames(), input.getConfig());
         context.setWhereClause(input.getWhereClause());
         return context;
+    }
+
+    /** 按业务日期替换 Where 条件中的 ${bizdate} 等变量。 */
+    private void renderWhere(AuditRuleContext context, LocalDate bizDate) {
+        try {
+            context.setWhereClause(AuditWhereVariables.render(context.getWhereClause(), bizDate));
+        } catch (IllegalArgumentException variable) {
+            throw invalid(variable.getMessage());
+        }
     }
 
     /** 使用本轮已授权连接读取真实结构，永不接受客户端传入的实际结构快照。 */

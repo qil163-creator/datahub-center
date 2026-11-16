@@ -18,7 +18,11 @@ import java.util.stream.IntStream;
  */
 public abstract class AuditSqlGenerator {
 
-    public enum ExecutionMode {ROW, METADATA}
+    /**
+     * ROW：逐行判定，统计总行数与问题行数；METADATA：按字段结构判定；
+     * METRIC：表级指标（如表行数），统计 SQL 只取指标值（totalCount 列），合格与否由调用方结合历史指标判定，不产生问题行。
+     */
+    public enum ExecutionMode {ROW, METADATA, METRIC}
 
     /**
      * 返回当前规则采用的执行模式。

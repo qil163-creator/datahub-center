@@ -16,10 +16,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class QualityTaskEvaluationServiceTest {
-    @Test void allTwentyEightCatalogEntriesResolveAndDuplicateStrategiesKeepTheirOwnCodes() {
+    @Test void allTwentyNineCatalogEntriesResolveAndDuplicateStrategiesKeepTheirOwnCodes() {
         var service = service();
-        assertEquals(28, service.catalog().size());
-        assertEquals(28, service.catalog().stream().map(QualityTaskEvaluationService.CatalogItem::ruleCode).distinct().count());
+        assertEquals(29, service.catalog().size());
+        assertEquals(29, service.catalog().stream().map(QualityTaskEvaluationService.CatalogItem::ruleCode).distinct().count());
         var registry = new AuditSqlRegistry();
         service.catalog().forEach(item -> assertTrue(registry.contains(item.strategyKey()), item.ruleCode()));
         var request = request(); var evaluation = request.getEvaluations().getFirst();
@@ -28,6 +28,29 @@ class QualityTaskEvaluationServiceTest {
         assertDoesNotThrow(() -> service.validate(request));
         evaluation.setRuleCode("306"); assertDoesNotThrow(() -> service.validate(request));
         evaluation.setQualityDim("ACCURACY");
+        assertThrows(ServiceException.class, () -> service.validate(request));
+    }
+
+    @Test void rowCountFluctuationAcceptsOptionalFilterColumnsAndRejectsEmptyConditions() {
+        var service = service(); var request = request(); var evaluation = request.getEvaluations().getFirst();
+        evaluation.setRuleCode("120"); evaluation.setStrategyKey("ROW_COUNT_FLUCTUATION");
+        evaluation.setQualityDim("COMPLETENESS"); evaluation.setColumnNames(List.of());
+        evaluation.setConfig(Map.of("compareMode", "WEEK", "maxDecreasePercent", "30"));
+        assertDoesNotThrow(() -> service.validate(request));
+        evaluation.setColumnNames(List.of("status"));
+        evaluation.setWhereClause("status = 'PAID'");
+        assertDoesNotThrow(() -> service.validate(request));
+        evaluation.setColumnNames(List.of("biz_date"));
+        evaluation.setWhereClause("biz_date = ${bizdate}");
+        assertDoesNotThrow(() -> service.validate(request), "Where 条件可以使用业务日期变量");
+        evaluation.setWhereClause("biz_date = ${today}");
+        assertThrows(ServiceException.class, () -> service.validate(request));
+        evaluation.setWhereClause(null);
+        evaluation.setConfig(Map.of("compareMode", "DYNAMIC", "sensitivity", "2.5", "sameWeekday", true));
+        assertDoesNotThrow(() -> service.validate(request));
+        evaluation.setConfig(Map.of("compareMode", "WEEK"));
+        assertThrows(ServiceException.class, () -> service.validate(request));
+        evaluation.setConfig(Map.of("maxDecreasePercent", "30", "pkColumn", "id"));
         assertThrows(ServiceException.class, () -> service.validate(request));
     }
 

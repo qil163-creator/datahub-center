@@ -74,6 +74,20 @@ public class QualityAuditLogController {
     }
 
     /**
+     * 获得表级指标趋势（如表行数波动检测的历史行数与预期区间）。
+     */
+    @GetMapping("/metric-trend")
+    @Operation(summary = "获得表级指标趋势")
+    @Parameter(name = "id", description = "检测结果编号", required = true)
+    @Parameter(name = "limit", description = "最多返回点数，2～365，默认 60")
+    @PreAuthorize("@ss.hasPermission('governance:quality-audit-log:query')")
+    public CommonResult<List<cn.iocoder.yudao.module.governance.controller.admin.quality.vo.auditlog.QualityMetricTrendRespVO>>
+            getMetricTrend(@RequestParam("id") Long id,
+                           @RequestParam(value = "limit", required = false, defaultValue = "60") Integer limit) {
+        return success(auditLogService.getMetricTrend(id, limit));
+    }
+
+    /**
      * 获得检测结果分页。
      */
     @GetMapping("/page")

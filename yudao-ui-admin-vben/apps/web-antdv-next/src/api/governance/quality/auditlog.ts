@@ -26,6 +26,19 @@ export namespace QualityAuditLogApi {
     costMs?: number;
     resultSql?: string;
     errorDetail?: string;
+    /** 表级指标键：ROW_COUNT 表示表行数，此时 indexValue 为行数 */
+    metricKey?: string;
+  }
+
+  /** 表级指标趋势点；数值为十进制字符串 */
+  export interface MetricTrendPoint {
+    auditLogId?: Id;
+    checkTime?: number | string;
+    bizDate?: string;
+    value?: string;
+    lower?: null | string;
+    upper?: null | string;
+    resultType?: string;
   }
 
   /** 质量报告统计 */
@@ -51,6 +64,14 @@ export function getAuditLogPage(
   return requestClient.get<PageResult<QualityAuditLogApi.AuditLog>>(
     '/governance/quality-audit-log/page',
     { params },
+  );
+}
+
+/** 表级指标趋势（如表行数波动检测的历史行数与预期区间） */
+export function getMetricTrend(id: QualityAuditLogApi.Id, limit = 60) {
+  return requestClient.get<QualityAuditLogApi.MetricTrendPoint[]>(
+    '/governance/quality-audit-log/metric-trend',
+    { params: { id, limit } },
   );
 }
 

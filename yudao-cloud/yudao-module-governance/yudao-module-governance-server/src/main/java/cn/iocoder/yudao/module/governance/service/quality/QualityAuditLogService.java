@@ -21,6 +21,16 @@ public interface QualityAuditLogService {
     QualityAuditLogDO getAuditLog(Long id);
 
     /**
+     * 获得与指定检测结果同一规则、检查对象与口径的表级指标趋势（最近若干次，按检测时间升序）。
+     *
+     * @param id 检测结果编号
+     * @param limit 最多返回点数
+     * @return 趋势点；检测结果不存在或不是表级指标时为空列表
+     */
+    java.util.List<cn.iocoder.yudao.module.governance.controller.admin.quality.vo.auditlog.QualityMetricTrendRespVO>
+            getMetricTrend(Long id, int limit);
+
+    /**
      * 获得检测结果分页。
      */
     PageResult<QualityAuditLogRespVO> getAuditLogPage(QualityAuditLogPageReqVO pageReqVO);

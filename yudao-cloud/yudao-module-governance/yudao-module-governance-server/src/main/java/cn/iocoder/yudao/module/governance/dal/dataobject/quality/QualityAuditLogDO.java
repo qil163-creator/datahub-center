@@ -104,4 +104,22 @@ public class QualityAuditLogDO extends BaseDO {
     /** 实际读取的非敏感绑定、时点及执行 SQL 摘要；旧记录为空，不推断回填。 */
     private String readEvidence;
 
+    /** 表级指标键（如 ROW_COUNT）；逐行规则为空 */
+    private String metricKey;
+
+    /** 表级指标值（如表行数），作为后续环比、同比的历史基准 */
+    private java.math.BigDecimal metricValue;
+
+    /** 指标口径摘要：受检表与过滤条件模板的 SHA-256，口径变化后不与旧值比较 */
+    private String metricScope;
+
+    /** 本次判定的预期区间下限（含），为空表示不限 */
+    private java.math.BigDecimal metricLower;
+
+    /** 本次判定的预期区间上限（含），为空表示不限 */
+    private java.math.BigDecimal metricUpper;
+
+    /** 业务日期：替换 Where 条件中 ${bizdate} 等变量所用的日期 */
+    private java.time.LocalDate bizDate;
+
 }

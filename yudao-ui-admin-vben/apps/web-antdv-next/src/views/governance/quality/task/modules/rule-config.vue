@@ -26,6 +26,7 @@ import AuditParameterEditor from './audit-parameter-editor.vue';
 import {
   automaticAuditStrategies,
   extendedAuditStrategies,
+  metricAuditStrategies,
 } from './audit-rule-parameters';
 interface RuleConfig {
   allowedTypes?: string[];
@@ -120,6 +121,7 @@ const multiple = computed(() =>
     'COMPOSITE_UNIQUENESS_VALIDATION',
     'GROUP_FIELD_COMPLETENESS',
     'RECORD_COMPLETENESS_VALIDATION',
+    'ROW_COUNT_FLUCTUATION',
   ].includes(value.value.strategyKey),
 );
 const singleton = computed({
@@ -304,7 +306,11 @@ watch(
       "
       class="q-field"
     >
-      <span class="required">检查字段</span>
+      <span :class="{ required: !metricAuditStrategies.has(key) }">{{
+        metricAuditStrategies.has(key)
+          ? 'Where 条件引用的字段（可选）'
+          : '检查字段'
+      }}</span>
       <div>
         <Select
           v-if="multiple"

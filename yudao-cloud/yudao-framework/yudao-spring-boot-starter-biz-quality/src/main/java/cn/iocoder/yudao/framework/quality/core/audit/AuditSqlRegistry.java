@@ -47,6 +47,7 @@ public class AuditSqlRegistry {
         register(new StateConsistencyValidationGenerator());
         register(new ModelStructureValidationGenerator());
         register(new ColumnMetadataCompletenessGenerator());
+        register(new RowCountFluctuationGenerator());
     }
 
     /**

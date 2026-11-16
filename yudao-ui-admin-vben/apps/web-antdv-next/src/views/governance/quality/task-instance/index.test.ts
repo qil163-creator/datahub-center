@@ -6,6 +6,7 @@ import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as auditApi from '#/api/governance/quality/auditlog';
 import * as api from '#/api/governance/quality/instance';
 
 import InstancePage from './index.vue';
@@ -133,6 +134,17 @@ vi.mock('#/api/governance/quality/instance', () => ({
   getTaskInstance: vi.fn(),
   getTaskInstancePage: vi.fn(),
 }));
+vi.mock('#/api/governance/quality/auditlog', () => ({
+  getAuditLogPage: vi.fn(),
+  getMetricTrend: vi.fn(),
+}));
+vi.mock('./modules/metric-trend-chart.vue', () => ({
+  default: defineComponent({
+    props: { points: { type: Array, default: () => [] } },
+    setup: (props) => () =>
+      h('div', { 'data-trend-points': String(props.points.length) }),
+  }),
+}));
 
 const etlBatch: QualityTaskInstanceApi.EtlBatch = {
   recordId: '9007199254740993',
@@ -259,7 +271,9 @@ describe('治理任务实例的 ETL 来源', () => {
     expect(item('运行编号')).toBe('9007199254740993');
     expect(modalButton('查看 ETL 运行')).toBeUndefined();
     expect(
-      host.querySelector('[data-row="9007199254740995"] [data-action="ETL 运行"]'),
+      host.querySelector(
+        '[data-row="9007199254740995"] [data-action="ETL 运行"]',
+      ),
     ).toBeNull();
     expect(harness.push).not.toHaveBeenCalled();
   });
@@ -313,5 +327,62 @@ describe('治理任务实例的 ETL 来源', () => {
     finish(etlInstance);
     await flush();
     expect(modal()).toBeNull();
+  });
+});
+
+describe('治理任务实例的规则检测结果', () => {
+  it('有检测结果权限时展示表行数与判定说明', async () => {
+    harness.permissions.push('governance:quality-audit-log:query');
+    harness.route = { query: { instanceId: '9007199254740995' } };
+    vi.mocked(api.getTaskInstance).mockResolvedValue(etlInstance);
+    vi.mocked(auditApi.getAuditLogPage).mockResolvedValue({
+      list: [
+        {
+          id: 1,
+          ruleName: '订单表行数波动',
+          tableName: 'public.orders',
+          checkField: '表行数',
+          resultType: 'FAIL',
+          metricKey: 'ROW_COUNT',
+          indexValue: '3',
+          errorDetail:
+            '当前 3 行，上次检测 10 行，变化 -70.00%；降幅超过上限 30%',
+        },
+      ],
+      total: 1,
+    });
+    await mountPage();
+
+    expect(auditApi.getAuditLogPage).toHaveBeenCalledWith({
+      instanceId: '9007199254740995',
+      pageNo: 1,
+      pageSize: 100,
+    });
+    const text = modal()?.textContent ?? '';
+    expect(text).toContain('规则检测结果');
+    expect(text).toContain('3 行');
+    expect(text).toContain('未通过');
+    expect(text).toContain('降幅超过上限 30%');
+
+    vi.mocked(auditApi.getMetricTrend).mockResolvedValue([
+      { auditLogId: 0, value: '10', lower: null, upper: null, resultType: 'SKIPPED' },
+      { auditLogId: 1, value: '3', lower: '7', upper: null, resultType: 'FAIL' },
+    ]);
+    modalButton('趋势')?.click();
+    await flush();
+    expect(auditApi.getMetricTrend).toHaveBeenCalledWith(1);
+    expect(modal()?.textContent ?? '').toContain('订单表行数波动 · 行数趋势');
+    expect(
+      modal()?.querySelector('[data-trend-points]')?.getAttribute('data-trend-points'),
+    ).toBe('2');
+  });
+
+  it('没有检测结果权限时不请求规则结果', async () => {
+    harness.route = { query: { instanceId: '9007199254740995' } };
+    vi.mocked(api.getTaskInstance).mockResolvedValue(etlInstance);
+    await mountPage();
+
+    expect(auditApi.getAuditLogPage).not.toHaveBeenCalled();
+    expect(modal()?.textContent ?? '').not.toContain('规则检测结果');
   });
 });

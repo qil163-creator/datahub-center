@@ -11,6 +11,7 @@ export const extendedAuditStrategies = new Set([
   'NUMERIC_RELATION_VALIDATION',
   'PLACEHOLDER_VALIDATION',
   'RECORD_COMPLETENESS_VALIDATION',
+  'ROW_COUNT_FLUCTUATION',
   'SENSITIVE_MASK_VALIDATION',
   'STATE_CONSISTENCY_VALIDATION',
   'UNIQUE_VALIDATION',
@@ -19,6 +20,8 @@ export const metadataAuditStrategies = new Set([
   'COLUMN_METADATA_COMPLETENESS',
   'MODEL_STRUCTURE_VALIDATION',
 ]);
+/** 表级指标：字段只用于授权 Where 条件里引用的列，可以不选 */
+export const metricAuditStrategies = new Set(['ROW_COUNT_FLUCTUATION']);
 export const automaticAuditStrategies = new Set([
   ...metadataAuditStrategies,
   'RECORD_COMPLETENESS_VALIDATION',
@@ -170,6 +173,77 @@ export function auditParameterFields(
     case 'RECORD_COMPLETENESS_VALIDATION': {
       return [bool('blankAsNull', '将空白字符串视为空', true)];
     }
+    case 'ROW_COUNT_FLUCTUATION': {
+      const fields: CleanParameterField[] = [
+        {
+          key: 'compareMode',
+          label: '对比方式',
+          kind: 'select',
+          defaultValue: 'PREVIOUS',
+          options: [
+            { label: '环比：与上次检测比较', value: 'PREVIOUS' },
+            { label: '同比：1 天前同时段', value: 'DAY' },
+            { label: '同比：7 天前同时段', value: 'WEEK' },
+            { label: '同比：上月同日同时段', value: 'MONTH' },
+            { label: '同比：去年同日同时段', value: 'YEAR' },
+            { label: '动态阈值：按历史自动计算区间', value: 'DYNAMIC' },
+          ],
+        },
+      ];
+      if (config.compareMode === 'DYNAMIC')
+        fields.push(
+          {
+            key: 'dynamicMethod',
+            label: '计算方法',
+            kind: 'select',
+            defaultValue: 'MAD',
+            options: [
+              { label: '中位数 ± k·MAD（抗异常值）', value: 'MAD' },
+              { label: '均值 ± k·标准差', value: 'SIGMA' },
+            ],
+          },
+          decimal('sensitivity', '灵敏度倍数 k（越小越敏感）', '3'),
+          {
+            key: 'historySize',
+            label: '参考历史次数',
+            kind: 'integer',
+            min: 3,
+            max: 365,
+            defaultValue: 30,
+          },
+          {
+            key: 'minSamples',
+            label: '开始判定所需最少样本',
+            kind: 'integer',
+            min: 3,
+            max: 365,
+            defaultValue: 7,
+          },
+          bool('sameWeekday', '只参考同一星期几的历史'),
+        );
+      else
+        fields.push(
+          decimal('maxIncreasePercent', '允许最大增幅（%，可选）'),
+          decimal('maxDecreasePercent', '允许最大降幅（%，可选）', '30'),
+        );
+      fields.push(
+        decimal('minRowCount', '最少行数（可选）'),
+        decimal('maxRowCount', '最多行数（可选）'),
+      );
+      if (
+        config.compareMode &&
+        !['DYNAMIC', 'PREVIOUS'].includes(String(config.compareMode))
+      )
+        fields.push({
+          key: 'windowHours',
+          label: '同比时间偏差（小时）',
+          kind: 'integer',
+          min: 1,
+          max: 72,
+          defaultValue: 12,
+        });
+      return fields;
+    }
     case 'SENSITIVE_MASK_VALIDATION': {
       return [
         select(
@@ -226,6 +300,23 @@ export function auditParameterDefaults(key: string): Record<string, unknown> {
   if (key === 'CROSS_TABLE_CONSISTENCY')
     config.comparisons = [{ leftColumn: '', rightColumn: '' }];
   return config;
+}
+
+/** 只保留当前配置项对应的参数，避免切换对比方式后残留的旧参数被提交 */
+export function pruneAuditConfig(
+  key: string,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (key !== 'ROW_COUNT_FLUCTUATION') return config;
+  const keys = new Set(
+    auditParameterFields(key, config).map((field) => field.key),
+  );
+  return Object.fromEntries(
+    Object.entries(config).filter(
+      ([name, value]) =>
+        keys.has(name) && value !== '' && value !== undefined && value !== null,
+    ),
+  );
 }
 
 export function auditReferencedColumns(
@@ -362,6 +453,46 @@ export function auditParameterIssue(
     )
   )
     return '异常值必须为十进制字符串';
+  if (key === 'ROW_COUNT_FLUCTUATION') {
+    const present = (field: string) =>
+      config[field] !== undefined &&
+      config[field] !== null &&
+      config[field] !== '';
+    if (config.compareMode === 'DYNAMIC') {
+      const k = String(config.sensitivity ?? '3');
+      if (!/^\d+(?:\.\d{1,2})?$/u.test(k) || Number(k) <= 0 || Number(k) > 10)
+        return '灵敏度倍数须在 0～10 之间且不超过两位小数';
+      if (Number(config.minSamples ?? 7) > Number(config.historySize ?? 30))
+        return '最少样本数不能大于参考历史次数';
+    } else if (
+      ![
+        'maxIncreasePercent',
+        'maxDecreasePercent',
+        'minRowCount',
+        'maxRowCount',
+      ].some(present)
+    )
+      return '请至少配置增幅上限、降幅上限、最少行数或最多行数之一';
+    for (const field of ['maxIncreasePercent', 'maxDecreasePercent']) {
+      if (present(field) && !/^\d+(?:\.\d{1,2})?$/u.test(String(config[field])))
+        return '增降幅须为不超过两位小数的非负百分比';
+    }
+    if (
+      present('maxDecreasePercent') &&
+      Number(config.maxDecreasePercent) > 100
+    )
+      return '降幅上限不能超过 100%';
+    for (const field of ['minRowCount', 'maxRowCount']) {
+      if (present(field) && !/^\d{1,18}$/u.test(String(config[field])))
+        return '行数须为非负整数';
+    }
+    if (
+      present('minRowCount') &&
+      present('maxRowCount') &&
+      BigInt(String(config.minRowCount)) > BigInt(String(config.maxRowCount))
+    )
+      return '最少行数不能大于最多行数';
+  }
   if (
     key === 'SENSITIVE_MASK_VALIDATION' &&
     typeof config.maskChar === 'string' &&

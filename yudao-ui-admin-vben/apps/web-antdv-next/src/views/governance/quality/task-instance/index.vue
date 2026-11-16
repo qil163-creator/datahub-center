@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { QualityAuditLogApi } from '#/api/governance/quality/auditlog';
 import type { QualityTaskInstanceApi } from '#/api/governance/quality/instance';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -13,12 +14,22 @@ import { formatDateTime } from '@vben/utils';
 
 import { Button, Descriptions, DescriptionsItem, Modal, Tag } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
+import {
+  getAuditLogPage,
+  getMetricTrend,
+} from '#/api/governance/quality/auditlog';
 import {
   getTaskInstance,
   getTaskInstancePage,
 } from '#/api/governance/quality/instance';
 import { parseResourceId } from '#/utils/resource-id';
+
+import MetricTrendChart from './modules/metric-trend-chart.vue';
 
 defineOptions({ name: 'GovernanceQualityTaskInstance' });
 
@@ -63,12 +74,68 @@ const router = useRouter();
 
 const detailVisible = ref(false);
 const detail = ref<QualityTaskInstanceApi.Instance>();
+const canQueryAuditLog = computed(() =>
+  hasAccessByCodes(['governance:quality-audit-log:query']),
+);
+const ruleResults = ref<QualityAuditLogApi.AuditLog[]>([]);
+const trendFor = ref<QualityAuditLogApi.AuditLog>();
+const trendPoints = ref<QualityAuditLogApi.MetricTrendPoint[]>([]);
+let trendSeq = 0;
+
+/** 表行数波动检测的历史行数与预期区间 */
+async function showTrend(item: QualityAuditLogApi.AuditLog) {
+  if (item.id === undefined || item.id === null) return;
+  const seq = ++trendSeq;
+  trendFor.value = item;
+  trendPoints.value = [];
+  try {
+    const points = await getMetricTrend(item.id);
+    if (seq === trendSeq) trendPoints.value = points ?? [];
+  } catch {
+    // 请求层已统一提示错误
+  }
+}
 let detailSeq = 0;
+
+const RESULT_LABELS: Record<string, { color: string; label: string }> = {
+  PASS: { color: 'success', label: '通过' },
+  FAIL: { color: 'error', label: '未通过' },
+  ERROR: { color: 'warning', label: '执行出错' },
+  SKIPPED: { color: 'default', label: '跳过' },
+  NOT_RUN: { color: 'default', label: '未执行' },
+};
 
 function closeDetail() {
   ++detailSeq;
   detailVisible.value = false;
   detail.value = undefined;
+  ruleResults.value = [];
+  trendFor.value = undefined;
+  trendPoints.value = [];
+  ++trendSeq;
+}
+
+/** 规则级结果；表行数波动检测的 indexValue 为行数，errorDetail 为判定说明 */
+async function loadRuleResults(
+  instanceId: QualityTaskInstanceApi.Instance['id'],
+  seq: number,
+) {
+  if (
+    !canQueryAuditLog.value ||
+    instanceId === undefined ||
+    instanceId === null
+  )
+    return;
+  try {
+    const page = await getAuditLogPage({
+      instanceId,
+      pageNo: 1,
+      pageSize: 100,
+    });
+    if (seq === detailSeq) ruleResults.value = page.list ?? [];
+  } catch {
+    // 请求层已统一提示错误，规则结果区块保持为空
+  }
 }
 
 async function openDetail(row: Pick<QualityTaskInstanceApi.Instance, 'id'>) {
@@ -78,7 +145,9 @@ async function openDetail(row: Pick<QualityTaskInstanceApi.Instance, 'id'>) {
     const result = await getTaskInstance(row.id);
     if (seq !== detailSeq) return;
     detail.value = result;
+    ruleResults.value = [];
     detailVisible.value = true;
+    void loadRuleResults(row.id, seq);
   } catch {
     // 请求层已统一提示错误，这里只丢弃本次结果
   }
@@ -383,6 +452,67 @@ watch(
             }}
           </DescriptionsItem>
         </Descriptions>
+      </template>
+      <template v-if="ruleResults.length > 0">
+        <h4 class="mb-2 mt-4 font-medium">规则检测结果</h4>
+        <table class="w-full border-collapse text-xs">
+          <thead>
+            <tr class="text-left">
+              <th class="border p-1">规则</th>
+              <th class="border p-1">检查对象</th>
+              <th class="border p-1">结果</th>
+              <th class="border p-1">指标值</th>
+              <th class="border p-1">说明</th>
+              <th class="border p-1">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in ruleResults" :key="String(item.id)">
+              <td class="border p-1">{{ displayOrDash(item.ruleName) }}</td>
+              <td class="border p-1">
+                {{ displayOrDash(item.tableName) }} /
+                {{ displayOrDash(item.checkField) }}
+              </td>
+              <td class="border p-1">
+                <Tag :color="RESULT_LABELS[item.resultType ?? '']?.color">
+                  {{
+                    RESULT_LABELS[item.resultType ?? '']?.label ??
+                    displayOrDash(item.resultType)
+                  }}
+                </Tag>
+              </td>
+              <td class="border p-1">
+                {{
+                  item.metricKey === 'ROW_COUNT'
+                    ? `${item.indexValue} 行`
+                    : displayOrDash(item.indexValue)
+                }}
+              </td>
+              <td class="border p-1">{{ displayOrDash(item.errorDetail) }}</td>
+              <td class="border p-1">
+                <Button
+                  v-if="item.metricKey"
+                  size="small"
+                  type="link"
+                  @click="showTrend(item)"
+                >
+                  趋势
+                </Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <template v-if="trendFor">
+          <h4 class="mb-2 mt-4 font-medium">
+            {{ displayOrDash(trendFor.ruleName) }} · 行数趋势
+          </h4>
+          <MetricTrendChart
+            v-if="trendPoints.length > 0"
+            :key="String(trendFor.id)"
+            :points="trendPoints"
+          />
+          <p v-else class="text-muted-foreground text-xs">暂无趋势数据</p>
+        </template>
       </template>
     </Modal>
   </Page>

@@ -279,6 +279,9 @@ public class StandardElementRuleService {
             Map<String, Object> config = QualityRuleConfigAdapter.normalize(strategy, parameters);
             List<String> columns = new ArrayList<>(List.of(element.getEngName()));
             var generator = auditRegistry.getGenerator(strategy);
+            if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC) {
+                throw invalid("表行数波动检测是表级规则，不能绑定到数据元");
+            }
             if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA || "RECORD_COMPLETENESS_VALIDATION".equals(
                     strategy)) {
                 if (request.getWhereCondition() != null && !request.getWhereCondition().isBlank()) {

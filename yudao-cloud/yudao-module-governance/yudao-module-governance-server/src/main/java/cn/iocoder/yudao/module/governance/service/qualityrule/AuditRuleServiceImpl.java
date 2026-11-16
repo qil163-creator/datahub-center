@@ -136,6 +136,9 @@ public class AuditRuleServiceImpl implements AuditRuleService {
         if (generator == null) {
             throw exception(AUDIT_RULE_STRATEGY_NOT_SUPPORTED, strategyKey);
         }
+        if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METRIC) {
+            throw exception(AUDIT_RULE_CONFIG_INVALID, "表行数波动检测需要历史检测结果，请在质量任务中执行");
+        }
         if (generator.getExecutionMode() == AuditSqlGenerator.ExecutionMode.METADATA
                 || "RECORD_COMPLETENESS_VALIDATION".equals(strategyKey)) {
             throw exception(AUDIT_RULE_CONFIG_INVALID, "该策略需要真实表结构，请在质量任务中选择已授权的稽查对象后抽查");

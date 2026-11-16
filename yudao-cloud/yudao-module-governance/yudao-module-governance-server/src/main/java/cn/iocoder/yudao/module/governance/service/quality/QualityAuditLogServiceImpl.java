@@ -54,6 +54,39 @@ public class QualityAuditLogServiceImpl implements QualityAuditLogService {
     }
 
     /**
+     * 获得表级指标趋势。数值统一转为十进制字符串，避免前端浮点损失。
+     */
+    @Override
+    public java.util.List<cn.iocoder.yudao.module.governance.controller.admin.quality.vo.auditlog.QualityMetricTrendRespVO>
+            getMetricTrend(Long id, int limit) {
+        QualityAuditLogDO anchor = id == null ? null : auditLogMapper.selectById(id);
+        if (anchor == null || anchor.getMetricKey() == null || anchor.getMetricScope() == null
+                || anchor.getCheckTime() == null) {
+            return java.util.List.of();
+        }
+        int bounded = Math.max(2, Math.min(365, limit));
+        return auditLogMapper.selectMetricTrend(anchor, bounded).stream().map(row -> {
+            var point = new cn.iocoder.yudao.module.governance.controller.admin.quality.vo.auditlog.QualityMetricTrendRespVO();
+            point.setAuditLogId(row.getId());
+            point.setCheckTime(row.getCheckTime());
+            point.setBizDate(row.getBizDate() == null ? null : row.getBizDate().toString());
+            point.setValue(plain(row.getMetricValue()));
+            point.setLower(plain(row.getMetricLower()));
+            point.setUpper(plain(row.getMetricUpper()));
+            point.setResultType(row.getResultType());
+            return point;
+        }).toList();
+    }
+
+    private static String plain(java.math.BigDecimal value) {
+        if (value == null) {
+            return null;
+        }
+        java.math.BigDecimal stripped = value.stripTrailingZeros();
+        return (stripped.scale() < 0 ? stripped.setScale(0) : stripped).toPlainString();
+    }
+
+    /**
      * 获得检测结果分页。
      */
     @Override

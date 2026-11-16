@@ -70,4 +70,7 @@ public class QualityAuditLogRespVO {
     @Schema(description = "错误详情")
     private String errorDetail;
 
+    @Schema(description = "表级指标键：ROW_COUNT 表示表行数（此时 indexValue 为行数）；逐行规则为空")
+    private String metricKey;
+
 }

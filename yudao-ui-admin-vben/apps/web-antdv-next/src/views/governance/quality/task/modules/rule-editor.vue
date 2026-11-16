@@ -34,7 +34,11 @@ import {
   ruleIcon,
   validateEvaluation,
 } from '../data';
-import { auditReferencedColumns } from './audit-rule-parameters';
+import {
+  auditReferencedColumns,
+  metricAuditStrategies,
+  pruneAuditConfig,
+} from './audit-rule-parameters';
 import RuleConfig from './rule-config.vue';
 const props = withDefaults(
   defineProps<{
@@ -168,6 +172,7 @@ function payload() {
     value.config,
     value.columnNames,
   );
+  value.config = pruneAuditConfig(value.strategyKey, value.config);
   if (value.strategyKey === 'RECORD_COMPLETENESS_VALIDATION')
     value.whereClause = '';
   return value;
@@ -348,7 +353,7 @@ defineExpose({ open, close });
             show-count
             :placeholder="
               entry.key === 'whereClause'
-                ? '仅支持检查字段的比较与逻辑条件，不支持函数或子查询'
+                ? '仅支持检查字段的比较与逻辑条件，不支持函数或子查询；可用日期变量 ${bizdate}（调度时间前一天，yyyy-MM-dd）、${bizdate_nodash}、${bizmonth}，例如 biz_date = ${bizdate}'
                 : `请输入${entry.label}`
             "
         /></label>
@@ -381,7 +386,11 @@ defineExpose({ open, close });
     </div>
     <template #footer>
       <Button
-        v-if="!selection && allowExecution !== false"
+        v-if="
+          !selection &&
+          allowExecution !== false &&
+          !metricAuditStrategies.has(draft.strategyKey)
+        "
         class="q-warning"
         @click="spotCheck"
       >

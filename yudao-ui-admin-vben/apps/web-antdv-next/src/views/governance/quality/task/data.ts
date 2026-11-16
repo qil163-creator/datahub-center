@@ -5,6 +5,7 @@ import {
   auditParameterIssue,
   auditReferencedColumns,
   automaticAuditStrategies,
+  metricAuditStrategies,
 } from './modules/audit-rule-parameters';
 
 export const emptyImage = '/images/quality-reference/empty.png';
@@ -138,6 +139,7 @@ const ruleIcons: Record<string, string> = {
   DECIMAL_PRECISION_VALIDATION: 'precision',
   ENUM_VALIDATION: 'enum',
   FOREIGN_KEY_VALIDATION: 'master-reference',
+  ROW_COUNT_FLUCTUATION: 'missing-record',
 };
 const unavailableIcons: Record<string, string> = {
   '203': 'required',
@@ -265,6 +267,7 @@ export function validateEvaluation(
       return '请选择完整的时间顺序字段';
   } else if (
     !automaticAuditStrategies.has(value.strategyKey) &&
+    !metricAuditStrategies.has(value.strategyKey) &&
     (context === 'task' ||
       [
         'FOREIGN_KEY_VALIDATION',
