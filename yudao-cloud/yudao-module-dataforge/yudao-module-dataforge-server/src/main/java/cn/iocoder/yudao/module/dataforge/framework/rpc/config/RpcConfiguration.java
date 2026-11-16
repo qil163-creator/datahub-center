@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.framework.rpc.config;
 
 import cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi;
+import cn.iocoder.yudao.module.dataforge.framework.rpc.RunAlertSystemClients;
 import cn.iocoder.yudao.module.governance.api.metadata.MetadataApi;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.system.api.dept.DeptApi;
@@ -21,7 +22,9 @@ import org.springframework.context.annotation.Configuration;
         MetadataApi.class, PermissionApi.class, QualityTaskApi.class,
         cn.iocoder.yudao.module.governance.api.etl.GovernanceEtlApi.class,
         cn.iocoder.yudao.module.governance.api.lineage.LineageApi.class,
-        cn.iocoder.yudao.module.governance.api.security.SafetySecurityApi.class})
+        cn.iocoder.yudao.module.governance.api.security.SafetySecurityApi.class,
+        RunAlertSystemClients.NotifyClient.class, RunAlertSystemClients.SmsClient.class,
+        RunAlertSystemClients.MailClient.class})
 public class RpcConfiguration {
 
 }

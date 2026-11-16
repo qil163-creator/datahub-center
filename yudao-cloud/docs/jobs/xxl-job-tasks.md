@@ -16,6 +16,8 @@
 | `dataforge-server` | `jobManagementCoordinatorJob` | 作业平台 Quartz 槽位原子受理、三串行策略队列与真实父子恢复；到期和队列阶段各至多二十作业、每作业五槽或五次派发，单轮对账每作业至多十实例，每作业最多一百待结束请求；未知触发不重投 | 建议 `0/5 * * * * ?` |
 | `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入、补数据批次逐日推进及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
 | `dataforge-server` | `lineageReportJob` | 血缘上报：串行扫描开发任务、数据同步、集成任务、可视化 ETL 中修订号或解析器版本变化的对象（每类每轮最多 50 个），解析后经 governance-api 整体替换上报，成功后 CAS 更新 `lineage_report_key`；已删除对象上报 REMOVED。不连接源库，RPC 失败保留标记下轮重试 | 建议 `0 * * * * ?` |
+| `dataforge-server` | `dataforgeRunAlertJob` | 任务运行失败通知：单平台扫描最近 24 小时（`dataforge.run-alert.lookback-hours`）内失败的数据开发、数据同步、ETL、受管数据集成、平台作业运行，按运行实例+渠道+接收人唯一登记，再租约认领发送站内信（可选短信/邮件，需开启 `dataforge.run-alert.extra-channels` 并启用模板）；接收人为负责人、发布人、执行身份、创建人中启用的用户，找不到时记死信。站内信带幂等键可自动重试，短信/邮件结果未确认转“结果未知”不自动重发；每轮最多登记 200 个运行、发送 50 条，清理 30 天前已送达记录。存在死信或结果未知时本轮标记失败 | 建议 `0 * * * * ?` |
+| `dataforge-server` | `dataforgeRunAlertDispositionJob` | 失败通知死信/结果未知的人工处置，参数 `{"alertId":编号,"action":"RETRY"或"ACKNOWLEDGE","reason":"原因"}`；执行身份取调度中心本次执行，只重发通知、不重跑任务 | 不配置 Cron，仅人工触发 |
 | `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务；到开放时间的任务转为进行中并通知填报人 | `0 * * * * ?` |
 | `dataforge-server` | `fillOutboxRelayJob` | 在线填报事件投递；重试发送失败的填报通知 | `0 * * * * ?` |
 | `dataforge-server` | `fillMergeJob` | 在线填报合并执行及重试 | `0 * * * * ?` |
@@ -42,7 +44,7 @@
 | `ai-server` | `aiSunoSyncJob` | Suno 生成状态同步 | `0 * * * * ?` |
 | `ai-server` | `aiMidjourneySyncJob` | Midjourney 绘图状态同步 | `0 * * * * ?` |
 
-共 37 个生产调度任务。`demoJob` 仅用于示例，不在生产环境创建。AI 服务的两个任务仅在部署并使用相关能力时启用。
+共 39 个生产调度任务（其中 2 个仅人工触发）。`demoJob` 仅用于示例，不在生产环境创建。AI 服务的两个任务仅在部署并使用相关能力时启用。
 
 这些扫描类 Job 的 Cron 控制扫描频率；被扫描的业务任务仍按其自身配置的 Cron 或到期时间执行。启动调度前，确认服务的 `xxl.job.enabled`、`xxl.job.admin.addresses` 和通讯 Token 与实际调度中心匹配，并在执行器显示在线机器后验证手动触发及回调。
 
