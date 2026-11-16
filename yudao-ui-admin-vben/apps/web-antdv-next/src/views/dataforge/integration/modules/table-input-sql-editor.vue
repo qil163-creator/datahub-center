@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 
+import type { SqlCompletionSource } from '#/components/monaco/sql-completion';
+
 import {
   markRaw,
   onBeforeUnmount,
@@ -14,6 +16,8 @@ import { TextArea } from 'antdv-next';
 const props = withDefaults(
   defineProps<{
     ariaLabel?: string;
+    /** 表/字段补全来源；不传时编辑器只补关键字 */
+    completion?: SqlCompletionSource;
     folding?: boolean;
     height?: string;
     language?: string;
@@ -22,7 +26,7 @@ const props = withDefaults(
     readonly?: boolean;
     renderValidationDecorations?: 'off' | 'on';
   }>(),
-  { ariaLabel: 'SQL文本编辑器', folding: true, height: '190px', language: 'mysql', modelValue: '', placeholder: '请输入SQL', readonly: false, renderValidationDecorations: undefined },
+  { ariaLabel: 'SQL文本编辑器', completion: () => ({ tables: [] }), folding: true, height: '190px', language: 'mysql', modelValue: '', placeholder: '请输入SQL', readonly: false, renderValidationDecorations: undefined },
 );
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const editor = shallowRef<Component>();
@@ -63,6 +67,7 @@ void load();
         v-if="editor"
         :is="editor"
         :model-value="modelValue"
+        :completion="completion"
         :height="height"
         :language="language"
         :readonly="readonly"

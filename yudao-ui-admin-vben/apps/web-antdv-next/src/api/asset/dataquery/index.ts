@@ -83,10 +83,11 @@ export function getDataQueryTableList(datasourceId: number) {
 export function getDataQueryColumnList(
   datasourceId: number,
   tableName: string,
+  options?: { silentError?: boolean },
 ) {
   return requestClient.get<DataQueryApi.Column[]>(
     '/asset/data-query/column-list',
-    { params: { datasourceId, tableName } },
+    { params: { datasourceId, tableName }, silentError: options?.silentError },
   );
 }
 

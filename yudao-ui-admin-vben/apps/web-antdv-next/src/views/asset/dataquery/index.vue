@@ -292,6 +292,13 @@ async function onLoadData(node: any): Promise<void> {
   pendingNodeLoads.set(data.key, request);
   try {
     await request;
+  } catch (error) {
+    // 读取失败时收起该节点：树组件会对“已展开但未加载”的节点立即重新加载，
+    // 而已加载节点由本页受控维护，组件自身的重试上限不生效，会形成请求风暴。收起后由用户再次展开重试。
+    const aborted = error instanceof DOMException && error.name === 'AbortError';
+    if (!aborted && current())
+      expandedKeys.value = expandedKeys.value.filter((key) => key !== data.key);
+    throw error;
   } finally {
     if (pendingNodeLoads.get(data.key) === request)
       pendingNodeLoads.delete(data.key);
@@ -364,7 +371,10 @@ async function onDatasourceChange(id?: number) {
     setCompletionTables(tables.map((name) => ({ name })));
     setColumnLoader(async (tableName) => {
       if (!current()) return [];
-      const columns = await getDataQueryColumnList(id, tableName);
+      // 补全读取失败不弹提示，稍后再次触发补全时重试
+      const columns = await getDataQueryColumnList(id, tableName, {
+        silentError: true,
+      });
       if (!current()) return [];
       return columns.map((column) => ({
         name: column.columnName,

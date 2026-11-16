@@ -15,12 +15,16 @@ const state = vi.hoisted(() => ({
   updateOptions: vi.fn(),
   modelOptions: vi.fn(),
   markers: vi.fn(),
+  completionSource: vi.fn(),
   cursorChanged: undefined as (() => void) | undefined,
   markersChanged: undefined as
     | ((resources: { toString: () => string }[]) => void)
     | undefined,
 }));
-vi.mock('./setup', () => ({ setupMonaco: vi.fn() }));
+vi.mock('./setup', () => ({
+  setupMonaco: vi.fn(),
+  setModelCompletionSource: state.completionSource,
+}));
 vi.mock('sql-formatter', () => ({ format: (value: string) => value }));
 vi.mock('monaco-editor/esm/vs/editor/editor.api.js', () => ({
   editor: {
@@ -141,6 +145,31 @@ describe('sql编辑器公开插入能力', () => {
       { range: selection, text: 'rain_station_id', forceMoveMarkers: true },
     ]);
     expect(state.focus).toHaveBeenCalledOnce();
+  });
+  it('按模型注册本编辑器的补全来源，随属性更新，卸载时注销', async () => {
+    const first = { tables: [{ name: 'orders' }] };
+    const second = { tables: [{ name: 'users' }] };
+    const props = reactive({ completion: first as typeof first | undefined });
+    app = createApp(
+      defineComponent(() => () => h(SqlEditor, { completion: props.completion })),
+    );
+    app.mount(host);
+    expect(state.completionSource).toHaveBeenLastCalledWith(
+      'inmemory:current',
+      first,
+    );
+    props.completion = second;
+    await nextTick();
+    expect(state.completionSource).toHaveBeenLastCalledWith(
+      'inmemory:current',
+      second,
+    );
+    app.unmount();
+    app = undefined;
+    expect(state.completionSource).toHaveBeenLastCalledWith(
+      'inmemory:current',
+      null,
+    );
   });
   it('只读实例不插入，旧消费者默认保留minimap', () => {
     app = createApp(SqlEditor, { readonly: true });

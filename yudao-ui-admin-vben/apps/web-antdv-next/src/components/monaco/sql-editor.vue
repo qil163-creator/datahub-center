@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SqlCompletionSource } from './sql-completion';
 import type { SqlEditorStatus } from './sql-editor-status';
 
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -6,10 +7,12 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { format as formatSql } from 'sql-formatter';
 
-import { setupMonaco } from './setup';
+import { setModelCompletionSource, setupMonaco } from './setup';
 
 const props = withDefaults(
   defineProps<{
+    /** 本编辑器专用的表/字段补全来源；不传时使用页面级来源（setCompletionTables） */
+    completion?: SqlCompletionSource;
     folding?: boolean;
     fontSize?: number;
     height?: string;
@@ -25,6 +28,7 @@ const props = withDefaults(
     tabSize?: number;
   }>(),
   {
+    completion: undefined,
     folding: true,
     fontSize: 13,
     height: '100%',
@@ -49,6 +53,7 @@ const emit = defineEmits<{
 
 const containerRef = ref<HTMLElement>();
 let editor: monaco.editor.IStandaloneCodeEditor | null = null;
+let completionModelUri: string | undefined;
 let suppressChange = false;
 let diagnosticsReceived = false;
 const subscriptions: monaco.IDisposable[] = [];
@@ -104,6 +109,9 @@ onMounted(() => {
     suggestSelection: 'first',
     fixedOverflowWidgets: true,
   });
+  completionModelUri = editor.getModel()?.uri.toString();
+  if (completionModelUri)
+    setModelCompletionSource(completionModelUri, props.completion);
   subscriptions.push(
     editor.onDidChangeModelContent(() => {
       diagnosticsReceived = false;
@@ -137,6 +145,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  if (completionModelUri) setModelCompletionSource(completionModelUri, null);
+  completionModelUri = undefined;
   subscriptions.splice(0).forEach((subscription) => subscription.dispose());
   editor?.dispose();
   editor = null;
@@ -162,6 +172,13 @@ watch(
       monaco.editor.setModelLanguage(model, language);
       emitStatus();
     }
+  },
+);
+
+watch(
+  () => props.completion,
+  (source) => {
+    if (completionModelUri) setModelCompletionSource(completionModelUri, source);
   },
 );
 

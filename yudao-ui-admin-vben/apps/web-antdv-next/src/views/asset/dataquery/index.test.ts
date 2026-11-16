@@ -300,7 +300,9 @@ describe('sql query response ownership', () => {
       expect(mock.completions.mock.lastCall).toEqual([[{ name: 'current_table' }]]);
       const loader = mock.loader.mock.lastCall?.[0];
       await loader('current_table');
-      expect(mock.columns).toHaveBeenCalledWith(1, 'current_table');
+      expect(mock.columns).toHaveBeenCalledWith(1, 'current_table', {
+        silentError: true,
+      });
       oldSources.resolve([{ id: 2, name: 'Old source' }]);
       oldTables.resolve(['old_table']);
       oldResult.resolve({ rows: [{ old: 1 }] });
@@ -453,7 +455,9 @@ describe('sql query response ownership', () => {
     expect(mock.completions.mock.lastCall).toEqual([[{ name: 'new_table' }]]);
     const loader = mock.loader.mock.lastCall?.[0];
     await loader('new_table');
-    expect(mock.columns).toHaveBeenCalledWith(2, 'new_table');
+    expect(mock.columns).toHaveBeenCalledWith(2, 'new_table', {
+      silentError: true,
+    });
   });
 
   it('keeps the last opened SQL file when file detail requests finish out of order', async () => {
@@ -512,6 +516,22 @@ describe('数据源树展开与刷新', () => {
     expect(state.expandedKeys).toEqual([]);
     await state.toggleTreeExpanded();
     expect(mock.columns).toHaveBeenCalledTimes(2);
+  });
+
+  it('表清单读取失败时收起节点，避免树组件对已展开节点反复重载', async () => {
+    mount();
+    await flush();
+    mock.tables.mockRejectedValueOnce(new Error('精确表列表读取失败'));
+    state.expandedKeys = ['ds:1', 'ds:2'];
+    const root = state.treeData[0]!;
+    await expect(state.onLoadData(root)).rejects.toThrow('精确表列表读取失败');
+    expect(state.expandedKeys).toEqual(['ds:2']);
+    expect(state.loadedKeys).toEqual([]);
+    mock.tables.mockResolvedValueOnce(['orders']);
+    state.expandedKeys = ['ds:1'];
+    await state.onLoadData(root);
+    expect(state.loadedKeys).toEqual(['ds:1']);
+    expect(state.expandedKeys).toEqual(['ds:1']);
   });
 
   it('刷新期间禁止从旧根节点启动懒加载或全部展开', async () => {

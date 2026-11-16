@@ -614,7 +614,10 @@ async function refreshCompletion(databaseId?: DataforgeDevApi.Id) {
     return;
   }
   setColumnLoader(async (tableName) => {
-    const columns = await getDevTableColumns(databaseId, tableName);
+    // 补全读取失败不弹提示，稍后再次触发补全时重试
+    const columns = await getDevTableColumns(databaseId, tableName, {
+      silentError: true,
+    });
     if (seq !== completionSeq) return [];
     return columns.map((column) => ({
       name: column.name,

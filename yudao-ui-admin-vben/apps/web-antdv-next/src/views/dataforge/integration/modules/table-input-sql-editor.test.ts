@@ -40,9 +40,9 @@ async function flush() {
   await new Promise((resolve) => setTimeout(resolve, 0));
   await nextTick();
 }
-async function mount(readonly = false) {
+async function mount(readonly = false, extra: Record<string, unknown> = {}) {
   const { default: Editor } = await import('./table-input-sql-editor.vue');
-  const state = reactive({ modelValue: 'select original', readonly });
+  const state = reactive({ modelValue: 'select original', readonly, ...extra });
   host = document.createElement('div');
   document.body.append(host);
   app = createApp({
@@ -93,6 +93,27 @@ describe('异步SQL编辑器降级', () => {
     expect(host.querySelector('[data-monaco]')?.textContent).toBe(
       'select edited_while_loading',
     );
+  });
+  it('把补全来源交给Monaco编辑器，未指定时只给空来源而不回退到其他页面', async () => {
+    const received: unknown[] = [];
+    vi.doMock('#/components/monaco/sql-editor.vue', () => ({
+      default: defineComponent({
+        props: { modelValue: String, completion: Object },
+        setup: (props) => {
+          received.push(props.completion);
+          return () => h('div', { 'data-monaco': true });
+        },
+      }),
+    }));
+    const source = { tables: [{ name: 'orders' }] };
+    await mount(false, { completion: source });
+    await flush();
+    expect(received).toEqual([source]);
+    app?.unmount();
+    host.remove();
+    await mount();
+    await flush();
+    expect(received[1]).toEqual({ tables: [] });
   });
   it('运行初始化失败后不显示提示并保留可编辑的SQL', async () => {
     vi.doMock('#/components/monaco/sql-editor.vue', () => ({

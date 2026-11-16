@@ -45,6 +45,7 @@ import {
   validateFieldMappings,
 } from './field-mapping';
 import ReferenceIcon from './reference-icon.vue';
+import { databaseCompletionSource } from './sql-completion-source';
 import TableInputReadOptions from './table-input-read-options.vue';
 import TableInputSqlEditor from './table-input-sql-editor.vue';
 
@@ -61,6 +62,10 @@ const access = useAccessStore();
 const isInput = computed(() => props.toolCode === 'read-db');
 const databases = ref<FoundationDatabaseApi.DatabaseSimple[]>([]);
 const tables = ref<FoundationDatabaseApi.DatabaseTable[]>([]);
+/** 自定义 SQL 的表/字段补全：复用节点已加载的表目录 */
+const sqlCompletion = computed(() =>
+  databaseCompletionSource(props.config.databaseId, tables.value),
+);
 const fields = ref<FoundationDatabaseApi.DatabaseTableColumn[]>([]);
 const databaseLoading = ref(false);
 const tableLoading = ref(false);
@@ -659,6 +664,7 @@ watch(
           <TableInputSqlEditor
             class="qi-db-query-editor"
             :model-value="config.sql ?? ''"
+            :completion="sqlCompletion"
             :readonly="disabled"
             :folding="false"
             render-validation-decorations="off"

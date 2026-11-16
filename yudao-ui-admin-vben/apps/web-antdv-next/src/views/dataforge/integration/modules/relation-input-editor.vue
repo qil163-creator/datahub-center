@@ -40,6 +40,7 @@ import {
   relationColumnsFromMetadata,
   relationConnectionMatches,
 } from './relation-input-config';
+import { databaseCompletionSource } from './sql-completion-source';
 import TableInputReadOptions from './table-input-read-options.vue';
 import TableInputSqlEditor from './table-input-sql-editor.vue';
 
@@ -55,6 +56,13 @@ const access = useAccessStore();
 const epoch = ref(0);
 const databases = ref<FoundationDatabaseApi.DatabaseSimple[]>([]);
 const tables = ref<FoundationDatabaseApi.DatabaseTable[]>([]);
+/** 自定义 SQL 的表/字段补全：复用节点已加载的表目录（实时源没有目录） */
+const sqlCompletion = computed(() =>
+  databaseCompletionSource(
+    realtime.value ? undefined : props.config.databaseId,
+    tables.value,
+  ),
+);
 const metadata = ref<FoundationDatabaseApi.DatabaseTableColumn[]>([]);
 const connectionsLoading = ref(false);
 const tablesLoading = ref(false);
@@ -555,6 +563,7 @@ SQL解析
         <div class="qi-relation-sql">
           <TableInputSqlEditor
             :model-value="config.sql"
+            :completion="sqlCompletion"
             :readonly="disabled"
             :height="toolCode === 'read-odps' || isHive ? '140px' : '190px'"
             :folding="!referenceRelation"

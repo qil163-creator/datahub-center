@@ -3,6 +3,12 @@ import type {
   ICompletionItem,
 } from 'monaco-sql-languages';
 
+import type {
+  CompletionColumn,
+  CompletionTable,
+  SqlCompletionSource,
+} from './sql-completion';
+
 import * as monaco from 'monaco-editor';
 import {
   EntityContextType,
@@ -12,6 +18,15 @@ import {
 } from 'monaco-sql-languages';
 
 import { registerLogLanguage } from './javalog';
+import {
+  columnTableReferences,
+  loadCompletionColumns,
+  qualifierBeforeDot,
+  quoteIdentifier,
+  quoteTableReference,
+  resolveTable,
+  tablesInSchema,
+} from './sql-completion';
 import EditorWorker from './workers/editor.worker?worker';
 import FlinkSQLWorker from './workers/flink.worker?worker';
 import MySQLWorker from './workers/mysql.worker?worker';
@@ -27,60 +42,61 @@ import 'monaco-sql-languages/esm/languages/spark/spark.contribution';
 // @ts-expect-error 同上
 import 'monaco-sql-languages/esm/languages/flink/flink.contribution';
 
-/** 编辑器补全元数据（页面按当前数据源填充） */
-interface TableMeta {
-  name: string;
-  comment?: string;
-}
-interface ColumnMeta {
-  name: string;
-  comment?: string;
-  dataType?: string;
-}
-
-const completionTables: TableMeta[] = [];
-const completionColumns = new Map<string, ColumnMeta[]>();
-let columnLoader: ((tableName: string) => Promise<ColumnMeta[]>) | null = null;
+/**
+ * 页面级补全来源（数据查询、数据开发按当前数据源填充）。没有自带来源的编辑器使用它；
+ * 每次设置都换成新对象，旧数据源的字段缓存随之失效。
+ */
+let pageSource: SqlCompletionSource = { tables: [] };
+/** 编辑器自带的补全来源，按模型 URI 区分，互不串用 */
+const modelSources = new Map<string, SqlCompletionSource>();
 
 /** 设置当前数据源的表清单（切换数据源时调用） */
-export function setCompletionTables(tables: TableMeta[]) {
-  completionTables.length = 0;
-  completionTables.push(...tables);
-  completionColumns.clear();
+export function setCompletionTables(tables: CompletionTable[]) {
+  pageSource = { tables: [...tables], loadColumns: pageSource.loadColumns };
 }
 
 /** 注册字段懒加载器（补全触发到字段上下文时按表名拉取） */
 export function setColumnLoader(
-  loader: ((tableName: string) => Promise<ColumnMeta[]>) | null,
+  loader: ((tableName: string) => Promise<CompletionColumn[]>) | null,
 ) {
-  columnLoader = loader;
+  pageSource = { tables: pageSource.tables, loadColumns: loader ?? undefined };
 }
 
-async function loadColumns(tableName: string): Promise<ColumnMeta[]> {
-  const key = tableName.toLowerCase();
-  const cached = completionColumns.get(key);
-  if (cached) {
-    return cached;
-  }
-  if (!columnLoader) {
-    return [];
-  }
-  try {
-    const columns = await columnLoader(tableName);
-    completionColumns.set(key, columns);
-    return columns;
-  } catch {
-    completionColumns.set(key, []);
-    return [];
-  }
+/** 为单个编辑器模型指定补全来源；传空时回到页面级来源 */
+export function setModelCompletionSource(
+  modelUri: string,
+  source?: null | SqlCompletionSource,
+) {
+  if (source) modelSources.set(modelUri, source);
+  else modelSources.delete(modelUri);
+}
+
+const { CompletionItemKind } = monaco.languages;
+
+function columnItems(
+  columns: CompletionColumn[],
+  reference: string,
+  languageId: string,
+): ICompletionItem[] {
+  return columns.map((column) => ({
+    label: column.name,
+    kind: CompletionItemKind.Field,
+    insertText: quoteIdentifier(column.name, languageId),
+    filterText: column.name,
+    detail: [reference, column.dataType, column.comment]
+      .filter(Boolean)
+      .join(' · '),
+    sortText: `0${column.name}`,
+  }));
 }
 
 /**
- * 语法上下文感知补全：关键字 + 表名 + 字段
- * （表清单来自数据源元数据；字段按当前语句涉及的表懒加载）
+ * 语法上下文感知补全：关键字 + 表名 + 字段。
+ * 表清单来自数据源元数据；字段按当前语句可访问的表懒加载，“别名.”/“表名.”只补该表的字段，
+ * “schema.”只补该 schema 下的表；需要引号的名字按方言加引号插入。
  */
 const completionService: CompletionService = async (
-  _model,
+  model,
   _position,
   _context,
   suggestions,
@@ -89,53 +105,70 @@ const completionService: CompletionService = async (
   if (!suggestions) {
     return [];
   }
+  const source = modelSources.get(model.uri.toString()) ?? pageSource;
+  const languageId = model.getLanguageId();
   const { keywords, syntax } = suggestions;
-  const items: ICompletionItem[] = keywords.map((keyword) => ({
-    label: keyword,
-    kind: monaco.languages.CompletionItemKind.Keyword,
-    detail: '关键字',
-    sortText: `2${keyword}`,
-  }));
+  const words = (type: EntityContextType) =>
+    syntax
+      .find((item) => item.syntaxContextType === type)
+      ?.wordRanges.map((word) => word.text);
 
-  const needTable = syntax.some(
-    (item) =>
-      item.syntaxContextType === EntityContextType.TABLE ||
-      item.syntaxContextType === EntityContextType.TABLE_CREATE,
-  );
-  const needColumn = syntax.some(
-    (item) => item.syntaxContextType === EntityContextType.COLUMN,
-  );
+  const tableWords = words(EntityContextType.TABLE);
+  const columnWords = words(EntityContextType.COLUMN);
+  const schema = tableWords ? qualifierBeforeDot(tableWords) : undefined;
+  const columnQualifier = columnWords
+    ? qualifierBeforeDot(columnWords)
+    : undefined;
 
-  if (needTable) {
-    for (const table of completionTables) {
+  const items: ICompletionItem[] = [];
+  if (schema) {
+    for (const match of tablesInSchema(source.tables, schema)) {
+      items.push({
+        label: match.filterText,
+        kind: CompletionItemKind.Class,
+        insertText: match.insertText,
+        filterText: match.filterText,
+        detail: match.table.comment ? `表 · ${match.table.comment}` : '表',
+        sortText: `0${match.filterText}`,
+      });
+    }
+  } else if (tableWords) {
+    for (const table of source.tables) {
       items.push({
         label: table.name,
-        kind: monaco.languages.CompletionItemKind.Class,
+        kind: CompletionItemKind.Class,
+        insertText: quoteTableReference(table.name, languageId),
         detail: table.comment ? `表 · ${table.comment}` : '表',
         sortText: `0${table.name}`,
       });
     }
   }
 
-  if (needColumn && entities) {
-    // 当前语句涉及的表 → 懒加载字段
-    const tableNames = entities
-      .filter((entity) => entity.entityContextType === EntityContextType.TABLE)
-      .map((entity) => entity.text.replaceAll(/[`"']/g, ''))
-      .filter(Boolean);
-    for (const tableName of [...new Set(tableNames)].slice(0, 5)) {
-      const columns = await loadColumns(tableName);
-      for (const column of columns) {
-        items.push({
-          label: column.name,
-          kind: monaco.languages.CompletionItemKind.Field,
-          detail: [tableName, column.dataType, column.comment]
-            .filter(Boolean)
-            .join(' · '),
-          sortText: `1${column.name}`,
-        });
-      }
-    }
+  if (columnWords && entities) {
+    const references = columnTableReferences(entities, columnQualifier);
+    const groups = await Promise.all(
+      references.map(async (reference) => {
+        const table = resolveTable(source.tables, reference);
+        const columns = await loadCompletionColumns(
+          source,
+          table?.name ?? reference,
+        );
+        return columnItems(columns, reference, languageId);
+      }),
+    );
+    items.push(...groups.flat());
+  }
+
+  // “限定名.”之后只可能是字段或表，关键字只会干扰
+  if (!schema && !columnQualifier) {
+    items.push(
+      ...keywords.map((keyword) => ({
+        label: keyword,
+        kind: CompletionItemKind.Keyword,
+        detail: '关键字',
+        sortText: `2${keyword}`,
+      })),
+    );
   }
   return items;
 };

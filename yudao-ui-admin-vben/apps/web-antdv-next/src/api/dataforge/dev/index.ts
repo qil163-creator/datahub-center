@@ -538,10 +538,11 @@ export function getDevBackfillPage(params: {
 export function getDevTableColumns(
   databaseId: DataforgeDevApi.Id,
   tableName: string,
+  options?: { silentError?: boolean },
 ) {
   return requestClient.get<DataforgeDevApi.TableColumn[]>(
     '/dataforge/dev-task/column-list',
-    { params: { databaseId, tableName } },
+    { params: { databaseId, tableName }, silentError: options?.silentError },
   );
 }
 
