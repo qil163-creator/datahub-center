@@ -24,8 +24,22 @@ public final class GuardedTableMutationExecutor {
      * 按当前变更定义修改目标对象或数据。
      */
     public GuardedMutationResult mutate(DataSource source, ProductTypeEnum product, GuardedTableMutation mutation) {
-        Objects.requireNonNull(source);
         Objects.requireNonNull(mutation);
+        return mutateAll(source, product, List.of(mutation));
+    }
+
+    /**
+     * 在同一外部事务中按顺序执行多组条件写，任一组未命中原值即整体回滚；
+     * 用于“更新保留记录并删除被合并记录”等必须同时成功的组合变更。
+     */
+    public GuardedMutationResult mutateAll(DataSource source, ProductTypeEnum product,
+            List<GuardedTableMutation> mutations) {
+        Objects.requireNonNull(source);
+        Objects.requireNonNull(mutations);
+        if (mutations.isEmpty() || mutations.size() > 10 || mutations.stream().anyMatch(Objects::isNull)
+                || mutations.stream().mapToInt(mutation -> mutation.rows().size()).sum() > 200) {
+            throw new IllegalArgumentException("Invalid guarded mutation batch");
+        }
         if (!supports(product)) {
             return new GuardedMutationResult(NOT_APPLIED, UNSUPPORTED);
         }
@@ -37,7 +51,7 @@ public final class GuardedTableMutationExecutor {
         }
         GuardedMutationResult result;
         try {
-            result = execute(connection, product, mutation);
+            result = execute(connection, product, List.copyOf(mutations));
         } catch (RuntimeException failure) {
             result = new GuardedMutationResult(UNKNOWN, WRITE_FAILED);
         }
@@ -53,36 +67,42 @@ public final class GuardedTableMutationExecutor {
      * 校验原值和目标条件后应用受保护的数据变更。
      */
     private GuardedMutationResult execute(Connection connection, ProductTypeEnum product,
-            GuardedTableMutation mutation) {
+            List<GuardedTableMutation> mutations) {
         boolean started = false;
         boolean commitAttempted = false;
         try {
             DatabaseMetaData metadata = connection.getMetaData();
             if (!"PostgreSQL".equals(metadata.getDatabaseProductName()) || !metadata.supportsTransactions()
                     || !connection.getAutoCommit() || connection.isReadOnly()
-                    || !metadata.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)
-                    || !primaryKeysMatch(metadata, mutation)) {
+                    || !metadata.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
                 return new GuardedMutationResult(NOT_APPLIED, UNSUPPORTED);
+            }
+            for (GuardedTableMutation mutation : mutations) {
+                if (!primaryKeysMatch(metadata, mutation)) {
+                    return new GuardedMutationResult(NOT_APPLIED, UNSUPPORTED);
+                }
             }
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             connection.setAutoCommit(false);
             started = true;
-            List<Map<String, Object>> expected = mutation.expectedRows();
-            List<Map<String, Object>> rows = mutation.rows();
             long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(30);
-            for (int i = 0; i < rows.size(); i++) {
-                long remaining = deadline - System.nanoTime();
-                if (remaining <= 0) {
-                    throw new SQLTimeoutException();
-                }
-                StatementPlan plan = plan(product, mutation, expected.get(i), rows.get(i));
-                try (PreparedStatement statement = connection.prepareStatement(plan.sql())) {
-                    statement.setQueryTimeout((int) Math.max(1, (remaining + 999_999_999L) / 1_000_000_000L));
-                    for (int index = 0; index < plan.parameters().size(); index++) {
-                        statement.setObject(index + 1, plan.parameters().get(index));
+            for (GuardedTableMutation mutation : mutations) {
+                List<Map<String, Object>> expected = mutation.expectedRows();
+                List<Map<String, Object>> rows = mutation.rows();
+                for (int i = 0; i < rows.size(); i++) {
+                    long remaining = deadline - System.nanoTime();
+                    if (remaining <= 0) {
+                        throw new SQLTimeoutException();
                     }
-                    if (statement.executeUpdate() != 1) {
-                        throw new Conflict();
+                    StatementPlan plan = plan(product, mutation, expected.get(i), rows.get(i));
+                    try (PreparedStatement statement = connection.prepareStatement(plan.sql())) {
+                        statement.setQueryTimeout((int) Math.max(1, (remaining + 999_999_999L) / 1_000_000_000L));
+                        for (int index = 0; index < plan.parameters().size(); index++) {
+                            statement.setObject(index + 1, plan.parameters().get(index));
+                        }
+                        if (statement.executeUpdate() != 1) {
+                            throw new Conflict();
+                        }
                     }
                 }
             }

@@ -11,6 +11,6 @@ public class MasterChangeLogPageReqVO extends PageParam {
 
     private Long modelId;
 
-    @Pattern(regexp = "CREATE|UPDATE|DELETE")
+    @Pattern(regexp = "CREATE|UPDATE|DELETE|MERGE")
     private String changeType;
 }

@@ -274,6 +274,17 @@ public final class DbSwitchRuntime implements AutoCloseable {
     }
 
     /**
+     * 在同一外部事务中执行多组条件写，任一组冲突即整体回滚。
+     */
+    public cn.iocoder.yudao.framework.dbswitch.core.service.GuardedMutationResult guardedMutateAll(
+            DataSource source, ProductTypeEnum product,
+            java.util.List<cn.iocoder.yudao.framework.dbswitch.core.service.GuardedTableMutation> mutations) {
+        checkOpen();
+        return new cn.iocoder.yudao.framework.dbswitch.core.service.GuardedTableMutationExecutor().mutateAll(source,
+                product, mutations);
+    }
+
+    /**
      * 按目标产品和列定义创建更新或插入写入器。
      */
     public cn.iocoder.yudao.framework.dbswitch.dbwriter.IDatabaseUpsertWriter upsertWriter(DataSource source,

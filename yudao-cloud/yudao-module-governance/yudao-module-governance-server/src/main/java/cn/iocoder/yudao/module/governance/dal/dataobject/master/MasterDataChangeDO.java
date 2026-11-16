@@ -68,4 +68,7 @@ public class MasterDataChangeDO extends BaseDO {
     private Long resolvedBy;
 
     private LocalDateTime resolvedAt;
+
+    /** 合并申请对应的疑似重复组编号 */
+    private Long matchGroupId;
 }

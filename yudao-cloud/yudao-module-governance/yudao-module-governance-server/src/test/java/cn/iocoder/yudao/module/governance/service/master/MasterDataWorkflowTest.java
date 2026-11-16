@@ -277,6 +277,8 @@ class MasterDataWorkflowTest {
             }
             context.getBeanFactory().registerSingleton("ruleMapper", mock(MasterCodeRuleMapper.class));
             context.getBeanFactory().registerSingleton("counterMapper", mock(MasterCodeCounterMapper.class));
+            context.getBeanFactory().registerSingleton("xrefMapper", mock(MasterMergeXrefMapper.class));
+            context.getBeanFactory().registerSingleton("groupMapper", mock(MasterMatchGroupMapper.class));
             context.getBeanFactory().registerSingleton("databaseResolver", mock(MasterDatabaseResolver.class));
             context.getBeanFactory().registerSingleton("dbSwitchRuntime", runtime);
             context.register(MasterDataChangeService.class, MasterCodeRuleService.class, MasterDataServiceImpl.class);

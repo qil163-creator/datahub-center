@@ -7,6 +7,7 @@ export const OPERATION_OPTIONS: {
   { label: '新增', value: 'CREATE' },
   { label: '编辑', value: 'UPDATE' },
   { label: '删除', value: 'DELETE' },
+  { label: '合并', value: 'MERGE' },
 ];
 export const APPROVAL_STATUS_OPTIONS: {
   color: string;

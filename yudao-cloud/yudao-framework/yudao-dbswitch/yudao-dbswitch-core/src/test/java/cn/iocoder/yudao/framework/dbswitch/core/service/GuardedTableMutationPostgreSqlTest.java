@@ -65,6 +65,25 @@ class GuardedTableMutationPostgreSqlTest {
         assertNull(value(3)); assertEquals("old", value(1));
         assertEquals(UNSUPPORTED, executor.mutate(source, ProductTypeEnum.HIVE, insert).failure()); assertNull(value(3));
     }
+    @Test void batchUpdatesSurvivorAndDeletesDuplicateInOneTransaction() throws Exception {
+        var survivor = new GuardedTableMutation(schema, "rows", List.of("id", "value"), List.of("id"),
+                GuardedTableMutation.Operation.UPDATE, List.of(row(1, "old")), List.of(row(1, "golden")));
+        var staleDuplicate = new GuardedTableMutation(schema, "rows", List.of("id", "value"), List.of("id"),
+                GuardedTableMutation.Operation.DELETE, List.of(row(2, "changed")), List.of(Map.of("id", 2L)));
+        var conflict = executor.mutateAll(source, ProductTypeEnum.POSTGRESQL, List.of(survivor, staleDuplicate));
+        assertEquals(NOT_APPLIED, conflict.status()); assertEquals(CONFLICT, conflict.failure());
+        assertEquals("old", value(1)); assertTrue(exists(2), "删除冲突时保留记录的更新也必须回滚");
+        var duplicate = new GuardedTableMutation(schema, "rows", List.of("id", "value"), List.of("id"),
+                GuardedTableMutation.Operation.DELETE, List.of(row(2, null)), List.of(Map.of("id", 2L)));
+        assertEquals(APPLIED, executor.mutateAll(source, ProductTypeEnum.POSTGRESQL, List.of(survivor, duplicate)).status());
+        assertEquals("golden", value(1)); assertFalse(exists(2));
+        assertThrows(IllegalArgumentException.class, () -> executor.mutateAll(source, ProductTypeEnum.POSTGRESQL, List.of()));
+    }
+    private boolean exists(long id) throws Exception {
+        try (Statement statement = control.createStatement(); ResultSet rows = statement.executeQuery("SELECT 1 FROM " + schema + ".rows WHERE id=" + id)) {
+            return rows.next();
+        }
+    }
     private GuardedMutationResult update(List<Map<String, Object>> before, List<Map<String, Object>> after) {
         return executor.mutate(source, ProductTypeEnum.POSTGRESQL, new GuardedTableMutation(schema, "rows", List.of("id", "value"),
                 List.of("id"), GuardedTableMutation.Operation.UPDATE, before, after));

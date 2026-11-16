@@ -85,6 +85,17 @@ const fields = computed<DetailFieldItem[]>(() => {
       type: 'textarea',
       rows: 2,
     },
+    ...(detail?.operation === 'MERGE'
+      ? [
+          {
+            key: 'mergeHint',
+            label: '合并说明',
+            value:
+              '变更后第一条为黄金记录（更新保留记录），其余记录将被删除；变更前为参与合并的各记录原内容。',
+            span: 2,
+          } as DetailFieldItem,
+        ]
+      : []),
     {
       key: 'beforeRows',
       label: '变更前',

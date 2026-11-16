@@ -253,20 +253,34 @@ public class MasterDataServiceImpl implements MasterDataService {
         List<MasterColumnDO> columns = columnMapper.selectListByModelId(modelId);
         MasterDatabaseResolver.ConnectionInfo conn =
                 databaseResolver.resolve(model.getDatabaseId(), MASTER_MODEL_DATABASE_NOT_EXISTS);
+        boolean merge = "MERGE".equals(operation);
         GuardedTableMutation.Operation kind = switch (operation) {
             case "CREATE" -> GuardedTableMutation.Operation.INSERT;
-            case "UPDATE" -> GuardedTableMutation.Operation.UPDATE;
+            case "UPDATE", "MERGE" -> GuardedTableMutation.Operation.UPDATE;
             case "DELETE" -> GuardedTableMutation.Operation.DELETE;
             default -> throw exception(MASTER_DATA_ROW_INVALID, "操作类型不支持");
         };
+        if (merge && (rows.size() < 2 || before.size() != rows.size())) {
+            throw exception(MASTER_DATA_ROW_INVALID, "合并须包含保留记录和至少一条被合并记录");
+        }
         List<Map<String, Object>> expected = jdbcRows(columns, before);
         List<Map<String, Object>> values = jdbcRows(columns, rows);
+        List<String> fields = convertList(columns, MasterColumnDO::getName);
         HikariDataSource source = databaseResolver.createDataSource(conn);
         GuardedMutationResult result;
         try {
-            result = dbSwitchRuntime.guardedMutate(source, conn.getProductType(), new GuardedTableMutation(
-                    conn.getSchema(), model.getTableName(), convertList(columns, MasterColumnDO::getName),
-                    pkNames(columns), kind, expected, values));
+            if (merge) {
+                // 合并：第一行是黄金记录（更新保留记录），其余行删除；两组写在同一外部事务中，任一冲突整体回滚。
+                result = dbSwitchRuntime.guardedMutateAll(source, conn.getProductType(), List.of(
+                        new GuardedTableMutation(conn.getSchema(), model.getTableName(), fields, pkNames(columns),
+                                GuardedTableMutation.Operation.UPDATE, expected.subList(0, 1), values.subList(0, 1)),
+                        new GuardedTableMutation(conn.getSchema(), model.getTableName(), fields, pkNames(columns),
+                                GuardedTableMutation.Operation.DELETE, expected.subList(1, expected.size()),
+                                values.subList(1, values.size()))));
+            } else {
+                result = dbSwitchRuntime.guardedMutate(source, conn.getProductType(), new GuardedTableMutation(
+                        conn.getSchema(), model.getTableName(), fields, pkNames(columns), kind, expected, values));
+            }
         } catch (RuntimeException ex) {
             try {
                 source.close();
@@ -285,6 +299,30 @@ public class MasterDataServiceImpl implements MasterDataService {
             log.warn("主数据连接清理未确认，模型编号={}", modelId);
         }
         return result;
+    }
+
+    /**
+     * 按主键顺序读取模型记录，用于相似匹配；单次最多读取 limit 条，查询超时 120 秒。
+     */
+    @Override
+    public ScanResult scanRows(Long modelId, int limit) {
+        MasterModelDO model = modelService.validateModelReleased(modelId);
+        List<MasterColumnDO> columns = columnMapper.selectListByModelId(modelId);
+        List<String> keys = pkNames(columns);
+        if (keys.isEmpty()) {
+            throw exception(MASTER_MODEL_NO_PK);
+        }
+        MasterDatabaseResolver.ConnectionInfo conn =
+                databaseResolver.resolve(model.getDatabaseId(), MASTER_MODEL_DATABASE_NOT_EXISTS);
+        ProductTypeEnum product = conn.getProductType();
+        String sql = "SELECT " + columns.stream().map(column -> product.quoteName(column.getName()))
+                .collect(Collectors.joining(", "))
+                + " FROM " + product.quoteSchemaTableName(conn.getSchema(), model.getTableName())
+                + " ORDER BY " + keys.stream().map(product::quoteName).collect(Collectors.joining(", "));
+        JdbcSelectResult result = dbSwitchRuntime.jdbcMetadata(product).pageDataBySql(conn.getJdbcUrl(),
+                conn.getUsername(), conn.getPassword(), sql, List.of(), 1, limit, null, 120);
+        List<Map<String, Object>> rows = toWireRows(result.getList() != null ? result.getList() : result.getRowData());
+        return new ScanResult(rows, result.getTotal() == null ? rows.size() : result.getTotal());
     }
 
     /**

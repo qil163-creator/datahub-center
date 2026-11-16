@@ -280,6 +280,13 @@ public interface ErrorCodeConstants {
     ErrorCode MASTER_DATA_RESOLVE_EVIDENCE_REQUIRED = new ErrorCode(2_000_000_423, "请提供变更结果的核查证据");
     ErrorCode MASTER_DOMAIN_LEADER_REQUIRED = new ErrorCode(2_000_000_424, "请选择主数据域负责人");
     ErrorCode MASTER_DOMAIN_LEADER_INVALID = new ErrorCode(2_000_000_425, "主数据域负责人无效，请重新选择");
+    ErrorCode MASTER_MATCH_RULE_NOT_CONFIGURED = new ErrorCode(1_900_003_010, "该模型尚未配置相似匹配规则");
+    ErrorCode MASTER_MATCH_RULE_INVALID = new ErrorCode(1_900_003_011, "相似匹配规则不正确：{}");
+    ErrorCode MASTER_MATCH_RUNNING = new ErrorCode(1_900_003_012, "该模型已有相似匹配正在执行，请稍后刷新");
+    ErrorCode MASTER_MATCH_RUN_FAILED = new ErrorCode(1_900_003_013, "相似匹配未完成：{}");
+    ErrorCode MASTER_MATCH_GROUP_NOT_EXISTS = new ErrorCode(1_900_003_014, "疑似重复组不存在");
+    ErrorCode MASTER_MATCH_GROUP_STATE_INVALID = new ErrorCode(1_900_003_015, "疑似重复组状态已变化，请刷新后重试");
+    ErrorCode MASTER_MATCH_MERGE_INVALID = new ErrorCode(1_900_003_016, "合并内容不正确：{}");
 
     // ========== 元数据--采集任务 2_000_002_000 ==========
     ErrorCode META_COLLECT_TASK_NOT_EXISTS = new ErrorCode(2_000_002_000, "元数据采集任务不存在");

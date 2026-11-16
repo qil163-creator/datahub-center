@@ -231,7 +231,7 @@ function updateDatetime(name: string, value: unknown) {
     edit[name] = value ?? undefined;
 }
 async function write(
-  operation: GovernanceMasterManageApi.Operation,
+  operation: GovernanceMasterManageApi.SubmitReq['operation'],
   values: GovernanceMasterDataApi.Row[],
 ) {
   const current = scope.begin('write');

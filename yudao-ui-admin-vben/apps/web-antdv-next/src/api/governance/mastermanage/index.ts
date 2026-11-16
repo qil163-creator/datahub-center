@@ -6,7 +6,8 @@ import { requestClient } from '#/api/request';
 
 export namespace GovernanceMasterManageApi {
   export type Id = GovernanceMasterDataApi.Id;
-  export type Operation = 'CREATE' | 'DELETE' | 'UPDATE';
+  /** MERGE：相似匹配合并，第一行为黄金记录，其余为被合并删除的记录 */
+  export type Operation = 'CREATE' | 'DELETE' | 'MERGE' | 'UPDATE';
   export type ApprovalStatus =
     | 'APPLIED'
     | 'APPLYING'
@@ -91,7 +92,8 @@ export namespace GovernanceMasterManageApi {
   export interface SubmitReq {
     modelId: Id;
     requestId: string;
-    operation: Operation;
+    /** 合并只能经相似匹配提交 */
+    operation: Exclude<Operation, 'MERGE'>;
     rows: GovernanceMasterDataApi.Row[];
   }
 }

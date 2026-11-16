@@ -34,4 +34,13 @@ public interface MasterDataService {
     cn.iocoder.yudao.framework.dbswitch.core.service.GuardedMutationResult applyGuardedChange(
             Long modelId, String operation, List<Map<String, Object>> before, List<Map<String, Object>> rows);
 
+    /**
+     * 按主键顺序读取模型全部记录，最多 limit 条；total 为表内记录总数，用于判断是否超出上限。
+     */
+    ScanResult scanRows(Long modelId, int limit);
+
+    /** 全表读取结果（行为接口传输形式） */
+    record ScanResult(List<Map<String, Object>> rows, long total) {
+    }
+
 }

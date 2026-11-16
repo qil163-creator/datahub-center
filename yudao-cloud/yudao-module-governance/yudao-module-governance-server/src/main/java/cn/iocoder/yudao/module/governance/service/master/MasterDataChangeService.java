@@ -68,6 +68,12 @@ public class MasterDataChangeService {
     private BpmProcessInstanceApi bpmApi;
 
     @Resource
+    private MasterMergeXrefMapper xrefMapper;
+
+    @Resource
+    private MasterMatchGroupMapper groupMapper;
+
+    @Resource
     private AdminUserApi userApi;
 
     /**
@@ -104,12 +110,84 @@ public class MasterDataChangeService {
         if (new HashSet<>(keys).size() != keys.size()) {
             throw exception(MASTER_DATA_ROW_INVALID, "同批记录主键重复");
         }
+        return register(actor, snapshotModel, requestId, payloadHash, req.getOperation(), rows, before, keys,
+                null, null);
+    }
+
+    /**
+     * 提交疑似重复组合并：第一行为黄金记录（更新保留记录），其余为被合并记录（删除）。
+     * 与普通变更共用审批、行占用、条件写、未知结果核查与变更日志；登记与 onRegistered 在同一平台事务内执行，
+     * 调用方借此原子地占用疑似重复组。
+     *
+     * @param golden       黄金记录完整字段值（主键为保留记录主键）
+     * @param duplicates   被合并记录（只需主键）
+     * @param groupId      疑似重复组编号
+     * @param onRegistered 变更登记后、事务提交前的回调；重复请求不会再次调用
+     */
+    public MasterDataMutationRespVO submitMerge(Long modelId, String rawRequestId, Map<String, Object> golden,
+            List<Map<String, Object>> duplicates, Long groupId,
+            java.util.function.Consumer<MasterDataChangeDO> onRegistered) {
+        Long actor = requireActor();
+        if (golden == null || duplicates == null || duplicates.isEmpty() || duplicates.size() > 19
+                || duplicates.stream().anyMatch(Objects::isNull)) {
+            throw exception(MASTER_DATA_ROW_INVALID, "合并须包含保留记录和1至19条被合并记录");
+        }
+        String requestId = UUID.fromString(rawRequestId).toString();
+        List<Map<String, Object>> submitted = new ArrayList<>();
+        submitted.add(golden);
+        submitted.addAll(duplicates);
+        String payloadHash = digest(actor + ":" + modelId + ":MERGE:" + groupId + ":" + canonical(submitted));
+        MasterDataChangeDO duplicate = changeMapper.selectByRequest(requestId);
+        if (duplicate != null) {
+            return mutation(requireSameRequest(duplicate, payloadHash));
+        }
+        MasterModelDO snapshotModel = modelService.validateModelReleased(modelId);
+        dataService.validateRows(modelId, List.of(golden), "UPDATE");
+        dataService.validateRows(modelId, duplicates, "DELETE");
+        List<Map<String, Object>> rows = new ArrayList<>(wire(
+                dataService.normalizeRows(modelId, List.of(golden), "UPDATE")));
+        rows.addAll(wire(dataService.normalizeRows(modelId, duplicates, "DELETE")));
+        List<Map<String, Object>> before = wire(dataService.snapshotRows(modelId, rows));
+        if (before.stream().anyMatch(Objects::isNull)) {
+            throw exception(MASTER_DATA_ROW_INVALID, "参与合并的记录已不存在，请重新匹配");
+        }
+        List<String> keys = rowKeys(modelId, rows);
+        if (new HashSet<>(keys).size() != keys.size()) {
+            throw exception(MASTER_DATA_ROW_INVALID, "保留记录与被合并记录不能重复");
+        }
+        return register(actor, snapshotModel, requestId, payloadHash, "MERGE", rows, before, keys, groupId,
+                onRegistered);
+    }
+
+    /**
+     * 重放已登记的合并请求：同一操作人对同一疑似重复组重复提交时返回原申请；
+     * 请求标识已用于其他操作人、其他组或非合并申请时拒绝。未登记时返回 null。
+     */
+    public MasterDataMutationRespVO replayMerge(String rawRequestId, Long groupId) {
+        Long actor = requireActor();
+        MasterDataChangeDO existing = changeMapper.selectByRequest(UUID.fromString(rawRequestId).toString());
+        if (existing == null) {
+            return null;
+        }
+        if (!"MERGE".equals(existing.getOperation()) || !Objects.equals(existing.getMatchGroupId(), groupId)
+                || !Objects.equals(existing.getApplicantId(), actor)) {
+            throw exception(MASTER_DATA_REQUEST_CONFLICT);
+        }
+        return mutation(existing);
+    }
+
+    /**
+     * 在平台事务内登记变更申请（含模型版本与行占用校验），随后按需启动流程或直接应用。
+     */
+    private MasterDataMutationRespVO register(Long actor, MasterModelDO snapshotModel, String requestId,
+            String payloadHash, String operation, List<Map<String, Object>> rows, List<Map<String, Object>> before,
+            List<String> keys, Long groupId, java.util.function.Consumer<MasterDataChangeDO> onRegistered) {
         if (JsonUtils.toJsonString(rows).getBytes(StandardCharsets.UTF_8).length > 1_048_576
                 || JsonUtils.toJsonString(before).getBytes(StandardCharsets.UTF_8).length > 1_048_576) {
             throw exception(MASTER_DATA_ROW_INVALID, "记录快照超过1MB");
         }
         MasterDataChangeDO change = tx().execute(status -> {
-            MasterModelDO model = lockModel(req.getModelId());
+            MasterModelDO model = lockModel(snapshotModel.getId());
             MasterDataChangeDO existing = changeMapper.selectByRequest(requestId);
             if (existing != null) {
                 return requireSameRequest(existing, payloadHash);
@@ -130,17 +208,21 @@ public class MasterDataChangeService {
             created.setModelId(model.getId());
             created.setSchemaVersion(model.getVersion());
             created.setRequestId(requestId);
-            created.setOperation(req.getOperation());
+            created.setOperation(operation);
             created.setPayloadHash(payloadHash);
             created.setRowsJson(JsonUtils.toJsonString(rows));
             created.setBeforeJson(JsonUtils.toJsonString(before));
             created.setRowKeysJson(JsonUtils.toJsonString(keys));
             created.setApplicantId(actor);
+            created.setMatchGroupId(groupId);
             created.setApprovalRequired(Boolean.TRUE.equals(model.getApprovalEnabled()));
             created.setBpmProcessKey(created.getApprovalRequired() ? model.getApprovalProcessKey() : null);
             created.setStatus(!created.getApprovalRequired() ? "APPROVED"
                     : blank(created.getBpmProcessKey()) ? "PENDING" : "WAIT_START");
             changeMapper.insert(created);
+            if (onRegistered != null) {
+                onRegistered.accept(created);
+            }
             return created;
         });
         if ("WAIT_START".equals(change.getStatus())) {
@@ -271,9 +353,7 @@ public class MasterDataChangeService {
         List<Map<String, Object>> current = wire(
                 dataService.snapshotRows(change.getModelId(), rows(change.getRowsJson())));
         boolean applied = "APPLIED".equals(req.getOutcome());
-        List<Map<String, Object>> expected = applied
-                ? "DELETE".equals(change.getOperation()) ? new ArrayList<>(Collections.nCopies(current.size(), null))
-                : rows(change.getRowsJson()) : rows(change.getBeforeJson());
+        List<Map<String, Object>> expected = applied ? appliedRows(change) : rows(change.getBeforeJson());
         if (!canonical(current).equals(canonical(expected))) {
             throw exception(MASTER_DATA_ROW_CHANGED);
         }
@@ -450,13 +530,9 @@ public class MasterDataChangeService {
         for (int i = 0; i < after.size(); i++) {
             Map<String, Object> old = before.get(i);
             Map<String, Object> submitted = after.get(i);
-            Map<String, Object> next = "DELETE".equals(change.getOperation()) ? null : submitted;
-            Map<String, Object> key = new TreeMap<>();
-            primary.forEach(name -> key.put(name, submitted.get(name)));
-            String dataId = JsonUtils.toJsonString(key);
-            if (dataId.length() > 1000) {
-                dataId = "SHA256:" + digest(dataId);
-            }
+            Map<String, Object> next = "DELETE".equals(change.getOperation())
+                    || "MERGE".equals(change.getOperation()) && i > 0 ? null : submitted;
+            String dataId = dataId(submitted, primary);
             Set<String> properties = new TreeSet<>();
             if (old != null) {
                 properties.addAll(old.keySet());
@@ -488,12 +564,64 @@ public class MasterDataChangeService {
                 logMapper.insert(log);
             }
         }
+        if ("MERGE".equals(change.getOperation())) {
+            recordMerge(change, before, after, primary);
+        }
         change.setStatus("APPLIED");
         change.setAppliedAt(LocalDateTime.now());
         change.setLastError(null);
         changeMapper.updateById(change);
         changeMapper.update(null, com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaUpdate(MasterDataChangeDO.class)
                 .eq(MasterDataChangeDO::getId, change.getId()).set(MasterDataChangeDO::getLastError, null));
+    }
+
+    /**
+     * 合并生效：登记被合并记录的来源追溯；被合并记录若本身是黄金记录，其来源随之归入新的黄金记录；
+     * 疑似重复组标记为已合并。与变更完成状态在同一平台事务内提交。
+     */
+    private void recordMerge(MasterDataChangeDO change, List<Map<String, Object>> before,
+            List<Map<String, Object>> after, List<String> primary) {
+        LocalDateTime now = LocalDateTime.now();
+        String goldenKey = dataId(after.getFirst(), primary);
+        for (int i = 1; i < after.size(); i++) {
+            String sourceKey = dataId(after.get(i), primary);
+            xrefMapper.repoint(change.getModelId(), sourceKey, goldenKey);
+            MasterMergeXrefDO xref = new MasterMergeXrefDO();
+            xref.setModelId(change.getModelId());
+            xref.setChangeId(change.getId());
+            xref.setGroupId(change.getMatchGroupId());
+            xref.setGoldenKey(goldenKey);
+            xref.setSourceKey(sourceKey);
+            xref.setSourceRowJson(JsonUtils.toJsonString(before.get(i)));
+            xref.setMergedBy(change.getApplyActorId());
+            xref.setMergedAt(now);
+            xrefMapper.insert(xref);
+        }
+        if (change.getMatchGroupId() != null) {
+            groupMapper.markMerged(change.getMatchGroupId(), change.getId(), change.getApplyActorId(), now);
+        }
+    }
+
+    /** 变更生效后各行的预期内容：删除及合并的被合并行为空 */
+    private static List<Map<String, Object>> appliedRows(MasterDataChangeDO change) {
+        List<Map<String, Object>> after = rows(change.getRowsJson());
+        if ("DELETE".equals(change.getOperation())) {
+            return new ArrayList<>(Collections.nCopies(after.size(), null));
+        }
+        if ("MERGE".equals(change.getOperation())) {
+            List<Map<String, Object>> expected = new ArrayList<>(Collections.nCopies(after.size(), null));
+            expected.set(0, after.getFirst());
+            return expected;
+        }
+        return after;
+    }
+
+    /** 主键标识：按字段名排序的主键 JSON，超过 1000 字符时取摘要；变更日志与合并追溯共用 */
+    static String dataId(Map<String, Object> row, List<String> primary) {
+        Map<String, Object> key = new TreeMap<>();
+        primary.forEach(name -> key.put(name, row.get(name)));
+        String dataId = JsonUtils.toJsonString(key);
+        return dataId.length() > 1000 ? "SHA256:" + digest(dataId) : dataId;
     }
 
     /**

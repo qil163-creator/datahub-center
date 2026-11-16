@@ -14,6 +14,6 @@ public class MasterApprovalPageReqVO extends PageParam {
     @Pattern(regexp = "PENDING|WAIT_START|APPROVED|APPLYING|APPLIED|REJECTED|CANCELLED|UNKNOWN")
     private String status;
 
-    @Pattern(regexp = "CREATE|UPDATE|DELETE")
+    @Pattern(regexp = "CREATE|UPDATE|DELETE|MERGE")
     private String operation;
 }
