@@ -6,6 +6,8 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.handler.DefaultDBFieldHandler;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
+import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.core.handlers.IJsonTypeHandler;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
@@ -15,11 +17,16 @@ import com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal;
 import com.baomidou.mybatisplus.extension.parser.cache.JdkSerialCaffeineJsqlParseCache;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import tools.jackson.databind.ObjectMapper;
 
@@ -56,6 +63,28 @@ public class YudaoMybatisAutoConfiguration {
     @Bean
     public MetaObjectHandler defaultMetaObjectHandler() {
         return new DefaultDBFieldHandler(); // 自动填充参数类
+    }
+
+    @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    public MybatisPlusPropertiesCustomizer reportableGlobalConfigCustomizer() {
+        return properties -> {
+            // 保留已绑定的全部配置与扩展实例，只剥离配置报告中的运行时工厂反向引用。
+            GlobalConfig globalConfig = new ReportableGlobalConfig();
+            BeanUtils.copyProperties(properties.getGlobalConfig(), globalConfig);
+            properties.setGlobalConfig(globalConfig);
+        };
+    }
+
+    private static final class ReportableGlobalConfig extends GlobalConfig {
+
+        @Override
+        @JsonIgnore
+        @SuppressWarnings("deprecation")
+        public SqlSessionFactory getSqlSessionFactory() {
+            // MyBatis-Plus 仍可访问缓存工厂；配置报告不会继续遍历工厂、数据源和连接。
+            return super.getSqlSessionFactory();
+        }
     }
 
     @Bean
