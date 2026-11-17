@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { indexMaskedColumns, maskedColumnHint } from '#/components/masked-column';
+
 import {
   getActiveIndicatorOptions,
   getIndicatorQueryMeta,
@@ -60,8 +62,6 @@ describe('指标查询与复合指标接口契约', () => {
   });
 
   it('脱敏列契约与共享表头组件一致：name 为结果行列 key', async () => {
-    const { indexMaskedColumns, maskedColumnHint } =
-      await import('#/components/masked-column');
     const response = {
       columns: [],
       rows: [{ dim_0: '138****1234' }],

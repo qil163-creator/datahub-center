@@ -328,6 +328,7 @@ onBeforeUnmount(() => {
     <Alert v-if="saveFailed" :message="error" type="warning" class="mb-3" />
     <Form
       class="sensitive-form"
+      :disabled="!ready || saving"
       :colon="false"
       :label-col="{ style: { width: '110px' } }"
       :wrapper-col="{ style: { flex: '1', minWidth: '0' } }"

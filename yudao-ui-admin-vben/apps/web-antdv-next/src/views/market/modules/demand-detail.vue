@@ -373,7 +373,7 @@ async function confirm(match: MarketApi.DemandMatch, status: number) {
   });
   if (canRefresh()) emit('success');
   if (!current()) return;
-  message.success(status === 1 ? '已接受并生成共享申请' : '已拒绝该匹配');
+  message.success(status === 1 ? '已接受匹配，请到「我的资产 → 申请记录」查看并办理共享申请' : '已拒绝该匹配');
   await load(demandId);
 }
 

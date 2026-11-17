@@ -1082,7 +1082,9 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
             if (QualityWorkOrderDO.STATUS_PROCESSED.equals(order.getOrderStatus())) {
                 throw exception(QUALITY_WORK_ORDER_STATUS_INVALID);
             }
-            if (reqVO.getNewDeadline() == null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (reqVO.getNewDeadline() == null || !reqVO.getNewDeadline().isAfter(now)
+                    || (order.getDeadline() != null && !reqVO.getNewDeadline().isAfter(order.getDeadline()))) {
                 throw exception(QUALITY_WORK_ORDER_STATUS_INVALID);
             }
             if (order.getDeadline() != null && LocalDateTime.now().isAfter(order.getDeadline())) {
@@ -1107,6 +1109,12 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
                 throw exception(QUALITY_WORK_ORDER_STATUS_INVALID);
             }
             order.setOrderStatus(QualityWorkOrderDO.STATUS_IN_PROGRESS);
+            order.setCloseType(null);
+            order.setCloseReason(null);
+            order.setClosedBy(null);
+            order.setClosedAt(null);
+            order.setClosedOverdue(0);
+            order.setAuditOpinion(null);
             order.setCurrentSubmissionId(null);
             order.setConfirmationPendingType(null);
         });
@@ -1513,7 +1521,17 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void evaluateRechecks() {
-        for (QualityWorkOrderRecheckDO candidate : recheckMapper.selectRunning(20)) {
+        evaluateRecheckCandidates(recheckMapper.selectRunning(20));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void evaluateRechecks(long workOrderId) {
+        evaluateRecheckCandidates(recheckMapper.selectRunning(workOrderId, 20));
+    }
+
+    private void evaluateRecheckCandidates(List<QualityWorkOrderRecheckDO> candidates) {
+        for (QualityWorkOrderRecheckDO candidate : candidates) {
             QualityWorkOrderDO order = workOrderMapper.selectByIdForUpdate(
                     candidate.getWorkOrderId());
             // 扫描不代表获得处理权；等待工单锁后必须重新读取轮次、提交和实例。
@@ -1666,19 +1684,21 @@ public class QualityWorkOrderServiceImpl implements QualityWorkOrderService {
         List<Map<String, Object>> checks = new ArrayList<>();
         for (Long issueId : issueIds) {
             QualityIssueDataDO issue = issueDataMapper.selectById(issueId);
-            if (issue == null || issue.getRuleId() == null || issue.getObjectId() == null) {
+            if (issue == null || issue.getObjectId() == null) {
                 missingEvidence = "原问题项或规则/对象关联不存在";
                 checks.add(Map.of("issueId", issueId, "reasonCode", "ISSUE_MISSING"));
                 continue;
             }
+            QualityAuditLogDO baselineAudit = issue.getAuditLogId() == null ? null : auditLogMapper.selectById(issue.getAuditLogId());
             List<QualityAuditLogDO> matches = audits.stream()
                     .filter(log -> Objects.equals(log.getRuleId(), issue.getRuleId())
+                            && baselineAudit != null && Objects.equals(log.getEvaluationId(), baselineAudit.getEvaluationId())
                             && Objects.equals(log.getCheckObjectId(), issue.getObjectId()))
                     .toList();
             QualityAuditLogDO match = matches.size() == 1 ? matches.getFirst() : null;
             var comparison = QualityRecheckEvidence.compare(order, issue,
                     issue.getInstanceId() == null ? null : instanceMapper.selectById(issue.getInstanceId()),
-                    issue.getAuditLogId() == null ? null : auditLogMapper.selectById(issue.getAuditLogId()),
+                    baselineAudit,
                     instance, match, submission == null ? null : submission.getSubmittedAt());
             checks.add(comparison.evidence());
             if (!comparison.comparable()) {

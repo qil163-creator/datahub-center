@@ -15,6 +15,7 @@ public final class JobModels {
     @Data @EqualsAndHashCode(callSuper = true)
     public static class PageReq extends PageParam {
         @Size(max=200) private String name;
+        private Boolean executedToday;
         private Long categoryId;
         private Long ownerId;
         @Min(0) @Max(1) private Integer status;

@@ -1,7 +1,5 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categoryterm;
 
-import com.mzt.logapi.starter.annotation.LogRecord;
-import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.CategoryTermListReqVO;
@@ -9,11 +7,16 @@ import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.Categ
 import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.CategoryTermSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.categoryterm.CategoryTermDO;
 import cn.iocoder.yudao.module.governance.service.categoryterm.CategoryTermService;
+import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -63,6 +66,18 @@ public class CategoryTermController {
     public CommonResult<Boolean> deleteCategoryTerm(@RequestParam("id") Long id) {
         captureAuditContext(id);
         categoryTermService.deleteCategoryTerm(id);
+        return success(true);
+    }
+
+    @DeleteMapping("/delete-list")
+    @Operation(summary = "批量删除业务术语类目")
+    @LogRecord(type = "数据治理-业务术语类目", subType = "批量删除业务术语类目", bizNo = "{{#ids}}",
+            success = "批量删除业务术语类目【{{#ids}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @PreAuthorize("@ss.hasPermission('governance:category-term:delete')")
+    public CommonResult<Boolean> deleteCategoryTermList(
+            @RequestParam("ids") @Size(min = 1, max = 200) List<@NotNull @Positive Long> ids) {
+        categoryTermService.deleteCategoryTermList(ids);
         return success(true);
     }
 

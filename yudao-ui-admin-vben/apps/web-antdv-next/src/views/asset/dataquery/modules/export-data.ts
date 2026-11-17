@@ -1,8 +1,7 @@
-import type { DataExportApi } from '#/api/asset/dataexport';
+import { toTimestamp } from '#/views/dashboard/shared/module-overview/values';
 
 /** 导出申请状态文案（与后端 DataExportRequestDO 一致）。 */
 const STATUS: Record<string, { color: string; label: string }> = {
-  APPROVED: { color: 'green', label: '已批准，可下载' },
   CANCELED: { color: 'default', label: '已撤回' },
   DOWNLOADED: { color: 'blue', label: '已下载' },
   FAILED: { color: 'red', label: '流程未能发起' },
@@ -10,26 +9,23 @@ const STATUS: Record<string, { color: string; label: string }> = {
   REJECTED: { color: 'red', label: '已驳回' },
 };
 
-export function exportStatusView(status: string): {
+export function exportStatusView(
+  record: { expireTime?: number | string; status: string },
+  now = Date.now(),
+): {
   color: string;
+  downloadUntil?: number;
   label: string;
 } {
-  return STATUS[status] ?? { color: 'default', label: status };
-}
-
-/** 只有已批准且未过期的申请可下载。 */
-export function canDownload(
-  record: DataExportApi.Request,
-  now = Date.now(),
-): boolean {
-  if (record.status !== 'APPROVED' || record.expireTime === undefined)
-    return false;
-  const expire = new Date(
-    typeof record.expireTime === 'number'
-      ? record.expireTime
-      : String(record.expireTime),
-  ).getTime();
-  return !Number.isNaN(expire) && expire > now;
+  if (record.status === 'APPROVED') {
+    const expire = toTimestamp(record.expireTime);
+    if (expire === undefined)
+      return { color: 'default', label: '已批准，下载不可用' };
+    return expire > now
+      ? { color: 'green', downloadUntil: expire, label: '已批准，可下载' }
+      : { color: 'default', label: '下载已过期' };
+  }
+  return STATUS[record.status] ?? { color: 'default', label: record.status };
 }
 
 /** 申请表单校验。 */

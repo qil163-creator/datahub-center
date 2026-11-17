@@ -38,6 +38,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.MARKET_APPLY_FORBIDDEN;
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.MARKET_APPLY_NOT_AUTHORIZED;
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.MARKET_APPLY_SCOPE_UNCONFIRMED;
+import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.MARKET_FILE_LIMIT;
 
 /** 我的资产是本人批准来源的只读视图，历史记录可见性与实时消费授权分别处理。 */
 @Service
@@ -68,6 +69,9 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
 
     @Resource
     private MarketCategoryService categoryService;
+
+    @Resource
+    private MarketFileBindingMapper fileBindings;
 
     @Resource
     private MarketDeliveryOperationMapper deliveryMapper;
@@ -104,6 +108,19 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
         long offset = (long) (req.getPageNo() - 1) * req.getPageSize();
         List<MarketMyAssetRow> rows = myAssetMapper.selectOwnedPage(userId, req, categoryIds, offset);
         return new PageResult<>(present(rows, now), count);
+    }
+
+    /** 加锁后的复核加入同一事务，不再开启连接、查询审批历史或访问远端。 */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public MarketResourceApplyDO authorizeFileDownload(long applyId) {
+        var row = owned(applyId);
+        var state = present(List.of(row), requireNow()).getFirst();
+        if (!Boolean.TRUE.equals(state.getCanDownload())) {
+            if ("文件下载次数已用完".equals(state.getDisabledReason())) throw exception(MARKET_FILE_LIMIT);
+            throw exception(MARKET_APPLY_NOT_AUTHORIZED);
+        }
+        return row;
     }
 
     /**
@@ -244,15 +261,26 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
                 .collect(Collectors.toMap(MarketDeliveryOperationDO::getApplyId, Function.identity()));
         Map<Long, MarketApprovalEvidenceRow> approvals = approvalMapper.selectByApplies(applyIds).stream()
                 .collect(Collectors.toMap(MarketApprovalEvidenceRow::getApplyId, Function.identity()));
+        var fileRows = rows.stream().filter(r -> Objects.equals(r.getDeliveryType(), DataAssetDO.TYPE_FILE)
+                && MarketFileDeliveryService.frozenMetadata(r) != null).toList();
+        var fileVersions = fileRows.stream()
+                .map(MarketMyAssetRow::getCatalogVersionId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, MarketFileBinding> files = fileVersions.isEmpty() ? Map.of() : fileBindings.readyByVersions(fileVersions)
+                .stream().collect(Collectors.toMap(MarketFileBinding::getCatalogVersionId, Function.identity()));
+        var limitedFiles = fileRows.stream().filter(r -> Objects.equals(r.getApplyUseType(), MarketResourceApplyDO.USE_LIMITED)).map(MarketMyAssetRow::getId).toList();
+        Map<Long, Long> downloads = limitedFiles.isEmpty() ? Map.of() : fileBindings.usage(limitedFiles).stream()
+                .collect(Collectors.toMap(MarketFileBindingMapper.Usage::applyId, MarketFileBindingMapper.Usage::downloadCount));
         return rows.stream().map(row -> {
             var result = BeanUtils.toBean(row, MarketMyAssetRespVO.class);
             result.setApplyId(row.getId());
             result.setEvaluatedAt(now);
+            result.setFileDelivery(MarketFileDeliveryService.frozenMetadata(row));
             String resolution = deliveryService.currentDeliveryResolution(row, operations.get(row.getId()),
                     approvals.get(row.getId()));
             result.setDeliveryResolution(resolution);
             result.setEffective(effectiveAt(row, now));
-            String reason = unavailableReason(row, assets.get(row.getAssetId()));
+            String reason = unavailableReason(row, assets.get(row.getAssetId()),
+                    row.getCatalogVersionId() == null ? null : files.get(row.getCatalogVersionId()));
             String state;
             if (Objects.equals(row.getStatus(), MarketResourceApplyDO.STATUS_REVOKED)) {
                 state = "REVOKED";
@@ -281,12 +309,18 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
             } else {
                 state = "AVAILABLE";
             }
+            if ("AVAILABLE".equals(state) && Objects.equals(row.getDeliveryType(), DataAssetDO.TYPE_FILE)
+                    && Objects.equals(row.getApplyUseType(), MarketResourceApplyDO.USE_LIMITED)
+                    && downloads.getOrDefault(row.getId(), 0L) >= row.getApplyUseTimes()) {
+                state = "UNAVAILABLE";
+                reason = "文件下载次数已用完";
+            }
             result.setAccessStatus(state);
             boolean usable = "AVAILABLE".equals(state);
             result.setUsable(usable);
             result.setCanPreview(usable && Objects.equals(row.getDeliveryType(), 1));
             result.setCanViewApiDocument(usable && Objects.equals(row.getDeliveryType(), 2));
-            result.setCanDownload(false);
+            result.setCanDownload(usable && Objects.equals(row.getDeliveryType(), DataAssetDO.TYPE_FILE));
             result.setDisabledReason(reason);
             return result;
         }).toList();
@@ -306,11 +340,9 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
     /**
      * 根据申请及资产当前状态生成不可消费原因。
      */
-    private static String unavailableReason(MarketMyAssetRow row, DataAssetDO asset) {
-        if (Objects.equals(row.getDeliveryType(), 3)) {
-            return "当前尚未提供文件交付，无法获取文件";
-        }
-        if (!Objects.equals(row.getDeliveryType(), 1) && !Objects.equals(row.getDeliveryType(), 2)) {
+    private static String unavailableReason(MarketMyAssetRow row, DataAssetDO asset, MarketFileBinding file) {
+        if (!Objects.equals(row.getDeliveryType(), 1) && !Objects.equals(row.getDeliveryType(), 2)
+                && !Objects.equals(row.getDeliveryType(), DataAssetDO.TYPE_FILE)) {
             return "交付形态无法核验";
         }
         if (!Boolean.TRUE.equals(row.getFrozenCatalogValid())) {
@@ -326,7 +358,13 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
             return "API 授权绑定不完整，请联系提供方核查";
         }
         try {
-            MarketFieldScope.requireMatchesAsset(row, asset);
+            if (Objects.equals(row.getDeliveryType(), DataAssetDO.TYPE_FILE)) {
+                if (file == null || file.getManagedFileId() == null) return "该目录版本尚无交付文件";
+                MarketFileDeliveryService.requireGrant(row, asset, file);
+                MarketQuotaPolicy.requireFrozen(row);
+            } else {
+                MarketFieldScope.requireMatchesAsset(row, asset);
+            }
         } catch (ServiceException invalidEvidence) {
             return "批准内容与当前发布版本不一致，请重新申请";
         }

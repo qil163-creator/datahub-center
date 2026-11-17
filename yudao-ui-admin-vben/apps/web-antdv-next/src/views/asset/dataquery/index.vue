@@ -430,7 +430,21 @@ function buildResultGrid(next: DataQueryApi.Result) {
   return { columns, rows };
 }
 
+let resultPageSize = 20;
+function onResultPageChange({
+  currentPage,
+  pageSize,
+}: {
+  currentPage: number;
+  pageSize: number;
+}) {
+  const page = pageSize === resultPageSize ? currentPage : 1;
+  resultPageSize = pageSize;
+  displayResultPage(page);
+}
+
 const [Grid, gridApi] = useVbenVxeGrid({
+  gridEvents: { pageChange: onResultPageChange },
   gridOptions: {
     columns: [{ type: 'seq', width: 56, title: '#' }],
     data: [],
@@ -439,7 +453,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     keepSource: true,
     pagerConfig: {
       enabled: true,
-      pageSize: 20,
+      pageSize: resultPageSize,
     },
     proxyConfig: {
       enabled: false,
@@ -454,16 +468,31 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 let resultRevision = 0;
-function syncResultGrid(next: DataQueryApi.Result, emptyText: string) {
+function displayResultPage(
+  currentPage: number,
+  schema?: Pick<VxeTableGridOptions, 'columns' | 'emptyText'>,
+) {
   const revision = ++resultRevision;
-  const { columns, rows } = buildResultGrid(next);
-  result.value = { ...next, rows };
-  gridApi.setGridOptions({ columns, data: rows, emptyText });
+  const rows = result.value.rows ?? [];
+  const start = (currentPage - 1) * resultPageSize;
+  const data = rows.slice(start, start + resultPageSize);
+  gridApi.setGridOptions({
+    ...schema,
+    data,
+    pagerConfig: { currentPage, pageSize: resultPageSize, total: rows.length },
+    seqConfig: { startIndex: start },
+  });
   nextTick(() => {
     if (!alive || revision !== resultRevision) return;
-    gridApi.grid?.reloadColumn?.(columns);
-    gridApi.grid?.reloadData?.(rows);
+    if (schema?.columns) gridApi.grid?.reloadColumn?.(schema.columns);
+    gridApi.grid?.reloadData?.(data);
   });
+}
+
+function syncResultGrid(next: DataQueryApi.Result, emptyText: string) {
+  const { columns, rows } = buildResultGrid(next);
+  result.value = { ...next, rows };
+  displayResultPage(1, { columns, emptyText });
 }
 
 const queryRequest = useObjectRequest(

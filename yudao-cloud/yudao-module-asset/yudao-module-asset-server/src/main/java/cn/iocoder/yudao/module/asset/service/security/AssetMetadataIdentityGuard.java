@@ -2,8 +2,10 @@ package cn.iocoder.yudao.module.asset.service.security;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.asset.dal.dataobject.dataasset.DataAssetDO;
+import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.AssetTechLinkMapper;
 import cn.iocoder.yudao.module.governance.api.metadata.MetadataApi;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataColumnRespDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableRespDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,6 +31,8 @@ public class AssetMetadataIdentityGuard {
 
     @Resource
     private MetadataApi metadataApi;
+    @Resource
+    private AssetTechLinkMapper techLinkMapper;
 
     /**
      * 同一批次只核验一次同一资产；不跨请求缓存成功结果。
@@ -50,9 +54,9 @@ public class AssetMetadataIdentityGuard {
                 || !Objects.equals(table.getId(), asset.getMetaTableId())
                 || !Objects.equals(table.getResourceUrn(), asset.getResourceUrn())
                 || !Objects.equals(table.getDatasourceId(), asset.getDatasourceId())
-                || !Objects.equals(table.getDbName(), asset.getDbName())
                 || !Objects.equals(table.getSchemaName(), asset.getSchemaName())
-                || !Objects.equals(table.getTableName(), asset.getTableName())) {
+                || !Objects.equals(table.getTableName(), asset.getTableName())
+                || !matchesDatabase(asset, table)) {
             throw exception(DATA_ASSET_TECH_UNAVAILABLE);
         }
         var frozen = metadataApi.getColumnListBySnapshot(asset.getPublishedSnapshotId()).getCheckedData();
@@ -82,6 +86,28 @@ public class AssetMetadataIdentityGuard {
                 throw exception(DATA_ASSET_TECH_UNAVAILABLE);
             }
         }
+    }
+
+    private boolean matchesDatabase(DataAssetDO asset, MetadataTableRespDTO table) {
+        if (Objects.equals(asset.getDbName(), table.getDbName())) {
+            return true;
+        }
+        // 早期目录挂接漏存库名。只有原主关联和治理当前发布的同一份冻结快照均可核实才认可。
+        if (asset.getDbName() != null || StrUtil.isBlank(table.getDbName())
+                || asset.getPublishedCatalogVersionId() == null
+                || !Objects.equals(table.getPublishStatus(), 1)
+                || !Objects.equals(asset.getPublishedSnapshotId(), table.getPublishedSnapshotId())) {
+            return false;
+        }
+        var link = techLinkMapper.selectPrimary(asset.getId());
+        return link != null && Objects.equals(link.getAssetId(), asset.getId())
+                && Objects.equals(link.getPrimaryFlag(), 1) && "governance".equals(link.getProviderModule())
+                && Objects.equals(link.getSnapshotId(), asset.getPublishedSnapshotId())
+                && Objects.equals(link.getMetaTableId(), asset.getMetaTableId())
+                && Objects.equals(link.getResourceUrn(), asset.getResourceUrn())
+                && Objects.equals(link.getDatasourceId(), asset.getDatasourceId())
+                && Objects.equals(link.getSchemaName(), asset.getSchemaName())
+                && Objects.equals(link.getObjectName(), asset.getTableName());
     }
 
     /** 同一批次只核验一次同一资产；不跨请求缓存成功结果。 */

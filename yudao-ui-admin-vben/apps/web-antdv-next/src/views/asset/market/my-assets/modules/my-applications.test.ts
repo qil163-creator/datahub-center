@@ -20,7 +20,9 @@ vi.mock('#/api/asset/my-assets', () => ({ getMyApplicationsPage: mock.page, getM
 vi.mock('#/components/list-pagination/index.vue', () => ({ default: { render: () => null } }));
 vi.mock('#/components/table-viewport/index.vue', () => ({ default: { render: () => null } }));
 vi.mock('#/views/modeling/modelcommon/detail-field-form.vue', () => ({ default: { render: () => null } }));
+vi.mock('#/views/asset/market/modules/apply-form.vue', () => ({ default: { render: () => null } }));
 vi.mock('@vben/common-ui', () => ({
+  useVbenModal: () => [defineComponent({ render: () => null }), { close: vi.fn(), setData: (row: MyAssetsApi.ApplicationDetail) => ({ open: () => mock.open(row) }) }],
   useVbenDrawer: () => [defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }), { open: mock.open, setState: mock.setState }],
 }));
 vi.mock('antdv-next', () => {
@@ -29,6 +31,7 @@ vi.mock('antdv-next', () => {
 });
 
 interface State {
+  editApplication: () => void;
   rows: MyAssetsApi.Application[];
   total: number;
   loading: boolean;
@@ -80,6 +83,21 @@ describe('本人申请记录', () => {
     expect(mock.page).toHaveBeenLastCalledWith({ pageNo: 1, pageSize: 10, keyword: '标题', status: 3 });
     state.changePage(2, 10); await flush();
     expect(mock.page).toHaveBeenLastCalledWith(expect.objectContaining({ pageNo: 2, keyword: '标题', status: 3 }));
+  });
+  it.each([
+    [0, false, false],
+    [0, true, true],
+    [8, true, true],
+    [1, true, false],
+  ])('状态 %i、办理权限 %s 时能否打开原申请表单为 %s', async (status, allowed, editable) => {
+    if (allowed) mock.access.accessCodes.push('asset:market:apply');
+    mount(); await flush();
+    const row = state.rows[0]!;
+    mock.detail.mockResolvedValueOnce({ id: row.id, status, revision: 5 });
+    state.openDetail(row); await flush(); mock.open.mockClear();
+    state.editApplication();
+    if (editable) expect(mock.open).toHaveBeenCalledWith(expect.objectContaining({ id: row.id, revision: 5, status }));
+    else expect(mock.open).not.toHaveBeenCalled();
   });
   it('详情使用无损申请编号且只接受匹配的响应', async () => {
     mount(); await flush(); state.openDetail(state.rows[0]!); await flush();

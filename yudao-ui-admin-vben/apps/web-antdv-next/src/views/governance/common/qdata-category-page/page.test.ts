@@ -18,6 +18,7 @@ const harness = vi.hoisted(() => ({
   formOpen: vi.fn(),
   formClose: vi.fn(),
   errors: [] as unknown[],
+  showToolbar: false,
 }));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => harness.access,
@@ -59,7 +60,12 @@ vi.mock('antdv-next', () => {
             slots.default?.(),
           ),
     }),
-    Modal: () => null,
+    Modal: defineComponent({
+      props: { open: Boolean },
+      emits: ['ok'],
+      setup: (props, { emit }) => () =>
+        props.open ? h('button', { onClick: () => emit('ok') }, '确认删除') : null,
+    }),
     Switch: () => null,
     Tooltip: container,
     message: { warning: vi.fn(), success: vi.fn() },
@@ -86,12 +92,20 @@ vi.mock('./form.vue', () => ({
   }),
 }));
 vi.mock('#/adapter/vxe-table', () => ({
-  useVbenVxeGrid: () => [
+  useVbenVxeGrid: (options: {
+    gridEvents: { checkboxChange: (value: { records: CategoryRow[] }) => void };
+  }) => [
     defineComponent({
       setup:
         (_, { slots }) =>
         () =>
-          h('section', slots.actions?.({ row: category })),
+          h('section', [
+            ...(slots.actions?.({ row: category }) ?? []),
+            ...(harness.showToolbar ? [
+              h('button', { onClick: () => options.gridEvents.checkboxChange({ records: [category, child] }) }, '选择父子'),
+              h('div', { 'data-testid': 'batch-toolbar' }, slots['toolbar-tools']?.()),
+            ] : []),
+          ]),
     }),
     {
       setGridOptions: vi.fn(),
@@ -108,6 +122,7 @@ const category: CategoryRow = {
   status: 1,
   sort: 0,
 };
+const child: CategoryRow = { ...category, id: '9007199254740996', parentId: category.id, key: '9007199254740996' };
 const adapter: CategoryAdapter = {
   label: '业务术语类目',
   nameLabel: '业务术语类目名称',
@@ -117,6 +132,7 @@ const adapter: CategoryAdapter = {
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
+  removeList: vi.fn(),
   normalize: (row) => row as CategoryRow,
 };
 let app: App | undefined;
@@ -138,6 +154,7 @@ beforeEach(async () => {
     refreshToken: '',
   });
   harness.errors = [];
+  harness.showToolbar = false;
   host = document.createElement('div');
   document.body.append(host);
   app = createApp(CategoryPage, { adapter });
@@ -186,4 +203,26 @@ describe('类目页面只读详情入口', () => {
     expect(harness.detailOpen).not.toHaveBeenCalled();
     expect(harness.errors).toEqual([]);
   });
+  it('选择父子类目后仅发送一笔批量删除，失败时保留原选择以便重试', async () => {
+    harness.showToolbar = true;
+    harness.access!.accessCodes = ['governance:category-term:query', 'governance:category-term:delete'];
+    vi.mocked(adapter.removeList).mockRejectedValueOnce(new Error('存在未选的子类目'));
+    await flush();
+    button('选择父子')!.click();
+    await flush();
+    const batch = [...host.querySelectorAll<HTMLButtonElement>('[data-testid="batch-toolbar"] button')]
+      .find((el) => el.textContent?.trim() === '删除');
+    batch!.click();
+    await flush();
+    button('确认删除')!.click();
+    await flush();
+    expect(adapter.removeList).toHaveBeenCalledWith([category.id, child.id]);
+    expect(button('确认删除')).toBeDefined();
+    button('确认删除')!.click();
+    await flush();
+    expect(adapter.removeList).toHaveBeenCalledTimes(2);
+    expect(adapter.remove).not.toHaveBeenCalled();
+    expect(button('确认删除')).toBeUndefined();
+  });
+
 });

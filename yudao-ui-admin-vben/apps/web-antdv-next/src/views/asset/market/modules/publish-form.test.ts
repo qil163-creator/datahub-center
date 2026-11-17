@@ -49,6 +49,10 @@ vi.mock('#/api/asset/market', () => ({
   getMarketMartListing: mock.listing,
   publishMarketMart: mock.publish,
 }));
+vi.mock('#/api/asset/market/file-delivery', () => ({
+  bindDeliveryFile: vi.fn(),
+  getDeliveryFileBinding: vi.fn().mockResolvedValue(null),
+}));
 vi.mock('#/api/asset/marketcategory', () => ({
   getMarketCategorySimpleList: mock.categories,
 }));
@@ -114,6 +118,7 @@ vi.mock('antdv-next', () => {
     FormItem: box,
     Input: box,
     Select: box,
+    Spin: box,
     TextArea: box,
     TreeSelect: box,
     theme: { defaultAlgorithm: {} },

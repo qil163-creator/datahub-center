@@ -18,7 +18,7 @@ spring:
   servlet:
     # 文件上传相关配置项
     multipart:
-      max-file-size: 16MB # 单个文件大小
+      max-file-size: 20MB # 与市场交付文件的 20 MiB 上限一致
       max-request-size: 32MB # 设置总上传的文件大小
 
 

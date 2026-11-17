@@ -17,12 +17,27 @@ export const DEV_RECORD_STATUS_OPTIONS = [
   { label: '等待依赖/资源', value: 'WAITING', color: 'default' },
   { label: '提交中', value: 'SUBMITTING', color: 'processing' },
   { label: '结果待核查', value: 'UNKNOWN', color: 'warning' },
-  { label: '已请求停止', value: 'CANCEL_REQUESTED', color: 'warning' },
+  { label: '引擎停止确认中', value: 'CANCEL_REQUESTED', color: 'warning' },
   { label: '运行中', value: 'RUNNING', color: 'processing' },
   { label: '成功', value: 'SUCCESS', color: 'success' },
   { label: '失败', value: 'FAILED', color: 'error' },
   { label: '已停止', value: 'STOPPED', color: 'default' },
 ];
+
+export const activeRecordStatuses = new Set([
+  'CANCEL_REQUESTED',
+  'RUNNING',
+  'SUBMITTING',
+  'UNKNOWN',
+  'WAITING',
+]);
+
+export function hasPendingStop(record?: DataforgeDevApi.Record) {
+  return (
+    activeRecordStatuses.has(record?.status ?? '') &&
+    (record?.cancelRequested || record?.status === 'CANCEL_REQUESTED')
+  );
+}
 
 /** 触发方式 */
 export const DEV_TRIGGER_TYPE_OPTIONS = [

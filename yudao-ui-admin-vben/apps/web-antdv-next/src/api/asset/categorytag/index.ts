@@ -47,3 +47,10 @@ export function updateCategoryTag(data: AssetCategoryTagApi.CategoryTag) {
 export function deleteCategoryTag(id: number | string) {
   return requestClient.delete(`/asset/category-tag/delete?id=${id}`);
 }
+
+/** 在一个事务中删除选中的类目。 */
+export function deleteCategoryTagList(ids: (number | string)[]) {
+  return requestClient.delete<boolean>('/asset/category-tag/delete-list', {
+    params: { ids: ids.join(',') },
+  });
+}

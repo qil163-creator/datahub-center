@@ -25,15 +25,18 @@ import {
 } from '#/utils/resource-id';
 import { PROCESS_ACTION_OPTIONS } from '#/views/asset/market/data';
 import { formatMarketTime } from '#/views/asset/market/market-time';
+import FileDeliverySummary from '#/views/asset/market/modules/file-delivery-summary.vue';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 import { deliveryLabels } from '../../data';
 import { accessState, assetTitle, canOpenDelivery } from '../data';
 
 defineOptions({ name: 'MyAssetDetail' });
+defineProps<{ downloading?: boolean }>();
 const emit = defineEmits<{
   closed: [id: string];
   document: [row: MyAssetsApi.Detail];
+  file: [row: MyAssetsApi.Detail];
   preview: [row: MyAssetsApi.Detail];
 }>();
 const access = useAccessStore();
@@ -103,8 +106,8 @@ const fields = computed<DetailFieldItem[]>(() => {
     { key: 'legalBasis', label: '使用依据', value: row.legalBasis, span: 2 },
     {
       key: 'approvedColumns',
-      label: '批准字段范围',
-      value: row.approvedColumns?.join('、') || '未指定字段',
+      label: row.deliveryType === 3 ? '交付范围' : '批准字段范围',
+      value: row.deliveryType === 3 ? '整份文件' : row.approvedColumns?.join('、') || '未指定字段',
       span: 2,
       type: 'textarea',
     },
@@ -150,10 +153,11 @@ function isCurrent(row: MyAssetsApi.Detail) {
     sameResourceId(currentId.value, row.applyId)
   );
 }
-function useDelivery(kind: 'document' | 'preview') {
+function useDelivery(kind: 'document' | 'file' | 'preview') {
   const row = detail.value;
   if (!row || !isCurrent(row) || !canOpenDelivery(row, kind)) return;
   if (kind === 'preview') emit('preview', row);
+  else if (kind === 'file') emit('file', row);
   else emit('document', row);
 }
 async function load() {
@@ -240,11 +244,18 @@ defineExpose({ open, close, isCurrent });
           <template #icon><IconifyIcon icon="lucide:book-open" /></template>
           API 文档
         </Button>
-        <Button v-else-if="detail.deliveryType === 3" disabled>
+        <Button
+          v-else-if="detail.deliveryType === 3"
+          type="primary"
+          :disabled="!canOpenDelivery(detail, 'file')"
+          :loading="downloading"
+          @click="useDelivery('file')"
+        >
           <template #icon><IconifyIcon icon="lucide:download" /></template>
-          文件获取暂未接通
+          下载文件
         </Button>
       </div>
+      <FileDeliverySummary v-if="detail?.fileDelivery" :file="detail.fileDelivery" />
       <DetailFieldForm :fields="fields" label-width="130px" />
       <h3 class="mb-4 mt-6 font-medium">申请记录</h3>
       <Timeline v-if="detail.processes?.length">

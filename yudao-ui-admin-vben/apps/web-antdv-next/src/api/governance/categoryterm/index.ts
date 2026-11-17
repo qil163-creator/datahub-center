@@ -44,3 +44,10 @@ export function updateCategoryTerm(data: GovernanceCategoryTermApi.Save) {
 export function deleteCategoryTerm(id: number | string) {
   return requestClient.delete<boolean>(`${base}/delete`, { params: { id } });
 }
+
+/** 在一个事务中删除选中的类目。 */
+export function deleteCategoryTermList(ids: (number | string)[]) {
+  return requestClient.delete<boolean>('/governance/category-term/delete-list', {
+    params: { ids: ids.join(',') },
+  });
+}

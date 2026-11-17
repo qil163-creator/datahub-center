@@ -1,21 +1,24 @@
 package cn.iocoder.yudao.module.asset.service.categorytag;
 
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagListReqVO;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagRespVO;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagSaveReqVO;
+import cn.iocoder.yudao.module.asset.dal.dataobject.assettag.AssetTagDO;
 import cn.iocoder.yudao.module.asset.dal.dataobject.categorytag.CategoryTagDO;
 import cn.iocoder.yudao.module.asset.dal.mysql.assettag.AssetTagMapper;
 import cn.iocoder.yudao.module.asset.dal.mysql.categorytag.CategoryTagMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.invalidParamException;
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.*;
 
 @Service
@@ -32,6 +35,7 @@ public class CategoryTagServiceImpl implements CategoryTagService {
      * 创建标签类目。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long createCategoryTag(CategoryTagSaveReqVO reqVO) {
         validateParent(null, reqVO.getParentId());
         validateNameUnique(null, reqVO.getParentId(), reqVO.getCategoryName());
@@ -44,6 +48,7 @@ public class CategoryTagServiceImpl implements CategoryTagService {
      * 更新标签类目。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateCategoryTag(CategoryTagSaveReqVO reqVO) {
         validateExists(reqVO.getId());
         validateParent(reqVO.getId(), reqVO.getParentId());
@@ -67,6 +72,32 @@ public class CategoryTagServiceImpl implements CategoryTagService {
             throw exception(CATEGORY_TAG_IN_USE);
         }
         categoryTagMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCategoryTagList(List<Long> ids) {
+        if (ids == null || ids.isEmpty() || ids.size() > 200 || ids.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw invalidParamException("请选择1至200个有效类目");
+        }
+        var selected = new TreeSet<>(ids);
+        var categories = categoryTagMapper.selectList(new LambdaQueryWrapperX<CategoryTagDO>()
+                .in(CategoryTagDO::getId, selected).orderByAsc(CategoryTagDO::getId).last("FOR UPDATE"));
+        if (categories.size() != selected.size()) {
+            throw exception(CATEGORY_TAG_NOT_EXISTS);
+        }
+        if (categories.stream().anyMatch(category -> category.getStatus() == null || category.getStatus() != 1)) {
+            throw invalidParamException("请先禁用所选类目后再删除");
+        }
+        if (categoryTagMapper.selectCount(new LambdaQueryWrapperX<CategoryTagDO>()
+                .in(CategoryTagDO::getParentId, selected).notIn(CategoryTagDO::getId, selected)) > 0) {
+            throw exception(CATEGORY_TAG_EXITS_CHILDREN);
+        }
+        if (assetTagMapper.selectCount(new LambdaQueryWrapperX<AssetTagDO>()
+                .in(AssetTagDO::getCategoryId, selected)) > 0) {
+            throw exception(CATEGORY_TAG_IN_USE);
+        }
+        categoryTagMapper.deleteByIds(selected);
     }
 
     /**
@@ -141,7 +172,7 @@ public class CategoryTagServiceImpl implements CategoryTagService {
         if (Objects.equals(id, parentId)) {
             throw exception(CATEGORY_TAG_PARENT_ERROR);
         }
-        CategoryTagDO parent = categoryTagMapper.selectById(parentId);
+        CategoryTagDO parent = categoryTagMapper.selectForUpdate(parentId);
         if (parent == null) {
             throw exception(CATEGORY_TAG_PARENT_NOT_EXITS);
         }

@@ -14,6 +14,7 @@ import {
   Form,
   FormItem,
   Input,
+  InputNumber,
   message,
   Select,
   TextArea,
@@ -49,7 +50,9 @@ const identity = computed(() =>
 const form = ref<FormInstance>();
 const model = reactive<{
   assetId?: MarketApi.Id;
+  assetType?: number;
   dates?: [string, string];
+  downloads?: number;
   name: string;
   period?: 'CUSTOM' | 'PERMANENT';
   reason: string;
@@ -77,8 +80,10 @@ const [Modal, modalApi] = useVbenModal({
     const value = modalApi.getData() as {
       assetId?: MarketApi.Id;
       assetName?: string;
+      assetType?: number;
     };
     model.assetId = value?.assetId;
+    model.assetType = value?.assetType;
     model.name = value?.assetName || '';
     form.value?.clearValidate();
   },
@@ -87,6 +92,8 @@ function reset() {
   guard.invalidate();
   Object.assign(model, {
     assetId: undefined,
+    assetType: undefined,
+    downloads: undefined,
     name: '',
     period: undefined,
     dates: undefined,
@@ -132,6 +139,11 @@ async function submit() {
     (!start.isValid() || !end.isValid() || !end.isAfter(start))
   )
     return;
+  const downloads = model.assetType === 3 ? model.downloads : undefined;
+  if (downloads != null && (!Number.isInteger(downloads) || downloads < 1 || downloads > 2147483647)) {
+    message.warning('请输入 1 至 2147483647 之间的整数下载次数');
+    return;
+  }
   saving.value = true;
   modalApi.lock();
   try {
@@ -141,8 +153,8 @@ async function submit() {
       purpose: model.reason.trim(),
       applyStartTime: start?.valueOf(),
       applyEndTime: end?.valueOf(),
-      applyUseType: 0,
-      applyUseTimes: 0,
+      applyUseType: downloads == null ? 0 : 1,
+      applyUseTimes: downloads ?? 0,
       submit: true,
     });
     if (!ticket.isCurrent() || !opened) return;
@@ -208,6 +220,9 @@ onBeforeUnmount(() => {
           :placeholder="['开始日期', '结束日期']"
           separator="至"
         />
+      </FormItem>
+      <FormItem v-if="model.assetType === 3" label="允许下载次数">
+        <InputNumber v-model:value="model.downloads" class="w-full" :min="1" :max="2147483647" :precision="0" placeholder="不限下载次数" />
       </FormItem>
       <FormItem label="申请理由" name="reason">
         <TextArea

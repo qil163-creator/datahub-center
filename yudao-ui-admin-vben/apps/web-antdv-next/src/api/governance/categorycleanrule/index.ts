@@ -59,3 +59,10 @@ export function exportCategoryCleanRule(params: any) {
     { params },
   );
 }
+
+/** 在一个事务中删除选中的类目。 */
+export function deleteCategoryCleanRuleList(ids: (number | string)[]) {
+  return requestClient.delete<boolean>('/governance/category-clean-rule/delete-list', {
+    params: { ids: ids.join(',') },
+  });
+}

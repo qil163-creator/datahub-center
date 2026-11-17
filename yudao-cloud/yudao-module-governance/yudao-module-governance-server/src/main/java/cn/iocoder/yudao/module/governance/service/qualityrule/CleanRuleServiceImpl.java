@@ -16,10 +16,12 @@ import cn.iocoder.yudao.module.governance.dal.dataobject.qualityrule.CleanRuleDO
 import cn.iocoder.yudao.module.governance.dal.mysql.categorycleanrule.CategoryCleanRuleMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.qualityrule.CleanRuleMapper;
 import jakarta.annotation.Resource;
-import tools.jackson.core.type.TypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import tools.jackson.core.type.TypeReference;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -27,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.*;
@@ -54,6 +55,7 @@ public class CleanRuleServiceImpl implements CleanRuleService {
      * 创建清洗规则。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long createCleanRule(CleanRuleSaveReqVO createReqVO) {
         Map<String, Object> config = validateSaveReq(createReqVO, null);
         CleanRuleDO rule = BeanUtils.toBean(createReqVO, CleanRuleDO.class);
@@ -72,6 +74,7 @@ public class CleanRuleServiceImpl implements CleanRuleService {
      * 更新清洗规则。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateCleanRule(CleanRuleSaveReqVO updateReqVO) {
         validateRuleExists(updateReqVO.getId());
         Map<String, Object> config = validateSaveReq(updateReqVO, updateReqVO.getId());
@@ -214,7 +217,7 @@ public class CleanRuleServiceImpl implements CleanRuleService {
      */
     private Map<String, Object> validateSaveReq(CleanRuleSaveReqVO reqVO, Long id) {
         // 校验类目存在
-        CategoryCleanRuleDO category = categoryCleanRuleMapper.selectById(reqVO.getCategoryId());
+        CategoryCleanRuleDO category = categoryCleanRuleMapper.selectByIdForUpdate(reqVO.getCategoryId());
         if (category == null) {
             throw exception(CLEAN_RULE_CATEGORY_NOT_EXISTS);
         }

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.job.quality;
 
 import cn.iocoder.yudao.module.governance.service.quality.QualityWorkOrderService;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,16 @@ public class QualityWorkOrderJob {
      */
     @XxlJob("qualityWorkOrderRecheckJob")
     public void evaluateRechecks() {
-        workOrderService.evaluateRechecks();
+        String param = XxlJobHelper.getJobParam();
+        if (param == null || param.isBlank()) {
+            workOrderService.evaluateRechecks();
+            return;
+        }
+        long workOrderId = Long.parseLong(param.trim());
+        if (workOrderId <= 0) {
+            throw new IllegalArgumentException("工单编号必须为正整数");
+        }
+        workOrderService.evaluateRechecks(workOrderId);
     }
 
     /**

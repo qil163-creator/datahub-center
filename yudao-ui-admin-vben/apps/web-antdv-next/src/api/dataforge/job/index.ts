@@ -96,6 +96,7 @@ export namespace JobApi {
     status?: number;
     ownerId?: Id;
     runStatus?: OpsInstanceApi.Status;
+    executedToday?: boolean;
   }
   export interface CheckResult {
     valid: boolean;

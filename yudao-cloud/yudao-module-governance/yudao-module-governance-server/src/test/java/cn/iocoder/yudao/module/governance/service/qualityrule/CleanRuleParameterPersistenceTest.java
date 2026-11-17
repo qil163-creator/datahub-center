@@ -33,7 +33,7 @@ class CleanRuleParameterPersistenceTest {
         ReflectionTestUtils.setField(service, "cleanRuleMapper", rules);
         ReflectionTestUtils.setField(service, "categoryCleanRuleMapper", categories);
         ReflectionTestUtils.setField(service, "cleanFunctionRegistry", new CleanFunctionRegistry());
-        when(categories.selectById(2L)).thenReturn(CategoryCleanRuleDO.builder().id(2L).build());
+        when(categories.selectByIdForUpdate(2L)).thenReturn(CategoryCleanRuleDO.builder().id(2L).build());
         when(rules.selectByName("Precise boundary")).thenReturn(null);
     }
 

@@ -253,7 +253,7 @@ describe('原生实例权限与停止确认', () => {
       .click();
     const confirmation = vi.mocked(Modal.confirm).mock.calls[0]![0];
     vi.mocked(devApi.getDevRecordPage).mockResolvedValue({
-      list: [{ ...nativeRecord, status: 'UNKNOWN' }],
+      list: [{ ...nativeRecord, status: 'UNKNOWN', cancelRequested: true }],
       total: 1,
     });
     await confirmation.onOk?.();
@@ -261,6 +261,12 @@ describe('原生实例权限与停止确认', () => {
     expect(devApi.stopDevRecord).toHaveBeenCalledWith('9007199254740993');
     expect(message.success).toHaveBeenCalledWith('已请求停止，等待核对结果');
     expect(host.textContent).toContain('结果待核查');
+    expect(host.textContent).toContain('已请求停止');
+    expect(
+      [...host.querySelectorAll('button')].some(
+        (button) => button.textContent?.trim() === '停止',
+      ),
+    ).toBe(false);
     expect(host.textContent).not.toContain('已停止');
   });
 });

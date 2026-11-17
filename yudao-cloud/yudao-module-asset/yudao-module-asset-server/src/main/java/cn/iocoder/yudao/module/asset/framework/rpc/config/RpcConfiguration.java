@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
  * 应用/API/来源授权/消费额度（数据服务）、用户与部门（系统）。
  */
 @Configuration(value = "assetRpcConfiguration", proxyBeanMethods = false)
-@EnableFeignClients(clients = {MetadataApi.class, StandardElementApi.class, StandardAssociationApi.class, StandardTermApi.class,
+@EnableFeignClients(clients = {cn.iocoder.yudao.module.infra.api.file.ManagedFileApi.class, MetadataApi.class, StandardElementApi.class, StandardAssociationApi.class, StandardTermApi.class,
         DatabaseApi.class, cn.iocoder.yudao.module.dataforge.api.etl.EtlTargetBatchApi.class, RegistrationContextApi.class,
         SupplyAppApi.class, SupplyDataApiApi.class,
         SupplyGrantSourceApi.class, SupplyQuotaApi.class,

@@ -91,7 +91,10 @@ onActivated(() => {
 
 const targets = {
   conceptModel: { names: ['ModelingConceptModel'], titles: ['概念模型'] },
-  indicatorModel: { names: ['ModelingIndicatorModel'], titles: ['指标模型'] },
+  indicatorModel: {
+    names: ['ModelingIndicatorModel', 'ModelingAtomicIndicator', 'ModelingDerivedIndicator'],
+    titles: ['原子指标', '派生指标', '指标模型'],
+  },
   dataDomain: { names: ['ModelingDataDomain'], titles: ['数据域'] },
   subjectDomain: { names: ['ModelingSubjectDomain'], titles: ['主题域'] },
   layer: { names: ['DwLayer'], titles: ['数仓分层'] },

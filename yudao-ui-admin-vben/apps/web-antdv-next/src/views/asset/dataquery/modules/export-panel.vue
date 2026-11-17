@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataExportApi } from '#/api/asset/dataexport';
 
-import { computed, onBeforeUnmount, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { IconifyIcon } from '@vben/icons';
@@ -28,7 +28,7 @@ import {
 import { createLatestWins } from '#/utils/resource-id';
 import { formatTime } from '#/views/governance/accessalert/data';
 
-import { canDownload, exportFormError, exportStatusView } from './export-data';
+import { exportFormError, exportStatusView } from './export-data';
 
 /** 数据查询结果导出：提交审批 → 批准后 24 小时内下载一次（文件经导出场景脱敏并带水印）。 */
 defineOptions({ name: 'DataQueryExportPanel' });
@@ -84,6 +84,25 @@ async function submit() {
 const listOpen = ref(false);
 const loading = ref(false);
 const rows = ref<DataExportApi.Request[]>([]);
+const now = ref(Date.now());
+const displayRows = computed(() =>
+  rows.value.map((record) => ({
+    ...record,
+    view: exportStatusView(record, now.value),
+  })),
+);
+watchEffect((onCleanup) => {
+  if (!listOpen.value) return;
+  const deadline = Math.min(
+    ...displayRows.value.map(({ view }) => view.downloadUntil ?? Infinity),
+  );
+  if (Number.isFinite(deadline)) {
+    const timer = window.setTimeout(() => {
+      now.value = Date.now();
+    }, Math.max(0, deadline - Date.now()));
+    onCleanup(() => window.clearTimeout(timer));
+  }
+});
 const total = ref(0);
 const page = reactive({ pageNo: 1, pageSize: 10 });
 const guard = createLatestWins();
@@ -106,6 +125,7 @@ async function load() {
       pageSize: page.pageSize,
     });
     if (!ticket.isCurrent()) return;
+    now.value = Date.now();
     rows.value = result?.list ?? [];
     total.value = result?.total ?? 0;
   } finally {
@@ -114,12 +134,15 @@ async function load() {
 }
 
 function openList() {
+  now.value = Date.now();
   listOpen.value = true;
   page.pageNo = 1;
   void load();
 }
 
 async function download(record: DataExportApi.Request) {
+  now.value = Date.now();
+  if (exportStatusView(record, now.value).downloadUntil === undefined) return;
   const key = String(record.id);
   if (busy.has(key)) return;
   busy.add(key);
@@ -213,7 +236,7 @@ onBeforeUnmount(() => guard.invalidate());
   >
     <Table
       :columns="columns"
-      :data-source="rows"
+      :data-source="displayRows"
       :loading="loading"
       :pagination="{
         current: page.pageNo,
@@ -226,8 +249,8 @@ onBeforeUnmount(() => guard.invalidate());
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'status'">
-          <Tag :color="exportStatusView(record.status).color">
-            {{ exportStatusView(record.status).label }}
+          <Tag :color="record.view.color">
+            {{ record.view.label }}
           </Tag>
         </template>
         <template v-else-if="column.key === 'expireTime'">
@@ -237,7 +260,7 @@ onBeforeUnmount(() => guard.invalidate());
 </template>
         <template v-else-if="column.key === 'actions'">
           <Button
-            v-if="canDownload(record)"
+            v-if="record.view.downloadUntil !== undefined"
             :loading="busy.has(String(record.id))"
             size="small"
             type="link"

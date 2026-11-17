@@ -4,5 +4,5 @@ export type {
   ViewedRowStorageAdapter,
 } from './types';
 
-export { applyViewedRowOptions, useViewedRow } from './use-viewed-row';
+export { applyViewedRowOptions, resolveViewedRowColumns, useViewedRow } from './use-viewed-row';
 export type { ViewedRowHelper } from './use-viewed-row';

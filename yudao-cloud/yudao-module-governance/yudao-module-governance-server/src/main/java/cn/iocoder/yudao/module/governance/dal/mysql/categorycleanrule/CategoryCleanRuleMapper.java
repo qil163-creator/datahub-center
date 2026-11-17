@@ -16,6 +16,11 @@ import java.util.List;
 @Mapper
 public interface CategoryCleanRuleMapper extends BaseMapperX<CategoryCleanRuleDO> {
 
+    default CategoryCleanRuleDO selectByIdForUpdate(Long id) {
+        return selectOne(new LambdaQueryWrapperX<CategoryCleanRuleDO>()
+                .eq(CategoryCleanRuleDO::getId, id).last("FOR UPDATE"));
+    }
+
     /**
      * 查询清洗规则分类列表。
      */

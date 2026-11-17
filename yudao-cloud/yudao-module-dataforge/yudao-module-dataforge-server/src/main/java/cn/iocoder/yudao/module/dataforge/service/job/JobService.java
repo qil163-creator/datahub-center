@@ -54,7 +54,15 @@ public class JobService {
                 .inIfPresent(JobTaskDO::getCategoryId,categoryScope(req.getCategoryId()))
                 .eqIfPresent(JobTaskDO::getOwnerId,req.getOwnerId()).eqIfPresent(JobTaskDO::getStatus,req.getStatus())
                 .orderByDesc(JobTaskDO::getId);
-        if(req.getRunStatus()!=null) query.apply("EXISTS(SELECT 1 FROM dh_dataforge_job_record r WHERE r.job_id=dh_dataforge_job.id AND r.deleted=0 AND r.status={0} AND r.id=(SELECT max(r2.id) FROM dh_dataforge_job_record r2 WHERE r2.job_id=r.job_id AND r2.deleted=0))",req.getRunStatus());
+        if (Boolean.TRUE.equals(req.getExecutedToday())) {
+            LocalDateTime dayStart = LocalDate.now(ZoneId.of("Asia/Shanghai")).atStartOfDay();
+            String todayRecords = "EXISTS (SELECT 1 FROM dh_dataforge_job_record r "
+                    + "WHERE r.job_id=dh_dataforge_job.id AND r.deleted=0 AND r.start_time >= {0} AND r.start_time < {1}";
+            if (req.getRunStatus() == null) query.apply(todayRecords + ")", dayStart, dayStart.plusDays(1));
+            else query.apply(todayRecords + " AND r.status={2})", dayStart, dayStart.plusDays(1), req.getRunStatus());
+        } else if (req.getRunStatus() != null) {
+            query.apply("EXISTS(SELECT 1 FROM dh_dataforge_job_record r WHERE r.job_id=dh_dataforge_job.id AND r.deleted=0 AND r.status={0} AND r.id=(SELECT max(r2.id) FROM dh_dataforge_job_record r2 WHERE r2.job_id=r.job_id AND r2.deleted=0))",req.getRunStatus());
+        }
         var page=jobs.selectPage(req,query);
         var selected=page.getList().stream().map(JobTaskDO::getId).filter(id->!reconciled.contains(id)).limit(10).toList();
         selected.forEach(this::reconcileForRead);

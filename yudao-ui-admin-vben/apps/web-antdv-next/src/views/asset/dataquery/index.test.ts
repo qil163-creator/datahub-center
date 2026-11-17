@@ -166,6 +166,7 @@ interface State {
   leftMode: 'datasource' | 'file';
   currentFile?: { id: number; name: string; sqlText?: string };
   handleExecute: () => Promise<void>;
+  onResultPageChange: (page: { currentPage: number; pageSize: number }) => void;
   onDatasourceChange: (id: number) => Promise<void>;
   handleOpenFile: (node: { id: number }) => Promise<void>;
   handleSaveFile: () => Promise<void>;
@@ -223,6 +224,28 @@ afterEach(() => {
 });
 
 describe('sql query response ownership', () => {
+  it('paginates the returned rows and resets to the first page on size change or new results', async () => {
+    mount();
+    const rows = Array.from({ length: 23 }, (_, i) => ({ n: i + 1 }));
+    mock.execute.mockResolvedValue({ columns: [{ name: 'n' }], rows });
+    await state.handleExecute();
+    const page = () => mock.gridOptions.mock.lastCall?.[0];
+    expect(page().data).toHaveLength(20);
+    expect(page().pagerConfig).toMatchObject({ currentPage: 1, total: 23 });
+    state.onResultPageChange({ currentPage: 2, pageSize: 20 });
+    expect(page().data.map((row: { __c0: number }) => row.__c0)).toEqual([21, 22, 23]);
+    expect(page().seqConfig.startIndex).toBe(20);
+    state.onResultPageChange({ currentPage: 2, pageSize: 10 });
+    expect(page().pagerConfig.currentPage).toBe(1);
+    expect(page().data).toHaveLength(10);
+    expect(mock.execute).toHaveBeenCalledTimes(1);
+    state.onResultPageChange({ currentPage: 3, pageSize: 10 });
+    mock.execute.mockResolvedValue({ columns: [{ name: 'n' }], rows: [] });
+    await state.handleExecute();
+    expect(page().pagerConfig).toEqual({ currentPage: 1, pageSize: 10, total: 0 });
+    expect(page().data).toEqual([]);
+  });
+
   it('saves edits to the open file when the editor emits the save shortcut', async () => {
     mount();
     state.currentFile = { id: 7, name: 'Saved query' };

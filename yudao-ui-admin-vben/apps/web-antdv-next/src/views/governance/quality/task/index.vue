@@ -22,6 +22,7 @@ import DetailBackButton from '#/components/detail-back-button/index.vue';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
+import { DASHBOARD_TARGETS, resolveRoutePath } from '#/views/dashboard/shared/route-resolver';
 
 import { useTreeExpansion } from '../../common/use-tree-expansion';
 import { useMetadataGrid } from '../../metadata-common/use-metadata-grid';
@@ -32,6 +33,13 @@ import './qdata-quality.css';
 defineOptions({ name: 'GovernanceQualityTask' });
 const route = useRoute();
 const router = useRouter();
+function reportPath() {
+  return resolveRoutePath(router, DASHBOARD_TARGETS.qualityReport);
+}
+function openReport(id?: QualityTaskApi.Id) {
+  const path = reportPath();
+  if (path && id !== undefined && id !== null) void router.push({ path, query: { taskId: String(id) } });
+}
 const { hasAccessByCodes } = useAccess();
 const view = computed(() =>
   ['create', 'detail', 'edit'].includes(String(route.query.view))
@@ -381,11 +389,8 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                       label: '质量报告',
                       icon: 'lucide:chart-no-axes-combined',
                       auth: ['governance:quality-task:query'],
-                      onClick: () =>
-                        router.push({
-                          path: '/governance/quality/report',
-                          query: { taskId: String(row.id) },
-                        }),
+                      ifShow: !!reportPath(),
+                      onClick: () => openReport(row.id),
                     },
                     {
                       label: '删除',

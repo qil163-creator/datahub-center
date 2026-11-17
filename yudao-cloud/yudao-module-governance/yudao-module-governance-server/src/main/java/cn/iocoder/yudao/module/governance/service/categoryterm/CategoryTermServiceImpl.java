@@ -2,9 +2,11 @@ package cn.iocoder.yudao.module.governance.service.categoryterm;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.CategoryTermListReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.categoryterm.vo.CategoryTermSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.categoryterm.CategoryTermDO;
+import cn.iocoder.yudao.module.governance.dal.dataobject.standardterm.StandardTermDO;
 import cn.iocoder.yudao.module.governance.dal.mysql.categoryterm.CategoryTermMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.standardterm.StandardTermMapper;
 import jakarta.annotation.Resource;
@@ -14,8 +16,10 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.TreeSet;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.invalidParamException;
 import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.*;
 
 @Service
@@ -79,6 +83,32 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCategoryTermList(List<Long> ids) {
+        if (ids == null || ids.isEmpty() || ids.size() > 200 || ids.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw invalidParamException("请选择1至200个有效类目");
+        }
+        var selected = new TreeSet<>(ids);
+        var categories = categoryTermMapper.selectList(new LambdaQueryWrapperX<CategoryTermDO>()
+                .in(CategoryTermDO::getId, selected).orderByAsc(CategoryTermDO::getId).last("FOR UPDATE"));
+        if (categories.size() != selected.size()) {
+            throw exception(CATEGORY_TERM_NOT_EXISTS);
+        }
+        if (categories.stream().anyMatch(category -> category.getStatus() == null || category.getStatus() != 1)) {
+            throw invalidParamException("请先禁用所选类目后再删除");
+        }
+        if (categoryTermMapper.selectCount(new LambdaQueryWrapperX<CategoryTermDO>()
+                .in(CategoryTermDO::getParentId, selected).notIn(CategoryTermDO::getId, selected)) > 0) {
+            throw exception(CATEGORY_TERM_EXITS_CHILDREN);
+        }
+        if (standardTermMapper.selectCount(new LambdaQueryWrapperX<StandardTermDO>()
+                .in(StandardTermDO::getTermCategoryId, selected)) > 0) {
+            throw exception(CATEGORY_TERM_REFERENCED);
+        }
+        categoryTermMapper.deleteByIds(selected);
+    }
+
+    @Override
     public CategoryTermDO getCategoryTerm(Long id) {
         CategoryTermDO result = categoryTermMapper.selectById(id);
         if (result == null) throw exception(CATEGORY_TERM_NOT_EXISTS);
@@ -93,7 +123,7 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     private void validateParent(Long id, Long parentId) {
         if (parentId == null || CategoryTermDO.PARENT_ID_ROOT.equals(parentId)) return;
         if (Objects.equals(id, parentId)) throw exception(CATEGORY_TERM_PARENT_ERROR);
-        CategoryTermDO parent = categoryTermMapper.selectById(parentId);
+        CategoryTermDO parent = categoryTermMapper.selectByIdForUpdate(parentId);
         if (parent == null) throw exception(CATEGORY_TERM_PARENT_NOT_EXITS);
         for (int i = 0; id != null && i < Short.MAX_VALUE; i++) {
             Long ancestorId = parent.getParentId();

@@ -64,6 +64,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.BeforeAll;
+
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -95,6 +100,11 @@ class MarketMyAssetHttpContractTest {
     private MarketMyAssetRow table;
     private MarketMyAssetRow api;
     private SupplyPublishedApiDocumentRespDTO document;
+
+    @BeforeAll
+    static void initializeMetadata() {
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), MarketResourceApplyDO.class);
+    }
 
     @BeforeEach
     void configureRealHttpAndDomainBoundary() {
@@ -182,7 +192,7 @@ class MarketMyAssetHttpContractTest {
         assertThat(request(get(PREFIX + "/preview").param("id", String.valueOf(TABLE_GRANT)).header("X-Consumption-Key", "http-request-0001")).get("code").intValue()).isZero();
         assertThat(request(get(PREFIX + "/api-document").param("id", "8")).get("code").intValue()).isZero();
         var gate = context.getBean(PermissionCommonApi.class);
-        verify(gate).hasAnyPermissions(9L, PERMISSION);
+        verify(gate, times(4)).hasAnyPermissions(9L, PERMISSION);
         verifyNoMoreInteractions(gate);
     }
 

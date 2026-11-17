@@ -210,6 +210,7 @@ export namespace DataforgeDevApi {
 
   /** 任务执行实例 */
   export interface Record {
+    cancelRequested?: boolean;
     taskType?: TaskType;
     nativeProgram?: boolean;
     dependencies?: Dependency[];

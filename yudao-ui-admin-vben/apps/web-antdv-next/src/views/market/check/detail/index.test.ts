@@ -20,6 +20,7 @@ const mock = vi.hoisted(() => ({
   },
   route: { params: { id: '9007199254740993' }, query: { origin: 'QDATA' }, meta: { activePath: '' } },
   get: vi.fn(),
+  revoke: vi.fn(),
   push: vi.fn(),
   drawer: { setState: vi.fn(), setData: vi.fn(), open: vi.fn() },
 }));
@@ -34,6 +35,7 @@ vi.mock('@vben/stores', () => ({
 vi.mock('@vben/hooks', () => ({
   useTabs: () => ({ closeCurrentTab: vi.fn() }),
 }));
+vi.mock('#/api/asset/market', () => ({ revokeMarketApply: mock.revoke }));
 vi.mock('#/api/asset/market/check', () => ({ getMarketCheckDetail: mock.get }));
 vi.mock('#/views/market/modules/apply-detail.vue', () => ({
   default: { render: () => null },
@@ -55,7 +57,7 @@ vi.mock('antdv-next', () => {
       () =>
         h('section', [props.message, slots.default?.(), slots.action?.()]),
   });
-  return { Alert: box, Button: box, Spin: box };
+  return { Alert: box, Button: box, Popconfirm: box, Spin: box, message: { success: vi.fn() } };
 });
 vi.mock('./modules/resource-summary.vue', () => ({
   default: defineComponent({
@@ -95,6 +97,7 @@ interface State {
   loading: boolean;
   selectTab: (key: string) => void;
   back: () => void;
+  revokeFile: () => Promise<void>;
 }
 let app: App | undefined;
 let host: HTMLDivElement;
@@ -155,6 +158,23 @@ afterEach(() => {
 });
 
 describe('审批工单专用详情', () => {
+  it('只有工单对象与账号同时允许时，才可收回绑定版本的文件授权', async () => {
+    mock.route.query.origin = 'NATIVE';
+    mock.get.mockResolvedValue(result(id, { ticket: {
+      canView: true, origin: 'NATIVE', id, canRevokeFile: true,
+      nativeApply: { id, sourceRevision: '17' },
+      fileDelivery: { catalogVersionId: '23', fileName: '申请文件.txt', size: 6, sha256: '摘要' },
+    } }));
+    mount();
+    await flush();
+    await state.revokeFile();
+    expect(mock.revoke).not.toHaveBeenCalled();
+    mock.access.accessCodes.push('asset:market:auth');
+    await flush();
+    expect(host.textContent).toContain('申请文件.txt');
+    await state.revokeFile();
+    expect(mock.revoke).toHaveBeenCalledWith(id, undefined, '17');
+  });
   it('返回当前可见审批菜单，不再跳转旧辅助前缀', async () => {
     mount();
     await flush();

@@ -52,6 +52,7 @@ import {
   getDataAssetNavigationCategories,
   getDataAssetPage,
   refreshDataAsset,
+  SHARE_ATTR_OPTIONS,
   stopDataAssetSupply,
   unpublishDataAsset,
   updateDataAsset,
@@ -663,20 +664,16 @@ async function openEdit(asset: DataAssetApi.DataAsset) {
     if (String(value.asset?.id) !== id) throw new Error('ASSET_IDENTITY');
     Object.assign(editForm, value.asset, {
       expectedRevision: value.asset?.catalogRevision,
-      categoryId:
-        value.asset?.categoryId === undefined
-          ? undefined
-          : String(value.asset.categoryId),
-      subjectDomainId:
-        value.asset?.subjectDomainId === undefined
-          ? undefined
-          : String(value.asset.subjectDomainId),
+      shareAttribute: value.asset?.shareAttr ?? value.asset?.shareAttribute ?? 0,
+      categoryId: parseResourceId(value.asset?.categoryId),
+      subjectDomainId: parseResourceId(value.asset?.subjectDomainId),
     });
-    editForm.registrationConfig = { ...value.asset?.registrationConfig };
-    if (editForm.registrationConfig.dataDomainId)
-      editForm.registrationConfig.dataDomainId = resourceIdKey(
-        editForm.registrationConfig.dataDomainId,
-      );
+    const config = value.asset?.registrationConfig;
+    editForm.registrationConfig = {
+      ...config,
+      dataDomainId: parseResourceId(config?.dataDomainId),
+      tableType: config?.tableType ?? undefined,
+    };
     const context = await getAssetRegistrationContext({
       dataDomainId: editForm.registrationConfig?.dataDomainId,
       tableType: editForm.registrationConfig?.tableType,
@@ -929,6 +926,14 @@ interface MoreAction {
 
 function moreActions(asset: DataAssetApi.DataAsset): MoreAction[] {
   const actions: MoreAction[] = [];
+  if (asset.assetType === 3 && asset.status === 1 && hasAccessByCodes(['asset:data-asset:publish'])) {
+    actions.push({
+      key: 'manage-file-delivery',
+      label: '维护文件交付',
+      icon: 'lucide:file-up',
+      onClick: () => marketPublishApi.setData({ asset }).open(),
+    });
+  }
   if (hasAccessByCodes(['asset:data-asset:stop-supply']) && asset.status !== 2)
     actions.push({
       key: 'stop-supply',
@@ -1401,8 +1406,10 @@ function syncFilterValues() {
       @ok="saveEdit"
       @cancel="editGuard.invalidate()"
     >
-<Spin :spinning="editLoading">
+      <Alert v-if="editError" :message="editError" type="error" show-icon />
+      <Spin :spinning="editLoading">
         <Form
+          :disabled="editLoading || editSaving || !!editError"
           :label-col="{ style: { width: '110px' } }"
           :wrapper-col="{ style: { flex: '1', minWidth: '0' } }"
           :colon="false"
@@ -1470,6 +1477,23 @@ function syncFilterValues() {
               :options="subjectOptions"
               allow-clear
               placeholder="请选择主题域"
+            />
+          </FormItem>
+          <FormItem label="共享属性">
+            <Select
+              v-model:value="editForm.shareAttribute"
+              :options="SHARE_ATTR_OPTIONS"
+              :disabled="editLoading || editSaving"
+              placeholder="请选择共享属性"
+            />
+          </FormItem>
+          <FormItem label="共享条件" class="asset-edit-form__description">
+            <Input.TextArea
+              v-model:value="editForm.shareCondition"
+              :disabled="editLoading || editSaving"
+              :maxlength="500"
+              :rows="2"
+              placeholder="请输入共享条件"
             />
           </FormItem>
           <FormItem label="描述" class="asset-edit-form__description">

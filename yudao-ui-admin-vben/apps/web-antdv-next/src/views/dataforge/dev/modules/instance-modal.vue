@@ -34,9 +34,11 @@ import {
 } from '#/api/dataforge/dev';
 
 import {
+  activeRecordStatuses,
   DEV_RECORD_STATUS_OPTIONS,
   DEV_TRIGGER_TYPE_OPTIONS,
   formatDuration,
+  hasPendingStop,
   optionColor,
   optionLabel,
 } from '../data';
@@ -69,19 +71,12 @@ const total = ref(0);
 let listSeq = 0;
 let modalGeneration = 0;
 let listTimer: ReturnType<typeof setTimeout> | undefined;
-const activeStatuses = new Set([
-  'CANCEL_REQUESTED',
-  'RUNNING',
-  'SUBMITTING',
-  'UNKNOWN',
-  'WAITING',
-]);
 function scheduleListRefresh() {
   if (listTimer) clearTimeout(listTimer);
   listTimer = undefined;
   if (
     !visible.value ||
-    !records.value.some((item) => activeStatuses.has(item.status ?? ''))
+    !records.value.some((item) => activeRecordStatuses.has(item.status ?? ''))
   )
     return;
   listTimer = setTimeout(() => {
@@ -227,7 +222,7 @@ async function refreshLog() {
       String(item.id) === String(detail.id) ? detail : item,
     );
     appendTaskLogPage(logState.value, page);
-    if (!activeStatuses.has(detail.status ?? '') && !page.mayHaveMore)
+    if (!activeRecordStatuses.has(detail.status ?? '') && !page.mayHaveMore)
       autoRefresh.value = false;
   } finally {
     if (seq === logSeq) {
@@ -252,7 +247,7 @@ async function openLog(id: DataforgeDevApi.Id) {
     const detail = await getDevRecord(id);
     if (seq !== logSeq || !logVisible.value) return;
     record.value = detail;
-    autoRefresh.value = activeStatuses.has(detail.status ?? '');
+    autoRefresh.value = activeRecordStatuses.has(detail.status ?? '');
   } finally {
     if (seq === logSeq) logLoading.value = false;
   }
@@ -279,7 +274,7 @@ async function download(id: DataforgeDevApi.Id) {
 }
 function stop(id: DataforgeDevApi.Id) {
   const row = records.value.find((item) => String(item.id) === String(id));
-  if (!canRun.value || !canInspect(row)) return;
+  if (!canRun.value || !canInspect(row) || hasPendingStop(row)) return;
   const generation = modalGeneration;
   Modal.confirm({
     title: '停止实例',
@@ -296,9 +291,7 @@ function stop(id: DataforgeDevApi.Id) {
         return;
       await stopDevRecord(id);
       if (generation === modalGeneration && visible.value) {
-        message.success(
-          row?.nativeProgram ? '已请求停止，等待核对结果' : '停止指令已下发',
-        );
+        message.success('已请求停止，等待核对结果');
         await load();
       }
     },
@@ -410,11 +403,19 @@ defineExpose({ open, close });
             <Tag :color="optionColor(DEV_RECORD_STATUS_OPTIONS, row.status)">
               {{ optionLabel(DEV_RECORD_STATUS_OPTIONS, row.status) }}
             </Tag>
+            <Tag
+              v-if="hasPendingStop(row) && row.status !== 'CANCEL_REQUESTED'"
+              color="warning"
+            >
+              已请求停止
+            </Tag>
           </template>
           <template v-else-if="column.key === 'currentNode'">
             <span class="current-node">
               {{
-                row.waitReason || (row.status === 'RUNNING' ? '执行作业' : '-')
+                hasPendingStop(row)
+                  ? '等待调度器确认停止请求'
+                  : row.waitReason || (row.status === 'RUNNING' ? '执行作业' : '-')
               }}
             </span>
           </template>
@@ -451,9 +452,8 @@ defineExpose({ open, close });
                 v-if="
                   canRun &&
                   canInspect(row) &&
-                  ['RUNNING', 'SUBMITTING', 'WAITING', 'UNKNOWN'].includes(
-                    row.status ?? '',
-                  )
+                  activeRecordStatuses.has(row.status ?? '') &&
+                  !hasPendingStop(row)
                 "
                 type="link"
                 danger
@@ -502,6 +502,12 @@ defineExpose({ open, close });
       <Tag :color="optionColor(DEV_RECORD_STATUS_OPTIONS, record?.status)">
         {{ optionLabel(DEV_RECORD_STATUS_OPTIONS, record?.status) }}
       </Tag>
+      <Tag
+        v-if="hasPendingStop(record) && record?.status !== 'CANCEL_REQUESTED'"
+        color="warning"
+      >
+        已请求停止
+      </Tag>
     </div>
     <Descriptions bordered size="small" :column="3" class="log-descriptions">
       <DescriptionsItem label="开始时间">
@@ -521,8 +527,9 @@ defineExpose({ open, close });
       </DescriptionsItem>
       <DescriptionsItem label="当前节点">
         {{
-          record?.waitReason ||
-          (record?.status === 'RUNNING' ? '执行作业' : '-')
+          hasPendingStop(record)
+            ? '等待调度器确认停止请求'
+            : record?.waitReason || (record?.status === 'RUNNING' ? '执行作业' : '-')
         }}
       </DescriptionsItem>
     </Descriptions>

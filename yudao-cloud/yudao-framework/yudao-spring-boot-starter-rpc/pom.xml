@@ -29,6 +29,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-http-converter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>cn.iocoder.cloud</groupId>
             <artifactId>yudao-common</artifactId>
         </dependency>

@@ -55,6 +55,30 @@ class FillPlanCategoryPlanIntegrationTest extends BaseMockitoUnitTest {
     }
 
     @Test
+    void adjustingAnEnabledPlanDoesNotWriteCreationDefaultsOverUnchangedSettings() {
+        var old = FillPlanDO.builder().id(1L).status(1).tableVersionId(2L).periodType(4)
+                .timeZone("America/New_York").publishApprovalEnabled(1).overduePolicy(2)
+                .prefillLastPeriod(1).periodConfig("{\"monthGenerateDay\":5}").build();
+        when(plans.selectById(1L)).thenReturn(old);
+        var request = new FillPlanSaveReqVO();
+        request.setId(1L);
+        request.setTableVersionId(2L);
+        request.setPeriodType(4);
+        request.setCategoryId(10L);
+
+        service.updatePlan(request);
+
+        var update = org.mockito.ArgumentCaptor.forClass(FillPlanDO.class);
+        verify(plans).updateById(update.capture());
+        var changed = update.getValue();
+        assertNull(changed.getTimeZone());
+        assertNull(changed.getPublishApprovalEnabled());
+        assertNull(changed.getOverduePolicy());
+        assertNull(changed.getPrefillLastPeriod());
+        assertNull(changed.getPeriodConfig());
+    }
+
+    @Test
     void categoryFilterUsesServerDescendantsAndEnrichesCategoryName() {
         FillPlanPageReqVO request = new FillPlanPageReqVO();
         request.setCategoryId(10L);

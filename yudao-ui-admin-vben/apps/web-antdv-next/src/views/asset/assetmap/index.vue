@@ -878,7 +878,8 @@ const tableTypeOptions = [
                 @click="removeDraft(record.meta.id)"
               >
                 删除
-</Button><span v-else>-</span>
+</Button>
+              <span v-else-if="column.key === 'entity' || column.key === 'granularity'">-</span>
               <small v-if="column.key === 'assetName' && record.contextLoading">正在读取配置…</small>
 </template>
             <template #emptyText>

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { DataAssetApi, PublicationReadiness } from '#/api/asset/dataasset';
 
-import { onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { h, onBeforeUnmount, reactive, ref, watch } from 'vue';
 
+import { prompt } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
@@ -200,6 +201,32 @@ async function handleTicketAction(
   await load();
 }
 
+function supplementTicket(row: DataAssetApi.ReviewTicket) {
+  if (!row.id) return;
+  const id = row.id;
+  const current = epoch;
+  return prompt({
+    title: '补充整改反馈',
+    content: '请填写本次补充的整改说明',
+    modelPropName: 'value',
+    component: () => h(Input, { placeholder: '请输入补充说明', maxlength: 200 }),
+    async beforeClose({ isConfirm, value }) {
+      if (!isConfirm || current !== epoch) return;
+      const conclusion = String(value ?? '').trim();
+      if (!conclusion) {
+        message.warning('请输入补充说明');
+        return false;
+      }
+      try {
+        await feedbackReviewTicket(id, conclusion);
+      } catch {
+        return false;
+      }
+      if (current === epoch) await load();
+    },
+  });
+}
+
 function versionStatus(status?: number) {
   return (
     CATALOG_VERSION_STATUS_OPTIONS.find((item) => item.value === status)
@@ -222,7 +249,7 @@ function ticketIssue(type?: number) {
 }
 
 watch(
-  () => [props.asset.id, access.accessToken, access.refreshToken],
+  [() => props.asset.id, () => access.accessToken, () => access.refreshToken],
   () => {
     epoch++;
     candidateEpoch++;
@@ -486,6 +513,7 @@ onBeforeUnmount(() => {
           <template v-else-if="column.key === 'action'">
             <Button
               v-if="record.status === 0"
+              v-access:code="'asset:data-asset:update'"
               size="small"
               type="link"
               @click="handleTicketAction(record, 'claim')"
@@ -497,6 +525,7 @@ onBeforeUnmount(() => {
             </Button>
             <Button
               v-if="record.status === 1 || record.status === 2"
+              v-access:code="'asset:data-asset:update'"
               size="small"
               type="link"
               @click="handleTicketAction(record, 'feedback')"
@@ -507,7 +536,18 @@ onBeforeUnmount(() => {
               反馈
             </Button>
             <Button
+              v-if="record.status === 6"
+              v-access:code="'asset:data-asset:update'"
+              size="small"
+              type="link"
+              @click="supplementTicket(record)"
+            >
+              <template #icon><IconifyIcon icon="lucide:message-square" /></template>
+              补充反馈
+            </Button>
+            <Button
               v-if="record.status === 3 || record.status === 4"
+              v-access:code="'asset:data-asset:update'"
               size="small"
               type="link"
               @click="handleTicketAction(record, 'pass')"
@@ -519,6 +559,7 @@ onBeforeUnmount(() => {
             </Button>
             <Button
               v-if="record.status === 3 || record.status === 4"
+              v-access:code="'asset:data-asset:update'"
               size="small"
               type="link"
               @click="handleTicketAction(record, 'return')"

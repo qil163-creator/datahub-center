@@ -30,9 +30,10 @@ export function assetTitle(row: MyAssetsApi.Asset) {
 
 export function canOpenDelivery(
   row: MyAssetsApi.Asset,
-  type: 'document' | 'preview',
+  type: 'document' | 'file' | 'preview',
 ) {
   if (row.accessStatus !== 'AVAILABLE' || row.usable !== true) return false;
+  if (type === 'file') return row.deliveryType === 3 && row.canDownload === true;
   return type === 'preview'
     ? row.deliveryType === 1 && row.canPreview === true
     : row.deliveryType === 2 && row.canViewApiDocument === true;

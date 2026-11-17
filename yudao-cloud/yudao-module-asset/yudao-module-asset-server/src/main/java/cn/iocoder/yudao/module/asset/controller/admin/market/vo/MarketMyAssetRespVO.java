@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 @Data
 public class MarketMyAssetRespVO {
 
+    private MarketFileBindingRespVO fileDelivery;
+
     private Long applyId;
 
     private String applyNo;

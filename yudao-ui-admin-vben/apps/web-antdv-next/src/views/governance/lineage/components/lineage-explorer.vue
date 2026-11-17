@@ -42,6 +42,7 @@ const error = ref('');
 
 let graphController: AbortController | undefined;
 let columnsController: AbortController | undefined;
+let tableQuery: { depth: number; direction: GovernanceLineageApi.Direction } | undefined;
 
 const depthOptions = [1, 2, 3, 4, 5].map((value) => ({ label: `${value} 层`, value }));
 const directionOptions = [
@@ -96,18 +97,21 @@ function isAbort(reason: unknown) {
     : (reason as { code?: string })?.code === 'ERR_CANCELED';
 }
 
-async function loadTable(nodeId: GovernanceLineageApi.Id) {
+async function loadTable(nodeId: GovernanceLineageApi.Id, focusId?: GovernanceLineageApi.Id) {
   const controller = startGraphRequest();
+  const query = { direction: direction.value, depth: depth.value };
   loading.value = true;
   error.value = '';
   try {
     const graph = await getLineageGraph(
-      { nodeId, direction: direction.value, depth: depth.value },
+      { nodeId, ...query },
       controller.signal,
     );
     if (controller !== graphController) return;
     tableGraph.value = graph;
-    selectedKey.value = String(graph.rootNodeId);
+    tableQuery = query;
+    const focusNode = graph.nodes.find((node) => String(node.id) === String(focusId));
+    selectedKey.value = String(focusNode?.id ?? graph.rootNodeId);
     selectedEdgeKey.value = undefined;
   } catch (reason) {
     if (controller === graphController && !isAbort(reason)) {
@@ -197,10 +201,24 @@ function showColumn(name: string) {
 }
 
 function backToTable() {
+  const focusId = columnNodeId.value;
+  graphController?.abort();
+  graphController = undefined;
+  loading.value = false;
+  error.value = '';
   mode.value = 'table';
   column.value = undefined;
   columnNodeId.value = undefined;
-  if (!tableGraph.value) reload();
+  selectedEdgeKey.value = undefined;
+  selectedKey.value = focusId === undefined ? undefined : String(focusId);
+  if (
+    props.nodeId !== undefined &&
+    props.nodeId !== null &&
+    props.nodeId !== '' &&
+    (!tableGraph.value || tableQuery?.direction !== direction.value || tableQuery?.depth !== depth.value)
+  ) {
+    void loadTable(props.nodeId, focusId);
+  }
 }
 
 watch(
@@ -221,7 +239,7 @@ watch(
 watch([direction, depth], reload);
 
 watch(
-  () => (mode.value === 'table' ? selectedKey.value : undefined),
+  () => selectedTableNode.value?.id,
   (key) => {
     columns.value = [];
     if (key) void loadColumns(key);

@@ -120,6 +120,7 @@ const selectedCategories = ref<string[]>([]);
 const expandedCategories = ref<string[]>(['__root']);
 const filter = reactive({
   name: '',
+  executedToday: false,
   status: undefined as number | undefined,
   runStatus: undefined as OpsInstanceApi.Status | undefined,
   ownerId: undefined as Api.Id | undefined,
@@ -187,7 +188,7 @@ function clear() {
   categorySearch.value = '';
   categoryMenuId.value = '';
   page.value = 1;
-  Object.assign(filter, { name: '', status: undefined, runStatus: undefined, ownerId: undefined });
+  Object.assign(filter, { name: '', executedToday: false, status: undefined, runStatus: undefined, ownerId: undefined });
   Object.assign(applied, filter, { categoryId: undefined });
 }
 async function load() {
@@ -199,7 +200,10 @@ async function load() {
   try {
     const [result, statistics] = await Promise.all([
       getJobPage({ ...applied, pageNo: page.value, pageSize: pageSize.value }),
-      getOpsInstanceStatistics({ kind: 'JOB' }),
+      getOpsInstanceStatistics({
+        kind: 'JOB',
+        categoryId: applied.categoryId === undefined ? undefined : `platform:${applied.categoryId}`,
+      }),
     ]);
     if (!current()) return;
     rows.value = result.list;
@@ -239,8 +243,14 @@ function search() {
   page.value = 1;
   void load();
 }
+function selectStatistic(runStatus?: OpsInstanceApi.Status, executedToday = false) {
+  filter.runStatus = runStatus;
+  filter.executedToday = executedToday;
+  search();
+}
 function reset() {
   Object.assign(filter, {
+    executedToday: false,
     name: '',
     status: undefined,
     runStatus: undefined,
@@ -556,28 +566,19 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
             <section class="qj-statistics">
               <button
                 type="button"
-                @click="
-                  filter.runStatus = 'RUNNING';
-                  search();
-                "
+                @click="selectStatistic('RUNNING')"
               >
                 <ReferenceIcon name="stat-running" /><span>运行中作业：</span><b>{{ stats?.running ?? '-' }}个</b>
 </button><button
                 type="button"
-                @click="
-                  filter.runStatus = 'FAILURE';
-                  search();
-                "
+                @click="selectStatistic('FAILURE', true)"
               >
                 <ReferenceIcon name="stat-failed" /><span>今日异常：</span><b>{{ stats?.todayFailed ?? '-' }}次</b>
-</button><button type="button" @click="reset">
+</button><button type="button" @click="selectStatistic(undefined, true)">
                 <ReferenceIcon name="stat-today" /><span>今日执行：</span><b>{{ stats?.todayExecuted ?? '-' }}次</b>
 </button><button
                 type="button"
-                @click="
-                  filter.runStatus = 'SUCCESS';
-                  search();
-                "
+                @click="selectStatistic('SUCCESS', true)"
               >
                 <ReferenceIcon name="stat-success" /><span>今日成功率：</span><b>{{ stats?.todaySuccessRate ?? '-' }}%</b>
               </button>

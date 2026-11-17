@@ -33,6 +33,7 @@ export interface CategoryAdapter {
   create: (data: CategoryPayload) => Promise<unknown>;
   update: (data: CategoryPayload) => Promise<unknown>;
   remove: (id: ResourceId) => Promise<unknown>;
+  removeList: (ids: ResourceId[]) => Promise<unknown>;
   normalize: (row: unknown) => CategoryRow;
 }
 

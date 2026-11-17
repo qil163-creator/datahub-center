@@ -57,6 +57,9 @@ public class MarketAccessServiceImpl implements MarketAccessService {
     private MarketResourceApplyMapper applyMapper;
 
     @Resource
+    private cn.iocoder.yudao.module.asset.dal.mysql.market.MarketFileBindingMapper fileBindings;
+
+    @Resource
     private DataAssetMapper assetMapper;
 
     @Resource
@@ -119,7 +122,13 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         MarketResourceApplyDO apply = applyMapper.selectEffective(userId, assetId, now);
         // 不能把证据损坏静默当成“没有共享限制”，否则消费方可能走普通查询路径。
         if (apply != null) {
-            MarketFieldScope.requireMatchesAsset(apply, assetMapper.selectById(assetId));
+            var asset = assetMapper.selectById(assetId);
+            if (Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) {
+                MarketFileDeliveryService.requireGrant(apply, asset, apply.getCatalogVersionId() == null
+                        ? null : fileBindings.find(apply.getCatalogVersionId()));
+            } else {
+                MarketFieldScope.requireMatchesAsset(apply, asset);
+            }
         }
         return apply;
     }
@@ -145,7 +154,19 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         }
         var assets = assetMapper.selectByIds(latest.keySet()).stream()
                 .collect(java.util.stream.Collectors.toMap(DataAssetDO::getId, java.util.function.Function.identity()));
-        latest.forEach((assetId, apply) -> MarketFieldScope.requireMatchesAsset(apply, assets.get(assetId)));
+        var versions = latest.values().stream().filter(apply -> Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE))
+                .map(MarketResourceApplyDO::getCatalogVersionId).filter(Objects::nonNull).distinct().toList();
+        var boundFiles = versions.isEmpty() ? Map.<Long, cn.iocoder.yudao.module.asset.dal.mysql.market.MarketFileBinding>of()
+                : fileBindings.readyByVersions(versions).stream().collect(java.util.stream.Collectors.toMap(
+                        cn.iocoder.yudao.module.asset.dal.mysql.market.MarketFileBinding::getCatalogVersionId, java.util.function.Function.identity()));
+        latest.forEach((assetId, apply) -> {
+            if (Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) {
+                MarketFileDeliveryService.requireGrant(apply, assets.get(assetId), apply.getCatalogVersionId() == null
+                        ? null : boundFiles.get(apply.getCatalogVersionId()));
+            } else {
+                MarketFieldScope.requireMatchesAsset(apply, assets.get(assetId));
+            }
+        });
         return Map.copyOf(latest);
     }
 
@@ -158,7 +179,7 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         if (apply == null) {
             return false;
         }
-        requireQuerySnapshot(userId, apply.getId());
+        if (!Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) requireQuerySnapshot(userId, apply.getId());
         return true;
     }
 

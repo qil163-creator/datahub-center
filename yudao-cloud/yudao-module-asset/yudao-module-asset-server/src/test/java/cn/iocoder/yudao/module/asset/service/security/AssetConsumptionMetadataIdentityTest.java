@@ -6,8 +6,10 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.asset.controller.admin.dataasset.vo.DataAssetPreviewReqVO;
 import cn.iocoder.yudao.module.asset.controller.admin.dataquery.vo.DataQueryExecuteReqVO;
 import cn.iocoder.yudao.module.asset.dal.dataobject.dataasset.DataAssetDO;
+import cn.iocoder.yudao.module.asset.dal.dataobject.dataasset.AssetTechLinkDO;
 import cn.iocoder.yudao.module.asset.dal.dataobject.market.MarketResourceApplyDO;
 import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.DataAssetMapper;
+import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.AssetTechLinkMapper;
 import cn.iocoder.yudao.module.asset.dal.mysql.market.MarketResourceApplyMapper;
 import cn.iocoder.yudao.module.asset.service.dataasset.AssetCatalogService;
 import cn.iocoder.yudao.module.asset.service.dataasset.AssetEtlBatchBindingService;
@@ -55,6 +57,30 @@ class AssetConsumptionMetadataIdentityTest {
 
     @AfterEach
     void clear() { security.close(); }
+
+    @Test
+    void legacyMissingDatabaseNameRequiresTheOriginalPublishedPrimarySnapshot() {
+        var asset = fixture.asset;
+        asset.setDbName(null);
+        var table = fixture.table;
+        table.setPublishStatus(1);
+        table.setPublishedSnapshotId(asset.getPublishedSnapshotId());
+        var links = mock(AssetTechLinkMapper.class);
+        ReflectionTestUtils.setField(fixture.identities, "techLinkMapper", links);
+        var primary = AssetTechLinkDO.builder().assetId(asset.getId()).primaryFlag(1).providerModule("governance")
+                .snapshotId(asset.getPublishedSnapshotId()).metaTableId(asset.getMetaTableId())
+                .resourceUrn(asset.getResourceUrn()).datasourceId(asset.getDatasourceId())
+                .schemaName(asset.getSchemaName()).objectName(asset.getTableName()).build();
+        when(links.selectPrimary(asset.getId())).thenReturn(primary);
+        fixture.identities.assertCurrent(asset);
+        table.setPublishedSnapshotId(asset.getPublishedSnapshotId() + 1);
+        org.junit.jupiter.api.Assertions.assertThrows(ServiceException.class, () -> fixture.identities.assertCurrent(asset));
+        table.setPublishedSnapshotId(asset.getPublishedSnapshotId());
+        primary.setDatasourceId(99L);
+        org.junit.jupiter.api.Assertions.assertThrows(ServiceException.class, () -> fixture.identities.assertCurrent(asset));
+        when(links.selectPrimary(asset.getId())).thenReturn(null);
+        org.junit.jupiter.api.Assertions.assertThrows(ServiceException.class, () -> fixture.identities.assertCurrent(asset));
+    }
 
     @Test
     void unchangedIdentityAndNewUnfrozenColumnsAllowBothPreviewPaths() {

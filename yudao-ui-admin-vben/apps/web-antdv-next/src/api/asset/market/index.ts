@@ -1,6 +1,7 @@
 import type { PageParam, PageResult } from '@vben/request';
 
 import type { DataAssetApi } from '#/api/asset/dataasset';
+import type { DeliveryFileBinding } from '#/api/asset/market/file-delivery';
 
 import { consumptionHeaders } from '#/api/asset/consumption';
 import { requestClient } from '#/api/request';
@@ -229,6 +230,7 @@ export namespace MarketApi {
   }
 
   export interface Apply {
+    fileDelivery?: DeliveryFileBinding;
     id?: Id;
     applyNo?: string;
     title?: string;

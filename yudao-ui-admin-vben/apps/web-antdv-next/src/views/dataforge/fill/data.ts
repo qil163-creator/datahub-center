@@ -136,7 +136,7 @@ export function useDeptViewGridFormSchema(): VbenFormSchema[] {
         placeholder: '默认本部门',
         showSearch: true,
         treeDefaultExpandAll: true,
-        treeNodeFilterProp: 'name',
+        treeNodeFilterProp: 'label',
       },
     },
   ];
@@ -494,7 +494,7 @@ export function usePlanFormSchema(): VbenFormSchema[] {
         placeholder: '未分类（可选择分类）',
         showSearch: true,
         treeDefaultExpandAll: true,
-        treeNodeFilterProp: 'name',
+        treeNodeFilterProp: 'label',
         valueField: 'id',
       },
     },

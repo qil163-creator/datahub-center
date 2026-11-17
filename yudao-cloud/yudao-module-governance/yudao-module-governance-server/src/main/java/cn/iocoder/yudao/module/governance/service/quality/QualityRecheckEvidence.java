@@ -201,7 +201,8 @@ final class QualityRecheckEvidence {
                 && Objects.equals(id(check.get("instanceId")), attempt.getInstanceId())
                 && positive(id(check.get("baselineInstanceId")))
                 && !Objects.equals(id(check.get("baselineInstanceId")), attempt.getInstanceId())
-                && positive(id(check.get("objectId"))) && positive(id(check.get("ruleId")))
+                && positive(id(check.get("objectId")))
+                && (positive(id(check.get("ruleId"))) || positive(id(check.get("evaluationId"))))
                 && positive(id(check.get("auditId"))) && positive(id(check.get("baselineAuditId")))
                 && (QualityIssueDataDO.SCOPE_ALL.equals(check.get("statScope"))
                 || QualityIssueDataDO.SCOPE_ORG.equals(check.get("statScope")) && sha256(check.get("scopeKeyHash")))
@@ -300,6 +301,9 @@ final class QualityRecheckEvidence {
         facts.put("issueBindingHash", issueBindingHash(issue));
         facts.put("objectId", issue == null ? null : issue.getObjectId());
         facts.put("ruleId", issue == null ? null : issue.getRuleId());
+        if (baselineAudit != null && baselineAudit.getEvaluationId() != null) {
+            facts.put("evaluationId", baselineAudit.getEvaluationId());
+        }
         facts.put("baselineInstanceId", baseline == null ? null : baseline.getId());
         facts.put("baselineAuditId", baselineAudit == null ? null : baselineAudit.getId());
         facts.put("instanceId", current.getId());
@@ -328,12 +332,24 @@ final class QualityRecheckEvidence {
                     || !Objects.equals(after.getTask().getId(), issue.getTaskId())) {
                 return reject(facts, "DEFINITION_MISSING", "缺少原检测或复检的冻结定义");
             }
-            var oldRule = unique(before.getRules(), QualityRuleDO::getId, issue.getRuleId());
-            var newRule = unique(after.getRules(), QualityRuleDO::getId, issue.getRuleId());
+            // 任务内评估没有全局规则号。使用与原问题直接关联的审计和冻结对象定位，不按规则名猜测。
+            boolean localEvaluation = issue.getRuleId() == null;
+            Long ruleKey = localEvaluation ? baselineAudit.getEvaluationId() : issue.getRuleId();
+            if (!positive(ruleKey) || !Objects.equals(baselineAudit.getEvaluationId(), currentAudit.getEvaluationId())) {
+                return reject(facts, "RULE_CHANGED", "原审计和复检没有匹配的规则或评估标识");
+            }
+            Function<QualityRuleDO, Long> identity = localEvaluation ? QualityRuleDO::getExecutionEvaluationId : QualityRuleDO::getId;
+            var oldRule = unique(before.getRules(), identity, ruleKey);
+            var newRule = unique(after.getRules(), identity, ruleKey);
             var oldObject = unique(before.getObjects(), QualityCheckObjectDO::getId, issue.getObjectId());
             var newObject = unique(after.getObjects(), QualityCheckObjectDO::getId, issue.getObjectId());
             if (oldRule == null || newRule == null || oldObject == null || newObject == null) {
                 return reject(facts, "DEFINITION_MISSING", "冻结定义中缺少唯一的原规则或检查对象");
+            }
+            if (localEvaluation && (oldRule.getId() != null || newRule.getId() != null
+                    || !Objects.equals(issue.getObjectId(), oldRule.getExecutionObjectId())
+                    || !Objects.equals(issue.getObjectId(), newRule.getExecutionObjectId()))) {
+                return reject(facts, "RULE_CHANGED", "任务评估的对象关联已变化");
             }
             if (!Objects.equals(ruleMeaning(oldRule), ruleMeaning(newRule))
                     || !Objects.equals(parameters(oldRule), parameters(newRule))

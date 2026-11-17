@@ -33,8 +33,10 @@ import { replayEtlTargetBatch } from '#/api/dataforge/etl';
 import { createCommandTracker } from '#/api/dataforge/execution/command';
 import {
   confirmWorkOrder,
+  extendWorkOrderDeadline,
   getWorkOrder,
   recheckWorkOrder,
+  reopenWorkOrder,
   submitWorkOrderResolution,
 } from '#/api/governance/quality/workorder';
 
@@ -70,6 +72,8 @@ const note = ref('');
 const order = ref<QualityWorkOrderApi.WorkOrder>();
 const orderId = ref<QualityWorkOrderApi.Id>();
 const expiry = ref<Dayjs>();
+const newDeadline = ref<Dayjs>();
+const deadlineBasis = ref('');
 const form = reactive({
   type: 'SOURCE_FIX' as QualityWorkOrderApi.SubmissionType,
   content: '',
@@ -94,7 +98,15 @@ const replayPayload = ref<
       workOrderId: QualityWorkOrderApi.Id;
     }
 >();
-type Operation = 'confirm' | 'recheck' | 'submit';
+const commandApi = {
+  confirm: confirmWorkOrder,
+  extend: extendWorkOrderDeadline,
+  recheck: recheckWorkOrder,
+  reopen: reopenWorkOrder,
+  submit: submitWorkOrderResolution,
+};
+const commandPermission = { confirm: 'confirm', extend: 'process', recheck: 'process', reopen: 'reopen', submit: 'process' };
+type Operation = keyof typeof commandApi;
 type Pending = Omit<QualityWorkOrderApi.Command, 'requestId'> & {
   operation: Operation;
 };
@@ -167,6 +179,8 @@ function reset() {
   loading.value = false;
   busy.value = false;
   expiry.value = undefined;
+  newDeadline.value = undefined;
+  deadlineBasis.value = '';
   if (!replayPending.value) {
     replayPayload.value = undefined;
     Object.assign(replayForm, {
@@ -329,7 +343,19 @@ function payload(
     id: current.id,
     expectedVersion: current.lockVersion,
   };
-  if (operation === 'submit') {
+  if (operation === 'reopen') {
+    if (!allowed('REOPEN', 'reopen')) return;
+    base.reason = form.reason.trim() || undefined;
+  } else if (operation === 'extend') {
+    if (!allowed('EXTEND', 'process')) return;
+    const timestamp = newDeadline.value?.valueOf();
+    if (!timestamp || timestamp <= Math.max(Date.now(), Number(current.deadline) || 0)) {
+      error.value = '请选择晚于当前时间和原截止时间的新截止时间';
+      return;
+    }
+    base.newDeadline = timestamp;
+    base.deadlineBasis = deadlineBasis.value.trim() || undefined;
+  } else if (operation === 'submit') {
     if (!canSubmit.value) return;
     if (isEtlInline.value && form.type !== 'SOURCE_FIX') {
       error.value = 'ETL 内联工单仅支持提交源端整改说明';
@@ -418,8 +444,7 @@ async function send(
   error.value = '';
   const command = pending.value ?? payload(operation, action);
   if (!command) return;
-  if (!permitted(command.operation === 'confirm' ? 'confirm' : 'process'))
-    return;
+  if (!permitted(commandPermission[command.operation])) return;
   // 未确认请求只允许原样重试；新命令须先刷新核对，不能更换幂等身份。
   pending.value = command;
   const scope = identity();
@@ -434,17 +459,19 @@ async function send(
     const result = await commands.execute(
       'work-order-command',
       command,
-      ({ operation: kind, ...body }) => {
-        if (kind === 'submit') return submitWorkOrderResolution(body);
-        if (kind === 'confirm') return confirmWorkOrder(body);
-        return recheckWorkOrder(body);
-      },
+      ({ operation: kind, ...body }) => commandApi[kind](body),
     );
     if (!current() || !result) return;
     pending.value = undefined;
     order.value = result;
     receipt.value = result.recheckAttempt;
-    if (command.operation === 'recheck') {
+    if (command.operation === 'reopen') {
+      note.value = '工单已重新打开，责任人可继续办理。';
+    } else if (command.operation === 'extend') {
+      newDeadline.value = undefined;
+      deadlineBasis.value = '';
+      note.value = '整改截止时间已更新。';
+    } else if (command.operation === 'recheck') {
       note.value = '复检已提交，运行完成和可比性判定前不视为通过。';
     } else if (command.confirmAction === 'RETURN') {
       note.value = '已退回整改，原因已记录。';
@@ -464,7 +491,7 @@ async function send(
   }
 }
 watch(
-  () => [identity(), canRead.value, permitted('process'), permitted('confirm')],
+  () => [identity(), canRead.value, permitted('process'), permitted('confirm'), permitted('reopen')],
   () => {
     shown.value = false;
     reset();
@@ -506,6 +533,31 @@ onBeforeUnmount(() => {
         <p v-if="order.closeType">
           关闭结论：{{ CLOSE_LABELS[order.closeType] ?? order.closeType }}
         </p>
+        <p v-if="order.deadline">整改截止时间：{{ formatDateTime(order.deadline) }}</p>
+        <section v-if="allowed('REOPEN', 'reopen')" class="space-y-2">
+          <label class="block">重开原因（选填）<TextArea
+              v-model:value="form.reason"
+              aria-label="重开原因"
+              :maxlength="1024"
+              :disabled="busy || !!pending"
+          /></label>
+          <Button data-action="reopen" :disabled="busy || !!pending" @click="send('reopen')">重新打开工单</Button>
+        </section>
+        <section v-if="allowed('EXTEND', 'process')" class="space-y-2">
+          <label class="block">新的整改截止时间<DatePicker
+              v-model:value="newDeadline"
+              aria-label="新的整改截止时间"
+              show-time
+              :disabled="busy || !!pending"
+          /></label>
+          <label class="block">延期依据（选填）<Input
+              v-model:value="deadlineBasis"
+              aria-label="延期依据"
+              :maxlength="256"
+              :disabled="busy || !!pending"
+          /></label>
+          <Button data-action="extend" :disabled="busy || !!pending" @click="send('extend')">延长截止时间</Button>
+        </section>
         <p v-if="order.lastError">处理提示：{{ order.lastError }}</p>
         <Alert
           v-if="isEtlInline"

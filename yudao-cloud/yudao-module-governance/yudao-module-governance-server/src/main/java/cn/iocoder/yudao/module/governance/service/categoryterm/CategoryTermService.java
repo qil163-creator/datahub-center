@@ -15,6 +15,8 @@ public interface CategoryTermService {
 
     void deleteCategoryTerm(Long id);
 
+    void deleteCategoryTermList(List<Long> ids);
+
     CategoryTermDO getCategoryTerm(Long id);
 
     List<CategoryTermDO> getCategoryTermList(CategoryTermListReqVO reqVO);

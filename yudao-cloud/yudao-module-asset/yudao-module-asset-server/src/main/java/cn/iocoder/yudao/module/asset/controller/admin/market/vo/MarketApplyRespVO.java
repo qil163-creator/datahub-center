@@ -10,6 +10,8 @@ import java.util.List;
 @Data
 public class MarketApplyRespVO {
 
+    private MarketFileBindingRespVO fileDelivery;
+
     private Long id;
 
     private String applyNo;

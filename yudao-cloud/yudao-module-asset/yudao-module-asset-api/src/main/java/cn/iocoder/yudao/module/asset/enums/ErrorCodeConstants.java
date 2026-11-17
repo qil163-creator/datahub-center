@@ -105,7 +105,7 @@ public interface ErrorCodeConstants {
     ErrorCode MARKET_APPLY_ASSET_NOT_PUBLISHED = new ErrorCode(1_500_026_005, "只能申请已发布的数据资产");
     ErrorCode MARKET_APPLY_API_APP_REQUIRED = new ErrorCode(1_500_026_006, "申请开通 API 时必须选择应用和 API 服务");
     ErrorCode MARKET_APPLY_TIME_INVALID = new ErrorCode(1_500_026_007, "申请使用期限不合法");
-    ErrorCode MARKET_APPLY_NOT_AUTHORIZED = new ErrorCode(1_500_026_011, "没有有效的集市授权，无法查询或预览该资产");
+    ErrorCode MARKET_APPLY_NOT_AUTHORIZED = new ErrorCode(1_500_026_011, "没有有效的集市授权，无法使用该资产");
     ErrorCode MARKET_APPLY_PREVIEW_UNSUPPORTED = new ErrorCode(1_500_026_012,
             "当前资产类型不支持集市预览，请走数据服务 API");
     ErrorCode MARKET_APPLY_FIELD_SCOPE_INVALID = new ErrorCode(1_500_026_013,
@@ -160,6 +160,10 @@ public interface ErrorCodeConstants {
     ErrorCode MARKET_CHECK_SNAPSHOT_INVALID = new ErrorCode(1_500_026_033,
             "来源工单详情快照格式无效，请核查导入数据");
     ErrorCode MARKET_PREVIEW_MASK_FAILED = new ErrorCode(1_500_026_035, "集市预览结果未返回：{}");
+
+    ErrorCode MARKET_FILE_UNAVAILABLE = new ErrorCode(1_500_026_036, "交付文件不可用：{}");
+    ErrorCode MARKET_FILE_CONFLICT = new ErrorCode(1_500_026_037, "该目录版本已登记其他文件，请提交新的目录版本");
+    ErrorCode MARKET_FILE_LIMIT = new ErrorCode(1_500_026_038, "文件下载次数已用完");
 
     // ========== 集市类目 1_500_028_000 ==========
     ErrorCode MARKET_CATEGORY_NOT_EXISTS = new ErrorCode(1_500_028_001, "集市类目不存在");

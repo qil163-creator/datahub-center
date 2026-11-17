@@ -44,6 +44,9 @@ public class MarketObjectGuard {
     @Resource
     private DataAssetMapper assetMapper;
 
+    @Resource
+    private cn.iocoder.yudao.module.asset.dal.mysql.market.MarketFileBindingMapper fileBindings;
+
     /**
      * 读取并校验当前登录用户编号。
      */
@@ -172,7 +175,12 @@ public class MarketObjectGuard {
             if (!MarketFieldScope.supportsExistingGrant(current)) {
                 throw exception(MARKET_APPLY_FORBIDDEN);
             }
-            MarketFieldScope.requireMatchesAsset(apply, current);
+            if (Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) {
+                MarketFileDeliveryService.requireGrant(apply, current, apply.getCatalogVersionId() == null
+                        ? null : fileBindings.find(apply.getCatalogVersionId()));
+            } else {
+                MarketFieldScope.requireMatchesAsset(apply, current);
+            }
         }
     }
 

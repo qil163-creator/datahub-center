@@ -20,11 +20,13 @@ import { Page, useVbenModal } from '@vben/common-ui';
 import { useIsMobile } from '@vben/hooks';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
+import { downloadFileFromBlobPart } from '@vben/utils';
 
 import { Alert, Button, Empty, Tag, Tooltip } from 'antdv-next';
 
 import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
+import { downloadMyAssetFile } from '#/api/asset/market/file-delivery';
 import { getMarketCategorySimpleList } from '#/api/asset/marketcategory';
 import { getMyAssetsPage, previewMyAsset } from '#/api/asset/my-assets';
 import ListPagination from '#/components/list-pagination/index.vue';
@@ -77,6 +79,7 @@ const categoryGuard = createLatestWins();
 const linkedAssetGuard = createLatestWins();
 const linkedAssetError = ref('');
 const selectedDetailId = ref<string>();
+const downloads = reactive(new Set<string>());
 const rows = ref<MyAssetsApi.Asset[]>([]);
 const total = ref(0);
 const loading = ref(false);
@@ -246,6 +249,30 @@ function openDetailApiDocument(row: MyAssetsApi.Detail) {
   if (currentDetail(row) && canOpenDelivery(row, 'document'))
     apiDocument.value?.open(row.applyId);
 }
+async function downloadFile(row: MyAssetsApi.Asset, fromDetail = false) {
+  const id = parseResourceId(row.applyId);
+  const owner = identity.value;
+  const listed = rows.value.find((item) => sameResourceId(item.applyId, id));
+  const available = fromDetail
+    ? currentDetail(row) && canOpenDelivery(row, 'file')
+    : !!listed && currentRow(listed) && canOpenDelivery(listed, 'file');
+  if (!id || !available || downloads.has(id)) return;
+  downloads.add(id);
+  try {
+    const file = await downloadMyAssetFile(id);
+    if (owner === identity.value && canQuery.value) downloadFileFromBlobPart(file);
+  } catch {
+    // The request interceptor displays delivery errors.
+  } finally {
+    if (owner === identity.value) {
+      downloads.delete(id);
+      if (active && canQuery.value && route.name === MY_ASSETS_ROUTE_NAME) {
+        if (sameResourceId(selectedDetailId.value, id)) openDetailById(id);
+        void loadAssets();
+      }
+    }
+  }
+}
 function closeDelivery() {
   selectedDetailId.value = undefined;
   detail.value?.close();
@@ -352,6 +379,7 @@ function changePage(page: number, size: number) {
   void loadAssets();
 }
 function clear() {
+  downloads.clear();
   listGuard.invalidate();
   categoryGuard.invalidate();
   linkedAssetGuard.invalidate();
@@ -437,9 +465,11 @@ function syncFilterValues() {
     <AssetDetail
       :key="`detail-${childEpoch}`"
       ref="detail"
+      :downloading="!!selectedDetailId && downloads.has(selectedDetailId)"
       @closed="detailClosed"
       @preview="openDetailPreview"
       @document="openDetailApiDocument"
+      @file="downloadFile($event, true)"
     />
     <ApiDocument
       :key="`document-${childEpoch}`"
@@ -588,11 +618,16 @@ function syncFilterValues() {
                 </Tooltip>
                 <Tooltip
                   v-else-if="record.deliveryType === 3"
-                  title="文件交付暂未接通，请联系资产提供方"
+                  :title="record.disabledReason || '下载时核验当前授权与批准版本'"
                 >
-                  <span><Button type="link" size="small" disabled>
+                  <span><Button
+                      type="link" size="small"
+                      :disabled="!canOpenDelivery(record, 'file')"
+                      :loading="downloads.has(String(record.applyId))"
+                      @click="downloadFile(record)"
+                    >
                       <template #icon><IconifyIcon icon="lucide:download" /></template>
-                      文件获取
+                      下载文件
                     </Button></span>
                 </Tooltip>
               </div>

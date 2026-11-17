@@ -13,7 +13,7 @@ import {
   watch,
 } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
@@ -43,6 +43,8 @@ import {
   optionLabel,
 } from '#/views/asset/market/market-labels';
 import { formatMarketTime } from '#/views/asset/market/market-time';
+import ApplyForm from '#/views/asset/market/modules/apply-form.vue';
+import FileDeliverySummary from '#/views/asset/market/modules/file-delivery-summary.vue';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 const access = useAccessStore();
@@ -125,7 +127,7 @@ const fields = computed<DetailFieldItem[]>(() => {
     },
     { key: 'dutyMatter', label: '履职事项', value: row.dutyMatter, span: 2 },
     { key: 'legalBasis', label: '使用依据', value: row.legalBasis, span: 2 },
-    { key: 'fieldScope', label: '字段范围', value: row.fieldScope, span: 2 },
+    { key: 'fieldScope', label: row.assetType === 3 ? '交付范围' : '字段范围', value: row.assetType === 3 ? '整份文件' : row.fieldScope, span: 2 },
     {
       key: 'validity',
       label: '申请有效期',
@@ -165,6 +167,23 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!open) clearDetail();
   },
 });
+const [EditModal, editModalApi] = useVbenModal({
+  connectedComponent: ApplyForm,
+  destroyOnClose: true,
+});
+const canEdit = computed(() =>
+  canQuery.value &&
+  access.accessCodes.includes('asset:market:apply') &&
+  (detail.value?.status === 0 || detail.value?.status === 8),
+);
+function editApplication() {
+  if (!canEdit.value || !detail.value) return;
+  editModalApi.setData({ ...detail.value }).open();
+}
+function refreshApplication() {
+  void load();
+  if (detailId.value) void loadDetail();
+}
 function clearDetail() {
   detailGuard.invalidate();
   detailId.value = undefined;
@@ -242,6 +261,7 @@ function changePage(page: number, size: number) {
 }
 function clear() {
   listGuard.invalidate();
+  editModalApi.close();
   clearDetail();
   drawerApi.setState({ isOpen: false });
   rows.value = [];
@@ -277,10 +297,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <EditModal @success="refreshApplication" />
   <Drawer>
     <Spin v-if="detailLoading" spinning />
 
     <template v-if="detail">
+      <div v-if="canEdit" class="mx-4 mb-3">
+        <Button type="primary" @click="editApplication">
+          {{ detail.status === 8 ? '补正申请' : '办理草稿' }}
+        </Button>
+      </div>
+      <FileDeliverySummary v-if="detail?.fileDelivery" :file="detail.fileDelivery" />
       <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
       <div class="mx-4 mt-4 text-base font-medium">审批轨迹</div>
       <Timeline v-if="detail.processes?.length" class="mx-4 mt-3">

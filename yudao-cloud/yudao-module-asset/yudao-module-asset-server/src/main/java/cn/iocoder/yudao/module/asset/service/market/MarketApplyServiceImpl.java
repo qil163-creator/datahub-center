@@ -62,6 +62,9 @@ public class MarketApplyServiceImpl implements MarketApplyService {
     private MarketResourceApplyMapper applyMapper;
 
     @Resource
+    private MarketFileDeliveryService fileDelivery;
+
+    @Resource
     private MarketCheckProcessMapper processMapper;
 
     @Resource
@@ -325,7 +328,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
         boolean approved = Objects.equals(reqVO.getStatus(), MarketResourceApplyDO.STATUS_APPROVED);
         if (approved) {
             MarketQuotaPolicy.validate(apply.getApplyUseType(), apply.getApplyUseTimes());
-            MarketFieldScope.requireMatchesAsset(apply, asset);
+            requireApprovalScope(apply, asset);
             MarketQuotaPolicy.requireFrozen(apply);
         }
         LocalDateTime checkTime = LocalDateTime.now();
@@ -393,7 +396,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
             throw exception(MARKET_APPLY_STATUS_DENY);
         }
         if (Objects.equals(auth, 1)) {
-            MarketFieldScope.requireMatchesAsset(apply, asset);
+            requireApprovalScope(apply, asset);
         }
         int nextAuth = Objects.equals(auth, 1) ? MarketResourceApplyDO.AUTH_YES : MarketResourceApplyDO.AUTH_NO;
         if (Objects.equals(apply.getIfAuth(), nextAuth)) {
@@ -637,6 +640,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
                 .map(MarketResourceApplyDO::getAssetId).toList());
         return new PageResult<>(page.getList().stream().map(item -> {
             MarketMyApplicationRespVO result = BeanUtils.toBean(item, MarketMyApplicationRespVO.class);
+            result.setFileDelivery(MarketFileDeliveryService.frozenMetadata(item));
             DataAssetDO asset = item.getAssetId() == null ? null : assets.get(item.getAssetId());
             if (asset != null) {
                 result.setAssetName(asset.getAssetName());
@@ -1007,7 +1011,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
                 || !Objects.equals(apply.getPaused(), 1)) {
             throw exception(MARKET_APPLY_STATUS_DENY);
         }
-        MarketFieldScope.requireMatchesAsset(apply, asset);
+        requireApprovalScope(apply, asset);
         casLifecycle(apply, true, wrapper -> wrapper.set(MarketResourceApplyDO::getPaused, 0));
         objectGuard.lockProviderAsset(apply, true);
         if (appendProcess(id, MarketCheckProcessDO.ACTION_RESUME, apply.getStatus(), apply.getStatus(),
@@ -1278,6 +1282,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
      */
     private MarketApplyRespVO toResp(MarketResourceApplyDO apply) {
         MarketApplyRespVO vo = BeanUtils.toBean(apply, MarketApplyRespVO.class);
+        vo.setFileDelivery(MarketFileDeliveryService.frozenMetadata(apply));
         Map<Long, DataAssetDO> assets = displayHelper.assets(List.of(apply.getAssetId()));
         DataAssetDO asset = assets.get(apply.getAssetId());
         if (asset != null) {
@@ -1314,7 +1319,7 @@ public class MarketApplyServiceImpl implements MarketApplyService {
                 && (resolution == null || RESOLUTION_APPLIED.equals(resolution)));
         if (Boolean.TRUE.equals(vo.getUsable())) {
             try {
-                MarketFieldScope.requireMatchesAsset(apply, asset);
+                requireApprovalScope(apply, asset);
             } catch (cn.iocoder.yudao.framework.common.exception.ServiceException unconfirmed) {
                 // 审批历史仍按原记录展示，但缺少冻结证据不能展示成当前可用。
                 vo.setUsable(false);
@@ -1435,6 +1440,15 @@ public class MarketApplyServiceImpl implements MarketApplyService {
         return apply;
     }
 
+    /** 文件审批绑定整份交付凭据，表/API审批继续绑定字段范围。 */
+    private void requireApprovalScope(MarketResourceApplyDO apply, DataAssetDO asset) {
+        if (Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) {
+            fileDelivery.requireGrant(apply, asset);
+        } else {
+            MarketFieldScope.requireMatchesAsset(apply, asset);
+        }
+    }
+
     /**
      * 补充市场资产申请的提交快照。
      */
@@ -1456,6 +1470,11 @@ public class MarketApplyServiceImpl implements MarketApplyService {
         snapshot.put("applyUseTimes", String.valueOf(apply.getApplyUseTimes() == null ? 0 : apply.getApplyUseTimes()));
         snapshot.put("revision", apply.getRevision() == null ? "1" : String.valueOf(apply.getRevision()));
         // 冻结失败即拒绝提交：空集合或元数据故障都不能变成“全部字段”的隐式授权。
+        if (Objects.equals(asset.getAssetType(), DataAssetDO.TYPE_FILE)) {
+            fileDelivery.freeze(apply, asset, snapshot);
+            apply.setSnapshot(JsonUtils.toJsonString(snapshot));
+            return;
+        }
         java.util.List<String> frozen = freezeApprovedColumns(asset, apply.getFieldScope());
         snapshot.put("frozenColumns", frozen);
         snapshot.put("publishedSnapshotId", asset.getPublishedSnapshotId() == null ? ""
@@ -1522,13 +1541,21 @@ public class MarketApplyServiceImpl implements MarketApplyService {
 
     /** 保留原发布/物理范围证据，只更新提交轮次和SLA；实际绑定已失效时拒绝，不能重新冻结掩盖。 */
     private void prepareRenewalResubmission(MarketResourceApplyDO submitted, DataAssetDO asset) {
-        MarketFieldScope scope = MarketFieldScope.requireMatchesAsset(submitted, asset);
+
         Map<String, Object> snapshot = JsonUtils.parseObject(submitted.getSnapshot(), Map.class);
         requireRenewalSnapshotValue(snapshot, "catalogVersionId", submitted.getCatalogVersionId());
         requireRenewalSnapshotValue(snapshot, "apiId", submitted.getApiId());
         requireRenewalSnapshotValue(snapshot, "appId", submitted.getAppId());
         requireRenewalSnapshotValue(snapshot, "fieldScope", submitted.getFieldScope());
         requireRenewalSnapshotValue(snapshot, "dutyMatter", submitted.getDutyMatter());
+        if (Objects.equals(submitted.getAssetType(), DataAssetDO.TYPE_FILE)) {
+            fileDelivery.requireGrant(submitted, asset);
+            snapshot.put("revision", String.valueOf(submitted.getRevision()));
+            submitted.setSnapshot(JsonUtils.toJsonString(snapshot));
+            fillSubmissionDeadlines(submitted, asset, LocalDateTime.now());
+            return;
+        }
+        MarketFieldScope scope = MarketFieldScope.requireMatchesAsset(submitted, asset);
         java.util.Set<String> available = new java.util.LinkedHashSet<>();
         for (MetadataColumnRespDTO column : readPublishedColumns(asset)) {
             available.add(column.getColumnName());

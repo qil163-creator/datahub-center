@@ -255,6 +255,7 @@ public class MarketCheckServiceImpl implements MarketCheckService {
         result.setApplyReason(StrUtil.blankToDefault(apply.getApplyNote(), apply.getPurpose()));
         result.setApprovalReason(apply.getCheckNote());
         result.setStatus(nativeStatus(apply.getStatus()));
+        result.setFileDelivery(apply.getFileDelivery());
         result.setStatusLabel(switch (apply.getStatus() == null ? -1 : apply.getStatus()) {
             case 0 -> "草稿";
             case 4 -> "已撤销";
@@ -267,6 +268,9 @@ public class MarketCheckServiceImpl implements MarketCheckService {
         boolean provider = apply.getAssetId() != null && objectGuard.isProvider(
                 assetMapper.selectById(apply.getAssetId()), actor);
         boolean pending = Objects.equals(apply.getStatus(), MarketResourceApplyDO.STATUS_PENDING) && provider;
+        result.setCanRevokeFile(provider && apply.getFileDelivery() != null
+                && Objects.equals(apply.getStatus(), MarketResourceApplyDO.STATUS_APPROVED)
+                && Objects.equals(apply.getIfAuth(), MarketResourceApplyDO.AUTH_YES));
         result.setCanApprove(pending);
         result.setCanReject(pending);
         result.setCanView(true);

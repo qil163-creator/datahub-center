@@ -66,6 +66,9 @@ public class MarketMartServiceImpl implements MarketMartService {
     private AssetCatalogService catalogService;
 
     @Resource
+    private MarketFileDeliveryService fileDelivery;
+
+    @Resource
     private MarketDisplayHelper displayHelper;
 
     @Resource
@@ -228,6 +231,13 @@ public class MarketMartServiceImpl implements MarketMartService {
                 .collect(Collectors.joining(",")));
         listingMapper.upsert(listing, userId);
         catalogService.publishLatestApproved(reqVO.getAssetId(), authorization);
+        if (Objects.equals(asset.getAssetType(), DataAssetDO.TYPE_FILE)) {
+            if (!reqVO.getDeliveryTypes().contains(DataAssetDO.TYPE_FILE)) {
+                throw exception(cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.MARKET_FILE_UNAVAILABLE,
+                        "文件资产上架须包含文件交付形态");
+            }
+            fileDelivery.requirePublishedBinding(assetMapper.selectById(reqVO.getAssetId()));
+        }
         // 只记录配置字段是否变化及枚举/版本摘要，不把名称、描述或频率正文复制到审计日志。
         var changed = new java.util.ArrayList<String>();
         if (current == null || !Objects.equals(current.getDisplayName(), listing.getDisplayName())) {

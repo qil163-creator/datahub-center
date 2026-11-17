@@ -42,9 +42,11 @@ import { $t } from '#/locales';
 import { parseResourceId } from '#/utils/resource-id';
 
 import {
+  activeRecordStatuses,
   DEV_RECORD_STATUS_OPTIONS,
   DEV_TRIGGER_TYPE_OPTIONS,
   formatDuration,
+  hasPendingStop,
   optionColor,
   optionLabel,
   useInstanceGridColumns,
@@ -66,13 +68,6 @@ function canInspect(row: Pick<DataforgeDevApi.Record, 'nativeProgram'>) {
     hasAccessByCodes(['dataforge:dev-task:execute-native'])
   );
 }
-const activeStatuses = new Set([
-  'CANCEL_REQUESTED',
-  'RUNNING',
-  'SUBMITTING',
-  'UNKNOWN',
-  'WAITING',
-]);
 async function loadInstances() {
   void gridApi.query();
   const id = parseResourceId(route.query.recordId);
@@ -166,9 +161,7 @@ function handleRefresh() {
 async function handleStop(row: DataforgeDevApi.Record) {
   if (!hasAccessByCodes(['dataforge:dev-task:run']) || !canInspect(row)) return;
   await stopDevRecord(row.id);
-  message.success(
-    row.nativeProgram ? '已请求停止，等待核对结果' : '停止指令已下发',
-  );
+  message.success('已请求停止，等待确认执行结果');
   handleRefresh();
 }
 
@@ -215,7 +208,7 @@ const taskLogLoading = ref(false);
 const followTaskLog = ref(false);
 const logRefreshLabel = computed(() => {
   if (logRecord.value?.status === 'UNKNOWN') return '结果待核查，每 5 秒刷新';
-  if (activeStatuses.has(logRecord.value?.status ?? ''))
+  if (activeRecordStatuses.has(logRecord.value?.status ?? ''))
     return '每 2 秒自动刷新';
   if (['PENDING', 'UNKNOWN'].includes(logRecord.value?.qualityStatus ?? ''))
     return '等待质量结果，每 2 秒刷新';
@@ -258,7 +251,7 @@ async function openLog(
       if (seq !== logSeq || !logVisible.value) return;
       logRecord.value = record;
       if (
-        activeStatuses.has(record.status ?? '') ||
+        activeRecordStatuses.has(record.status ?? '') ||
         ['PENDING', 'UNKNOWN'].includes(record.qualityStatus ?? '')
       ) {
         logTimer = setTimeout(
@@ -328,6 +321,12 @@ onBeforeUnmount(() => {
         <Tag :color="optionColor(DEV_RECORD_STATUS_OPTIONS, row.status)">
           {{ optionLabel(DEV_RECORD_STATUS_OPTIONS, row.status) }}
         </Tag>
+        <Tag
+          v-if="hasPendingStop(row) && row.status !== 'CANCEL_REQUESTED'"
+          color="warning"
+        >
+          已请求停止
+        </Tag>
       </template>
       <template #statements="{ row }">
         <span class="statement-count">
@@ -369,8 +368,8 @@ onBeforeUnmount(() => {
               ifShow:
                 canOperate &&
                 canInspect(row) &&
-                activeStatuses.has(row.status ?? '') &&
-                row.status !== 'CANCEL_REQUESTED',
+                activeRecordStatuses.has(row.status ?? '') &&
+                !hasPendingStop(row),
               popConfirm: {
                 title: `确认停止实例 #${row.id} 吗？`,
                 confirm: handleStop.bind(null, row),
@@ -413,6 +412,15 @@ onBeforeUnmount(() => {
         </div>
         <Tag :color="optionColor(DEV_RECORD_STATUS_OPTIONS, logRecord?.status)">
           {{ optionLabel(DEV_RECORD_STATUS_OPTIONS, logRecord?.status) }}
+        </Tag>
+        <Tag
+          v-if="
+            hasPendingStop(logRecord) &&
+            logRecord?.status !== 'CANCEL_REQUESTED'
+          "
+          color="warning"
+        >
+          已请求停止
         </Tag>
       </div>
       <Descriptions bordered size="small" :column="3" class="log-metadata">
@@ -478,7 +486,11 @@ onBeforeUnmount(() => {
       />
       <Alert
         v-if="logRecord?.waitReason"
-        :message="logRecord.waitReason"
+        :message="
+          hasPendingStop(logRecord)
+            ? '等待调度器确认停止请求'
+            : logRecord.waitReason
+        "
         show-icon
         type="info"
         class="log-alert"
@@ -544,7 +556,7 @@ onBeforeUnmount(() => {
           <span class="console-meta">
             <span
               class="refresh-dot"
-              :class="[{ active: activeStatuses.has(logRecord?.status ?? '') }]"
+              :class="[{ active: activeRecordStatuses.has(logRecord?.status ?? '') }]"
             ></span>
             {{ logRefreshLabel }}
           </span>

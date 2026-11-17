@@ -201,6 +201,7 @@ public class IntegrationTaskService {
         requireEditable(source);
         var copy = BeanUtils.toBean(source, IntegrationTaskDO.class);
         copy.setId(null);
+        copy.setDeleted(null);
         copy.setRevision(0);
         copy.setStatus(0);
         copy.setScheduleStatus(0);

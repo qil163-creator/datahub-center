@@ -25,6 +25,7 @@ import {
   getMarketCheckPage,
 } from '#/api/asset/market/check';
 import { useObjectRequest } from '#/hooks/use-object-request';
+import FileDeliverySummary from '#/views/asset/market/modules/file-delivery-summary.vue';
 
 import {
   canReviewMarketCheck,
@@ -471,7 +472,12 @@ function syncFilterValues() {
             marketCheckPeriod(review)
           }}</span>
         </div>
-        <div class="check-review-form__row check-review-form__row--required">
+        <FileDeliverySummary v-if="review?.fileDelivery" :file="review.fileDelivery" />
+        <div v-if="review?.fileDelivery && review.nativeApply" class="check-review-form__row">
+          <label>下载额度</label>
+          <span>{{ review.nativeApply.applyUseType === 1 ? `${review.nativeApply.applyUseTimes } 次成功下载` : '不限次数' }}</span>
+        </div>
+      <div class="check-review-form__row check-review-form__row--required">
           <label for="check-review-reason">{{
             reviewStatus === '4' ? '驳回理由' : '审批意见'
           }}</label>

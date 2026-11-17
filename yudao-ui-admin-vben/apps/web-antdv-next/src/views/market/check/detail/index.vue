@@ -16,14 +16,16 @@ import { Page, useVbenDrawer } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { Alert, Button, Spin } from 'antdv-next';
+import { Alert, Button, message, Popconfirm, Spin } from 'antdv-next';
 
+import { revokeMarketApply } from '#/api/asset/market';
 import { getMarketCheckDetail } from '#/api/asset/market/check';
 import {
   createLatestWins,
   parseResourceId,
   sameResourceId,
 } from '#/utils/resource-id';
+import FileDeliverySummary from '#/views/asset/market/modules/file-delivery-summary.vue';
 import ApplyDetail from '#/views/market/modules/apply-detail.vue';
 
 import ApiDocument from './modules/api-document.vue';
@@ -71,6 +73,23 @@ const owner = computed(() =>
   ]),
 );
 let active = false;
+const revoking = ref(false);
+const canRevokeFile = computed(() => canQuery.value && access.accessCodes.includes('asset:market:auth') && detail.value?.ticket.canRevokeFile === true);
+async function revokeFile() {
+  const apply = detail.value?.ticket.nativeApply;
+  if (!active || !canRevokeFile.value || revoking.value || !apply?.id) return;
+  const current = owner.value;
+  revoking.value = true;
+  try {
+    await revokeMarketApply(apply.id, undefined, apply.sourceRevision);
+    if (active && current === owner.value) message.success('文件授权已收回');
+  } finally {
+    if (active && current === owner.value) {
+      revoking.value = false;
+      void load();
+    }
+  }
+}
 const [ApplyDetailDrawer, applyDetailApi] = useVbenDrawer({
   connectedComponent: ApplyDetail,
   destroyOnClose: true,
@@ -81,6 +100,7 @@ const tabs = [
   { key: 'api', label: 'API接口文档' },
 ];
 function reset() {
+  revoking.value = false;
   guard.invalidate();
   detail.value = undefined;
   loading.value = false;
@@ -170,7 +190,8 @@ onBeforeUnmount(() => {
         @back="back"
       />
       <section :key="childEpoch" class="check-detail__content">
-        <nav class="check-detail__tabs" aria-label="审批资产内容">
+        <FileDeliverySummary v-if="detail.ticket.fileDelivery" :file="detail.ticket.fileDelivery" />
+        <nav v-else class="check-detail__tabs" aria-label="审批资产内容">
           <button
             v-for="tab in tabs"
             :key="tab.key"
@@ -188,9 +209,12 @@ onBeforeUnmount(() => {
           <Button size="small" @click="viewApplication">
             申请信息与审批轨迹
           </Button>
+          <Popconfirm v-if="canRevokeFile" title="收回后申请人将无法继续下载此文件，确认收回？" ok-text="确认收回" cancel-text="取消" @confirm="revokeFile">
+            <Button size="small" danger :loading="revoking">收回文件授权</Button>
+          </Popconfirm>
         </div>
         <FieldsTab
-          v-if="visited.fields"
+          v-if="!detail.ticket.fileDelivery && visited.fields"
           v-show="activeTab === 'fields'"
           :columns="detail.columns ?? []"
           :active="activeTab === 'fields'"

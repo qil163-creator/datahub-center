@@ -25,6 +25,7 @@ import {
   GOVERNANCE_ANTD_FORM_WRAPPER_COL,
   GOVERNANCE_FORM_MODAL_CLASS,
 } from '../../../common/form-layout';
+import { qualityObjectSourceTypes } from '../source-types';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -180,12 +181,7 @@ defineExpose({ open });
       <FormItem label="数据连接类型" name="datasourceType">
         <Select
           v-model:value="formData.datasourceType"
-          :options="[
-            { label: '中台贴源库', value: 'ODS' },
-            { label: '中台明细库', value: 'DWD' },
-            { label: '中台主库', value: 'MAIN' },
-            { label: '第三方库', value: 'THIRD_PARTY' },
-          ]"
+          :options="qualityObjectSourceTypes"
           allow-clear
           placeholder="请选择数据连接类型"
         />

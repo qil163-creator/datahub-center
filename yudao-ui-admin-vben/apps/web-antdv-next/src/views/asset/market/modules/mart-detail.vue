@@ -112,6 +112,7 @@ function applyAsset() {
   applyApi
     .setData({
       assetId: asset?.id,
+      ...(asset?.assetType === 3 ? { assetType: 3 } : {}),
       assetName: asset?.marketName || asset?.assetName,
     })
     .open();
@@ -427,6 +428,7 @@ function assetImage(name: string) {
               bordered
             />
           </div>
+          <div v-else-if="activeTab === 'file'" class="mart-detail__empty"><p>获批后可在“我的资产”下载对应版本的文件。</p></div>
           <div v-else class="mart-detail__empty">
             <img
               :src="assetImage('empty-permission')"

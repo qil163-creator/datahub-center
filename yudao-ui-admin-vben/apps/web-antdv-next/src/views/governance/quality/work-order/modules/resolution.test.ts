@@ -10,8 +10,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { replayEtlTargetBatch } from '#/api/dataforge/etl';
 import {
   confirmWorkOrder,
+  extendWorkOrderDeadline,
   getWorkOrder,
   recheckWorkOrder,
+  reopenWorkOrder,
   submitWorkOrderResolution,
 } from '#/api/governance/quality/workorder';
 
@@ -166,6 +168,8 @@ vi.mock('#/api/governance/quality/workorder', () => ({
   getWorkOrder: vi.fn(),
   confirmWorkOrder: vi.fn(),
   recheckWorkOrder: vi.fn(),
+  reopenWorkOrder: vi.fn(),
+  extendWorkOrderDeadline: vi.fn(),
   submitWorkOrderResolution: vi.fn(),
   assignWorkOrder: vi.fn(),
   claimWorkOrder: vi.fn(),
@@ -336,6 +340,28 @@ afterEach(() => {
 });
 
 describe('真实工单处理组件', () => {
+  it('重开已关闭工单后可延期，保留版本并拒绝向前调整的日期', async () => {
+    const before = dayjs().add(5, 'day');
+    const after = before.add(2, 'day');
+    const opened = fixture({ allowedActions: ['EXTEND'], lockVersion: 8, deadline: before.valueOf() });
+    vi.mocked(reopenWorkOrder).mockResolvedValue(opened);
+    vi.mocked(extendWorkOrderDeadline).mockResolvedValue({ ...opened, lockVersion: 9, deadline: after.valueOf() });
+    await open(fixture({ orderStatus: 'PROCESSED', allowedActions: ['REOPEN'] }));
+    await input('重开原因', '继续核实');
+    await click('reopen');
+    expect(reopenWorkOrder).toHaveBeenCalledWith(expect.objectContaining({ id: ID, expectedVersion: 7, reason: '继续核实' }));
+    expect(host.querySelector('[data-action="reopen"]')).toBeNull();
+    await input('新的整改截止时间', before.subtract(1, 'day').toISOString());
+    await click('extend');
+    expect(extendWorkOrderDeadline).not.toHaveBeenCalled();
+    await input('新的整改截止时间', after.toISOString());
+    await input('延期依据', '责任人补充');
+    await click('extend');
+    expect(extendWorkOrderDeadline).toHaveBeenCalledWith(expect.objectContaining({
+      id: ID, expectedVersion: 8, newDeadline: after.valueOf(), deadlineBasis: '责任人补充',
+    }));
+  });
+
   it('etl 内联工单仅允许提交源端整改说明；没有当前 SOURCE_FIX 时不开放回放', async () => {
     await open(
       fixture({

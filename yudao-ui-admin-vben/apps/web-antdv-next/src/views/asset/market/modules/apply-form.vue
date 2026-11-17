@@ -114,6 +114,11 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 async function loadOptions() {
+  if (model.assetType === 3) {
+    apps.value = [];
+    apis.value = [];
+    return;
+  }
   try {
     const [myApps, apiList] = await Promise.all([
       getMarketAvailableApps(),
@@ -224,7 +229,8 @@ async function submit(asPending: boolean) {
           placeholder="说明申请用途"
         />
       </div>
-      <div class="form-item">
+      <div v-if="model.assetType === 3" class="form-item"><label class="form-item__label">交付范围</label><span>整份文件</span></div>
+      <div v-else class="form-item">
         <label class="form-item__label">字段范围</label>
         <Input
           v-model:value="model.fieldScope"
@@ -267,7 +273,7 @@ async function submit(asPending: boolean) {
           <Input v-model:value="model.email" />
         </div>
       </div>
-      <div class="form-item">
+      <div v-if="model.assetType !== 3" class="form-item">
         <label class="form-item__label">开通 API</label>
         <div class="flex min-w-0 flex-1 flex-col gap-2">
           <div class="grid grid-cols-2 gap-3">
@@ -303,8 +309,8 @@ async function submit(asPending: boolean) {
             v-model:value="model.applyUseType"
             :options="[
               { label: '不限制', value: 0 },
-              { label: '成功调用次数', value: 1 },
-              { label: '实际返回行数', value: 2 },
+              { label: model.assetType === 3 ? '成功下载次数' : '成功调用次数', value: 1 },
+              ...(model.assetType === 3 ? [] : [{ label: '实际返回行数', value: 2 }]),
             ]"
           />
           <InputNumber

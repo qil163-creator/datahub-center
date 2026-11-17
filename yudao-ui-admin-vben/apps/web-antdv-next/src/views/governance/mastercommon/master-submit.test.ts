@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { masterSubmitCommand } from './master-submit';
+import { masterImportCommand, masterSubmitCommand } from './master-submit';
 
 it('超时后的相同变更复用请求号，成功后新的变更生成新请求号', () => {
   const data = {
@@ -39,4 +39,24 @@ it('租户、用户和变更内容隔离请求号', () => {
     ).size,
   ).toBe(4);
   for (const command of [original, tenant, user, changed]) command.complete();
+});
+
+
+it('批量导入重试按文件内容、会话和模型复用请求号', async () => {
+  const file = new File(['第一批'], 'A.xlsx');
+  const original = await masterImportCommand('owner', '100', file);
+  const renamed = await masterImportCommand('owner', '100', new File(['第一批'], 'B.xlsx'));
+  expect(renamed.requestId).toBe(original.requestId);
+  for (const command of [
+    await masterImportCommand('owner', '100', new File(['第二批'], 'A.xlsx')),
+    await masterImportCommand('owner', '101', file),
+    await masterImportCommand('other', '100', file),
+  ]) {
+    expect(command.requestId).not.toBe(original.requestId);
+    command.complete();
+  }
+  original.complete();
+  const next = await masterImportCommand('owner', '100', file);
+  expect(next.requestId).not.toBe(original.requestId);
+  next.complete();
 });

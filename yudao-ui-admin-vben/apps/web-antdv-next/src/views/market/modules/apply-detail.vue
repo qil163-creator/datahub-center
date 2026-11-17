@@ -20,6 +20,7 @@ import {
   optionLabel,
 } from '#/views/asset/market/market-labels';
 import { formatMarketTime } from '#/views/asset/market/market-time';
+import FileDeliverySummary from '#/views/asset/market/modules/file-delivery-summary.vue';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
 
 import { applyAccessLabel, deliveryLabel } from '../grant-status';
@@ -68,7 +69,7 @@ async function viewAuthorizedAsset() {
   }
 }
 function quotaLabel(row: MarketApi.Apply) {
-  if (row.applyUseType === 1) return `${row.applyUseTimes} 次成功调用`;
+  if (row.applyUseType === 1) return `${row.applyUseTimes} 次成功${row.assetType === 3 ? '下载' : '调用'}`;
   if (row.applyUseType === 2) return `${row.applyUseTimes} 行`;
   return '不限制';
 }
@@ -129,8 +130,8 @@ const fields = computed<DetailFieldItem[]>(() => {
     },
     {
       key: 'fieldScope',
-      label: '字段范围',
-      value: row.fieldScope,
+      label: row.assetType === 3 ? '交付范围' : '字段范围',
+      value: row.assetType === 3 ? '整份文件' : row.fieldScope,
       span: 2,
     },
     {
@@ -249,7 +250,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 <template>
   <Drawer>
-    <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
+    <FileDeliverySummary v-if="detail?.fileDelivery" :file="detail.fileDelivery" />
+      <DetailFieldForm :fields="fields" class="mx-4" label-width="130px" />
     <div v-if="authorizedAssets.canOpen(detail)" class="mx-4 mt-3">
       <Button type="primary" @click="viewAuthorizedAsset">
         查看已授权资产

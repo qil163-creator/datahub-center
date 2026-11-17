@@ -150,7 +150,9 @@ public class AssetCatalogServiceImpl implements AssetCatalogService {
                     .eq(AssetTechLinkDO::getAssetId, reqVO.getAssetId())
                     .ne(AssetTechLinkDO::getId, link.getId()));
         }
-        syncPrimaryProjection(reqVO.getAssetId());
+        if (Objects.equals(link.getPrimaryFlag(), 1)) {
+            writePrimaryProjection(asset.getId(), link, metadata.getDbName());
+        }
         casRevision(asset, null);
         catalogLinkService.enqueue(asset, metadata.getId(), true);
         return link.getId();
@@ -343,6 +345,7 @@ public class AssetCatalogServiceImpl implements AssetCatalogService {
                 .set(DataAssetDO::getPublishedCatalogVersionId, versionId)
                 .set(DataAssetDO::getMetaTableId, frozen.getMetaTableId())
                 .set(DataAssetDO::getDatasourceId, frozen.getDatasourceId())
+                .set(DataAssetDO::getDbName, frozen.getDbName())
                 .set(DataAssetDO::getSchemaName, frozen.getSchemaName())
                 .set(DataAssetDO::getTableName, frozen.getTableName())
                 .set(DataAssetDO::getResourceUrn, frozen.getResourceUrn())
@@ -575,14 +578,19 @@ public class AssetCatalogServiceImpl implements AssetCatalogService {
     @Override
     public void feedbackTicket(Long id, String conclusion) {
         AssetReviewTicketDO ticket = requireTicket(id);
-        if (ticket.getStatus() < AssetReviewTicketDO.STATUS_CLAIMED
-                || ticket.getStatus() > AssetReviewTicketDO.STATUS_FIXING) {
+        if (!Objects.equals(ticket.getStatus(), AssetReviewTicketDO.STATUS_CLAIMED)
+                && !Objects.equals(ticket.getStatus(), AssetReviewTicketDO.STATUS_FIXING)
+                && !Objects.equals(ticket.getStatus(), AssetReviewTicketDO.STATUS_RETURNED)) {
             throw exception(DATA_ASSET_TICKET_STATUS_DENY);
         }
-        ticketMapper.update(null, Wrappers.lambdaUpdate(AssetReviewTicketDO.class)
+        int changed = ticketMapper.update(null, Wrappers.lambdaUpdate(AssetReviewTicketDO.class)
                 .set(AssetReviewTicketDO::getStatus, AssetReviewTicketDO.STATUS_FEEDBACK)
                 .set(AssetReviewTicketDO::getConclusion, conclusion)
-                .eq(AssetReviewTicketDO::getId, id));
+                .eq(AssetReviewTicketDO::getId, id)
+                .eq(AssetReviewTicketDO::getStatus, ticket.getStatus()));
+        if (changed == 0) {
+            throw exception(DATA_ASSET_TICKET_STATUS_DENY);
+        }
     }
 
     /**
@@ -680,11 +688,26 @@ public class AssetCatalogServiceImpl implements AssetCatalogService {
                 .filter(item -> Objects.equals(item.getPrimaryFlag(), 1))
                 .findFirst()
                 .orElse(links.size() == 1 ? links.getFirst() : null);
+        String dbName = null;
+        if (primary != null) {
+            MetadataTableRespDTO table = metadataApi.getTable(primary.getMetaTableId()).getCheckedData();
+            if (table == null || !Objects.equals(table.getId(), primary.getMetaTableId())
+                    || !Objects.equals(table.getPublishedSnapshotId(), primary.getSnapshotId())
+                    || !Objects.equals(table.getResourceUrn(), primary.getResourceUrn())) {
+                throw exception(DATA_ASSET_TECH_UNAVAILABLE);
+            }
+            dbName = table.getDbName();
+        }
+        writePrimaryProjection(assetId, primary, dbName);
+    }
+
+    private void writePrimaryProjection(Long assetId, AssetTechLinkDO primary, String dbName) {
         boolean available = primary != null && primary.getDatasourceId() != null
                 && StrUtil.isNotBlank(primary.getObjectName());
         assetMapper.update(null, Wrappers.lambdaUpdate(DataAssetDO.class)
                 .set(DataAssetDO::getMetaTableId, primary == null ? null : primary.getMetaTableId())
                 .set(DataAssetDO::getDatasourceId, primary == null ? null : primary.getDatasourceId())
+                .set(DataAssetDO::getDbName, dbName)
                 .set(DataAssetDO::getSchemaName, primary == null ? null : primary.getSchemaName())
                 .set(DataAssetDO::getTableName, primary == null ? null : primary.getObjectName())
                 .set(DataAssetDO::getResourceUrn, primary == null ? null : primary.getResourceUrn())

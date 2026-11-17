@@ -1,5 +1,8 @@
 server:
   port: 48080
+spring:
+  config:
+    import: optional:file:${user.home}/.local/share/datahub/asset-file-delivery-tls/infra.properties
 
 --- #################### 数据库相关配置 ####################
 spring:

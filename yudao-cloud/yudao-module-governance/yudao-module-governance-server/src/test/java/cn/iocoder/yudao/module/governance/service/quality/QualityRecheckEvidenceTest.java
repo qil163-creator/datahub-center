@@ -58,6 +58,25 @@ class QualityRecheckEvidenceTest {
         recheckAudit.setReadEvidence(readEvidence(recheckAudit));
     }
 
+    @Test void taskLocalEvaluationUsesBothFrozenDefinitionsAndItsBoundObject() {
+        issue.setRuleId(null);
+        for (var audit : List.of(originalAudit, recheckAudit)) {
+            audit.setRuleId(null); audit.setEvaluationId(47L);
+        }
+        for (var definition : List.of(baseline, current)) {
+            var rule = definition.getRules().getFirst();
+            rule.setId(null); rule.setExecutionEvaluationId(47L); rule.setExecutionObjectId(issue.getObjectId());
+        }
+        var outcome = judge();
+        assertThat(outcome.recheckStatus()).isEqualTo("PASS");
+        assertThat(outcome.checks().getFirst().get("evaluationId")).isEqualTo(47L);
+        current.getRules().getFirst().setExecutionObjectId(999L);
+        assertWaiting();
+        current.getRules().getFirst().setExecutionObjectId(issue.getObjectId());
+        recheckAudit.setEvaluationId(48L);
+        assertWaiting();
+    }
+
     @Test void changedThresholdUnderSameRuleIdIsNotComparable() {
         current.getRules().getFirst().setParamSchema("{\"column\":\"amount\",\"min\":0}");
         assertWaiting();

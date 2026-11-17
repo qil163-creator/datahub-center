@@ -22,6 +22,9 @@ import {
   getDatabaseTableList,
 } from '#/api/dataforge/database';
 import { useObjectRequest } from '#/hooks/use-object-request';
+
+import { qualityObjectSourceTypes } from '../../check-object/source-types';
+
 const emit = defineEmits<{ save: [value: QualityTaskApi.Object] }>();
 const form = ref<Partial<QualityTaskApi.Object>>({});
 const readonly = ref(false);
@@ -38,6 +41,9 @@ const source = computed(() =>
     (entry) => String(entry.id) === String(form.value.datasourceConnId),
   ),
 );
+function defaultSourceType() {
+  return source.value?.usageType === 1 ? 'THIRD_PARTY' : undefined;
+}
 const [Modal, modalApi] = useVbenModal({
   onClosed() {
     requests.begin();
@@ -73,7 +79,12 @@ async function open(value?: QualityTaskApi.Object, detail = false) {
     const result = await getDatabaseSimpleList();
     if (current()) {
       sources.value = result;
-      if (form.value.datasourceConnId !== undefined) await loadTables();
+      if (form.value.datasourceConnId !== undefined) {
+        if (!detail && !qualityObjectSourceTypes.some((item) => item.value === form.value.datasourceType)) {
+          form.value.datasourceType = defaultSourceType();
+        }
+        await loadTables();
+      }
     }
   } catch {
     if (current()) failed.value = true;
@@ -96,7 +107,7 @@ async function loadTables() {
 function changeSource() {
   form.value.tableName = '';
   form.value.tableId = undefined;
-  form.value.datasourceType = source.value?.databaseTypeName;
+  form.value.datasourceType = defaultSourceType();
   form.value.datasourceConnName = source.value?.name;
   form.value.datasourceInstance = source.value?.databaseSchema;
   void loadTables();
@@ -168,11 +179,11 @@ defineExpose({ open });
             @change="changeSource"
           />
         </FormItem>
-        <FormItem label="数据连接类型">
-          <Input
-            :value="form.datasourceType || source?.databaseTypeName"
-            readonly
-          />
+        <FormItem label="数据库类型">
+          <Input :value="source?.databaseTypeName" readonly />
+        </FormItem>
+        <FormItem label="数据连接用途" name="datasourceType" :rules="[{ required: true, message: '请选择连接用途' }]">
+          <Select v-model:value="form.datasourceType" :options="qualityObjectSourceTypes" placeholder="请选择连接用途" />
         </FormItem>
         <FormItem label="实例/模式">
           <Input v-model:value="form.datasourceInstance" readonly />

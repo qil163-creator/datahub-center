@@ -36,6 +36,8 @@ public interface CategoryCleanRuleService {
      */
     void deleteCategoryCleanRule(Long id);
 
+    void deleteCategoryCleanRuleList(List<Long> ids);
+
 
     /**
      * 获得清洗规则 类目管理

@@ -1,18 +1,21 @@
 package cn.iocoder.yudao.module.asset.controller.admin.categorytag;
 
-import com.mzt.logapi.context.LogRecordContext;
-import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagListReqVO;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagRespVO;
 import cn.iocoder.yudao.module.asset.controller.admin.categorytag.vo.CategoryTagSaveReqVO;
 import cn.iocoder.yudao.module.asset.service.categorytag.CategoryTagService;
+import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -79,6 +82,18 @@ public class CategoryTagController {
                         ? "编号" + id : auditBefore.getCategoryName());
 
         categoryTagService.deleteCategoryTag(id);
+        return success(true);
+    }
+
+    @DeleteMapping("/delete-list")
+    @Operation(summary = "批量删除标签类目")
+    @LogRecord(type = "数据资产-标签类目", subType = "批量删除标签类目", bizNo = "{{#ids}}",
+            success = "批量删除标签类目【{{#ids}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @PreAuthorize("@ss.hasPermission('asset:category-tag:delete')")
+    public CommonResult<Boolean> deleteCategoryTagList(
+            @RequestParam("ids") @Size(min = 1, max = 200) List<@NotNull @Positive Long> ids) {
+        categoryTagService.deleteCategoryTagList(ids);
         return success(true);
     }
 

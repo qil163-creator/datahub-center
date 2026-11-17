@@ -49,6 +49,25 @@ afterEach(() => { app?.unmount(); host?.remove(); vi.clearAllMocks(); });
 async function flush() { for (let index = 0; index < 10; index++) await Promise.resolve(); await nextTick(); }
 
 describe('作业上线状态编辑', () => {
+  it('草稿保存成功后详情读取失败，重试只补读并关闭表单', async () => {
+    const job: JobApi.Job = { id: '9007199254740993', revision: 9, categoryId: 5, ownerId: 7, name: '专用草稿', strategy: 'PARALLEL', status: 0, scheduleStatus: 0 };
+    vi.mocked(getJob).mockRejectedValueOnce(new Error('读取中断')).mockResolvedValueOnce({ ...job, revision: 10 });
+    host = document.createElement('div'); document.body.append(host);
+    const saved = vi.fn();
+    app = createApp({ setup: () => () => h(JobForm, { open: true, initialJob: job, onSuccess: saved }) });
+    const errorHandler = vi.fn();
+    app.config.errorHandler = errorHandler;
+    app.mount(host); await flush();
+    const submit = [...host.querySelectorAll('button')].find(button => button.textContent?.trim() === '保存')!;
+    submit.click(); await flush();
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(saved).not.toHaveBeenCalled();
+    submit.click(); await flush();
+    expect(updateJob).toHaveBeenCalledOnce();
+    expect(getJob).toHaveBeenCalledTimes(2);
+    expect(saved).toHaveBeenCalledWith(expect.objectContaining({ id: job.id, revision: 10 }));
+  });
+
   it('先用原修订号下线，再使用下线后的修订号保存配置', async () => {
     const job: JobApi.Job = { id: '9007199254740993', revision: 9, categoryId: '9007199254740995', ownerId: '9007199254740997', name: '上线作业', strategy: 'SERIAL_WAIT', status: 1, scheduleStatus: 0, flowJson: '{"nodes":[],"edges":[]}' };
     vi.mocked(getJob).mockResolvedValueOnce({ ...job, revision: 10, status: 0 }).mockResolvedValueOnce({ ...job, revision: 11, status: 0 });

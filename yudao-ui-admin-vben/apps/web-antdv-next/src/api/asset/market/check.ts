@@ -2,6 +2,7 @@ import type { PageParam, PageResult } from '@vben/request';
 
 import type { DataAssetApi } from '#/api/asset/dataasset';
 import type { MarketApi } from '#/api/asset/market';
+import type { DeliveryFileBinding } from '#/api/asset/market/file-delivery';
 
 import { requestClient } from '#/api/request';
 
@@ -10,6 +11,7 @@ export namespace MarketCheckApi {
   export type Origin = 'NATIVE' | 'QDATA';
   export type Time = null | number | string;
   export interface Ticket {
+    fileDelivery?: DeliveryFileBinding;
     id: string;
     origin: Origin;
     displayId: string;
@@ -30,6 +32,7 @@ export namespace MarketCheckApi {
     sourceStatus?: string;
     sourceStatusLabel?: string;
     revision: number;
+    canRevokeFile?: boolean;
     canApprove: boolean;
     canReject: boolean;
     canView: boolean;

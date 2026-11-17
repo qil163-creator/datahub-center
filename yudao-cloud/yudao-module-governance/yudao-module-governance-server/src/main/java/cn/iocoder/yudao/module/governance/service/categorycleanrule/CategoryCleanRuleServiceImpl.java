@@ -2,10 +2,13 @@ package cn.iocoder.yudao.module.governance.service.categorycleanrule;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.CategoryCleanRuleListReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.CategoryCleanRuleSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.categorycleanrule.CategoryCleanRuleDO;
+import cn.iocoder.yudao.module.governance.dal.dataobject.qualityrule.CleanRuleDO;
 import cn.iocoder.yudao.module.governance.dal.mysql.categorycleanrule.CategoryCleanRuleMapper;
+import cn.iocoder.yudao.module.governance.dal.mysql.qualityrule.CleanRuleMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,8 +16,10 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.TreeSet;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.invalidParamException;
 import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.*;
 
 /**
@@ -32,6 +37,8 @@ public class CategoryCleanRuleServiceImpl implements CategoryCleanRuleService {
 
     @Resource
     private CategoryCleanRuleMapper categoryCleanRuleMapper;
+    @Resource
+    private CleanRuleMapper cleanRuleMapper;
 
     /**
      * 创建清洗规则 类目管理
@@ -97,26 +104,48 @@ public class CategoryCleanRuleServiceImpl implements CategoryCleanRuleService {
      *  @param id 编号
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteCategoryCleanRule(Long id) {
-        // 校验存在
-        validateCategoryCleanRuleExists(id);
+        if (categoryCleanRuleMapper.selectByIdForUpdate(id) == null) {
+            throw exception(CATEGORY_CLEAN_RULE_NOT_EXISTS);
+        }
         // 校验是否有子清洗规则 类目管理
         if (categoryCleanRuleMapper.selectCountByParentId(id) > 0) {
             throw exception(CATEGORY_CLEAN_RULE_EXITS_CHILDREN);
         }
-        // 删除
+        if (cleanRuleMapper.selectCount(CleanRuleDO::getCategoryId, id) > 0) {
+            throw invalidParamException("存在引用该类目的清洗规则，无法删除");
+        }
         categoryCleanRuleMapper.deleteById(id);
     }
 
-
-    /**
-     * 校验清洗规则分类记录存在，不存在时抛出业务异常。
-     */
-    private void validateCategoryCleanRuleExists(Long id) {
-        if (categoryCleanRuleMapper.selectById(id) == null) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCategoryCleanRuleList(List<Long> ids) {
+        if (ids == null || ids.isEmpty() || ids.size() > 200 || ids.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw invalidParamException("请选择1至200个有效类目");
+        }
+        var selected = new TreeSet<>(ids);
+        var categories = categoryCleanRuleMapper.selectList(new LambdaQueryWrapperX<CategoryCleanRuleDO>()
+                .in(CategoryCleanRuleDO::getId, selected).orderByAsc(CategoryCleanRuleDO::getId).last("FOR UPDATE"));
+        if (categories.size() != selected.size()) {
             throw exception(CATEGORY_CLEAN_RULE_NOT_EXISTS);
         }
+        if (categories.stream().anyMatch(category -> category.getStatus() == null || category.getStatus() != 1)) {
+            throw invalidParamException("请先禁用所选类目后再删除");
+        }
+        if (categoryCleanRuleMapper.selectCount(new LambdaQueryWrapperX<CategoryCleanRuleDO>()
+                .in(CategoryCleanRuleDO::getParentId, selected).notIn(CategoryCleanRuleDO::getId, selected)) > 0) {
+            throw exception(CATEGORY_CLEAN_RULE_EXITS_CHILDREN);
+        }
+        if (cleanRuleMapper.selectCount(new LambdaQueryWrapperX<CleanRuleDO>()
+                .in(CleanRuleDO::getCategoryId, selected)) > 0) {
+            throw invalidParamException("存在引用所选类目的清洗规则，无法删除");
+        }
+        categoryCleanRuleMapper.deleteByIds(selected);
     }
+
+
 
     /**
      * 校验清洗规则分类的父级分类清洗规则，不满足约束时拒绝当前操作。
@@ -130,7 +159,7 @@ public class CategoryCleanRuleServiceImpl implements CategoryCleanRuleService {
             throw exception(CATEGORY_CLEAN_RULE_PARENT_ERROR);
         }
         // 2. 父清洗规则 类目管理不存在
-        CategoryCleanRuleDO parentCategoryCleanRule = categoryCleanRuleMapper.selectById(parentId);
+        CategoryCleanRuleDO parentCategoryCleanRule = categoryCleanRuleMapper.selectByIdForUpdate(parentId);
         if (parentCategoryCleanRule == null) {
             throw exception(CATEGORY_CLEAN_RULE_PARENT_NOT_EXITS);
         }

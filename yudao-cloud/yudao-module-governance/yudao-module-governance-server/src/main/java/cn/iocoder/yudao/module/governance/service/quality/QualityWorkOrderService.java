@@ -162,6 +162,9 @@ public interface QualityWorkOrderService {
      */
     void evaluateRechecks();
 
+    /** 核验指定工单当前正在运行的复检轮次。 */
+    void evaluateRechecks(long workOrderId);
+
     /**
      * 派发到期通知。
      */

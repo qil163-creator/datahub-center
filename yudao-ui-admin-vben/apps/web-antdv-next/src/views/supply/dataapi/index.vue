@@ -26,7 +26,6 @@ import {
   Input,
   Menu,
   message,
-  Modal,
   Switch,
   Table,
   Tag,
@@ -181,21 +180,20 @@ function handleEditCategory(category: SupplyApiCategoryApi.ApiCategory) {
   categoryFormModalApi.setData({ id: category.id }).open();
 }
 
-function handleDeleteCategory(category: SupplyApiCategoryApi.ApiCategory) {
-  Modal.confirm({
-    title: '系统提示',
-    content: `确认要删除类目"${category.name}"吗？`,
-    okButtonProps: { danger: true },
-    onOk: async () => {
-      await deleteApiCategory(category.id!);
-      message.success(`类目"${category.name}"已删除`);
-      if (selectedCategoryId.value === category.id) {
-        selectedCategoryId.value = undefined;
-        handleRefresh();
-      }
-      loadCategories();
-    },
-  });
+async function handleDeleteCategory(category: SupplyApiCategoryApi.ApiCategory) {
+  if (!category.id) return;
+  try {
+    await confirm({ title: '删除类目', content: `确认要删除类目“${category.name}”吗？` });
+  } catch {
+    return;
+  }
+  await deleteApiCategory(category.id);
+  message.success(`类目“${category.name}”已删除`);
+  if (selectedCategoryId.value === category.id) {
+    selectedCategoryId.value = undefined;
+    handleRefresh();
+  }
+  await loadCategories();
 }
 
 function handleCategorySaved() {

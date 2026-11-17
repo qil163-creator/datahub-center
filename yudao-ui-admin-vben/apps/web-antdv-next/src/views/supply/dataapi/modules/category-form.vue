@@ -19,16 +19,19 @@ import {
   updateApiCategory,
 } from '#/api/supply/apicategory';
 import { $t } from '#/locales';
+import { createLatestWins } from '#/utils/resource-id';
 
 import { SUPPLY_MODAL_FORM } from '../../form-layout';
 
 defineOptions({ name: 'SupplyApiCategoryForm' });
 
 const emit = defineEmits(['success']);
-const formData = ref<SupplyApiCategoryApi.ApiCategory>();
+const editId = ref<SupplyApiCategoryApi.ApiCategory['id']>();
+const ready = ref(false);
+const loads = createLatestWins();
 
 const getTitle = computed(() =>
-  formData.value?.id ? '修改服务类目' : '新建服务类目',
+  editId.value == null ? '新建服务类目' : '修改服务类目',
 );
 
 /** 新增/修改的表单 */
@@ -129,6 +132,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
+    if (!ready.value) return;
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
@@ -137,9 +141,9 @@ const [Modal, modalApi] = useVbenModal({
     const data =
       (await formApi.getValues()) as SupplyApiCategoryApi.ApiCategory;
     try {
-      await (formData.value?.id
-        ? updateApiCategory(data)
-        : createApiCategory(data));
+      await (editId.value == null
+        ? createApiCategory(data)
+        : updateApiCategory({ ...data, id: editId.value }));
       await modalApi.close();
       emit('success');
       message.success($t('ui.actionMessage.operationSuccess'));
@@ -148,31 +152,37 @@ const [Modal, modalApi] = useVbenModal({
     }
   },
   async onOpenChange(isOpen: boolean) {
+    const load = loads.next();
+    ready.value = false;
+    formApi.setDisabled(true);
     if (!isOpen) {
-      formData.value = undefined;
+      editId.value = undefined;
       await formApi.resetForm();
       return;
     }
     const data = modalApi.getData() as SupplyApiCategoryApi.ApiCategory;
-    await formApi.resetForm();
-    if (!data?.id) {
-      // 新建：支持从「新增子类目」带入上级类目
-      await formApi.setValues({ parentId: data?.parentId ?? 0 });
-      return;
-    }
+    editId.value = data?.id;
     modalApi.lock();
     try {
-      formData.value = await getApiCategory(data.id);
-      await formApi.setValues(formData.value);
+      await formApi.resetForm();
+      if (!load.isCurrent()) return;
+      const values = data?.id == null
+        ? { parentId: data?.parentId ?? 0 }
+        : await getApiCategory(data.id);
+      if (!load.isCurrent()) return;
+      await formApi.setValues(values);
+      if (!load.isCurrent()) return;
+      ready.value = true;
+      formApi.setDisabled(false);
     } finally {
-      modalApi.unlock();
+      if (load.isCurrent()) modalApi.unlock();
     }
   },
 });
 </script>
 
 <template>
-  <Modal :title="getTitle" class="w-[800px]">
+  <Modal :title="getTitle" :confirm-disabled="!ready" class="w-[800px]">
     <Form class="mx-4" />
   </Modal>
 </template>

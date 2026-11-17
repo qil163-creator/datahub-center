@@ -10,6 +10,10 @@ import cn.iocoder.yudao.module.governance.api.metadata.MetadataApi;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataFileRespDTO;
 import cn.iocoder.yudao.module.supply.api.dataapi.SupplyDataApiApi;
 import cn.iocoder.yudao.module.supply.api.dataapi.dto.SupplyPublishedApiDocumentRespDTO;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,6 +25,11 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class AssetRegistrationServiceTest {
+    @BeforeAll
+    static void initMapperMetadata() {
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), DataAssetDO.class);
+    }
+
     private final AssetRegistrationService service = new AssetRegistrationService();
     private final DataAssetService assetService = mock(DataAssetService.class);
     private final DataAssetMapper assets = mock(DataAssetMapper.class);

@@ -41,6 +41,7 @@ import {
 
 import { DELIVERY_TYPE_OPTIONS } from '../data';
 import { TABLE_KIND_META } from '../map/data';
+import FileDeliveryBinding from './file-delivery-binding.vue';
 
 defineOptions({ name: 'AssetMarketPublishForm' });
 const emit = defineEmits<{ success: [] }>();
@@ -110,6 +111,8 @@ const englishName = computed(() => {
 });
 const loading = ref(false);
 const saving = ref(false);
+const boundFile = ref(false);
+const fileRequired = computed(() => asset.value?.assetType === 3);
 const loadError = ref('');
 let opened = false;
 const frequencies = [
@@ -168,6 +171,7 @@ const [Modal, modalApi] = useVbenModal({
       !canPublish.value ||
       loading.value ||
       saving.value ||
+      (fileRequired.value && !boundFile.value) ||
       loadError.value
     )
       return;
@@ -222,6 +226,7 @@ function invalidate() {
   saving.value = false;
   loadError.value = '';
   categories.value = [];
+  boundFile.value = false;
   for (const key of Object.keys(model)) Reflect.deleteProperty(model, key);
   model.assetId = '';
   asset.value = undefined;
@@ -251,6 +256,7 @@ async function load() {
     )
       throw new Error('LISTING_IDENTITY');
     Object.assign(model, listing, {
+      deliveryTypes: fileRequired.value ? [3] : listing.deliveryTypes,
       marketCategoryId:
         listing.marketCategoryId === undefined ||
         listing.marketCategoryId === null
@@ -288,7 +294,7 @@ onBeforeUnmount(() => {
     class="mart-publish-modal !top-[60px] !w-[1200px] !max-w-[calc(100vw-32px)] !rounded-[var(--radius)]"
     content-class="!p-0"
     :loading="loading"
-    :confirm-disabled="loading || saving || !!loadError || !canPublish"
+    :confirm-disabled="loading || saving || !!loadError || !canPublish || (fileRequired && !boundFile)"
   >
 <Form
       ref="form"
@@ -384,6 +390,19 @@ onBeforeUnmount(() => {
           <CheckboxGroup
             v-model:value="model.deliveryTypes"
             :options="DELIVERY_TYPE_OPTIONS"
+            :disabled="fileRequired"
+          />
+        </FormItem>
+        <FormItem
+          v-if="fileRequired && canPublish && asset?.id && !loading && !loadError"
+          label="交付文件"
+          required
+          class="mart-publish-form__description"
+        >
+          <FileDeliveryBinding
+            :asset-id="asset.id"
+            :version-id="asset.publishedCatalogVersionId"
+            @bound="boundFile = $event"
           />
         </FormItem>
         <FormItem
@@ -413,7 +432,7 @@ onBeforeUnmount(() => {
         class="mart-publish-footer__button"
         type="primary"
         :loading="saving"
-        :disabled="loading || saving || !!loadError || !canPublish"
+        :disabled="loading || saving || !!loadError || !canPublish || (fileRequired && !boundFile)"
         @click="modalApi.onConfirm()"
       >
         确定

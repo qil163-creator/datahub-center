@@ -53,8 +53,10 @@ vi.mock('#/views/dashboard/shared/route-resolver', () => ({
   DASHBOARD_TARGETS: {},
   useDashboardNav: () => ({
     navTo: harness.navTo,
-    resolve: (target?: { names?: string[] }) =>
-      target?.names?.[0] ? `/dynamic/${target.names[0]}` : undefined,
+    resolve: (target?: { names?: string[] }) => {
+      const name = target?.names?.find((item) => item !== 'ModelingIndicatorModel');
+      return name ? `/dynamic/${name}` : undefined;
+    },
   }),
 }));
 vi.mock('./overview-artwork.vue', () => ({ default: () => null }));
@@ -159,7 +161,7 @@ describe('建模概览请求状态', () => {
     expect(indicator.disabled).toBe(false);
     indicator.click();
     expect(harness.navTo).toHaveBeenLastCalledWith(
-      '/dynamic/ModelingIndicatorModel',
+      '/dynamic/ModelingAtomicIndicator',
     );
   });
 

@@ -291,6 +291,51 @@ class QualityWorkOrderAcceptanceTest {
         req.setDeadlineBasis("书面延期");
         service.extendDeadline(req);
         assertThat(order.getEverOverdue()).isEqualTo(1);
+        LocalDateTime previous = order.getDeadline();
+        req.setNewDeadline(previous.minusDays(1));
+        assertThatThrownBy(() -> service.extendDeadline(req)).isInstanceOf(ServiceException.class);
+        assertThat(order.getDeadline()).isEqualTo(previous);
+    }
+
+    @Test
+    void reopenClearsCurrentConclusionButKeepsOverdueHistory() {
+        QualityWorkOrderDO order = order(8L);
+        order.setOrderStatus(QualityWorkOrderDO.STATUS_PROCESSED);
+        order.setCloseType(QualityWorkOrderDO.CLOSE_EXPLAINED);
+        order.setCloseReason("历史说明");
+        order.setAuditOpinion("已接受");
+        order.setClosedAt(LocalDateTime.now().minusDays(1));
+        order.setClosedBy(3L);
+        order.setCurrentSubmissionId(11L);
+        order.setEverOverdue(1);
+        order.setClosedOverdue(1);
+        order.setLockVersion(3);
+        when(guard.requireUserId()).thenReturn(4L);
+        when(guard.has(4L, QualityWorkOrderGuard.PERM_REOPEN)).thenReturn(true);
+        when(workOrderMapper.selectByIdForUpdate(8L)).thenReturn(order);
+        when(workOrderMapper.selectById(8L)).thenReturn(order);
+        when(workOrderMapper.update(any(), any())).thenReturn(1);
+        QualityWorkOrderCommandReqVO req = new QualityWorkOrderCommandReqVO();
+        req.setId(8L);
+        req.setExpectedVersion(3);
+        req.setRequestId("reopen-1");
+        service.reopen(req);
+        assertThat(order.getOrderStatus()).isEqualTo(QualityWorkOrderDO.STATUS_IN_PROGRESS);
+        assertThat(order.getCurrentSubmissionId()).isNull();
+        assertThat(order.getCloseType()).isNull();
+        assertThat(order.getCloseReason()).isNull();
+        assertThat(order.getClosedBy()).isNull();
+        assertThat(order.getClosedAt()).isNull();
+        assertThat(order.getAuditOpinion()).isNull();
+        assertThat(order.getClosedOverdue()).isZero();
+        assertThat(order.getEverOverdue()).isOne();
+    }
+
+    @Test
+    void targetedRecheckDoesNotScanOtherOrders() {
+        service.evaluateRechecks(812L);
+        verify(recheckMapper).selectRunning(812L, 20);
+        verify(recheckMapper, never()).selectRunning(20);
     }
 
     @Test

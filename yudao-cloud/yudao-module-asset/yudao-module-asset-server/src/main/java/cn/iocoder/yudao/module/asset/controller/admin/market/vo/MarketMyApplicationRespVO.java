@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 @Schema(description = "管理后台 - 本人申请记录")
 @Data
 public class MarketMyApplicationRespVO {
+
+    private MarketFileBindingRespVO fileDelivery;
     private Long id;
     private String applyNo;
     private String title;

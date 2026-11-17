@@ -124,7 +124,7 @@ class IntegrationTaskServiceTest {
     }
 
     @Test void clonePreservesGraphButDropsBindingsHistoryAndEnabledState() {
-        var source = task(); source.setPipelineId(55L); source.setImportedSnapshot(true);
+        var source = task(); source.setDeleted(false); source.setPipelineId(55L); source.setImportedSnapshot(true);
         source.setLastRunStatus("RUNNING"); source.setLastRunTime(LocalDateTime.of(2026, 10, 22, 12, 0));
         source.setLastRunDuration(500L); source.setFlowJson("{\"nodes\":[{\"id\":\"input\"}],\"edges\":[]}");
         when(tasks.selectOne(any(Wrapper.class))).thenReturn(source);
@@ -133,6 +133,7 @@ class IntegrationTaskServiceTest {
         assertEquals(101L, service.cloneTask(7L));
         var capture = ArgumentCaptor.forClass(IntegrationTaskDO.class); verify(tasks).insert(capture.capture());
         var clone = capture.getValue();
+        assertNull(clone.getDeleted());
         assertEquals(source.getFlowJson(), clone.getFlowJson()); assertEquals("IDLE", clone.getLastRunStatus());
         assertNull(clone.getPipelineId()); assertNull(clone.getLastRunTime()); assertNull(clone.getLastRunDuration());
         assertFalse(clone.getImportedSnapshot()); assertEquals(0, clone.getStatus()); assertEquals(0, clone.getScheduleStatus());

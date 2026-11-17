@@ -10,6 +10,8 @@ import java.util.Map;
 @Schema(description = "管理后台 - 服务审批工单；来源身份与本地身份隔离")
 public class MarketCheckTicketRespVO {
 
+    private MarketFileBindingRespVO fileDelivery;
+
     private String id;
 
     private String origin;
@@ -51,6 +53,8 @@ public class MarketCheckTicketRespVO {
     private Integer revision;
 
     private Boolean canApprove;
+
+    private boolean canRevokeFile;
 
     private Boolean canReject;
 

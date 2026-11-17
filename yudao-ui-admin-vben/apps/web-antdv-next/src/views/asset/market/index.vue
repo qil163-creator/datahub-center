@@ -302,6 +302,7 @@ function applyAsset(asset: MarketApi.Resource) {
   applyApi
     .setData({
       assetId: asset.id,
+      ...(asset.assetType === 3 ? { assetType: 3 } : {}),
       assetName: asset.marketName || asset.assetName,
     })
     .open();

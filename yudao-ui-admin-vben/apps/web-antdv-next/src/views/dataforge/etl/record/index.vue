@@ -2,7 +2,7 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { DataforgeEtlApi } from '#/api/dataforge/etl';
 
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
@@ -59,6 +59,7 @@ import TargetBatches from './target-batches.vue';
 defineOptions({ name: 'DataforgeEtlRecord' });
 
 const route = useRoute();
+const recordPagePath = route.path;
 const router = useRouter();
 
 const accessStore = useAccessStore();
@@ -73,13 +74,14 @@ const qualityDetailRef = ref<InstanceType<typeof QualityDetail>>();
 const targetBatchesRef = ref<InstanceType<typeof TargetBatches>>();
 const fileOutputsRef = ref<InstanceType<typeof FileOutputs>>();
 async function loadRecords() {
+  if (route.path !== recordPagePath) return;
   handleRefresh();
   const recordId = parseResourceId(route.query.recordId);
   if (recordId) await handleShowLog({ id: recordId });
 }
 onMounted(loadRecords);
 watch(
-  () => route.query.recordId,
+  () => route.path === recordPagePath ? route.query.recordId : undefined,
   (value) => {
     const id = parseResourceId(value);
     if (id) void handleShowLog({ id });
@@ -141,6 +143,11 @@ async function handleShowLog(row: DataforgeEtlApi.EtlRecord) {
   };
   await refresh();
 }
+onDeactivated(() => {
+  logVisible.value = false;
+  stopPolling();
+  closeResolution();
+});
 onBeforeUnmount(() => {
   stopPolling();
   closeResolution();
@@ -294,16 +301,12 @@ const nodeColumns = [
     dataIndex: 'startTime',
     key: 'startTime',
     width: 180,
-    customRender: ({ text }: { text?: number | string }) =>
-      formatDateTime(text) || '-',
   },
   {
     title: '结束时间',
     dataIndex: 'endTime',
     key: 'endTime',
     width: 180,
-    customRender: ({ text }: { text?: number | string }) =>
-      formatDateTime(text) || '-',
   },
   { title: '读取行数', dataIndex: 'readCount', key: 'readCount', width: 90 },
   { title: '写入行数', dataIndex: 'writeCount', key: 'writeCount', width: 90 },
@@ -461,6 +464,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
 
     <Modal
       v-model:open="logVisible"
+      get-container="body"
       :footer="null"
       title="流程日志与节点诊断"
       width="1000px"
@@ -506,6 +510,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
           >
             {{ optionLabel(RUN_STATUS_OPTIONS, record.runStatus) }}
           </Tag>
+          <template v-else-if="column.key === 'startTime'">
+            {{ formatDateTime(record.startTime) || '-' }}
+          </template>
+          <template v-else-if="column.key === 'endTime'">
+            {{ formatDateTime(record.endTime) || '-' }}
+          </template>
           <template v-else-if="column.key === 'durationMs'">
             <span>{{ formatDurationMs(record.durationMs) }}</span>
             <span v-if="record.running" class="text-muted-foreground ml-1">

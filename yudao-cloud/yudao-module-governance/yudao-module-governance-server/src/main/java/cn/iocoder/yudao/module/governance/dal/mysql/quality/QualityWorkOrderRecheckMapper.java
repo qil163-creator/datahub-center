@@ -23,7 +23,12 @@ public interface QualityWorkOrderRecheckMapper extends BaseMapperX<QualityWorkOr
      * 查询运行中。
      */
     default List<QualityWorkOrderRecheckDO> selectRunning(int limit) {
+        return selectRunning(null, limit);
+    }
+
+    default List<QualityWorkOrderRecheckDO> selectRunning(Long workOrderId, int limit) {
         return selectList(new LambdaQueryWrapperX<QualityWorkOrderRecheckDO>()
+                .eqIfPresent(QualityWorkOrderRecheckDO::getWorkOrderId, workOrderId)
                 .eq(QualityWorkOrderRecheckDO::getStatus, QualityWorkOrderSubmissionDO.RECHECK_RUNNING)
                 .orderByAsc(QualityWorkOrderRecheckDO::getId).last("LIMIT " + Math.clamp(limit, 1, 50)));
     }

@@ -35,6 +35,8 @@ const mock = vi.hoisted(() => ({
   page: vi.fn(),
   categories: vi.fn(),
   preview: vi.fn(),
+  downloadFile: vi.fn(),
+  saveFile: vi.fn(),
   detailOpen: vi.fn(),
   detailClose: vi.fn(),
   documentOpen: vi.fn(),
@@ -145,6 +147,13 @@ vi.mock('#/api/asset/my-assets', () => ({
   getMyAssetsPage: mock.page,
   previewMyAsset: mock.preview,
 }));
+vi.mock('#/api/asset/market/file-delivery', () => ({
+  downloadMyAssetFile: mock.downloadFile,
+}));
+vi.mock('@vben/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@vben/utils')>()),
+  downloadFileFromBlobPart: mock.saveFile,
+}));
 vi.mock('#/api/asset/marketcategory', () => ({
   getMarketCategorySimpleList: mock.categories,
 }));
@@ -241,6 +250,7 @@ interface State {
   changePage: (page: number, size: number) => void;
   openDetail: (row: MyAssetsApi.Asset) => void;
   openPreview: (row: MyAssetsApi.Asset) => void;
+  downloadFile: (row: MyAssetsApi.Asset) => Promise<void>;
   openApiDocument: (row: MyAssetsApi.Asset) => void;
   openDetailPreview: (row: MyAssetsApi.Detail) => void;
   openDetailApiDocument: (row: MyAssetsApi.Detail) => void;
@@ -332,6 +342,39 @@ afterEach(() => {
 });
 
 describe('我的资产工作台', () => {
+  const delivery = { fileName: '交付 文件.txt', source: new Blob(['QA']) };
+  const fileRow = { ...asset(), deliveryType: 3, canDownload: true };
+
+  it('下载最后一次后读回额度并关闭下载入口', async () => {
+    mock.page
+      .mockResolvedValueOnce({ list: [fileRow], total: 1 })
+      .mockResolvedValue({ list: [{ ...fileRow, canDownload: false }], total: 1 });
+    mock.downloadFile.mockResolvedValue(delivery);
+    mount();
+    await flush();
+    await state.downloadFile(state.rows[0]!);
+    await flush();
+    expect(mock.downloadFile).toHaveBeenCalledWith(fileRow.applyId);
+    expect(mock.saveFile).toHaveBeenCalledWith(delivery);
+    expect(state.rows[0]?.canDownload).toBe(false);
+  });
+
+  it.each([true, false])('传输中切换账号 %s 时按发起人交付', async (switchUser) => {
+    const request = deferred<typeof delivery>();
+    mock.page.mockResolvedValue({ list: [fileRow], total: 1 });
+    mock.downloadFile.mockReturnValue(request.promise);
+    mount();
+    await flush();
+    const pending = state.downloadFile(state.rows[0]!);
+    if (switchUser) mock.user.userInfo = { userId: '2' };
+    mock.page.mockResolvedValue({ list: [], total: 0 });
+    await state.loadAssets();
+    await flush();
+    request.resolve(delivery);
+    await pending;
+    expect(mock.saveFile).toHaveBeenCalledTimes(switchUser ? 0 : 1);
+  });
+
   it('业务表格展示当前资产并保留按申请编号打开预览', async () => {
     mount();
     await flush();

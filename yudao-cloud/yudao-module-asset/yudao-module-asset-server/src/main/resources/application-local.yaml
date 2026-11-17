@@ -2,7 +2,9 @@
 
 spring:
   config:
-    import: optional:file:${user.home}/.local/share/datahub/asset-term-tls/asset.properties
+    import:
+      - optional:file:${user.home}/.local/share/datahub/asset-term-tls/asset.properties
+      - optional:file:${user.home}/.local/share/datahub/asset-file-delivery-tls/asset-delivery.properties
   cloud:
     nacos:
       server-addr: 152.136.224.218:8848 # Nacos 服务器地址

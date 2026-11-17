@@ -44,7 +44,11 @@ import { VxeGrid, VxeUI } from 'vxe-table';
 
 import { extendProxyOptions } from './extends';
 import { useTableForm } from './init';
-import { applyViewedRowOptions, useViewedRow } from './viewed-row';
+import {
+  applyViewedRowOptions,
+  resolveViewedRowColumns,
+  useViewedRow,
+} from './viewed-row';
 
 import 'vxe-table/styles/cssvar.scss';
 import 'vxe-pc-ui/styles/cssvar.scss';
@@ -202,17 +206,29 @@ const toolbarOptions = computed(() => {
   return { toolbarConfig };
 });
 
+// VXE 按列数组的引用判断是否重建表头，数据与加载状态变化应保留用户的排序。
+const sourceColumns = computed(
+  () =>
+    (gridOptions.value?.columns ??
+      VxeUI.getConfig().grid?.columns) as VxeTableGridProps['columns'],
+);
+const gridColumns = computed(() => {
+  const columns = cloneDeep(sourceColumns.value);
+  const helper = gridApi.viewedRowHelper;
+  return viewedRowOptions.value && helper
+    ? resolveViewedRowColumns(columns, viewedRowOptions.value, helper)
+    : columns;
+});
 const options = computed(() => {
   const globalGridConfig = VxeUI?.getConfig()?.grid ?? {};
-
-  const mergedOptions: VxeTableGridProps = cloneDeep(
-    mergeWithArrayOverride(
-      {},
-      toRaw(toolbarOptions.value),
-      toRaw(gridOptions.value),
-      globalGridConfig,
-    ),
+  const config: VxeTableGridProps = mergeWithArrayOverride(
+    {},
+    toRaw(toolbarOptions.value),
+    toRaw(gridOptions.value),
+    globalGridConfig,
   );
+  const { columns: _columns, ...rest } = config;
+  const mergedOptions: VxeTableGridProps = cloneDeep(rest);
 
   if (mergedOptions.proxyConfig) {
     const { ajax } = mergedOptions.proxyConfig;
@@ -265,6 +281,7 @@ const options = computed(() => {
     );
   }
 
+  mergedOptions.columns = gridColumns.value;
   return mergedOptions;
 });
 

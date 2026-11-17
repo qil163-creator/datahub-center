@@ -7,6 +7,7 @@ import type { GovernanceCategoryTermApi } from '#/api/governance/categoryterm';
 import {
   createCategoryTag,
   deleteCategoryTag,
+  deleteCategoryTagList,
   getCategoryTag,
   getCategoryTagList,
   updateCategoryTag,
@@ -14,6 +15,7 @@ import {
 import {
   createCategoryCleanRule,
   deleteCategoryCleanRule,
+  deleteCategoryCleanRuleList,
   getCategoryCleanRule,
   getCategoryCleanRuleList,
   updateCategoryCleanRule,
@@ -21,23 +23,24 @@ import {
 import {
   createCategoryTerm,
   deleteCategoryTerm,
+  deleteCategoryTermList,
   getCategoryTerm,
   getCategoryTermList,
   updateCategoryTerm,
 } from '#/api/governance/categoryterm';
 
 function normalize(row: {
+  categoryCode?: string;
+  categoryName?: string;
+  createBy?: string;
+  createTime?: number | string;
+  creator?: string;
+  creatorName?: string;
   id: number | string;
   parentId?: number | string;
-  categoryName?: string;
-  categoryCode?: string;
+  remark?: string;
   sort?: number;
   status?: number;
-  remark?: string;
-  createBy?: string;
-  creatorName?: string;
-  creator?: string;
-  createTime?: number | string;
 }): CategoryRow {
   return {
     id: row.id,
@@ -79,6 +82,7 @@ export const cleanRuleCategoryAdapter: CategoryAdapter = {
   create: (data) => createCategoryCleanRule(toCategoryPayload(data) as FoundationCategoryCleanRuleApi.CategoryCleanRule),
   update: (data) => updateCategoryCleanRule(toCategoryPayload(data) as FoundationCategoryCleanRuleApi.CategoryCleanRule),
   remove: deleteCategoryCleanRule,
+  removeList: deleteCategoryCleanRuleList,
   normalize: (row) => normalize(row as FoundationCategoryCleanRuleApi.CategoryCleanRule),
 };
 
@@ -91,6 +95,7 @@ export const tagCategoryAdapter: CategoryAdapter = {
   create: (data) => createCategoryTag(toCategoryPayload(data) as AssetCategoryTagApi.CategoryTag),
   update: (data) => updateCategoryTag(toCategoryPayload(data) as AssetCategoryTagApi.CategoryTag),
   remove: deleteCategoryTag,
+  removeList: deleteCategoryTagList,
   normalize: (row) => normalize(row as AssetCategoryTagApi.CategoryTag),
 };
 
@@ -103,5 +108,6 @@ export const termCategoryAdapter: CategoryAdapter = {
   create: (data) => createCategoryTerm(toCategoryPayload(data) as GovernanceCategoryTermApi.Save),
   update: (data) => updateCategoryTerm(toCategoryPayload(data) as GovernanceCategoryTermApi.Save),
   remove: deleteCategoryTerm,
+  removeList: deleteCategoryTermList,
   normalize: (row) => normalize(row as GovernanceCategoryTermApi.Category),
 };

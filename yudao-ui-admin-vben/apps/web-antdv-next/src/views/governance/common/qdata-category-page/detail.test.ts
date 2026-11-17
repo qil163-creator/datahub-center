@@ -143,6 +143,7 @@ function makeAdapter(
     create: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
+    removeList: vi.fn(),
     normalize: (value) => value as CategoryRow,
   };
 }

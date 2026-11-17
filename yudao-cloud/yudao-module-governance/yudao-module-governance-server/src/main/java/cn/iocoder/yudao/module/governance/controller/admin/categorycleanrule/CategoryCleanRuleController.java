@@ -1,7 +1,5 @@
 package cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule;
 
-import com.mzt.logapi.starter.annotation.LogRecord;
-import com.mzt.logapi.context.LogRecordContext;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -11,12 +9,17 @@ import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.
 import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.CategoryCleanRuleSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.categorycleanrule.CategoryCleanRuleDO;
 import cn.iocoder.yudao.module.governance.service.categorycleanrule.CategoryCleanRuleService;
+import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -84,6 +87,18 @@ public class CategoryCleanRuleController {
     public CommonResult<Boolean> deleteCategoryCleanRule(@RequestParam("id") Long id) {
         captureAuditContext(id);
         categoryCleanRuleService.deleteCategoryCleanRule(id);
+        return success(true);
+    }
+
+    @DeleteMapping("/delete-list")
+    @Operation(summary = "批量删除清洗规则类目")
+    @LogRecord(type = "数据治理-清洗规则类目", subType = "批量删除清洗规则类目", bizNo = "{{#ids}}",
+            success = "批量删除清洗规则类目【{{#ids}}】", extra = "BUSINESS_OPERATION",
+            successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
+    @PreAuthorize("@ss.hasPermission('governance:category-clean-rule:delete')")
+    public CommonResult<Boolean> deleteCategoryCleanRuleList(
+            @RequestParam("ids") @Size(min = 1, max = 200) List<@NotNull @Positive Long> ids) {
+        categoryCleanRuleService.deleteCategoryCleanRuleList(ids);
         return success(true);
     }
 

@@ -308,6 +308,10 @@ function askDelete(row?: CategoryRow) {
   if (inactive || !can('delete') || busy.value) return;
   const ids = row ? [row.id] : [...selectedKeys.value];
   if (ids.length === 0) return;
+  if (ids.length > 200) {
+    message.warning('一次最多删除200个类目');
+    return;
+  }
   const selected = rows.value.filter((item) =>
     ids.some((id) => String(item.id) === String(id)),
   );
@@ -349,8 +353,10 @@ async function confirmOperation() {
         status: target.status,
         sort: target.row.sort,
       });
+    } else if (target.batch) {
+      await props.adapter.removeList(target.ids);
     } else {
-      for (const id of target.ids) await props.adapter.remove(id);
+      await props.adapter.remove(target.ids[0]!);
     }
     if (!current()) return;
     confirmation.value = undefined;

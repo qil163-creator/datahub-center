@@ -54,6 +54,8 @@ const owners = ref<Api.Owner[]>([]);
 const status = ref(0);
 const initialStatus = ref(0);
 const locked = computed(() => initialStatus.value === 1 && status.value === 1);
+const pendingRead = ref<{ id: Api.Id; phase: 'draft' | 'offline' }>();
+const fieldsDisabled = computed(() => locked.value || !!pendingRead.value || busy.value);
 const busy = ref(false);
 const loading = ref(false);
 const failed = ref(false);
@@ -71,6 +73,7 @@ watch(
     if (!props.open) return;
     const current = request.begin();
     busy.value = false;
+    pendingRead.value = undefined;
     loading.value = true;
     failed.value = false;
     validation.value = '';
@@ -133,32 +136,40 @@ async function save(configure = false) {
   try {
     if (form.cronExpression) await previewJobCron(form.cronExpression);
     if (!current()) return;
-    let id = form.id;
-    if (id !== undefined && initialStatus.value === 1 && status.value === 0) {
-      await updateJobStatus({id, revision: form.revision!, status: 0});
+    if (pendingRead.value?.phase !== 'draft') {
+      if (form.id !== undefined && initialStatus.value === 1 && status.value === 0) {
+        if (!pendingRead.value) {
+          await updateJobStatus({ id: form.id, revision: form.revision!, status: 0 });
+          if (!current()) return;
+          pendingRead.value = { id: form.id, phase: 'offline' };
+        }
+        const offline = await getJob(form.id);
+        if (!current()) return;
+        form.revision = offline.revision;
+        initialStatus.value = offline.status;
+        pendingRead.value = undefined;
+      }
+      let id = form.id;
+      if (id === undefined) id = await createJob({ ...form, name: form.name.trim() });
+      else await updateJob({ ...form, name: form.name.trim() });
       if (!current()) return;
-      const offline = await getJob(id);
-      if (!current()) return;
-      form.revision = offline.revision;
-      initialStatus.value = 0;
+      // 写入已确认，重试时只补读详情，避免重复创建或用旧修订号再次保存。
+      pendingRead.value = { id, phase: 'draft' };
     }
-    if (id === undefined)
-      id = await createJob({ ...form, name: form.name.trim() });
-    else await updateJob({ ...form, name: form.name.trim() });
-    if (!current()) return;
+    const id = pendingRead.value.id;
     let saved = await getJob(id);
     if (!current()) return;
     form.id = saved.id;
     form.revision = saved.revision;
+    pendingRead.value = undefined;
     if (status.value !== saved.status) {
-      await updateJobStatus({
-        id,
-        revision: saved.revision,
-        status: status.value,
-      });
+      await updateJobStatus({ id, revision: saved.revision, status: status.value });
+      if (!current()) return;
+      pendingRead.value = { id, phase: 'draft' };
       saved = await getJob(id);
+      if (!current()) return;
+      pendingRead.value = undefined;
     }
-    if (!current()) return;
     message.success('作业保存成功');
     emit('success', saved);
     emit('update:open', false);
@@ -190,21 +201,21 @@ async function save(configure = false) {
             tree-default-expand-all
             placeholder="请选择作业类目"
             aria-label="作业类目"
-            :disabled="locked"
+            :disabled="fieldsDisabled"
         /></label>
         <label><span><em>*</em>作业名称</span><Input
             v-model:value="form.name"
             :maxlength="128"
             placeholder="建议格式：业务域_源到目标_指标名_全量或增量_周期"
             aria-label="作业名称"
-            :disabled="locked"
+            :disabled="fieldsDisabled"
         /></label>
         <label><span><em>*</em>责任人</span><Select
             :value="form.ownerId"
             :options="ownerOptions"
             placeholder="请选择责任人"
             aria-label="责任人"
-            :disabled="locked"
+            :disabled="fieldsDisabled"
             show-search
             option-filter-prop="label"
             @change="ownerChanged"
@@ -222,7 +233,7 @@ async function save(configure = false) {
               v-model:value="form.strategy"
               :options="strategyOptions"
               aria-label="执行策略"
-              :disabled="locked"
+              :disabled="fieldsDisabled"
             /><small class="qj-strategy-help">{{ jobStrategyHelp[form.strategy] }}人工执行与周期调度使用相同策略。</small>
           </div></label>
         <label><span><em>*</em>调度周期</span>
@@ -231,17 +242,17 @@ async function save(configure = false) {
               v-model="form.cronExpression"
               week-mode="quartz"
               aria-label="调度周期"
-              :disabled="locked"
+              :disabled="fieldsDisabled"
             ><template #trigger="{ open: openGenerator, disabled }"><Button :disabled="disabled" @click="openGenerator">配置</Button></template></CronTab><small>定义任务自动触发的时间和频率</small>
           </div></label>
-        <label><span><em>*</em>任务状态</span><RadioGroup v-model:value="status" aria-label="任务状态"><Radio :value="0">未上线</Radio><Radio :value="1">已上线</Radio></RadioGroup></label>
+        <label><span><em>*</em>任务状态</span><RadioGroup v-model:value="status" aria-label="任务状态" :disabled="!!pendingRead || busy"><Radio :value="0">未上线</Radio><Radio :value="1">已上线</Radio></RadioGroup></label>
         <label><span>描述</span><TextArea
             v-model:value="form.description"
             :maxlength="256"
             :rows="4"
             show-count
             aria-label="描述"
-            :disabled="locked"
+            :disabled="fieldsDisabled"
         /></label>
       </form>
     </Spin>

@@ -148,7 +148,7 @@ public interface ErrorCodeConstants {
 
     // ========== 数据分类 类目管理 1_500_006_000 ==========
     ErrorCode CATEGORY_DATA_NOT_EXISTS = new ErrorCode(1_500_006_001, "数据分类 类目管理不存在");
-    ErrorCode CATEGORY_DATA_EXITS_CHILDREN = new ErrorCode(1_500_006_002, "存在存在子数据分类 类目管理，无法删除");
+    ErrorCode CATEGORY_DATA_EXITS_CHILDREN = new ErrorCode(1_500_006_002, "存在下级数据分类，无法删除");
     ErrorCode CATEGORY_DATA_PARENT_NOT_EXITS = new ErrorCode(1_500_006_003, "父级数据分类 类目管理不存在");
     ErrorCode CATEGORY_DATA_PARENT_ERROR = new ErrorCode(1_500_006_004, "不能设置自己为父数据分类 类目管理");
     ErrorCode CATEGORY_DATA_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_006_005,
@@ -158,7 +158,7 @@ public interface ErrorCodeConstants {
 
     // ========== 清洗规则 类目管理 1_500_007_000 ==========
     ErrorCode CATEGORY_CLEAN_RULE_NOT_EXISTS = new ErrorCode(1_500_007_001, "清洗规则 类目管理不存在");
-    ErrorCode CATEGORY_CLEAN_RULE_EXITS_CHILDREN = new ErrorCode(1_500_007_002, "存在存在子清洗规则 类目管理，无法删除");
+    ErrorCode CATEGORY_CLEAN_RULE_EXITS_CHILDREN = new ErrorCode(1_500_007_002, "存在下级清洗规则类目，无法删除");
     ErrorCode CATEGORY_CLEAN_RULE_PARENT_NOT_EXITS = new ErrorCode(1_500_007_003, "父级清洗规则 类目管理不存在");
     ErrorCode CATEGORY_CLEAN_RULE_PARENT_ERROR = new ErrorCode(1_500_007_004, "不能设置自己为父清洗规则 类目管理");
     ErrorCode CATEGORY_CLEAN_RULE_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_007_005,
@@ -168,7 +168,7 @@ public interface ErrorCodeConstants {
 
     // ========== 标准数据元类目管理 1_500_008_000 ==========
     ErrorCode CATEGORY_DATAMETA_NOT_EXISTS = new ErrorCode(1_500_008_001, "标准数据元类目管理不存在");
-    ErrorCode CATEGORY_DATAMETA_EXITS_CHILDREN = new ErrorCode(1_500_008_002, "存在存在子标准数据元类目管理，无法删除");
+    ErrorCode CATEGORY_DATAMETA_EXITS_CHILDREN = new ErrorCode(1_500_008_002, "存在下级标准数据元类目，无法删除");
     ErrorCode CATEGORY_DATAMETA_PARENT_NOT_EXITS = new ErrorCode(1_500_008_003, "父级标准数据元类目管理不存在");
     ErrorCode CATEGORY_DATAMETA_PARENT_ERROR = new ErrorCode(1_500_008_004, "不能设置自己为父标准数据元类目管理");
     ErrorCode CATEGORY_DATAMETA_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_008_005,
@@ -195,7 +195,7 @@ public interface ErrorCodeConstants {
     // ========== 数据质量类目管理 1_500_010_000 ==========
     ErrorCode CATEGORY_DATA_QUALITY_NOT_EXISTS = new ErrorCode(1_500_010_001, "数据质量类目管理不存在");
     ErrorCode CATEGORY_DATA_QUALITY_EXITS_CHILDREN = new ErrorCode(1_500_010_002,
-            "存在存在子数据质量类目管理，无法删除");
+            "存在下级数据质量类目，无法删除");
     ErrorCode CATEGORY_DATA_QUALITY_PARENT_NOT_EXITS = new ErrorCode(1_500_010_003, "父级数据质量类目管理不存在");
     ErrorCode CATEGORY_DATA_QUALITY_PARENT_ERROR = new ErrorCode(1_500_010_004, "不能设置自己为父数据质量类目管理");
     ErrorCode CATEGORY_DATA_QUALITY_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_010_005,

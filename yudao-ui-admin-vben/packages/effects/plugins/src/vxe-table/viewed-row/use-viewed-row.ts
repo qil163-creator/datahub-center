@@ -519,6 +519,21 @@ export function applyViewedRowOptions(
     return { ...originalStyle, ...viewedStyle };
   };
 
+  if (mergedOptions.columns) {
+    mergedOptions.columns = resolveViewedRowColumns(
+      mergedOptions.columns,
+      viewedRowConfig,
+      helper,
+    );
+  }
+}
+
+/** 只在列配置与已读操作变化时重新包装操作列。 */
+export function resolveViewedRowColumns(
+  columns: VxeTableGridProps['columns'],
+  viewedRowConfig: boolean | ViewedRowOptions,
+  helper: ViewedRowHelper,
+): VxeTableGridProps['columns'] {
   // 拦截 CellOperation columns
   const actionCodes =
     !isBoolean(viewedRowConfig) && viewedRowConfig.actionCodes
@@ -527,11 +542,8 @@ export function applyViewedRowOptions(
         : [viewedRowConfig.actionCodes]
       : [];
 
-  if (actionCodes.length > 0 && Array.isArray(mergedOptions.columns)) {
-    mergedOptions.columns = wrapColumnsForViewedRow(
-      mergedOptions.columns,
-      actionCodes,
-      helper.markAsViewed,
-    );
+  if (actionCodes.length > 0 && Array.isArray(columns)) {
+    return wrapColumnsForViewedRow(columns, actionCodes, helper.markAsViewed);
   }
+  return columns;
 }

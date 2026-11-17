@@ -33,7 +33,7 @@
 | `governance-server` | `masterDistributeAlertRelayJob` | 主数据未知/领取耗尽告警持久投递、历史补账、过期接管及死信提示；不重跑业务 | 建议 `0 * * * * ?` |
 | `governance-server` | `masterDistributeAlertDispositionJob` | 死信人工重投或接管，要求受控参数及调度审计；不解除业务 UNKNOWN | 不配置 Cron，仅人工触发 |
 | `governance-server` | `masterDistributeAlertCleanJob` | 有界清理 90 天前已投递且无原日志/人工审计的告警，保留未知/死信 | 建议 `0 45 3 * * ?` |
-| `governance-server` | `qualityWorkOrderRecheckJob` | 质量工单复检 | `0 0/5 * * * ?` |
+| `governance-server` | `qualityWorkOrderRecheckJob` | 核验质量工单复检结果。可传单个正整数工单编号，仅核验该工单；留空时按批次核验 | `0 0/5 * * * ?` |
 | `governance-server` | `qualityWorkOrderNotifyJob` | 质量工单通知派发；按工单原子认领，发送租约过期归为 UNKNOWN，禁止自动重发未知结果 | `0 0/5 * * * ?` |
 | `asset-server` | `marketApplyExpireJob` | 集市申请到期及交付重试 | `0 0 * * * ?` |
 | `asset-server` | `assetCatalogReconcileJob` | 单平台重试目录挂接回执与停供撤权，失败进入人工处置；撤权实际交付由 marketApplyExpireJob 继续处理 | 建议 `0 * * * * ?` |

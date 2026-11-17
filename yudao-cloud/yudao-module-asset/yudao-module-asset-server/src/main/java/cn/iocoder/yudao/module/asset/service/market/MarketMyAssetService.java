@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.asset.controller.admin.market.vo.MarketMyApplicat
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewRespDTO;
 
 public interface MarketMyAssetService {
+    cn.iocoder.yudao.module.asset.dal.dataobject.market.MarketResourceApplyDO authorizeFileDownload(long applyId);
 
     /** 仅查询当前登录人的本地申请。 */
     PageResult<MarketMyApplicationRespVO> getApplications(MarketApplyPageReqVO req);

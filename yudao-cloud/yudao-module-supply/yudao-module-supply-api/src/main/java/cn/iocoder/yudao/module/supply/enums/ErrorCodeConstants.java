@@ -11,7 +11,7 @@ public interface ErrorCodeConstants {
 
     // ========== 数据服务类目管理 1_500_012_000 ==========
     ErrorCode CATEGORY_DATA_SUPPLY_NOT_EXISTS = new ErrorCode(1_500_012_001, "数据服务类目管理不存在");
-    ErrorCode CATEGORY_DATA_SUPPLY_EXITS_CHILDREN = new ErrorCode(1_500_012_002, "存在存在子数据服务类目管理，无法删除");
+    ErrorCode CATEGORY_DATA_SUPPLY_EXITS_CHILDREN = new ErrorCode(1_500_012_002, "该类目下还有子类目，请先删除或移走子类目");
     ErrorCode CATEGORY_DATA_SUPPLY_PARENT_NOT_EXITS = new ErrorCode(1_500_012_003, "父级数据服务类目管理不存在");
     ErrorCode CATEGORY_DATA_SUPPLY_PARENT_ERROR = new ErrorCode(1_500_012_004, "不能设置自己为父数据服务类目管理");
     ErrorCode CATEGORY_DATA_SUPPLY_CATEGORY_NAME_DUPLICATE = new ErrorCode(1_500_012_005,

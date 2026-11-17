@@ -24,6 +24,8 @@ public interface CategoryTagService {
      */
     void deleteCategoryTag(Long id);
 
+    void deleteCategoryTagList(List<Long> ids);
+
     /**
      * 获得标签类目。
      */
