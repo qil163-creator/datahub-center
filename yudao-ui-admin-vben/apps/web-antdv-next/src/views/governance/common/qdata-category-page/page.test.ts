@@ -118,7 +118,6 @@ const adapter: CategoryAdapter = {
   update: vi.fn(),
   remove: vi.fn(),
   normalize: (row) => row as CategoryRow,
-  toPayload: (row) => row,
 };
 let app: App | undefined;
 let host: HTMLDivElement;

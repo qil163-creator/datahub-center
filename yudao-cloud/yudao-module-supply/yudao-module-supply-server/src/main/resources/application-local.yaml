@@ -1,6 +1,10 @@
 --- #################### 注册中心 + 配置中心相关配置 ####################
 
 spring:
+  config:
+    import:
+      - optional:file:${user.home}/.local/share/datahub/published-query-tls/supply.properties
+      - optional:file:${user.home}/.local/share/datahub/published-write-claim-tls/supply-claim.properties
   cloud:
     nacos:
       server-addr: 152.136.224.218:8848 # Nacos 服务器地址
@@ -141,6 +145,9 @@ logging:
 
 # 芋道配置项，设置当前项目所有自定义的配置
 yudao:
+  supply:
+    data-api:
+      public-base-url: ${DATAHUB_PUBLIC_API_BASE_URL:http://127.0.0.1:48083/supply/gateway}
   redis:
     single-server-connection-minimum-idle-size: 2 # 本地开发访问云 Redis，减少启动预建连接
   env: # 多环境的配置项

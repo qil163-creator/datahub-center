@@ -35,6 +35,9 @@ public interface FillWorkItemService {
      */
     List<FillWorkItemRespVO> getDeptWorkItems(Long deptId);
 
+    /** 查看部门数据时，工作项须属于当前用户直接负责的部门。 */
+    void checkDeptViewPermission(Long deptId, Long userId);
+
     /**
      * 发起者/授权管理员调整填报人（新增/移除），实例必须处于可调整状态且始终保留至少一名有效填报人
      */

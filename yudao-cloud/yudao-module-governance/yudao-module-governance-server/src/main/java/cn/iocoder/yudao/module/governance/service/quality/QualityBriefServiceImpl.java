@@ -17,7 +17,7 @@ import cn.iocoder.yudao.module.governance.dal.mysql.quality.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.validation.annotation.Validated;
 
 import java.io.IOException;
@@ -70,13 +70,15 @@ public class QualityBriefServiceImpl implements QualityBriefService {
     @Resource
     private QualityReportLogMapper reportLogMapper;
 
+    @Resource
+    private TransactionTemplate transactionTemplate;
+
     /**
      * 生成简报：按模板段落渲染变量（数据来自机构评分），生成草稿简报并写报告记录
      *
      *  @return 简报编号
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Long generateBrief(QualityBriefGenerateReqVO reqVO) {
         QualityBriefTemplateDO template = templateMapper.selectById(reqVO.getTemplateId());
         if (template == null) {
@@ -90,29 +92,32 @@ public class QualityBriefServiceImpl implements QualityBriefService {
                 .generator(SecurityFrameworkUtils.getLoginUserNickname())
                 .generateTime(LocalDateTime.now())
                 .build();
+        // 先记录生成尝试，简报回滚后也能写入失败状态。
         reportLogMapper.insert(reportLog);
         try {
-            List<Map<String, Object>> content = renderContent(template, reqVO);
-            QualityBriefDO brief = QualityBriefDO.builder()
-                    .briefTitle(reqVO.getBriefTitle())
-                    .issueNo(reqVO.getIssueNo())
-                    .assessCycle(template.getAssessCycle())
-                    .assessStart(reqVO.getAssessStart())
-                    .assessEnd(reqVO.getAssessEnd())
-                    .templateId(template.getId())
-                    .briefStatus(QualityBriefDO.STATUS_DRAFT)
-                    .briefContent(JsonUtils.toJsonString(content))
-                    .generateTime(LocalDateTime.now())
-                    .generator(SecurityFrameworkUtils.getLoginUserNickname())
-                    .build();
-            briefMapper.insert(brief);
-            reportLogMapper.updateById(QualityReportLogDO.builder()
-                    .id(reportLog.getId())
-                    .generateStatus(QualityReportLogDO.STATUS_SUCCESS)
-                    .generateProgress(100)
-                    .generateMsg("简报生成成功，简报编号：" + brief.getId())
-                    .build());
-            return brief.getId();
+            return transactionTemplate.execute(status -> {
+                List<Map<String, Object>> content = renderContent(template, reqVO);
+                QualityBriefDO brief = QualityBriefDO.builder()
+                        .briefTitle(reqVO.getBriefTitle())
+                        .issueNo(reqVO.getIssueNo())
+                        .assessCycle(template.getAssessCycle())
+                        .assessStart(reqVO.getAssessStart())
+                        .assessEnd(reqVO.getAssessEnd())
+                        .templateId(template.getId())
+                        .briefStatus(QualityBriefDO.STATUS_DRAFT)
+                        .briefContent(JsonUtils.toJsonString(content))
+                        .generateTime(LocalDateTime.now())
+                        .generator(SecurityFrameworkUtils.getLoginUserNickname())
+                        .build();
+                briefMapper.insert(brief);
+                reportLogMapper.updateById(QualityReportLogDO.builder()
+                        .id(reportLog.getId())
+                        .generateStatus(QualityReportLogDO.STATUS_SUCCESS)
+                        .generateProgress(100)
+                        .generateMsg("简报生成成功，简报编号：" + brief.getId())
+                        .build());
+                return brief.getId();
+            });
         } catch (Exception ex) {
             reportLogMapper.updateById(QualityReportLogDO.builder()
                     .id(reportLog.getId())

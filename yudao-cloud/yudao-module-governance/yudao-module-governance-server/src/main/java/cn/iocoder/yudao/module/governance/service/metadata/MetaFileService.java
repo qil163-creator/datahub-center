@@ -31,7 +31,7 @@ public class MetaFileService {
     private MetaFileMapper mapper;
 
     @Resource
-    private cn.iocoder.yudao.module.governance.dal.mysql.metadata.MetaDbMapper dbs;
+    private MetadataTreeCatalog treeCatalog;
 
     @Resource
     private MetaCollectInstanceMapper instances;
@@ -266,7 +266,7 @@ public class MetaFileService {
         }
         Map<String, MetaFileTreeNodeVO> nodes = new LinkedHashMap<>();
         List<MetaFileTreeNodeVO> roots = new ArrayList<>();
-        for (var db : dbs.selectListForTree()) {
+        for (var db : treeCatalog.load(List.of()).databases()) {
             String key = "system:" + Objects.toString(db.getSourceSystemId(), "none");
             nodes.computeIfAbsent(key, ignored -> {
                 var node = new MetaFileTreeNodeVO();

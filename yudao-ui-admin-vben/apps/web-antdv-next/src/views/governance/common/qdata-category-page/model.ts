@@ -5,6 +5,7 @@ export interface CategoryRow {
   parentId: ResourceId;
   key: string;
   name: string;
+  categoryCode?: string;
   description?: null | string;
   status: number;
   sort: number;
@@ -17,6 +18,7 @@ export interface CategoryPayload {
   id?: ResourceId;
   parentId: ResourceId;
   name: string;
+  categoryCode?: string;
   description: string;
   status: number;
   sort: number;
@@ -32,7 +34,6 @@ export interface CategoryAdapter {
   update: (data: CategoryPayload) => Promise<unknown>;
   remove: (id: ResourceId) => Promise<unknown>;
   normalize: (row: unknown) => CategoryRow;
-  toPayload: (data: CategoryPayload) => unknown;
 }
 
 export function categoryTree(rows: CategoryRow[]): CategoryRow[] {

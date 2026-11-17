@@ -61,7 +61,7 @@ function close() {
   issues.value = [];
   tasks.value = [];
   users.value = [];
-  void modalApi.close();
+  return modalApi.close();
 }
 
 async function open(preset?: {
@@ -70,12 +70,14 @@ async function open(preset?: {
   requireOwner?: boolean;
   taskId?: QualityWorkOrderApi.Id;
 }) {
-  close();
+  const closing = close();
+  const current = opening.begin();
+  await closing;
+  if (!current()) return;
   clearReactiveObject(formData as Record<string, unknown>);
   issues.value = [];
   notificationMode.value = preset?.requireOwner ?? false;
   opened.value = true;
-  const current = opening.begin();
   modalApi.unlock();
   modalApi.open();
   const [taskList, userList] = await Promise.all([

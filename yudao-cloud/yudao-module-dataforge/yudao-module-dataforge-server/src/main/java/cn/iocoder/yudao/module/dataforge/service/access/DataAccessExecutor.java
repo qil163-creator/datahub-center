@@ -72,6 +72,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DATA_ACCESS_EXECUTION_MODE_UNSUPPORTED;
+
 /**
  * 数据同步任务执行器
  *
@@ -986,6 +989,15 @@ public class DataAccessExecutor {
                 .setSql("update_time=clock_timestamp()"));
     }
 
+    /** 将 DB Switch 执行门禁的配置拒绝转换为前台可显示的业务原因。 */
+    static void validateAuthorizedMode(MigrationRequest request) {
+        try {
+            MigrationService.validateAuthorizedConfiguration(request);
+        } catch (IllegalArgumentException invalid) {
+            throw exception(DATA_ACCESS_EXECUTION_MODE_UNSUPPORTED, invalid.getMessage());
+        }
+    }
+
     /**
      * 校验当前执行主体和引擎配置；使用平台数据源的引擎另行核验表权限。
      */
@@ -1027,7 +1039,7 @@ public class DataAccessExecutor {
         SourceDataSourceProperties source = properties.getSource().get(0);
         var sourceRoute = fillSourceConnection(source, dataAccess);
         fillTargetConnection(properties.getTarget(), dataAccess);
-        MigrationService.validateAuthorizedConfiguration(properties);
+        validateAuthorizedMode(properties);
         migrationAuthorization.requireTargetPermission(userId);
         TargetDataSourceProperties target = properties.getTarget();
         List<String> tables;
@@ -1200,7 +1212,7 @@ public class DataAccessExecutor {
         SourceDataSourceProperties source = properties.getSource().get(0);
         var sourceBinding = fillSourceConnection(source, dataAccess);
         var targetBinding = fillTargetConnection(properties.getTarget(), dataAccess);
-        MigrationService.validateAuthorizedConfiguration(properties);
+        validateAuthorizedMode(properties);
         Long actor = cn.iocoder.yudao.module.dataforge.service.security.ExecutionAccessService.parseExecutionUserId(dataAccess.getCreator());
         migrationAuthorization.requireTargetPermission(actor);
         // 当前契约只覆盖一个受管理源；不能用第一个源的身份代表多源配置。

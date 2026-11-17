@@ -59,8 +59,10 @@ const canQuery = computed(
     !accessStore.loginExpired &&
     !!parseResourceId(user.userInfo?.userId),
 );
-const identity = computed(() =>
-  JSON.stringify([
+const detailRouteName = route.name;
+const identity = computed(() => {
+  if (route.name !== detailRouteName) return null;
+  return JSON.stringify([
     accessStore.accessToken,
     accessStore.refreshToken,
     accessStore.loginExpired,
@@ -68,8 +70,8 @@ const identity = computed(() =>
     user.userInfo?.userId,
     user.userRoles,
     route.params.id,
-  ]),
-);
+  ]);
+});
 const childEpoch = ref(0);
 let alive = false;
 const assetId = ref('');
@@ -204,9 +206,12 @@ function handleTabChange(key: any) {
   visited[String(key)] = true;
 }
 
-function handleBack() {
-  tabs.closeCurrentTab();
-  router.push({ path: String(route.meta.activePath || '/asset/map') });
+async function handleBack() {
+  const detailRoute = router.currentRoute.value;
+  const failure = await router.push(
+    String(detailRoute.meta.activePath || '/asset/map'),
+  );
+  if (!failure) await tabs.closeCurrentTab(detailRoute);
 }
 
 function handleTogglePublish() {
@@ -298,7 +303,11 @@ function clearDetail() {
 
 watch(
   identity,
-  () => {
+  (current) => {
+    if (current === null) {
+      detailGuard.invalidate();
+      return;
+    }
     clearDetail();
     if (alive && canQuery.value && bindRouteId()) {
       loadDetail();
@@ -316,7 +325,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   alive = false;
-  clearDetail();
+  detailGuard.invalidate();
 });
 </script>
 

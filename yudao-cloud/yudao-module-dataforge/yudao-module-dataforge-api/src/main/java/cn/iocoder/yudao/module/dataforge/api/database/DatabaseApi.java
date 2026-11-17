@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.api.database;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.MetadataTreeSourceRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseColumnRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseConnectionRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewReqDTO;
@@ -13,6 +14,7 @@ import cn.iocoder.yudao.module.dataforge.enums.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +44,11 @@ public interface DatabaseApi {
     @Operation(summary = "获得数据源精简列表（不含密码）")
     CommonResult<List<DatabaseConnectionRespDTO>> getDatabaseList(
             @RequestParam(value = "usageType", required = false) Integer usageType);
+
+    @PostMapping(PREFIX + "/metadata-tree-sources")
+    @Operation(summary = "按编号读取元数据树需要的连接名称和删除状态")
+    CommonResult<List<MetadataTreeSourceRespDTO>> getMetadataTreeSources(
+            @RequestBody @Size(min = 1, max = 500) List<Long> ids);
 
     /**
      * 获得数据源连接信息（含解密密码）。

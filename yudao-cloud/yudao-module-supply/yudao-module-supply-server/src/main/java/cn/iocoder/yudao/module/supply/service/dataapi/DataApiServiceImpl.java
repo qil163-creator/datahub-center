@@ -182,6 +182,15 @@ public class DataApiServiceImpl implements DataApiService {
         return convertToResp(validateDataApiExists(id));
     }
 
+    @Override
+    public DataApiRespVO getDataApiDocument(Long id) {
+        DataApiDO api = validateDataApiExists(id);
+        if (api.getActiveReleaseId() == null && !Integer.valueOf(DataApiDO.STATUS_ONLINE).equals(api.getStatus())) {
+            return convertToResp(api);
+        }
+        return convertView(api, publishedRuntime(api));
+    }
+
     /**
      * 获得 API 服务分页（类目过滤含子级）
      *
@@ -335,7 +344,10 @@ public class DataApiServiceImpl implements DataApiService {
      * @return 数据 API响应数据
      */
     private DataApiRespVO convertToResp(DataApiDO dataApi) {
-        DataApiDO view = overlayDraft(dataApi);
+        return convertView(dataApi, overlayDraft(dataApi));
+    }
+
+    private DataApiRespVO convertView(DataApiDO dataApi, DataApiDO view) {
         DataApiRespVO vo = BeanUtils.toBean(view, DataApiRespVO.class);
         vo.setRequestParams(StrUtil.isBlank(view.getRequestParamsJson()) ? List.of()
                 : JsonUtils.parseObject(view.getRequestParamsJson(), new TypeReference<>() {

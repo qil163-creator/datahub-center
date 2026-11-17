@@ -48,6 +48,9 @@ public class QualityRuleSetServiceImpl implements QualityRuleSetService {
     @Resource
     private QualityRuleMapper qualityRuleMapper;
 
+    @Resource
+    private QualityRuleService qualityRuleService;
+
     /**
      * 创建规则集。
      */
@@ -162,9 +165,16 @@ public class QualityRuleSetServiceImpl implements QualityRuleSetService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveRuleSetItems(QualityRuleSetItemSaveReqVO reqVO) {
-        validateExists(reqVO.getRuleSetId());
+        if (ruleSetMapper.selectOneForUpdate(QualityRuleSetDO::getId, reqVO.getRuleSetId()) == null) {
+            throw exception(QUALITY_RULE_SET_NOT_EXISTS);
+        }
         if (CollUtil.isEmpty(reqVO.getItems())) {
             throw exception(QUALITY_RULE_SET_ITEM_EMPTY);
+        }
+        var selectableIds = qualityRuleService.getQualityRuleSimpleList().stream()
+                .map(QualityRuleDO::getId).collect(Collectors.toSet());
+        if (reqVO.getItems().stream().anyMatch(item -> !selectableIds.contains(item.getRuleId()))) {
+            throw exception(QUALITY_RULE_SET_RULE_UNAVAILABLE);
         }
         // 全量覆盖：先删后插
         ruleSetItemMapper.deleteByRuleSetId(reqVO.getRuleSetId());

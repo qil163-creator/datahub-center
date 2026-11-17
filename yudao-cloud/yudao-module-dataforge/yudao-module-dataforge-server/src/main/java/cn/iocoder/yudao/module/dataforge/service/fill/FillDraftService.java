@@ -22,6 +22,9 @@ public interface FillDraftService {
      */
     FillDraftSnapshotRespVO getSnapshot(Long workItemId);
 
+    /** 直接负责部门的只读快照。 */
+    FillDraftSnapshotRespVO getDeptSnapshot(Long workItemId);
+
     /**
      * 增量拉取操作：afterVersion 之后的操作，按 serverVersion 升序（协同补齐与重放）
      */

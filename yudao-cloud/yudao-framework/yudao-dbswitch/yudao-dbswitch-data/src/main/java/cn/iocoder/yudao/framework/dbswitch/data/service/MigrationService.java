@@ -298,13 +298,18 @@ public class MigrationService {
                 && mapper.getDorisOptions().partition() != null))) {
             throw new IllegalArgumentException("Doris 授权新表全量同步暂不支持分区配置");
         }
+        if (Boolean.TRUE.equals(target.getTargetDrop()) || Boolean.TRUE.equals(target.getTargetTruncateData())) {
+            throw new IllegalArgumentException("当前授权同步不支持覆盖已有目标表。请选择尚不存在的目标表，关闭删表和清空数据，并使用新建表全量写入");
+        }
+        if (Boolean.TRUE.equals(target.getChangeDataSync())) {
+            throw new IllegalArgumentException("当前授权同步不支持增量写入。请关闭增量同步并使用新建表全量写入");
+        }
         if (request.getSource() == null || request.getSource().isEmpty()
                 || target.getTargetProductType() != ProductTypeEnum.POSTGRESQL
                 && target.getTargetProductType() != ProductTypeEnum.DORIS
                 || !"CREATE_NEW".equals(target.getWriteMode())
                 || !Boolean.TRUE.equals(target.getWriterEngineInsert())
-                || Boolean.TRUE.equals(target.getTargetDrop()) || Boolean.TRUE.equals(target.getTargetTruncateData())
-                || Boolean.TRUE.equals(target.getChangeDataSync()) || Boolean.TRUE.equals(target.getOnlyCreate())
+                || Boolean.TRUE.equals(target.getOnlyCreate())
                 || Boolean.TRUE.equals(target.getIndexCreate()) || Boolean.TRUE.equals(target.getSyncDefaultVal())
                 || Boolean.TRUE.equals(target.getCreateTableAutoIncrement())
                 || Boolean.TRUE.equals(target.getPreserveIdentityValues())
@@ -316,7 +321,7 @@ public class MigrationService {
                 || !request.getTypeMappingAcknowledgements().isEmpty()
                 || target.getCursorRunBindings() != null || target.getGroupRewriteBindings() != null
                 || target.getGroupRewriteBindingProvider() != null || target.getTableRewriteBindingProvider() != null) {
-            throw new IllegalArgumentException("Authorized migration requires ordinary PostgreSQL or Doris CREATE_NEW full INSERT copy");
+            throw new IllegalArgumentException("当前授权同步仅支持 PostgreSQL 或 Doris 新建目标表的全量插入，请选择新建表模式并移除额外写入选项");
         }
         for (var source : request.getSource()) {
             if (source.getSourceProductType() != ProductTypeEnum.POSTGRESQL
@@ -329,7 +334,7 @@ public class MigrationService {
                             || StringUtils.hasText(mapper.getTimestampColumn())
                             || StringUtils.hasText(mapper.getIncreaseColumnName()) || mapper.getDorisOptions() != null
                             && target.getTargetProductType() != ProductTypeEnum.DORIS)) {
-                throw new IllegalArgumentException("Authorized migration requires ordinary PostgreSQL TABLE sources without hooks");
+                throw new IllegalArgumentException("当前授权同步需要 PostgreSQL 普通表作为来源，请选择源表并移除自定义 SQL、增量字段及脚本");
             }
         }
     }

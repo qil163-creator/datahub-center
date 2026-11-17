@@ -13,6 +13,7 @@ import {
   getSupplyApp,
   updateSupplyApp,
 } from '#/api/supply/app';
+import { useObjectRequest } from '#/hooks/use-object-request';
 import { $t } from '#/locales';
 
 import { SUPPLY_MODAL_FORM } from '../../form-layout';
@@ -24,6 +25,10 @@ const emit = defineEmits<{
   success: [created?: SupplyAppApi.App];
 }>();
 const formData = ref<SupplyAppApi.App>();
+const ready = ref(false);
+const detailRequest = useObjectRequest(undefined, () => {
+  ready.value = false;
+});
 
 const getTitle = computed(() => (formData.value?.id ? '修改应用' : '新增应用'));
 
@@ -34,6 +39,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
+    if (!ready.value) return;
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
@@ -55,29 +61,38 @@ const [Modal, modalApi] = useVbenModal({
     }
   },
   async onOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      formData.value = undefined;
-      await formApi.resetForm();
-      return;
-    }
-    const data = modalApi.getData() as SupplyAppApi.App;
-    await formApi.resetForm();
-    if (!data?.id) {
-      return;
-    }
-    modalApi.lock();
+    const current = detailRequest.begin();
+    ready.value = false;
+    const data = isOpen ? (modalApi.getData() as SupplyAppApi.App) : undefined;
+    formData.value = data;
+    if (!isOpen) return;
+    modalApi.setState({ loading: true });
     try {
-      formData.value = await getSupplyApp(data.id);
-      await formApi.setValues(formData.value);
+      await formApi.resetForm();
+      if (!current()) return;
+      if (data?.id) {
+        const detail = await getSupplyApp(data.id);
+        if (!current()) return;
+        if (!detail?.id) {
+          message.warning('应用不存在，请刷新列表后重试');
+          await modalApi.close();
+          return;
+        }
+        formData.value = detail;
+        await formApi.setValues(detail);
+      }
+      if (current()) ready.value = true;
     } finally {
-      modalApi.unlock();
+      if (current()) modalApi.setState({ loading: false });
     }
   },
 });
 </script>
 
 <template>
-  <Modal :title="getTitle" class="w-[800px]">
-    <Form class="mx-4" />
+  <Modal :title="getTitle" :confirm-disabled="!ready" class="w-[800px]">
+    <div v-show="ready" class="mx-4">
+      <Form />
+    </div>
   </Modal>
 </template>

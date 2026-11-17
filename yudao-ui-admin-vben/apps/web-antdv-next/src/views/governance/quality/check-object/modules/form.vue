@@ -6,7 +6,7 @@ import { reactive, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Form, FormItem, Input, message, Select, TextArea } from 'antdv-next';
+import { Alert, Form, FormItem, Input, message, Select, TextArea } from 'antdv-next';
 
 import {
   getDatabaseSimpleList,
@@ -17,6 +17,7 @@ import {
   getCheckObject,
   updateCheckObject,
 } from '#/api/governance/quality/checkobject';
+import { useObjectRequest } from '#/hooks/use-object-request';
 
 import {
   clearReactiveObject,
@@ -28,7 +29,11 @@ import {
 const emit = defineEmits<{ saved: [] }>();
 
 const formRef = ref();
-const editId = ref<number>();
+const editId = ref<QualityCheckObjectApi.Id>();
+const ready = ref(false);
+const loadFailed = ref(false);
+const detailRequest = useObjectRequest();
+const tableRequest = useObjectRequest();
 
 const formData = reactive<QualityCheckObjectApi.CheckObject>({});
 const databases = ref<FoundationDatabaseApi.DatabaseSimple[]>([]);
@@ -41,39 +46,66 @@ const rules = {
   tableName: [{ required: true, message: '请选择表' }],
 };
 
-async function open(id?: number) {
+async function open(id?: QualityCheckObjectApi.Id) {
+  const current = detailRequest.begin();
+  tableRequest.begin();
   editId.value = id;
+  ready.value = false;
+  loadFailed.value = false;
+  tablesLoading.value = false;
   clearReactiveObject(formData as Record<string, unknown>);
   tables.value = [];
+  modalApi.setState({ loading: true, confirmDisabled: true });
   modalApi.open();
-  databases.value = await getDatabaseSimpleList();
-  if (id) {
-    Object.assign(formData, await getCheckObject(id));
-    if (formData.datasourceConnId) {
-      loadTables(formData.datasourceConnId);
+  try {
+    const [sources, record] = await Promise.all([
+      getDatabaseSimpleList(),
+      id == null ? undefined : getCheckObject(id),
+    ]);
+    if (!current()) return;
+    if (id != null && !record) {
+      loadFailed.value = true;
+      return;
+    }
+    databases.value = sources;
+    Object.assign(formData, record);
+    ready.value = true;
+    if (formData.datasourceConnId != null) {
+      void loadTables(formData.datasourceConnId);
+    }
+  } catch {
+    if (current()) loadFailed.value = true;
+  } finally {
+    if (current()) {
+      modalApi.setState({ loading: false, confirmDisabled: !ready.value });
     }
   }
 }
 
-async function loadTables(databaseId: number) {
-  tablesLoading.value = true;
+async function loadTables(databaseId?: FoundationDatabaseApi.Id) {
+  const current = tableRequest.begin();
+  tables.value = [];
+  tablesLoading.value = databaseId != null;
+  if (databaseId == null) return;
   try {
-    tables.value = await getDatabaseTableList(databaseId);
+    const options = await getDatabaseTableList(databaseId);
+    if (current()) tables.value = options;
+  } catch {
+    // 请求层展示错误，保留空选项，防止选择其它数据源的历史表。
   } finally {
-    tablesLoading.value = false;
+    if (current()) tablesLoading.value = false;
   }
 }
 
-function handleDatasourceChange(value: any) {
+function handleDatasourceChange(value: unknown) {
   formData.tableName = undefined;
-  if (value) {
-    loadTables(Number(value));
-  } else {
-    tables.value = [];
-  }
+  void loadTables(
+    typeof value === 'string' || typeof value === 'number' ? value : undefined,
+  );
 }
 
 async function handleOk() {
+  if (!ready.value) return;
   await formRef.value?.validate();
   modalApi.lock();
   try {
@@ -89,6 +121,13 @@ async function handleOk() {
 }
 
 const [Modal, modalApi] = useVbenModal({
+  onOpenChange(isOpen) {
+    if (!isOpen) {
+      detailRequest.begin();
+      tableRequest.begin();
+      ready.value = false;
+    }
+  },
   async onConfirm() {
     await handleOk();
   },
@@ -102,7 +141,14 @@ defineExpose({ open });
     :class="GOVERNANCE_FORM_MODAL_CLASS"
     :title="editId ? '编辑检查对象' : '新增检查对象'"
   >
+    <Alert
+      v-if="loadFailed"
+      message="无法加载检查对象，请关闭后重新打开。"
+      show-icon
+      type="error"
+    />
     <Form
+      v-if="ready"
       ref="formRef"
       class="mx-4"
       layout="horizontal"
@@ -147,6 +193,7 @@ defineExpose({ open });
       <FormItem label="选择表" name="tableName">
         <Select
           v-model:value="formData.tableName"
+          :disabled="tablesLoading || formData.datasourceConnId == null"
           :loading="tablesLoading"
           :options="
             tables.map((table) => ({

@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.asset.dal.mysql.market.MarketDepartmentAssetMappe
 import cn.iocoder.yudao.module.asset.dal.mysql.market.MarketDepartmentAssetRow;
 import cn.iocoder.yudao.module.asset.dal.mysql.market.MarketResourceApplyMapper;
 import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.AssetSupplyStopMapper;
+import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.DataAssetMapper;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
@@ -144,6 +145,7 @@ class MarketDepartmentAssetPostgreSqlTest {
         var scope = new MarketDepartmentScope(); ReflectionTestUtils.setField(scope, "adminUserApi", users);
         var service = new MarketDepartmentAssetServiceImpl(); ReflectionTestUtils.setField(service, "departmentScope", scope);
         ReflectionTestUtils.setField(service, "departmentAssetMapper", mapper); ReflectionTestUtils.setField(service, "snapshotMasks", org.mockito.Mockito.mock(MarketSnapshotMaskSupport.class)); ReflectionTestUtils.setField(service, "myAssetService", liveDelivery);
+        ReflectionTestUtils.setField(service, "assetMapper", mock(DataAssetMapper.class));
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(new LoginUser().setId(9L), null, List.of()));
         assertThat(service.get(1L).getPreview().getRows()).hasSize(3);
         assertThat(service.get(1L).getCanInvoke()).isFalse();

@@ -50,7 +50,7 @@ export namespace ModelMaterializedApi {
     publisher?: string;
     publisherName?: string;
     publisherPhone?: string;
-    publishTime?: number;
+    publishTime?: null | number;
     publishStartTime?: number;
     publishDuration?: number;
     fields?: ModelingModelApi.ModelField[];

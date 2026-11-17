@@ -372,7 +372,6 @@ watch(
 onBeforeUnmount(() => {
   guard.invalidate();
   mutation.invalidate();
-  closeChildren();
 });
 const dimensionColumns = [
   { title: '质量维度', key: 'dimension', width: 110 },

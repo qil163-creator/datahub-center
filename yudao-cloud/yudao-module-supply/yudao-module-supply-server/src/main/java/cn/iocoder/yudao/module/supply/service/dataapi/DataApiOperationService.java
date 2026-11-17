@@ -15,6 +15,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.supply.enums.dataapi.ErrorCodeConstants.*;
@@ -82,7 +83,12 @@ public class DataApiOperationService {
      */
     public DataApiExecuteRespVO execute(DataApiDO api, Long appId, Map<String, Object> params,
             WriteAction action) {
+        return executePrepared(api, appId, params, () -> action);
+    }
 
+    /** 先读取既有回执，首次请求在认领前准备计划，只有成功认领的一方执行写入。 */
+    DataApiExecuteRespVO executePrepared(DataApiDO api, Long appId, Map<String, Object> params,
+            Supplier<WriteAction> prepare) {
         if (appId == null || api.getActiveReleaseId() == null || api.getId() == null) {
             throw exception(OPERATION_SIGN_REQUIRED);
         }
@@ -91,8 +97,8 @@ public class DataApiOperationService {
         if (!Set.of("EXECUTE", "STATUS").contains(mode)) {
             throw exception(OPERATION_KEY_REQUIRED);
         }
+        DataApiOperationDO existing = operationMapper.find(appId, api.getId(), key);
         if ("STATUS".equals(mode)) {
-            DataApiOperationDO existing = operationMapper.find(appId, api.getId(), key);
             if (existing == null) {
                 throw exception(OPERATION_NOT_EXISTS);
             }
@@ -102,6 +108,11 @@ public class DataApiOperationService {
         businessParams.remove(KEY_PARAM);
         businessParams.remove(MODE_PARAM);
         String hash = requestHash(api, businessParams);
+        if (existing != null) {
+            assertSameRequest(existing, hash);
+            return response(existing, true);
+        }
+        WriteAction action = prepare.get();
         boolean claimed = Boolean.TRUE.equals(tx().execute(ignored -> operationMapper.claim(appId,
                 api.getId(), api.getActiveReleaseId(), key, hash,
                 DataApiGatewayService.currentTraceId()) == 1));
@@ -109,9 +120,7 @@ public class DataApiOperationService {
         if (operation == null) {
             throw exception(OPERATION_STORE_UNAVAILABLE);
         }
-        if (!hash.equals(operation.getRequestHash())) {
-            throw exception(OPERATION_CONFLICT);
-        }
+        assertSameRequest(operation, hash);
         if (!claimed) {
             return response(operation, true);
         }
@@ -147,6 +156,12 @@ public class DataApiOperationService {
             markUnknown(operation.getId());
             operation.setState("UNKNOWN");
             return response(operation, false);
+        }
+    }
+
+    private static void assertSameRequest(DataApiOperationDO operation, String hash) {
+        if (!hash.equals(operation.getRequestHash())) {
+            throw exception(OPERATION_CONFLICT);
         }
     }
 

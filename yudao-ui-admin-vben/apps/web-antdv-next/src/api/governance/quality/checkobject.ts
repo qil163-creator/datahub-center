@@ -3,17 +3,19 @@ import type { PageParam, PageResult } from '@vben/request';
 import { requestClient } from '#/api/request';
 
 export namespace QualityCheckObjectApi {
+  export type Id = number | string;
+
   /** 检查对象 */
   export interface CheckObject {
-    id?: number;
+    id?: Id;
     objectName?: string;
-    datasourceConnId?: number;
+    datasourceConnId?: Id;
     datasourceConnName?: string;
     datasourceType?: string;
     datasourceInstance?: string;
     formatName?: string;
     tableName?: string;
-    tableId?: number;
+    tableId?: Id;
     remark?: string;
     creator?: string;
     createTime?: string;
@@ -23,7 +25,7 @@ export namespace QualityCheckObjectApi {
 /** 检查对象分页 */
 export function getCheckObjectPage(
   params: PageParam & {
-    datasourceConnId?: number;
+    datasourceConnId?: QualityCheckObjectApi.Id;
     datasourceType?: string;
     objectName?: string;
     tableName?: string;
@@ -36,7 +38,7 @@ export function getCheckObjectPage(
 }
 
 /** 检查对象详情 */
-export function getCheckObject(id: number) {
+export function getCheckObject(id: QualityCheckObjectApi.Id) {
   return requestClient.get<QualityCheckObjectApi.CheckObject>(
     `/governance/quality-check-object/get?id=${id}`,
   );
@@ -60,7 +62,7 @@ export function updateCheckObject(data: QualityCheckObjectApi.CheckObject) {
 }
 
 /** 删除检查对象 */
-export function deleteCheckObject(id: number) {
+export function deleteCheckObject(id: QualityCheckObjectApi.Id) {
   return requestClient.delete(
     `/governance/quality-check-object/delete?id=${id}`,
   );

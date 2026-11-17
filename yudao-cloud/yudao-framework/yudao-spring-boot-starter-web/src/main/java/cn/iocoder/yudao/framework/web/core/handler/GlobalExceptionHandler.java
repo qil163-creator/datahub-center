@@ -6,6 +6,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.util.ApiLogUtils;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.framework.common.biz.infra.logger.ApiErrorLogCommonApi;
 import cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiErrorLogCreateReqDTO;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -382,9 +383,10 @@ public class GlobalExceptionHandler {
         errorLog.setApplicationName(applicationName);
         errorLog.setRequestUrl(request.getRequestURI());
         if (ApiLogUtils.isRequestEnabled(request)) {
+            String[] sanitizeKeys = ApiLogUtils.sanitizeKeys(request);
             Map<String, Object> requestParams = MapUtil.<String, Object>builder()
-                    .put("query", ServletUtils.getParamMap(request))
-                    .put("body", ServletUtils.getBody(request)).build();
+                    .put("query", LogSanitizer.sanitizeQuery(ServletUtils.getParamMap(request), sanitizeKeys))
+                    .put("body", LogSanitizer.sanitizeJson(ServletUtils.getBody(request), sanitizeKeys)).build();
             errorLog.setRequestParams(JsonUtils.toJsonString(requestParams));
         } else {
             // 错误日志 RPC 的参数字段非空，使用空对象表达主动省略。

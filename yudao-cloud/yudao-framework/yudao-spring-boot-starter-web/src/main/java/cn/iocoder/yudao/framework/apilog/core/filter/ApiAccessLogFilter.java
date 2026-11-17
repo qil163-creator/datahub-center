@@ -4,17 +4,16 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum;
 import cn.iocoder.yudao.framework.apilog.core.util.ApiLogUtils;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.framework.common.biz.infra.logger.ApiAccessLogCommonApi;
 import cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiAccessLogCreateReqDTO;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.web.config.WebProperties;
@@ -33,9 +32,7 @@ import org.springframework.web.method.HandlerMethod;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 import static cn.iocoder.yudao.framework.apilog.core.interceptor.ApiAccessLogInterceptor.ATTRIBUTE_HANDLER_METHOD;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
@@ -49,8 +46,6 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
  */
 @Slf4j
 public class ApiAccessLogFilter extends ApiRequestFilter {
-
-    private static final String[] SANITIZE_KEYS = new String[]{"password", "token", "accessToken", "refreshToken"};
 
     private final String applicationName;
 
@@ -136,13 +131,13 @@ public class ApiAccessLogFilter extends ApiRequestFilter {
         String[] sanitizeKeys = accessLogAnnotation != null ? accessLogAnnotation.sanitizeKeys() : null;
         if (ApiLogUtils.isRequestEnabled(request)) {
             Map<String, Object> requestParams = MapUtil.<String, Object>builder()
-                    .put("query", sanitizeMap(queryString, sanitizeKeys))
-                    .put("body", sanitizeJson(requestBody, sanitizeKeys)).build();
+                    .put("query", CollUtil.isEmpty(queryString) ? null : toJsonString(LogSanitizer.sanitizeQuery(queryString, sanitizeKeys)))
+                    .put("body", LogSanitizer.sanitizeJson(requestBody, sanitizeKeys)).build();
             accessLog.setRequestParams(toJsonString(requestParams));
         }
         Boolean responseEnable = accessLogAnnotation != null ? accessLogAnnotation.responseEnable() : Boolean.FALSE;
         if (BooleanUtil.isTrue(responseEnable)) { // 默认不记录，默认强制要求 true
-            accessLog.setResponseBody(sanitizeJson(result, sanitizeKeys));
+            accessLog.setResponseBody(result == null ? null : LogSanitizer.sanitizeJson(toJsonString(result), sanitizeKeys));
         }
         // 持续时间
         accessLog.setBeginTime(beginTime).setEndTime(LocalDateTime.now())
@@ -183,75 +178,6 @@ public class ApiAccessLogFilter extends ApiRequestFilter {
                 return OperateTypeEnum.DELETE;
             default:
                 return OperateTypeEnum.OTHER;
-        }
-    }
-
-    // ========== 请求和响应的脱敏逻辑，移除类似 password、token 等敏感字段 ==========
-
-    private static String sanitizeMap(Map<String, ?> map, String[] sanitizeKeys) {
-        if (CollUtil.isEmpty(map)) {
-            return null;
-        }
-        if (sanitizeKeys != null) {
-            MapUtil.removeAny(map, sanitizeKeys);
-        }
-        MapUtil.removeAny(map, SANITIZE_KEYS);
-        return JsonUtils.toJsonString(map);
-    }
-
-    private static String sanitizeJson(String jsonString, String[] sanitizeKeys) {
-        if (StrUtil.isEmpty(jsonString)) {
-            return null;
-        }
-        try {
-            JsonNode rootNode = JsonUtils.parseTree(jsonString);
-            sanitizeJson(rootNode, sanitizeKeys);
-            return JsonUtils.toJsonString(rootNode);
-        } catch (Exception e) {
-            // 脱敏失败的情况下，直接忽略异常，避免影响用户请求
-            log.error("[sanitizeJson][脱敏({}) 发生异常]", jsonString, e);
-            return jsonString;
-        }
-    }
-
-    private static String sanitizeJson(CommonResult<?> commonResult, String[] sanitizeKeys) {
-        if (commonResult == null) {
-            return null;
-        }
-        String jsonString = toJsonString(commonResult);
-        try {
-            JsonNode rootNode = JsonUtils.parseTree(jsonString);
-            sanitizeJson(rootNode.get("data"), sanitizeKeys); // 只处理 data 字段，不处理 code、msg 字段，避免错误被脱敏掉
-            return JsonUtils.toJsonString(rootNode);
-        } catch (Exception e) {
-            // 脱敏失败的情况下，直接忽略异常，避免影响用户请求
-            log.error("[sanitizeJson][脱敏({}) 发生异常]", jsonString, e);
-            return jsonString;
-        }
-    }
-
-    private static void sanitizeJson(JsonNode node, String[] sanitizeKeys) {
-        // 情况一：数组，遍历处理
-        if (node.isArray()) {
-            for (JsonNode childNode : node) {
-                sanitizeJson(childNode, sanitizeKeys);
-            }
-            return;
-        }
-        // 情况二：非 Object，只是某个值，直接返回
-        if (!node.isObject()) {
-            return;
-        }
-        //  情况三：Object，遍历处理
-        Iterator<Map.Entry<String, JsonNode>> iterator = node.properties().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, JsonNode> entry = iterator.next();
-            if (ArrayUtil.contains(sanitizeKeys, entry.getKey())
-                    || ArrayUtil.contains(SANITIZE_KEYS, entry.getKey())) {
-                iterator.remove();
-                continue;
-            }
-            sanitizeJson(entry.getValue(), sanitizeKeys);
         }
     }
 

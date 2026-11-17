@@ -21,7 +21,7 @@ public interface MarketDepartmentAssetMapper {
             LEFT JOIN dh_asset_market_listing l ON l.asset_id=r.asset_id AND l.deleted=0
             LEFT JOIN dh_asset_market_category c ON c.id=l.market_category_id AND c.deleted=0
             LEFT JOIN dh_market_approval_work_order w ON w.id=r.source_work_order_id AND w.deleted=0
-            """;
+            """ + MarketMyAssetMapper.SNAPSHOT_JOINS;
     String SCOPE = """
             WHERE r.deleted=0 AND (
               (r.source_work_order_id IS NULL AND
@@ -38,7 +38,7 @@ public interface MarketDepartmentAssetMapper {
     String NAME = "COALESCE(NULLIF(w.mart_name,''),NULLIF(l.display_name,'')," + MarketMyAssetMapper.NAME + ")";
     String TYPE = "CASE WHEN r.api_id IS NOT NULL THEN 2 ELSE r.asset_type END";
     String COLUMNS = "SELECT r.*," + MarketMyAssetMapper.NAME + " asset_name," + NAME + " market_name,"
-            + MarketMyAssetMapper.PINNED_ASSET + "->>'assetCode' asset_code,"
+            + "jsonb_extract_path_text(frozen.asset, 'assetCode') asset_code,"
             + "l.market_category_id,c.name market_category_name,l.frequency update_cycle,"
             + "l.delivery_types declared_delivery_types," + TYPE + " delivery_type,"
             + "w.source_record_id source_apply_id,w.source_system,w.mart_source_id source_market_id,"
@@ -46,7 +46,7 @@ public interface MarketDepartmentAssetMapper {
     String FILTER = """
             <if test="req.keyword != null and req.keyword.trim() != ''">
               AND
-            """ + NAME + " ILIKE '%'||#{req.keyword}||'%' </if>"
+            """ + NAME + " ILIKE CONCAT('%', #{req.keyword}, '%') </if>"
             + """
             <if test="req.deliveryType != null">
               AND CASE WHEN r.source_work_order_id IS NOT NULL

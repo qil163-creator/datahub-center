@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { MarketApi } from '#/api/asset/market';
 
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
@@ -19,6 +19,7 @@ import {
   getMarketDemand,
   updateMarketDemand,
 } from '#/api/asset/market';
+import { useObjectRequest } from '#/hooks/use-object-request';
 
 import {
   DELIVERY_OPTIONS,
@@ -31,6 +32,10 @@ defineOptions({ name: 'MarketDemandForm' });
 const emit = defineEmits<{ (e: 'success'): void }>();
 
 const model = reactive<MarketApi.Demand>({});
+const ready = ref(false);
+const detailRequest = useObjectRequest(undefined, () => {
+  ready.value = false;
+});
 
 function resetModel() {
   Object.assign(model, {
@@ -70,15 +75,25 @@ function resetModel() {
 const [Modal, modalApi] = useVbenModal({
   onConfirm: submit,
   async onOpenChange(isOpen) {
-    if (!isOpen) {
-      resetModel();
-      return;
-    }
-    const data = (modalApi.getData() ?? {}) as { id?: MarketApi.Id };
+    const current = detailRequest.begin();
+    ready.value = false;
     resetModel();
-    if (data.id) {
-      Object.assign(model, (await getMarketDemand(data.id)) ?? {});
-      modalApi.setState({ title: '编辑需求' });
+    if (!isOpen) return;
+    const data = modalApi.getData() as undefined | { id?: MarketApi.Id };
+    if (data?.id) {
+      modalApi.setState({ title: '编辑需求', loading: true });
+      try {
+        const detail = await getMarketDemand(data.id);
+        if (!current()) return;
+        if (!detail?.id) {
+          message.warning('需求不存在，请刷新列表后重试');
+          await modalApi.close();
+          return;
+        }
+        Object.assign(model, detail);
+      } finally {
+        if (current()) modalApi.setState({ loading: false });
+      }
     } else {
       Object.assign(model, {
         demandType: 1,
@@ -86,12 +101,14 @@ const [Modal, modalApi] = useVbenModal({
         urgency: 2,
         publish: true,
       });
-      modalApi.setState({ title: '提出数据需求' });
+      modalApi.setState({ title: '提出数据需求', loading: false });
     }
+    ready.value = true;
   },
 });
 
 async function submit() {
+  if (!ready.value) return;
   if (!model.title?.trim() || !model.description?.trim()) {
     message.warning('请填写标题和需求说明');
     return;
@@ -116,8 +133,8 @@ async function submit() {
 </script>
 
 <template>
-  <Modal class="w-[800px]">
-    <div class="governance-modal-form governance-form-item-horizontal">
+  <Modal :confirm-disabled="!ready" class="w-[800px]">
+    <div v-if="ready" class="governance-modal-form governance-form-item-horizontal">
       <div class="form-item">
         <label class="form-item__label form-item__label--required">需求标题</label>
         <Input

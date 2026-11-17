@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
 import cn.iocoder.yudao.module.governance.api.quality.dto.QualityAssetSyncReqDTO;
 import cn.iocoder.yudao.module.governance.api.quality.dto.QualityTaskResultRespDTO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.task.QualityTaskPageReqVO;
@@ -38,6 +39,9 @@ import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.*;
 @Service
 @Validated
 public class QualityTaskServiceImpl implements QualityTaskService {
+
+    @Resource
+    private DatabaseApi databaseApi;
 
     @Resource
     private QualityTaskMapper taskMapper;
@@ -313,6 +317,7 @@ public class QualityTaskServiceImpl implements QualityTaskService {
      * 查找或创建资产检查对象。
      */
     private Long findOrCreateAssetCheckObject(QualityAssetSyncReqDTO reqDTO) {
+        QualityCheckObjectSources.requireAvailable(databaseApi, List.of(reqDTO.getDatasourceId()));
         QualityCheckObjectDO existing = checkObjectMapper.selectByDatasourceAndTable(
                 reqDTO.getDatasourceId(), reqDTO.getTableName());
         if (existing != null) {

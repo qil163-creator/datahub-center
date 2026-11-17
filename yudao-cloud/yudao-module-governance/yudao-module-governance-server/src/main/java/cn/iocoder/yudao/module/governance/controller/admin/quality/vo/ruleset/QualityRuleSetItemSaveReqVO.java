@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality.vo.ruleset;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class QualityRuleSetItemSaveReqVO {
 
     @Schema(description = "已选规则列表", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "规则集至少需要一个规则")
-    private List<Item> items;
+    private List<@NotNull(message = "规则项不能为空") @Valid Item> items;
 
     /**
      * 规则项

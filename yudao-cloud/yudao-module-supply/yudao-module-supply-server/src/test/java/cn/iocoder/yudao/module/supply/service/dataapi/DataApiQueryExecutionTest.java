@@ -1,6 +1,9 @@
 package cn.iocoder.yudao.module.supply.service.dataapi;
 
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
+import cn.iocoder.yudao.module.dataforge.api.database.PublishedQueryApi;
 import cn.iocoder.yudao.framework.dbswitch.core.model.JdbcSelectResult;
 import cn.iocoder.yudao.framework.dbswitch.core.service.impl.MetaDataByJdbcServiceImpl;
 import cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime;
@@ -47,6 +50,49 @@ class DataApiQueryExecutionTest {
         assertThrows(cn.iocoder.yudao.framework.common.exception.ServiceException.class,
                 () -> service.testDataApi(request, "127.0.0.1"));
         verifyNoInteractions(runtime);
+    }
+
+    @Test void anonymousGatewayUsesServiceQueryWithoutRequestingConnectionCredentials() {
+        var executor = new DataApiExecutor();
+        var rpc = mock(PublishedQueryApi.class);
+        var credentials = mock(SupplyDatabaseResolver.class);
+        ReflectionTestUtils.setField(executor, "publishedQueryApi", rpc);
+        ReflectionTestUtils.setField(executor, "databaseResolver", credentials);
+        ReflectionTestUtils.setField(executor, "dataApiProperties", new SupplyDataApiProperties());
+        var api = DataApiDO.builder().databaseId(10L).configType("SQL").apiType("QUERY").authType("NONE")
+                .resultFormat("PAGE").sqlText("SELECT #{n} AS value")
+                .requestParamsJson("[{\"name\":\"n\",\"paramType\":\"INTEGER\",\"nullable\":0}]").build();
+        var expected = new PublishedQueryApi.Query(10L, "SELECT ? AS value",
+                List.of(PublishedQueryApi.Bind.from(Long.MAX_VALUE)), 2, 10, 30, null);
+        when(rpc.query(expected)).thenReturn(CommonResult.success(new PageResult<>(
+                List.of(Map.of("value", "9223372036854775807")), 1L)));
+        var result = executor.execute(api, Map.of("n", "9223372036854775807"), 2, 10, "127.0.0.1",
+                false, false, null, false, DataApiExecuteMode.APP_GATEWAY);
+        assertEquals(List.of(Map.of("value", "9223372036854775807")), result.getRows());
+        verify(rpc).query(expected);
+        verifyNoInteractions(credentials);
+    }
+
+    @Test void publishedTablePassesOnlyApprovedProjectionAndReservedQuota() {
+        var executor = new DataApiExecutor();
+        var rpc = mock(PublishedQueryApi.class);
+        var credentials = mock(SupplyDatabaseResolver.class);
+        ReflectionTestUtils.setField(executor, "publishedQueryApi", rpc);
+        ReflectionTestUtils.setField(executor, "databaseResolver", credentials);
+        ReflectionTestUtils.setField(executor, "dataApiProperties", new SupplyDataApiProperties());
+        var snapshot = mock(cn.iocoder.yudao.module.supply.service.app.grant.EffectiveGrantSnapshot.class);
+        when(snapshot.binding()).thenReturn(new cn.iocoder.yudao.module.supply.api.app.dto.SupplyGrantSourceCommandDTO.Binding(
+                10L, "public", "example"));
+        when(snapshot.approvedColumns()).thenReturn(List.of("id"));
+        var api = DataApiDO.builder().databaseId(10L).configType("TABLE").apiType("QUERY")
+                .tableName("example").resultFormat("PAGE").build();
+        var request = new PublishedQueryApi.Query(10L, "SELECT * FROM example", List.of(), 2, 3, 30,
+                new PublishedQueryApi.Projection("public", "example", List.of("id")));
+        when(rpc.query(request)).thenReturn(CommonResult.success(new PageResult<>(List.of(), 0L)));
+        ReflectionTestUtils.invokeMethod(executor, "doExecute", api, Map.of(), 2, 10,
+                new DataApiExecutor.ExecuteContext(7L, false, 3), snapshot, true);
+        verify(rpc).query(request);
+        verifyNoInteractions(credentials);
     }
 
     @Test void queryKeepsSqlBindingsAndRowsWhileApplyingApplicationQuota() throws Exception {

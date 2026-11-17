@@ -15,6 +15,7 @@ import cn.iocoder.yudao.framework.dbswitch.core.service.IMetaDataByJdbcService;
 import cn.iocoder.yudao.framework.dbswitch.core.service.impl.MetaDataByJdbcServiceImpl;
 import cn.iocoder.yudao.module.supply.service.app.SupplyGrantValidity;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.dataforge.api.database.PublishedQueryApi;
 import cn.iocoder.yudao.module.governance.api.security.SafetySecurityApi;
 import cn.iocoder.yudao.module.governance.api.security.dto.SafetyAccessLogCreateReqDTO;
 import cn.iocoder.yudao.module.governance.api.security.dto.SafetyMaskExemptRespDTO;
@@ -23,7 +24,6 @@ import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiSaveReq
 import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.apilog.ApiLogDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO;
-import cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedSelectGuard;
 import cn.iocoder.yudao.framework.dbswitch.core.util.QueryTimeoutConnection;
 import cn.iocoder.yudao.module.supply.service.app.grant.EffectiveGrantSnapshot;
 import cn.iocoder.yudao.module.supply.service.app.grant.SupplyGrantReadService;
@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 
+import cn.iocoder.yudao.module.supply.api.dataapi.PublishedWriteClaimApi;
 import java.sql.Timestamp;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -72,6 +73,12 @@ public class DataApiExecutor {
 
     @jakarta.annotation.Resource
     private DataApiIndicatorQueryService indicatorQueries;
+
+    @Resource
+    private PublishedWriteClaims writeClaims;
+
+    @Resource
+    private PublishedQueryApi publishedQueryApi;
 
 
     private static final Pattern SQL_PARAM_PATTERN = Pattern.compile("#\\{(\\w+)}");
@@ -219,7 +226,8 @@ public class DataApiExecutor {
             Long permissionUserId = resolvePermissionUserId(appId, api.getId(), applyUserPermission);
             SafetyMaskExemptRespDTO maskExempt = permissionUserId != null
                     ? checkMaskExempt(permissionUserId)
-                    : (isQueryApi(api) && !maskColumns.isEmpty() ? checkMaskExempt() : null);
+                    : (executeMode != DataApiExecuteMode.APP_GATEWAY && isQueryApi(api) && !maskColumns.isEmpty()
+                    ? checkMaskExempt() : null);
             boolean skipMask = maskExempt != null && Boolean.TRUE.equals(maskExempt.getExempt());
             ExecuteContext permissionCtx = permissionUserId != null
                     ? new ExecuteContext(permissionUserId, skipMask) : null;
@@ -299,29 +307,28 @@ public class DataApiExecutor {
                 businessParams.remove(DataApiOperationService.KEY_PARAM);
                 businessParams.remove(DataApiOperationService.MODE_PARAM);
                 requireNoFieldScope(grantSnapshot);
-                DataApiOperationService.WriteAction action;
+                java.util.function.Supplier<DataApiOperationService.WriteAction> prepare;
                 if (DataApiOperationService.isStatusQuery(params)) {
-                    action = () -> {
+                    prepare = () -> {
                         throw new IllegalStateException("状态查询不得发起执行");
                     };
-                } else {
-                    // 确定性的参数、计划和授权拒绝发生在认领前，不污染未知结果队列。
-                    Map<String, Object> effective = resolveParams(api, businessParams);
-                    if (DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType())) {
-                        boolean multi = DataApiDO.API_TYPE_MULTI.equalsIgnoreCase(api.getApiType());
-                        PreparedWrite prepared = prepareWrite(api, processDynamicTags(api.getSqlText(), effective),
-                                effective, permissionCtx, multi);
-                        action = () -> executeWrite(prepared);
-                    } else if (DataApiDO.CONFIG_TYPE_FORWARD.equals(api.getConfigType())) {
-                        validateForwardUrl(api.getForwardUrl(), dataApiProperties);
-                        action = () -> executeForward(api, effective);
-                    } else {
-                        throw exception(DATA_API_TYPE_NOT_SUPPORTED, api.getApiType());
+                } else if (DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType())) {
+                    if (appId == null || api.getActiveReleaseId() == null || !DataApiDO.AUTH_TYPE_SIGN.equals(api.getAuthType())) {
+                        throw exception(DATA_API_NOT_AUTHORIZED);
                     }
+                    String operationKey = DataApiOperationService.key(params);
+                    prepare = () -> preparePublishedWrite(api, appId, operationKey, businessParams);
+                } else if (DataApiDO.CONFIG_TYPE_FORWARD.equals(api.getConfigType())) {
+                    var effective = resolveParams(api, businessParams);
+                    validateForwardUrl(api.getForwardUrl(), dataApiProperties);
+                    prepare = () -> () -> executeForward(api, effective);
+                } else {
+                    throw exception(DATA_API_TYPE_NOT_SUPPORTED, api.getApiType());
                 }
-                result = operationService.execute(api, appId, params, action);
+                result = operationService.executePrepared(api, appId, params, prepare);
             } else {
-                result = doExecute(api, params, pageNo, pageSize, permissionCtx, grantSnapshot);
+                boolean publishedGateway = executeMode == DataApiExecuteMode.APP_GATEWAY;
+                result = doExecute(api, params, pageNo, pageSize, permissionCtx, grantSnapshot, publishedGateway);
             }
             if (isQueryApi(api)) {
                 result.setRows(applyFieldModels(result.getRows(), fieldDefines, skipMask));
@@ -472,8 +479,16 @@ public class DataApiExecutor {
     private DataApiExecuteRespVO doExecute(DataApiDO api, Map<String, Object> params,
             Integer pageNo, Integer pageSize,
             ExecuteContext permissionCtx,
-            EffectiveGrantSnapshot grantSnapshot) throws Exception {
+            EffectiveGrantSnapshot grantSnapshot, boolean publishedGateway) throws Exception {
         Map<String, Object> effectiveParams = resolveParams(api, params);
+        if (publishedGateway && isQueryApi(api) && (DataApiDO.CONFIG_TYPE_TABLE.equals(api.getConfigType())
+                || DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType()))) {
+            boolean table = DataApiDO.CONFIG_TYPE_TABLE.equals(api.getConfigType());
+            if (!table) requireNoFieldScope(grantSnapshot);
+            var query = table ? prepareTableQuery(api, effectiveParams)
+                    : prepareSql(processDynamicTags(api.getSqlText(), effectiveParams), effectiveParams);
+            return queryPublished(api, query, pageNo, pageSize, grantSnapshot, permissionCtx);
+        }
         // 非查询类接口仅 SQL 脚本模式支持
         if (!isQueryApi(api) && !DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType())) {
             throw exception(DATA_API_TYPE_NOT_SUPPORTED, api.getApiType());
@@ -491,7 +506,7 @@ public class DataApiExecutor {
                 yield etlBatches.read(api, cursorParams, pageSize, permissionCtx.userId());
             }
             case DataApiDO.CONFIG_TYPE_TABLE ->
-                    executeTable(api, effectiveParams, pageNo, pageSize, permissionCtx, grantSnapshot);
+                    executeTable(api, effectiveParams, pageNo, pageSize, permissionCtx);
             case DataApiDO.CONFIG_TYPE_SQL -> {
                 requireNoFieldScope(grantSnapshot);
                 yield executeSql(api, effectiveParams, pageNo, pageSize, permissionCtx);
@@ -509,6 +524,42 @@ public class DataApiExecutor {
             }
             default -> throw exception(DATA_API_CONFIG_INVALID, "未知配置方式 " + api.getConfigType());
         };
+    }
+
+    /** 仅将发布配置生成的只读查询和带类型的绑定值发送到数据源所属服务。 */
+    private DataApiExecuteRespVO queryPublished(DataApiDO api, PreparedSql sql, Integer pageNo, Integer pageSize,
+            EffectiveGrantSnapshot snapshot, ExecuteContext permissionCtx) throws java.sql.SQLTimeoutException {
+        int[] bound = resolvePageBound(api, pageNo, pageSize);
+        int limit = permissionCtx != null && permissionCtx.quotaLimit() != null
+                ? Math.min(bound[1], permissionCtx.quotaLimit()) : bound[1];
+        PublishedQueryApi.Projection scope = null;
+        if (snapshot != null) {
+            var binding = snapshot.binding();
+            if (binding == null || !Objects.equals(api.getDatabaseId(), binding.databaseId())
+                    || snapshot.approvedColumns().isEmpty()) throw exception(DATA_API_NOT_AUTHORIZED);
+            scope = new PublishedQueryApi.Projection(binding.schemaName(), binding.tableName(), snapshot.approvedColumns());
+        }
+        var request = new PublishedQueryApi.Query(api.getDatabaseId(), sql.sql(),
+                sql.binds().stream().map(PublishedQueryApi.Bind::from).toList(),
+                bound[0], limit, Math.min(300, queryTimeoutSeconds(api)), scope);
+        var response = publishedQueryApi.query(request);
+        if (cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DATABASE_PUBLISHED_QUERY_TIMEOUT
+                .getCode().equals(response.getCode())) {
+            throw new java.sql.SQLTimeoutException("数据源查询超时");
+        }
+        if (cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DATABASE_QUERY_SQL_INVALID
+                .getCode().equals(response.getCode())) {
+            throw exception(DATA_API_READONLY_REQUIRED, "仅允许支持的只读查询");
+        }
+        if (cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DATABASE_PUBLISHED_SCOPE_INVALID
+                .getCode().equals(response.getCode())) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (!response.isSuccess() || response.getData() == null) {
+            throw exception(DATA_API_EXECUTE_FAILED, "数据源查询未完成");
+        }
+        var result = new DataApiExecuteRespVO();
+        result.setRows(response.getData().getList());
+        result.setTotal(response.getData().getTotal());
+        return result;
     }
 
     /**
@@ -531,17 +582,25 @@ public class DataApiExecutor {
         List<DataApiSaveReqVO.ParamItem> defines = parseParamDefines(api.getRequestParamsJson());
         Map<String, Object> input = params == null ? Map.of() : params;
         Map<String, Object> effective = new LinkedHashMap<>();
+        boolean sql = DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType());
         for (DataApiSaveReqVO.ParamItem define : defines) {
             if (StrUtil.isBlank(define.getName())) {
                 continue;
             }
             Object value = input.get(define.getName());
+            boolean required = define.getNullable() == null || define.getNullable() == 0;
+            if (sql && !required && value == null
+                    && (input.containsKey(define.getName()) || StrUtil.isBlank(define.getDefaultValue()))) {
+                // SQL 静态占位符必须保留绑定位置，显式 null 优先于缺省值。
+                effective.put(define.getName(), null);
+                continue;
+            }
             if (value == null || StrUtil.isBlank(String.valueOf(value))) {
                 value = StrUtil.isBlank(define.getDefaultValue()) ? null : define.getDefaultValue();
             }
             if (value == null) {
                 // nullable：0-否（必填）
-                if (define.getNullable() == null || define.getNullable() == 0) {
+                if (required) {
                     throw exception(DATA_API_PARAM_REQUIRED, define.getName());
                 }
                 continue;
@@ -607,16 +666,12 @@ public class DataApiExecutor {
      * @param pageNo 页码
      * @param pageSize 每页行数
      * @param permissionCtx 权限上下文
-     * @param grantSnapshot 授权快照
      * @return 数据 API执行响应数据
      */
     private DataApiExecuteRespVO executeTable(DataApiDO api, Map<String, Object> params,
-            Integer pageNo, Integer pageSize,
-            ExecuteContext permissionCtx,
-            EffectiveGrantSnapshot grantSnapshot) throws Exception {
+            Integer pageNo, Integer pageSize, ExecuteContext permissionCtx) throws Exception {
         PreparedSql prepared = prepareTableQuery(api, params);
-        String sql = restrictToApprovedColumns(api, prepared.sql(), grantSnapshot);
-        return queryDatabase(api, sql, prepared.binds(), pageNo, pageSize, permissionCtx);
+        return queryDatabase(api, prepared.sql(), prepared.binds(), pageNo, pageSize, permissionCtx);
     }
 
     /**
@@ -659,30 +714,6 @@ public class DataApiExecutor {
             sql.append(String.join(" AND ", conditions));
         }
         return new PreparedSql(sql.toString(), binds);
-    }
-
-    /**
-     * 字段受限来源：在数据库执行前把 SELECT 与过滤限制到批准列，通配符按批准列展开。
-     * 技术实现复用 DB Switch 的受限投影，业务侧只提供绑定与批准集合。
-     */
-    private String restrictToApprovedColumns(DataApiDO api, String sql, EffectiveGrantSnapshot snapshot) {
-        if (snapshot == null) {
-            return sql;
-        }
-        var binding = snapshot.binding();
-        if (binding == null || !java.util.Objects.equals(api.getDatabaseId(), binding.databaseId())
-                || snapshot.approvedColumns().isEmpty()) {
-            throw exception(DATA_API_NOT_AUTHORIZED);
-        }
-        try {
-            return RestrictedSelectGuard.restrictProjection(
-                    databaseResolver.resolve(api.getDatabaseId()).getProductType(), sql,
-                    binding.schemaName(), binding.tableName(),
-                    snapshot.approvedColumns(), Set.copyOf(snapshot.approvedColumns())).sql();
-        } catch (IllegalArgumentException | UnsupportedOperationException rejected) {
-            // 不回传数据库标识符细节，只说明超出批准范围。
-            throw exception(DATA_API_NOT_AUTHORIZED);
-        }
     }
 
     /** 受限字段授权只在已验证的单表查询上成立；其他配置方式一律拒绝，不做“先查后删列”。 */
@@ -775,7 +806,11 @@ public class DataApiExecutor {
         if (api.getDatabaseId() == null || StrUtil.isBlank(script)) {
             throw exception(DATA_API_CONFIG_INVALID, "请配置数据源与 SQL 脚本");
         }
-        SupplyDatabaseResolver.ConnectionInfo conn = databaseResolver.resolve(api.getDatabaseId());
+        return prepareWrite(api, script, params, multi, databaseResolver.resolve(api.getDatabaseId()));
+    }
+
+    private PreparedWrite prepareWrite(DataApiDO api, String script, Map<String, Object> params, boolean multi,
+            SupplyDatabaseResolver.ConnectionInfo conn) {
         PreparedSql prepared = prepareSql(script, params);
         var plan = cn.iocoder.yudao.framework.dbswitch.core.service.SqlScriptPlan.parse(conn.getProductType(),
                 prepared.sql);
@@ -801,6 +836,9 @@ public class DataApiExecutor {
         for (var step : plan.steps()) {
             var shape = cn.iocoder.yudao.framework.dbswitch.core.service.RestrictedDmlAuthorization.inspect(
                     conn.getProductType(), step.sql(), conn.getSchema());
+            if (!multi && !shape.operation().equalsIgnoreCase(api.getApiType())) {
+                throw exception(DATA_API_CONFIG_INVALID, "SQL 操作必须与发布接口类型一致");
+            }
             if (!Objects.equals(conn.getSchema(), shape.schemaName())) {
                 throw exception(DATA_API_CONFIG_INVALID, "写入对象必须位于数据源配置的数据库模式内");
             }
@@ -816,6 +854,57 @@ public class DataApiExecutor {
         cn.iocoder.yudao.framework.dbswitch.core.service.PostgresDmlTargetGuard.validatePlan(boundPlan, targets);
         return new PreparedWrite(conn, boundPlan, prepared.binds, multi, List.copyOf(targets),
                 queryTimeoutSeconds(api));
+    }
+
+    private DataApiOperationService.WriteAction preparePublishedWrite(DataApiDO api, Long appId, String operationKey,
+            Map<String, Object> businessParams) {
+        var effective = resolveParams(api, businessParams);
+        var profile = publishedQueryApi.writeProfile(new PublishedQueryApi.Source(api.getDatabaseId())).getCheckedData();
+        var connection = new SupplyDatabaseResolver.ConnectionInfo();
+        connection.setDatabaseId(api.getDatabaseId());
+        connection.setProductType(cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.valueOf(profile.productType()));
+        connection.setSchema(profile.schema());
+        connection.setConfigurationRevision(profile.revision());
+        boolean multi = DataApiDO.API_TYPE_MULTI.equalsIgnoreCase(api.getApiType());
+        var prepared = prepareWrite(api, processDynamicTags(api.getSqlText(), effective), effective, multi, connection);
+        var binds = prepared.binds().stream().map(PublishedWriteClaimApi.Bind::from).toList();
+        return () -> executeClaimedWrite(api, appId, operationKey, prepared, binds);
+    }
+
+    private DataApiExecuteRespVO executeClaimedWrite(DataApiDO api, Long appId, String operationKey,
+            PreparedWrite prepared, List<PublishedWriteClaimApi.Bind> bindings) {
+        var statements = new ArrayList<PublishedWriteClaimApi.Statement>();
+        for (int index = 0; index < prepared.targets().size(); index++) {
+            var target = prepared.targets().get(index);
+            statements.add(new PublishedWriteClaimApi.Statement(target.ordinal(), target.schemaName(), target.tableName(),
+                    prepared.plan().steps().get(index).sql()));
+        }
+        var ticket = writeClaims.issue(appId, api, operationKey, operationId -> new PublishedWriteClaimApi.Contract(
+                appId, api.getId(), api.getActiveReleaseId(), operationId, api.getDatabaseId(),
+                prepared.connection().getConfigurationRevision(), api.getApiType(), statements, bindings,
+                Math.min(300, prepared.queryTimeoutSeconds())));
+        var counts = publishedQueryApi.executeClaim(new PublishedQueryApi.Ticket(ticket)).getCheckedData();
+        if (counts == null || counts.size() != statements.size()) throw exception(DATA_API_NOT_AUTHORIZED);
+        var rows = new ArrayList<Map<String, Object>>();
+        for (int index = 0; index < counts.size(); index++) {
+            var row = new LinkedHashMap<String, Object>();
+            if (prepared.multi()) row.put("statement", index + 1);
+            row.put("affectedRows", counts.get(index));
+            rows.add(row);
+        }
+        var result = new DataApiExecuteRespVO();
+        result.setRows(rows);
+        return result;
+    }
+
+    public void validateClaimGrant(DataApiDO api, long appId) {
+        var snapshot = readGrantSnapshot(api, appId);
+        if (snapshot == null) {
+            assertCurrentGrant(api, appId);
+        } else {
+            requireNoFieldScope(snapshot);
+            grantReadService.assertStillCurrent(snapshot);
+        }
     }
 
     /**

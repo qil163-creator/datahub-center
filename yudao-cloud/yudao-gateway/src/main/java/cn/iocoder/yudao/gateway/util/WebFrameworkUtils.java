@@ -36,7 +36,10 @@ public class WebFrameworkUtils {
             return false;
         }
         String path = decodedPath.replaceAll(";[^/]*", "");
-        return path.contains("/supply/api-test/") || path.endsWith("/supply/api-test")
+        return path.contains("/system/auth/") || path.contains("/system/oauth2/")
+                || path.endsWith("/supply/app/create") || path.endsWith("/supply/app/reset-secret")
+                || path.endsWith("/supply/data-api/sign")
+                || path.contains("/supply/api-test/") || path.endsWith("/supply/api-test")
                 || path.contains("/supply/gateway/") || path.endsWith("/supply/gateway")
                 || path.contains("/dataforge/file-resource/") || path.endsWith("/dataforge/file-resource");
     }

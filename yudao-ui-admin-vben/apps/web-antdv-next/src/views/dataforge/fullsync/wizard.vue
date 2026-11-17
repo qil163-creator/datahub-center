@@ -45,6 +45,7 @@ import {
   getWizard,
   LIST_PATH,
   saveWizardStep,
+  validateWizard,
 } from '#/api/dataforge/fullsync';
 import { getCronPreview } from '#/components/cron-tab/cron-preview';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -364,6 +365,7 @@ async function saveStep(final = false) {
   const payload = JSON.parse(
     JSON.stringify({ ...config.value, taskName: config.value.taskName.trim() }),
   ) as FullSyncConfig;
+  let validating = false;
   try {
     const result = existing.value
       ? await saveWizardStep(
@@ -378,6 +380,16 @@ async function saveStep(final = false) {
     existing.value = result;
     config.value = { ...createDefaultConfig(), ...result.config };
     if (final) {
+      if (config.value.executionMode === 'DBSWITCH') {
+        validating = true;
+        const validation = await validateWizard(result.id);
+        validating = false;
+        if (!current()) return;
+        if (!validation.valid) {
+          error.value = validation.messages.join('；') || '执行预检未通过';
+          return;
+        }
+      }
       message.success('配置保存成功');
       saving.value = false;
       await router.push(LIST_PATH);
@@ -400,7 +412,11 @@ async function saveStep(final = false) {
       });
     }
   } catch {
-    if (current()) error.value = '配置保存失败，请检查后重试';
+    if (current()) {
+      error.value = validating
+        ? '草稿已保存，执行预检失败，请重试'
+        : '配置保存失败，请检查后重试';
+    }
   } finally {
     if (current()) saving.value = false;
   }

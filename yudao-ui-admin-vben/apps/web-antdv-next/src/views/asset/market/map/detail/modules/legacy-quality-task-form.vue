@@ -278,7 +278,7 @@ const [Modal, modalApi] = useVbenModal({
     recommendations.invalidate();
     saving = false;
     recommending.value = false;
-    rulePickerApi.close();
+    rulePickerApi.close?.();
     if (!isOpen || !allowed.value) {
       rules.value = [];
       return;
@@ -312,7 +312,7 @@ watch(
     saves.invalidate();
     recommendations.invalidate();
     rules.value = [];
-    rulePickerApi.close();
+    rulePickerApi.close?.();
     modalApi.setState({ isOpen: false });
   },
   { flush: 'sync' },
@@ -321,7 +321,6 @@ onBeforeUnmount(() => {
   opened = false;
   saves.invalidate();
   recommendations.invalidate();
-  rulePickerApi.close();
 });
 </script>
 

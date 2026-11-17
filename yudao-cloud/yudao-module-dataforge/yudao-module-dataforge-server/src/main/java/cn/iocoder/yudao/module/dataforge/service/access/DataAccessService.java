@@ -13,6 +13,9 @@ import java.util.List;
  */
 public interface DataAccessService {
 
+    /** 只读预检整库同步向导的配置，复用真实执行入口的授权模式校验。 */
+    void validateDbSwitchConfiguration(DataAccessSaveReqVO request);
+
     /**
      * 创建数据同步任务
      *

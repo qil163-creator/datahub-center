@@ -143,8 +143,6 @@ yudao:
       - /supply/gateway/** # 数据服务对外网关（应用凭证认证，无租户上下文）
   supply:
     data-api:
-      # 部门应用真实调用基址，例如 https://gateway.example.gov/supply/gateway。未配置时文档不猜测。
-      public-base-url: ""
       # M1 临时关闭结果缓存；恢复条件见 docs/research/2026-09-16-supply-m0-design.md
       result-cache-enabled: false
 

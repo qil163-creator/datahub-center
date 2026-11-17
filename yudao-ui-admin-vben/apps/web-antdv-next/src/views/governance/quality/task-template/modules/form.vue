@@ -45,6 +45,13 @@ const ruleSets = ref<QualityRuleSetApi.RuleSet[]>([]);
 const rulesList = ref<QualityRuleApi.Rule[]>([]);
 
 const rules = {
+  cronExpression: [
+    { required: true, whitespace: true, message: '请输入定时执行的 Cron 表达式' },
+    {
+      pattern: /^\s*(?:\S+(?:\s+\S+){5}|@(yearly|annually|monthly|weekly|daily|midnight|hourly))\s*$/i,
+      message: '请填写六段式 Spring Cron 表达式，例如 0 0 2 * * ?',
+    },
+  ],
   templateName: [{ required: true, message: '请输入模板名称' }],
   datasourceConnId: [{ required: true, message: '请选择数据源' }],
 };

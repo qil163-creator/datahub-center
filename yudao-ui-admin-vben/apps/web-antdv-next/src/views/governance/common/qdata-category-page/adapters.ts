@@ -44,6 +44,7 @@ function normalize(row: {
     parentId: row.parentId ?? 0,
     key: String(row.id),
     name: row.categoryName ?? '',
+    categoryCode: row.categoryCode,
     description: row.remark ?? '',
     status: row.status ?? 0,
     sort: row.sort ?? 0,
@@ -62,7 +63,7 @@ function toCategoryPayload(data: CategoryPayload) {
     id: data.id,
     parentId: data.parentId,
     categoryName: data.name,
-    categoryCode: data.name,
+    categoryCode: data.categoryCode ?? data.name,
     sort: data.sort,
     status: data.status,
     remark: data.description,
@@ -79,7 +80,6 @@ export const cleanRuleCategoryAdapter: CategoryAdapter = {
   update: (data) => updateCategoryCleanRule(toCategoryPayload(data) as FoundationCategoryCleanRuleApi.CategoryCleanRule),
   remove: deleteCategoryCleanRule,
   normalize: (row) => normalize(row as FoundationCategoryCleanRuleApi.CategoryCleanRule),
-  toPayload: toCategoryPayload,
 };
 
 export const tagCategoryAdapter: CategoryAdapter = {
@@ -92,7 +92,6 @@ export const tagCategoryAdapter: CategoryAdapter = {
   update: (data) => updateCategoryTag(toCategoryPayload(data) as AssetCategoryTagApi.CategoryTag),
   remove: deleteCategoryTag,
   normalize: (row) => normalize(row as AssetCategoryTagApi.CategoryTag),
-  toPayload: toCategoryPayload,
 };
 
 export const termCategoryAdapter: CategoryAdapter = {
@@ -105,5 +104,4 @@ export const termCategoryAdapter: CategoryAdapter = {
   update: (data) => updateCategoryTerm(toCategoryPayload(data) as GovernanceCategoryTermApi.Save),
   remove: deleteCategoryTerm,
   normalize: (row) => normalize(row as GovernanceCategoryTermApi.Category),
-  toPayload: toCategoryPayload,
 };

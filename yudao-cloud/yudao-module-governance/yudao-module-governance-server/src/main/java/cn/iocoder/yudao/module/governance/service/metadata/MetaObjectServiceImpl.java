@@ -113,6 +113,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     private MetaChangeMapper changeMapper;
 
     @Resource
+    private MetadataTreeCatalog treeCatalog;
+
+    @Resource
     private DatabaseApi databaseApi;
 
     @Resource
@@ -155,13 +158,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      */
     @Override
     public List<MetaObjectTreeNodeVO> getObjectTree() {
-        List<MetaDbDO> dbs = dbMapper.selectListForTree();
-        Map<Long, String> datasourceNames = loadDatasourceNames();
+        var tasks = collectTaskMapper.selectList(new LambdaQueryWrapperX<MetaCollectTaskDO>()
+                .orderByAsc(MetaCollectTaskDO::getSourceSystemId).orderByAsc(MetaCollectTaskDO::getDatasourceId));
+        var catalog = treeCatalog.load(convertList(tasks, MetaCollectTaskDO::getDatasourceId));
         // 来源系统 → 数据源 → 库 三级分组（保持库名有序）
         Map<Long, MetaObjectTreeNodeVO> systemNodes = new LinkedHashMap<>();
         Map<String, MetaObjectTreeNodeVO> datasourceNodes = new LinkedHashMap<>();
         List<MetaObjectTreeNodeVO> roots = new ArrayList<>();
-        for (MetaDbDO db : dbs) {
+        for (MetaDbDO db : catalog.databases()) {
             Long systemId = db.getSourceSystemId() == null
                     ? MetaTablePageReqVO.UNASSIGNED_SOURCE_SYSTEM_ID : db.getSourceSystemId();
             MetaObjectTreeNodeVO systemNode = systemNodes.computeIfAbsent(systemId, key -> {
@@ -180,7 +184,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 node.setType(MetaObjectTreeNodeVO.TYPE_DATASOURCE);
                 node.setId(db.getDatasourceId());
                 String name = MetaImportedDisplay.read(db.getDisplaySnapshot())
-                        .fallback(datasourceNames.get(db.getDatasourceId()), "datasourceName");
+                        .fallback(catalog.names().get(db.getDatasourceId()), "datasourceName");
                 node.setName(StrUtil.blankToDefault(name, "数据源#" + db.getDatasourceId()));
                 node.setDbType(db.getDbType());
                 systemNode.getChildren().add(node);
@@ -197,8 +201,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             datasourceNode.getChildren().add(dbNode);
         }
         // 采集任务拥有尚未采出库表的来源及连接，仍作为可筛选的空节点展示。
-        for (var task : collectTaskMapper.selectList(new LambdaQueryWrapperX<MetaCollectTaskDO>()
-                .orderByAsc(MetaCollectTaskDO::getSourceSystemId).orderByAsc(MetaCollectTaskDO::getDatasourceId))) {
+        for (var task : tasks) {
+            if (catalog.deletedSources().contains(task.getDatasourceId())) {
+                continue;
+            }
             Long systemId = task.getSourceSystemId() == null
                     ? MetaTablePageReqVO.UNASSIGNED_SOURCE_SYSTEM_ID : task.getSourceSystemId();
             var systemNode = systemNodes.computeIfAbsent(systemId, key -> {

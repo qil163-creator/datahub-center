@@ -5,6 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.util.ApiLogUtils;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.common.util.spring.SpringUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,15 +46,17 @@ public class ApiAccessLogInterceptor implements HandlerInterceptor {
         // 打印 request 日志
         if (!SpringUtils.isProd()) {
             boolean requestEnabled = ApiLogUtils.isRequestEnabled(request);
-            Map<String, String> queryString = requestEnabled ? ServletUtils.getParamMap(request) : null;
-            String requestBody = requestEnabled ? ServletUtils.getBody(request) : null;
+            String[] sanitizeKeys = ApiLogUtils.sanitizeKeys(request);
+            Map<String, String> queryString = requestEnabled
+                    ? LogSanitizer.sanitizeQuery(ServletUtils.getParamMap(request), sanitizeKeys) : null;
+            String requestBody = requestEnabled ? LogSanitizer.sanitizeJson(ServletUtils.getBody(request), sanitizeKeys) : null;
             if (!requestEnabled) {
                 log.info("[preHandle][开始请求 URL({}) 参数日志已关闭]", request.getRequestURI());
             } else if (CollUtil.isEmpty(queryString) && StrUtil.isEmpty(requestBody)) {
                 log.info("[preHandle][开始请求 URL({}) 无参数]", request.getRequestURI());
             } else {
                 log.info("[preHandle][开始请求 URL({}) 参数({})]", request.getRequestURI(),
-                        StrUtil.blankToDefault(requestBody, queryString.toString()));
+                        StrUtil.isNotBlank(requestBody) ? requestBody : queryString);
             }
             // 计时
             StopWatch stopWatch = new StopWatch();

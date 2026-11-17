@@ -210,7 +210,7 @@ public class StandardCodeSetController {
                 StandardCodeSetImportExcelVO.builder()
                         .codeSetName("证件类型").type("std_id_type").value("01").label("居民身份证").sort(1)
                         .remark("GB/T 2261.1").build());
-        ExcelUtils.write(response, "码表码值导入模板.xls", "码值列表",
+        ExcelUtils.write(response, "码表码值导入模板.xlsx", "码值列表",
                 StandardCodeSetImportExcelVO.class, list);
     }
 
@@ -250,7 +250,7 @@ public class StandardCodeSetController {
         List<StandardCodeSetRespVO> voList = BeanUtils.toBean(list, StandardCodeSetRespVO.class);
         standardCodeSetService.fillItemCounts(voList);
         // 导出 Excel
-        ExcelUtils.write(response, "数据标准--标准码.xls", "数据", StandardCodeSetRespVO.class, voList);
+        ExcelUtils.write(response, "数据标准--标准码.xlsx", "数据", StandardCodeSetRespVO.class, voList);
     }
 
 

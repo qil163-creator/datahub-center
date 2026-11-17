@@ -60,7 +60,9 @@ vi.mock('@vben/common-ui', () => ({
           opened.value = true;
           options.onOpenChange?.(true);
         },
-        close: () => {
+        close: async () => {
+          // VbenModal 等待关闭钩子后才提交关闭状态。
+          await Promise.resolve();
           opened.value = false;
           options.onOpenChange?.(false);
         },
@@ -189,6 +191,7 @@ describe('报告复用工单入口', () => {
       typeof WorkOrderForm
     >;
     const first = component.open({ taskId: '1', orderName: '旧任务' });
+    await vi.waitFor(() => expect(getQualityTaskSimpleList).toHaveBeenCalled());
     await component.open({ taskId: '2', orderName: '新任务' });
     pending.resolve([{ id: '1', taskName: '旧任务' }]);
     await first;

@@ -51,6 +51,20 @@ yudao:
 
 若缺少 bundle/信任链/证书指纹，先补齐部署条件，再验证资产字段术语选择和展示；不得移除认证过滤器或回退为信任 `login-user`/`tenant-id` 请求头。
 
+### 本机开发环境
+
+在后端仓库根目录执行以下命令，为当前用户生成资产和治理两个服务的证书及配置。再次执行会校验证书并复用已有身份。证书有效期为一年，轮换时将此专用目录移到私有备份位置，再生成并重启两个服务。
+
+```sh
+python3 deploy/prepare_local_rpc_tls.py \
+  --directory "$HOME/.local/share/datahub/asset-term-tls" \
+  --client asset --server governance --port 50044 --context standardTermApi \
+  --bundle-property yudao.governance.standard-term.client.ssl-bundle \
+  --peer-property yudao.governance.standard-term.rpc.peers.asset
+```
+
+重启使用 `local` 配置的治理服务与资产服务。治理服务在 `127.0.0.1:50044` 验证客户端证书，资产通过该端口读取术语。使用登录账号打开资产地图详情，选择字段的“绑定术语”，搜索启用的业务术语并核对结果。
+
 ## 验证
 
 集中 Maven 可选择 `StandardTermApiImplTest,StandardTermRpcSecurityTest,StandardTermLookupPostgreSqlTest`，跨 reactor 指定测试时增加 `-Dsurefire.failIfNoSpecifiedTests=false`。

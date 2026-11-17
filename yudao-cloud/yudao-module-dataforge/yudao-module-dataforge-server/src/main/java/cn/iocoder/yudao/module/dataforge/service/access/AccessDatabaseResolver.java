@@ -80,6 +80,15 @@ public class AccessDatabaseResolver {
         return resolve(database);
     }
 
+    /** 发布接口只能执行已启用的数据源；先检查状态再解密凭据。 */
+    public ConnectionInfo resolveEnabled(Long id, ErrorCode unavailable) {
+        var database = databaseMapper.selectById(id);
+        if (database == null || !cn.iocoder.yudao.framework.common.enums.CommonStatusEnum.isEnable(database.getStatus())) {
+            throw exception(unavailable);
+        }
+        return resolve(database);
+    }
+
     /**
      * 按数据源编号解析连接信息（密码已解密）
      *

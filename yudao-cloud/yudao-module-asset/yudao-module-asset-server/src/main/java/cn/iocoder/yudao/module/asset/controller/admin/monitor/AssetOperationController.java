@@ -112,7 +112,7 @@ public class AssetOperationController {
     @PreAuthorize("@ss.hasPermission('asset:operation:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportExcel(@Valid AssetOperationPageReqVO reqVO, HttpServletResponse response) throws IOException {
-        ExcelUtils.write(response, "资产盘点清单.xls", "资产盘点", AssetOperationRespVO.class,
+        ExcelUtils.write(response, "资产盘点清单.xlsx", "资产盘点", AssetOperationRespVO.class,
                 operationService.getExportList(reqVO));
     }
 

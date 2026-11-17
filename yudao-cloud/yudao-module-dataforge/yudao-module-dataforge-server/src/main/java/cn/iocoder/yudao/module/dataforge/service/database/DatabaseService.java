@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.database;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.MetadataTreeSourceRespDTO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.*;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.database.DatabaseDO;
 import jakarta.validation.Valid;
@@ -91,6 +92,9 @@ public interface DatabaseService {
      * @return 精简列表
      */
     List<DatabaseSimpleRespVO> getSimpleDatabaseList(Integer usageType);
+
+    /** 包括停用和逻辑删除的连接，仅返回树需要的标识、名称和删除状态。 */
+    List<MetadataTreeSourceRespDTO> getMetadataTreeSources(List<Long> ids);
 
     /**
      * 获得数据源下的表清单（含视图标记）

@@ -3,12 +3,15 @@ package cn.iocoder.yudao.module.dataforge.dal.mysql.database;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.MetadataTreeSourceRespDTO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.*;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.database.DatabaseDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 数据源中心--数据库信息 Mapper
@@ -17,6 +20,16 @@ import java.time.LocalDateTime;
  */
 @Mapper
 public interface DatabaseMapper extends BaseMapperX<DatabaseDO> {
+
+    @Select("""
+            <script>
+            SELECT id, name, (deleted &lt;&gt; 0) AS deleted
+            FROM dh_dataforge_database WHERE id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+            </script>
+            """)
+    List<MetadataTreeSourceRespDTO> selectMetadataTreeSources(
+            @Param("ids") List<Long> ids);
 
     /** 使用平台数据库时钟排序测试，避免多个服务实例的时钟差导致旧结果覆盖。 */
     @Select("SELECT clock_timestamp()::timestamp")

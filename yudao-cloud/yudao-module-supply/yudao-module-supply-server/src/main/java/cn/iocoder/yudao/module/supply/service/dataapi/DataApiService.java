@@ -40,6 +40,9 @@ public interface DataApiService {
      */
     DataApiRespVO getDataApi(Long id);
 
+    /** 读取对外文档使用的发布配置；从未发布时提供草稿预览。 */
+    DataApiRespVO getDataApiDocument(Long id);
+
     /**
      * 获得 API 服务分页（类目过滤含子级）
      */

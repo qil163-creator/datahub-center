@@ -15,7 +15,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(value = "dataforgeRpcConfiguration", proxyBeanMethods = false)
-@EnableFeignClients(clients = {DeptApi.class, AdminUserApi.class, DictDataApi.class, FileApi.class, cn.iocoder.yudao.module.infra.api.file.ManagedFileApi.class,
+@EnableFeignClients(clients = {cn.iocoder.yudao.module.supply.api.dataapi.PublishedWriteClaimApi.class, DeptApi.class, AdminUserApi.class, DictDataApi.class, FileApi.class, cn.iocoder.yudao.module.infra.api.file.ManagedFileApi.class,
         NotifyMessageSendApi.class, cn.iocoder.yudao.module.system.api.sms.SmsSendApi.class,
         cn.iocoder.yudao.module.system.api.mail.MailSendApi.class,
         OperateLogApi.class, BpmProcessInstanceApi.class,

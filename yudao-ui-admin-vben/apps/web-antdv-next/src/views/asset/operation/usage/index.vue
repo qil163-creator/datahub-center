@@ -220,7 +220,7 @@ async function exportList() {
       sortField: sort.field,
       sortOrder: sort.order,
     });
-    downloadFileFromBlobPart({ fileName: '资产盘点清单.xls', source: data });
+    downloadFileFromBlobPart({ fileName: '资产盘点清单.xlsx', source: data });
   } finally {
     exporting.value = false;
   }

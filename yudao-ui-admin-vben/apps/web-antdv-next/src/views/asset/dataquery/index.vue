@@ -112,6 +112,7 @@ interface TreeNode {
   typeName?: string;
   /** 数据源节点的连接图标路径 */
   iconPath?: string;
+  productType?: string;
 }
 
 const leftMode = ref<'datasource' | 'file'>('datasource');
@@ -225,6 +226,7 @@ async function loadDatasources() {
       nodeType: 'datasource',
       datasourceId: item.id,
       iconPath: item.iconPath,
+      productType: item.productType,
       isLeaf: false,
     }));
   } finally {
@@ -237,8 +239,15 @@ async function onLoadData(node: any): Promise<void> {
   if (!alive || !canQuery.value) return;
   if (treeLoading.value)
     throw new DOMException('Tree refreshing', 'AbortError');
-  const data = (node.dataRef ?? node) as TreeNode;
-  if (data.isLeaf || data.children !== undefined) return;
+  const eventNode = (node.dataRef ?? node) as TreeNode;
+  const source = treeData.value.find(
+    (item) => item.datasourceId === eventNode.datasourceId,
+  );
+  // 树组件传入的是事件快照，子节点必须挂到当前树中的数据源或表上。
+  const data = source?.key === eventNode.key
+    ? source
+    : source?.children?.find((table) => table.key === eventNode.key);
+  if (!data || data.isLeaf || data.children !== undefined) return;
   const pending = pendingNodeLoads.get(data.key);
   if (pending) return pending;
   const revision = treeRevision;
@@ -718,6 +727,7 @@ onUnmounted(() => {
                   <ConnectionIcon
                     v-if="node.nodeType === 'datasource'"
                     :icon-path="node.iconPath"
+                    :type-code="node.productType"
                     alt=""
                     class="size-4 shrink-0 object-contain"
                   />
@@ -836,6 +846,7 @@ onUnmounted(() => {
               :language="editorLanguage"
               height="100%"
               @run="handleExecute"
+              @save="handleSaveFile"
             />
           </div>
         </Card>

@@ -179,6 +179,9 @@ public class FullSyncWizardService {
                 messages.add("来源表清单已变化，请重新加载后选择");
             }
             validateMappings(config, messages);
+            if (EXECUTION_MODE_DB_SWITCH.equals(config.getExecutionMode()) && messages.isEmpty()) {
+                dataAccessService.validateDbSwitchConfiguration(config);
+            }
         } catch (ServiceException ex) {
             messages.add(ex.getMessage());
         } catch (RuntimeException ex) {
@@ -229,6 +232,9 @@ public class FullSyncWizardService {
         }
         FullSyncWizardConfigVO config = parseConfig(wizard);
         validateStep(config, 4, true);
+        if (EXECUTION_MODE_DB_SWITCH.equals(config.getExecutionMode())) {
+            dataAccessService.validateDbSwitchConfiguration(config);
+        }
         wizard.setStatus(STATUS_SUBMITTING);
         wizard.setRevision(wizard.getRevision() + 1);
         wizard.setSubmitRequestId(UUID.randomUUID().toString());

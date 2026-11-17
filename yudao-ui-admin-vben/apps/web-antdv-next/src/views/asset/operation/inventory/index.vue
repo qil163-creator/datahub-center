@@ -118,7 +118,7 @@ async function exportList() {
       sortOrder: 'desc',
     });
     downloadFileFromBlobPart({
-      fileName: `资产盘点清单-${report.value?.statDate ?? ''}.xls`,
+      fileName: `资产盘点清单-${report.value?.statDate ?? ''}.xlsx`,
       source: data,
     });
   } finally {

@@ -20,6 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>cn.iocoder.cloud</groupId>
+            <artifactId>yudao-module-supply-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.iocoder.cloud</groupId>
             <artifactId>yudao-spring-boot-starter-protection</artifactId>
         </dependency>
         <dependency>

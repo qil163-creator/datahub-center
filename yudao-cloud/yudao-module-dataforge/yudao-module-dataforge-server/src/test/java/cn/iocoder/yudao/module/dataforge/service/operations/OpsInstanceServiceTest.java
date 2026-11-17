@@ -135,6 +135,27 @@ class OpsInstanceServiceTest {
         assertFalse(OpsInstanceMapper.Sql.page(args).contains("t.task_type IN (2,3)"));
     }
 
+    @Test void categoryFiltersCanBeParsedByTheDataPermissionInterceptor() throws Exception {
+        var config = new com.baomidou.mybatisplus.core.MybatisConfiguration();
+        config.addMapper(OpsInstanceMapper.class);
+        var req = new PageReq();
+        var args = new HashMap<String, Object>();
+        args.put("req", req);
+        args.put("offset", 0L);
+        args.put("categoryIds", List.of(1L, 9007199254740993L));
+        for (String kind : List.of("JOB", "DEVELOPMENT", "INTEGRATION")) {
+            req.setKind(kind);
+            args.put("kind", kind);
+            args.put("categoryOrigin", "INTEGRATION".equals(kind) ? "source" : "platform");
+            for (String method : List.of("countInstances", "selectInstances", "selectStatistics")) {
+                var statement = config.getMappedStatement(OpsInstanceMapper.class.getName() + "." + method);
+                var sql = statement.getBoundSql(args).getSql();
+                assertTrue(sql.contains("AND category_id IN"));
+                net.sf.jsqlparser.parser.CCJSqlParserUtil.parse(sql);
+            }
+        }
+    }
+
     @Test void taskFilterIsBoundAndAbsentRequestsRetainExistingQuery() {
         var config = new com.baomidou.mybatisplus.core.MybatisConfiguration();
         config.addMapper(OpsInstanceMapper.class);

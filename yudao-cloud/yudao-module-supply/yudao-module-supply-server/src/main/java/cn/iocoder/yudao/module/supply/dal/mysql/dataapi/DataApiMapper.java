@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiPageReq
 import cn.iocoder.yudao.module.supply.dal.dataobject.dataapi.DataApiDO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -28,12 +29,14 @@ public interface DataApiMapper extends BaseMapperX<DataApiDO> {
      * @return 数据 API
      */
     @org.apache.ibatis.annotations.Options(useCache = false, flushCache = org.apache.ibatis.annotations.Options.FlushCachePolicy.TRUE)
+    @ResultMap("mybatis-plus_DataApiDO")
     @Select("""
             SELECT * FROM dh_supply_api WHERE id=#{apiId} AND deleted=0
             """)
     DataApiDO selectGrantControl(@Param("apiId") long apiId);
 
     /** 仅持本地共享锁，阻止提交授权期间发布合同被切换。 */
+    @ResultMap("mybatis-plus_DataApiDO")
     @Select("""
             SELECT * FROM dh_supply_api WHERE id=#{apiId} AND deleted=0 FOR SHARE
             """)
@@ -45,6 +48,7 @@ public interface DataApiMapper extends BaseMapperX<DataApiDO> {
      * @param id 记录编号
      * @return 数据 API
      */
+    @ResultMap("mybatis-plus_DataApiDO")
     @Select("SELECT * FROM dh_supply_api WHERE id = #{id} AND deleted = 0 FOR UPDATE")
     DataApiDO selectByIdForUpdate(@Param("id") Long id);
 

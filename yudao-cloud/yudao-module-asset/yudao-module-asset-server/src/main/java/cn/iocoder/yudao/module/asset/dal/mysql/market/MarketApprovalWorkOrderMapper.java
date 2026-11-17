@@ -46,7 +46,7 @@ public interface MarketApprovalWorkOrderMapper extends BaseMapperX<MarketApprova
     String FILTERS = """
             WHERE 1=1
             <if test="req.martName != null and req.martName.trim() != ''">
-              AND t.mart_name ILIKE '%'||#{req.martName}||'%'
+              AND t.mart_name ILIKE CONCAT('%', #{req.martName}, '%')
             </if>
             <if test="req.status != null">AND t.status=#{req.status}</if>
             <if test="req.applicantKey != null and req.applicantKey.trim() != ''">

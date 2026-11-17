@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.governance.service.quality;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseQueryTableRespDTO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.checkobject.QualityCheckObjectPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.checkobject.QualityCheckObjectSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityCheckObjectDO;
@@ -28,6 +30,9 @@ import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.QUALIT
 public class QualityCheckObjectServiceImpl implements QualityCheckObjectService {
 
     @Resource
+    private DatabaseApi databaseApi;
+
+    @Resource
     private QualityCheckObjectMapper checkObjectMapper;
 
     /**
@@ -35,6 +40,22 @@ public class QualityCheckObjectServiceImpl implements QualityCheckObjectService 
      */
     @Override
     public Long createCheckObject(QualityCheckObjectSaveReqVO createReqVO) {
+        QualityCheckObjectSources.requireAvailable(databaseApi, List.of(createReqVO.getDatasourceConnId()));
+        return insertCheckObject(createReqVO);
+    }
+
+    @Override
+    public Long createForEtlTarget(String requestId, Long datasourceId, DatabaseQueryTableRespDTO table) {
+        var object = new QualityCheckObjectSaveReqVO();
+        object.setObjectName("ETL-" + requestId);
+        object.setDatasourceConnId(datasourceId);
+        object.setTableName(table.getTableName());
+        object.setFormatName(table.getSchemaName());
+        object.setRemark("由 ETL 目标生成独立检测对象");
+        return insertCheckObject(object);
+    }
+
+    private Long insertCheckObject(QualityCheckObjectSaveReqVO createReqVO) {
         validateNameUnique(null, createReqVO.getObjectName());
         QualityCheckObjectDO checkObject = BeanUtils.toBean(createReqVO, QualityCheckObjectDO.class);
         checkObjectMapper.insert(checkObject);
@@ -47,6 +68,7 @@ public class QualityCheckObjectServiceImpl implements QualityCheckObjectService 
     @Override
     public void updateCheckObject(QualityCheckObjectSaveReqVO updateReqVO) {
         validateExists(updateReqVO.getId());
+        QualityCheckObjectSources.requireAvailable(databaseApi, List.of(updateReqVO.getDatasourceConnId()));
         validateNameUnique(updateReqVO.getId(), updateReqVO.getObjectName());
         checkObjectMapper.updateById(BeanUtils.toBean(updateReqVO, QualityCheckObjectDO.class));
     }

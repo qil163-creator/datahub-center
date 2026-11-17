@@ -31,7 +31,7 @@ function handleBeforeUpload(selected: File) {
 async function handleDownloadTemplate() {
   const blob = await downloadStandardCodeSetImportTemplate();
   downloadFileFromBlobPart({
-    fileName: '码表码值导入模板.xls',
+    fileName: '码表码值导入模板.xlsx',
     source: blob,
   });
 }

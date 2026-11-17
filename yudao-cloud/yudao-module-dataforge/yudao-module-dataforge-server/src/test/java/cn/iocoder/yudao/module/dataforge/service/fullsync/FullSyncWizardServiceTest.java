@@ -91,6 +91,24 @@ class FullSyncWizardServiceTest {
     }
 
     @Test
+    void validationReturnsThePublishedExecutionRestrictionBeforeSubmission() {
+        var wizard = new FullSyncWizardDO();
+        var config = config();
+        wizard.setConfigJson(cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString(config));
+        wizard.setCurrentStep(4);
+        when(mapper.selectById(17L)).thenReturn(wizard);
+        var table = new cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableRespVO();
+        table.setTableName("users");
+        when(databaseService.getTableList(11L)).thenReturn(java.util.List.of(table));
+        doThrow(new cn.iocoder.yudao.framework.common.exception.ServiceException(1_500_013_034, "不支持覆盖已有目标表"))
+                .when(dataAccessService).validateDbSwitchConfiguration(any());
+        var result = service.validate(17L);
+        assertFalse(result.getValid());
+        assertTrue(result.getMessages().contains("不支持覆盖已有目标表"));
+        verify(dataAccessService, never()).createDataAccess(any());
+    }
+
+    @Test
     void pageKeepsConfigurationAndAuditWithoutCallingExecution() {
         FullSyncWizardPageReqVO request = new FullSyncWizardPageReqVO();
         request.setTaskName("' OR 1=1 --");

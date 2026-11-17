@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { confirm, Page } from '@vben/common-ui';
+import { cloneDeep } from '@vben/utils';
 
 import {
   Alert,
@@ -95,7 +96,7 @@ function startEdit() {
     id: board.id,
     name: board.name,
     description: board.description,
-    widgets: structuredClone(board.widgets ?? []),
+    widgets: cloneDeep(board.widgets ?? []),
     expectedRevision: board.revision,
   };
   editing.value = true;

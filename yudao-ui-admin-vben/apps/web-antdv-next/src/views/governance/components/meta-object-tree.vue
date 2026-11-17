@@ -3,7 +3,7 @@ import type { TreeProps } from 'antdv-next';
 
 import type { GovernanceMetaObjectApi } from '#/api/governance/metaobject';
 
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { Card, Input, Spin, Tree } from 'antdv-next';
 
@@ -14,6 +14,7 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 import { useTreeExpansion } from '../common/use-tree-expansion';
 import { metadataConnectionIcon } from '../metadata-common/icons';
 import MetadataIcon from '../metadata-common/metadata-icon.vue';
+import { useTreeReload } from '../metadata-common/use-tree-reload';
 
 /**
  * 元数据目录树：来源系统 → 数据源 → 库。
@@ -85,6 +86,12 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
   keyword,
 );
 
+function includesKey(nodes: GovernanceMetaObjectApi.TreeNode[], key: string): boolean {
+  return nodes.some((node) =>
+    (node.key ?? `${node.type}:${node.id}`) === key || includesKey(node.children ?? [], key),
+  );
+}
+
 async function loadTree() {
   const current = request.begin();
   loadError.value = false;
@@ -93,6 +100,11 @@ async function loadTree() {
     const result = await getMetaObjectTree();
     if (current()) {
       rawNodes.value = result;
+      const key = selectedKeys.value[0];
+      if (key && !includesKey(result, key)) {
+        selectedKeys.value = [];
+        emit('select', undefined);
+      }
       emit('loaded', result);
     }
   } catch {
@@ -119,7 +131,7 @@ const handleSelect: NonNullable<TreeProps['onSelect']> = (keys, info) => {
 
 defineExpose({ reload: loadTree });
 
-onMounted(loadTree);
+useTreeReload(loadTree);
 </script>
 
 <template>

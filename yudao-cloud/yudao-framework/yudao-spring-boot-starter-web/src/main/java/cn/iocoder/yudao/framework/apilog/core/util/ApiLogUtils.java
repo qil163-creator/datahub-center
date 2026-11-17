@@ -30,6 +30,14 @@ public final class ApiLogUtils {
         return annotation == null || annotation.requestEnable();
     }
 
+    public static String[] sanitizeKeys(HttpServletRequest request) {
+        if (request.getAttribute(ATTRIBUTE_HANDLER_METHOD) instanceof HandlerMethod handler) {
+            ApiAccessLog annotation = handler.getMethodAnnotation(ApiAccessLog.class);
+            if (annotation != null) return annotation.sanitizeKeys();
+        }
+        return null;
+    }
+
     /** 解析/校验异常可能包含请求原文；关闭参数日志时仅保留类型与调用位置。 */
     public static Throwable exceptionForLog(HttpServletRequest request, Throwable exception) {
         if (isRequestEnabled(request)) {

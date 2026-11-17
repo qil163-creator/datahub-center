@@ -21,7 +21,7 @@ const router = useRouter();
 function viewData(row: DataforgeFillApi.WorkItem) {
   router.push({
     path: '/dataforge/fill/workbench',
-    query: { workItemId: String(row.id) },
+    query: { view: 'department', workItemId: String(row.id) },
   });
 }
 
@@ -55,7 +55,7 @@ const [Grid] = useVbenVxeGrid({
     <Grid table-title="部门填报查看">
       <template #toolbar-tools>
         <span class="text-muted-foreground mr-2 text-xs">
-          部门负责人只读查看本部门（含下级）填报数据与进度，不能编辑或提交
+          部门负责人可在此查看直接负责部门的填报数据与进度
         </span>
       </template>
       <template #status="{ row }">

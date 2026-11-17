@@ -253,13 +253,10 @@ function closeDelivery() {
   previewModalApi.setState({ isOpen: false });
 }
 async function syncLinkedAsset() {
-  if (
-    active &&
-    canQuery.value &&
-    route.name === MY_ASSETS_ROUTE_NAME &&
-    route.query.applyId !== undefined
-  )
-    activeTab.value = 'assets';
+  if (active && canQuery.value && route.name === MY_ASSETS_ROUTE_NAME) {
+    if (route.query.applyId !== undefined) activeTab.value = 'assets';
+    else if (route.query.tab === 'applications') activeTab.value = 'applications';
+  }
   const ticket = linkedAssetGuard.next();
   linkedAssetError.value = '';
   closeDelivery();
@@ -377,7 +374,7 @@ function activate() {
   void syncLinkedAsset();
 }
 watch(
-  () => JSON.stringify([route.name, route.query.applyId]),
+  () => JSON.stringify([route.name, route.query.applyId, route.query.tab]),
   () => {
     void syncLinkedAsset();
   },

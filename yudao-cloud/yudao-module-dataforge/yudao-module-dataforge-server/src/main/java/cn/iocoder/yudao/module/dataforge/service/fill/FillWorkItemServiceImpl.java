@@ -155,12 +155,17 @@ public class FillWorkItemServiceImpl implements FillWorkItemService {
             AdminUserRespDTO me = adminUserApi.getUserMap(Set.of(userId)).get(userId);
             deptId = me != null ? me.getDeptId() : null;
         }
+        checkDeptViewPermission(deptId, userId);
+        return assemble(workItemMapper.selectListByReportingOrgId(deptId), true);
+    }
+
+    @Override
+    public void checkDeptViewPermission(Long deptId, Long userId) {
         DeptRespDTO dept = deptId == null ? null : deptApi.getDeptMap(Set.of(deptId)).get(deptId);
         // 部门负责人只读范围：仅其直接负责的组织，不默认穿透组织树（V1.0 §7.1）
-        if (dept == null || !Objects.equals(dept.getLeaderUserId(), userId)) {
+        if (userId == null || dept == null || !Objects.equals(dept.getLeaderUserId(), userId)) {
             throw exception(FILL_DEPT_VIEW_NOT_LEADER);
         }
-        return assemble(workItemMapper.selectListByReportingOrgId(deptId), true);
     }
 
     /**

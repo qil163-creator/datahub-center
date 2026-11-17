@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.tasktemplate.QualityTaskTemplatePageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.tasktemplate.QualityTaskTemplateRespVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.tasktemplate.QualityTaskTemplateSaveReqVO;
@@ -13,6 +14,7 @@ import cn.iocoder.yudao.module.governance.dal.dataobject.quality.*;
 import cn.iocoder.yudao.module.governance.dal.mysql.metadata.MetaTableMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.quality.*;
 import jakarta.annotation.Resource;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,9 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
 
     /** 物化任务的编码前缀：TPL-{模板ID}-{表ID} */
     private static final String TASK_CODE_PREFIX = "TPL-";
+
+    @Resource
+    private DatabaseApi databaseApi;
 
     @Resource
     private QualityTaskTemplateMapper templateMapper;
@@ -64,6 +69,7 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
         validateNameUnique(null, createReqVO.getTemplateName());
         QualityTaskTemplateDO template = BeanUtils.toBean(createReqVO, QualityTaskTemplateDO.class);
         applyDefaults(template);
+        validateSchedule(template.getScheduleType(), template.getCronExpression());
         templateMapper.insert(template);
         return template.getId();
     }
@@ -72,8 +78,16 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
      * 更新任务模板。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateTemplate(QualityTaskTemplateSaveReqVO updateReqVO) {
-        validateExists(updateReqVO.getId());
+        QualityTaskTemplateDO existing = lockTemplate(updateReqVO.getId());
+        // 局部更新未传调度类型时，沿用已保存的调度类型校验实际生效的表达式。
+        String schedule = updateReqVO.getScheduleType() != null ? updateReqVO.getScheduleType() : existing.getScheduleType();
+        String cron = updateReqVO.getCronExpression();
+        if (cron == null && updateReqVO.getScheduleType() == null) {
+            cron = existing.getCronExpression();
+        }
+        validateSchedule(schedule, cron);
         validateNameUnique(updateReqVO.getId(), updateReqVO.getTemplateName());
         templateMapper.updateById(BeanUtils.toBean(updateReqVO, QualityTaskTemplateDO.class));
     }
@@ -82,8 +96,12 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
      * 更新任务模板状态。
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateTemplateStatus(Long id, Integer status) {
-        validateExists(id);
+        QualityTaskTemplateDO template = lockTemplate(id);
+        if (Objects.equals(status, QualityTaskTemplateDO.STATUS_ENABLE)) {
+            validateSchedule(template.getScheduleType(), template.getCronExpression());
+        }
         templateMapper.updateById(QualityTaskTemplateDO.builder().id(id).status(status).build());
     }
 
@@ -127,6 +145,7 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
     @Transactional(rollbackFor = Exception.class)
     public int materializeTemplate(Long id) {
         QualityTaskTemplateDO template = validateExists(id);
+        QualityCheckObjectSources.requireAvailable(databaseApi, List.of(template.getDatasourceConnId()));
         List<MetaTableDO> tables = resolveTableScope(template);
         List<Long> ruleIds = resolveRuleIds(template);
         int limit = template.getTaskLimit() == null ? 5000 : template.getTaskLimit();
@@ -241,6 +260,20 @@ public class QualityTaskTemplateServiceImpl implements QualityTaskTemplateServic
         return StrUtil.split(idsText, ',').stream()
                 .map(String::trim).filter(StrUtil::isNotBlank)
                 .map(Long::valueOf).distinct().toList();
+    }
+
+    private QualityTaskTemplateDO lockTemplate(Long id) {
+        QualityTaskTemplateDO template = templateMapper.selectOneForUpdate(QualityTaskTemplateDO::getId, id);
+        if (template == null) {
+            throw exception(QUALITY_TASK_TEMPLATE_NOT_EXISTS);
+        }
+        return template;
+    }
+
+    private static void validateSchedule(String schedule, String cron) {
+        if (QualityTaskDO.SCHEDULE_TIMER.equals(schedule) && !CronExpression.isValidExpression(cron)) {
+            throw exception(QUALITY_TASK_CRON_INVALID);
+        }
     }
 
     /**

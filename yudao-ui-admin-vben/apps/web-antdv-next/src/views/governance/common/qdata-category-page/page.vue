@@ -340,16 +340,15 @@ async function confirmOperation() {
   const current = mutation.begin();
   try {
     if (target.action === 'status') {
-      await props.adapter.update(
-        props.adapter.toPayload({
-          id: target.row.id,
-          parentId: target.row.parentId,
-          name: target.row.name,
-          description: target.row.description ?? '',
-          status: target.status,
-          sort: target.row.sort,
-        }) as any,
-      );
+      await props.adapter.update({
+        id: target.row.id,
+        parentId: target.row.parentId,
+        name: target.row.name,
+        categoryCode: target.row.categoryCode,
+        description: target.row.description ?? '',
+        status: target.status,
+        sort: target.row.sort,
+      });
     } else {
       for (const id of target.ids) await props.adapter.remove(id);
     }

@@ -471,9 +471,9 @@ export function getWorkItem(id: number) {
 }
 
 /** 草稿全量快照（进入工作台/断线重连） */
-export function getDraftSnapshot(workItemId: number | string) {
+export function getDraftSnapshot(workItemId: number | string, departmentView = false) {
   return requestClient.get<DataforgeFillApi.DraftSnapshot>(
-    `/dataforge/fill-work-item/${workItemId}/snapshot`,
+    `/dataforge/fill-work-item/${workItemId}/${departmentView ? 'dept-snapshot' : 'snapshot'}`,
   );
 }
 

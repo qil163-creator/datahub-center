@@ -96,7 +96,8 @@ public class MarketCategoryServiceImpl implements MarketCategoryService {
             throw exception(MARKET_CATEGORY_HAS_CHILDREN);
         }
         if (listingMapper.selectCount(new LambdaQueryWrapperX<MarketListingDO>()
-                .in(MarketListingDO::getMarketCategoryId, selected)) > 0) {
+                .in(MarketListingDO::getMarketCategoryId, selected)
+                .exists("SELECT 1 FROM dh_asset_data_asset a WHERE a.id = dh_asset_market_listing.asset_id AND a.deleted = 0")) > 0) {
             throw exception(MARKET_CATEGORY_IN_USE);
         }
         categoryMapper.deleteByIds(selected);

@@ -2,6 +2,22 @@
 
 元数据任务、执行实例和已采集文件记录归 Governance。DataForge 拥有连接配置，通过 `MetadataCollectionApi` 提供安全展示选项、来源系统校验和只读文件 manifest；文件协议执行复用 `yudao-spring-boot-starter-biz-file`。新文件采集链路不传递密码，不使用或修改 infra 文件配置、文件记录及文件内容。关系库元数据读取继续复用已有 DB Switch 和数据库 RPC 解析链路。
 
+## 本地开发服务
+
+本地采集复用数据发布查询的 DataForge HTTPS 监听器。先按 [数据服务运行说明](../../docs/audit/supply-operations.md) 配置发布查询，再在 `yudao-cloud` 目录生成治理的专用客户端证书和双方的补充配置。
+
+```sh
+python3 deploy/prepare_local_rpc_tls.py \
+  --directory "$HOME/.local/share/datahub/metadata-collection-tls" \
+  --share-server-with "$HOME/.local/share/datahub/published-query-tls" \
+  --trusted-client supply --client governance-collection --server dataforge \
+  --port 55424 --context metadataCollectionApi \
+  --bundle-property yudao.dataforge.metadata-collection.client.ssl-bundle \
+  --peer-property yudao.dataforge.metadata-collection.rpc.peers.governance
+```
+
+重启本地 Governance 和 DataForge 后，在元数据采集任务中新建表采集或文件采集任务即可读取对应的连接选项。发布查询和采集各自验证调用方指纹。轮换任一方证书后重新生成补充配置并重启服务。
+
 ## 执行与恢复
 
 部署后在 XXL-Job 启用 `governance-server / metaCollectTaskJob`，建议每分钟执行一次。手动触发也会立即尝试消费队列；服务重启后的等待实例、失联租约恢复及周期排期由此任务扫描。周期时间推进与实例入队在同一 PostgreSQL 事务内完成。

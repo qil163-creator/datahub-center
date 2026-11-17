@@ -180,6 +180,14 @@ export function getDataApi(id: SupplyDataApiApi.Id) {
   });
 }
 
+/** 查询面向调用方的接口文档配置 */
+export function getDataApiDocument(id: SupplyDataApiApi.Id) {
+  return requestClient.get<SupplyDataApiApi.DataApi>(
+    '/supply/data-api/document',
+    { params: { id } },
+  );
+}
+
 /** 新增 API 服务 */
 export function createDataApi(data: SupplyDataApiApi.DataApi) {
   return requestClient.post<number>('/supply/data-api/create', data);

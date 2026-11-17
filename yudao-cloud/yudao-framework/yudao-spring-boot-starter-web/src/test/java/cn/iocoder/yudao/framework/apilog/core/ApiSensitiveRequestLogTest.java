@@ -171,6 +171,21 @@ class ApiSensitiveRequestLogTest {
     }
 
     @Test
+    void queryAndNestedBodySecretsAreRemovedFromBothAccessLogs() throws Exception {
+        String route = "/admin-api/log-test/credentials";
+        mvc.perform(post(route).param("refreshToken", SENTINEL).param("page", "7"))
+                .andExpect(status().isOk());
+        mvc.perform(post(route).contentType("application/json").content(JsonUtils.toJsonString(
+                Map.of("items", List.of(Map.of("access_token", SENTINEL, "appSecret", SENTINEL, "publicField", "visible")),
+                        "privateField", SENTINEL)))).andExpect(status().isOk());
+        mvc.perform(post(route).contentType("application/json").content("{\"password\":\"" + SENTINEL))
+                .andExpect(status().isOk());
+        assertThat(accessRecords).hasSize(3);
+        assertThat(renderedLogs()).contains("page", "publicField").doesNotContain(SENTINEL);
+        assertThat(JsonUtils.toJsonString(accessRecords)).contains("visible").doesNotContain(SENTINEL);
+    }
+
+    @Test
     void ordinaryPermissionErrorKeepsResultMessage() throws Exception {
         perform("/ordinary-permission", payload());
 
@@ -261,6 +276,12 @@ class ApiSensitiveRequestLogTest {
         @ApiAccessLog(requestEnable = false)
         public CommonResult<Boolean> echoError(@RequestBody JobRequest request) {
             return CommonResult.error(400, request.seatunnelConfig());
+        }
+
+        @PostMapping("/admin-api/log-test/credentials")
+        @ApiAccessLog(sanitizeKeys = "privateField")
+        public CommonResult<Boolean> credentials() {
+            return CommonResult.success(true);
         }
 
         @PostMapping("/admin-api/log-test/ordinary")

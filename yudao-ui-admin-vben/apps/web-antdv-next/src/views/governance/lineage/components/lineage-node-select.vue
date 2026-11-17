@@ -23,16 +23,23 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 /** 远程检索，最新请求优先。 */
 function search(keyword: string) {
   if (timer) clearTimeout(timer);
-  timer = setTimeout(() => void load(keyword), 250);
+  controller?.abort();
+  controller = undefined;
+  const term = keyword.trim();
+  if (!term) {
+    options.value = [];
+    loading.value = false;
+    return;
+  }
+  timer = setTimeout(() => void load(term), 250);
 }
 
 async function load(keyword: string) {
-  controller?.abort();
   const current = new AbortController();
   controller = current;
   loading.value = true;
   try {
-    const nodes = await searchLineageNodes({ keyword: keyword.trim() || undefined, limit: 30 }, current.signal);
+    const nodes = await searchLineageNodes({ keyword, limit: 30 }, current.signal);
     if (current !== controller) return;
     options.value = (nodes ?? []).map((node) => ({ label: nodeOptionLabel(node), node, value: String(node.id) }));
   } catch {
@@ -48,7 +55,6 @@ function changed(next: unknown) {
   emit('change', options.value.find((option) => option.value === key)?.node);
 }
 
-void load('');
 
 onBeforeUnmount(() => {
   if (timer) clearTimeout(timer);

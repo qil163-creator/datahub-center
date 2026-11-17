@@ -114,6 +114,19 @@ afterEach(() => {
 });
 
 describe('发布模型列表查询与身份边界', () => {
+  it('服务端返回空发布时间时两列显示占位符', async () => {
+    vi.mocked(api.getModelMaterializedPage).mockResolvedValue({
+      list: [{ ...row, publishTime: null }],
+      total: 1,
+    });
+    await mount();
+    const keys = [...host.querySelectorAll('thead [data-column-key]')].map(
+      (header) => header.getAttribute('data-column-key'),
+    );
+    const cells = host.querySelectorAll('tbody tr:first-child td');
+    expect(cells[keys.indexOf('release')]?.textContent?.trim()).toBe('未发布-');
+    expect(cells[keys.indexOf('publishTime')]?.textContent?.trim()).toBe('-');
+  });
   it('列设置确定后生效并在重新进入时恢复', async () => {
     const storage = new Map<string, string>();
     vi.stubGlobal('localStorage', {

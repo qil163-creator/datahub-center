@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.asset.service.market;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.mybatis.core.handler.DefaultDBFieldHandler;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.asset.controller.admin.market.vo.*;
 import cn.iocoder.yudao.module.asset.dal.dataobject.dataasset.DataAssetDO;
 import cn.iocoder.yudao.module.asset.dal.mysql.dataasset.DataAssetMapper;
@@ -26,6 +28,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -128,6 +132,22 @@ class MarketMartPostgreSqlTest {
                 Map.entry("catalogService", originalPublisher), Map.entry("transactionManager", transactions), Map.entry("audit", audit))
                 .forEach((name, value) -> ReflectionTestUtils.setField(target, name, value));
         mart = transactional(target, MarketMartService.class);
+    }
+
+    @Test
+    void categoryDeletionRequiresAllListedAssetsToBeDeleted() throws Exception {
+        sql("INSERT INTO dh_asset_market_listing(asset_id,market_category_id,display_name,frequency,delivery_types) "
+                + "VALUES(1,3,'测试资源','每日','1')");
+        assertThatThrownBy(() -> categoryService.delete(List.of(3L))).isInstanceOf(ServiceException.class);
+
+        sql("UPDATE dh_asset_data_asset SET deleted=1 WHERE id=1");
+        SecurityFrameworkUtils.setLoginUser(new LoginUser().setId(9L), new MockHttpServletRequest());
+        try {
+            categoryService.delete(List.of(3L));
+            assertThat(scalar("SELECT deleted FROM dh_asset_market_category WHERE id=3")).isEqualTo(1);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test

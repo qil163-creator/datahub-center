@@ -14,6 +14,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useAccess } from '@vben/access';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { downloadFileFromBlobPart, formatDateTime } from '@vben/utils';
 
@@ -79,6 +80,7 @@ const polyfillReady = ref(false);
 const route = useRoute();
 const router = useRouter();
 const accessStore = useAccessStore();
+const { hasAccessByCodes } = useAccess();
 const userStore = useUserStore();
 const myUserId = computed(() =>
   String(
@@ -104,12 +106,15 @@ const rows = shallowRef<FillRowData[]>([]);
 const rollupRowCount = ref(0);
 const childrenOpen = ref(false);
 const childrenPanelRef = ref<InstanceType<typeof ChildrenPanel>>();
-const readonly = ref(false);
+const editable = ref(false);
+const departmentView = computed(() => route.query.view === 'department');
+const departmentReader = computed(() => departmentView.value && !hasAccessByCodes(['dataforge:fill-work-item:my']));
+const readonly = computed(() => departmentView.value || !editable.value);
 const reloadSeq = ref(0);
 const editorRef = ref<InstanceType<typeof SheetEditor>>();
 
 const datasetKey = computed(
-  () => `real-${workItemId.value ?? 'none'}-${reloadSeq.value}`,
+  () => `real-${workItemId.value ?? 'none'}-${readonly.value}-${reloadSeq.value}`,
 );
 
 // ---------------------------------------------------------------- 真实模式：快照 + 操作同步
@@ -156,8 +161,11 @@ let needRestore = false;
 let pulling = false;
 
 async function loadSnapshot() {
-  if (!workItemId.value) return;
-  const snapshot = await getDraftSnapshot(workItemId.value);
+  const id = workItemId.value;
+  if (!id) return;
+  const viewDepartment = departmentView.value;
+  const snapshot = await getDraftSnapshot(id, viewDepartment);
+  if (id !== workItemId.value || viewDepartment !== departmentView.value) return;
   snapshotMeta.value = {
     deadlineTime: snapshot.deadlineTime,
     orgName: snapshot.orgName,
@@ -172,7 +180,7 @@ async function loadSnapshot() {
   layout.value = mapLayout(snapshot.layoutSnapshot);
   rows.value = mapDraftRows(snapshot.rows);
   rollupRowCount.value = snapshot.rows.filter((row) => row.sourceKind !== undefined && row.sourceKind !== null).length;
-  readonly.value = !snapshot.editable;
+  editable.value = snapshot.editable === true;
   // 丢弃未提交队列（快照即最新事实），重挂编辑器
   pendingQueue.length = 0;
   pendingCount.value = 0;
@@ -375,6 +383,8 @@ async function handleSubmit() {
         content: isEmpty
           ? '当前没有数据行，将以"零上报"方式提交（表示本期无数据）。'
           : `共 ${rowCount} 行数据。提交后数据将冻结并进入审批，审批期间不可编辑。`,
+        cancelText: '取消',
+        okText: '确认提交',
         onCancel: () => resolve(false),
         onOk: () => resolve(true),
         title: isEmpty ? '零上报确认' : '提交审批确认',
@@ -953,8 +963,9 @@ function setupCollabClient() {
 }
 
 watch(
-  () => workItemId.value,
-  async (id) => {
+  [workItemId, departmentView],
+  async ([id]) => {
+    editable.value = false;
     releaseHeldLock();
     collabClient?.close();
     collabClient = null;
@@ -971,7 +982,7 @@ watch(
       return;
     }
     await loadSnapshot();
-    setupCollabClient();
+    if (!departmentReader.value) setupCollabClient();
   },
   { immediate: true },
 );
@@ -1001,6 +1012,7 @@ function describeOperation(op: DomainOperation): string {
 }
 
 function handleOperation(op: DomainOperation) {
+  if (readonly.value) return;
   const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
   opsLog.value = [
     `[${time}] ${describeOperation(op)}`,
@@ -1032,16 +1044,16 @@ function handleOperation(op: DomainOperation) {
         </Space>
 
         <Space wrap>
-            <Tag :color="wsOpen ? 'success' : 'error'">
+            <Tag v-if="!departmentReader" :color="wsOpen ? 'success' : 'error'">
               {{ wsOpen ? '协同已连接' : '协同未连接' }}
             </Tag>
-            <Tag :title="memberUserIds.map((id) => userLabel(id)).join('、')">在线 {{ memberUserIds.length }} 人</Tag>
+            <Tag v-if="!departmentReader" :title="memberUserIds.map((id) => userLabel(id)).join('、')">在线 {{ memberUserIds.length }} 人</Tag>
             <Tag>版本 {{ serverVersion }}</Tag>
-            <Tag :color="pendingCount > 0 ? 'warning' : 'default'">
+            <Tag v-if="!departmentReader" :color="pendingCount > 0 ? 'warning' : 'default'">
               未同步 {{ pendingCount }}
             </Tag>
             <Button @click="refreshSnapshot"><template #icon><IconifyIcon icon="lucide:refresh-cw" /></template>刷新</Button>
-            <Dropdown>
+            <Dropdown v-if="!departmentReader">
               <Button :loading="importing"><template #icon><IconifyIcon icon="lucide:file-spreadsheet" /></template>Excel</Button>
               <template #popupRender>
                 <Menu @click="handleExcelMenu">
@@ -1052,7 +1064,7 @@ function handleOperation(op: DomainOperation) {
               </template>
             </Dropdown>
             <Button v-if="!readonly" @click="openReuse"><template #icon><IconifyIcon icon="lucide:copy-plus" /></template>复用历史数据</Button>
-            <Button @click="childrenOpen = true"><template #icon><IconifyIcon icon="lucide:network" /></template>下级单位</Button>
+            <Button v-if="!departmentReader" @click="childrenOpen = true"><template #icon><IconifyIcon icon="lucide:network" /></template>下级单位</Button>
             <Tag v-if="rollupRowCount > 0" color="purple" title="由下级汇总生成，修改须退回下级">含下级汇总 {{ rollupRowCount }} 行（只读）</Tag>
             <template v-if="selectedAttachmentField">
               <Button
@@ -1073,7 +1085,7 @@ function handleOperation(op: DomainOperation) {
 <template #icon><IconifyIcon icon="lucide:list-checks" /></template>
               {{ errorCount > 0 ? '校验问题' : '校验提示' }} {{ issues.length }}
             </Button>
-            <Button @click="openSubmissions"><template #icon><IconifyIcon icon="lucide:history" /></template>提交历史</Button>
+            <Button v-if="!departmentReader" @click="openSubmissions"><template #icon><IconifyIcon icon="lucide:history" /></template>提交历史</Button>
             <Button v-if="!readonly" @click="openEmptyReport"><template #icon><IconifyIcon icon="lucide:file-check" /></template>零上报</Button>
             <Button
               v-if="!readonly"

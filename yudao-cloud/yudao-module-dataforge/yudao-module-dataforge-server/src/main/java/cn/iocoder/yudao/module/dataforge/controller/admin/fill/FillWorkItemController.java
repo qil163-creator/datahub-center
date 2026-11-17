@@ -171,6 +171,13 @@ public class FillWorkItemController {
         return success(draftService.getSnapshot(id));
     }
 
+    @GetMapping("/{id}/dept-snapshot")
+    @Operation(summary = "查看直接负责部门的填报草稿")
+    @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:dept-view')")
+    public CommonResult<FillDraftSnapshotRespVO> getDeptSnapshot(@PathVariable("id") Long id) {
+        return success(draftService.getDeptSnapshot(id));
+    }
+
     /**
      * 增量拉取草稿操作（协同补齐与重放）。
      *

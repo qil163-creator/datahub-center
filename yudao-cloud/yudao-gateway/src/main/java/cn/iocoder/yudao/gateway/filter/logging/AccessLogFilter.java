@@ -2,7 +2,7 @@ package cn.iocoder.yudao.gateway.filter.logging;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.gateway.util.SkyWalkingTraceUtils;
 import cn.iocoder.yudao.gateway.util.SecurityFrameworkUtils;
@@ -87,14 +87,12 @@ public class AccessLogFilter implements GlobalFilter, Ordered {
                 values.put("requestUrl", gatewayLog.getRequestUrl());
                 values.put("requestMethod", gatewayLog.getRequestMethod());
                 if (!isSensitivePath(exchange.getRequest().getURI().getPath())) {
-                    values.put("queryParams", gatewayLog.getQueryParams().toSingleValueMap());
-                    values.put("requestBody", JsonUtils.isJson(gatewayLog.getRequestBody()) ? // 保证 body 的展示好看
-                            JSONUtil.parse(gatewayLog.getRequestBody()) : gatewayLog.getRequestBody());
-                    values.put("requestHeaders", JsonUtils.toJsonString(gatewayLog.getRequestHeaders().toSingleValueMap()));
-                    values.put("responseBody", JsonUtils.isJson(gatewayLog.getResponseBody()) ? // 保证 body 的展示好看
-                            JSONUtil.parse(gatewayLog.getResponseBody()) : gatewayLog.getResponseBody());
-                    values.put("responseHeaders", gatewayLog.getResponseHeaders() != null ?
-                            JsonUtils.toJsonString(gatewayLog.getResponseHeaders().toSingleValueMap()) : null);
+                    values.put("queryParams", LogSanitizer.sanitizeQuery(gatewayLog.getQueryParams().toSingleValueMap(), null));
+                    values.put("requestBody", LogSanitizer.sanitizeTree(gatewayLog.getRequestBody(), null));
+                    values.put("requestHeaders", LogSanitizer.sanitizeQuery(gatewayLog.getRequestHeaders().toSingleValueMap(), null));
+                    values.put("responseBody", LogSanitizer.sanitizeTree(gatewayLog.getResponseBody(), null));
+                    values.put("responseHeaders", gatewayLog.getResponseHeaders() == null ? null :
+                            LogSanitizer.sanitizeQuery(gatewayLog.getResponseHeaders().toSingleValueMap(), null));
                 }
                 values.put("userIp", gatewayLog.getUserIp());
                 values.put("httpStatus", gatewayLog.getHttpStatus());

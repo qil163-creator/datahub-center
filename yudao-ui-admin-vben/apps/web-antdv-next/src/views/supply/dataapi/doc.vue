@@ -8,7 +8,7 @@ import { IconifyIcon } from '@vben/icons';
 import { Button, Drawer, Input, message, Table, Tag } from 'antdv-next';
 
 import {
-  getDataApi,
+  getDataApiDocument,
   getDataApiPublicBaseUrl,
   signDataApi,
 } from '#/api/supply/dataapi';
@@ -41,10 +41,9 @@ const isPage = computed(
 );
 const isEtlBatch = computed(() => api.value.configType === 'ETL_BATCH');
 
-/** 网关相对路径 */
+/** 网关基址之后的路径，同时用于请求签名。 */
 const gatewayPath = computed(
-  () =>
-    `/supply/gateway/services/${api.value.version ?? ''}${api.value.path ?? ''}`,
+  () => `/services/${api.value.version ?? ''}${api.value.path ?? ''}`,
 );
 
 const publicBaseUrl = ref('');
@@ -69,13 +68,22 @@ const serviceTypeLabel = computed(() => {
   return labels[api.value.apiType ?? 'QUERY'] ?? '查询数据';
 });
 
+const documentState = computed(() => {
+  if (api.value.status === 1) return '线上发布版本';
+  return api.value.activeReleaseId == null ? '未发布草稿预览' : '最近发布版本（已下线）';
+});
+
+let openSequence = 0;
+
 async function open(id: number | string) {
-  api.value = await getDataApi(id);
-  try {
-    publicBaseUrl.value = (await getDataApiPublicBaseUrl()) || '';
-  } catch {
-    publicBaseUrl.value = '';
-  }
+  const sequence = ++openSequence;
+  const [document, baseUrl] = await Promise.all([
+    getDataApiDocument(id),
+    getDataApiPublicBaseUrl().catch(() => ''),
+  ]);
+  if (sequence !== openSequence) return;
+  api.value = document;
+  publicBaseUrl.value = baseUrl || '';
   signForm.appKey = '';
   signForm.appSecret = '';
   signForm.timestamp = '';
@@ -250,15 +258,38 @@ const requestColumns = [
 
 /** ==================== 响应体（树形） ==================== */
 
+const isDatabaseQuery = computed(
+  () => isQuery.value && ['SQL', 'TABLE'].includes(api.value.configType ?? ''),
+);
+
+function splitField(field: SupplyDataApiApi.FieldItem) {
+  return field.model?.toUpperCase() === 'SPLIT' && !!field.modelRule?.trim();
+}
+
+function databaseResponseType(field: SupplyDataApiApi.FieldItem) {
+  if (!splitField(field)) return 'String';
+  return field.desensitize === 1 ? 'String / String[]' : 'String[]';
+}
+
 const responseRows = computed<DocRow[]>(() => {
   let fieldChildren: DocRow[] = (api.value.responseFields ?? [])
     .filter((field) => field.model !== 'HIDE')
     .map((field, index) => ({
       key: `field-${index}`,
       label: field.cnName || field.description || '',
-      note: field.description || field.cnName || '-',
+      note:
+        [
+          field.description || field.cnName,
+          isDatabaseQuery.value && field.dataType
+            ? `源字段类型 ${field.dataType}`
+            : undefined,
+        ]
+          .filter(Boolean)
+          .join('，') || '-',
       param: field.outputName || field.name || '',
-      type: field.dataType || 'String',
+      type: isDatabaseQuery.value
+        ? databaseResponseType(field)
+        : field.dataType || 'String',
     }));
   if (!isQuery.value) {
     fieldChildren = [
@@ -454,7 +485,11 @@ const responseExample = computed(() => {
     (api.value.responseFields ?? [])
       .filter((field) => field.model !== 'HIDE')
       .forEach((field) => {
-        row[field.outputName || field.name || ''] = field.exampleValue || '';
+        const value = field.exampleValue || '';
+        row[field.outputName || field.name || ''] =
+          isDatabaseQuery.value && splitField(field) && field.desensitize !== 1
+            ? value.split(field.modelRule!)
+            : value;
       });
     if (Object.keys(row).length === 0) {
       row = { 列名: '值' };
@@ -606,6 +641,7 @@ function buildPrintHtml() {
   const sections: string[] = [];
   sections.push(
     `<h1>${escapeHtml(api.value.name ?? '')}【接口文档】</h1>`,
+    `<p class="meta">文档状态：${escapeHtml(documentState.value)}</p>`,
     `<p class="meta">服务名称：${escapeHtml(api.value.name ?? '-')}</p>`,
     `<p class="meta">服务描述：${escapeHtml(api.value.description ?? '-')}</p>`,
     `<p class="meta">服务类型：${escapeHtml(serviceTypeLabel.value)}</p>`,
@@ -696,6 +732,7 @@ function handleExportMarkdown() {
   const push = (text = '') => lines.push(text);
   push(`# ${api.value.name ?? ''}【接口文档】`);
   push();
+  push(`- 文档状态：${documentState.value}`);
   push(`- 服务名称：${api.value.name ?? '-'}`);
   push(`- 服务描述：${api.value.description ?? '-'}`);
   push(`- 服务类型：${serviceTypeLabel.value}`);
@@ -887,6 +924,7 @@ async function handleCopySign() {
 
         <!-- 服务信息 -->
         <div class="doc-meta">
+          <div class="doc-meta__row">文档状态：{{ documentState }}</div>
           <div class="doc-meta__row">服务名称：{{ api.name || '-' }}</div>
           <div class="doc-meta__row">
             服务描述：{{ api.description || '-' }}

@@ -17,7 +17,13 @@ const mock = vi.hoisted(() => ({
     accessCodes: [] as string[],
   },
   user: { userInfo: { userId: '1' } as null | { userId: string } },
-  route: { params: { id: '9007199254740993' }, meta: {} },
+  route: {
+    name: 'AssetMarketMapDetail',
+    params: { id: '9007199254740993' },
+    meta: {},
+  },
+  push: vi.fn(),
+  closeTab: vi.fn(),
   detail: vi.fn(),
   publish: vi.fn(),
   unpublish: vi.fn(),
@@ -39,11 +45,11 @@ vi.mock('@vben/access', () => ({
 }));
 vi.mock('vue-router', () => ({
   useRoute: () => mock.route,
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ currentRoute: { value: mock.route }, push: mock.push }),
 }));
 vi.mock('@vben/hooks', () => ({
   useAntdDesignTokens: () => ({ tokens: { borderRadius: 8 } }),
-  useTabs: () => ({ closeCurrentTab: vi.fn() }),
+  useTabs: () => ({ closeCurrentTab: mock.closeTab }),
 }));
 vi.mock('@vben/icons', () => ({ IconifyIcon: { render: () => null } }));
 vi.mock('@vben/utils', () => ({ formatDateTime: () => '' }));
@@ -165,7 +171,11 @@ beforeEach(() => {
     accessCodes: [],
   });
   mock.user = reactive({ userInfo: { userId: '1' } });
-  mock.route = reactive({ params: { id: '9007199254740993' }, meta: {} });
+  mock.route = reactive({
+    name: 'AssetMarketMapDetail',
+    params: { id: '9007199254740993' },
+    meta: {},
+  });
   mock.detail.mockResolvedValue(detail());
   mock.refresh.mockResolvedValue(true);
   host = document.createElement('div');
@@ -291,4 +301,19 @@ describe('asset map authenticated detail', () => {
     await pending;
     expect(state.detail.asset?.assetName).toBe('目录详情');
   });
+  it.each(['', '17'])(
+    'leaves the destination route and its tab intact (id=%s)',
+    async (id) => {
+      mount();
+      await flush();
+      state.handleTabChange('overview');
+      mock.route.name = 'OtherPage';
+      mock.route.params.id = id;
+      await flush();
+      expect(mock.detail).toHaveBeenCalledTimes(1);
+      expect(mock.push).not.toHaveBeenCalled();
+      expect(mock.closeTab).not.toHaveBeenCalled();
+      expect(state.activeTab).toBe('overview');
+    },
+  );
 });

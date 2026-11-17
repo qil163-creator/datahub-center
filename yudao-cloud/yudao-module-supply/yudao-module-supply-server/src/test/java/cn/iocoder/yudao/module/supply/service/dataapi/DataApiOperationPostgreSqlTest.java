@@ -1,7 +1,12 @@
 package cn.iocoder.yudao.module.supply.service.dataapi;
 
 import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecuteRespVO;
+import cn.iocoder.yudao.module.dataforge.api.database.PublishedQueryApi;
+import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
+import cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.dataapi.DataApiDO;
+import cn.iocoder.yudao.module.supply.dal.mysql.app.SupplyAppMapper;
+import cn.iocoder.yudao.module.supply.dal.mysql.appapi.AppApiMapper;
 import cn.iocoder.yudao.module.supply.dal.mysql.dataapi.DataApiOperationMapper;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.MybatisSqlSessionFactoryBuilder;
@@ -20,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class DataApiOperationPostgreSqlTest extends cn.iocoder.yudao.module.supply.service.app.SharingPostgresSupport {
     @Override protected boolean useLegacyFixture() { return false; }
@@ -103,6 +109,40 @@ class DataApiOperationPostgreSqlTest extends cn.iocoder.yudao.module.supply.serv
         assertThat(jdbc.queryForObject("SELECT value FROM target_counter", Integer.class)).isEqualTo(1);
         assertThat(result.getRows()).isEmpty();
         assertThat(mapper.find(3L,4L,"operation-0002").getResultJson()).isNull();
+    }
+
+    @Test void gatewayReplaysExistingReceiptWhenSourceIsUnavailableAndKeepsFirstClaimUnwritten() {
+        api.setDatabaseId(42L);
+        api.setAuthType(DataApiDO.AUTH_TYPE_SIGN);
+        var first = service.execute(api, 3L, params("operation-replay"), this::write);
+
+        var executor = new DataApiExecutor();
+        var rpc = mock(PublishedQueryApi.class);
+        var apps = mock(SupplyAppMapper.class);
+        var grants = mock(AppApiMapper.class);
+        when(rpc.writeProfile(any())).thenThrow(new IllegalStateException("source unavailable"));
+        when(apps.selectById(3L)).thenReturn(SupplyAppDO.builder().id(3L).appStatus(1).build());
+        when(grants.selectByAppIdAndApiId(3L, 4L))
+                .thenReturn(AppApiDO.builder().appId(3L).apiId(4L).foreverFlag(1).build());
+        ReflectionTestUtils.setField(executor, "operationService", service);
+        ReflectionTestUtils.setField(executor, "publishedQueryApi", rpc);
+        ReflectionTestUtils.setField(executor, "supplyAppMapper", apps);
+        ReflectionTestUtils.setField(executor, "appApiMapper", grants);
+
+        var replay = executor.execute(api, params("operation-replay"), 1, 10, "127.0.0.1",
+                false, false, 3L, false, DataApiExecuteMode.APP_GATEWAY);
+        assertThat(replay.getReplayed()).isTrue();
+        assertThat(replay.getOperationId()).isEqualTo(first.getOperationId());
+        assertThat(replay.getRows()).isEqualTo(first.getRows());
+        verify(apps).selectById(3L);
+        verifyNoInteractions(rpc);
+
+        assertThatThrownBy(() -> executor.execute(api, params("operation-first"), 1, 10, "127.0.0.1",
+                false, false, 3L, false, DataApiExecuteMode.APP_GATEWAY))
+                .isInstanceOf(cn.iocoder.yudao.framework.common.exception.ServiceException.class);
+        verify(rpc).writeProfile(new PublishedQueryApi.Source(42L));
+        assertThat(mapper.find(3L, 4L, "operation-first")).isNull();
+        assertThat(jdbc.queryForObject("SELECT value FROM target_counter", Integer.class)).isEqualTo(1);
     }
 
     @Test void crashedWorkerLeaseNeverPermitsAutomaticRedispatch() {

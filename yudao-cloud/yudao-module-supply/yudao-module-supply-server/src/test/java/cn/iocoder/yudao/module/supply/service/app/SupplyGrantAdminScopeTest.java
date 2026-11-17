@@ -76,6 +76,8 @@ class SupplyGrantAdminScopeTest extends SharingPostgresSupport {
         migrate("0041_supply_grant-source-protocol.sql");
         migrate("0095_supply_etl-batch-consumption.sql");
         migrate("0169_datahub_remove-business-tenancy.sql");
+        migrate("0268_supply_api-concurrency-timeout.sql");
+        migrate("0281_supply_indicator-api.sql");
         // v2 市场聚合：grant_status 固定 3，真实范围只能来自来源账本。
         sql("INSERT INTO dh_supply_app_api(id,app_id,api_id,protocol_version,aggregate_revision,"
                 + "migration_status,grant_status) VALUES(501,1,10,2,3,'CONFIRMED',3)");

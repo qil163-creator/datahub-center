@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { GovernanceMetaFileApi as Api } from '#/api/governance/metafile';
 
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { Input, Spin, Tree } from 'antdv-next';
 
@@ -12,6 +12,7 @@ import { useObjectRequest } from '#/hooks/use-object-request';
 import { useTreeExpansion } from '../../common/use-tree-expansion';
 import { metadataConnectionIcon } from '../../metadata-common/icons';
 import MetadataIcon from '../../metadata-common/metadata-icon.vue';
+import { useTreeReload } from '../../metadata-common/use-tree-reload';
 
 const emit = defineEmits<{ select: [node?: Api.TreeNode] }>();
 const keyword = ref('');
@@ -53,6 +54,11 @@ async function load() {
     const data = await getMetaFileTree();
     if (current()) {
       nodes.value = data;
+      const key = selected.value[0];
+      if (key && !findNode(data, key)) {
+        selected.value = [];
+        emit('select');
+      }
     }
   } catch {
     if (current()) error.value = true;
@@ -73,7 +79,7 @@ function select(keys: unknown[]) {
   emit('select', key ? findNode(nodes.value, key) : undefined);
 }
 defineExpose({ reload: load });
-onMounted(load);
+useTreeReload(load);
 </script>
 <template>
   <aside class="metadata-file-tree subtle-tree-scrollbar">

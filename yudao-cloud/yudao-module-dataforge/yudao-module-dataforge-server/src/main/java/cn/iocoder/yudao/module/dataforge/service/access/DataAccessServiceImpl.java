@@ -788,6 +788,18 @@ public class DataAccessServiceImpl implements DataAccessService {
      * 离线同步保存平台数据源绑定；SeaTunnel 保存用户编写的原生作业配置。
      */
     private DataAccessDO buildDataAccess(DataAccessSaveReqVO reqVO) {
+        return buildDataAccess(reqVO, false);
+    }
+
+    @Override
+    public void validateDbSwitchConfiguration(DataAccessSaveReqVO request) {
+        if (request.getEngineType() != null && !AccessEngineTypeEnum.DBSWITCH.getType().equals(request.getEngineType())) {
+            throw exception(DATA_ACCESS_EXECUTION_MODE_UNSUPPORTED, "请选择 DB Switch 离线同步引擎");
+        }
+        buildDataAccess(request, true);
+    }
+
+    private DataAccessDO buildDataAccess(DataAccessSaveReqVO reqVO, boolean preflight) {
         // 1. 业务校验
         Integer engineType = reqVO.getEngineType() == null
                 ? AccessEngineTypeEnum.DBSWITCH.getType() : reqVO.getEngineType();
@@ -952,6 +964,12 @@ public class DataAccessServiceImpl implements DataAccessService {
             throw exception(DATA_ACCESS_PREVIEW_PARAM_MISSING, "配置版本或同步选项");
         }
         normalizeNewTableWriteModeForSave(properties, sourceDatabase, targetDatabase);
+        if (preflight) {
+            var runtime = AccessTaskConfigMapper.toRuntime(properties, reqVO.getTargetDatabaseId());
+            runtime.getSource().getFirst().setSourceProductType(databaseResolver.resolveProductType(sourceDatabase));
+            runtime.getTarget().setTargetProductType(databaseResolver.resolveProductType(targetDatabase));
+            DataAccessExecutor.validateAuthorizedMode(runtime);
+        }
         if (!properties.getTarget().getDistributedKeys().isEmpty()
                 && databaseResolver.resolveProductType(targetDatabase) != ProductTypeEnum.GREENPLUM) {
             throw exception(DATA_ACCESS_PREVIEW_PARAM_MISSING, "分布列仅适用于 Greenplum 全量自动建表");

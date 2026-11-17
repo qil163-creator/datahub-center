@@ -222,6 +222,8 @@ function confirmRun() {
   if (!modelId.value || !rule.value?.configured) return;
   ConfirmModal.confirm({
     title: '执行相似匹配',
+    okText: '执行匹配',
+    cancelText: '取消',
     content:
       '将读取该模型的全部记录并按规则两两比较。新结果会取代尚未处理的旧疑似重复组；已忽略的组不会再次列出。',
     async onOk() {

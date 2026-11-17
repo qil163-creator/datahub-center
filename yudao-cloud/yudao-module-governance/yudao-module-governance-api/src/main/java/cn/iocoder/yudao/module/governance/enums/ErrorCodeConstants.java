@@ -344,6 +344,9 @@ public interface ErrorCodeConstants {
     ErrorCode QUALITY_RULE_SET_NAME_DUPLICATE = new ErrorCode(1_500_015_101, "已存在同名的规则集");
     ErrorCode QUALITY_RULE_SET_ITEM_EMPTY = new ErrorCode(1_500_015_102, "规则集至少需要一个规则");
     // ========== 数据质量--检查对象 1_500_015_200 ==========
+    ErrorCode QUALITY_RULE_SET_RULE_UNAVAILABLE = new ErrorCode(1_900_015_103, "所选质量规则不存在、已停用或已失效，请重新选择");
+    ErrorCode QUALITY_CHECK_OBJECT_SOURCE_MISSING = new ErrorCode(1_900_015_202, "检查对象关联的数据源不存在或不可见，请重新选择");
+
     ErrorCode QUALITY_CHECK_OBJECT_NOT_EXISTS = new ErrorCode(1_500_015_200, "检查对象不存在");
     ErrorCode QUALITY_CHECK_OBJECT_NAME_DUPLICATE = new ErrorCode(1_500_015_201, "已存在同名的检查对象");
     // ========== 数据质量--质量任务 1_500_015_300 ==========

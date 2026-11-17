@@ -77,7 +77,7 @@ const active = ref(true);
 const sortField = ref('createTime');
 const sidebarCollapsed = ref(false);
 const treeExpanded = ref(true);
-const descending = ref(true);
+const sortOrder = ref<'asc' | 'desc' | null>('desc');
 const enabledDomains = computed(() =>
   domains.value.filter((item) => item.status === 0),
 );
@@ -188,6 +188,7 @@ const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
       expandAll: false,
     },
     sortConfig: {
+      multiple: false,
       remote: true,
       defaultSort: { field: 'createTime', order: 'desc' },
     },
@@ -278,16 +279,16 @@ const [Grid, gridApi] = useVbenVxeGrid<ModelingSubjectDomainApi.SubjectDomain>({
       pageSize.value = size;
       renderRows();
     },
-    sortChange: ({ field, order }: { field: string; order: string }) => {
+    sortChange: ({ field, order }: { field: string; order: 'asc' | 'desc' | null }) => {
       sortField.value = field;
-      descending.value = order !== 'asc';
-      renderRows();
+      sortOrder.value = order;
+      renderRows(true);
     },
   },
 });
-function renderRows() {
+function renderRows(sortOnly = false) {
   const ids = new Set(rows.value.map((row) => String(row.id)));
-  const sorted = rows.value.toSorted((a, b) => {
+  const sorted = sortOrder.value === null ? rows.value : rows.value.toSorted((a, b) => {
     const field = sortField.value as 'businessObjectCount' | 'createTime';
     const av = a[field] ?? 0;
     const bv = b[field] ?? 0;
@@ -300,7 +301,7 @@ function renderRows() {
         numeric: true,
       });
     }
-    return descending.value ? -order : order;
+    return sortOrder.value === 'desc' ? -order : order;
   });
   const roots = sorted.filter((row) => !ids.has(String(row.parentId)));
   pageNo.value = Math.min(
@@ -329,6 +330,12 @@ function renderRows() {
       id: String(row.id),
       parentId: included.has(String(row.parentId)) ? String(row.parentId) : '0',
     }));
+  const grid = gridApi.grid;
+  if (sortOnly && grid) {
+    // 排序只改变行顺序，保留当前列实例及其排序指示。
+    void grid.loadData(data).then(() => grid.setAllTreeExpand(isExpanded.value));
+    return;
+  }
   gridApi.setGridOptions({
     data,
     pagerConfig: {

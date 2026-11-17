@@ -42,27 +42,25 @@ const [DetailModal, detailModalApi] = useVbenModal({
 
 const deptList = ref<SystemDeptApi.Dept[]>([]);
 const userList = ref<SystemUserApi.User[]>([]);
-const lookupLoaded = ref(false);
 const sidebarCollapsed = ref(false);
 let lookupDataPromise: Promise<void> | undefined;
 
 /** 确保部门、用户字典已加载（避免表格首次查询时名称无法回显） */
-async function ensureLookupData() {
-  if (lookupLoaded.value) {
-    return;
-  }
+function ensureLookupData() {
   lookupDataPromise ??= Promise.all([
     getSimpleDeptList(),
     getSimpleUserList(),
-  ]).then(([depts, users]) => {
-    deptList.value = depts;
-    userList.value = users;
-    lookupLoaded.value = true;
-  });
-  await lookupDataPromise;
+  ])
+    .then(([depts, users]) => {
+      deptList.value = depts;
+      userList.value = users;
+    })
+    .catch((error: unknown) => {
+      lookupDataPromise = undefined;
+      throw error;
+    });
+  return lookupDataPromise;
 }
-
-void ensureLookupData();
 
 function getDeptName(deptId?: number) {
   if (deptId === null || deptId === undefined) {

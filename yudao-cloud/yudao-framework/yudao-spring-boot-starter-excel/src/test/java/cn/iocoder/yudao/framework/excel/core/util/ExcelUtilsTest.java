@@ -2,7 +2,9 @@ package cn.iocoder.yudao.framework.excel.core.util;
 
 import cn.idev.excel.FastExcelFactory;
 import cn.idev.excel.annotation.ExcelProperty;
+import jakarta.servlet.ServletOutputStream;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -34,6 +36,27 @@ public class ExcelUtilsTest {
         assertEquals(2, rows.size());
         assertEquals("员工一", rows.get(0).getName());
         assertEquals("员工二", rows.get(1).getName());
+    }
+
+    @Test
+    public void writesWorkbookHeadersBeforeOpeningTheStream() throws Exception {
+        for (boolean dynamicHead : List.of(false, true)) {
+            MockHttpServletResponse response = new MockHttpServletResponse() {
+                @Override
+                public ServletOutputStream getOutputStream() {
+                    assertEquals("attachment;filename=records.xlsx", getHeader("Content-Disposition"));
+                    assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", getContentType());
+                    return super.getOutputStream();
+                }
+            };
+            if (dynamicHead) {
+                ExcelUtils.write(response, "records.xlsx", "数据", List.of(List.of("姓名")), List.of(List.of("员工一")));
+            } else {
+                ExcelUtils.write(response, "records.xlsx", "数据", TestRow.class, List.of(new TestRow("员工一")));
+            }
+            MockMultipartFile workbook = new MockMultipartFile("file", response.getContentAsByteArray());
+            assertEquals("员工一", ExcelUtils.read(workbook, TestRow.class).getFirst().getName());
+        }
     }
 
     public static class TestRow {

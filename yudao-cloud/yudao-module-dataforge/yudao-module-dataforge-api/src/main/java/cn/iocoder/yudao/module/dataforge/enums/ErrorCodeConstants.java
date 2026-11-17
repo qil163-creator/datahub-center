@@ -57,6 +57,8 @@ public interface ErrorCodeConstants {
     ErrorCode DATABASE_MONITOR_ALARM_NOT_EXISTS = new ErrorCode(1_500_003_011, "数据库告警记录不存在");
     ErrorCode DATABASE_MONITOR_ALARM_CONFLICT = new ErrorCode(1_500_003_012, "告警已处置，请刷新后查看");
     ErrorCode DATABASE_MONITOR_RANGE_INVALID = new ErrorCode(1_500_003_013, "监控范围仅支持近 7、15、30 天");
+    ErrorCode DATABASE_PUBLISHED_SCOPE_INVALID = new ErrorCode(1_500_003_016, "发布查询超出批准字段范围");
+    ErrorCode DATABASE_PUBLISHED_QUERY_TIMEOUT = new ErrorCode(1_500_003_015, "发布接口查询超时");
     ErrorCode DATABASE_NAMESPACE_INVALID = new ErrorCode(1_500_003_014, "数据源的库名或 schema 配置无效");
 
 
@@ -111,6 +113,7 @@ public interface ErrorCodeConstants {
     ErrorCode FULL_SYNC_WIZARD_EXECUTION_MODE_INVALID = new ErrorCode(1_500_013_031, "整库同步执行模式不支持：{}");
     ErrorCode FULL_SYNC_WIZARD_DS_NOT_CONFIGURED = new ErrorCode(1_500_013_032, "DolphinScheduler DataX 模式未配置完整：{}");
     ErrorCode FULL_SYNC_WIZARD_DS_SUBMIT_FAILED = new ErrorCode(1_500_013_033, "DolphinScheduler DataX 提交失败：{}");
+    ErrorCode DATA_ACCESS_EXECUTION_MODE_UNSUPPORTED = new ErrorCode(1_500_013_034, "同步执行配置不支持：{}");
 
     // ========== 数据同步执行记录 1_500_014_000 ==========
     ErrorCode DATA_ACCESS_TASK_NOT_EXISTS = new ErrorCode(1_500_014_000, "数据同步执行记录不存在");

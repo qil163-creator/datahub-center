@@ -1,7 +1,9 @@
 package cn.iocoder.yudao.module.governance.dal.dataobject.quality;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.module.governance.framework.mybatis.core.type.JsonbTypeHandler;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
@@ -15,7 +17,7 @@ import java.time.LocalDateTime;
  *
  * @author Li
  */
-@TableName("dh_governance_quality_brief")
+@TableName(value = "dh_governance_quality_brief", autoResultMap = true)
 @KeySequence("dh_governance_quality_brief_seq")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -56,6 +58,7 @@ public class QualityBriefDO extends BaseDO {
     private String briefStatus;
 
     /** 简报内容JSON（渲染后） */
+    @TableField(typeHandler = JsonbTypeHandler.class)
     private String briefContent;
 
     /** 生成时间 */

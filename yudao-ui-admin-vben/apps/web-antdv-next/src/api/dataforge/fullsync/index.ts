@@ -194,6 +194,11 @@ export function deleteWizard(id: Id, expectedRevision: Id) {
     { params: { expectedRevision } },
   );
 }
+export function validateWizard(id: Id) {
+  return requestClient.post<{ messages: string[]; valid: boolean }>(
+    `${base}/${encodeURIComponent(String(id))}/validate`,
+  );
+}
 export async function getDatabaseOptions(): Promise<DatabaseOption[]> {
   const databases = await getDatabaseSimpleList();
   return databases.map((item) => ({

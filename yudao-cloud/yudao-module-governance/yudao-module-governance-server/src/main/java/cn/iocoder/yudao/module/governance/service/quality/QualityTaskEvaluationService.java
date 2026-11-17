@@ -177,6 +177,8 @@ public class QualityTaskEvaluationService {
             }
             validateTable(object.getTableName());
         }
+        QualityCheckObjectSources.requireAvailable(databaseApi, request.getObjects().stream()
+                .map(QualityTaskObjectSaveReqVO::getDatasourceConnId).toList());
         Set<String> names = new HashSet<>();
         for (var evaluation : request.getEvaluations()) {
             if (!names.add(evaluation.getEvaluationName().trim())) {

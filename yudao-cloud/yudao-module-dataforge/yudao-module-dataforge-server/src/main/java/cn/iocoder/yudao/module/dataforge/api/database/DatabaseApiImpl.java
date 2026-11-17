@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.dataforge.api.database;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.MetadataTreeSourceRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseColumnRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseConnectionRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewReqDTO;
@@ -21,6 +22,7 @@ import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTa
 import cn.iocoder.yudao.module.dataforge.service.access.AccessDatabaseResolver;
 import cn.iocoder.yudao.module.dataforge.service.database.DatabaseService;
 import jakarta.annotation.Resource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -87,6 +89,13 @@ public class DatabaseApiImpl implements DatabaseApi {
             dto.setHost(item.getHost());
             return dto;
         }));
+    }
+
+    @Override
+    @PreAuthorize(
+            "@ss.hasAnyPermissions('governance:meta-object:query', 'governance:meta-file:query')")
+    public CommonResult<List<MetadataTreeSourceRespDTO>> getMetadataTreeSources(List<Long> ids) {
+        return success(databaseService.getMetadataTreeSources(ids));
     }
 
     /**

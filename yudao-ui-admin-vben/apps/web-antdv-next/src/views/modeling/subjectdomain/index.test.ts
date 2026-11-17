@@ -25,9 +25,10 @@ type GridState = {
 };
 type GridOptions = {
   gridEvents: {
+    sortChange: (event: { field: string; order: 'asc' | 'desc' | null }) => void;
     pageChange: (event: { currentPage: number; pageSize: number }) => void;
   };
-  gridOptions: GridState;
+  gridOptions: GridState & { sortConfig: { multiple: boolean } };
 };
 
 const harness = vi.hoisted(() => ({
@@ -37,6 +38,7 @@ const harness = vi.hoisted(() => ({
   setSearchSubmission: vi.fn(),
   getSubjects: vi.fn(),
   setGridOptions: vi.fn(),
+  loadData: vi.fn(async (_rows: GridState['data']) => undefined),
   gridOptions: undefined as GridOptions | undefined,
 }));
 vi.mock('vue-router', () => ({ useRoute: () => harness.route, useRouter: () => ({ push: harness.navigate }) }));
@@ -72,7 +74,12 @@ vi.mock('#/adapter/vxe-table', () => ({
   TableAction: () => null,
   useVbenVxeGrid: (options: GridOptions) => {
     harness.gridOptions = options;
-    return [() => null, { query: vi.fn(), setGridOptions: harness.setGridOptions, formApi: { setValues: harness.setSearchValues, setLatestSubmissionValues: harness.setSearchSubmission } }];
+    return [() => null, {
+      query: vi.fn(),
+      setGridOptions: harness.setGridOptions,
+      grid: { loadData: harness.loadData, setAllTreeExpand: vi.fn() },
+      formApi: { setValues: harness.setSearchValues, setLatestSubmissionValues: harness.setSearchSubmission },
+    }];
   },
 }));
 vi.mock('#/api/modeling/subjectdomain', () => ({
@@ -110,6 +117,42 @@ beforeEach(() => {
 });
 
 describe('数据板块详情的主题域分页', () => {
+  it('点击业务实体数排序时更新行顺序并保留当前表头', async () => {
+    harness.getSubjects.mockResolvedValue([
+      { id: '1', parentId: '0', businessObjectCount: 7 },
+      { id: '2', parentId: '0', businessObjectCount: 2 },
+    ]);
+    await mount({ dataDomainId: '34', embedded: true });
+    harness.setGridOptions.mockClear();
+
+    for (const [order, ids] of [['asc', ['2', '1']], ['desc', ['1', '2']]] as const) {
+      harness.gridOptions!.gridEvents.sortChange({ field: 'businessObjectCount', order });
+      await flush();
+      expect(harness.loadData.mock.lastCall?.[0]?.map((row) => row.id)).toEqual(ids);
+      expect(harness.setGridOptions).not.toHaveBeenCalled();
+    }
+  });
+
+  it('跨列只使用新排序，清除排序后按接口原序展示', async () => {
+    harness.getSubjects.mockResolvedValue([
+      { id: '2', parentId: '0', businessObjectCount: 6, createTime: 30 },
+      { id: '3', parentId: '0', businessObjectCount: 4, createTime: 10 },
+      { id: '1', parentId: '0', businessObjectCount: 8, createTime: 20 },
+    ]);
+    await mount({ dataDomainId: '34', embedded: true });
+    const { gridEvents, gridOptions } = harness.gridOptions!;
+    expect(gridOptions.sortConfig.multiple).toBe(false);
+    for (const [field, order, ids] of [
+      ['businessObjectCount', 'asc', ['3', '2', '1']],
+      ['createTime', 'desc', ['2', '1', '3']],
+      ['createTime', null, ['2', '3', '1']],
+    ] as const) {
+      gridEvents.sortChange({ field, order });
+      await flush();
+      expect(harness.loadData.mock.lastCall?.[0]?.map((row) => row.id)).toEqual(ids);
+    }
+  });
+
   it('按根主题域分页并保留子主题域，切换页码和页大小后更新结果', async () => {
     const roots = Array.from({ length: 21 }, (_, index) => ({
       id: String(index + 1),

@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
-import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.checkobject.QualityCheckObjectSaveReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.task.*;
 import cn.iocoder.yudao.module.governance.dal.dataobject.quality.*;
 import cn.iocoder.yudao.module.governance.dal.mysql.quality.*;
@@ -131,13 +130,7 @@ public class QualityEtlTaskCreationService {
             if (!Objects.equals(definitionHash, ruleHash(loadRules(ids, true)))) {
                 throw exception(QUALITY_RUN_KEY_CONFLICT);
             }
-            var object = new QualityCheckObjectSaveReqVO();
-            object.setObjectName("ETL-" + request.getRequestId());
-            object.setDatasourceConnId(request.getDatabaseId());
-            object.setTableName(table.getTableName());
-            object.setFormatName(table.getSchemaName());
-            object.setRemark("由 ETL 目标生成独立检测对象");
-            Long objectId = objects.createCheckObject(object);
+            Long objectId = objects.createForEtlTarget(request.getRequestId(), request.getDatabaseId(), table);
             var task = new QualityTaskSaveReqVO();
             task.setTaskName(name);
             task.setTaskCode("ETL-" + request.getRequestId());

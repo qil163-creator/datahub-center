@@ -205,6 +205,8 @@ function handleDelete(node: DataQueryApi.QueryFile) {
     content: isFolder(node)
       ? `确认删除目录「${node.name}」吗？目录下不能有子节点。`
       : `确认删除脚本「${node.name}」吗？`,
+    okText: '删除',
+    cancelText: '取消',
     okButtonProps: { danger: true },
     onOk: async () => {
       await deleteDataQueryFile(node.id!);

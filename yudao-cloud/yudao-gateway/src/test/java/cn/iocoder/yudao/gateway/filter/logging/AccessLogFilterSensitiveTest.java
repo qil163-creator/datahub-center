@@ -25,7 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AccessLogFilterSensitiveTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"/supply-api/supply/api-test/send", "/admin-api/supply/api-test/send",
+    @ValueSource(strings = {"/admin-api/system/auth/login", "/admin-api/system/auth/refresh-token",
+            "/admin-api/supply/app/create", "/admin-api/supply/app/reset-secret", "/admin-api/supply/data-api/sign",
+            "/admin-api/system/oauth2/token", "/supply-api/supply/api-test/send", "/admin-api/supply/api-test/send",
             "/admin-api/supply/api-test/detail", "/supply/gateway/services/v1/orders",
             "/supply-api/supply/api-%74est/send", "/supply-api/supply/api-test;matrix=value/send",
             "/admin-api/dataforge/file-resource/preview", "/dataforge-api/dataforge/file-resource/preview-content",

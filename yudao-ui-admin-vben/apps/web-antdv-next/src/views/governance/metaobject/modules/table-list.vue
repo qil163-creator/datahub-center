@@ -236,6 +236,11 @@ function onTreeLoaded(nodes: Api.TreeNode[]) {
     });
   visit(nodes);
   dbOptions.value = options;
+  if (filter.dbId !== undefined && !options.some((option) => String(option.value) === String(filter.dbId))) {
+    filter.dbId = undefined;
+    void gridApi.formApi.setFieldValue('dbId', undefined);
+    query();
+  }
 }
 function detail(row: Api.MetaTable, tab = 'fields') {
   if (row.id === undefined) return;

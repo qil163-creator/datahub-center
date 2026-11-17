@@ -73,6 +73,16 @@ class FillWorkItemEditGateTest {
     }
 
     @Test
+    void departmentReaderOnlyReadsDirectlyLedOrganizations() {
+        var dept = new cn.iocoder.yudao.module.system.api.dept.dto.DeptRespDTO();
+        dept.setLeaderUserId(11L);
+        when(deptApi.getDeptMap(java.util.Set.of(5L))).thenReturn(Map.of(5L, dept));
+        assertDoesNotThrow(() -> service.checkDeptViewPermission(5L, 11L));
+        assertThrows(ServiceException.class, () -> service.checkDeptViewPermission(5L, 22L));
+        assertThrows(ServiceException.class, () -> service.checkDeptViewPermission(6L, 11L));
+    }
+
+    @Test
     void editingIsBlockedBeforeTheOpenTime() {
         task(LocalDateTime.now().plusDays(1), FillOverduePolicyEnum.SOFT);
 

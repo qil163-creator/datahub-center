@@ -127,6 +127,13 @@ public class DataApiController {
         return success(dataApiService.getDataApi(id));
     }
 
+    @GetMapping("/document")
+    @Operation(summary = "获得接口文档使用的发布配置")
+    @PreAuthorize("@ss.hasPermission('supply:data-api:query')")
+    public CommonResult<DataApiRespVO> getDataApiDocument(@RequestParam("id") Long id) {
+        return success(dataApiService.getDataApiDocument(id));
+    }
+
     /**
      * 获得 API 服务分页。
      *
@@ -239,7 +246,7 @@ public class DataApiController {
      */
     @PostMapping("/sign")
     @Operation(summary = "在线签名（v1 旧协议或 v2 HMAC-SM3）")
-    @ApiAccessLog(requestEnable = false, sanitizeKeys = {"appSecret", "secret"})
+    @ApiAccessLog(requestEnable = false, responseEnable = false, sanitizeKeys = {"appSecret", "secret"})
     @PreAuthorize("@ss.hasAnyPermissions('supply:data-api:query', 'supply:data-api:test', 'supply:data-api:invoke')")
     public CommonResult<String> signDataApi(@Valid @RequestBody DataApiSignReqVO reqVO) {
         return success(dataApiService.sign(reqVO));

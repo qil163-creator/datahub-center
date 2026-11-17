@@ -144,7 +144,6 @@ function makeAdapter(
     update: vi.fn(),
     remove: vi.fn(),
     normalize: (value) => value as CategoryRow,
-    toPayload: (value) => value,
   };
 }
 function deferred() {

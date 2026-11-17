@@ -12,35 +12,45 @@ import java.util.List;
 @Mapper
 public interface MarketMyAssetMapper {
 
+    String SNAPSHOT_JOINS = """
+            CROSS JOIN LATERAL (
+              SELECT CASE WHEN pg_input_is_valid(v.content_json, 'jsonb')
+                     THEN CAST(v.content_json AS jsonb) ELSE CAST('{}' AS jsonb) END AS catalog
+            ) snapshot_data
+            CROSS JOIN LATERAL (
+              SELECT CASE WHEN jsonb_extract_path_text(snapshot_data.catalog, 'format') = '1'
+                           AND jsonb_extract_path_text(snapshot_data.catalog, 'asset', 'id') = CAST(r.asset_id AS text)
+                     THEN jsonb_extract_path(snapshot_data.catalog, 'asset') END AS asset
+            ) frozen
+            """;
+
     String FROM = """
             FROM dh_market_resource_apply r
             LEFT JOIN dh_asset_catalog_version v ON v.id=r.catalog_version_id
               AND v.asset_id=r.asset_id AND v.deleted=0 AND v.status=4
             LEFT JOIN dh_asset_market_listing l ON l.asset_id=r.asset_id AND l.deleted=0
             LEFT JOIN dh_asset_market_category c ON c.id=l.market_category_id AND c.deleted=0
-            """;
-    String CATALOG_JSON = "(CASE WHEN v.content_json IS JSON OBJECT THEN v.content_json::jsonb ELSE '{}'::jsonb END)";
-    String PINNED_ASSET = "(CASE WHEN " + CATALOG_JSON + "->>'format'='1'"
-            + " AND " + CATALOG_JSON + "->'asset'->>'id'=r.asset_id::text"
-            + " THEN " + CATALOG_JSON + "->'asset' ELSE NULL END)";
-    String NAME = "COALESCE(NULLIF(" + PINNED_ASSET + "->>'assetName',''),"
-            + "NULLIF(" + CATALOG_JSON + "->>'assetName',''),'历史目录 #'||r.asset_id::text)";
+            """ + SNAPSHOT_JOINS;
+    String NAME = "COALESCE(NULLIF(jsonb_extract_path_text(frozen.asset, 'assetName'), ''),"
+            + "NULLIF(jsonb_extract_path_text(snapshot_data.catalog, 'assetName'), ''),"
+            + "CONCAT('历史目录 #', r.asset_id))";
     String MARKET_NAME = "COALESCE(NULLIF(l.display_name,'')," + NAME + ")";
     String TYPE = "CASE WHEN r.api_id IS NOT NULL THEN 2 ELSE r.asset_type END";
     String COLUMNS = "SELECT r.*, " + NAME + " asset_name," + MARKET_NAME + " market_name,"
-            + PINNED_ASSET + "->>'assetCode' asset_code,"
+            + "jsonb_extract_path_text(frozen.asset, 'assetCode') asset_code,"
             + "l.market_category_id,c.name market_category_name,"
-            + "COALESCE(NULLIF(l.frequency,'')," + PINNED_ASSET + "->>'updateCycle',"
-            + CATALOG_JSON + "->>'updateRule') update_cycle,"
-            + "COALESCE(" + PINNED_ASSET + "->>'description'," + CATALOG_JSON + "->>'description') description,"
-            + "r.snapshot::jsonb->>'assetVersion' asset_version,"
-            + "(" + PINNED_ASSET + " IS NOT NULL) frozen_catalog_valid,"
+            + "COALESCE(NULLIF(l.frequency,''), jsonb_extract_path_text(frozen.asset, 'updateCycle'),"
+            + "jsonb_extract_path_text(snapshot_data.catalog, 'updateRule')) update_cycle,"
+            + "COALESCE(jsonb_extract_path_text(frozen.asset, 'description'),"
+            + "jsonb_extract_path_text(snapshot_data.catalog, 'description')) description,"
+            + "jsonb_extract_path_text(CAST(r.snapshot AS jsonb), 'assetVersion') asset_version,"
+            + "(frozen.asset IS NOT NULL) frozen_catalog_valid,"
             + TYPE + " delivery_type ";
     String WHERE = """
             WHERE r.deleted=0 AND r.apply_user_id=#{userId} AND r.status IN (2,5,6)
             <if test="req.keyword != null and req.keyword.trim() != ''">
               AND (
-            """ + MARKET_NAME + " ILIKE '%'||#{req.keyword}||'%' OR " + NAME + " ILIKE '%'||#{req.keyword}||'%')"
+            """ + MARKET_NAME + " ILIKE CONCAT('%', #{req.keyword}, '%') OR " + NAME + " ILIKE CONCAT('%', #{req.keyword}, '%'))"
             + """
             </if>
             <if test="req.deliveryType != null"> AND (

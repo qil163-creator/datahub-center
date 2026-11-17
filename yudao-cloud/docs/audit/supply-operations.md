@@ -66,3 +66,35 @@
 操作名用于分类，操作内容记录具体对象名称、编号、状态、修订或发布快照。标签类目、数据板块、服务分类等维护操作通过既有 Service 读取旧名，以 `LogRecordContext` 保存名称字符串，更新记录旧名到新名，删除保留删除前名称；批量继续只记录成功对象编号，不为审计增加会使部分成功操作整体失败的单项读取。涉及密钥、SQL、请求头、材料和填写值的操作不记录原文。复杂异步操作记录提交、受理或核查结果，不把受理当作执行完成。
 
 新增授权记录现有应用名称/编号与API编号；既有授权控制使用授权编号及控制版本，不额外调用会进行授权状态重算的详情服务。API调用记录删除和写操作核查使用真实记录编号；自由URL测试不记录URL、请求头和载荷。
+
+## 已发布 API 查询与签名写入的运行配置
+
+已发布的 SQL／单表查询通过 Supply 到 DataForge 的双向 TLS 通道执行。签名写入在 Supply 认领业务操作编号后签发一次性票据，DataForge 通过反向双向 TLS 通道兑换已绑定的操作计划，再在目标 PostgreSQL 上执行事务。数据库连接凭据留在 DataForge。发生回执丢失时，按原业务编号查询台账中的 `UNKNOWN`，人工核对目标数据后处置。
+
+### 本机联调
+
+在 `yudao-cloud` 目录使用 Python 3 和 OpenSSL 运行以下命令。脚本将证书、私钥和 Spring 属性文件写入当前用户的私有目录。重复执行会校验并复用现有证书。
+
+```sh
+python3 deploy/prepare_local_rpc_tls.py \
+  --directory "$HOME/.local/share/datahub/published-query-tls" \
+  --client supply --server dataforge --port 55424 \
+  --context supplyPublishedQueryApi \
+  --bundle-property yudao.dataforge.published-query.client.ssl-bundle \
+  --peer-property yudao.dataforge.published-query.rpc.peers.supply
+
+python3 deploy/prepare_local_rpc_tls.py \
+  --directory "$HOME/.local/share/datahub/published-write-claim-tls" \
+  --client dataforge-claim --server supply-claim --port 55425 \
+  --context dataforgeWriteClaimApi \
+  --bundle-property yudao.supply.write-claim.client.ssl-bundle \
+  --peer-property yudao.supply.write-claim.rpc.peers.dataforge
+```
+
+重新加载 Maven 项目，以 `local` 配置重启 DataForge 和 Supply。DataForge 监听 `127.0.0.1:55424`，Supply 监听 `127.0.0.1:55425`。在 API 管理页发布接口，通过文档显示的网关地址调用。开发网关的默认基址为 `http://127.0.0.1:48083/supply/gateway`，可用 `DATAHUB_PUBLIC_API_BASE_URL` 设置。
+
+### 常驻部署
+
+为两个方向分别配置 Spring SSL bundle、客户端私钥、可信服务端证书、接收方可信客户端证书及客户端叶证书 SHA-256 指纹。DataForge 的 `yudao.dataforge.published-query.rpc.peers.supply` 配置 Supply 客户端指纹，Supply 的 `yudao.supply.write-claim.rpc.peers.dataforge` 配置 DataForge 客户端指纹。为 `supplyPublishedQueryApi` 和 `dataforgeWriteClaimApi` 配置对应的 HTTPS 服务地址，客户端使用上列对应的 `ssl-bundle` 属性。两个服务端都应要求客户端证书，将真实 TLS 连接及证书交给应用。证书轮换期间可在指纹列表中短期并存同一服务的新旧证书。
+
+写执行端仅接受短时单次票据。当前写合同适用于单租户 PostgreSQL 数据源和 SIGN 应用授权。多租户部署无法以当前合同绑定租户数据源，读写通路都会拒绝执行。请求 SQL、绑定值、票据和私钥均不应进入代理或调试日志。

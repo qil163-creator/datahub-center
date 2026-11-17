@@ -75,9 +75,14 @@ vi.mock('#/components/monaco/setup', () => ({
 }));
 vi.mock('#/components/monaco/sql-editor.vue', () => ({
   default: defineComponent({
-    setup: (_, { expose }) => {
+    emits: ['save'],
+    setup: (_, { emit, expose }) => {
       expose({ getSelectionOrValue: () => undefined });
-      return () => h('div');
+      return () =>
+        h('button', {
+          'data-testid': 'editor-save',
+          onClick: () => emit('save'),
+        });
     },
   }),
 }));
@@ -218,6 +223,18 @@ afterEach(() => {
 });
 
 describe('sql query response ownership', () => {
+  it('saves edits to the open file when the editor emits the save shortcut', async () => {
+    mount();
+    state.currentFile = { id: 7, name: 'Saved query' };
+    state.sql = 'select modified';
+    host.querySelector<HTMLButtonElement>('[data-testid="editor-save"]')!.click();
+    await flush();
+    expect(mock.save).toHaveBeenCalledWith(expect.objectContaining({
+      id: 7,
+      sqlText: 'select modified',
+    }));
+  });
+
   it('preserves a draft through KeepAlive and an inactive token refresh, reloading empty sources while rejecting the old result', async () => {
     const visible = ref(true);
     app = createApp(
@@ -532,6 +549,19 @@ describe('数据源树展开与刷新', () => {
     await state.onLoadData(root);
     expect(state.loadedKeys).toEqual(['ds:1']);
     expect(state.expandedKeys).toEqual(['ds:1']);
+  });
+
+  it('将单个节点展开事件返回的表与字段挂到真实树节点上', async () => {
+    mount();
+    await flush();
+    mock.tables.mockResolvedValue(['orders']);
+    mock.columns.mockResolvedValue([{ columnName: 'id', typeName: 'int' }]);
+    const root = state.treeData[0]!;
+    await state.onLoadData({ ...root });
+    const table = root.children?.[0];
+    expect(table?.key).toBe('table:1:orders');
+    await state.onLoadData({ ...table! });
+    expect(table).toMatchObject({ children: [{ key: 'col:1:orders:id' }] });
   });
 
   it('刷新期间禁止从旧根节点启动懒加载或全部展开', async () => {

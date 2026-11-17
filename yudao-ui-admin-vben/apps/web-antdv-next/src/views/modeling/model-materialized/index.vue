@@ -312,8 +312,8 @@ function databaseIcon(row: Row) {
   if (/dm|达梦/i.test(type)) return dmIcon;
   return undefined;
 }
-function releasedAgo(value?: number) {
-  if (value === undefined) return '-';
+function releasedAgo(value?: null | number) {
+  if (typeof value !== 'number') return '-';
   const seconds = Math.max(0, Math.floor((Date.now() - value) / 1000));
   const days = Math.floor(seconds / 86_400);
   const hours = Math.floor((seconds % 86_400) / 3600);
@@ -652,7 +652,7 @@ const themeConfig = computed(() => ({
                               }}</span><span>{{ row.publisherPhone || '-' }}</span>
                           </div>
                           <span v-else-if="column.key === 'publishTime'">{{
-                            row.publishTime === undefined
+                            typeof row.publishTime !== 'number'
                               ? '-'
                               : formatDate(
                                   row.publishTime,

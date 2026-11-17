@@ -21,6 +21,26 @@ import static org.mockito.Mockito.when;
 class DataApiPublishServiceTest {
 
     @Test
+    void documentUsesReleaseWhileEditorKeepsDraftAndNewApiCanPreview() {
+        DataApiMapper mapper = mock(DataApiMapper.class);
+        DataApiReleaseMapper releases = mock(DataApiReleaseMapper.class);
+        DataApiDO api = onlineApi(4);
+        api.setActiveReleaseId(9L);
+        api.setDraftJson("{\"method\":\"POST\",\"path\":\"/draft\"}");
+        when(mapper.selectById(1L)).thenReturn(api);
+        when(releases.selectById(9L)).thenReturn(DataApiReleaseDO.builder().id(9L).apiId(1L)
+                .configJson("{\"method\":\"GET\",\"path\":\"/published\"}").build());
+        DataApiServiceImpl service = newService(mapper, releases);
+        assertThat(service.getDataApi(1L).getPath()).isEqualTo("/draft");
+        assertThat(service.getDataApiDocument(1L).getPath()).isEqualTo("/published");
+        assertThat(service.getDataApiDocument(1L).getMethod()).isEqualTo("GET");
+        api.setStatus(DataApiDO.STATUS_OFFLINE);
+        assertThat(service.getDataApiDocument(1L).getPath()).isEqualTo("/published");
+        api.setActiveReleaseId(null);
+        assertThat(service.getDataApiDocument(1L).getPath()).isEqualTo("/draft");
+    }
+
+    @Test
     void publishConflictWhenRowVersionMismatches() {
         DataApiMapper dataApiMapper = mock(DataApiMapper.class);
         when(dataApiMapper.selectByIdForUpdate(1L)).thenReturn(onlineApi(3));

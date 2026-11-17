@@ -23,6 +23,7 @@ import { $t } from '#/locales';
 import { useFormSchema } from '../data';
 
 const emit = defineEmits(['success']);
+const loading = ref(true);
 const formData = ref<FoundationSystemSourceApi.SystemSource>();
 const deptList = ref<SystemDeptApi.Dept[]>([]);
 const userList = ref<SystemUserApi.User[]>([]);
@@ -136,6 +137,7 @@ async function buildSubmitData() {
 
 const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
+    if (loading.value) return;
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
@@ -155,10 +157,13 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
+      loading.value = true;
       formData.value = undefined;
       await formApi.resetForm();
       return;
     }
+    loading.value = true;
+    modalApi.lock();
     try {
       [deptList.value, userList.value] = await Promise.all([
         getDeptList(),
@@ -179,26 +184,24 @@ const [Modal, modalApi] = useVbenModal({
         }
         return;
       }
-      modalApi.lock();
-      try {
-        formData.value = await getSystemSource(data.id);
-        await formApi.setValues({
-          ...formData.value,
-          status: Number(formData.value.status ?? CommonStatusEnum.ENABLE),
-          sortOrder: Number(formData.value.sortOrder ?? 0),
-          deptId: formData.value.deptId
-            ? Number(formData.value.deptId)
-            : undefined,
-        });
-        await syncDeptName(formData.value.deptId);
-        await syncOwnerInfo(formData.value.ownerUserId);
-      } finally {
-        modalApi.unlock();
-      }
+      formData.value = await getSystemSource(data.id);
+      await formApi.setValues({
+        ...formData.value,
+        status: Number(formData.value.status ?? CommonStatusEnum.ENABLE),
+        sortOrder: Number(formData.value.sortOrder ?? 0),
+        deptId: formData.value.deptId
+          ? Number(formData.value.deptId)
+          : undefined,
+      });
+      await syncDeptName(formData.value.deptId);
+      await syncOwnerInfo(formData.value.ownerUserId);
     } catch (error) {
       console.error(error);
       message.error('加载表单数据失败，请稍后重试');
       await modalApi.close();
+    } finally {
+      loading.value = false;
+      modalApi.unlock();
     }
   },
 });
@@ -206,6 +209,8 @@ const [Modal, modalApi] = useVbenModal({
 
 <template>
   <Modal :title="getTitle" class="w-[800px]">
-    <Form class="mx-4" />
+    <div :inert="loading">
+      <Form class="mx-4" />
+    </div>
   </Modal>
 </template>

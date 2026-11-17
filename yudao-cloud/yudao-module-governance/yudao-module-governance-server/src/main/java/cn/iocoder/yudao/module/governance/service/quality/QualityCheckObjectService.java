@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.governance.service.quality;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseQueryTableRespDTO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.checkobject.QualityCheckObjectPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.checkobject.QualityCheckObjectSaveReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityCheckObjectDO;
@@ -18,6 +19,9 @@ public interface QualityCheckObjectService {
      * 创建检查对象。
      */
     Long createCheckObject(QualityCheckObjectSaveReqVO createReqVO);
+
+    /** ETL 已在进入本地写事务前解析目标连接和表。 */
+    Long createForEtlTarget(String requestId, Long datasourceId, DatabaseQueryTableRespDTO table);
 
     /**
      * 更新检查对象。

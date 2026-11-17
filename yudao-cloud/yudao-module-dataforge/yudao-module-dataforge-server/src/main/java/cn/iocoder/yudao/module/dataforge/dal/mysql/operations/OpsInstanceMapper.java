@@ -205,6 +205,10 @@ public interface OpsInstanceMapper extends BaseMapperX<OpsDevelopmentSnapshotDO>
                     + "FROM dh_dataforge_dev_record r LEFT JOIN dh_dataforge_dev_task t ON t.id=r.task_id AND t.deleted=0 WHERE r.deleted=0";
         }
 
+        private static final String CATEGORY_FILTER = "<if test='categoryIds != null'> AND category_id IN "
+                + "<foreach collection='categoryIds' item='category' open='(' separator=',' close=')'>"
+                + "concat(#{categoryOrigin}, ':', #{category})</foreach></if>";
+
         /**
          * 获取SQL的筛选条件。
          *
@@ -217,7 +221,7 @@ public interface OpsInstanceMapper extends BaseMapperX<OpsDevelopmentSnapshotDO>
                     + "<if test='req.taskType != null'> AND task_type=#{req.taskType} </if>"
                     + "<if test='req.startDate != null'> AND start_time &gt;= #{req.startDate} </if>"
                     + "<if test='req.endDate != null'> AND start_time &lt; (#{req.endDate}::date + INTERVAL '1 day') </if>"
-                    + "<if test='categoryIds != null'> AND category_id IN <foreach collection='categoryIds' item='category' open='(' separator=',' close=')'>#{categoryOrigin}||':'||#{category}::text</foreach></if>";
+                    + CATEGORY_FILTER;
         }
 
         /**
@@ -276,7 +280,7 @@ public interface OpsInstanceMapper extends BaseMapperX<OpsDevelopmentSnapshotDO>
                     + "coalesce(bool_or(origin='SOURCE'),false) imported_snapshot FROM (" + projection(
                     (String) args.get("kind"), false) + ") instances WHERE 1=1 "
                     + "<if test='taskType != null'> AND task_type=#{taskType} </if>"
-                    + "<if test='categoryIds != null'> AND category_id IN <foreach collection='categoryIds' item='category' open='(' separator=',' close=')'>#{categoryOrigin}||':'||#{category}::text</foreach></if></script>";
+                    + CATEGORY_FILTER + "</script>";
         }
     }
 }

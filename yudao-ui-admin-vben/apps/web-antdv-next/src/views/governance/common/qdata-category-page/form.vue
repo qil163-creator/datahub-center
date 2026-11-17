@@ -145,16 +145,17 @@ async function save() {
   try {
     await formRef.value?.validate();
     if (version !== requestVersion || !visible.value) return;
-    const payload = props.adapter.toPayload({
+    const payload = {
+      categoryCode: original.value?.categoryCode,
       id: editId.value,
       parentId: model.parentId,
       name: model.name.trim(),
       status: model.status,
       sort: model.sort ?? 0,
       description: model.description,
-    });
-    if (editId.value === undefined) await props.adapter.create(payload as any);
-    else await props.adapter.update(payload as any);
+    };
+    if (editId.value === undefined) await props.adapter.create(payload);
+    else await props.adapter.update(payload);
     if (version !== requestVersion || !visible.value) return;
     message.success(editId.value === undefined ? '新增成功' : '修改成功');
     reset();

@@ -175,7 +175,9 @@ class QualityTaskEvaluationServiceTest {
         ReflectionTestUtils.setField(service, "runtime", runtime); ReflectionTestUtils.setField(service, "registry", new AuditSqlRegistry());
         var api=mock(cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi.class);
         var source=new cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseConnectionRespDTO();source.setId(8L);source.setName("当前源库名称");
-        when(api.getDatabaseList(null)).thenReturn(cn.iocoder.yudao.framework.common.pojo.CommonResult.success(List.of(source)));
+        var assetSource = new cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseConnectionRespDTO();
+        assetSource.setId(3L);
+        when(api.getDatabaseList(null)).thenReturn(cn.iocoder.yudao.framework.common.pojo.CommonResult.success(List.of(source, assetSource)));
         ReflectionTestUtils.setField(service,"databaseApi",api);
         return service;
     }

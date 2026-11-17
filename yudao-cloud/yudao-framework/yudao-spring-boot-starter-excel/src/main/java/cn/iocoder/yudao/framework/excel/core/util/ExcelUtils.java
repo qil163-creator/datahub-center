@@ -37,6 +37,7 @@ public class ExcelUtils {
      */
     public static <T> void write(HttpServletResponse response, String filename, String sheetName,
                                  Class<T> head, List<T> data) throws IOException {
+        prepareDownload(response, filename);
         // 输出 Excel
         FastExcelFactory.write(response.getOutputStream(), head)
                 .autoCloseStream(false) // 不要自动关闭，交给 Servlet 自己处理
@@ -44,9 +45,6 @@ public class ExcelUtils {
                 .registerWriteHandler(new SelectSheetWriteHandler(head)) // 基于固定 sheet 实现下拉框
                 .registerConverter(new LongStringConverter()) // 避免 Long 类型丢失精度
                 .sheet(sheetName).doWrite(data);
-        // 设置 header 和 contentType。写在最后的原因是，避免报错时，响应 contentType 已经被修改了
-        response.addHeader("Content-Disposition", "attachment;filename=" + HttpUtils.encodeUtf8(filename));
-        response.setContentType("application/vnd.ms-excel;charset=UTF-8");
     }
 
     /**
@@ -61,15 +59,19 @@ public class ExcelUtils {
      */
     public static void write(HttpServletResponse response, String filename, String sheetName,
                              List<List<String>> head, List<List<Object>> data) throws IOException {
+        prepareDownload(response, filename);
         // 输出 Excel
         FastExcelFactory.write(response.getOutputStream())
                 .autoCloseStream(false) // 不要自动关闭，交给 Servlet 自己处理
                 .registerWriteHandler(new ColumnWidthMatchStyleStrategy()) // 基于 column 长度，自动适配。最大 255 宽度
                 .registerConverter(new LongStringConverter()) // 避免 Long 类型丢失精度
                 .head(head).sheet(sheetName).doWrite(data);
-        // 设置 header 和 contentType。写在最后的原因是，避免报错时，响应 contentType 已经被修改了
-        response.addHeader("Content-Disposition", "attachment;filename=" + HttpUtils.encodeUtf8(filename));
-        response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+    }
+
+    private static void prepareDownload(HttpServletResponse response, String filename) {
+        // 写入工作簿时可能提交响应，必须提前发送实际 XLSX 格式及文件名。
+        response.setHeader("Content-Disposition", "attachment;filename=" + HttpUtils.encodeUtf8(filename));
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
     public static <T> List<T> read(MultipartFile file, Class<T> head) throws IOException {

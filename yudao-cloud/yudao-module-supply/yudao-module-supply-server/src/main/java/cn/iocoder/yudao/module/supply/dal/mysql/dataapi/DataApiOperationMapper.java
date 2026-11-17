@@ -9,6 +9,9 @@ import java.util.List;
 @Mapper
 public interface DataApiOperationMapper extends BaseMapperX<DataApiOperationDO> {
 
+    @Select("SELECT * FROM dh_supply_api_operation WHERE id=#{id} AND state='RUNNING' AND lease_until>CURRENT_TIMESTAMP AND deleted=0")
+    DataApiOperationDO activeClaim(@Param("id") long id);
+
     /**
      * 新增数据 API操作的认领记录。
      *

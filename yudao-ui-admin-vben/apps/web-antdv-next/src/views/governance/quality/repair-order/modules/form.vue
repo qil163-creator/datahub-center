@@ -55,7 +55,7 @@ function close() {
   opened.value = false;
   checkObjects.value = [];
   previewSql.value = '';
-  void modalApi.close();
+  return modalApi.close();
 }
 
 const rules = {
@@ -86,13 +86,15 @@ const CONFIG_PLACEHOLDERS: Record<string, string> = {
 };
 
 async function open(prefill?: Partial<QualityRepairOrderApi.RepairOrder>) {
-  close();
+  const closing = close();
+  const current = opening.begin();
+  await closing;
+  if (!current()) return;
   clearReactiveObject(formData as Record<string, unknown>);
   formData.orderTitle = `修复 - ${new Date().toISOString().slice(0, 10)}`;
   Object.assign(formData, prefill);
   previewSql.value = '';
   opened.value = true;
-  const current = opening.begin();
   modalApi.unlock();
   modalApi.open();
   const objects = await getCheckObjectSimpleList();

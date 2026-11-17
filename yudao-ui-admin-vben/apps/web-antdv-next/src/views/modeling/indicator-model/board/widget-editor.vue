@@ -3,6 +3,8 @@ import type { IndicatorModelApi } from '#/api/modeling/indicator-model';
 
 import { computed, onMounted, ref, watch } from 'vue';
 
+import { cloneDeep } from '@vben/utils';
+
 import {
   Input,
   InputNumber,
@@ -99,7 +101,7 @@ function save() {
 
 watch(open, (visible) => {
   if (!visible) return;
-  draft.value = props.widget ? structuredClone(props.widget) : blank();
+  draft.value = props.widget ? cloneDeep(props.widget) : blank();
   draft.value.query.dimensions ??= [];
   const timeRange = draft.value.query.timeRange;
   range.value = timeRange ? [timeRange.start, timeRange.end] : undefined;

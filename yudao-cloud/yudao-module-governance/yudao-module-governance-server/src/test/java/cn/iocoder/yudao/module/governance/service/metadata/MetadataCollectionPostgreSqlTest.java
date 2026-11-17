@@ -75,7 +75,6 @@ class MetadataCollectionPostgreSqlTest {
         var options=new MetadataSourceOptionsDTO(); options.setConnections(List.of()); options.setSystems(List.of());
         when(provider.options(any())).thenReturn(CommonResult.success(options));
         ReflectionTestUtils.setField(files,"mapper",fileMapper); ReflectionTestUtils.setField(files,"sources",provider);
-        ReflectionTestUtils.setField(files,"dbs",mock(MetaDbMapper.class));
         ReflectionTestUtils.setField(files,"instances",instances);
         ReflectionTestUtils.setField(files,"users",mock(AdminUserApi.class)); ReflectionTestUtils.setField(files,"transactions",tx);
     }

@@ -20,6 +20,7 @@ import cn.iocoder.yudao.framework.dbswitch.core.service.impl.MetaDataByJdbcServi
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
+import cn.iocoder.yudao.module.dataforge.api.database.dto.MetadataTreeSourceRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewReqDTO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.*;
@@ -713,6 +714,11 @@ public class DatabaseServiceImpl implements DatabaseService {
             }
             return vo;
         });
+    }
+
+    @Override
+    public List<MetadataTreeSourceRespDTO> getMetadataTreeSources(List<Long> ids) {
+        return databaseMapper.selectMetadataTreeSources(ids);
     }
 
     /**

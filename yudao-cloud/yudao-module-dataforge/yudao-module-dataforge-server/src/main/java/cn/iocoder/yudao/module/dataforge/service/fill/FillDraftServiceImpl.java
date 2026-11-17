@@ -122,6 +122,17 @@ public class FillDraftServiceImpl implements FillDraftService {
         Long userId = SecurityFrameworkUtils.getLoginUserId();
         FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
         workItemService.checkViewPermission(item, userId);
+        return snapshot(item, isEditable(item, userId));
+    }
+
+    @Override
+    public FillDraftSnapshotRespVO getDeptSnapshot(Long workItemId) {
+        FillWorkItemDO item = workItemService.getWorkItemValidated(workItemId);
+        workItemService.checkDeptViewPermission(item.getReportingOrgId(), SecurityFrameworkUtils.getLoginUserId());
+        return snapshot(item, false);
+    }
+
+    private FillDraftSnapshotRespVO snapshot(FillWorkItemDO item, boolean editable) {
         FillTableVersionDO version = tableVersionService.getTableVersion(item.getTableVersionId());
         FillTaskDO task = taskMapper.selectById(item.getTaskId());
 
@@ -140,8 +151,8 @@ public class FillDraftServiceImpl implements FillDraftService {
         respVO.setFormulaSchema(version.getFormulaSchema());
         respVO.setLayoutSnapshot(version.getLayoutSnapshot());
         respVO.setValidationSchema(version.getValidationSchema());
-        respVO.setEditable(isEditable(item, userId));
-        List<FillDraftRowDO> draftRows = draftRowMapper.selectListByWorkItemId(workItemId);
+        respVO.setEditable(editable);
+        List<FillDraftRowDO> draftRows = draftRowMapper.selectListByWorkItemId(item.getId());
         respVO.setRows(convertList(draftRows, row -> {
             FillDraftSnapshotRespVO.Row rowVO = new FillDraftSnapshotRespVO.Row();
             rowVO.setRowId(row.getRowId());
