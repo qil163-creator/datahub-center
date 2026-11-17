@@ -66,7 +66,7 @@ public class LocalFileClient extends AbstractFileClient<LocalFileClientConfig> {
 
     @Override
     public byte[] getContent(String path, long maxBytes) throws java.io.IOException {
-        Path location = Path.of(getFilePath(path));
+        Path location = FileUtil.file(getFilePath(path)).toPath();
         if (!java.nio.file.Files.exists(location)) return null;
         try (var input = java.nio.file.Files.newInputStream(location)) {
             return cn.iocoder.yudao.module.infra.framework.file.core.utils.BoundedFileContent.read(input, maxBytes);

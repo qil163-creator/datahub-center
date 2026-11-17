@@ -22,6 +22,24 @@ class ManagedFileBoundedContentTest {
         assertNull(client.getContent("managed/missing.csv", 100));
     }
 
+    @Test
+    void boundedReadUsesTheSamePathAsUploadForLegacyBackslashConfiguration() throws Exception {
+        var config = new LocalFileClientConfig();
+        config.setBasePath(directory.resolve("legacy\\storage").toString());
+        config.setDomain("http://example.invalid");
+        var client = new LocalFileClient(1L, config);
+        client.init();
+        String path = "managed/object/交付文件.txt";
+        byte[] content = "交付内容".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        client.upload(content, path, "text/plain");
+        assertArrayEquals(content, client.getContent(path));
+        assertArrayEquals(content, client.getContent(path, content.length));
+        assertThrows(IllegalArgumentException.class, () -> client.getContent(path, content.length - 1));
+        client.delete(path);
+        assertNull(client.getContent(path, content.length));
+    }
+
     @Test void unboundedSourceCannotAllocatePastBudget() {
         var consumed = new AtomicLong();
         var source = new InputStream() {
