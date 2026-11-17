@@ -104,7 +104,8 @@ final class GreenplumCopyAdmission {
      * 返回会话。
      */
     private static String session(Connection connection) throws SQLException {
-        PostgresCopyDriverProfile.verify(connection);
+        // Greenplum 7.1.0 的认证仅覆盖这个驱动，PostgreSQL 的验证结果不能外推。
+        PostgresCopyDriverProfile.verify(connection, Set.of("42.7.13"));
         PostgresCopySession.prepare(connection); // 解析全部协议方法，但不启动 COPY。
         try (var query = connection.createStatement()) {
             query.setQueryTimeout(5);

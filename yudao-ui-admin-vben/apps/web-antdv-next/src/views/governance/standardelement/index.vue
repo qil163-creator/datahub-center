@@ -61,8 +61,8 @@ const categoryTree = ref<InstanceType<typeof CategoryTree>>();
 const collapsed = ref(false);
 const loading = ref(false);
 const failed = ref(false);
-const changing = ref<number>();
-const selected = ref<number[]>([]);
+const changing = ref<StandardId>();
+const selected = ref<StandardId[]>([]);
 const active = ref(true);
 const applied = reactive({
   name: '',

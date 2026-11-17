@@ -59,7 +59,7 @@ vi.mock('#/adapter/business-vxe-table', () => ({
       props: { tableData: { type: Array, default: () => [] } },
       setup: (props, { slots }) => () =>
         h('div', { 'data-testid': 'asset-grid' }, [
-          props.tableData.length
+          props.tableData.length > 0
             ? props.tableData.flatMap((row) =>
                 options.gridOptions.columns.map((column: { field: string }) =>
                   h('div', { 'data-field': column.field }, slots.body?.({ column, row })),
@@ -383,8 +383,7 @@ describe('我的资产工作台', () => {
     const actionCell = host.querySelector('[data-field="actions"]')!;
     expect(actionCell.textContent).toContain('数据预览');
     const preview = [...actionCell.querySelectorAll('div')]
-      .filter((element) => element.textContent?.trim() === '数据预览')
-      .at(-1);
+      .findLast((element) => element.textContent?.trim() === '数据预览');
     preview?.click();
     expect(mock.modalData).toHaveBeenCalledWith({
       requestId: '9223372036854775807',

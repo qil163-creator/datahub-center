@@ -316,11 +316,9 @@ onBeforeUnmount(() => {
       :message="`已停止供数，撤权待确认 ${asset.pendingGrantRevocations ?? 0} 笔。${asset.stopSupplyReason ?? ''}`"
     />
     <div class="flex justify-between">
-      <span
-        >当前发布版本编号：{{
+      <span>当前发布版本编号：{{
           asset.publishedCatalogVersionId ?? '尚无完整版本'
-        }}</span
-      >
+        }}</span>
     </div>
     <div>
       <div class="mb-2 font-medium">技术资源挂接</div>

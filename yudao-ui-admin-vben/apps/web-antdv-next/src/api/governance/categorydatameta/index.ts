@@ -3,8 +3,8 @@ import { requestClient } from '#/api/request';
 export namespace FoundationCategoryDatametaApi {
   /** 标准数据元类目管理信息 */
   export interface CategoryDatameta {
-    id: number; // 主键
-    parentId?: number; // 父级ID
+    id: number | string; // 主键
+    parentId?: number | string; // 父级ID
     categoryName?: string; // 类目名称
     categoryCode?: string; // 层级编码
     sort?: number; // 排序
@@ -44,7 +44,7 @@ export function updateCategoryDatameta(
 }
 
 /** 删除标准数据元类目管理 */
-export function deleteCategoryDatameta(id: number) {
+export function deleteCategoryDatameta(id: number | string) {
   return requestClient.delete(`/governance/category-datameta/delete?id=${id}`);
 }
 

@@ -18,7 +18,7 @@ const visible = ref(false);
 const loading = ref(false);
 const error = ref(false);
 const rows = ref<GovernanceStandardElementApi.StandardElement[]>([]);
-const selectedId = ref<number>();
+const selectedId = ref<GovernanceStandardElementApi.StandardElement['id']>();
 const name = ref('');
 const pagination = reactive({ pageNo: 1, pageSize: 10, total: 0 });
 const request = useObjectRequest(() => visible.value, reset);

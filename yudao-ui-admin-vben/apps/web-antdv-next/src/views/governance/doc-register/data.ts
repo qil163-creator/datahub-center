@@ -208,11 +208,4 @@ export function useGridFormSchema(): VbenFormSchema[] {
   ];
 }
 
-/** 路由编号必须保持无损十进制字符串。 */
-export function parseDocId(value: unknown): string | undefined {
-  return typeof value === 'string' &&
-    /^[1-9]\d{0,18}$/.test(value) &&
-    BigInt(value) <= 9_223_372_036_854_775_807n
-    ? value
-    : undefined;
-}
+export { parseLongRouteId as parseDocId } from '#/utils/resource-id';

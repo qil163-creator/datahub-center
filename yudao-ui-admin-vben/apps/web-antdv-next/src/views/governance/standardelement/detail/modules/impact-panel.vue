@@ -6,7 +6,7 @@ import { Alert, Table } from 'antdv-next';
 import { getStandardElementImpact } from '#/api/governance/standardelement';
 
 const props = defineProps<{
-  elementId?: number;
+  elementId?: number | string;
 }>();
 
 const loading = ref(false);

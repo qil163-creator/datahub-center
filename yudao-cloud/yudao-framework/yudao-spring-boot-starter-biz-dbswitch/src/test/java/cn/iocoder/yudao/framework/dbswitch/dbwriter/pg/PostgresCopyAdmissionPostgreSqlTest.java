@@ -169,7 +169,7 @@ class PostgresCopyAdmissionPostgreSqlTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"product", "driver-name", "driver-version", "jdbc-version", "server-version", "encoding", "datetimes", "private-error"})
+    @ValueSource(strings = {"product", "driver-name", "driver-version", "other-qualified-driver", "jdbc-version", "server-version", "encoding", "datetimes", "private-error"})
     void unknownOrInconsistentRuntimeCannotOpenCopyOrChangeTransaction(String fault) throws Exception {
         disguise = fault;
         var writer = new PostgresCopyWriterImpl(facade());
@@ -263,7 +263,7 @@ class PostgresCopyAdmissionPostgreSqlTest {
             target.setTargetDrop(mode.equals("drop")); target.setTargetTruncateData(mode.equals("truncate"));
             try (var connection = runtime.openConnection(ProductTypeEnum.POSTGRESQL, null, source.getUrl(), source.getUsername(), "");
                  var query = connection.createStatement(); var rows = query.executeQuery("SELECT count(*) FROM " + schema + ".source")) {
-                assertEquals("42.7.13", connection.getMetaData().getDriverVersion());
+                assertEquals("42.7.14", connection.getMetaData().getDriverVersion());
                 assertTrue(rows.next()); assertEquals(1, rows.getInt(1));
             }
             var service = new MigrationService(request, ignored -> { }, null, runtime);
@@ -387,7 +387,11 @@ class PostgresCopyAdmissionPostgreSqlTest {
                                 (p, m, a) -> switch (m.getName()) {
                                     case "getDatabaseProductName" -> disguise.equals("product") ? "Greenplum" : metadata.getDatabaseProductName();
                                     case "getDriverName" -> disguise.equals("driver-name") ? "Unknown Driver" : metadata.getDriverName();
-                                    case "getDriverVersion" -> disguise.equals("driver-version") ? "42.7.99" : metadata.getDriverVersion();
+                                    case "getDriverVersion" -> switch (disguise) {
+                                        case "driver-version" -> "42.7.99";
+                                        case "other-qualified-driver" -> "42.7.13";
+                                        default -> metadata.getDriverVersion();
+                                    };
                                     case "getDatabaseMinorVersion" -> disguise.equals("jdbc-version") ? 99 : metadata.getDatabaseMinorVersion();
                                     default -> invoke(metadata, m, a);
                                 });

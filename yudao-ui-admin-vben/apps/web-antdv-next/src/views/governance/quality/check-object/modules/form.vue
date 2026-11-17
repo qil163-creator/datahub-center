@@ -61,17 +61,17 @@ async function open(id?: QualityCheckObjectApi.Id) {
   try {
     const [sources, record] = await Promise.all([
       getDatabaseSimpleList(),
-      id == null ? undefined : getCheckObject(id),
+      id === undefined || id === null ? undefined : getCheckObject(id),
     ]);
     if (!current()) return;
-    if (id != null && !record) {
+    if (id !== undefined && id !== null && !record) {
       loadFailed.value = true;
       return;
     }
     databases.value = sources;
     Object.assign(formData, record);
     ready.value = true;
-    if (formData.datasourceConnId != null) {
+    if (formData.datasourceConnId !== undefined && formData.datasourceConnId !== null) {
       void loadTables(formData.datasourceConnId);
     }
   } catch {
@@ -86,8 +86,8 @@ async function open(id?: QualityCheckObjectApi.Id) {
 async function loadTables(databaseId?: FoundationDatabaseApi.Id) {
   const current = tableRequest.begin();
   tables.value = [];
-  tablesLoading.value = databaseId != null;
-  if (databaseId == null) return;
+  tablesLoading.value = databaseId !== undefined && databaseId !== null;
+  if (databaseId === undefined || databaseId === null) return;
   try {
     const options = await getDatabaseTableList(databaseId);
     if (current()) tables.value = options;
@@ -189,7 +189,7 @@ defineExpose({ open });
       <FormItem label="选择表" name="tableName">
         <Select
           v-model:value="formData.tableName"
-          :disabled="tablesLoading || formData.datasourceConnId == null"
+          :disabled="tablesLoading || formData.datasourceConnId === undefined || formData.datasourceConnId === null"
           :loading="tablesLoading"
           :options="
             tables.map((table) => ({

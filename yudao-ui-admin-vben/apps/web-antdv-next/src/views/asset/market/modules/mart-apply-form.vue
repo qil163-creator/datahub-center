@@ -139,8 +139,8 @@ async function submit() {
     (!start.isValid() || !end.isValid() || !end.isAfter(start))
   )
     return;
-  const downloads = model.assetType === 3 ? model.downloads : undefined;
-  if (downloads != null && (!Number.isInteger(downloads) || downloads < 1 || downloads > 2147483647)) {
+  const downloads = model.assetType === 3 ? (model.downloads ?? undefined) : undefined;
+  if (downloads !== undefined && (!Number.isInteger(downloads) || downloads < 1 || downloads > 2_147_483_647)) {
     message.warning('请输入 1 至 2147483647 之间的整数下载次数');
     return;
   }
@@ -153,7 +153,7 @@ async function submit() {
       purpose: model.reason.trim(),
       applyStartTime: start?.valueOf(),
       applyEndTime: end?.valueOf(),
-      applyUseType: downloads == null ? 0 : 1,
+      applyUseType: downloads === undefined ? 0 : 1,
       applyUseTimes: downloads ?? 0,
       submit: true,
     });

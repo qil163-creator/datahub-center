@@ -38,11 +38,11 @@ const columnGraph = ref<GovernanceLineageApi.ColumnGraph>();
 const selectedKey = ref<string>();
 const selectedEdgeKey = ref<string>();
 const loading = ref(false);
-const error = ref('');
+const loadError = ref('');
 
 let graphController: AbortController | undefined;
 let columnsController: AbortController | undefined;
-let tableQuery: { depth: number; direction: GovernanceLineageApi.Direction } | undefined;
+let tableQuery: undefined | { depth: number; direction: GovernanceLineageApi.Direction };
 
 const depthOptions = [1, 2, 3, 4, 5].map((value) => ({ label: `${value} 层`, value }));
 const directionOptions = [
@@ -101,7 +101,7 @@ async function loadTable(nodeId: GovernanceLineageApi.Id, focusId?: GovernanceLi
   const controller = startGraphRequest();
   const query = { direction: direction.value, depth: depth.value };
   loading.value = true;
-  error.value = '';
+  loadError.value = '';
   try {
     const graph = await getLineageGraph(
       { nodeId, ...query },
@@ -113,9 +113,9 @@ async function loadTable(nodeId: GovernanceLineageApi.Id, focusId?: GovernanceLi
     const focusNode = graph.nodes.find((node) => String(node.id) === String(focusId));
     selectedKey.value = String(focusNode?.id ?? graph.rootNodeId);
     selectedEdgeKey.value = undefined;
-  } catch (reason) {
-    if (controller === graphController && !isAbort(reason)) {
-      error.value = '血缘图加载失败，请稍后重试';
+  } catch (error) {
+    if (controller === graphController && !isAbort(error)) {
+      loadError.value = '血缘图加载失败，请稍后重试';
       tableGraph.value = undefined;
     }
   } finally {
@@ -126,7 +126,7 @@ async function loadTable(nodeId: GovernanceLineageApi.Id, focusId?: GovernanceLi
 async function loadColumn(nodeId: GovernanceLineageApi.Id, name: string) {
   const controller = startGraphRequest();
   loading.value = true;
-  error.value = '';
+  loadError.value = '';
   try {
     const graph = await getLineageColumnGraph(
       { nodeId, column: name, direction: direction.value, depth: depth.value },
@@ -136,9 +136,9 @@ async function loadColumn(nodeId: GovernanceLineageApi.Id, name: string) {
     columnGraph.value = graph;
     selectedKey.value = `${String(graph.rootNodeId)}:${graph.rootColumn}`;
     selectedEdgeKey.value = undefined;
-  } catch (reason) {
-    if (controller === graphController && !isAbort(reason)) {
-      error.value = '字段血缘加载失败，请稍后重试';
+  } catch (error) {
+    if (controller === graphController && !isAbort(error)) {
+      loadError.value = '字段血缘加载失败，请稍后重试';
       columnGraph.value = undefined;
     }
   } finally {
@@ -153,8 +153,8 @@ async function loadColumns(nodeId: GovernanceLineageApi.Id) {
   try {
     const list = await getLineageNodeColumns(nodeId, controller.signal);
     if (controller === columnsController) columns.value = list ?? [];
-  } catch (reason) {
-    if (controller === columnsController && !isAbort(reason)) columns.value = [];
+  } catch (error) {
+    if (controller === columnsController && !isAbort(error)) columns.value = [];
   }
 }
 
@@ -168,8 +168,8 @@ async function expand(nodeId: GovernanceLineageApi.Id, towards: 'DOWNSTREAM' | '
     const extra = await getLineageGraph({ nodeId, direction: towards, depth: 1 }, controller.signal);
     if (controller !== graphController) return;
     tableGraph.value = mergeGraph(base, extra);
-  } catch (reason) {
-    if (controller === graphController && !isAbort(reason)) error.value = '展开失败，请稍后重试';
+  } catch (error) {
+    if (controller === graphController && !isAbort(error)) loadError.value = '展开失败，请稍后重试';
   } finally {
     if (controller === graphController) loading.value = false;
   }
@@ -205,7 +205,7 @@ function backToTable() {
   graphController?.abort();
   graphController = undefined;
   loading.value = false;
-  error.value = '';
+  loadError.value = '';
   mode.value = 'table';
   column.value = undefined;
   columnNodeId.value = undefined;
@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
       class="lineage-explorer__alert"
       message="血缘节点较多，结果已截断。可减少层数或只看上游/下游。"
     />
-    <Alert v-if="error" type="error" show-icon class="lineage-explorer__alert" :message="error" />
+    <Alert v-if="loadError" type="error" show-icon class="lineage-explorer__alert" :message="loadError" />
     <div class="lineage-explorer__body">
       <Spin :spinning="loading" wrapper-class-name="lineage-explorer__graph">
         <LineageGraph
@@ -363,8 +363,8 @@ onBeforeUnmount(() => {
 
 .lineage-explorer__legend,
 .lineage-explorer__muted {
-  color: #86909c;
   font-size: 12px;
+  color: #86909c;
 }
 
 .lineage-explorer__body {
@@ -384,10 +384,10 @@ onBeforeUnmount(() => {
 }
 
 .lineage-explorer__panel {
-  width: 280px;
   flex-shrink: 0;
-  overflow: auto;
+  width: 280px;
   padding: 8px 12px;
+  overflow: auto;
   border: 1px solid #eceef2;
   border-radius: 6px;
 }
@@ -405,8 +405,8 @@ onBeforeUnmount(() => {
 
 .lineage-explorer__list,
 .lineage-explorer__columns {
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 

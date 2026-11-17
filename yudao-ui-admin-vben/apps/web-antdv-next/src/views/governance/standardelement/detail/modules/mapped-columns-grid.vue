@@ -17,7 +17,7 @@ import {
 import { TableAction } from '#/components/table-action';
 
 const props = defineProps<{
-  elementId?: number;
+  elementId?: number | string;
 }>();
 
 const MAPPING_STATUS_LABELS: Record<string, string> = {

@@ -25,9 +25,7 @@ function runGit(args, allowFailure = false) {
       `git ${args.join(' ')} 执行失败：${result.stderr || result.stdout}`,
     );
   }
-  return result.status === 0
-    ? result.stdout.trim().split(/\r?\n/u).filter(Boolean)
-    : [];
+  return result.status === 0 ? result.stdout.split('\0').filter(Boolean) : [];
 }
 
 function normalizePath(file) {
@@ -41,32 +39,26 @@ function collectChangedFiles() {
     return explicitFiles.map((file) => normalizePath(file));
   }
 
+  // 前端可位于合并仓库的子目录，Git 返回的路径必须相对于当前前端目录。
+  const diffArgs = ['diff', '--relative', '--name-only', '--diff-filter=ACMR', '-z'];
   const baseRef = process.env.QUALITY_BASE_REF;
   if (baseRef) {
     if (!/^[./\w-]+$/u.test(baseRef)) {
       throw new Error('QUALITY_BASE_REF 包含不允许的字符。');
     }
-    return runGit([
-      'diff',
-      '--name-only',
-      '--diff-filter=ACMR',
-      `${baseRef}...HEAD`,
-    ]);
+    return runGit([...diffArgs, `${baseRef}...HEAD`, '--', '.']);
   }
 
   const workingFiles = new Set([
-    ...runGit(['diff', '--name-only', '--diff-filter=ACMR']),
-    ...runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMR']),
-    ...runGit(['ls-files', '--others', '--exclude-standard']),
+    ...runGit([...diffArgs, '--', '.']),
+    ...runGit([...diffArgs, '--cached', '--', '.']),
+    ...runGit(['ls-files', '--others', '--exclude-standard', '-z', '--', '.']),
   ]);
   if (workingFiles.size > 0) {
     return [...workingFiles];
   }
 
-  return runGit(
-    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD^', 'HEAD'],
-    true,
-  );
+  return runGit([...diffArgs, 'HEAD^', 'HEAD', '--', '.'], true);
 }
 
 function runPnpm(command, files) {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { GovernanceStandardElementApi } from '#/api/governance/standardelement';
 
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page, useVbenModal } from '@vben/common-ui';
@@ -17,6 +17,7 @@ import { getStandardElement } from '#/api/governance/standardelement';
 import { useDescription } from '#/components/description';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
+import { parseLongRouteId } from '#/utils/resource-id';
 
 import AssociationTable from '../../standardcommon/association-table.vue';
 import ModelAssociations from '../../standardcommon/model-associations.vue';
@@ -60,7 +61,7 @@ const tabs = useTabs();
 const access = useAccessStore();
 
 const loading = ref(false);
-const elementId = ref(0);
+const elementId = computed(() => parseLongRouteId(route.params.id));
 const element = ref<ElementDetailView>({} as ElementDetailView);
 const activeTab = ref('models');
 const detailRequest = useObjectRequest(
@@ -95,8 +96,9 @@ const [RelateModal, relateModalApi] = useVbenModal({
 });
 
 async function loadDetail() {
-  const current = detailRequest.begin();
   const id = elementId.value;
+  if (!id) return;
+  const current = detailRequest.begin();
   loading.value = true;
   try {
     await loadElementNameCaches();
@@ -164,28 +166,13 @@ function handleRelate() {
 watch(
   () => [route.params.id, access.accessToken, access.refreshToken],
   () => {
-    elementId.value = Number(route.params.id);
-    if (!Number.isSafeInteger(elementId.value) || elementId.value <= 0) {
+    if (!elementId.value) {
       message.warning('参数错误，标准数据元不能为空');
       handleBack();
       return;
     }
-    const requestedTab = route.query.tab;
-    activeTab.value =
-      typeof requestedTab === 'string' &&
-      [
-        'assets',
-        'audit',
-        'clean',
-        'codeset',
-        'detail',
-        'impact',
-        'mapping',
-        'models',
-        'relation',
-      ].includes(requestedTab)
-        ? (requestedTab === 'relation' ? 'assets' : requestedTab)
-        : 'models';
+    const requestedTab = route.query.tab === 'relation' ? 'assets' : route.query.tab;
+    activeTab.value = tabItems.find((tab) => tab.key === requestedTab)?.key ?? 'models';
     void loadDetail();
   },
   { immediate: true },
@@ -243,6 +230,7 @@ watch(
       </section>
     </Spin>
     <section
+      v-if="elementId"
       class="standard-detail-body"
       :class="{
         'standard-element-body--grid': activeTab === 'codeset',

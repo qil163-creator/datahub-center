@@ -83,7 +83,7 @@ export function filterCategoryTree(
       const children = filter(item.children ?? []);
       const matchesName = !needle || item.name.toLowerCase().includes(needle);
       const matchesParent = parent === undefined || String(item.parentId ?? 0) === parent;
-      if ((matchesName && matchesParent) || children.length) {
+      if ((matchesName && matchesParent) || children.length > 0) {
         result.push({ ...item, children });
       }
     }

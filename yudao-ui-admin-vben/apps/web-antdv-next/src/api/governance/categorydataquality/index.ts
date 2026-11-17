@@ -3,8 +3,8 @@ import { requestClient } from '#/api/request';
 export namespace FoundationCategoryDataQualityApi {
   /** 数据质量类目管理信息 */
   export interface CategoryDataQuality {
-    id: number; // 主键
-    parentId?: number; // 父级ID
+    id: number | string; // 主键
+    parentId?: number | string; // 父级ID
     categoryName?: string; // 类目名称
     categoryCode?: string; // 层级编码
     sort?: number; // 排序
@@ -43,7 +43,7 @@ export function updateCategoryDataQuality(
 }
 
 /** 删除数据质量类目管理 */
-export function deleteCategoryDataQuality(id: number) {
+export function deleteCategoryDataQuality(id: number | string) {
   return requestClient.delete(
     `/governance/category-data-quality/delete?id=${id}`,
   );

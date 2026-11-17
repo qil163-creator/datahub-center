@@ -196,7 +196,7 @@ export namespace DataAssetApi {
     autoIncrementFlag?: number;
     businessDefinition?: string;
     measuringUnit?: string;
-    standardElementId?: number;
+    standardElementId?: Id;
     standardElementCode?: string;
     standardElementName?: string;
     revision?: number;
@@ -216,7 +216,7 @@ export namespace DataAssetApi {
     businessName?: string;
     businessDefinition?: string;
     measuringUnit?: string;
-    standardElementId?: number;
+    standardElementId?: Id;
     safetyLevelId?: Id;
     sensitiveFlag?: number;
     remark?: string;

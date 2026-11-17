@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { createLatestWins, parseResourceId, resourceIdKey } from './resource-id';
+import {
+  createLatestWins,
+  parseLongRouteId,
+  parseResourceId,
+  resourceIdKey,
+} from './resource-id';
 
 describe('parseResourceId', () => {
   it('keeps large decimal IDs as strings', () => {
@@ -12,6 +17,21 @@ describe('parseResourceId', () => {
     expect(parseResourceId(Number.MAX_SAFE_INTEGER + 1)).toBeUndefined();
     expect(parseResourceId('0')).toBeUndefined();
     expect(parseResourceId(['1'])).toBeUndefined();
+  });
+});
+
+describe('parseLongRouteId', () => {
+  it.each(['26', '9007199254740993', '9223372036854775807'])(
+    'keeps the exact route parameter %s',
+    (id) => {
+      expect(parseLongRouteId(id)).toBe(id);
+    },
+  );
+
+  it('rejects malformed, non-scalar and out-of-range route parameters', () => {
+    for (const id of ['0', '-1', '1e3', '9223372036854775808', ['12']]) {
+      expect(parseLongRouteId(id)).toBeUndefined();
+    }
   });
 });
 

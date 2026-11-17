@@ -96,8 +96,8 @@ describe('本人申请记录', () => {
     mock.detail.mockResolvedValueOnce({ id: row.id, status, revision: 5 });
     state.openDetail(row); await flush(); mock.open.mockClear();
     state.editApplication();
-    if (editable) expect(mock.open).toHaveBeenCalledWith(expect.objectContaining({ id: row.id, revision: 5, status }));
-    else expect(mock.open).not.toHaveBeenCalled();
+    const expected = expect.objectContaining({ id: row.id, revision: 5, status });
+    expect(mock.open.mock.calls).toEqual(editable ? [[expected]] : []);
   });
   it('详情使用无损申请编号且只接受匹配的响应', async () => {
     mount(); await flush(); state.openDetail(state.rows[0]!); await flush();

@@ -8,6 +8,16 @@ export function parseResourceId(value: unknown): string | undefined {
     : undefined;
 }
 
+/** 校验 Java Long 路由编号，保留完整的十进制字符串。 */
+export function parseLongRouteId(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !/^[1-9]\d{0,18}$/.test(value)) {
+    return undefined;
+  }
+  return value.length === 19 && value > '9223372036854775807'
+    ? undefined
+    : value;
+}
+
 export function resourceIdKey(value: unknown): string {
   return String(value ?? '');
 }
@@ -15,7 +25,7 @@ export function resourceIdKey(value: unknown): string {
 export function sameResourceId(left: unknown, right: unknown): boolean {
   const a = parseResourceId(left);
   const b = parseResourceId(right);
-  return a != null && a === b;
+  return a !== undefined && a === b;
 }
 
 /** 详情/预览/评论等并发请求：只有最新一次可以写入状态。 */

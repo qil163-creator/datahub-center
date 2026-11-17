@@ -479,15 +479,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
           '未提供质量结果'
         }}
       </Tag>
-      <span v-if="logRecord?.qualityInstanceId"
-        >质量实例 #{{ logRecord.qualityInstanceId }}</span
-      >
+      <span v-if="logRecord?.qualityInstanceId">质量实例 #{{ logRecord.qualityInstanceId }}</span>
       <div class="mb-2 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
         <span>开始时间：{{ formatDateTime(logRecord?.startTime) || '-' }}</span>
         <span>结束时间：{{ formatDateTime(logRecord?.endTime) || '-' }}</span>
-        <span
-          >创建时间：{{ formatDateTime(logRecord?.createTime) || '-' }}</span
-        >
+        <span>创建时间：{{ formatDateTime(logRecord?.createTime) || '-' }}</span>
         <span v-if="nodeSummaryText" class="etl-record__node-summary">
           {{ nodeSummaryText }}
         </span>

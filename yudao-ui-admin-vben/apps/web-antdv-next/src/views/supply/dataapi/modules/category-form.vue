@@ -31,7 +31,7 @@ const ready = ref(false);
 const loads = createLatestWins();
 
 const getTitle = computed(() =>
-  editId.value == null ? '新建服务类目' : '修改服务类目',
+  editId.value === undefined ? '新建服务类目' : '修改服务类目',
 );
 
 /** 新增/修改的表单 */
@@ -141,7 +141,7 @@ const [Modal, modalApi] = useVbenModal({
     const data =
       (await formApi.getValues()) as SupplyApiCategoryApi.ApiCategory;
     try {
-      await (editId.value == null
+      await (editId.value === undefined
         ? createApiCategory(data)
         : updateApiCategory({ ...data, id: editId.value }));
       await modalApi.close();
@@ -161,14 +161,15 @@ const [Modal, modalApi] = useVbenModal({
       return;
     }
     const data = modalApi.getData() as SupplyApiCategoryApi.ApiCategory;
-    editId.value = data?.id;
+    const id = data?.id ?? undefined;
+    editId.value = id;
     modalApi.lock();
     try {
       await formApi.resetForm();
       if (!load.isCurrent()) return;
-      const values = data?.id == null
+      const values = id === undefined
         ? { parentId: data?.parentId ?? 0 }
-        : await getApiCategory(data.id);
+        : await getApiCategory(id);
       if (!load.isCurrent()) return;
       await formApi.setValues(values);
       if (!load.isCurrent()) return;

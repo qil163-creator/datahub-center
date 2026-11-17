@@ -135,7 +135,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
           const list = await getCategoryDataQualityList(formValues);
           return list.map((item) => ({
             ...item,
-            parentId: Number(item.parentId ?? 0),
+            parentId: item.parentId ?? 0,
           }));
         },
       },

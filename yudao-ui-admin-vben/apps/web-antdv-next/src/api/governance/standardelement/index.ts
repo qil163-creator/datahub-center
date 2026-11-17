@@ -5,7 +5,7 @@ import { requestClient } from '#/api/request';
 export namespace GovernanceStandardElementApi {
   /** 数据标准--标准数据元信息 */
   export interface StandardElement {
-    id: number; // 主键
+    id: number | string; // 主键
     code: string; // 数据元编码
     name: string; // 中文名称
     engName: string; // 英文名称
@@ -55,13 +55,13 @@ export namespace GovernanceStandardElementApi {
   export interface MappedColumn {
     mappingId?: number | string; // 落标映射编号，后端 Long 可能序列化为字符串
     mappingStatus?: string; // CONFIRMED/PROPOSED/REVOKED/STALE
-    columnId: number; // 元数据字段编号
+    columnId: number | string; // 元数据字段编号
     columnName: string; // 字段名
     businessName?: string; // 业务名称
     dataType?: string; // 数据类型
     dataLength?: number; // 数据长度
     nullableFlag?: number; // 是否可空
-    tableId?: number; // 所属表编号
+    tableId?: number | string; // 所属表编号
     tableName?: string; // 所属表名
     tableBusinessName?: string; // 所属表业务名称
     layer?: string; // 数仓分层
@@ -96,7 +96,7 @@ export function getStandardElementPage(
 }
 
 /** 查询数据标准--标准数据元详情 */
-export function getStandardElement(id: number) {
+export function getStandardElement(id: number | string) {
   return requestClient.get<GovernanceStandardElementApi.StandardElement>(
     `/governance/standard-element/get?id=${id}`,
   );
@@ -118,7 +118,7 @@ export function updateStandardElement(
 
 /** 独立状态变更，使用当前详情 revision 防止并发覆盖。 */
 export function updateStandardElementStatus(
-  id: number,
+  id: number | string,
   status: number,
   revision: number | string,
 ) {
@@ -142,7 +142,7 @@ export function bindStandardElementCodeSet(
 }
 
 /** 发布数据标准--标准数据元（草稿 → 已发布） */
-export function publishStandardElement(id: number) {
+export function publishStandardElement(id: number | string) {
   return requestClient.put(`/governance/standard-element/publish?id=${id}`);
 }
 
@@ -180,13 +180,13 @@ export function getStandardElementModelFields(id: number | string) {
 }
 
 /** 生成落标字段的码值内容稽核 SQL */
-export function getStandardElementEnumCheckSqls(id: number) {
+export function getStandardElementEnumCheckSqls(id: number | string) {
   return requestClient.get<
     {
       allowedValues: string[];
       checkSql: string;
       codeSetName?: string;
-      columnId: number;
+      columnId: number | string;
       columnName: string;
       tableName: string;
     }[]
@@ -194,12 +194,12 @@ export function getStandardElementEnumCheckSqls(id: number) {
 }
 
 /** 标准数据元影响分析 */
-export function getStandardElementImpact(id: number) {
+export function getStandardElementImpact(id: number | string) {
   return requestClient.get<{
     directTables: {
       mappedColumnCount: number;
       tableBusinessName?: string;
-      tableId: number;
+      tableId: number | string;
       tableName: string;
     }[];
     mappedColumnCount: number;
@@ -207,12 +207,12 @@ export function getStandardElementImpact(id: number) {
 }
 
 /** 废止数据标准--标准数据元（已发布 → 已废止） */
-export function deprecateStandardElement(id: number) {
+export function deprecateStandardElement(id: number | string) {
   return requestClient.put(`/governance/standard-element/deprecate?id=${id}`);
 }
 
 /** 查询数据标准--标准数据元的落标字段列表 */
-export function getStandardElementMappedColumns(id: number) {
+export function getStandardElementMappedColumns(id: number | string) {
   return requestClient.get<GovernanceStandardElementApi.MappedColumn[]>(
     `/governance/standard-element/mapped-columns?id=${id}`,
   );
@@ -241,12 +241,12 @@ export function importStandardElement(file: File, updateSupport: boolean) {
 }
 
 /** 删除数据标准--标准数据元 */
-export function deleteStandardElement(id: number) {
+export function deleteStandardElement(id: number | string) {
   return requestClient.delete(`/governance/standard-element/delete?id=${id}`);
 }
 
 /** 批量删除数据标准--标准数据元 */
-export function deleteStandardElementList(ids: number[]) {
+export function deleteStandardElementList(ids: (number | string)[]) {
   return requestClient.delete(
     `/governance/standard-element/delete-list?ids=${ids.join(',')}`,
   );

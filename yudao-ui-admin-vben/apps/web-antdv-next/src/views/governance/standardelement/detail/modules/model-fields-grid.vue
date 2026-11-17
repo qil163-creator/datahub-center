@@ -10,7 +10,7 @@ import { getStandardElementModelFields } from '#/api/governance/standardelement'
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 const props = defineProps<{
-  elementId?: number;
+  elementId?: number | string;
 }>();
 
 const loading = ref(false);

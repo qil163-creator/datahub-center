@@ -121,7 +121,7 @@ export namespace GovernanceMetaObjectApi {
     autoIncrementFlag?: number;
     businessDefinition?: string;
     measuringUnit?: string;
-    standardElementId?: number;
+    standardElementId?: Id;
     standardMappingId?: Id;
     standardElementCode?: string;
     standardElementName?: string;
@@ -248,7 +248,7 @@ export namespace GovernanceMetaObjectApi {
     businessName?: string;
     businessDefinition?: string;
     measuringUnit?: string;
-    standardElementId?: number;
+    standardElementId?: Id;
     safetyLevelId?: Id;
     sensitiveFlag?: number;
     remark?: string;

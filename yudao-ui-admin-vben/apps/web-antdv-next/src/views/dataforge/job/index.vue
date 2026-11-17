@@ -628,8 +628,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
               </form>
             </section>
             <section class="qj-table-panel">
-
-              <Grid class="qj-native-grid" table-title="作业列表" :table-data="rows">
+<Grid class="qj-native-grid" table-title="作业列表" :table-data="rows">
                 <template #toolbar-tools>
                   <Button v-if="can('create')" type="primary" @click="edit()">
                     <template #icon><IconifyIcon icon="lucide:plus" /></template>
