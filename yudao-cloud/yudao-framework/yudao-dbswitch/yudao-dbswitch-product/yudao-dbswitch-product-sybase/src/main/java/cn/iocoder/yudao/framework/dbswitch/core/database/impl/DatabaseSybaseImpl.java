@@ -37,12 +37,19 @@ public class DatabaseSybaseImpl extends AbstractDatabase implements IDatabaseInt
         try (var statement = connection.prepareStatement("SELECT TOP 1 o.name FROM sysobjects o JOIN sysusers u ON u.uid=o.uid WHERE u.name=? AND o.type='U' ORDER BY o.name")) {
             statement.setString(1, namespace); statement.setMaxRows(1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLFeatureNotSupportedException("Sybase ASE 所有者无可见基本表；不能只读证明对象访问权限", "0A000");
+                if (!rows.next()) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "Sybase ASE 所有者无可见基本表；不能只读证明对象访问权限", "0A000");
+                }
                 table = rows.getString(1);
             }
         }
         // ASE 标识符模式随会话变化；没有可靠引用模式证据时仅接受严格常规名称。
-        if (!namespace.matches("[A-Za-z_][A-Za-z0-9_]{0,127}") || table == null || !table.matches("[A-Za-z_][A-Za-z0-9_]{0,127}")) throw new java.sql.SQLFeatureNotSupportedException("Sybase ASE 复杂标识符引用模式尚未验证", "0A000");
+        if (!namespace.matches("[A-Za-z_][A-Za-z0-9_]{0,127}")
+                || table == null
+                || !table.matches("[A-Za-z_][A-Za-z0-9_]{0,127}")) {
+            throw new java.sql.SQLFeatureNotSupportedException("Sybase ASE 复杂标识符引用模式尚未验证", "0A000");
+        }
         try (var statement = connection.createStatement()) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(1);
             try (var ignored = statement.executeQuery("SELECT * FROM " + namespace + "." + table + " WHERE 1=0")) {
@@ -64,7 +71,9 @@ public class DatabaseSybaseImpl extends AbstractDatabase implements IDatabaseInt
         try (var statement = connection.prepareStatement("SELECT user_name(),COUNT(*) FROM sysprotects WHERE uid IN (user_id(),0)")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("Sybase ASE 账号授权目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("Sybase ASE 账号授权目录证据缺失");
+                }
             }
         }
     }
@@ -79,7 +88,9 @@ public class DatabaseSybaseImpl extends AbstractDatabase implements IDatabaseInt
             statement.setString(1, namespace); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("Sybase ASE 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("Sybase ASE 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -88,7 +99,16 @@ public class DatabaseSybaseImpl extends AbstractDatabase implements IDatabaseInt
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("Sybase ASE 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("Sybase ASE 诊断参数必须完整且有界");
+        }
     }
 
     private static final String SHOW_CREATE_VIEW_SQL = "SELECT sc.text FROM sysobjects so, syscomments sc WHERE user_name(so.uid)=? AND so.name=? and sc.id = so.id ORDER BY sc.colid";

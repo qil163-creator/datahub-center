@@ -179,7 +179,9 @@ public class MarketAccessServiceImpl implements MarketAccessService {
         if (apply == null) {
             return false;
         }
-        if (!Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) requireQuerySnapshot(userId, apply.getId());
+        if (!Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)) {
+            requireQuerySnapshot(userId, apply.getId());
+        }
         return true;
     }
 

@@ -57,7 +57,10 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
         try (var statement = connection.prepareStatement("SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER=? AND ROWNUM<=1")) {
             statement.setString(1, namespace); statement.setMaxRows(1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLFeatureNotSupportedException("Oracle 命名空间无可见基本表；无法只读证明该 schema 的对象访问权限", "0A000");
+                if (!rows.next()) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "Oracle 命名空间无可见基本表；无法只读证明该 schema 的对象访问权限", "0A000");
+                }
                 table = rows.getString(1);
             }
         }
@@ -83,7 +86,9 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
         try (var statement = connection.prepareStatement("SELECT USER,(SELECT COUNT(*) FROM SESSION_PRIVS) FROM DUAL")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("Oracle 会话账号权限目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("Oracle 会话账号权限目录证据缺失");
+                }
             }
         }
     }
@@ -97,7 +102,9 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("Oracle 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("Oracle 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -106,14 +113,25 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("Oracle 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("Oracle 诊断参数必须完整且有界");
+        }
     }
 
     /** 仅统计原生目录中的表列注释；无注释不是权限失败，不访问业务行。 */
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             Connection connection, String namespace, String table, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType() != ProductTypeEnum.ORACLE) return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.ORACLE) {
+            return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        }
         diagnosticBounds(connection, namespace, 1, timeoutSeconds);
         diagnosticBounds(connection, table, 1, timeoutSeconds);
         String sql = "SELECT CASE WHEN t.COMMENTS IS NULL THEN 0 ELSE 1 END,COUNT(c.COLUMN_NAME),COUNT(m.COMMENTS) "
@@ -125,10 +143,19 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
             statement.setString(1, namespace); statement.setString(2, table);
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Oracle 目标表不存在或不可见", "42S02");
+                if (!rows.next()) {
+                    throw new SQLException("Oracle 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next())
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
                     throw new SQLException("Oracle 表列注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns, tableComments==1, comments);
             }
         }
@@ -140,16 +167,23 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
             Connection connection, int timeoutSeconds) throws SQLException {
         diagnosticBounds(connection,"CDC",1,timeoutSeconds);
         var metadata=connection.getMetaData();
-        if (getDatabaseType()!=ProductTypeEnum.ORACLE || !"Oracle".equals(metadata.getDatabaseProductName())
-                || !java.util.Set.of(19,21,23).contains(metadata.getDatabaseMajorVersion()))
-            throw new java.sql.SQLFeatureNotSupportedException("Oracle CDC 仅声明原生 19/21/23 的 LogMiner 目录契约","0A000");
+        if (getDatabaseType() != ProductTypeEnum.ORACLE
+                || !"Oracle".equals(metadata.getDatabaseProductName())
+                || !java.util.Set.of(19, 21, 23).contains(metadata.getDatabaseMajorVersion())) {
+            throw new java.sql.SQLFeatureNotSupportedException(
+                    "Oracle CDC 仅声明原生 19/21/23 的 LogMiner 目录契约", "0A000");
+        }
         boolean logging;
         try (var statement=connection.prepareStatement("SELECT LOG_MODE,SUPPLEMENTAL_LOG_DATA_MIN,SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Oracle 日志配置目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("Oracle 日志配置目录无响应");
+                }
                 String archive=rows.getString(1); String minimum=rows.getString(2); String all=rows.getString(3);
-                if (archive==null || minimum==null || all==null || rows.next()) throw new SQLException("Oracle 日志配置证据不完整或不唯一");
+                if (archive == null || minimum == null || all == null || rows.next()) {
+                    throw new SQLException("Oracle 日志配置证据不完整或不唯一");
+                }
                 // 不把最小日志当成全部列日志；表级单独补充日志需由后续对象检查另行证明。
                 logging="ARCHIVELOG".equals(archive) && ("YES".equals(minimum)||"IMPLICIT".equals(minimum)) && "YES".equals(all);
             }
@@ -160,9 +194,19 @@ public class DatabaseOracleImpl extends AbstractDatabase implements IDatabaseInt
         try (var statement=connection.prepareStatement(sql)) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Oracle LogMiner 权限目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("Oracle LogMiner 权限目录无响应");
+                }
                 int privileges=rows.getInt(1); boolean missing=rows.wasNull(); int execute=rows.getInt(2);
-                if (missing || rows.wasNull() || privileges<0 || privileges>3 || execute<0 || execute>1 || rows.next()) throw new SQLException("Oracle LogMiner 权限证据不完整");
+                if (missing
+                        || rows.wasNull()
+                        || privileges < 0
+                        || privileges > 3
+                        || execute < 0
+                        || execute > 1
+                        || rows.next()) {
+                    throw new SQLException("Oracle LogMiner 权限证据不完整");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic(logging,privileges==3 && execute==1);
             }
         }

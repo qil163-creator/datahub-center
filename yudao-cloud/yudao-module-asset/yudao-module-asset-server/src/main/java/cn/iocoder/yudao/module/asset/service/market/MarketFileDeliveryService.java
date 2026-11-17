@@ -83,7 +83,9 @@ public class MarketFileDeliveryService {
             }
             return existing;
         });
-        if (reserved.getManagedFileId() != null) return metadata(reserved);
+        if (reserved.getManagedFileId() != null) {
+            return metadata(reserved);
+        }
         var request = new ManagedFileCreateReqDTO();
         request.setOperationKey(intent.getOperationKey());
         request.setName(name);
@@ -101,13 +103,16 @@ public class MarketFileDeliveryService {
         // 只有存储确认后才锁定文件身份，失联或业务拒绝都不会删除可能存在的远端对象。
         intent.setManagedFileId(receipt.getId());
         var finalAuthorization = catalog.prepareMaintenanceAuthorization();
-        return transactions.execute(tx -> {
-            var locked = assets.selectForCatalogUpdate(assetId);
-            catalog.assertCanMaintain(locked, finalAuthorization);
-            requireVersion(locked, versionId);
-            if (bindings.complete(intent) != 1) throw exception(MARKET_FILE_CONFLICT);
-            return metadata(intent);
-        });
+        return transactions.execute(
+                tx -> {
+                    var locked = assets.selectForCatalogUpdate(assetId);
+                    catalog.assertCanMaintain(locked, finalAuthorization);
+                    requireVersion(locked, versionId);
+                    if (bindings.complete(intent) != 1) {
+                        throw exception(MARKET_FILE_CONFLICT);
+                    }
+                    return metadata(intent);
+                });
     }
 
     private static boolean sameFile(MarketFileBinding bound, MarketFileBinding candidate) {
@@ -117,15 +122,26 @@ public class MarketFileDeliveryService {
     }
 
     static MarketFileBindingRespVO frozenMetadata(MarketResourceApplyDO apply) {
-        if (!Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE) || apply.getSnapshot() == null) return null;
+        if (!Objects.equals(apply.getAssetType(), DataAssetDO.TYPE_FILE)
+                || apply.getSnapshot() == null) {
+            return null;
+        }
         var snapshot = JsonUtils.parseObjectQuietly(apply.getSnapshot(), Map.class);
-        if (snapshot == null || !(snapshot.get("fileDelivery") instanceof Map<?, ?> file)) return null;
+        if (snapshot == null || !(snapshot.get("fileDelivery") instanceof Map<?, ?> file)) {
+            return null;
+        }
         try {
             long version = Long.parseLong(String.valueOf(file.get("catalogVersionId")));
             long size = Long.parseLong(String.valueOf(file.get("size")));
-            if (!Objects.equals(version, apply.getCatalogVersionId()) || size <= 0 || size > MAX_BYTES
-                    || !(file.get("fileName") instanceof String name) || name.isBlank()
-                    || !(file.get("sha256") instanceof String hash) || !hash.matches("[0-9a-f]{64}")) return null;
+            if (!Objects.equals(version, apply.getCatalogVersionId())
+                    || size <= 0
+                    || size > MAX_BYTES
+                    || !(file.get("fileName") instanceof String name)
+                    || name.isBlank()
+                    || !(file.get("sha256") instanceof String hash)
+                    || !hash.matches("[0-9a-f]{64}")) {
+                return null;
+            }
             return new MarketFileBindingRespVO(version, name, size, hash);
         } catch (NumberFormatException invalid) {
             return null;
@@ -171,7 +187,9 @@ public class MarketFileDeliveryService {
     }
 
     void requireGrant(MarketResourceApplyDO apply, DataAssetDO asset) {
-        if (apply.getCatalogVersionId() == null) throw exception(MARKET_APPLY_SCOPE_UNCONFIRMED);
+        if (apply.getCatalogVersionId() == null) {
+            throw exception(MARKET_APPLY_SCOPE_UNCONFIRMED);
+        }
         requireGrant(apply, asset, bindings.find(apply.getCatalogVersionId()));
     }
 

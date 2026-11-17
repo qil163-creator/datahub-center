@@ -50,9 +50,19 @@ public class DatabaseGreenplumImpl extends AbstractDatabase implements IDatabase
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Greenplum 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("Greenplum 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("Greenplum 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("Greenplum 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -68,8 +78,12 @@ public class DatabaseGreenplumImpl extends AbstractDatabase implements IDatabase
             statement.setQueryTimeout(timeoutSeconds);
             statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Greenplum 命名空间不存在", "3F000");
-                if (!rows.getBoolean(1) || rows.wasNull()) throw new SQLException("Greenplum 命名空间 USAGE 被拒绝", "42501");
+                if (!rows.next()) {
+                    throw new SQLException("Greenplum 命名空间不存在", "3F000");
+                }
+                if (!rows.getBoolean(1) || rows.wasNull()) {
+                    throw new SQLException("Greenplum 命名空间 USAGE 被拒绝", "42501");
+                }
             }
         }
     }
@@ -82,7 +96,9 @@ public class DatabaseGreenplumImpl extends AbstractDatabase implements IDatabase
             statement.setQueryTimeout(timeoutSeconds);
             statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("Greenplum 当前账号目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("Greenplum 当前账号目录证据缺失");
+                }
             }
         }
     }
@@ -100,7 +116,9 @@ public class DatabaseGreenplumImpl extends AbstractDatabase implements IDatabase
             statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("Greenplum 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("Greenplum 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription();
                     table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE");
                     result.add(table);

@@ -23,21 +23,46 @@ public final class DorisAuthorizedCreateNew {
             cn.iocoder.yudao.framework.dbswitch.core.schema.mapping.LogicalTypeMappings mappings) {
         var names = columns.stream().map(cn.iocoder.yudao.framework.dbswitch.core.model.ColumnDescription::getFieldName).toList();
         names(names);
-        if (!names.containsAll(primaryKeys) || new HashSet<>(primaryKeys).size() != primaryKeys.size()
-                || !Set.of(cn.iocoder.yudao.framework.dbswitch.core.model.DorisCreateTableOptions.TABLE_PROPERTY,
-                "doris.preferUniqueKey", "olap.preferUniqueKey", "olap.replicationNum").containsAll(properties.keySet())) throw invalid();
-        var portable = columns.stream().map(column -> {
-            var facts = column.getMetadataEvidence();
-            if (!facts.provenance().nativeProduct(ProductTypeEnum.POSTGRESQL)
-                    || facts.nativeType().state() != cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.State.VALUE
-                    || facts.defaultExpression().state() != cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.State.ABSENT
-                    || facts.identity().state() != cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.State.ABSENT
-                    || facts.sequence().state() != cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.State.ABSENT
-                    || facts.generatedExpression().state() != cn.iocoder.yudao.framework.dbswitch.core.model.MetadataValue.State.ABSENT) throw invalid();
-            var copy = column.copy();
-            copy.setRemarks("");
-            return copy;
-        }).toList();
+        if (!names.containsAll(primaryKeys)
+                || new HashSet<>(primaryKeys).size() != primaryKeys.size()
+                || !Set.of(
+                                cn.iocoder.yudao.framework.dbswitch.core.model
+                                        .DorisCreateTableOptions.TABLE_PROPERTY,
+                                "doris.preferUniqueKey",
+                                "olap.preferUniqueKey",
+                                "olap.replicationNum")
+                        .containsAll(properties.keySet())) {
+            throw invalid();
+        }
+        var portable =
+                columns.stream()
+                        .map(
+                                column -> {
+                                    var facts = column.getMetadataEvidence();
+                                    if (!facts.provenance()
+                                                    .nativeProduct(ProductTypeEnum.POSTGRESQL)
+                                            || facts.nativeType().state()
+                                                    != cn.iocoder.yudao.framework.dbswitch.core
+                                                            .model.MetadataValue.State.VALUE
+                                            || facts.defaultExpression().state()
+                                                    != cn.iocoder.yudao.framework.dbswitch.core
+                                                            .model.MetadataValue.State.ABSENT
+                                            || facts.identity().state()
+                                                    != cn.iocoder.yudao.framework.dbswitch.core
+                                                            .model.MetadataValue.State.ABSENT
+                                            || facts.sequence().state()
+                                                    != cn.iocoder.yudao.framework.dbswitch.core
+                                                            .model.MetadataValue.State.ABSENT
+                                            || facts.generatedExpression().state()
+                                                    != cn.iocoder.yudao.framework.dbswitch.core
+                                                            .model.MetadataValue.State.ABSENT) {
+                                        throw invalid();
+                                    }
+                                    var copy = column.copy();
+                                    copy.setRemarks("");
+                                    return copy;
+                                })
+                        .toList();
         var options = new java.util.HashMap<>(properties);
         options.put("olap.preferUniqueKey", Boolean.toString(!primaryKeys.isEmpty()));
         var mapping = new cn.iocoder.yudao.framework.dbswitch.core.schema.mapping.TypeMappingOptions(mappings,
@@ -47,11 +72,18 @@ public final class DorisAuthorizedCreateNew {
         var generated = cn.iocoder.yudao.framework.dbswitch.core.util.GenerateSqlUtils.getDDLCreateTableSQL(
                 new cn.iocoder.yudao.framework.dbswitch.core.database.impl.DatabaseDorisImpl(), portable, primaryKeys,
                 schema, table, "", false, options, java.util.Map.of(), mapping);
-        if (generated.size() != 1) throw invalid();
+        if (generated.size() != 1) {
+            throw invalid();
+        }
         var shape = parse(generated.getFirst());
-        if (shape.unique() != !primaryKeys.isEmpty() || !primaryKeys.isEmpty() && !shape.keys().equals(primaryKeys)) throw invalid();
+        if (shape.unique() != !primaryKeys.isEmpty()
+                || !primaryKeys.isEmpty() && !shape.keys().equals(primaryKeys)) {
+            throw invalid();
+        }
         var nativeProperties = new java.util.TreeMap<>(shape.properties());
-        if (shape.unique()) nativeProperties.put("enable_unique_key_merge_on_write", "true");
+        if (shape.unique()) {
+            nativeProperties.put("enable_unique_key_merge_on_write", "true");
+        }
         var comments = new java.util.HashMap<String, String>();
         columns.forEach(column -> comments.put(column.getFieldName(), Objects.requireNonNullElse(column.getRemarks(), "")));
         var complete = new Table(shape.columns().stream().map(column -> new Column(column.name(), column.type(),
@@ -70,13 +102,19 @@ public final class DorisAuthorizedCreateNew {
     public static ManagedSchemaScriptPlan plan(String schema, String table, List<String> fields,
             String createSql, String insertSql) {
         String expectedInsert = insertSql(schema, table, fields);
-        if (!expectedInsert.equals(insertSql)) throw invalid();
+        if (!expectedInsert.equals(insertSql)) {
+            throw invalid();
+        }
         var parser = new Parser(createSql);
         parser.word("CREATE");
         parser.word("TABLE");
-        if (!Objects.equals(parser.identifier(), schema)) throw invalid();
+        if (!Objects.equals(parser.identifier(), schema)) {
+            throw invalid();
+        }
         parser.require(".");
-        if (!Objects.equals(parser.identifier(), table)) throw invalid();
+        if (!Objects.equals(parser.identifier(), table)) {
+            throw invalid();
+        }
         var shape = parse(createSql);
         if (!Set.of("DUPLICATE", "UNIQUE").contains(shape.model())
                 || !new HashSet<>(shape.columns().stream().map(Column::name).toList()).equals(new HashSet<>(fields))
@@ -88,7 +126,10 @@ public final class DorisAuthorizedCreateNew {
         String replicas = shape.properties().get("replication_num");
         String allocation = shape.properties().get("replication_allocation");
         if (allocation != null) {
-            if (replicas != null || !allocation.matches("tag[.]location[.]default: [1-9][0-9]{0,4}")) throw invalid();
+            if (replicas != null
+                    || !allocation.matches("tag[.]location[.]default: [1-9][0-9]{0,4}")) {
+                throw invalid();
+            }
             replicas = allocation.substring("tag.location.default: ".length());
         }
         if (replicas == null || !replicas.matches("[1-9][0-9]{0,4}") || Integer.parseInt(replicas) > 32767) {

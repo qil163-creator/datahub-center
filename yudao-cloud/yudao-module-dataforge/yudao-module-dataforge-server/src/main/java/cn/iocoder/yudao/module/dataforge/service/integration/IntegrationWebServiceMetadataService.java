@@ -27,10 +27,15 @@ public class IntegrationWebServiceMetadataService {
     public EtlWebServiceRows.Metadata inspect(IntegrationWebServiceMetadataReqVO req) {
         access.requireUserPermission(SecurityFrameworkUtils.getLoginUserId(), "dataforge:integration:query");
         var task = tasks.selectById(req.getId());
-        if (task == null) throw exception(INTEGRATION_TASK_NOT_EXISTS);
-        if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
-        if (!"SPARK".equals(task.getEngine()) || !"OFFLINE".equals(task.getMode()))
+        if (task == null) {
+            throw exception(INTEGRATION_TASK_NOT_EXISTS);
+        }
+        if (!Objects.equals(task.getRevision(), req.getRevision())) {
+            throw exception(INTEGRATION_CONFLICT);
+        }
+        if (!"SPARK".equals(task.getEngine()) || !"OFFLINE".equals(task.getMode())) {
             throw exception(INTEGRATION_CONFIG_INVALID, "WebService字段分析仅适用于Spark离线任务");
+        }
         try {
             rejectCredentialQuery(req.getApiUrl());
             Set<String> allowed = bindings.requireMetadata(task.getId(), "read-webservice", req.getResourceBindingId());
@@ -48,15 +53,25 @@ public class IntegrationWebServiceMetadataService {
     public ApiMetadata sample(cn.iocoder.yudao.module.dataforge.controller.admin.integration.vo.IntegrationApiMetadataReqVO req) {
         access.requireUserPermission(SecurityFrameworkUtils.getLoginUserId(), "dataforge:integration:query");
         var task = tasks.selectById(req.getId());
-        if (task == null) throw exception(INTEGRATION_TASK_NOT_EXISTS);
-        if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
-        if (!"SPARK".equals(task.getEngine()) || !"OFFLINE".equals(task.getMode()))
+        if (task == null) {
+            throw exception(INTEGRATION_TASK_NOT_EXISTS);
+        }
+        if (!Objects.equals(task.getRevision(), req.getRevision())) {
+            throw exception(INTEGRATION_CONFLICT);
+        }
+        if (!"SPARK".equals(task.getEngine()) || !"OFFLINE".equals(task.getMode())) {
             throw exception(INTEGRATION_CONFIG_INVALID, "API字段采样仅适用于Spark离线任务");
+        }
         try {
             var api = cn.hutool.json.JSONUtil.parseObj(req.getApiConfig());
-            if (api.toString().length() > 500000) throw new IllegalArgumentException("接口字段分析配置超过预算");
-            if (!"GET".equals(api.getStr("requestMethod")) || !"none".equals(api.getStr("bodyType", "none"))
-                    || !api.getStr("bodyRaw", "").isBlank()) throw new IllegalArgumentException("字段采样仅支持无请求体且无需认证的GET请求");
+            if (api.toString().length() > 500000) {
+                throw new IllegalArgumentException("接口字段分析配置超过预算");
+            }
+            if (!"GET".equals(api.getStr("requestMethod"))
+                    || !"none".equals(api.getStr("bodyType", "none"))
+                    || !api.getStr("bodyRaw", "").isBlank()) {
+                throw new IllegalArgumentException("字段采样仅支持无请求体且无需认证的GET请求");
+            }
             rejectCredentialQuery(api.getStr("requestUrl", ""));
             var allowed = bindings.requireMetadata(task.getId(), "rest-api", req.getResourceBindingId());
             var binding = bindings.require(task.getId(), "rest-api", null, req.getResourceBindingId());
@@ -81,11 +96,15 @@ public class IntegrationWebServiceMetadataService {
 
     private static void rejectCredentialQuery(String address) {
         String query = URI.create(address).getRawQuery();
-        if (query == null) return;
+        if (query == null) {
+            return;
+        }
         for (String entry : query.split("&")) {
             String name = URLDecoder.decode(entry.split("=", 2)[0], StandardCharsets.UTF_8);
-            if (name.matches("(?i).*(password|passwd|secret|token|api[-_]?key|access[-_]?key|authorization|credential).*"))
+            if (name.matches(
+                    "(?i).*(password|passwd|secret|token|api[-_]?key|access[-_]?key|authorization|credential).*")) {
                 throw new IllegalArgumentException("元数据地址不能包含认证参数，请使用无凭据文档地址");
+            }
         }
     }
 }

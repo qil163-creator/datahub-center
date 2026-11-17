@@ -95,7 +95,7 @@ class DataApiEtlBatchServiceTest {
         ReflectionTestUtils.setField(executor, "etlGrantSubjects", subjects);
         if ("disabled".equals(change)) doNothing().doThrow(
                 cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception(
-                        cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED))
+                        cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED))
                 .when(subjects).requireActiveSubject(7L);
         var grant = cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO.builder()
                 .appId(2L).apiId(1L).permissionUserId(7L).grantRevision(1)
@@ -121,7 +121,7 @@ class DataApiEtlBatchServiceTest {
             var failure = assertThrows(cn.iocoder.yudao.framework.common.exception.ServiceException.class,
                     () -> executor.execute(source, Map.of(), null, 20, "127.0.0.1", false, false,
                             2L, false, DataApiExecuteMode.APP_GATEWAY));
-            assertEquals(cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED.getCode(), failure.getCode());
+            assertEquals(cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED.getCode(), failure.getCode());
         }
         verify(batches).read(eq(source), anyMap(), eq(20), eq(7L));
         verify(subjects, times(2)).requireActiveSubject(7L);

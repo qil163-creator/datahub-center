@@ -14,9 +14,7 @@ import cn.iocoder.yudao.module.governance.controller.admin.qualityrule.vo.*;
 import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.CategoryCleanRuleListReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.CategoryCleanRuleRespVO;
 import cn.iocoder.yudao.module.governance.service.categorycleanrule.CategoryCleanRuleService;
-import cn.iocoder.yudao.module.governance.dal.dataobject.categorycleanrule.CategoryCleanRuleDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.qualityrule.CleanRuleDO;
-import cn.iocoder.yudao.module.governance.dal.mysql.categorycleanrule.CategoryCleanRuleMapper;
 import cn.iocoder.yudao.module.governance.service.qualityrule.CleanRuleService;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
@@ -53,9 +51,6 @@ public class CleanRuleController {
 
     @Resource
     private CleanRuleService cleanRuleService;
-
-    @Resource
-    private CategoryCleanRuleMapper categoryCleanRuleMapper;
 
     @Resource
     private CleanFunctionRegistry cleanFunctionRegistry;
@@ -198,8 +193,7 @@ public class CleanRuleController {
         Set<Long> categoryIds = list.stream().map(CleanRuleRespVO::getCategoryId)
                 .filter(java.util.Objects::nonNull).collect(Collectors.toSet());
         if (CollUtil.isNotEmpty(categoryIds)) {
-            Map<Long, String> nameMap = categoryCleanRuleMapper.selectBatchIds(categoryIds).stream()
-                    .collect(Collectors.toMap(CategoryCleanRuleDO::getId, CategoryCleanRuleDO::getCategoryName));
+            Map<Long, String> nameMap = categoryCleanRuleService.getCategoryNames(categoryIds);
             list.forEach(vo -> vo.setCategoryName(nameMap.get(vo.getCategoryId())));
         }
         // 创建人名称

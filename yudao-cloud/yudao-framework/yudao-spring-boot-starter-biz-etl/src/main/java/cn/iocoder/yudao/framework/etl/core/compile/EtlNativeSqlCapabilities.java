@@ -10,7 +10,9 @@ public final class EtlNativeSqlCapabilities {
 
     /** 未出现的组件不可编译；空说明表示该组件的已声明参数不附加引擎限制。 */
     public static Map<String, String> componentLimitations(EtlNativeSqlCompiler.Engine engine, boolean streaming) {
-        if (streaming && engine != EtlNativeSqlCompiler.Engine.FLINK) return Map.of();
+        if (streaming && engine != EtlNativeSqlCompiler.Engine.FLINK) {
+            return Map.of();
+        }
         var result = new LinkedHashMap<String, String>();
         result.put("read-db", "需要管理员受管 Catalog 绑定；不支持自定义 SQL 或游标增量" + (streaming ? "；实时模式必须绑定持续产出的源" : ""));
         result.put("insert-db", "需要管理员受管 Catalog 绑定，仅向已有表追加写入，不支持清空、建表或覆盖");

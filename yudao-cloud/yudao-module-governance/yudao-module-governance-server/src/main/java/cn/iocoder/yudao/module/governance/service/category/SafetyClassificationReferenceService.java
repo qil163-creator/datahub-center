@@ -13,6 +13,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -39,6 +40,16 @@ public class SafetyClassificationReferenceService {
     @Resource
     private SafetyRuleMapper ruleMapper;
 
+    /** 按编号批量获取识别规则及标签关联的分类。 */
+    public Map<Long, SafetyCategoryDO> getCategoryMap(Collection<Long> ids) {
+        return ids.isEmpty() ? Map.of() : index(categoryMapper.selectByIds(ids), SafetyCategoryDO::getId);
+    }
+
+    /** 按编号索引分类等级，供不同查询复用。 */
+    public Map<Long, SafetyLevelDO> getLevelMap() {
+        return index(levelMapper.selectList(), SafetyLevelDO::getId);
+    }
+
     /**
      * 构造安全分类和必要祖先目录的只读树，汇总分类等级、规则与可用状态。
      */
@@ -57,7 +68,7 @@ public class SafetyClassificationReferenceService {
                 directoryId = directory == null ? null : directory.getParentId();
             }
         }
-        Map<Long, SafetyLevelDO> levels = index(levelMapper.selectList(), SafetyLevelDO::getId);
+        Map<Long, SafetyLevelDO> levels = getLevelMap();
         Map<Long, SafetyRuleDO> rules = index(ruleMapper.selectList(), SafetyRuleDO::getId);
         List<SafetyClassificationRespDTO> result = new ArrayList<>();
         for (CategoryDataDO directory : directories) {

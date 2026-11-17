@@ -17,13 +17,22 @@ public final class LogSanitizer {
 
     private LogSanitizer() {}
 
+    /** 仅保留异常类型与调用位置，排除异常链及消息中可能携带的敏感数据。 */
+    public static Throwable sanitizedException(Throwable exception) {
+        Throwable sanitized = new Throwable(exception.getClass().getName());
+        sanitized.setStackTrace(exception.getStackTrace());
+        return sanitized;
+    }
+
     private static boolean isSensitive(String key, String[] extraKeys) {
         String normalized = key.replace("_", "").replace("-", "").toLowerCase(Locale.ROOT);
         return SECRET_KEYS.contains(normalized) || (extraKeys != null && Arrays.asList(extraKeys).contains(key));
     }
 
     public static Map<String, String> sanitizeQuery(Map<String, String> query, String[] extraKeys) {
-        if (query == null || query.isEmpty()) return query;
+        if (query == null || query.isEmpty()) {
+            return query;
+        }
         Map<String, String> copy = new LinkedHashMap<>(query);
         copy.keySet().removeIf(key -> isSensitive(key, extraKeys));
         return copy;
@@ -36,7 +45,9 @@ public final class LogSanitizer {
     }
 
     public static JsonNode sanitizeTree(String json, String[] extraKeys) {
-        if (json == null || json.isBlank()) return null;
+        if (json == null || json.isBlank()) {
+            return null;
+        }
         try {
             JsonNode tree = JsonUtils.getObjectMapper().readTree(json);
             removeSecrets(tree, extraKeys);

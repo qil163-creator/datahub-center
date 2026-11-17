@@ -528,7 +528,9 @@ public class ModelMaterializedServiceImpl implements ModelMaterializedService {
             ModelDdlExecutor.TableObservation before,
             java.util.function.BiConsumer<ModelDdlExecutor.TableObservation, Boolean> callback) {
         if (conn.getProductType() == ProductTypeEnum.DORIS && !before.tableExists()) {
-            if (StrUtil.isBlank(attempt.getDdlSql())) throw exception(MODEL_MATERIALIZED_OUTCOME_UNKNOWN);
+            if (StrUtil.isBlank(attempt.getDdlSql())) {
+                throw exception(MODEL_MATERIALIZED_OUTCOME_UNKNOWN);
+            }
             ddlExecutor.withLockedExpectedObservation(conn, attempt.getTableName(), comment, fields,
                     attempt.getDdlSql(), callback);
         } else {

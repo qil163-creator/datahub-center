@@ -99,15 +99,12 @@ function resetForm() {
 async function get${simpleClassName}Tree() {
   ${classNameVar}Tree.value = []
   const data = await get${simpleClassName}List({});
-  data.unshift({
-    id: 0,
-    name: '顶级${table.classComment}',
-  });
-    ${classNameVar}Tree.value = handleTree(data);
+  const root = { id: 0, ${treeNameColumn.javaField}: '顶级${table.classComment}' };
+  ${classNameVar}Tree.value = handleTree([root, ...data], 'id', '${treeParentColumn.javaField}');
 }
 #end
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<Partial<${simpleClassName}Api.${simpleClassName}> | null>({
   async onConfirm() {
     await formRef.value?.validate();
     ## 特殊：主子表专属逻辑
@@ -135,7 +132,7 @@ const [Modal, modalApi] = useVbenModal({
     #end
     modalApi.lock();
     // 提交表单
-    const data = formData.value as ${simpleClassName}Api.${simpleClassName};
+    const data = formData.value as ${simpleClassName}Api.${simpleClassName}Save;
     ## 特殊：主子表专属逻辑
     #if ( $table.templateType == 10 || $table.templateType == 12 )
       #if ( $subTables && $subTables.size() > 0 )
@@ -152,7 +149,11 @@ const [Modal, modalApi] = useVbenModal({
       #end
     #end
     try {
-      await (formData.value?.id ? update${simpleClassName}(data) : create${simpleClassName}(data));
+      if (formData.value?.id != null) {
+        await update${simpleClassName}({ ...data, id: formData.value.id });
+      } else {
+        await create${simpleClassName}(data);
+      }
       // 关闭并提示
       await modalApi.close();
       emit('success');
@@ -168,8 +169,11 @@ const [Modal, modalApi] = useVbenModal({
       resetForm()
       return;
     }
+#if ($table.templateType == 2)
+    await get${simpleClassName}Tree();
+#end
     // 加载数据
-    let data = modalApi.getData<${simpleClassName}Api.${simpleClassName}>();
+    let data = modalApi.getData();
     if (!data) {
       return;
     }
@@ -182,10 +186,6 @@ const [Modal, modalApi] = useVbenModal({
       }
     }
     formData.value = data;
-#if ( $table.templateType == 2 )
-    // 加载树数据
-    await get${simpleClassName}Tree()
-#end
   },
 });
 </script>
@@ -303,7 +303,11 @@ const [Modal, modalApi] = useVbenModal({
             <FormItem label="${comment}" name="${javaField}">
               <DatePicker
                       v-model:value="formData.${javaField}"
+#if ($column.javaType == "LocalDate")
+                      valueFormat="YYYY-MM-DD"
+#else
                       valueFormat="x"
+#end
                       placeholder="选择${comment}"
               />
             </FormItem>

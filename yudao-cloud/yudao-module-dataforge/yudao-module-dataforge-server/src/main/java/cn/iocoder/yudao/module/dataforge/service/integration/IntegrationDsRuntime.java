@@ -30,11 +30,15 @@ public class IntegrationDsRuntime {
         if (existing != null && existing.getJSONArray("totalList") != null) {
             for (Object item : existing.getJSONArray("totalList")) {
                 var definition = new JSONObject(item);
-                if (name.equals(definition.getStr("name"))) return definition.getLong("code");
+                if (name.equals(definition.getStr("name"))) {
+                    return definition.getLong("code");
+                }
             }
         }
         var codes = checked(client.taskDefinition().genTaskCodeList(properties.getDsProjectCode(), steps.size())).getJSONArray("data");
-        if (codes == null || codes.size() != steps.size()) throw new IllegalStateException("DS 未返回完整节点编码");
+        if (codes == null || codes.size() != steps.size()) {
+            throw new IllegalStateException("DS 未返回完整节点编码");
+        }
         var request = cn.iocoder.yudao.framework.dolphinscheduler.model.WorkflowDefinitionParameters.build(name,
                 "集成任务 " + task.getId(), steps.stream().map(step -> new cn.iocoder.yudao.framework.dolphinscheduler.model.WorkflowDefinitionParameters.Node(
                         step.id(), step.name(), step.taskType(), step.parameters(), step.upstream())).toList(),
@@ -42,7 +46,9 @@ public class IntegrationDsRuntime {
                         task.getPriority(), task.getWorkerGroup(), environmentCode(task), task.getRetryCount(),
                         task.getRetryInterval(), task.getDelayMinutes(), task.getExecutionStrategy()));
         var created = checked(client.workflowDefinition().createWorkflowDefinition(properties.getDsProjectCode(), request)).getJSONObject("data");
-        if (created == null || created.getLong("code") == null) throw new IllegalStateException("DS 未返回工作流编码");
+        if (created == null || created.getLong("code") == null) {
+            throw new IllegalStateException("DS 未返回工作流编码");
+        }
         return created.getLong("code");
     }
 
@@ -54,7 +60,11 @@ public class IntegrationDsRuntime {
     public Integer schedule(IntegrationTaskDO task, String cron, boolean enable) {
         requireEnvironment(task);
         if (!enable) {
-            if (task.getDsScheduleId() != null) checked(client.schedule().offlineSchedule(task.getDsProjectCode(), task.getDsScheduleId()));
+            if (task.getDsScheduleId() != null) {
+                checked(
+                        client.schedule()
+                                .offlineSchedule(task.getDsProjectCode(), task.getDsScheduleId()));
+            }
             return task.getDsScheduleId();
         }
         Integer id = task.getDsScheduleId();
@@ -68,7 +78,9 @@ public class IntegrationDsRuntime {
                     .setEnvironmentCode(environmentCode(task)).setWorkflowInstancePriority(task.getPriority());
             var result = checked(client.schedule().createSchedule(task.getDsProjectCode(), request)).getJSONObject("data");
             id = result == null ? null : result.getInt("id");
-            if (id == null) throw new IllegalStateException("DS 未返回调度编号");
+            if (id == null) {
+                throw new IllegalStateException("DS 未返回调度编号");
+            }
             // 先保存外部身份再上线，防止上线响应丢失后留下不可追踪的活动调度。
             if (tasks.update(null, Wrappers.lambdaUpdate(IntegrationTaskDO.class).eq(IntegrationTaskDO::getId, task.getId())
                     .eq(IntegrationTaskDO::getDsDefinitionCode, task.getDsDefinitionCode())
@@ -93,9 +105,15 @@ public class IntegrationDsRuntime {
 
     public Long run(IntegrationTaskDO task) {
         requireEnvironment(task);
-        if (records.selectCount(Wrappers.lambdaQuery(IntegrationRecordDO.class).eq(IntegrationRecordDO::getTaskId, task.getId())
-                .eq(IntegrationRecordDO::getStatus, "RUNNING").isNotNull(IntegrationRecordDO::getDsProjectCode)
-                .isNull(IntegrationRecordDO::getDsInstanceId)) > 0) throw new IllegalArgumentException("有一次 DS 提交尚未确认，请先刷新运行实例对账");
+        if (records.selectCount(
+                        Wrappers.lambdaQuery(IntegrationRecordDO.class)
+                                .eq(IntegrationRecordDO::getTaskId, task.getId())
+                                .eq(IntegrationRecordDO::getStatus, "RUNNING")
+                                .isNotNull(IntegrationRecordDO::getDsProjectCode)
+                                .isNull(IntegrationRecordDO::getDsInstanceId))
+                > 0) {
+            throw new IllegalArgumentException("有一次 DS 提交尚未确认，请先刷新运行实例对账");
+        }
         var record = new IntegrationRecordDO(); record.setTaskId(task.getId()); record.setStatus("RUNNING");
         record.setTriggerType("MANUAL"); record.setStartTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         record.setDsProjectCode(task.getDsProjectCode()); record.setMessage("正在向 DolphinScheduler 提交");
@@ -117,7 +135,9 @@ public class IntegrationDsRuntime {
             if (failure instanceof cn.iocoder.yudao.framework.dolphinscheduler.DolphinSchedulerException rejected && rejected.getCode() != null) {
                 record.setStatus("FAILURE"); record.setEndTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
                 record.setMessage("DS 拒绝提交，错误码 " + rejected.getCode());
-            } else record.setMessage("DS 提交结果待确认，请刷新运行实例核对；本平台不会自动重复投递");
+            } else {
+                record.setMessage("DS 提交结果待确认，请刷新运行实例核对；本平台不会自动重复投递");
+            }
             records.updateById(record);
             throw failure;
         }
@@ -131,7 +151,9 @@ public class IntegrationDsRuntime {
         var running = records.selectList(Wrappers.lambdaQuery(IntegrationRecordDO.class)
                 .eq(IntegrationRecordDO::getTaskId, task.getId()).eq(IntegrationRecordDO::getStatus, "RUNNING")
                 .isNotNull(IntegrationRecordDO::getDsInstanceId));
-        if (running.isEmpty()) throw new IllegalArgumentException("没有可停止的 DS 实例");
+        if (running.isEmpty()) {
+            throw new IllegalArgumentException("没有可停止的 DS 实例");
+        }
         for (var record : running) {
             record.setCommandType("STOP_REQUESTED"); record.setMessage("已请求 DS 停止，等待工作进程退出"); records.updateById(record);
             checked(client.executor().controlWorkflowInstance(record.getDsProjectCode(), record.getDsInstanceId(), "STOP"));
@@ -139,29 +161,41 @@ public class IntegrationDsRuntime {
     }
 
     public void refresh(IntegrationTaskDO task) {
-        if (task.getDsDefinitionCode() == null) return;
+        if (task.getDsDefinitionCode() == null) {
+            return;
+        }
         refreshRelease(task);
         refreshSchedule(task);
         var page = checked(client.workflowInstance().queryWorkflowInstanceList(task.getDsProjectCode(),
                 new QueryWorkflowInstanceListRequest().setWorkflowDefinitionCode(task.getDsDefinitionCode()).setPageNo(1).setPageSize(100))).getJSONObject("data");
         var list = page == null ? null : page.getJSONArray("totalList");
-        if (list == null) throw new IllegalStateException("DS 实例查询缺少分页数据");
+        if (list == null) {
+            throw new IllegalStateException("DS 实例查询缺少分页数据");
+        }
         // 超出首页的长跑实例仍需按编号对账，不能长期保留过期 RUNNING。
         var visible = new HashSet<Integer>();
-        for (Object item : list) visible.add(new JSONObject(item).getInt("id"));
+        for (Object item : list) {
+            visible.add(new JSONObject(item).getInt("id"));
+        }
         var active = records.selectList(Wrappers.lambdaQuery(IntegrationRecordDO.class)
                 .eq(IntegrationRecordDO::getTaskId, task.getId()).eq(IntegrationRecordDO::getStatus, "RUNNING")
                 .isNotNull(IntegrationRecordDO::getDsInstanceId));
         for (var record : active) {
-            if (visible.contains(record.getDsInstanceId())) continue;
+            if (visible.contains(record.getDsInstanceId())) {
+                continue;
+            }
             var instance = checked(client.workflowInstance().queryWorkflowInstanceById(record.getDsProjectCode(), record.getDsInstanceId())).getJSONObject("data");
-            if (instance == null || !Objects.equals(instance.getInt("id"), record.getDsInstanceId()))
+            if (instance == null
+                    || !Objects.equals(instance.getInt("id"), record.getDsInstanceId())) {
                 throw new IllegalStateException("DS 实例详情缺失，暂不能确认执行状态");
+            }
             list.put(instance);
         }
         for (Object item : list) {
             var instance = new JSONObject(item); Integer instanceId = instance.getInt("id");
-            if (instanceId == null) continue;
+            if (instanceId == null) {
+                continue;
+            }
             var record = records.selectOne(Wrappers.lambdaQuery(IntegrationRecordDO.class).eq(IntegrationRecordDO::getDsProjectCode, task.getDsProjectCode())
                     .eq(IntegrationRecordDO::getDsInstanceId, instanceId));
             if (record == null) {
@@ -173,17 +207,44 @@ public class IntegrationDsRuntime {
             boolean stopRequested = "STOP_REQUESTED".equals(record.getCommandType());
             record.setStatus(stopRequested && "FAILURE".equals(status(state)) ? "IDLE" : status(state));
             record.setStartTime(time(instance.get("startTime"))); record.setEndTime(time(instance.get("endTime")));
-            if (record.getStartTime() != null && record.getEndTime() != null) record.setDuration(Math.max(0, Duration.between(record.getStartTime(), record.getEndTime()).getSeconds()));
-            record.setInstanceName(instance.getStr("name")); if (!stopRequested) record.setCommandType(instance.getStr("commandType"));
+            if (record.getStartTime() != null && record.getEndTime() != null) {
+                record.setDuration(
+                        Math.max(
+                                0,
+                                Duration.between(record.getStartTime(), record.getEndTime())
+                                        .getSeconds()));
+            }
+            record.setInstanceName(instance.getStr("name"));
+            if (!stopRequested) {
+                record.setCommandType(instance.getStr("commandType"));
+            }
             record.setMessage((stopRequested ? "已请求停止；" : "") + "DolphinScheduler 状态：" + state + "；实例：" + instanceId);
-            if ("JOB".equals(record.getTriggerType()) && "IDLE".equals(record.getStatus())) record.setStatus("STOPPED");
+            if ("JOB".equals(record.getTriggerType()) && "IDLE".equals(record.getStatus())) {
+                record.setStatus("STOPPED");
+            }
             String observedJobStatus = record.getStatus();
             try {
-                if (record.getId() == null) records.insert(record);
-                else if (record.getDsProjectCode() != null) records.update(record, Wrappers.<IntegrationRecordDO>lambdaUpdate()
-                        .eq(IntegrationRecordDO::getId, record.getId()).and(q -> q.notIn(IntegrationRecordDO::getStatus,
-                                List.of("SUCCESS", "FAILURE", "STOPPED", "IDLE")).or().eq(IntegrationRecordDO::getStatus, observedJobStatus)));
-                else records.updateById(record);
+                if (record.getId() == null) {
+                    records.insert(record);
+                } else if (record.getDsProjectCode() != null) {
+                    records.update(
+                            record,
+                            Wrappers.<IntegrationRecordDO>lambdaUpdate()
+                                    .eq(IntegrationRecordDO::getId, record.getId())
+                                    .and(
+                                            q ->
+                                                    q.notIn(
+                                                                    IntegrationRecordDO::getStatus,
+                                                                    List.of(
+                                                                            "SUCCESS", "FAILURE",
+                                                                            "STOPPED", "IDLE"))
+                                                            .or()
+                                                            .eq(
+                                                                    IntegrationRecordDO::getStatus,
+                                                                    observedJobStatus)));
+                } else {
+                    records.updateById(record);
+                }
             } catch (org.springframework.dao.DuplicateKeyException concurrentRefresh) { continue; }
         }
         var latest = records.selectList(Wrappers.lambdaQuery(IntegrationRecordDO.class).eq(IntegrationRecordDO::getTaskId, task.getId())
@@ -202,15 +263,23 @@ public class IntegrationDsRuntime {
         try {
             result = client.workflowDefinition().queryWorkflowDefinitionByCode(task.getDsProjectCode(), task.getDsDefinitionCode());
         } catch (DolphinSchedulerException failure) {
-            if (missingDefinition(failure.getCode())) throw new MissingWorkflowDefinitionException();
+            if (missingDefinition(failure.getCode())) {
+                throw new MissingWorkflowDefinitionException();
+            }
             throw failure;
         }
-        if (result != null && missingDefinition(result.getInt("code"))) throw new MissingWorkflowDefinitionException();
+        if (result != null && missingDefinition(result.getInt("code"))) {
+            throw new MissingWorkflowDefinitionException();
+        }
         var data = checked(result).getJSONObject("data");
         var definition = data == null ? null : data.getJSONObject("workflowDefinition");
-        if (definition == null) throw new IllegalStateException("DS 工作流定义缺失，暂不能确认上线状态");
+        if (definition == null) {
+            throw new IllegalStateException("DS 工作流定义缺失，暂不能确认上线状态");
+        }
         String state = definition.getStr("releaseState");
-        if (!"ONLINE".equals(state) && !"OFFLINE".equals(state)) throw new IllegalStateException("DS 工作流发布状态无法识别");
+        if (!"ONLINE".equals(state) && !"OFFLINE".equals(state)) {
+            throw new IllegalStateException("DS 工作流发布状态无法识别");
+        }
         int online = "ONLINE".equals(state) ? 1 : 0;
         if (!Objects.equals(task.getStatus(), online)) {
             int changed = tasks.update(null, Wrappers.lambdaUpdate(IntegrationTaskDO.class).eq(IntegrationTaskDO::getId, task.getId())
@@ -236,8 +305,12 @@ public class IntegrationDsRuntime {
     public void refreshSchedule(IntegrationTaskDO task) {
         var data = checked(client.schedule().queryScheduleListPaging(task.getDsProjectCode(), task.getDsDefinitionCode(), null, 1, 100)).getJSONObject("data");
         var list = data == null ? null : data.getJSONArray("totalList");
-        if (list == null) throw new IllegalStateException("DS 调度查询缺少分页数据");
-        if (list.size() > 1) throw new IllegalStateException("工作流存在多个 DS 调度，请管理员核对后再操作");
+        if (list == null) {
+            throw new IllegalStateException("DS 调度查询缺少分页数据");
+        }
+        if (list.size() > 1) {
+            throw new IllegalStateException("工作流存在多个 DS 调度，请管理员核对后再操作");
+        }
         Integer id = list.isEmpty() ? null : list.getJSONObject(0).getInt("id");
         int enabled = !list.isEmpty() && "ONLINE".equals(list.getJSONObject(0).getStr("releaseState")) ? 1 : 0;
         if (!Objects.equals(task.getDsScheduleId(), id) || !Objects.equals(task.getScheduleStatus(), enabled)) {
@@ -251,7 +324,9 @@ public class IntegrationDsRuntime {
 
     private IntegrationRecordDO reconcile(IntegrationTaskDO task, JSONObject instance) {
         var globals = instance.getJSONArray("globalParams");
-        if (globals == null) return null;
+        if (globals == null) {
+            return null;
+        }
         for (Object value : globals) {
             var param = new JSONObject(value);
             if ("integration_run_id".equals(param.getStr("prop"))) {
@@ -290,7 +365,9 @@ public class IntegrationDsRuntime {
             object.forEach((key, item) -> sorted.put(String.valueOf(key), canonical(item)));
             return sorted;
         }
-        if (value instanceof Collection<?> array) return array.stream().map(IntegrationDsRuntime::canonical).toList();
+        if (value instanceof Collection<?> array) {
+            return array.stream().map(IntegrationDsRuntime::canonical).toList();
+        }
         return value;
     }
 
@@ -315,8 +392,13 @@ public class IntegrationDsRuntime {
     }
 
     private static LocalDateTime time(Object value) {
-        if (value == null || value instanceof cn.hutool.json.JSONNull) return null;
-        if (value instanceof Number epoch) return LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch.longValue()), ZoneId.of("Asia/Shanghai"));
+        if (value == null || value instanceof cn.hutool.json.JSONNull) {
+            return null;
+        }
+        if (value instanceof Number epoch) {
+            return LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(epoch.longValue()), ZoneId.of("Asia/Shanghai"));
+        }
         try { return LocalDateTime.parse(String.valueOf(value).replace(' ', 'T'), DateTimeFormatter.ISO_LOCAL_DATE_TIME); }
         catch (RuntimeException invalid) { throw new IllegalStateException("DS 返回无法识别的时间格式"); }
     }

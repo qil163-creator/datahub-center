@@ -42,7 +42,10 @@ public class DatabaseOscarImpl extends AbstractDatabase implements IDatabaseInte
         try (var statement = connection.prepareStatement("SELECT c.RELNAME FROM INFO_SCHEM.SYS_CLASS c JOIN INFO_SCHEM.SYS_NAMESPACE n ON n.OID=c.RELNAMESPACE WHERE n.NSPNAME=? AND c.RELKIND='r' ORDER BY c.RELNAME LIMIT 1")) {
             statement.setString(1, namespace); statement.setMaxRows(1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLFeatureNotSupportedException("神通 schema 无可见基本表，尚无独立 USAGE 检查契约", "0A000");
+                if (!rows.next()) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "神通 schema 无可见基本表，尚无独立 USAGE 检查契约", "0A000");
+                }
                 table = rows.getString(1);
             }
         }
@@ -70,7 +73,9 @@ public class DatabaseOscarImpl extends AbstractDatabase implements IDatabaseInte
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("神通目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("神通目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -79,7 +84,16 @@ public class DatabaseOscarImpl extends AbstractDatabase implements IDatabaseInte
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("神通诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("神通诊断参数必须完整且有界");
+        }
     }
 
     private static final String SHOW_CREATE_TABLE_SQL =

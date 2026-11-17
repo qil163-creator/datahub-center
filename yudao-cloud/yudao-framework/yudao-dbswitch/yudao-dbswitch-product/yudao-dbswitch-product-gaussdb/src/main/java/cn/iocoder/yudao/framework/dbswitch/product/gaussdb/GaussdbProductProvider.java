@@ -25,7 +25,11 @@ public final class GaussdbProductProvider implements DbSwitchProductProvider {
 
         @Override
         public ConnectionDiagnosticResult diagnose(ConnectionProbeRequest request, JdbcOpener opener) throws Exception {
-            if (request.product() != ProductTypeEnum.GAUSSDB || request.jdbcUrl() == null || !request.jdbcUrl().startsWith("jdbc:")) throw new IllegalArgumentException("GaussDB 产品和 JDBC 配置不匹配");
+            if (request.product() != ProductTypeEnum.GAUSSDB
+                    || request.jdbcUrl() == null
+                    || !request.jdbcUrl().startsWith("jdbc:")) {
+                throw new IllegalArgumentException("GaussDB 产品和 JDBC 配置不匹配");
+            }
             long started = System.nanoTime();
             var checks = new ArrayList<ConnectionDiagnosticResult.Check>();
             int timeout = (int) request.timeout().toSeconds();
@@ -34,43 +38,80 @@ public final class GaussdbProductProvider implements DbSwitchProductProvider {
                 checks.add(check("BASIC", "connection", "PASS", "已取得 GaussDB 实际服务器响应", null));
                 var target = new String[] {request.schema()};
                 // 默认 schema 的解析也是目标检查，失败不得丢失已经取得的服务器响应证据。
-                observe(checks, "TARGET", "SCHEMA", () -> {
-                    if (target[0] == null || target[0].isBlank()) {
-                        try (var statement = connection.prepareStatement("SELECT current_schema()")) {
-                            statement.setQueryTimeout(timeout); statement.setMaxRows(2);
-                            try (var rows = statement.executeQuery()) {
-                                if (!rows.next() || (target[0] = rows.getString(1)) == null || target[0].isBlank()) {
-                                    throw new SQLException("GaussDB 当前 schema 证据缺失");
+                observe(
+                        checks,
+                        "TARGET",
+                        "SCHEMA",
+                        () -> {
+                            if (target[0] == null || target[0].isBlank()) {
+                                try (var statement =
+                                        connection.prepareStatement("SELECT current_schema()")) {
+                                    statement.setQueryTimeout(timeout);
+                                    statement.setMaxRows(2);
+                                    try (var rows = statement.executeQuery()) {
+                                        if (!rows.next()
+                                                || (target[0] = rows.getString(1)) == null
+                                                || target[0].isBlank()) {
+                                            throw new SQLException("GaussDB 当前 schema 证据缺失");
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    try (var statement = connection.prepareStatement("SELECT pg_catalog.has_schema_privilege(current_user,n.oid,'USAGE') FROM pg_catalog.pg_namespace n WHERE n.nspname=?")) {
-                        statement.setString(1, target[0]); statement.setQueryTimeout(timeout); statement.setMaxRows(2);
-                        try (var rows = statement.executeQuery()) {
-                            if (!rows.next()) throw new SQLException("命名空间不存在", "3F000");
-                            if (!rows.getBoolean(1) || rows.wasNull()) throw new SQLException("命名空间访问被拒绝", "42501");
-                        }
-                    }
-                });
+                            try (var statement =
+                                    connection.prepareStatement(
+                                            "SELECT pg_catalog.has_schema_privilege(current_user,n.oid,'USAGE') FROM pg_catalog.pg_namespace n WHERE n.nspname=?")) {
+                                statement.setString(1, target[0]);
+                                statement.setQueryTimeout(timeout);
+                                statement.setMaxRows(2);
+                                try (var rows = statement.executeQuery()) {
+                                    if (!rows.next()) {
+                                        throw new SQLException("命名空间不存在", "3F000");
+                                    }
+                                    if (!rows.getBoolean(1) || rows.wasNull()) {
+                                        throw new SQLException("命名空间访问被拒绝", "42501");
+                                    }
+                                }
+                            }
+                        });
                 if (schemaVerified(checks)) {
-                    observe(checks, "METADATA", "TABLES", () -> {
-                        try (var statement = connection.prepareStatement("SELECT COUNT(*) FROM (SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=? AND c.relkind='r' LIMIT 101) diagnostic_tables")) {
-                            statement.setString(1, target[0]); statement.setQueryTimeout(timeout); statement.setMaxRows(2);
-                            try (var rows = statement.executeQuery()) {
-                                if (!rows.next()) throw new SQLException("目录无响应");
-                                if (rows.getInt(1) > 100) throw new SQLException("目录超出上限，拒绝截断", "54000");
-                            }
-                        }
-                    });
-                    observe(checks, "TARGET", "PRIVILEGES", () -> {
-                        try (var statement = connection.prepareStatement("SELECT rolname FROM pg_catalog.pg_roles WHERE rolname=current_user")) {
-                            statement.setQueryTimeout(timeout); statement.setMaxRows(2);
-                            try (var rows = statement.executeQuery()) {
-                                if (!rows.next() || rows.getString(1) == null) throw new SQLException("当前角色目录无响应");
-                            }
-                        }
-                    });
+                    observe(
+                            checks,
+                            "METADATA",
+                            "TABLES",
+                            () -> {
+                                try (var statement =
+                                        connection.prepareStatement(
+                                                "SELECT COUNT(*) FROM (SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=? AND c.relkind='r' LIMIT 101) diagnostic_tables")) {
+                                    statement.setString(1, target[0]);
+                                    statement.setQueryTimeout(timeout);
+                                    statement.setMaxRows(2);
+                                    try (var rows = statement.executeQuery()) {
+                                        if (!rows.next()) {
+                                            throw new SQLException("目录无响应");
+                                        }
+                                        if (rows.getInt(1) > 100) {
+                                            throw new SQLException("目录超出上限，拒绝截断", "54000");
+                                        }
+                                    }
+                                }
+                            });
+                    observe(
+                            checks,
+                            "TARGET",
+                            "PRIVILEGES",
+                            () -> {
+                                try (var statement =
+                                        connection.prepareStatement(
+                                                "SELECT rolname FROM pg_catalog.pg_roles WHERE rolname=current_user")) {
+                                    statement.setQueryTimeout(timeout);
+                                    statement.setMaxRows(2);
+                                    try (var rows = statement.executeQuery()) {
+                                        if (!rows.next() || rows.getString(1) == null) {
+                                            throw new SQLException("当前角色目录无响应");
+                                        }
+                                    }
+                                }
+                            });
                     extendedProperties(connection,target[0],timeout,checks);
                 } else {
                     checks.add(new ConnectionDiagnosticResult.Check("METADATA", "TABLES", "TABLES", "SKIPPED", 0,
@@ -102,8 +143,14 @@ public final class GaussdbProductProvider implements DbSwitchProductProvider {
                     return;
                 }
                 int tableComments=rows.getInt(2); int columns=rows.getInt(3); int comments=rows.getInt(4);
-                if (rows.wasNull() || tableComments<0 || tableComments>1 || columns<1 || comments<0 || comments>columns)
+                if (rows.wasNull()
+                        || tableComments < 0
+                        || tableComments > 1
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns) {
                     throw new SQLException("GaussDB 注释目录证据不完整");
+                }
                 checks.add(check("METADATA","EXTENDED_PROPERTIES","PASS","GaussDB 已读取基本表和列注释目录；无注释也是有效结果，不证明业务行 SELECT 权限",null));
             }
         } catch (SQLException failure) {

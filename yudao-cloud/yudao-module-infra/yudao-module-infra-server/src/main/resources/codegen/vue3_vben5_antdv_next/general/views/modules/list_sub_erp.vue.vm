@@ -54,7 +54,7 @@ import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.mo
 #end
 
 const props = defineProps<{
-  ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
+  ${subJoinColumn.javaField}?: ${simpleClassName}Api.Id // ${subJoinColumn.columnComment}（主表的关联字段）
 }>()
 
 #if ($table.templateType == 11) ## erp
@@ -109,7 +109,7 @@ async function handleDeleteBatch() {
   }
 }
 
-const checkedIds = ref<number[]>([])
+const checkedIds = ref<Array<${simpleClassName}Api.${subSimpleClassName}['id']>>([])
 function handleRowCheckboxChange({
   records,
 }: {

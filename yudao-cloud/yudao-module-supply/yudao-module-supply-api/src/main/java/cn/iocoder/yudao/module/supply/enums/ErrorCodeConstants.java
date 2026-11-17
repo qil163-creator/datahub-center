@@ -1,11 +1,9 @@
-package cn.iocoder.yudao.module.foundation.enums;
+package cn.iocoder.yudao.module.supply.enums;
 
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 
 /**
- *  错误码 Core 枚举类
- *
- * pay 系统，使用 1_500_000_000 段
+ * 数据供给模块的类目、接口、调用记录与应用错误码。
  */
 public interface ErrorCodeConstants {
 
@@ -46,8 +44,8 @@ public interface ErrorCodeConstants {
     ErrorCode DATA_API_CONTRACT_MISMATCH = new ErrorCode(1_500_040_021, "授权合同与当前发布不一致");
     ErrorCode DATA_API_ROLLBACK_DENIED = new ErrorCode(1_500_040_022, "不能回滚到该发布：{}");
 
-    // ========== 数据服务-调用记录 1_500_041_000 ==========
-    ErrorCode API_LOG_NOT_EXISTS = new ErrorCode(1_500_041_000, "调用记录不存在");
+    // ========== 数据服务-调用记录 1_500_041_100 ==========
+    ErrorCode API_LOG_NOT_EXISTS = new ErrorCode(1_500_041_100, "调用记录不存在");
 
     // ========== 数据服务-应用管理 1_500_042_000 ==========
     ErrorCode SUPPLY_APP_NOT_EXISTS = new ErrorCode(1_500_042_000, "应用不存在");

@@ -347,7 +347,9 @@ public final class DbSwitchProductDescriptor {
 
         /** 注册独立只读目录；原有 JDBC 能力仍须单独注册与验证。 */
         public Builder catalogMetadata(CatalogMetadata catalog) {
-            if (catalogMetadata != null) throw new IllegalArgumentException("重复的 SDK 目录读取器");
+            if (catalogMetadata != null) {
+                throw new IllegalArgumentException("重复的 SDK 目录读取器");
+            }
             catalogMetadata = Objects.requireNonNull(catalog, "catalogMetadata");
             return this;
         }

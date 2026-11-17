@@ -3,7 +3,7 @@ package cn.iocoder.yudao.module.dataforge.controller.admin.etl;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.EtlToolRespVO;
-import cn.iocoder.yudao.module.dataforge.dal.mysql.etl.EtlToolMapper;
+import cn.iocoder.yudao.module.dataforge.service.etl.EtlDesignService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -25,7 +25,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 public class EtlToolController {
 
     @Resource
-    private EtlToolMapper toolMapper;
+    private EtlDesignService designService;
 
     /**
      * 获得工具箱组件平铺列表（前端组树）。
@@ -37,7 +37,7 @@ public class EtlToolController {
     @PreAuthorize("@ss.hasPermission('dataforge:etl:query')")
 
     public CommonResult<List<EtlToolRespVO>> getToolList() {
-        return success(convertList(toolMapper.selectEnabledList(),
+        return success(convertList(designService.getEnabledTools(),
                 tool -> BeanUtils.toBean(tool, EtlToolRespVO.class)));
     }
 

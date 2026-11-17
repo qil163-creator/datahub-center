@@ -55,7 +55,9 @@ public class DatabaseDorisImpl extends DatabaseMysqlCompatibleOlapImpl implement
     /** 服务端参数绑定避免 NO_BACKSLASH_ESCAPES 下客户端把字符串转换为 Doris 不支持的 VARBINARY 比较。 */
     @Override
     public String preparePageQueryJdbcUrl(String jdbcUrl) {
-        if (getDatabaseType() != ProductTypeEnum.DORIS) return super.preparePageQueryJdbcUrl(jdbcUrl);
+        if (getDatabaseType() != ProductTypeEnum.DORIS) {
+            return super.preparePageQueryJdbcUrl(jdbcUrl);
+        }
         return JdbcUrlUtils.overrideMysqlQueryParams(jdbcUrl, java.util.Map.of(
                 "useServerPrepStmts", true, "emulateUnsupportedPstmts", false));
     }
@@ -63,7 +65,9 @@ public class DatabaseDorisImpl extends DatabaseMysqlCompatibleOlapImpl implement
     /** Doris 4.0 服务端预编译不接受 LIMIT 参数，业务参数仍由 PreparedStatement 原样绑定。 */
     @Override
     public PageSqlModel getPageModel(String sql, Integer page, Integer limit) {
-        if (getDatabaseType() != ProductTypeEnum.DORIS) return super.getPageModel(sql, page, limit);
+        if (getDatabaseType() != ProductTypeEnum.DORIS) {
+            return super.getPageModel(sql, page, limit);
+        }
         if (page == null || page < 1 || limit == null || limit < 1) {
             throw new IllegalArgumentException("分页页码和大小必须为正整数");
         }

@@ -8,7 +8,9 @@ public final class EtlManagedCrypto {
 
     public static String transform(boolean decrypt, String algorithm, String reference, String input, Path secretRoot) {
         EtlManagedSecrets.validate(reference, secretRoot);
-        if (input == null) return null;
+        if (input == null) {
+            return null;
+        }
         return crypt(decrypt, algorithm, EtlManagedSecrets.read(reference, secretRoot), input);
     }
 

@@ -42,7 +42,9 @@ public final class SchemaChanges {
 
     /** 创建语句必须由组件生成；产品 hook 对冻结后的每个语句重新做窄语法和目标校验。 */
     public static SqlScriptPlan plan(AbstractDatabase database, String schema, String table, List<String> statements) {
-        if (!supports(database.getDatabaseType())) throw new IllegalArgumentException("Unsupported schema product");
+        if (!supports(database.getDatabaseType())) {
+            throw new IllegalArgumentException("Unsupported schema product");
+        }
         if (database.getDatabaseType() == ProductTypeEnum.POSTGRESQL) {
             var plan = SqlScriptPlan.parse(ProductTypeEnum.POSTGRESQL, String.join(";\n", List.copyOf(statements)));
             if (plan.steps().stream().anyMatch(step -> step.kind() != SqlStatementClassifier.Kind.DDL)) {
@@ -71,7 +73,9 @@ public final class SchemaChanges {
         if (database.getDatabaseType() == ProductTypeEnum.POSTGRESQL) {
             var first = PostgresSchemaChanges.observe(connection, database, schema, table, options);
             var second = PostgresSchemaChanges.observe(connection, database, schema, table, options);
-            if (!first.sameState(second)) throw new SQLException("PostgreSQL schema changed during observation");
+            if (!first.sameState(second)) {
+                throw new SQLException("PostgreSQL schema changed during observation");
+            }
             return second;
         }
         requireDoris(database);
@@ -119,7 +123,9 @@ public final class SchemaChanges {
         }
         var verified = plan(database, expected.schemaName(), expected.tableName(),
                 plan.steps().stream().map(SqlScriptPlan.Step::sql).toList());
-        if (!verified.steps().equals(plan.steps())) throw new IllegalArgumentException("Schema plan changed during admission");
+        if (!verified.steps().equals(plan.steps())) {
+            throw new IllegalArgumentException("Schema plan changed during admission");
+        }
         if (transactionalDdl(plan.product())) {
             boolean commitSent = false;
             try {
@@ -133,7 +139,9 @@ public final class SchemaChanges {
                 connection.commit();
                 return new ExecutionResult(Outcome.COMMITTED, after);
             } catch (Exception failure) {
-                if (commitSent) return new ExecutionResult(Outcome.UNKNOWN, null);
+                if (commitSent) {
+                    return new ExecutionResult(Outcome.UNKNOWN, null);
+                }
                 try {
                     connection.rollback();
                     return new ExecutionResult(Outcome.ROLLED_BACK, null);
@@ -147,7 +155,9 @@ public final class SchemaChanges {
             requireDorisLiteralMode(connection, options.timeoutSeconds());
             database.awaitSchemaChange(connection, expected.schemaName(), expected.tableName(), options.timeoutSeconds());
             var current = observe(connection, database, expected.schemaName(), expected.tableName(), options);
-            if (!expected.matches(current)) return new ExecutionResult(Outcome.NOT_STARTED, current);
+            if (!expected.matches(current)) {
+                return new ExecutionResult(Outcome.NOT_STARTED, current);
+            }
             for (var step : verified.steps()) {
                 beforeStep.accept(step.ordinal());
                 started = true;
@@ -168,7 +178,9 @@ public final class SchemaChanges {
     /** PostgreSQL 持关系锁；Doris 复核两次原生事实，调用方仍须持有平台持久目标占用。 */
     public static void withGuardedObservation(Connection connection, AbstractDatabase database,
             String schema, String table, MetadataReadOptions options, Consumer<SchemaObservation> callback) throws SQLException {
-        if (!connection.getAutoCommit()) throw new IllegalArgumentException("A dedicated auto-commit connection is required");
+        if (!connection.getAutoCommit()) {
+            throw new IllegalArgumentException("A dedicated auto-commit connection is required");
+        }
         if (database.getDatabaseType() == ProductTypeEnum.POSTGRESQL) {
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             connection.setAutoCommit(false);
@@ -182,7 +194,9 @@ public final class SchemaChanges {
             database.awaitSchemaChange(connection, schema, table, options.timeoutSeconds());
             var first = observe(connection, database, schema, table, options);
             var second = observe(connection, database, schema, table, options);
-            if (!first.sameState(second)) throw new SQLException("Doris target changed during reconciliation");
+            if (!first.sameState(second)) {
+                throw new SQLException("Doris target changed during reconciliation");
+            }
             callback.accept(second);
         }
     }
@@ -197,9 +211,13 @@ public final class SchemaChanges {
         try (var statement = connection.createStatement()) {
             statement.setQueryTimeout(timeout);
             try (var rows = statement.executeQuery("SELECT @@sql_mode")) {
-                if (!rows.next() || rows.getString(1) == null
-                        || Arrays.stream(rows.getString(1).split(",")).anyMatch("NO_BACKSLASH_ESCAPES"::equalsIgnoreCase)
-                        || rows.next()) throw new SQLException("Doris literal mode is unverified");
+                if (!rows.next()
+                        || rows.getString(1) == null
+                        || Arrays.stream(rows.getString(1).split(","))
+                                .anyMatch("NO_BACKSLASH_ESCAPES"::equalsIgnoreCase)
+                        || rows.next()) {
+                    throw new SQLException("Doris literal mode is unverified");
+                }
             }
         }
     }
@@ -217,19 +235,28 @@ public final class SchemaChanges {
                 int count = 0;
                 while (rows.next()) {
                     String id = rows.getString("ClusterId"), observedVersion = rows.getString("Version");
-                    if (++count > 64 || id == null || !id.matches("[1-9][0-9]{0,18}")
-                            || cluster != null && !cluster.equals(id) || observedVersion == null
-                            || !observedVersion.startsWith("doris-4.0.")) throw new SQLException("Doris cluster identity is unverified");
+                    if (++count > 64
+                            || id == null
+                            || !id.matches("[1-9][0-9]{0,18}")
+                            || cluster != null && !cluster.equals(id)
+                            || observedVersion == null
+                            || !observedVersion.startsWith("doris-4.0.")) {
+                        throw new SQLException("Doris cluster identity is unverified");
+                    }
                     cluster = id;
                     if ("Yes".equals(rows.getString("CurrentConnected"))) {
-                        if (connected || !rows.getBoolean("Alive") || !rows.getBoolean("Join")) throw new SQLException("Doris FE is not healthy");
+                        if (connected || !rows.getBoolean("Alive") || !rows.getBoolean("Join")) {
+                            throw new SQLException("Doris FE is not healthy");
+                        }
                         connected = true;
                         version = observedVersion;
                     }
                 }
             }
         }
-        if (!connected) throw new SQLException("Doris connected FE identity is missing");
+        if (!connected) {
+            throw new SQLException("Doris connected FE identity is missing");
+        }
         String actor;
         try (var statement = connection.createStatement()) {
             statement.setQueryTimeout(timeout);
@@ -238,7 +265,9 @@ public final class SchemaChanges {
                     throw new SQLException("Doris catalog or case mode is unverified");
                 }
                 actor = rows.getString(2);
-                if (actor == null || actor.isBlank() || rows.next()) throw new SQLException("Doris actor is unavailable");
+                if (actor == null || actor.isBlank() || rows.next()) {
+                    throw new SQLException("Doris actor is unavailable");
+                }
             }
         }
         String databaseId = null;
@@ -248,15 +277,21 @@ public final class SchemaChanges {
             try (var rows = statement.executeQuery("SHOW PROC '/dbs'")) {
                 int count = 0;
                 while (rows.next()) {
-                    if (++count > 10000) throw new SQLException("Doris namespace inventory exceeds its bound");
+                    if (++count > 10000) {
+                        throw new SQLException("Doris namespace inventory exceeds its bound");
+                    }
                     if (schema.equals(rows.getString("DbName"))) {
-                        if (databaseId != null) throw new SQLException("Doris database identity is ambiguous");
+                        if (databaseId != null) {
+                            throw new SQLException("Doris database identity is ambiguous");
+                        }
                         databaseId = rows.getString("DbId");
                     }
                 }
             }
         }
-        if (databaseId == null || !databaseId.matches("[1-9][0-9]{0,18}")) throw new SQLException("Doris database identity is unavailable");
+        if (databaseId == null || !databaseId.matches("[1-9][0-9]{0,18}")) {
+            throw new SQLException("Doris database identity is unavailable");
+        }
         return new DorisScope(cluster, databaseId, actor, version);
     }
 
@@ -267,7 +302,9 @@ public final class SchemaChanges {
             statement.setString(1, schema);
             statement.setString(2, table);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) return false;
+                if (!rows.next()) {
+                    return false;
+                }
                 if (!schema.equals(rows.getString(1)) || !table.equals(rows.getString(2))
                         || !"BASE TABLE".equals(rows.getString(3)) || !"Doris".equals(rows.getString(4)) || rows.next()) {
                     throw new SQLException("Only an exact internal Doris base table can be deployed");
@@ -281,9 +318,13 @@ public final class SchemaChanges {
         try (var statement = connection.createStatement()) {
             statement.setQueryTimeout(timeout);
             try (var rows = statement.executeQuery("SHOW CREATE TABLE " + relation)) {
-                if (!rows.next()) throw new SQLException("Doris table definition is missing");
+                if (!rows.next()) {
+                    throw new SQLException("Doris table definition is missing");
+                }
                 String sql = rows.getString(2);
-                if (sql == null || sql.length() > 1_048_576 || rows.next()) throw new SQLException("Doris table definition is ambiguous");
+                if (sql == null || sql.length() > 1_048_576 || rows.next()) {
+                    throw new SQLException("Doris table definition is ambiguous");
+                }
                 return sql;
             }
         }
@@ -291,7 +332,9 @@ public final class SchemaChanges {
 
     private static String digest(String... values) {
         StringBuilder text = new StringBuilder();
-        for (String value : values) text.append(value.length()).append(':').append(value);
+        for (String value : values) {
+            text.append(value.length()).append(':').append(value);
+        }
         return SqlScriptPlan.digest(text.toString());
     }
 }

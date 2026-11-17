@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.API_LOG_NOT_EXISTS;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.API_LOG_NOT_EXISTS;
 
 /**
  * 数据服务-API 调用记录 Service 实现类

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.etl;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.etl.core.engine.EtlPreviewEngine;
@@ -53,8 +54,11 @@ public class EtlPreviewSessionService {
         this.design = design;
         this.access = access;
         this.config = config;
-        workers = Executors.newFixedThreadPool(config.getConcurrency(), task -> daemon(task, "etl-preview-session"));
-        maintenance = Executors.newSingleThreadScheduledExecutor(task -> daemon(task, "etl-preview-session-cleanup"));
+        int concurrency = config.getConcurrency();
+        workers = new ThreadPoolExecutor(concurrency, concurrency, 0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(concurrency), Thread.ofPlatform().daemon().name("etl-preview-session-", 1).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
+        maintenance = ThreadPoolUtils.newDaemonScheduler(1, "etl-preview-session-cleanup");
     }
 
     /**
@@ -427,19 +431,6 @@ public class EtlPreviewSessionService {
      */
     private long now() {
         return clock.millis();
-    }
-
-    /**
-     * 创建用于当前后台处理的守护线程。
-     *
-     * @param task 任务记录
-     * @param name 名称
-     * @return 线程
-     */
-    private static Thread daemon(Runnable task, String name) {
-        Thread thread = new Thread(task, name);
-        thread.setDaemon(true);
-        return thread;
     }
 
     /**

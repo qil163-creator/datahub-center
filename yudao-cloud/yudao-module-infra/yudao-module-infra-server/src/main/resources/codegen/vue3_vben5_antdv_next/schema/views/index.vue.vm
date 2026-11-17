@@ -133,7 +133,7 @@ async function handleDeleteBatch() {
   }
 }
 
-const checkedIds = ref<number[]>([]);
+const checkedIds = ref<${apiName}.Id[]>([]);
 function handleRowCheckboxChange({
   records,
 }: {

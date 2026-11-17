@@ -716,7 +716,9 @@ public class DevTaskServiceImpl implements DevTaskService {
     public cn.iocoder.yudao.module.dataforge.model.dev.DevJobNode previewJobNodeForActor(Long taskId, Long actor) {
         var task=validateTaskExists(taskId);validateRunnable(task);var version=requireCurrentVersion(task);
         var snapshot=DevTaskSnapshot.read(version.getSnapshotJson());
-        if(actor==null||!Objects.equals(actor,snapshot.getTask().getExecutionUserId()))throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        if (actor == null || !Objects.equals(actor, snapshot.getTask().getExecutionUserId())) {
+            throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        }
         executionAccessService.requireUserPermission(actor,ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
         if(DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
             nativeRuntimeSupport.requireActor(snapshot.getTask(),actor);nativeRuntimeSupport.requireFrozen(snapshot);
@@ -734,13 +736,25 @@ public class DevTaskServiceImpl implements DevTaskService {
     public cn.iocoder.yudao.module.dataforge.model.dev.DevJobNode prepareJobNodeForActor(Long taskId,Long expectedVersionId,
             String runKey,java.time.LocalDate businessDate,Long actor) {
         var target=previewJobNodeForActor(taskId,actor);
-        if(!Objects.equals(expectedVersionId,target.versionId())||runKey==null||!runKey.matches("JOB:[1-9][0-9]*:[A-Za-z0-9_-]{1,80}"))throw exception(DEV_RUN_REQUEST_CONFLICT);
+        if (!Objects.equals(expectedVersionId, target.versionId())
+                || runKey == null
+                || !runKey.matches("JOB:[1-9][0-9]*:[A-Za-z0-9_-]{1,80}")) {
+            throw exception(DEV_RUN_REQUEST_CONFLICT);
+        }
         var version=versionMapper.selectById(target.versionId());
-        Long recordId=transactionTemplate.execute(status->{
-            var current=taskMapper.selectForUpdate(taskId);
-            if(current==null||!Objects.equals(current.getCurrentVersionId(),target.versionId()))throw exception(DEV_TASK_REVISION_CONFLICT);
-            validateRunnable(current);return dsSubmitter.enqueue(current,version,"JOB",runKey,businessDate);
-        });
+        Long recordId =
+                transactionTemplate.execute(
+                        status -> {
+                            var current = taskMapper.selectForUpdate(taskId);
+                            if (current == null
+                                    || !Objects.equals(
+                                            current.getCurrentVersionId(), target.versionId())) {
+                                throw exception(DEV_TASK_REVISION_CONFLICT);
+                            }
+                            validateRunnable(current);
+                            return dsSubmitter.enqueue(
+                                    current, version, "JOB", runKey, businessDate);
+                        });
         try{return dsSubmitter.prepareJobNode(recordId);}
         catch(RuntimeException failure){dsSubmitter.cancelPreparedJobNode(recordId);throw failure;}
     }
@@ -751,11 +765,17 @@ public class DevTaskServiceImpl implements DevTaskService {
     @Override
     public void authorizeJobTaskStop(Long taskId,Long versionId,Long caller) {
         var version=versionMapper.selectById(versionId);
-        if(version==null||!Objects.equals(taskId,version.getTaskId()))throw exception(DEV_RECORD_NOT_EXISTS);
+        if (version == null || !Objects.equals(taskId, version.getTaskId())) {
+            throw exception(DEV_RECORD_NOT_EXISTS);
+        }
         var snapshot=DevTaskSnapshot.read(version.getSnapshotJson());
-        if(!Objects.equals(taskId,snapshot.getTask().getId()))throw exception(DEV_RECORD_NOT_EXISTS);
+        if (!Objects.equals(taskId, snapshot.getTask().getId())) {
+            throw exception(DEV_RECORD_NOT_EXISTS);
+        }
         executionAccessService.requireUserPermission(caller,ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
-        if(DevNativeRuntimeSupport.isNative(snapshot.getTask()))nativeRuntimeSupport.requireActor(snapshot.getTask(),caller);
+        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
+            nativeRuntimeSupport.requireActor(snapshot.getTask(), caller);
+        }
     }
 
     @Override
@@ -764,7 +784,9 @@ public class DevTaskServiceImpl implements DevTaskService {
     @Override
     public void stopJobNode(Long recordId,Long actor) {
         var record=dsSubmitter.authorizeJobNode(recordId,actor);
-        if(DevRecordDO.ACTIVE_STATUSES.contains(record.getStatus()))dsSubmitter.stop(recordId);
+        if (DevRecordDO.ACTIVE_STATUSES.contains(record.getStatus())) {
+            dsSubmitter.stop(recordId);
+        }
     }
 
     @Override

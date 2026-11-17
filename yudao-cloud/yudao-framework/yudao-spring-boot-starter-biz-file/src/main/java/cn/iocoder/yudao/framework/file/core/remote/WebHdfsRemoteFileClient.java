@@ -35,23 +35,32 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         try {
             endpoint = URI.create(config.webHdfsUrl());
             validateEndpoint(endpoint);
-            if (!(endpoint.getPath().isEmpty() || endpoint.getPath().equals("/")
-                    || endpoint.getPath().equals("/webhdfs/v1"))) throw new IllegalArgumentException("WebHDFS 地址路径不合法");
+            if (!(endpoint.getPath().isEmpty()
+                    || endpoint.getPath().equals("/")
+                    || endpoint.getPath().equals("/webhdfs/v1"))) {
+                throw new IllegalArgumentException("WebHDFS 地址路径不合法");
+            }
             dataNodes.add(authority(endpoint));
             for (String allowed : config.allowedDataNodeAuthorities()) {
                 URI node = URI.create(endpoint.getScheme() + "://" + allowed);
                 validateEndpoint(node);
-                if (!node.getPath().isEmpty()) throw new IllegalArgumentException("DataNode 地址不合法");
+                if (!node.getPath().isEmpty()) {
+                    throw new IllegalArgumentException("DataNode 地址不合法");
+                }
                 dataNodes.add(authority(node));
             }
         } catch (IllegalArgumentException | NullPointerException error) {
             throw new IllegalArgumentException("WebHDFS 连接配置不合法");
         }
-        deadline = new RemoteFileSessionDeadline(() -> {
-            closed = true;
-            HttpURLConnection connection = activeConnection;
-            if (connection != null) connection.disconnect();
-        });
+        deadline =
+                new RemoteFileSessionDeadline(
+                        () -> {
+                            closed = true;
+                            HttpURLConnection connection = activeConnection;
+                            if (connection != null) {
+                                connection.disconnect();
+                            }
+                        });
         try { guard("/", true); }
         catch (IOException | RuntimeException error) { close(); throw error; }
     }
@@ -63,7 +72,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         List<RemoteFileEntry> result = new ArrayList<>();
         for (JsonNode node : listAbsolute(absolute)) {
             String type = node.path("type").asString();
-            if (type.equals("SYMLINK")) continue;
+            if (type.equals("SYMLINK")) {
+                continue;
+            }
             result.add(entry(RemoteFilePaths.child(path, node.path("pathSuffix").asString()), node));
         }
         return result;
@@ -88,7 +99,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         HttpURLConnection first = open(initial, "PUT");
         URI location;
         try {
-            if (first.getResponseCode() != 307) throw new IOException("WebHDFS 创建请求未返回受控重定向");
+            if (first.getResponseCode() != 307) {
+                throw new IOException("WebHDFS 创建请求未返回受控重定向");
+            }
             location = redirect(initial, first.getHeaderField("Location"), "CREATE");
         } finally { first.disconnect(); }
         boolean created = false;
@@ -100,8 +113,12 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
                 upload.setRequestProperty("Content-Type", "application/octet-stream");
                 long written;
                 try (OutputStream stream = upload.getOutputStream()) { written = RemoteFileStreams.copy(input, stream, size); }
-                if (written != size) throw new IOException("上传大小与声明不一致");
-                if (upload.getResponseCode() != 201) throw new IOException("WebHDFS 上传失败");
+                if (written != size) {
+                    throw new IOException("上传大小与声明不一致");
+                }
+                if (upload.getResponseCode() != 201) {
+                    throw new IOException("WebHDFS 上传失败");
+                }
                 created = true;
             } finally { upload.disconnect(); }
             RemoteFileOperations.commitUpload(this, temporary, path, overwrite);
@@ -110,7 +127,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
             try { delete(temporary); } catch (FileNotFoundException ignored) {
                 // 提交成功后暂存名称已不存在。
             } catch (IOException ignored) {
-                if (!created) closed = true;
+                if (!created) {
+                    closed = true;
+                }
             }
         }
     }
@@ -118,8 +137,12 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
     @Override
     public void download(String path, OutputStream output, long maxBytes) throws IOException {
         RemoteFileEntry file = stat(path);
-        if (file.directory()) throw new IOException("目录需要打包下载");
-        if (file.size() > maxBytes) throw new IOException("文件超过下载上限");
+        if (file.directory()) {
+            throw new IOException("目录需要打包下载");
+        }
+        if (file.size() > maxBytes) {
+            throw new IOException("文件超过下载上限");
+        }
         URI initial = operationUri(RemoteFilePaths.resolve(config.rootPath(), path), "OPEN", Map.of());
         HttpURLConnection connection = open(initial, "GET");
         try {
@@ -130,7 +153,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
                 connection = open(target, "GET");
                 status = connection.getResponseCode();
             }
-            if (status != 200) throw new IOException("WebHDFS 下载失败");
+            if (status != 200) {
+                throw new IOException("WebHDFS 下载失败");
+            }
             try (InputStream input = connection.getInputStream()) { RemoteFileStreams.copy(input, output, maxBytes); }
         } finally { connection.disconnect(); }
     }
@@ -163,7 +188,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
 
     private String guard(String virtualPath, boolean directory) throws IOException {
         deadline.check();
-        if (closed) throw new IOException("文件连接已关闭");
+        if (closed) {
+            throw new IOException("文件连接已关闭");
+        }
         String absolute = RemoteFilePaths.resolve(config.rootPath(), virtualPath);
         String current = "/";
         JsonNode found = null;
@@ -173,20 +200,30 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
                 for (JsonNode node : listAbsolute(current)) {
                     if (node.path("pathSuffix").asString().equals(part)) { found = node; break; }
                 }
-                if (found == null) throw new FileNotFoundException("文件不存在");
+                if (found == null) {
+                    throw new FileNotFoundException("文件不存在");
+                }
                 current = RemoteFilePaths.child(current, part);
                 String type = found.path("type").asString();
-                if (!type.equals("FILE") && !type.equals("DIRECTORY")) throw new IOException("禁止访问符号链接或特殊文件");
-                if (!current.equals(absolute) && !type.equals("DIRECTORY")) throw new IOException("父路径不是目录");
+                if (!type.equals("FILE") && !type.equals("DIRECTORY")) {
+                    throw new IOException("禁止访问符号链接或特殊文件");
+                }
+                if (!current.equals(absolute) && !type.equals("DIRECTORY")) {
+                    throw new IOException("父路径不是目录");
+                }
             }
         }
-        if (directory && found != null && !found.path("type").asString().equals("DIRECTORY")) throw new IOException("路径不是目录");
+        if (directory && found != null && !found.path("type").asString().equals("DIRECTORY")) {
+            throw new IOException("路径不是目录");
+        }
         return absolute;
     }
 
     private List<JsonNode> listAbsolute(String path) throws IOException {
         JsonNode nodes = requestJson("GET", path, "LISTSTATUS", Map.of()).path("FileStatuses").path("FileStatus");
-        if (!nodes.isArray() || nodes.size() > RemoteFileStreams.MAX_ENTRIES) throw new IOException("目录响应不合法或超过上限");
+        if (!nodes.isArray() || nodes.size() > RemoteFileStreams.MAX_ENTRIES) {
+            throw new IOException("目录响应不合法或超过上限");
+        }
         List<JsonNode> result = new ArrayList<>();
         for (JsonNode node : nodes) {
             RemoteFilePaths.child(path, node.path("pathSuffix").asString());
@@ -197,9 +234,13 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
 
     private RemoteFileEntry entry(String path, JsonNode node) throws IOException {
         String type = node.path("type").asString();
-        if (!type.equals("FILE") && !type.equals("DIRECTORY")) throw new IOException("禁止访问符号链接或特殊文件");
+        if (!type.equals("FILE") && !type.equals("DIRECTORY")) {
+            throw new IOException("禁止访问符号链接或特殊文件");
+        }
         long size = node.path("length").asLong(0);
-        if (size < 0) throw new IOException("文件大小不合法");
+        if (size < 0) {
+            throw new IOException("文件大小不合法");
+        }
         return new RemoteFileEntry(RemoteFilePaths.name(path), path, type.equals("DIRECTORY"),
                 type.equals("DIRECTORY") ? 0 : size, node.path("modificationTime").asLong(0));
     }
@@ -208,8 +249,12 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         HttpURLConnection connection = open(operationUri(absolute, operation, args), method);
         try {
             int status = connection.getResponseCode();
-            if (status == 404) throw new FileNotFoundException("文件不存在");
-            if (status != 200) throw new IOException("WebHDFS 操作失败，HTTP " + status);
+            if (status == 404) {
+                throw new FileNotFoundException("文件不存在");
+            }
+            if (status != 200) {
+                throw new IOException("WebHDFS 操作失败，HTTP " + status);
+            }
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             try (InputStream input = connection.getInputStream()) { RemoteFileStreams.copy(input, bytes, 4L * 1024 * 1024); }
             try { return JSON.readTree(bytes.toByteArray()); }
@@ -219,7 +264,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
 
     private URI operationUri(String absolute, String operation, Map<String, String> args) {
         StringBuilder query = new StringBuilder("op=").append(operation);
-        if (config.username() != null && !config.username().isBlank()) query.append("&user.name=").append(encode(config.username()));
+        if (config.username() != null && !config.username().isBlank()) {
+            query.append("&user.name=").append(encode(config.username()));
+        }
         args.forEach((key, value) -> query.append('&').append(encode(key)).append('=').append(encode(value)));
         try {
             String path = new URI(null, null, "/webhdfs/v1" + absolute, null).toASCIIString();
@@ -246,7 +293,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
 
     private HttpURLConnection open(URI uri, String method) throws IOException {
         deadline.check();
-        if (closed) throw new IOException("文件连接已关闭");
+        if (closed) {
+            throw new IOException("文件连接已关闭");
+        }
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         // 禁止回退到应用注册的全局 HTTP 密码认证器。
         connection.setAuthenticator(new java.net.Authenticator() { });
@@ -265,7 +314,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
     }
 
     private static void requireTrue(JsonNode response) throws IOException {
-        if (!response.path("boolean").asBoolean(false)) throw new IOException("WebHDFS 操作未成功");
+        if (!response.path("boolean").asBoolean(false)) {
+            throw new IOException("WebHDFS 操作未成功");
+        }
     }
 
     private static void validateEndpoint(URI uri) { validateEndpoint(uri, false); }
@@ -287,7 +338,9 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         for (String entry : uri.getRawQuery().split("&")) {
             String[] pair = entry.split("=", 2);
             if (URLDecoder.decode(pair[0], StandardCharsets.UTF_8).equals(name)) {
-                if (result != null || pair.length != 2) throw new IOException("WebHDFS 重定向参数重复");
+                if (result != null || pair.length != 2) {
+                    throw new IOException("WebHDFS 重定向参数重复");
+                }
                 result = URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
             }
         }
@@ -300,6 +353,8 @@ final class WebHdfsRemoteFileClient implements RemoteFileClient {
         deadline.close();
         HttpURLConnection connection = activeConnection;
         activeConnection = null;
-        if (connection != null) connection.disconnect();
+        if (connection != null) {
+            connection.disconnect();
+        }
     }
 }

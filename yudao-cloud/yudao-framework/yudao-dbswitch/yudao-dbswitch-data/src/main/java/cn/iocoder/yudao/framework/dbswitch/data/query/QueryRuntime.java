@@ -89,8 +89,8 @@ public final class QueryRuntime implements AutoCloseable {
 
     private final ExecutorService cleanup = executor("dbswitch-query-cleanup", 4, 128);
 
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(
-            threads("dbswitch-query-clock"));
+    private final ScheduledExecutorService timer = new ScheduledThreadPoolExecutor(1,
+            threads("dbswitch-query-clock"), new ThreadPoolExecutor.AbortPolicy());
 
     private volatile boolean closing;
 

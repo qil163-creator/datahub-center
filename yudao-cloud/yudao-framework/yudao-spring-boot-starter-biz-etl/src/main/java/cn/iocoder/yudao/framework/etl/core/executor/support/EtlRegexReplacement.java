@@ -13,18 +13,32 @@ public final class EtlRegexReplacement {
     /** Spark JAVA_METHOD 的稳定入口，布尔参数使用字符串以保持 Java 反射参数类型明确。 */
     public static String replace(String source, String search, String regex, String sensitive, String wholeWord,
                                  String replacement, String literalReplacement) {
-        if (source == null) return null;
+        if (source == null) {
+            return null;
+        }
         boolean useRegex = Boolean.parseBoolean(regex);
-        return compile(search, useRegex, Boolean.parseBoolean(sensitive), Boolean.parseBoolean(wholeWord),
-                replacement == null ? "" : replacement, useRegex && !Boolean.parseBoolean(literalReplacement))
-                .apply(source, replacement, () -> {
-                    if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("受管正则函数已取消");
-                });
+        return compile(
+                        search,
+                        useRegex,
+                        Boolean.parseBoolean(sensitive),
+                        Boolean.parseBoolean(wholeWord),
+                        replacement == null ? "" : replacement,
+                        useRegex && !Boolean.parseBoolean(literalReplacement))
+                .apply(
+                        source,
+                        replacement,
+                        () -> {
+                            if (Thread.currentThread().isInterrupted()) {
+                                throw new IllegalStateException("受管正则函数已取消");
+                            }
+                        });
     }
 
     public static Plan compile(String search, boolean regex, boolean sensitive, boolean wholeWord,
                                String replacement, boolean interpretGroups) {
-        if (search == null || search.isEmpty() || search.length() > 4096) throw new IllegalArgumentException("搜索内容须为1至4096个字符");
+        if (search == null || search.isEmpty() || search.length() > 4096) {
+            throw new IllegalArgumentException("搜索内容须为1至4096个字符");
+        }
         Pattern pattern = Pattern.compile(regex ? search : Pattern.quote(search), Pattern.UNICODE_CHARACTER_CLASS
                 | Pattern.UNICODE_CASE | (sensitive ? 0 : Pattern.CASE_INSENSITIVE));
         return new Plan(pattern, wholeWord, regex && interpretGroups ? replacementParts(pattern, replacement) : null);
@@ -38,15 +52,24 @@ public final class EtlRegexReplacement {
 
         /** literalReplacement 始终按字面处理；配置为正则分组替换时使用编译后的 parts。 */
         public String apply(String source, String literalReplacement, Runnable checkpoint) {
-            if (source == null) return null;
+            if (source == null) {
+                return null;
+            }
             bounded(source); String literal = literalReplacement == null ? "" : literalReplacement; bounded(literal);
             Matcher matcher = pattern.matcher(new CheckedText(source, checkpoint)); StringBuilder output = new StringBuilder(); int end = 0;
             while (matcher.find()) {
                 checkpoint.run();
-                if (wholeWord && !wholeWord(source, matcher.start(), matcher.end())) continue;
+                if (wholeWord && !wholeWord(source, matcher.start(), matcher.end())) {
+                    continue;
+                }
                 append(output, source.substring(end, matcher.start()));
-                if (parts == null) append(output, literal);
-                else for (Part part : parts) append(output, part.value(matcher));
+                if (parts == null) {
+                    append(output, literal);
+                } else {
+                    for (Part part : parts) {
+                        append(output, part.value(matcher));
+                    }
+                }
                 end = matcher.end();
             }
             append(output, source.substring(end)); return output.toString();
@@ -55,7 +78,9 @@ public final class EtlRegexReplacement {
 
     private record Part(String literal, Integer group, String namedGroup) {
         String value(Matcher matcher) {
-            if (literal != null) return literal;
+            if (literal != null) {
+                return literal;
+            }
             String value = namedGroup == null ? matcher.group(group) : matcher.group(namedGroup);
             return value == null ? "" : value;
         }
@@ -67,28 +92,44 @@ public final class EtlRegexReplacement {
         for (int i = 0; i < value.length(); i++) {
             char current = value.charAt(i);
             if (current == '\\') {
-                if (++i == value.length()) throw new IllegalArgumentException("替换内容末尾缺少转义字符");
+                if (++i == value.length()) {
+                    throw new IllegalArgumentException("替换内容末尾缺少转义字符");
+                }
                 literal.append(value.charAt(i));
             } else if (current == '$') {
                 if (literal.length() > 0) { parts.add(new Part(literal.toString(), null, null)); literal.setLength(0); }
-                if (++i == value.length()) throw new IllegalArgumentException("替换内容缺少分组编号");
+                if (++i == value.length()) {
+                    throw new IllegalArgumentException("替换内容缺少分组编号");
+                }
                 if (value.charAt(i) == '{') {
                     int end = value.indexOf('}', i + 1); String name = end < 0 ? "" : value.substring(i + 1, end);
-                    if (!name.matches("[A-Za-z][A-Za-z0-9]*") || !hasNamedGroup(pattern, name)) throw new IllegalArgumentException("替换内容引用了不存在的命名分组");
+                    if (!name.matches("[A-Za-z][A-Za-z0-9]*") || !hasNamedGroup(pattern, name)) {
+                        throw new IllegalArgumentException("替换内容引用了不存在的命名分组");
+                    }
                     parts.add(new Part(null, null, name)); i = end;
                 } else {
                     char digit = value.charAt(i);
-                    if (digit < '0' || digit > '9' || digit - '0' > groups) throw new IllegalArgumentException("替换内容引用了不存在的分组");
+                    if (digit < '0' || digit > '9' || digit - '0' > groups) {
+                        throw new IllegalArgumentException("替换内容引用了不存在的分组");
+                    }
                     int group = digit - '0';
                     while (i + 1 < value.length() && Character.isDigit(value.charAt(i + 1))) {
-                        char next = value.charAt(i + 1); if (next > '9' || group * 10 + next - '0' > groups) break;
+                        char next = value.charAt(i + 1);
+                        if (next > '9' || group * 10 + next - '0' > groups) {
+                            break;
+                        }
                         group = group * 10 + next - '0'; i++;
                     }
                     parts.add(new Part(null, group, null));
                 }
-            } else literal.append(current);
+            } else {
+                literal.append(current);
+            }
         }
-        if (literal.length() > 0) parts.add(new Part(literal.toString(), null, null)); return List.copyOf(parts);
+        if (literal.length() > 0) {
+            parts.add(new Part(literal.toString(), null, null));
+        }
+        return List.copyOf(parts);
     }
 
     private static boolean hasNamedGroup(Pattern pattern, String name) {
@@ -107,15 +148,27 @@ public final class EtlRegexReplacement {
                 || type == Character.COMBINING_SPACING_MARK || type == Character.ENCLOSING_MARK
                 || type == Character.CONNECTOR_PUNCTUATION || codePoint == 0x200c || codePoint == 0x200d;
     }
-    private static void bounded(String value) { if (value.length() > MAX_TEXT_LENGTH) throw new IllegalStateException("字符串转换超过字段长度预算"); }
-    private static void append(StringBuilder output, String value) { if (value.length() > MAX_TEXT_LENGTH - output.length()) throw new IllegalStateException("字符串转换超过字段长度预算"); output.append(value); }
+    private static void bounded(String value) {
+        if (value.length() > MAX_TEXT_LENGTH) {
+            throw new IllegalStateException("字符串转换超过字段长度预算");
+        }
+    }
+    private static void append(StringBuilder output, String value) {
+        if (value.length() > MAX_TEXT_LENGTH - output.length()) {
+            throw new IllegalStateException("字符串转换超过字段长度预算");
+        }
+        output.append(value); }
 
     /** 正则回溯过程中定期检查取消和超时。 */
     private static final class CheckedText implements CharSequence {
         private final String text; private final Runnable checkpoint; private int reads;
         private CheckedText(String text, Runnable checkpoint) { this.text = text; this.checkpoint = checkpoint; }
         @Override public int length() { return text.length(); }
-        @Override public char charAt(int index) { if ((reads++ & 255) == 0) checkpoint.run(); return text.charAt(index); }
+        @Override public char charAt(int index) {
+            if ((reads++ & 255) == 0) {
+                checkpoint.run();
+            }
+            return text.charAt(index); }
         @Override public CharSequence subSequence(int start, int end) { checkpoint.run(); return text.subSequence(start, end); }
         @Override public String toString() { return text; }
     }

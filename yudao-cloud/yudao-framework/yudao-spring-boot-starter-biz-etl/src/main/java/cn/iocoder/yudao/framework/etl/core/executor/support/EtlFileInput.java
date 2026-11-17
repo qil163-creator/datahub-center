@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.framework.etl.core.executor.support;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -87,11 +88,7 @@ public final class EtlFileInput {
 
         private final AtomicReference<State> state = new AtomicReference<>(State.ACTIVE);
 
-        private final ScheduledExecutorService watchdog = Executors.newSingleThreadScheduledExecutor(task -> {
-            var thread = new Thread(task, "etl-file-deadline");
-            thread.setDaemon(true);
-            return thread;
-        });
+        private final ScheduledExecutorService watchdog = ThreadPoolUtils.newDaemonScheduler(1, "etl-file-deadline");
 
         private final ScheduledFuture<?> alarm;
 

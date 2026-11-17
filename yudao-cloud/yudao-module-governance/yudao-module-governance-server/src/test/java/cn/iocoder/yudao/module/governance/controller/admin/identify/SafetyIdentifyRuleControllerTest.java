@@ -4,14 +4,13 @@ import cn.iocoder.yudao.framework.test.core.ut.BaseMockitoUnitTest;
 import cn.iocoder.yudao.module.governance.dal.dataobject.category.SafetyCategoryDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.identify.SafetyIdentifyRuleDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.level.SafetyLevelDO;
-import cn.iocoder.yudao.module.governance.dal.mysql.category.SafetyCategoryMapper;
-import cn.iocoder.yudao.module.governance.dal.mysql.level.SafetyLevelMapper;
+import cn.iocoder.yudao.module.governance.service.category.SafetyClassificationReferenceService;
 import cn.iocoder.yudao.module.governance.service.identify.SafetyIdentifyService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -21,15 +20,14 @@ import static org.mockito.Mockito.when;
 class SafetyIdentifyRuleControllerTest extends BaseMockitoUnitTest {
     @InjectMocks private SafetyIdentifyRuleController controller;
     @Mock private SafetyIdentifyService identifyService;
-    @Mock private SafetyCategoryMapper categoryMapper;
-    @Mock private SafetyLevelMapper levelMapper;
+    @Mock private SafetyClassificationReferenceService classificationService;
 
     @Test
     void inheritedLevelIsDisplayedWithoutChangingStoredRuleConfiguration() {
         when(identifyService.getRule(1L)).thenReturn(SafetyIdentifyRuleDO.builder().id(1L).categoryId(2L).build());
-        when(categoryMapper.selectByIds(anyCollection())).thenReturn(List.of(
+        when(classificationService.getCategoryMap(anyCollection())).thenReturn(Map.of(2L,
                 SafetyCategoryDO.builder().id(2L).name("分类").dataLevelId(3).build()));
-        when(levelMapper.selectList()).thenReturn(List.of(SafetyLevelDO.builder().id(3L).safetyName("三级").build()));
+        when(classificationService.getLevelMap()).thenReturn(Map.of(3L, SafetyLevelDO.builder().id(3L).safetyName("三级").build()));
 
         var rule = controller.getRule(1L).getCheckedData();
         assertNull(rule.getLevelId());
@@ -40,9 +38,9 @@ class SafetyIdentifyRuleControllerTest extends BaseMockitoUnitTest {
     @Test
     void explicitLevelTakesPrecedenceOverCategoryLevel() {
         when(identifyService.getRule(1L)).thenReturn(SafetyIdentifyRuleDO.builder().id(1L).categoryId(2L).levelId(4L).build());
-        when(categoryMapper.selectByIds(anyCollection())).thenReturn(List.of(
+        when(classificationService.getCategoryMap(anyCollection())).thenReturn(Map.of(2L,
                 SafetyCategoryDO.builder().id(2L).dataLevelId(3).build()));
-        when(levelMapper.selectList()).thenReturn(List.of(SafetyLevelDO.builder().id(4L).safetyName("四级").build()));
+        when(classificationService.getLevelMap()).thenReturn(Map.of(4L, SafetyLevelDO.builder().id(4L).safetyName("四级").build()));
 
         var rule = controller.getRule(1L).getCheckedData();
         assertEquals(4L, rule.getLevelId());

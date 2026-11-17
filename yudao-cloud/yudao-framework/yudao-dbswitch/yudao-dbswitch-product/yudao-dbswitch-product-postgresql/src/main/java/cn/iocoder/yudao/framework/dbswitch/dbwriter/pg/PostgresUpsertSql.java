@@ -10,8 +10,12 @@ public final class PostgresUpsertSql {
     private PostgresUpsertSql() { }
 
     public static String quote(String name) {
-        if (name == null || name.isEmpty() || name.indexOf('\0') >= 0 || name.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 63)
+        if (name == null
+                || name.isEmpty()
+                || name.indexOf('\0') >= 0
+                || name.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 63) {
             throw new IllegalArgumentException("PostgreSQL 标识符无效");
+        }
         return "\"" + name.replace("\"", "\"\"") + "\"";
     }
 
@@ -20,8 +24,11 @@ public final class PostgresUpsertSql {
     /** 调用方持有目标表写锁并负责同一连接的提交/回滚，不在此创建连接或提交。 */
     public static void verifyUniqueKey(Connection connection, String schema, String table,
                                        List<String> uniqueKeys, int timeoutSeconds) throws SQLException {
-        if (uniqueKeys == null || uniqueKeys.isEmpty() || new HashSet<>(uniqueKeys).size() != uniqueKeys.size())
+        if (uniqueKeys == null
+                || uniqueKeys.isEmpty()
+                || new HashSet<>(uniqueKeys).size() != uniqueKeys.size()) {
             throw new IllegalArgumentException("幂等写入必须指定不重复的唯一键");
+        }
         String sql = "SELECT i.indexrelid,k.ordinality,a.attname,a.attnotnull,"
                 + "i.indisvalid AND i.indisready AND i.indislive AND i.indimmediate "
                 + "AND i.indpred IS NULL AND i.indexprs IS NULL AND am.amname='btree' AND opc.opcdefault "
@@ -61,14 +68,22 @@ public final class PostgresUpsertSql {
 
     /** 不写键列；相同值重放不产生无意义 UPDATE，避免重复修改更新时间。 */
     public static String sql(String schema, String table, List<String> fields, List<String> keys, List<String> holders) {
-        if (fields == null || fields.isEmpty() || keys == null || keys.isEmpty()
-                || !fields.containsAll(keys) || new HashSet<>(fields).size() != fields.size()
-                || new HashSet<>(keys).size() != keys.size() || holders.size() != fields.size())
+        if (fields == null
+                || fields.isEmpty()
+                || keys == null
+                || keys.isEmpty()
+                || !fields.containsAll(keys)
+                || new HashSet<>(fields).size() != fields.size()
+                || new HashSet<>(keys).size() != keys.size()
+                || holders.size() != fields.size()) {
             throw new IllegalArgumentException("UPSERT 字段、唯一键或参数数量无效");
+        }
         List<String> updates = fields.stream().filter(name -> !keys.contains(name)).collect(Collectors.toList());
         String sql = "INSERT INTO " + target(schema, table) + " AS dh_target (" + quoted(fields) + ") VALUES ("
                 + String.join(",", holders) + ") ON CONFLICT (" + quoted(keys) + ") ";
-        if (updates.isEmpty()) return sql + "DO NOTHING";
+        if (updates.isEmpty()) {
+            return sql + "DO NOTHING";
+        }
         return sql + "DO UPDATE SET " + updates.stream().map(name -> quote(name) + "=EXCLUDED." + quote(name)).collect(Collectors.joining(","))
                 + " WHERE ROW(" + updates.stream().map(name -> "dh_target." + quote(name)).collect(Collectors.joining(","))
                 + ") IS DISTINCT FROM ROW(" + updates.stream().map(name -> "EXCLUDED." + quote(name)).collect(Collectors.joining(",")) + ")";

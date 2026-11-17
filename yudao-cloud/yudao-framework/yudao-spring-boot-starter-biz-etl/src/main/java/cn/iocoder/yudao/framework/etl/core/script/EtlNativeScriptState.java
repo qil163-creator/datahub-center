@@ -12,10 +12,22 @@ public final class EtlNativeScriptState {
     public record Snapshot(String scope, String partition, String run, String session, long nextSequence,
                            long timerDeadline, List<Map<String, Object>> rows) {
         public Snapshot {
-            if (scope == null || !scope.matches("[a-f0-9]{64}") || partition == null || !partition.matches("[A-Za-z0-9_.-]{1,128}")
-                    || run == null || !run.matches("[a-f0-9-]{36}") || session == null || !(session.isEmpty() || session.matches("[a-f0-9-]{36}"))
-                    || nextSequence < 0 || timerDeadline < 0 || rows == null || rows.size() > 10000
-                    || session.isEmpty() && nextSequence != 0 || rows.isEmpty() && timerDeadline != 0) throw invalid();
+            if (scope == null
+                    || !scope.matches("[a-f0-9]{64}")
+                    || partition == null
+                    || !partition.matches("[A-Za-z0-9_.-]{1,128}")
+                    || run == null
+                    || !run.matches("[a-f0-9-]{36}")
+                    || session == null
+                    || !(session.isEmpty() || session.matches("[a-f0-9-]{36}"))
+                    || nextSequence < 0
+                    || timerDeadline < 0
+                    || rows == null
+                    || rows.size() > 10000
+                    || session.isEmpty() && nextSequence != 0
+                    || rows.isEmpty() && timerDeadline != 0) {
+                throw invalid();
+            }
             rows = rows.stream().map(row -> Collections.unmodifiableMap(new LinkedHashMap<>(row))).toList();
         }
     }
@@ -31,18 +43,32 @@ public final class EtlNativeScriptState {
     public static byte[] encode(Snapshot state) {
         batchBytes(state.rows());
         try {
-            return EtlScriptProtocol.encode(MAX_STATE_BYTES, out -> {
-                out.writeInt(1);
-                for (String value : List.of(state.scope(), state.partition(), state.run(), state.session())) EtlScriptProtocol.writeText(out, value, 128);
-                out.writeLong(state.nextSequence()); out.writeLong(state.timerDeadline());
-                EtlScriptProtocol.writeRows(out, state.rows(), 10000, MAX_BATCH_BYTES);
-            });
+            return EtlScriptProtocol.encode(
+                    MAX_STATE_BYTES,
+                    out -> {
+                        out.writeInt(1);
+                        for (String value :
+                                List.of(
+                                        state.scope(),
+                                        state.partition(),
+                                        state.run(),
+                                        state.session())) {
+                            EtlScriptProtocol.writeText(out, value, 128);
+                        }
+                        out.writeLong(state.nextSequence());
+                        out.writeLong(state.timerDeadline());
+                        EtlScriptProtocol.writeRows(out, state.rows(), 10000, MAX_BATCH_BYTES);
+                    });
         } catch (IOException failure) { throw invalid(); }
     }
     public static Snapshot decode(byte[] bytes) {
-        if (bytes == null || bytes.length > MAX_STATE_BYTES) throw invalid();
+        if (bytes == null || bytes.length > MAX_STATE_BYTES) {
+            throw invalid();
+        }
         try (var in = new DataInputStream(new ByteArrayInputStream(bytes))) {
-            if (in.readInt() != 1) throw invalid();
+            if (in.readInt() != 1) {
+                throw invalid();
+            }
             String scope = EtlScriptProtocol.readText(in, 128), partition = EtlScriptProtocol.readText(in, 128), run = EtlScriptProtocol.readText(in, 128), session = EtlScriptProtocol.readText(in, 128);
             var state = new Snapshot(scope, partition, run, session, in.readLong(), in.readLong(), EtlScriptProtocol.readRows(in, 10000, MAX_BATCH_BYTES));
             EtlScriptProtocol.requireEnd(in); batchBytes(state.rows()); return state;

@@ -32,28 +32,44 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
             Connection connection,int timeoutSeconds) throws SQLException {
         diagnosticBounds(connection,"CDC",1,timeoutSeconds);
         var metadata=connection.getMetaData();
-        if (!java.util.Set.of("DB2/LINUXX8664","DB2/NT64","DB2/AIX64").contains(metadata.getDatabaseProductName()) || metadata.getDatabaseMajorVersion()!=12)
-            throw new java.sql.SQLFeatureNotSupportedException("DB2 CDC 仅声明 LUW 12 目录契约，不包含 z/OS 或 IBM i","0A000");
+        if (!java.util.Set.of("DB2/LINUXX8664", "DB2/NT64", "DB2/AIX64")
+                        .contains(metadata.getDatabaseProductName())
+                || metadata.getDatabaseMajorVersion() != 12) {
+            throw new java.sql.SQLFeatureNotSupportedException(
+                    "DB2 CDC 仅声明 LUW 12 目录契约，不包含 z/OS 或 IBM i", "0A000");
+        }
         boolean logging=false; var names=new java.util.HashSet<String>();
         try (var statement=connection.prepareStatement("SELECT NAME,VALUE FROM SYSIBMADM.DBCFG WHERE NAME IN ('logarchmeth1','logarchmeth2')")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(3);
             try (var rows=statement.executeQuery()) {
                 while (rows.next()) {
                     String name=rows.getString(1); String value=rows.getString(2);
-                    if (name==null || !java.util.Set.of("logarchmeth1","logarchmeth2").contains(name) || !names.add(name) || value==null || value.isBlank()) throw new SQLException("DB2 LUW 归档配置证据不完整或不唯一");
+                    if (name == null
+                            || !java.util.Set.of("logarchmeth1", "logarchmeth2").contains(name)
+                            || !names.add(name)
+                            || value == null
+                            || value.isBlank()) {
+                        throw new SQLException("DB2 LUW 归档配置证据不完整或不唯一");
+                    }
                     logging|=!"OFF".equalsIgnoreCase(value.trim());
                 }
             }
         }
-        if (!names.contains("logarchmeth1")) throw new SQLException("DB2 LUW 活动归档配置证据缺失");
+        if (!names.contains("logarchmeth1")) {
+            throw new SQLException("DB2 LUW 活动归档配置证据缺失");
+        }
         String sql="SELECT COUNT(*) FROM TABLE(SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID(CURRENT USER,'U')) AS a "
                 + "WHERE AUTHORITY IN ('SYSADM','DBADM') AND (D_USER='Y' OR D_GROUP='Y' OR D_PUBLIC='Y' OR ROLE_USER='Y' OR ROLE_GROUP='Y' OR ROLE_PUBLIC='Y')";
         try (var statement=connection.prepareStatement(sql)) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("DB2 LUW 有效日志读取权限目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("DB2 LUW 有效日志读取权限目录无响应");
+                }
                 int authority=rows.getInt(1);
-                if (rows.wasNull() || authority<0 || authority>2 || rows.next()) throw new SQLException("DB2 LUW 有效权限证据不完整");
+                if (rows.wasNull() || authority < 0 || authority > 2 || rows.next()) {
+                    throw new SQLException("DB2 LUW 有效权限证据不完整");
+                }
                 // 仅为保守前置条件；具体表的 DATA CAPTURE CHANGES 与外部捕获程序仍需独立检查。
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic(logging,authority>0);
             }
@@ -72,9 +88,19 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("DB2 LUW 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("DB2 LUW 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("DB2 LUW 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("DB2 LUW 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -89,7 +115,10 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
         try (var statement = connection.prepareStatement("SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA=? AND TYPE='T' ORDER BY TABNAME FETCH FIRST 1 ROW ONLY")) {
             statement.setString(1, namespace); statement.setMaxRows(1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLFeatureNotSupportedException("DB2 LUW schema 无基本表；无法只读证明对象访问权限", "0A000");
+                if (!rows.next()) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "DB2 LUW schema 无基本表；无法只读证明对象访问权限", "0A000");
+                }
                 table = rows.getString(1);
             }
         }
@@ -115,7 +144,9 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
         try (var statement = connection.prepareStatement("SELECT CURRENT USER,(SELECT COUNT(*) FROM SYSCAT.DBAUTH WHERE GRANTEE IN (CURRENT USER,'PUBLIC')) FROM SYSIBM.SYSDUMMY1")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("DB2 LUW 账号授权目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("DB2 LUW 账号授权目录证据缺失");
+                }
             }
         }
     }
@@ -129,7 +160,9 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
             statement.setString(1, namespace); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("DB2 LUW 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("DB2 LUW 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -138,12 +171,23 @@ public class DatabaseDB2Impl extends AbstractDatabase implements IDatabaseInterf
     }
 
     private String diagnosticIdentifier(String name) {
-        if (name == null || name.isBlank() || name.indexOf('\0') >= 0) throw new IllegalArgumentException("DB2 LUW 物理标识符不能为空");
+        if (name == null || name.isBlank() || name.indexOf('\0') >= 0) {
+            throw new IllegalArgumentException("DB2 LUW 物理标识符不能为空");
+        }
         return quoteIdentifier(name);
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("DB2 LUW 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("DB2 LUW 诊断参数必须完整且有界");
+        }
     }
 
     private static final String CALL_DB2LK_GEN =

@@ -53,15 +53,19 @@ const rules: Record<string, Rule[]> = {
   #end
 };
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<Partial<${simpleClassName}Api.${subSimpleClassName}> | null>({
   async onConfirm() {
     await formRef.value?.validate();
 
     modalApi.lock();
     // 提交表单
-    const data = formData.value as ${simpleClassName}Api.${subSimpleClassName};
+    const data = formData.value as ${simpleClassName}Api.${subSimpleClassName}Save;
     try {
-      await (formData.value?.id ? update${subSimpleClassName}(data) : create${subSimpleClassName}(data));
+      if (formData.value?.id != null) {
+        await update${subSimpleClassName}({ ...data, id: formData.value.id });
+      } else {
+        await create${subSimpleClassName}(data);
+      }
       // 关闭并提示
       await modalApi.close();
       emit('success');
@@ -79,7 +83,7 @@ const [Modal, modalApi] = useVbenModal({
     }
 
     // 加载数据
-    let data = modalApi.getData<${simpleClassName}Api.${subSimpleClassName}>();
+    let data = modalApi.getData();
     if (!data) {
       return;
     }
@@ -203,7 +207,11 @@ function resetForm(){
             <FormItem label="${comment}" name="${javaField}">
               <DatePicker
                       v-model:value="formData.${javaField}"
+#if ($column.javaType == "LocalDate")
+                      valueFormat="YYYY-MM-DD"
+#else
                       valueFormat="x"
+#end
                       placeholder="选择${comment}"
               />
             </FormItem>

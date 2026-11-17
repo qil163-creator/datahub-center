@@ -20,13 +20,20 @@ public final class EtlNativeBoundaryCompiler {
     /** 保持全部上游列和值不变，仅在所有可能的行均符合声明时允许原生编译。 */
     public static void validate(JSONObject config, Map<String, String> sourceTypes) {
         for (var contract : EtlFieldContract.parseFields(config.getJSONArray("fields"))) {
-            if (!sourceTypes.containsKey(contract.name())) throw invalid("子流程边界字段不存在：" + contract.name());
+            if (!sourceTypes.containsKey(contract.name())) {
+                throw invalid("子流程边界字段不存在：" + contract.name());
+            }
             // 当前原生字段形状不携带可空性，不能把 nullable=false 降为不检查的直通。
-            if (Boolean.FALSE.equals(contract.nullable()))
+            if (Boolean.FALSE.equals(contract.nullable())) {
                 throw invalid("原生子流程尚不能证明字段非空约束：" + contract.name());
+            }
             String source = sourceTypes.get(contract.name());
-            if ("Object".equals(contract.type())) continue;
-            if (source == null || source.isBlank()) throw invalid("子流程边界字段类型未知：" + contract.name());
+            if ("Object".equals(contract.type())) {
+                continue;
+            }
+            if (source == null || source.isBlank()) {
+                throw invalid("子流程边界字段类型未知：" + contract.name());
+            }
             String type = source.trim().toUpperCase(Locale.ROOT).replaceAll("\\s+", " ");
             var decimal = DECIMAL.matcher(type);
             boolean isDecimal = decimal.matches() || Set.of("DECIMAL", "NUMERIC").contains(type);
@@ -42,8 +49,12 @@ public final class EtlNativeBoundaryCompiler {
                 case "Date" -> type.equals("DATE") || type.startsWith("TIMESTAMP") || type.startsWith("TIME(") || type.equals("TIME");
                 default -> false;
             };
-            if (!compatible) throw invalid("子流程边界字段类型不匹配：" + contract.name());
-            if (contract.precision() == null && contract.scale() == null) continue;
+            if (!compatible) {
+                throw invalid("子流程边界字段类型不匹配：" + contract.name());
+            }
+            if (contract.precision() == null && contract.scale() == null) {
+                continue;
+            }
             int precision;
             int scale;
             if (decimal.matches()) {
@@ -52,18 +63,24 @@ public final class EtlNativeBoundaryCompiler {
                 precision = LONG.contains(type) ? 19 : Set.of("TINYINT").contains(type) ? 3
                         : Set.of("SMALLINT", "INT2").contains(type) ? 5 : 10;
                 scale = 0;
-            } else throw invalid("子流程边界精度需要明确的精确数值类型：" + contract.name());
+            } else {
+                throw invalid("子流程边界精度需要明确的精确数值类型：" + contract.name());
+            }
             int declaredScale = contract.scale() == null ? scale : contract.scale();
-            if (declaredScale < scale || contract.precision() != null
-                    && precision + declaredScale - scale > contract.precision())
+            if (declaredScale < scale
+                    || contract.precision() != null
+                            && precision + declaredScale - scale > contract.precision()) {
                 throw invalid("子流程边界精度或 scale 无法覆盖上游类型：" + contract.name());
+            }
         }
     }
 
     private static int bounded(String value) {
         try {
             int number = Integer.parseInt(value);
-            if (number < 0 || number > 1000) throw new NumberFormatException();
+            if (number < 0 || number > 1000) {
+                throw new NumberFormatException();
+            }
             return number;
         } catch (NumberFormatException invalid) {
             throw invalid("子流程上游精确数值类型超过允许范围");

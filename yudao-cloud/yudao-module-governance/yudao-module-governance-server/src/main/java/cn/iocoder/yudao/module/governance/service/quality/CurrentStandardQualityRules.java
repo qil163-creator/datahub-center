@@ -50,16 +50,22 @@ public class CurrentStandardQualityRules {
         var groups = new LinkedHashMap<Long, List<QualityRuleDO>>();
         for (var rule : candidates) {
             if (rule.getStandardElementId() == null) {
-                if (Objects.equals(rule.getStatus(), QualityRuleDO.STATUS_ENABLE)) result.add(rule);
+                if (Objects.equals(rule.getStatus(), QualityRuleDO.STATUS_ENABLE)) {
+                    result.add(rule);
+                }
             } else {
                 groups.computeIfAbsent(rule.getStandardElementId(), ignored -> new ArrayList<>()).add(rule);
             }
         }
         for (var entry : groups.entrySet()) {
             var element = element(entry.getKey(), false);
-            if (!active(element)) continue;
+            if (!active(element)) {
+                continue;
+            }
             var current = compilation.compile(element);
-            if (!current.compilable()) continue;
+            if (!current.compilable()) {
+                continue;
+            }
             for (var constraint : current.constraints()) {
                 var source = choose(entry.getValue(), constraint);
                 if (source != null && Objects.equals(source.getStatus(), QualityRuleDO.STATUS_ENABLE)) {
@@ -74,9 +80,13 @@ public class CurrentStandardQualityRules {
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     public List<QualityRuleDO> assetExecution(QualityTaskDO task, List<QualityCheckObjectDO> objects,
             List<QualityRuleDO> configured) {
-        if (configured.stream().noneMatch(rule -> rule.getStandardElementId() != null)) return configured;
+        if (configured.stream().noneMatch(rule -> rule.getStandardElementId() != null)) {
+            return configured;
+        }
         var matcher = ASSET_COLUMN.matcher(StrUtil.nullToEmpty(task.getTaskCode()));
-        if (!matcher.matches()) throw invalid("标准质量规则需要明确指定资产字段");
+        if (!matcher.matches()) {
+            throw invalid("标准质量规则需要明确指定资产字段");
+        }
         Long columnId;
         try { columnId = Long.valueOf(matcher.group(1)); }
         catch (NumberFormatException ex) { throw invalid("资产字段编号无效"); }
@@ -85,8 +95,11 @@ public class CurrentStandardQualityRules {
         tableIds.forEach(tables::selectByIdForUpdate);
         tableIds.forEach(columns::selectListByTableIdForUpdate);
         var column = columns.selectById(columnId);
-        if (column == null || !Objects.equals(column.getObjectStatus(), MetaDbDO.OBJECT_STATUS_ACTIVE)
-                || StrUtil.isBlank(column.getColumnName())) throw invalid("资产字段不存在或已失效");
+        if (column == null
+                || !Objects.equals(column.getObjectStatus(), MetaDbDO.OBJECT_STATUS_ACTIVE)
+                || StrUtil.isBlank(column.getColumnName())) {
+            throw invalid("资产字段不存在或已失效");
+        }
         var object = objects.stream().filter(item -> Objects.equals(item.getTableId(), column.getTableId())
                 && Objects.equals(item.getDatasourceConnId(), column.getDatasourceId())).findFirst()
                 .orElseThrow(() -> invalid("资产字段与检查对象不匹配"));
@@ -119,13 +132,22 @@ public class CurrentStandardQualityRules {
         for (var rule : configured) {
             if (rule.getStandardElementId() == null) { result.add(rule); continue; }
             var element = locked.get(rule.getStandardElementId());
-            if (!active(element)) throw invalid("所选数据元未发布或已停用");
+            if (!active(element)) {
+                throw invalid("所选数据元未发布或已停用");
+            }
             var current = compilation.compile(element);
-            if (!current.compilable()) throw invalid("所选数据元当前约束不可用");
+            if (!current.compilable()) {
+                throw invalid("所选数据元当前约束不可用");
+            }
             var constraint = current.constraints().stream().filter(item -> sameType(rule, item)).findFirst().orElse(null);
-            if (constraint == null) continue;
+            if (constraint == null) {
+                continue;
+            }
             var preferred = choose(rules.selectListByStandardElementId(rule.getStandardElementId()), constraint);
-            if (preferred != null && !Objects.equals(preferred.getStatus(), QualityRuleDO.STATUS_ENABLE)) continue;
+            if (preferred != null
+                    && !Objects.equals(preferred.getStatus(), QualityRuleDO.STATUS_ENABLE)) {
+                continue;
+            }
             var bound = currentView(preferred == null ? rule : preferred, element, constraint);
             var parameters = new LinkedHashMap<String, Object>(constraint.config());
             parameters.put("column", column.getColumnName());
@@ -138,7 +160,9 @@ public class CurrentStandardQualityRules {
     }
 
     private StandardElementDO element(Long id, boolean lock) {
-        if (id == null || id <= 0 || id > Integer.MAX_VALUE) return null;
+        if (id == null || id <= 0 || id > Integer.MAX_VALUE) {
+            return null;
+        }
         return lock ? elements.selectByIdForUpdate(id.intValue()) : elements.selectById(id.intValue());
     }
 

@@ -22,9 +22,19 @@ final class EtlScriptBrokerTransport {
                 .header("Content-Type", "application/octet-stream").POST(HttpRequest.BodyPublishers.ofByteArray(bytes)).build();
         try {
             var response = EtlBoundedHttp.send(client, request, EtlScriptBrokerProtocol.MAX_BYTES, timeoutSeconds * 1000); byte[] body = response.body();
-            if (response.statusCode() != 200 || body.length > EtlScriptBrokerProtocol.MAX_BYTES || !response.headers().firstValue("Content-Type").orElse("").equals("application/octet-stream")) throw unavailable();
+            if (response.statusCode() != 200
+                    || body.length > EtlScriptBrokerProtocol.MAX_BYTES
+                    || !response.headers()
+                            .firstValue("Content-Type")
+                            .orElse("")
+                            .equals("application/octet-stream")) {
+                throw unavailable();
+            }
             var input = new DataInputStream(new ByteArrayInputStream(body));
-            if (input.readInt() != EtlScriptBrokerProtocol.VERSION || input.readUnsignedByte() != EtlScriptProtocol.OK) throw unavailable();
+            if (input.readInt() != EtlScriptBrokerProtocol.VERSION
+                    || input.readUnsignedByte() != EtlScriptProtocol.OK) {
+                throw unavailable();
+            }
             return input;
         } catch (InterruptedException stopped) { Thread.currentThread().interrupt(); throw unavailable(); }
         catch (IOException failure) { throw unavailable(); }

@@ -6,6 +6,8 @@ import cn.iocoder.yudao.framework.etl.core.model.EtlDag;
 import cn.iocoder.yudao.framework.etl.core.validation.*;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.etl.vo.*;
+import cn.iocoder.yudao.module.dataforge.dal.dataobject.etl.EtlToolDO;
+import cn.iocoder.yudao.module.dataforge.dal.mysql.etl.EtlToolMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,9 @@ import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.ETL_PRE
 
 @Service
 public class EtlDesignService {
+
+    @Resource
+    private EtlToolMapper toolMapper;
 
     @Resource
     private EtlPreviewMaskSupport previewMasks;
@@ -44,6 +49,11 @@ public class EtlDesignService {
 
     @Resource
     private cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime databaseRuntime;
+
+    /** 获得设计器中启用的工具，沿用工具箱的展示顺序。 */
+    public List<EtlToolDO> getEnabledTools() {
+        return toolMapper.selectEnabledList();
+    }
 
     /**
      * 校验ETL 设计输入及状态。

@@ -19,8 +19,11 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.*;
@@ -103,6 +106,29 @@ class AssetQualityInlinePostgreSqlTest {
             var synchronizedTask = tasks.selectById(originalId.get()); assertEquals(81L, synchronizedTask.getQualityTaskId()); assertNull(synchronizedTask.getRemoteError());
             assertNull(synchronizedTask.getPendingRunKey()); assertEquals(1, synchronizedTask.getRunStatus());
             assertEquals(1L, tasks.selectCount());
+
+            var proxy = new ProxyFactory(service);
+            proxy.addAdvice(new TransactionInterceptor(new DataSourceTransactionManager(source),
+                    new AnnotationTransactionAttributeSource()));
+            var deletion = (AssetQualityTaskService) proxy.getProxy();
+            when(engine.delete(81L)).thenThrow(new IllegalStateException("远端删除超时"));
+            assertThrows(cn.iocoder.yudao.framework.common.exception.ServiceException.class,
+                    () -> deletion.deleteTask(originalId.get()));
+            var pending = tasks.selectById(originalId.get());
+            assertEquals(1, pending.getDeletePending());
+            assertEquals("远端删除超时", pending.getRemoteError());
+
+            doThrow(new IllegalStateException("批量删除超时")).when(engine).delete(81L);
+            assertThrows(cn.iocoder.yudao.framework.common.exception.ServiceException.class,
+                    () -> deletion.deleteByAssetId(1L));
+            assertEquals("批量删除超时", tasks.selectById(originalId.get()).getRemoteError());
+
+            doAnswer(invocation -> {
+                assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+                return CommonResult.success(true);
+            }).when(engine).delete(81L);
+            deletion.deleteTask(originalId.get());
+            assertNull(tasks.selectById(originalId.get()));
         } finally {
             try (var connection = DriverManager.getConnection(control, "catalog_test", ""); var statement = connection.createStatement()) {
                 statement.execute("DROP DATABASE " + database + " WITH (FORCE)");

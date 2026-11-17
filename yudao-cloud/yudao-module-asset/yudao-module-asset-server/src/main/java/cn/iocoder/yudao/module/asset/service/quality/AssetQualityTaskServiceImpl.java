@@ -128,7 +128,7 @@ public class AssetQualityTaskServiceImpl implements AssetQualityTaskService {
      * 删除资产质量任务。
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void deleteTask(Long id) {
         AssetQualityTaskDO task = validateTaskExists(id);
         requireMaintainableAsset(task.getAssetId());
@@ -138,8 +138,10 @@ public class AssetQualityTaskServiceImpl implements AssetQualityTaskService {
         if (!deleteRemoteTasks(task)) {
             throw exception(DATA_ASSET_QUALITY_DELETE_PENDING);
         }
-        taskRuleMapper.deleteByTaskId(id);
-        taskMapper.deleteById(id);
+        transaction().executeWithoutResult(status -> {
+            taskRuleMapper.deleteByTaskId(id);
+            taskMapper.deleteById(id);
+        });
     }
 
     /**
@@ -270,7 +272,7 @@ public class AssetQualityTaskServiceImpl implements AssetQualityTaskService {
      * 按资产编号删除资产质量任务记录。
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void deleteByAssetId(Long assetId) {
         List<AssetQualityTaskDO> tasks = taskMapper.selectListByAssetId(assetId);
         if (tasks.isEmpty()) {
@@ -286,8 +288,10 @@ public class AssetQualityTaskServiceImpl implements AssetQualityTaskService {
         if (pending) {
             throw exception(DATA_ASSET_QUALITY_DELETE_PENDING);
         }
-        taskRuleMapper.deleteByTaskIds(taskIds);
-        taskMapper.deleteBatchIds(taskIds);
+        transaction().executeWithoutResult(status -> {
+            taskRuleMapper.deleteByTaskIds(taskIds);
+            taskMapper.deleteBatchIds(taskIds);
+        });
     }
 
     /**

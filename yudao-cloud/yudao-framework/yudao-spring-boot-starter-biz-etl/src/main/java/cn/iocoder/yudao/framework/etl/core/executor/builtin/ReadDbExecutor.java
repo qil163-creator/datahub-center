@@ -47,9 +47,12 @@ public class ReadDbExecutor extends AbstractEtlNodeExecutor {
     @Override
     protected void execute() throws Exception {
         EtlTableReadConfig.requireSupportedExecution(config());
-        if (!config().getStr("whereCondition", "").isBlank() || config().get("selectedColumns") != null
-                && !cn.hutool.json.JSONUtil.isNull(config().get("selectedColumns")))
-            throw new IllegalArgumentException("轻量表输入尚不支持附加WHERE条件或属性字段选择，请使用已支持这些配置的DataX或原生表执行路径");
+        if (!config().getStr("whereCondition", "").isBlank()
+                || config().get("selectedColumns") != null
+                        && !cn.hutool.json.JSONUtil.isNull(config().get("selectedColumns"))) {
+            throw new IllegalArgumentException(
+                    "轻量表输入尚不支持附加WHERE条件或属性字段选择，请使用已支持这些配置的DataX或原生表执行路径");
+        }
         Long databaseId = config().getLong("databaseId");
         if (databaseId == null) {
             throw new IllegalStateException(String.format("节点【%s】缺少配置：数据源", node.getName()));

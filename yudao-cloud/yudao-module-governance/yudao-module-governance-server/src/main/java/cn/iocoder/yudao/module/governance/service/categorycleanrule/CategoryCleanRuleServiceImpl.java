@@ -14,9 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.invalidParamException;
@@ -254,6 +257,15 @@ public class CategoryCleanRuleServiceImpl implements CategoryCleanRuleService {
     @Override
     public List<CategoryCleanRuleDO> getCategoryCleanRuleList(CategoryCleanRuleListReqVO listReqVO) {
         return categoryCleanRuleMapper.selectList(listReqVO);
+    }
+
+    @Override
+    public Map<Long, String> getCategoryNames(Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return categoryCleanRuleMapper.selectByIds(ids).stream()
+                .collect(Collectors.toMap(CategoryCleanRuleDO::getId, CategoryCleanRuleDO::getCategoryName));
     }
 
 }

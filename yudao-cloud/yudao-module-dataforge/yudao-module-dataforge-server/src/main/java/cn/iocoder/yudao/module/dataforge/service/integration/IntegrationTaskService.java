@@ -168,8 +168,9 @@ public class IntegrationTaskService {
             throw exception(INTEGRATION_FLOW_NOT_READY);
         }
         var task = prepare(req);
-        if (old.getFlowJson() != null && !old.getFlowJson().isBlank())
+        if (old.getFlowJson() != null && !old.getFlowJson().isBlank()) {
             flowCompiler.validateEngineComponents(task, old.getFlowJson());
+        }
         task.setRevision(req.getRevision() + 1);
         task.setConfigurationStatus("UNCONFIGURED");
         try {
@@ -247,7 +248,9 @@ public class IntegrationTaskService {
     @com.baomidou.lock.annotation.Lock4j(name = "dataforge:integration-task", keys = "#req.id", expire = 600000, acquireTimeout = 0)
     public void status(StatusReq req) {
         var task = requireTask(req.getId());
-        if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
+        if (!Objects.equals(task.getRevision(), req.getRevision())) {
+            throw exception(INTEGRATION_CONFLICT);
+        }
         if (Integer.valueOf(1).equals(task.getScheduleStatus())) {
             throw exception(INTEGRATION_STATE_INVALID);
         }
@@ -255,7 +258,9 @@ public class IntegrationTaskService {
             throw exception(INTEGRATION_FLOW_NOT_READY);
         }
         if (task.getDsDefinitionCode() != null) {
-            if (req.getStatus() == 1) requireCompiled(task);
+            if (req.getStatus() == 1) {
+                requireCompiled(task);
+            }
             dsRuntime.release(task, req.getStatus() == 1);
         }
         changed(taskMapper.update(null, Wrappers.lambdaUpdate(IntegrationTaskDO.class)
@@ -284,9 +289,15 @@ public class IntegrationTaskService {
             throw exception(INTEGRATION_CONFIG_INVALID, "请先关闭调度，再修改调度周期");
         }
         if (task.getDsDefinitionCode() != null) {
-            if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
-            if (req.getScheduleStatus() == 1 && !Integer.valueOf(1).equals(task.getStatus())) throw exception(INTEGRATION_STATE_INVALID);
-            if (req.getScheduleStatus() == 1) requireCompiled(task);
+            if (!Objects.equals(task.getRevision(), req.getRevision())) {
+                throw exception(INTEGRATION_CONFLICT);
+            }
+            if (req.getScheduleStatus() == 1 && !Integer.valueOf(1).equals(task.getStatus())) {
+                throw exception(INTEGRATION_STATE_INVALID);
+            }
+            if (req.getScheduleStatus() == 1) {
+                requireCompiled(task);
+            }
             var scheduleId = dsRuntime.schedule(task, cron, req.getScheduleStatus() == 1);
             changed(taskMapper.update(null, Wrappers.lambdaUpdate(IntegrationTaskDO.class)
                     .eq(IntegrationTaskDO::getId, req.getId()).eq(IntegrationTaskDO::getRevision, req.getRevision())
@@ -294,7 +305,9 @@ public class IntegrationTaskService {
                     .set(IntegrationTaskDO::getScheduleStatus, req.getScheduleStatus()).set(IntegrationTaskDO::getRevision, req.getRevision() + 1)));
             return;
         }
-        if (req.getScheduleStatus() == 1) throw exception(INTEGRATION_FLOW_NOT_READY);
+        if (req.getScheduleStatus() == 1) {
+            throw exception(INTEGRATION_FLOW_NOT_READY);
+        }
         changed(taskMapper.update(null, Wrappers.lambdaUpdate(IntegrationTaskDO.class)
                 .eq(IntegrationTaskDO::getId, req.getId()).eq(IntegrationTaskDO::getRevision, req.getRevision())
                 .set(IntegrationTaskDO::getCronExpression, cron).set(IntegrationTaskDO::getScheduleStatus, 0)
@@ -322,7 +335,11 @@ public class IntegrationTaskService {
     public IntegrationTaskDO validateJobReference(Long id) {
         var task = requireTask(id);
         requireExecutable(task);
-        if (!Integer.valueOf(1).equals(task.getStatus()) || !"OFFLINE".equals(task.getMode()) || task.getDsDefinitionCode() == null) throw exception(INTEGRATION_STATE_INVALID);
+        if (!Integer.valueOf(1).equals(task.getStatus())
+                || !"OFFLINE".equals(task.getMode())
+                || task.getDsDefinitionCode() == null) {
+            throw exception(INTEGRATION_STATE_INVALID);
+        }
         requireCompiled(task);
         dsRuntime.requireEnvironment(task);
         return task;
@@ -530,7 +547,9 @@ public class IntegrationTaskService {
     public TaskResp saveFlow(FlowReq req) {
         var task = requireTask(req.getId());
         requireEditable(task);
-        if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
+        if (!Objects.equals(task.getRevision(), req.getRevision())) {
+            throw exception(INTEGRATION_CONFLICT);
+        }
         Long definition = null; String bindingHash = null;
         IntegrationFlowCompiler.Publication publication = null;
         try {
@@ -565,7 +584,9 @@ public class IntegrationTaskService {
     public FlowCheckResp checkFlow(FlowReq req) {
         var task = requireTask(req.getId()); var result = new FlowCheckResp();
         try {
-            if (!Objects.equals(task.getRevision(), req.getRevision())) throw new IllegalArgumentException("任务已更新，请刷新后重试");
+            if (!Objects.equals(task.getRevision(), req.getRevision())) {
+                throw new IllegalArgumentException("任务已更新，请刷新后重试");
+            }
             flowCompiler.compile(task, req.getFlowJson()); dsRuntime.requireEnvironment(task);
             result.setValid(true);
         } catch (IllegalArgumentException invalid) { result.setValid(false); result.setErrors(List.of(invalid.getMessage())); }
@@ -575,7 +596,9 @@ public class IntegrationTaskService {
     /** 仅分析当前快照字段；不刷新、发布或运行 DS，也不写入任务记录。 */
     public cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaResult schema(FlowReq req) {
         var task = requireTask(req.getId());
-        if (!Objects.equals(task.getRevision(), req.getRevision())) throw exception(INTEGRATION_CONFLICT);
+        if (!Objects.equals(task.getRevision(), req.getRevision())) {
+            throw exception(INTEGRATION_CONFLICT);
+        }
         try { return schemaService.resolve(task, req.getFlowJson()); }
         catch (IllegalArgumentException | IllegalStateException invalid) {
             var result = new cn.iocoder.yudao.framework.etl.core.schema.EtlSchemaResult(); result.getErrors().add(invalid.getMessage()); return result;
@@ -585,14 +608,17 @@ public class IntegrationTaskService {
     private void requireCompiled(IntegrationTaskDO task) {
         try {
             var steps = flowCompiler.compileForExecution(task, task.getFlowJson()); dsRuntime.requireEnvironment(task);
-            if (!Objects.equals(task.getDsBindingHash(), dsRuntime.fingerprint(task, steps)))
+            if (!Objects.equals(task.getDsBindingHash(), dsRuntime.fingerprint(task, steps))) {
                 throw new IllegalArgumentException("受管环境或数据源绑定已变化，请重新保存流程");
+            }
         }
         catch (IllegalArgumentException invalid) { throw exception(INTEGRATION_CONFIG_INVALID, invalid.getMessage()); }
     }
 
     private void refreshRuntime(IntegrationTaskDO task) {
-        if (task.getDsDefinitionCode() != null) dsRuntime.refresh(task);
+        if (task.getDsDefinitionCode() != null) {
+            dsRuntime.refresh(task);
+        }
     }
 
     private TaskResp responseWithRuntime(IntegrationTaskDO task, Map<Long, String> names) {
@@ -709,9 +735,14 @@ public class IntegrationTaskService {
      */
     private void requireEditable(IntegrationTaskDO task) {
         if (task.getDsDefinitionCode() != null) {
-            if (recordMapper.selectCount(Wrappers.lambdaQuery(IntegrationRecordDO.class).eq(IntegrationRecordDO::getTaskId, task.getId())
-                    .eq(IntegrationRecordDO::getStatus, "RUNNING").isNotNull(IntegrationRecordDO::getDsProjectCode)) > 0)
+            if (recordMapper.selectCount(
+                            Wrappers.lambdaQuery(IntegrationRecordDO.class)
+                                    .eq(IntegrationRecordDO::getTaskId, task.getId())
+                                    .eq(IntegrationRecordDO::getStatus, "RUNNING")
+                                    .isNotNull(IntegrationRecordDO::getDsProjectCode))
+                    > 0) {
                 throw exception(INTEGRATION_CONFIG_INVALID, "请先停止并确认 DS 实例退出，再修改任务");
+            }
         }
         if (!Integer.valueOf(0).equals(task.getStatus()) || !Integer.valueOf(0).equals(task.getScheduleStatus())) {
             throw exception(INTEGRATION_STATE_INVALID);

@@ -5,7 +5,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import java.time.Duration;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Cache 工具类
@@ -20,6 +22,14 @@ public class CacheUtils {
      * @see <a href="">本地缓存 CacheUtils 工具类建议</a>
      */
     private static final Integer CACHE_MAX_SIZE = 10000;
+
+    private static final int RELOAD_WORKERS = 4;
+    private static final int RELOAD_QUEUE_CAPACITY = 128;
+
+    /** 全局缓存共用刷新预算，过载的刷新由 Guava 在后续读取时重试。 */
+    private static final ThreadPoolExecutor RELOAD_EXECUTOR = new ThreadPoolExecutor(RELOAD_WORKERS, RELOAD_WORKERS, 0L,
+            TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(RELOAD_QUEUE_CAPACITY),
+            Thread.ofPlatform().daemon().name("cache-reload-", 1).factory(), new ThreadPoolExecutor.AbortPolicy());
 
     /**
      * 构建异步刷新的 LoadingCache 对象
@@ -40,7 +50,7 @@ public class CacheUtils {
                 // 只阻塞当前数据加载线程，其他线程返回旧值
                 .refreshAfterWrite(duration)
                 // 通过 asyncReloading 实现全异步加载，包括 refreshAfterWrite 被阻塞的加载线程
-                .build(CacheLoader.asyncReloading(loader, Executors.newCachedThreadPool())); // TODO 芋艿：可能要思考下，未来要不要做成可配置
+                .build(CacheLoader.asyncReloading(loader, RELOAD_EXECUTOR));
     }
 
     /**

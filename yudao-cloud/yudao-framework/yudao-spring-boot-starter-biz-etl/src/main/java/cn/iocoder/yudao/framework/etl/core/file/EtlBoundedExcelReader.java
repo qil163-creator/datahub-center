@@ -58,8 +58,9 @@ public final class EtlBoundedExcelReader {
     public record Options(String sheetName, int headerRow, int startRow, int endRow,
                           boolean skipEmptyRows, boolean cachedFormulas) {
         public Options {
-            if (headerRow < 0 || startRow < 1 || endRow < 0 || endRow > 0 && endRow < startRow)
+            if (headerRow < 0 || startRow < 1 || endRow < 0 || endRow > 0 && endRow < startRow) {
                 throw new IllegalArgumentException("Excel 行范围无效");
+            }
         }
     }
     @FunctionalInterface public interface RowConsumer {
@@ -121,7 +122,9 @@ public final class EtlBoundedExcelReader {
 
     /** 共享现有压缩、二进制工作簿和字节预算；返回的工作簿由当前调用方关闭。 */
     public static Workbook openExcelWorkbook(byte[] content, String extension, Limits limits) throws IOException {
-        if (content.length == 0 || content.length > limits.maxBytes()) throw new IllegalArgumentException("Excel 文件大小超过限额或为空");
+        if (content.length == 0 || content.length > limits.maxBytes()) {
+            throw new IllegalArgumentException("Excel 文件大小超过限额或为空");
+        }
         if ("xlsx".equalsIgnoreCase(extension)) {
             validateExpandedArchive(content, limits);
             return new XSSFWorkbook(new ByteArrayInputStream(content));
@@ -135,15 +138,21 @@ public final class EtlBoundedExcelReader {
 
 
     private static List<String> headers(List<String> initial, boolean hasHeader, Budget budget) {
-        if (initial.isEmpty() || initial.size() > budget.limits.maxColumns()) throw new IllegalArgumentException("文件表头为空或超过列数限额");
+        if (initial.isEmpty() || initial.size() > budget.limits.maxColumns()) {
+            throw new IllegalArgumentException("文件表头为空或超过列数限额");
+        }
         List<String> headers = new ArrayList<>();
         for (int index = 0; index < initial.size(); index++) {
             String value = hasHeader ? initial.get(index) : null;
-            if (index == 0 && value != null && value.startsWith("\uFEFF")) value = value.substring(1);
+            if (index == 0 && value != null && value.startsWith("\uFEFF")) {
+                value = value.substring(1);
+            }
             headers.add(value == null || value.isEmpty() ? columnLetter(index) : value);
         }
         budget.cells(headers);
-        if (new HashSet<>(headers).size() != headers.size()) throw new IllegalArgumentException("文件表头必须唯一");
+        if (new HashSet<>(headers).size() != headers.size()) {
+            throw new IllegalArgumentException("文件表头必须唯一");
+        }
         return List.copyOf(headers);
     }
     private static String columnLetter(int index) {

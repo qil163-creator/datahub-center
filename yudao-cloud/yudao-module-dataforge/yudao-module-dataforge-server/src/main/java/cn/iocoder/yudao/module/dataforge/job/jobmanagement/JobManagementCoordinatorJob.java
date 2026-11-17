@@ -15,7 +15,10 @@ public class JobManagementCoordinatorJob {
     @XxlJob("jobManagementCoordinatorJob")
     public void execute() {
         int failures=coordinator.maintain();
-        if(failures>0)XxlJobHelper.handleFail("作业协调完成，失败或待重试基础项 "+failures+"；已受理记录保留，不盲目重投");
-        else XxlJobHelper.handleSuccess("作业持久周期、队列与真实父子实例维护完成；业务结果请查看各运行记录");
+        if (failures > 0) {
+            XxlJobHelper.handleFail("作业协调完成，失败或待重试基础项 " + failures + "；已受理记录保留，不盲目重投");
+        } else {
+            XxlJobHelper.handleSuccess("作业持久周期、队列与真实父子实例维护完成；业务结果请查看各运行记录");
+        }
     }
 }

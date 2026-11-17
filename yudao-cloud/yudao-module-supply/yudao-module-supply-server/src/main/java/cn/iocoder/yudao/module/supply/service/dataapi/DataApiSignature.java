@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_AUTH_FAILED;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_AUTH_FAILED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
 
 /**
  * 数据服务开放网关唯一签名协议：HMAC-SM3。

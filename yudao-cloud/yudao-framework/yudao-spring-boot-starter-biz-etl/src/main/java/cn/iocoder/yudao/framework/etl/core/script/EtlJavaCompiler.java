@@ -65,7 +65,9 @@ public class EtlJavaCompiler {
     public static tech.qiantong.qdata.common.core.base.EtlBase compileQdataScript(String source) {
         requireWorker();
         Class<?> clazz = compile(source);
-        if (!tech.qiantong.qdata.common.core.base.EtlBase.class.isAssignableFrom(clazz)) throw new IllegalStateException("脚本类需实现原站 EtlBase 接口");
+        if (!tech.qiantong.qdata.common.core.base.EtlBase.class.isAssignableFrom(clazz)) {
+            throw new IllegalStateException("脚本类需实现原站 EtlBase 接口");
+        }
         try { return (tech.qiantong.qdata.common.core.base.EtlBase) clazz.getDeclaredConstructor().newInstance(); }
         catch (Exception failure) { throw new IllegalStateException("脚本类实例化失败"); }
     }
@@ -160,7 +162,9 @@ public class EtlJavaCompiler {
      * 从源码解析全限定类名
      */
     public static String sourceClassName(String source) {
-        if (source == null || source.isBlank() || source.length() > 1024 * 1024) throw new IllegalArgumentException("脚本源码为空或超过上限");
+        if (source == null || source.isBlank() || source.length() > 1024 * 1024) {
+            throw new IllegalArgumentException("脚本源码为空或超过上限");
+        }
         return resolveClassName(source);
     }
     private static String resolveClassName(String source) {

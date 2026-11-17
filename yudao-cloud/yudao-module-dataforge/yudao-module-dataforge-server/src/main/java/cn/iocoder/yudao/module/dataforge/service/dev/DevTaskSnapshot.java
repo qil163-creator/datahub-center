@@ -86,7 +86,11 @@ public class DevTaskSnapshot {
                 || entry.getKey() <= 0 || entry.getValue() == null || entry.getValue() <= 0)) {
             throw exception(DEV_TASK_SNAPSHOT_INVALID, "任务配置或冻结依赖不完整");
         }
-        if (managedEnvironmentCode != null && managedEnvironmentCode != -1L && managedEnvironmentCode <= 0L) throw exception(DEV_TASK_SNAPSHOT_INVALID, "冻结的受管环境编号无效");
+        if (managedEnvironmentCode != null
+                && managedEnvironmentCode != -1L
+                && managedEnvironmentCode <= 0L) {
+            throw exception(DEV_TASK_SNAPSHOT_INVALID, "冻结的受管环境编号无效");
+        }
         DevTaskDefinition.readExecutionConfig(task.getExecutionConfigJson());
     }
 }

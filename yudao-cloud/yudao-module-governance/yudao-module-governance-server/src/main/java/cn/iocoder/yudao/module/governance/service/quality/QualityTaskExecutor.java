@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.service.quality;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.iocoder.yudao.framework.dbswitch.data.runtime.DbSwitchRuntime;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
@@ -37,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -373,11 +373,7 @@ public class QualityTaskExecutor {
                 },
                 new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
         // 内部租约心跳；每节点仅维护本节点正在执行的实例，不承担业务调度。
-        gateHeartbeat = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread t = new Thread(runnable, "quality-gate-heartbeat");
-            t.setDaemon(true);
-            return t;
-        });
+        gateHeartbeat = ThreadPoolUtils.newDaemonScheduler(1, "quality-gate-heartbeat");
         AtomicInteger counter = new AtomicInteger();
         executor = new java.util.concurrent.ThreadPoolExecutor(2, 8, 60,
                 java.util.concurrent.TimeUnit.SECONDS, new java.util.concurrent.ArrayBlockingQueue<>(64),

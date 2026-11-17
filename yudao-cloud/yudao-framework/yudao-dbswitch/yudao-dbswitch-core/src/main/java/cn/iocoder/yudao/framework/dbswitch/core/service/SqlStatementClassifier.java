@@ -310,7 +310,9 @@ public final class SqlStatementClassifier {
             String dialectPrefix = "com.alibaba.druid.sql.dialect.";
             if (className.startsWith(dialectPrefix)) {
                 String nativeDialect = className.substring(dialectPrefix.length()).split("[.]", 2)[0];
-                if (!AST_DIALECTS.contains(nativeDialect)) unsafe = true;
+                if (!AST_DIALECTS.contains(nativeDialect)) {
+                    unsafe = true;
+                }
             }
             if (node instanceof SQLStatement statement && !(statement instanceof SQLSelectStatement)
                     || node instanceof SQLHint || node instanceof SQLAssignItem || node instanceof SQLSequenceExpr
@@ -323,7 +325,9 @@ public final class SqlStatementClassifier {
             if (node instanceof SQLVariantRefExpr variant && "?".equals(variant.getName())) {
                 SQLObject parent = node.getParent();
                 for (int depth = 0; parent != null; depth++, parent = parent.getParent()) {
-                    if (depth > 128) throw new IllegalArgumentException("只读分页 AST 父链超过限制");
+                    if (depth > 128) {
+                        throw new IllegalArgumentException("只读分页 AST 父链超过限制");
+                    }
                     if (parent instanceof SQLLimit) {
                         parameterizedPagination = true;
                         break;
@@ -340,7 +344,9 @@ public final class SqlStatementClassifier {
                         || name.startsWith("[") && name.endsWith("]"))) {
                     name = name.substring(1, name.length() - 1);
                 }
-                if (Set.of("NEXTVAL", "CURRVAL").contains(name.toUpperCase(Locale.ROOT))) unsafe = true;
+                if (Set.of("NEXTVAL", "CURRVAL").contains(name.toUpperCase(Locale.ROOT))) {
+                    unsafe = true;
+                }
             }
             if (node instanceof SQLMethodInvokeExpr method && (method.getOwner() != null
                     || !READ_ONLY_FUNCTIONS.contains(method.getMethodName().toUpperCase(Locale.ROOT)))) {
@@ -365,29 +371,51 @@ public final class SqlStatementClassifier {
                 unsafe = true;
             }
             if (node instanceof SQLServerSelectQueryBlock block) {
-                if (block.getOptions() != null && !block.getOptions().isEmpty()) unsafe = true;
+                if (block.getOptions() != null && !block.getOptions().isEmpty()) {
+                    unsafe = true;
+                }
             }
             // Druid 的 SQLServer/DB2 原生访问器遗漏这些通用字段，需额外遍历。
             if (node instanceof SQLServerSelectQueryBlock || node instanceof DB2SelectQueryBlock) {
                 var block = (SQLSelectQueryBlock) node;
-                if (block.getOrderBy() != null) block.getOrderBy().accept(this);
-                if (block.getLimit() != null) block.getLimit().accept(this);
-                if (block.getOffset() != null) block.getOffset().accept(this);
-                if (block.getWith() != null) block.getWith().accept(this);
-                if (block.getQualify() != null) block.getQualify().accept(this);
-                if (block.getWindows() != null) block.getWindows().forEach(window -> window.accept(this));
+                if (block.getOrderBy() != null) {
+                    block.getOrderBy().accept(this);
+                }
+                if (block.getLimit() != null) {
+                    block.getLimit().accept(this);
+                }
+                if (block.getOffset() != null) {
+                    block.getOffset().accept(this);
+                }
+                if (block.getWith() != null) {
+                    block.getWith().accept(this);
+                }
+                if (block.getQualify() != null) {
+                    block.getQualify().accept(this);
+                }
+                if (block.getWindows() != null) {
+                    block.getWindows().forEach(window -> window.accept(this));
+                }
             }
             // CKSelectQueryBlock 未重写 accept0，PREWHERE/SAMPLE 不在通用子节点里。
             if (node instanceof CKSelectQueryBlock block) {
-                if (block.getPreWhere() != null) block.getPreWhere().accept(this);
-                if (block.getSample() != null) block.getSample().accept(this);
+                if (block.getPreWhere() != null) {
+                    block.getPreWhere().accept(this);
+                }
+                if (block.getSample() != null) {
+                    block.getSample().accept(this);
+                }
                 if (block.getFormat() != null || block.getSettings() != null && !block.getSettings().isEmpty()) {
                     unsafe = true;
                 }
             }
             if (node instanceof DB2SelectQueryBlock block) {
-                if (block.getLockRequest() != null || block.getIsolation() != null) unsafe = true;
-                if (block.getOptimizeFor() != null) block.getOptimizeFor().accept(this);
+                if (block.getLockRequest() != null || block.getIsolation() != null) {
+                    unsafe = true;
+                }
+                if (block.getOptimizeFor() != null) {
+                    block.getOptimizeFor().accept(this);
+                }
             }
             if (node instanceof MySqlSelectQueryBlock block && (block.isLockInShareMode()
                     || block.getProcedureName() != null || block.isCalcFoundRows())) {

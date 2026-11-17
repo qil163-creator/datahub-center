@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
 
 /**
  * 指标接口配置（INDICATOR 模式）：

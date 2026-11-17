@@ -70,34 +70,54 @@ public class MasterDataImportService {
     }
 
     static List<Map<String, Object>> records(List<ExcelUtils.RawRow> sheet, List<MasterColumnVO> columns) {
-        if (sheet.size() < 2) throw invalid("工作簿需要包含表头和至少一行数据");
-        if (sheet.size() > MAX_ROWS + 1) throw invalid("一次最多导入 200 行数据");
+        if (sheet.size() < 2) {
+            throw invalid("工作簿需要包含表头和至少一行数据");
+        }
+        if (sheet.size() > MAX_ROWS + 1) {
+            throw invalid("一次最多导入 200 行数据");
+        }
         var header = sheet.getFirst();
-        if (header.number() != 1) throw invalid("请在第一行保留模板表头");
+        if (header.number() != 1) {
+            throw invalid("请在第一行保留模板表头");
+        }
         Map<String, MasterColumnVO> fields = new HashMap<>();
         columns.forEach(c -> fields.put(c.getName(), c));
         Map<Integer, MasterColumnVO> positions = new LinkedHashMap<>();
         Set<String> seen = new HashSet<>();
-        header.cells().forEach((index, cell) -> {
-            if (empty(cell)) return;
-            String name = cell.getStringValue();
-            if (cell.getFormulaData() != null || !fields.containsKey(name)) {
-                throw invalid("第 1 行第 " + (index + 1) + " 列不是当前模型的字段，请重新下载模板");
-            }
-            if (!seen.add(name)) throw invalid("表头字段重复：" + name);
-            positions.put(index, fields.get(name));
-        });
+        header.cells()
+                .forEach(
+                        (index, cell) -> {
+                            if (empty(cell)) {
+                                return;
+                            }
+                            String name = cell.getStringValue();
+                            if (cell.getFormulaData() != null || !fields.containsKey(name)) {
+                                throw invalid("第 1 行第 " + (index + 1) + " 列不是当前模型的字段，请重新下载模板");
+                            }
+                            if (!seen.add(name)) {
+                                throw invalid("表头字段重复：" + name);
+                            }
+                            positions.put(index, fields.get(name));
+                        });
         for (MasterColumnVO c : columns) {
-            if (required(c) && !seen.contains(c.getName())) throw invalid("表头缺少必填字段 " + c.getName());
+            if (required(c) && !seen.contains(c.getName())) {
+                throw invalid("表头缺少必填字段 " + c.getName());
+            }
         }
-        if (positions.isEmpty()) throw invalid("表头没有可导入的字段");
+        if (positions.isEmpty()) {
+            throw invalid("表头没有可导入的字段");
+        }
         List<Map<String, Object>> records = new ArrayList<>();
         for (var row : sheet.subList(1, sheet.size())) {
             Map<String, Object> values = new LinkedHashMap<>();
             for (var entry : row.cells().entrySet()) {
-                if (empty(entry.getValue())) continue;
+                if (empty(entry.getValue())) {
+                    continue;
+                }
                 var column = positions.get(entry.getKey());
-                if (column == null) throw invalid("第 " + row.number() + " 行有数据的列缺少表头");
+                if (column == null) {
+                    throw invalid("第 " + row.number() + " 行有数据的列缺少表头");
+                }
                 values.put(column.getName(), value(row, column, entry.getValue()));
             }
             for (var column : columns) {
@@ -121,20 +141,32 @@ public class MasterDataImportService {
 
     private static String value(ExcelUtils.RawRow row, MasterColumnVO field, ReadCellData<?> cell) {
         String location = "第 " + row.number() + " 行字段【" + field.getName() + "】";
-        if (cell.getFormulaData() != null) throw invalid(location + "含公式，请粘贴单元格的值");
+        if (cell.getFormulaData() != null) {
+            throw invalid(location + "含公式，请粘贴单元格的值");
+        }
         return switch (cell.getType()) {
             case STRING, DIRECT_STRING, RICH_TEXT_STRING -> cell.getStringValue();
             case BOOLEAN -> cell.getBooleanValue().toString();
             case NUMBER -> {
-                BigDecimal number = cell.getOriginalNumberValue() == null ? cell.getNumberValue() : cell.getOriginalNumberValue();
+                BigDecimal number =
+                        cell.getOriginalNumberValue() == null
+                                ? cell.getNumberValue()
+                                : cell.getOriginalNumberValue();
                 var format = cell.getDataFormatData();
-                if (format != null && format.getIndex() != null && DateUtil.isADateFormat(format.getIndex(), format.getFormat())) {
-                    LocalDateTime date = DateUtil.getLocalDateTime(number.doubleValue(), row.date1904());
-                    if (date == null) throw invalid(location + "日期无效");
+                if (format != null
+                        && format.getIndex() != null
+                        && DateUtil.isADateFormat(format.getIndex(), format.getFormat())) {
+                    LocalDateTime date =
+                            DateUtil.getLocalDateTime(number.doubleValue(), row.date1904());
+                    if (date == null) {
+                        throw invalid(location + "日期无效");
+                    }
                     yield switch (field.getFieldType()) {
                         case ColumnMetaData.TYPE_DATE -> date.toLocalDate().toString();
-                        case ColumnMetaData.TYPE_TIME -> java.sql.Time.valueOf(date.toLocalTime()).toString();
-                        case ColumnMetaData.TYPE_TIMESTAMP -> java.sql.Timestamp.valueOf(date).toString();
+                        case ColumnMetaData.TYPE_TIME ->
+                                java.sql.Time.valueOf(date.toLocalTime()).toString();
+                        case ColumnMetaData.TYPE_TIMESTAMP ->
+                                java.sql.Timestamp.valueOf(date).toString();
                         default -> throw invalid(location + "应使用文本或数字格式");
                     };
                 }

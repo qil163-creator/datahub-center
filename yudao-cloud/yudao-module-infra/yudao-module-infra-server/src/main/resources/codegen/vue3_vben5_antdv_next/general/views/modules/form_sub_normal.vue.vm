@@ -35,7 +35,7 @@ import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.mo
 #end
 
 const props = defineProps<{
-   ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
+   ${subJoinColumn.javaField}?: ${simpleClassName}Api.Id // ${subJoinColumn.columnComment}（主表的关联字段）
 }>()
 
 #if ($subTable.subJoinMany) ## 一对多
@@ -53,7 +53,7 @@ async function handleDelete(row: ${simpleClassName}Api.${subSimpleClassName}) {
 }
 
 /** 获取当前子表数据，新增行不提交表格生成的临时编号 */
-function getData(): ${simpleClassName}Api.${subSimpleClassName}[] {
+function getData(): ${simpleClassName}Api.${subSimpleClassName}Save[] {
   const table = tableRef.value;
   if (!table) {
     return [];
@@ -131,7 +131,7 @@ const rules: Record<string, Rule[]> = {
 /** 暴露出表单校验方法和表单值获取方法 */
 defineExpose({
   validate: async () => await formRef.value?.validate(),
-  getValues: ()=> formData.value,
+  getValues: () => formData.value as ${simpleClassName}Api.${subSimpleClassName}Save,
 });
 
 /** 监听主表的关联字段的变化，加载对应的子表数据 */
@@ -254,9 +254,13 @@ watch(
                   <template #default="{ row }">
                     <DatePicker
                         v-model:value="row.${javaField}"
+#if ($column.javaType == "LocalDate")
+                        valueFormat="YYYY-MM-DD"
+#else
                         :showTime="true"
                         format="YYYY-MM-DD HH:mm:ss"
                         valueFormat='x'
+#end
                     />
                   </template>
                 </VxeColumn>
@@ -378,7 +382,11 @@ watch(
                 <FormItem label="${comment}" name="${javaField}">
                   <DatePicker
                       v-model:value="formData.${javaField}"
+#if ($column.javaType == "LocalDate")
+                      valueFormat="YYYY-MM-DD"
+#else
                       valueFormat="x"
+#end
                       placeholder="选择${comment}"
                   />
                 </FormItem>

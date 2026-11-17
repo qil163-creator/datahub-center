@@ -1,5 +1,9 @@
 package cn.iocoder.yudao.module.supply.service.dataapi;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxyUtil;
+import ch.qos.logback.core.read.ListAppender;
 import cn.hutool.crypto.SmUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
@@ -47,7 +51,7 @@ class DataApiGatewayServiceTest {
         } else {
             assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(service, "validateAuthorization", app, api))
                     .isInstanceOfSatisfying(ServiceException.class, failure -> assertThat(failure.getCode())
-                            .isEqualTo(cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants
+                            .isEqualTo(cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants
                                     .DATA_API_CONTRACT_MISMATCH.getCode()));
         }
     }
@@ -162,6 +166,33 @@ class DataApiGatewayServiceTest {
                             org.mockito.ArgumentMatchers.eq("nonce-1"),
                             org.mockito.ArgumentMatchers.eq(DataApiGatewayService.SIGN_TIMESTAMP_VALID_MS
                                     + DataApiGatewayService.CLOCK_SKEW_MARGIN_MS));
+        }
+    }
+
+    @Test
+    void rejectAuditFailurePreservesTheBusinessErrorAndOmitsSensitiveMessages() {
+        Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(DataApiGatewayService.class);
+        ListAppender<ILoggingEvent> events = new ListAppender<>();
+        events.start();
+        logger.addAppender(events);
+        try (GatewayFixture fixture = new GatewayFixture()) {
+            var logs = org.mockito.Mockito.mock(cn.iocoder.yudao.module.supply.dal.mysql.apilog.ApiLogMapper.class);
+            ReflectionTestUtils.setField(fixture.service, "apiLogMapper", logs);
+            var writeFailure = new IllegalStateException("sensitive-audit-marker",
+                    new IllegalArgumentException("sensitive-cause-marker"));
+            org.mockito.Mockito.doThrow(writeFailure).when(logs).insert(
+                    org.mockito.ArgumentMatchers.any(cn.iocoder.yudao.module.supply.dal.dataobject.apilog.ApiLogDO.class));
+
+            assertThatThrownBy(() -> fixture.service.invoke("v1", "/orders", "POST", Map.of(), null, null,
+                    "127.0.0.1", "", null, Map.of())).isInstanceOf(ServiceException.class).hasMessageContaining("请求方式");
+            assertThat(events.list).singleElement().satisfies(event -> {
+                assertThat(event.getFormattedMessage()).contains("拒绝日志写入失败");
+                assertThat(ThrowableProxyUtil.asString(event.getThrowableProxy())).contains("IllegalStateException",
+                        "rejectAuditFailurePreservesTheBusinessError").doesNotContain("sensitive-audit-marker", "sensitive-cause-marker");
+            });
+        } finally {
+            logger.detachAppender(events);
+            events.stop();
         }
     }
 

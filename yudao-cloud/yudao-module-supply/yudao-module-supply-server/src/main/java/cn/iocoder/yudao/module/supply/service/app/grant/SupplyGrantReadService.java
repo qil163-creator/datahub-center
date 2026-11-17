@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.SUPPLY_APP_API_NOT_EXISTS;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.SUPPLY_APP_API_NOT_EXISTS;
 import static cn.iocoder.yudao.module.supply.enums.grant.ErrorCodeConstants.*;
 
 /** 来源授权运行时读取：网关/门户执行前后的权威判定，以及管理端的实际范围视图。 */

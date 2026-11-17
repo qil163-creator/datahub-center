@@ -19,19 +19,32 @@ public class IntegrationOdpsBindingSupport {
     @Resource private ExecutionAccessService access;
     public EtlNativeOdpsCompiler.Binding require(IntegrationTaskDO task, Long databaseId) {
         var binding = databaseId == null || properties.getBindings() == null ? null : properties.getBindings().get(databaseId);
-        if (task == null || task.getId() == null || databaseId == null || binding == null
-                || !contains(binding.getAllowedTaskIds(), task.getId()) || !contains(binding.getWorkerGroups(), task.getWorkerGroup())
-                || !contains(binding.getEngines(), task.getEngine()) || !Set.of("SPARK", "FLINK").contains(task.getEngine()) || !"OFFLINE".equals(task.getMode())
+        if (task == null
+                || task.getId() == null
+                || databaseId == null
+                || binding == null
+                || !contains(binding.getAllowedTaskIds(), task.getId())
+                || !contains(binding.getWorkerGroups(), task.getWorkerGroup())
+                || !contains(binding.getEngines(), task.getEngine())
+                || !Set.of("SPARK", "FLINK").contains(task.getEngine())
+                || !"OFFLINE".equals(task.getMode())
                 || "SPARK".equals(task.getEngine()) && !binding.isSparkConnectorInstalled()
-                || "FLINK".equals(task.getEngine()) && !binding.isFlinkConnectorInstalled())
+                || "FLINK".equals(task.getEngine()) && !binding.isFlinkConnectorInstalled()) {
             throw invalid("当前任务、引擎或工作组尚未授权 ODPS Tunnel 资源");
+        }
         access.requireDatabase(databaseId); var database = databases.getDatabase(databaseId);
-        if (database == null || database.getDatabaseType() == null) throw invalid("ODPS 平台连接不存在");
+        if (database == null || database.getDatabaseType() == null) {
+            throw invalid("ODPS 平台连接不存在");
+        }
         var type = databaseTypes.getDatabaseType(database.getDatabaseType().longValue());
-        if (!"ODPS".equals(ConnectionSettings.code(type))) throw invalid("ODPS 组件不能借用其他产品的连接");
+        if (!"ODPS".equals(ConnectionSettings.code(type))) {
+            throw invalid("ODPS 组件不能借用其他产品的连接");
+        }
         var settings = ConnectionSettings.read(database, type);
-        if (!Objects.equals(binding.getServiceEndpoint(), settings.get("endpoint", "")) || !Objects.equals(binding.getProject(), database.getDatabaseName()))
+        if (!Objects.equals(binding.getServiceEndpoint(), settings.get("endpoint", ""))
+                || !Objects.equals(binding.getProject(), database.getDatabaseName())) {
             throw invalid("ODPS 平台服务地址或项目与已批准的物理绑定不一致");
+        }
         return new EtlNativeOdpsCompiler.Binding(binding.getServiceEndpoint(), binding.getTunnelEndpoint(), binding.getProject(), binding.getCredentialRef(),
                 binding.getResources(), binding.isSparkConnectorInstalled(), binding.isAllowPlainHttp(), binding.isFlinkConnectorInstalled());
     }

@@ -44,7 +44,9 @@ public class IntegrationFlowCompiler {
                        List<String> upstream) { }
 
     public JSONObject graph(String json) {
-        if (json == null || json.length() > 1_000_000) throw invalid("流程超过允许大小");
+        if (json == null || json.length() > 1_000_000) {
+            throw invalid("流程超过允许大小");
+        }
         JSONObject graph;
         try { graph = JSONUtil.parseObj(json); } catch (RuntimeException malformed) { throw invalid("流程 JSON 无效"); }
         if (graph.getJSONArray("nodes") == null || graph.getJSONArray("edges") == null
@@ -52,11 +54,15 @@ public class IntegrationFlowCompiler {
             throw invalid("流程必须包含有界的 nodes 和 edges 数组");
         }
         var ids = new HashSet<String>();
-        graph.getJSONArray("nodes").forEach(item -> {
-            var node = JSONUtil.parseObj(item);
-            String id = node.getStr("id");
-            if (id == null || !id.matches("[A-Za-z0-9_-]{1,100}") || !ids.add(id)) throw invalid("节点编号缺失或重复");
-        });
+        graph.getJSONArray("nodes")
+                .forEach(
+                        item -> {
+                            var node = JSONUtil.parseObj(item);
+                            String id = node.getStr("id");
+                            if (id == null || !id.matches("[A-Za-z0-9_-]{1,100}") || !ids.add(id)) {
+                                throw invalid("节点编号缺失或重复");
+                            }
+                        });
         for (Object item : graph.getJSONArray("edges")) {
             var edge = JSONUtil.parseObj(item);
             if (!ids.contains(edge.getStr("sourceNodeId")) || !ids.contains(edge.getStr("targetNodeId"))) {
@@ -69,14 +75,25 @@ public class IntegrationFlowCompiler {
         var graphNodes = graph.getJSONArray("nodes");
         for (int index = 0; index < graphNodes.size(); index++) {
             var node = JSONUtil.parseObj(graphNodes.get(index)); var properties = node.getJSONObject("properties");
-            if (properties == null || properties.get("nodeJson") == null) continue;
+            if (properties == null || properties.get("nodeJson") == null) {
+                continue;
+            }
             String tool = properties.getStr("toolCode", "");
-            if ("read-db".equals(tool)) EtlTableReadConfig.validateDraft(JSONUtil.parseObj(properties.get("nodeJson")));
-            if (!"insert-db".equals(tool) && !tool.startsWith("write-")) continue;
+            if ("read-db".equals(tool)) {
+                EtlTableReadConfig.validateDraft(JSONUtil.parseObj(properties.get("nodeJson")));
+            }
+            if (!"insert-db".equals(tool) && !tool.startsWith("write-")) {
+                continue;
+            }
             var configuration = JSONUtil.parseObj(properties.get("nodeJson"));
             boolean changed = false;
-            for (String key : List.of("fieldMappingColumns", "fieldMappingDraft", "fieldMappingLayout"))
-                if (configuration.containsKey(key)) { configuration.remove(key); changed = true; }
+            for (String key :
+                    List.of("fieldMappingColumns", "fieldMappingDraft", "fieldMappingLayout")) {
+                if (configuration.containsKey(key)) {
+                    configuration.remove(key);
+                    changed = true;
+                }
+            }
             if (changed) { properties.set("nodeJson", configuration); node.set("properties", properties); graphNodes.set(index, node); }
         }
         return graph;
@@ -88,22 +105,40 @@ public class IntegrationFlowCompiler {
     }
 
     private static void validateEngineComponents(IntegrationTaskDO task, JSONObject graph) {
-        if ("REALTIME".equals(task.getMode()) && !"FLINK".equals(task.getEngine())) throw invalid("实时任务只支持Flink引擎");
+        if ("REALTIME".equals(task.getMode()) && !"FLINK".equals(task.getEngine())) {
+            throw invalid("实时任务只支持Flink引擎");
+        }
         if ("FLINK".equals(task.getEngine())) {
             for (Object item : graph.getJSONArray("nodes")) {
                 var properties = JSONUtil.parseObj(item).getJSONObject("properties");
                 String tool = properties == null ? "" : properties.getStr("toolCode", "");
                 String component = properties == null ? "" : properties.getStr("componentCode", "");
                 boolean compatible;
-                if ("row-column".equals(tool)) compatible = component.isBlank() || Set.of("row-to-column", "column-to-row").contains(component);
-                else if ("data-clean".equals(tool)) compatible = component.isBlank() || Set.of("data-clean", "dedup-records").contains(component);
-                else compatible = IntegrationComponentCapabilitiesService.FLINK_COMPONENTS.contains(tool) && (component.isBlank() || component.equals(tool));
-                if (!compatible) throw invalid("当前Flink任务仅开放12个组件，此节点不可用");
+                if ("row-column".equals(tool)) {
+                    compatible =
+                            component.isBlank()
+                                    || Set.of("row-to-column", "column-to-row").contains(component);
+                } else if ("data-clean".equals(tool)) {
+                    compatible =
+                            component.isBlank()
+                                    || Set.of("data-clean", "dedup-records").contains(component);
+                } else {
+                    compatible =
+                            IntegrationComponentCapabilitiesService.FLINK_COMPONENTS.contains(tool)
+                                    && (component.isBlank() || component.equals(tool));
+                }
+                if (!compatible) {
+                    throw invalid("当前Flink任务仅开放12个组件，此节点不可用");
+                }
             }
             return;
         }
-        if (!"DATAX".equals(task.getEngine())) return;
-        if (!"OFFLINE".equals(task.getMode())) throw invalid("DataX只支持离线任务");
+        if (!"DATAX".equals(task.getEngine())) {
+            return;
+        }
+        if (!"OFFLINE".equals(task.getMode())) {
+            throw invalid("DataX只支持离线任务");
+        }
         for (Object item : graph.getJSONArray("nodes")) {
             var properties = JSONUtil.parseObj(item).getJSONObject("properties");
             String tool = properties == null ? "" : properties.getStr("toolCode", "");
@@ -112,7 +147,9 @@ public class IntegrationFlowCompiler {
                     || "insert-db".equals(tool) && (component.isBlank() || component.equals("insert-db"))
                     || "data-clean".equals(tool) && (component.isBlank() || component.equals("dedup-records"))
                     && properties.get("nodeJson") != null && JSONUtil.parseObj(properties.get("nodeJson")).getBool("enableDeduplication", false);
-            if (!valid) throw invalid("DataX仅支持表输入、去除重复记录和表输出组件");
+            if (!valid) {
+                throw invalid("DataX仅支持表输入、去除重复记录和表输出组件");
+            }
         }
     }
 
@@ -135,19 +172,35 @@ public class IntegrationFlowCompiler {
     }
 
     public void completePublication(Publication publication) {
-        if (publication == null || publication.scripts() == null) return;
+        if (publication == null || publication.scripts() == null) {
+            return;
+        }
         if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
-            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {
-                @Override public void afterCommit() { scripts.complete(publication.scripts()); }
-                @Override public void afterCompletion(int status) {
-                    if (status != STATUS_COMMITTED) scripts.abort(publication.scripts());
-                }
-            });
-        } else scripts.complete(publication.scripts());
+            org.springframework.transaction.support.TransactionSynchronizationManager
+                    .registerSynchronization(
+                            new org.springframework.transaction.support
+                                    .TransactionSynchronization() {
+                                @Override
+                                public void afterCommit() {
+                                    scripts.complete(publication.scripts());
+                                }
+
+                                @Override
+                                public void afterCompletion(int status) {
+                                    if (status != STATUS_COMMITTED) {
+                                        scripts.abort(publication.scripts());
+                                    }
+                                }
+                            });
+        } else {
+            scripts.complete(publication.scripts());
+        }
     }
 
     public void abortPublication(Publication publication) {
-        if (publication != null && publication.scripts() != null) scripts.abort(publication.scripts());
+        if (publication != null && publication.scripts() != null) {
+            scripts.abort(publication.scripts());
+        }
     }
 
     private Publication compile(IntegrationTaskDO task, String flowJson, IntegrationNativeScriptBindingSupport.Purpose purpose) {
@@ -158,22 +211,32 @@ public class IntegrationFlowCompiler {
         List<Map<String, Object>> rawEdges = graph.getJSONArray("edges").toList(Map.class).stream()
                 .map(value -> (Map<String, Object>) value).toList();
         var expanded = expandSubflows(task, EtlGraphConverter.toNodeDefs(rawNodes), EtlGraphConverter.toEdgeDefs(rawEdges));
-        for (var node : expanded.nodes())
-            if ("read-db".equals(node.getToolCode())) EtlTableReadConfig.requireSupportedExecution(JSONUtil.parseObj(node.getNodeJson()));
+        for (var node : expanded.nodes()) {
+            if ("read-db".equals(node.getToolCode())) {
+                EtlTableReadConfig.requireSupportedExecution(JSONUtil.parseObj(node.getNodeJson()));
+            }
+        }
         var prepared = prepareNative(task, expanded.nodes(), expanded.edges());
         var nodes = prepared.nodes();
         var edges = expanded.edges();
-        if (nodes.isEmpty()) throw invalid("请添加并配置流程节点");
+        if (nodes.isEmpty()) {
+            throw invalid("请添加并配置流程节点");
+        }
         for (var node : nodes) {
             // 钩子只能交给具有原子发布和恢复标记的受管写入器，其他引擎不能静默忽略。
             if ("insert-db".equals(node.getToolCode())) {
                 var target = JSONUtil.parseObj(node.getNodeJson());
-                if ((!target.getStr("preSql", "").isBlank() || !target.getStr("postSql", "").isBlank())
-                        && (!"DATAX".equals(task.getEngine()) || target.getInt("dataSyncType", 1) != 2))
+                if ((!target.getStr("preSql", "").isBlank()
+                                || !target.getStr("postSql", "").isBlank())
+                        && (!"DATAX".equals(task.getEngine())
+                                || target.getInt("dataSyncType", 1) != 2)) {
                     throw invalid("前后置 SQL 需要 PostgreSQL DataX 幂等写入，其他执行路径不支持");
+                }
             }
-            if (node.isFailGoOn() || node.getOverTimeMinutes() != null && node.getOverTimeMinutes() > 0)
+            if (node.isFailGoOn()
+                    || node.getOverTimeMinutes() != null && node.getOverTimeMinutes() > 0) {
                 throw invalid("节点【" + node.getName() + "】尚不支持独立超时或失败继续，请使用任务级运行策略");
+            }
         }
         Map<String, List<String>> upstream = new LinkedHashMap<>();
         nodes.forEach(node -> upstream.put(node.getNo(), new ArrayList<>()));
@@ -185,19 +248,28 @@ public class IntegrationFlowCompiler {
             int before = visited.size();
             nodes.stream().filter(node -> visited.containsAll(upstream.get(node.getNo())))
                     .forEach(node -> visited.add(node.getNo()));
-            if (before == visited.size()) throw invalid("流程包含循环依赖");
+            if (before == visited.size()) {
+                throw invalid("流程包含循环依赖");
+            }
         }
         var config = JSONUtil.toBean(task.getEngineConfigJson(), EngineConfig.class);
-        if ("DATAX".equals(task.getEngine())) return new Publication(datax(task, nodes, upstream, config), null);
-        if (nodes.stream().anyMatch(node -> "sql-script".equals(node.getToolCode())))
+        if ("DATAX".equals(task.getEngine())) {
+            return new Publication(datax(task, nodes, upstream, config), null);
+        }
+        if (nodes.stream().anyMatch(node -> "sql-script".equals(node.getToolCode()))) {
             throw invalid("集成流程不接受独立 SQL 脚本，请使用具有受管数据源绑定的业务组件");
+        }
         if (hasScripts(expanded.nodes())) {
             // 完整初始化先通过与普通 SQL 相同的受管参数护栏，JAVA launcher 不获得任意会话命令入口。
             nativeStep(task, "native_validation", task.getName(), prepared.initializationSql() + "SELECT 1;", config, List.of());
             var program = scripts.compile(task, prepared.nodes(), edges, nativeResolver(task, prepared),
                     managedInitialization(task) + "\n" + prepared.initializationSql(), expanded.nodes(), purpose);
             try { return new Publication(List.of(scriptStep(task, program.plan().program(), config)), program); }
-            catch (RuntimeException failure) { if (purpose == IntegrationNativeScriptBindingSupport.Purpose.PUBLICATION) scripts.abort(program); throw failure; }
+            catch (RuntimeException failure) {
+                if (purpose == IntegrationNativeScriptBindingSupport.Purpose.PUBLICATION) {
+                    scripts.abort(program);
+                }
+                throw failure; }
         }
         String sql = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.compile(
                 cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine.valueOf(task.getEngine()),
@@ -221,25 +293,38 @@ public class IntegrationFlowCompiler {
             var program = scripts.compile(task, prepared.nodes(), expanded.edges(), nativeResolver(task, prepared),
                     managedInitialization(task) + "\n" + prepared.initializationSql(), expanded.nodes(), IntegrationNativeScriptBindingSupport.Purpose.CHECK);
             validateScriptProgram(task, program.plan().program(), config); analysis = program.plan().analysis();
-        } else analysis = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.analyze(
-                cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine.valueOf(task.getEngine()),
-                "REALTIME".equals(task.getMode()), prepared.nodes(), expanded.edges(), nativeResolver(task, prepared));
+        } else {
+            analysis =
+                    cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.analyze(
+                            cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine
+                                    .valueOf(task.getEngine()),
+                            "REALTIME".equals(task.getMode()),
+                            prepared.nodes(),
+                            expanded.edges(),
+                            nativeResolver(task, prepared));
+        }
         analysis = new cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Analysis(
                 prepared.initializationSql() + analysis.sql(), analysis.nodes());
-        if (expanded.dependencies().isEmpty()) return analysis;
+        if (expanded.dependencies().isEmpty()) {
+            return analysis;
+        }
         var shapes = new LinkedHashMap<>(analysis.nodes());
         for (var call : nodes) {
-            if (!EtlSubflowExpander.CALL.equals(call.getToolCode())) continue;
+            if (!EtlSubflowExpander.CALL.equals(call.getToolCode())) {
+                continue;
+            }
             var members = expanded.sourceMap().entrySet().stream()
                     .filter(entry -> call.getNo().equals(entry.getValue().designNodeNo()))
                     .map(Map.Entry::getKey).collect(java.util.stream.Collectors.toSet());
             var input = new LinkedHashMap<String, String>();
             var output = new LinkedHashMap<String, String>();
             for (var edge : expanded.edges()) {
-                if (!members.contains(edge.getSourceNo()) && members.contains(edge.getTargetNo()))
+                if (!members.contains(edge.getSourceNo()) && members.contains(edge.getTargetNo())) {
                     mergeShape(input, analysis.nodes().get(edge.getTargetNo()).inputFields());
-                if (members.contains(edge.getSourceNo()) && !members.contains(edge.getTargetNo()))
+                }
+                if (members.contains(edge.getSourceNo()) && !members.contains(edge.getTargetNo())) {
                     mergeShape(output, analysis.nodes().get(edge.getSourceNo()).outputFields());
+                }
             }
             shapes.put(call.getNo(), new cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.NodeFields(
                     Collections.unmodifiableMap(input), Collections.unmodifiableMap(output)));
@@ -249,10 +334,14 @@ public class IntegrationFlowCompiler {
 
     /** 多端口同名字段只有类型一致时可展示确定类型。 */
     private static void mergeShape(Map<String, String> target, Map<String, String> source) {
-        source.forEach((name, type) -> {
-            if (!target.containsKey(name)) target.put(name, type);
-            else if (!Objects.equals(target.get(name), type)) target.put(name, null);
-        });
+        source.forEach(
+                (name, type) -> {
+                    if (!target.containsKey(name)) {
+                        target.put(name, type);
+                    } else if (!Objects.equals(target.get(name), type)) {
+                        target.put(name, null);
+                    }
+                });
     }
 
     private record NativeReference(Long databaseId, String tableName) { }
@@ -263,7 +352,9 @@ public class IntegrationFlowCompiler {
 
     /** 外部连接器仅在参数完整校验后降为会话表，原始节点不能引用内部别名绕过资源授权。 */
     private NativePreparation prepareNative(IntegrationTaskDO task, List<EtlNodeDef> nodes, List<EtlEdgeDef> edges) {
-        if ("DATAX".equals(task.getEngine())) return new NativePreparation(nodes, Map.of(), "");
+        if ("DATAX".equals(task.getEngine())) {
+            return new NativePreparation(nodes, Map.of(), "");
+        }
         var result = new ArrayList<EtlNodeDef>();
         var tables = new LinkedHashMap<NativeReference, cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Table>();
         var sql = new StringBuilder();
@@ -271,20 +362,26 @@ public class IntegrationFlowCompiler {
         var engine = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine.valueOf(task.getEngine());
         boolean streaming = "REALTIME".equals(task.getMode());
         for (var node : nodes) {
-            if (Set.of("read-csv", "read-excel", "read-json").contains(node.getToolCode()))
+            if (Set.of("read-csv", "read-excel", "read-json").contains(node.getToolCode())) {
                 throw invalid("当前引擎暂不支持上传附件执行");
+            }
             var config = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeConfigJson.normalize(JSONUtil.parseObj(node.getNodeJson()));
             if (Set.of("read-db", "insert-db").contains(node.getToolCode())
-                    && config.getStr("tableName", "").startsWith("dh_native_"))
+                    && config.getStr("tableName", "").startsWith("dh_native_")) {
                 throw invalid("原始表组件不能引用内部连接器会话表");
+            }
             if (engine == cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Engine.FLINK && streaming
                     && "insert-db".equals(node.getToolCode()) && config.getInt("dataSyncType", 1) == 2) {
                 Long databaseId = connectorDatabaseId(config);
                 var plan = nativeUpsertTable(databaseId, config);
                 var reference = new NativeReference(databaseId, config.getStr("tableName"));
                 var previous = tables.putIfAbsent(reference, plan.table());
-                if (previous != null && !previous.equals(plan.table())) throw invalid("同一目标表不能使用冲突的增量目录合同");
-                if (previous == null) sql.append(plan.initializationSql());
+                if (previous != null && !previous.equals(plan.table())) {
+                    throw invalid("同一目标表不能使用冲突的增量目录合同");
+                }
+                if (previous == null) {
+                    sql.append(plan.initializationSql());
+                }
                 result.add(node); continue;
             }
             cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Table table;
@@ -303,8 +400,14 @@ public class IntegrationFlowCompiler {
                 var plan = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeRocketCompiler.compile(engine, streaming,
                         task.getId() + ":" + node.getNo(), node.getToolCode(), config, binding, managedSecretReferences(task));
                 String addresses = String.join(";", Arrays.stream(binding.nameServers().split(";")).map(value -> value.toLowerCase(Locale.ROOT)).sorted().toList());
-                if ("read-rocketmq".equals(node.getToolCode()) && !rocketSources.add(new RocketSource(addresses, config.getStr("topic"), config.getStr("groupId"))))
+                if ("read-rocketmq".equals(node.getToolCode())
+                        && !rocketSources.add(
+                                new RocketSource(
+                                        addresses,
+                                        config.getStr("topic"),
+                                        config.getStr("groupId")))) {
                     throw invalid("同一任务不能重复使用相同 RocketMQ 地址、主题及消费组创建多个源");
+                }
                 table = plan.table(); initialization = plan.initializationSql(); nativeMappings = plan.fieldMappings();
             } else if (Set.of("read-odps", "write-odps").contains(node.getToolCode())) {
                 databaseId = connectorDatabaseId(config);
@@ -338,14 +441,18 @@ public class IntegrationFlowCompiler {
                 table = plan.table(); initialization = plan.initializationSql(); nativeMappings = plan.fieldMappings();
             } else if (Set.of("read-ftp", "write-ftp").contains(node.getToolCode())) {
                 databaseId = config.get("databaseId") == null ? Long.MIN_VALUE : connectorDatabaseId(config);
-                if (databaseId != Long.MIN_VALUE) access.requireDatabase(databaseId);
+                if (databaseId != Long.MIN_VALUE) {
+                    access.requireDatabase(databaseId);
+                }
                 var binding = dataxBindings.require(task.getId(), node.getToolCode(), databaseId == Long.MIN_VALUE ? null : databaseId, config.getStr("resourceBindingId"));
                 var plan = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeFtpCompiler.compile(engine, streaming,
                         task.getId() + ":" + node.getNo(), node.getToolCode(), config, binding, properties.getManagedFunctions(), managedSecretReferences(task));
                 table = plan.table(); initialization = plan.initializationSql(); nativeMappings = plan.fieldMappings();
             } else if (Set.of("read-hdfs", "write-hdfs").contains(node.getToolCode())) {
                 databaseId = config.get("databaseId") == null ? Long.MIN_VALUE : connectorDatabaseId(config);
-                if (databaseId != Long.MIN_VALUE) access.requireDatabase(databaseId);
+                if (databaseId != Long.MIN_VALUE) {
+                    access.requireDatabase(databaseId);
+                }
                 var binding = dataxBindings.require(task.getId(), node.getToolCode(), databaseId == Long.MIN_VALUE ? null : databaseId, config.getStr("resourceBindingId"));
                 var plan = cn.iocoder.yudao.framework.etl.core.compile.EtlNativeHdfsCompiler.compile(engine, streaming,
                         task.getId() + ":" + node.getNo(), node.getToolCode(), config, binding);
@@ -369,12 +476,24 @@ public class IntegrationFlowCompiler {
             adapted.setToolCode(output ? "insert-db" : "read-db");
             adapted.setToolType(output ? EtlNodeDef.TOOL_TYPE_OUTPUT : EtlNodeDef.TOOL_TYPE_INPUT);
             var adaptedConfig = nodeConfig == null ? new JSONObject().set("databaseId", databaseId).set("tableName", table.physicalTable()) : new JSONObject(nodeConfig);
-            if (output && nodeConfig == null) adaptedConfig.set("fieldMappings", nativeMappings.isEmpty() ? table.columns().keySet().stream()
-                    .map(field -> Map.of("source", field, "target", field, "enabled", true)).toList() : nativeMappings);
+            if (output && nodeConfig == null) {
+                adaptedConfig.set(
+                        "fieldMappings",
+                        nativeMappings.isEmpty()
+                                ? table.columns().keySet().stream()
+                                        .map(
+                                                field ->
+                                                        Map.of(
+                                                                "source", field, "target", field,
+                                                                "enabled", true))
+                                        .toList()
+                                : nativeMappings);
+            }
             adapted.setNodeJson(adaptedConfig.toString()); result.add(adapted);
             var previous = tables.putIfAbsent(new NativeReference(databaseId, table.physicalTable()), table);
-            if (previous != null && !previous.equals(table))
+            if (previous != null && !previous.equals(table)) {
                 throw invalid("连接器内部表别名冲突");
+            }
             sql.append(initialization);
         }
         return new NativePreparation(List.copyOf(result), Map.copyOf(tables), sql.toString());
@@ -382,7 +501,9 @@ public class IntegrationFlowCompiler {
 
     private static Long connectorDatabaseId(JSONObject config) {
         String value = String.valueOf(config.get("databaseId"));
-        if (!value.matches("[1-9][0-9]{0,18}")) throw invalid("连接器数据源编号必须为无损的正整数");
+        if (!value.matches("[1-9][0-9]{0,18}")) {
+            throw invalid("连接器数据源编号必须为无损的正整数");
+        }
         try { return Long.valueOf(value); } catch (NumberFormatException malformed) { throw invalid("连接器数据源编号超出范围"); }
     }
 
@@ -401,12 +522,22 @@ public class IntegrationFlowCompiler {
 
     private Set<String> managedSecretReferences(IntegrationTaskDO task) {
         var references = new LinkedHashSet<String>();
-        properties.getManagedSecretBindings().forEach((reference, binding) -> {
-            if (reference != null && reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}") && binding != null
-                    && binding.getAllowedTaskIds() != null && binding.getAllowedTaskIds().contains(task.getId())
-                    && binding.getWorkerGroups() != null && binding.getWorkerGroups().contains(task.getWorkerGroup())
-                    && binding.getEngines() != null && binding.getEngines().contains(task.getEngine())) references.add(reference);
-        });
+        properties
+                .getManagedSecretBindings()
+                .forEach(
+                        (reference, binding) -> {
+                            if (reference != null
+                                    && reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}")
+                                    && binding != null
+                                    && binding.getAllowedTaskIds() != null
+                                    && binding.getAllowedTaskIds().contains(task.getId())
+                                    && binding.getWorkerGroups() != null
+                                    && binding.getWorkerGroups().contains(task.getWorkerGroup())
+                                    && binding.getEngines() != null
+                                    && binding.getEngines().contains(task.getEngine())) {
+                                references.add(reference);
+                            }
+                        });
         return Collections.unmodifiableSet(references);
     }
 
@@ -416,10 +547,16 @@ public class IntegrationFlowCompiler {
         if (nodes.stream().noneMatch(node -> EtlSubflowExpander.CALL.equals(node.getToolCode()))) {
             result = new EtlSubflowExpander.Result(nodes, edges, List.of(), Map.of());
         } else {
-            if ("DATAX".equals(task.getEngine())) throw invalid("DataX 不支持包含子流程的行转换图，请选择原生 SQL 引擎");
+            if ("DATAX".equals(task.getEngine())) {
+                throw invalid("DataX 不支持包含子流程的行转换图，请选择原生 SQL 引擎");
+            }
             Long actor = SecurityFrameworkUtils.getLoginUserId();
-            if (actor == null) actor = ExecutionAccessService.parseExecutionUserId(task.getCreator());
-            if (actor == null) throw invalid("子流程编译缺少有效执行身份");
+            if (actor == null) {
+                actor = ExecutionAccessService.parseExecutionUserId(task.getCreator());
+            }
+            if (actor == null) {
+                throw invalid("子流程编译缺少有效执行身份");
+            }
             result = subflows.expand(nodes, edges, actor, Map.of());
         }
         // 发布子版本也不能成为集成流程写入凭据或独立脚本的旁路。
@@ -436,8 +573,13 @@ public class IntegrationFlowCompiler {
     }
 
     private void validateScriptProgram(IntegrationTaskDO task, cn.iocoder.yudao.framework.etl.core.script.EtlNativeScriptProgram program, EngineConfig config) {
-        for (var stage : program.stages()) nativeStep(task, "native_validation", task.getName(), stage.inputSql(), config, List.of());
-        for (String insert : program.inserts()) nativeStep(task, "native_validation", task.getName(), insert, config, List.of());
+        for (var stage : program.stages()) {
+            nativeStep(
+                    task, "native_validation", task.getName(), stage.inputSql(), config, List.of());
+        }
+        for (String insert : program.inserts()) {
+            nativeStep(task, "native_validation", task.getName(), insert, config, List.of());
+        }
     }
 
     private Step scriptStep(IntegrationTaskDO task, cn.iocoder.yudao.framework.etl.core.script.EtlNativeScriptProgram program, EngineConfig config) {
@@ -453,8 +595,13 @@ public class IntegrationFlowCompiler {
                     config.getSlots(), config.getTaskManagerCount(), config.getParallelism(), config.getJobManagerMemory(),
                     config.getTaskManagerMemory(), queue, name, "REALTIME".equals(task.getMode()) ? 60000 : 0),
                     NativeTaskParameters.FlinkDeployment.valueOf(properties.getFlinkDeployMode()), properties.getFlinkJobManager());
-            if ("REALTIME".equals(task.getMode())) payload = NativeTaskParameters.withFlinkRestartPolicy(payload,
-                    properties.getFlinkRestartAttempts(), properties.getFlinkRestartDelayMs());
+            if ("REALTIME".equals(task.getMode())) {
+                payload =
+                        NativeTaskParameters.withFlinkRestartPolicy(
+                                payload,
+                                properties.getFlinkRestartAttempts(),
+                                properties.getFlinkRestartDelayMs());
+            }
         } else {
             payload = NativeTaskParameters.spark(new NativeTaskParameters.SparkOptions(NativeTaskParameters.ProgramType.JAVA, null,
                     resource, "cn.iocoder.yudao.framework.etl.script.spark.EtlNativeScriptMain", program.argumentChunks(), List.of(),
@@ -475,8 +622,13 @@ public class IntegrationFlowCompiler {
                 sql, null, null, List.of(), List.of(), config.getSlots(), config.getTaskManagerCount(),
                 config.getParallelism(), config.getJobManagerMemory(), config.getTaskManagerMemory(), queue, name,
                 "REALTIME".equals(task.getMode()) ? 60000 : 0), NativeTaskParameters.FlinkDeployment.valueOf(properties.getFlinkDeployMode()), properties.getFlinkJobManager());
-            if ("REALTIME".equals(task.getMode())) payload = NativeTaskParameters.withFlinkRestartPolicy(payload,
-                    properties.getFlinkRestartAttempts(), properties.getFlinkRestartDelayMs());
+            if ("REALTIME".equals(task.getMode())) {
+                payload =
+                        NativeTaskParameters.withFlinkRestartPolicy(
+                                payload,
+                                properties.getFlinkRestartAttempts(),
+                                properties.getFlinkRestartDelayMs());
+            }
         } else {
             payload = NativeTaskParameters.spark(new NativeTaskParameters.SparkOptions(
                 NativeTaskParameters.ProgramType.SQL, sql, null, null, List.of(), List.of(),
@@ -491,11 +643,19 @@ public class IntegrationFlowCompiler {
     private cn.iocoder.yudao.framework.etl.core.compile.EtlNativeSqlCompiler.Table nativeTable(String engine, Long databaseId, String tableName, String schema) {
         access.requireDatabase(databaseId);
         var binding = properties.getNativeTableBindings().get(databaseId);
-        if (binding == null) throw invalid("数据源 " + databaseId + " 尚未绑定 " + engine + " 受管 Catalog，请先配置引擎中的外部表");
+        if (binding == null) {
+            throw invalid("数据源 " + databaseId + " 尚未绑定 " + engine + " 受管 Catalog，请先配置引擎中的外部表");
+        }
         var namespace = "SPARK".equals(engine) ? binding.getSparkNamespace() : binding.getFlinkNamespace();
-        if (namespace == null || namespace.isEmpty() || namespace.size() > 2) throw invalid("受管 Catalog 命名空间无效");
+        if (namespace == null || namespace.isEmpty() || namespace.size() > 2) {
+            throw invalid("受管 Catalog 命名空间无效");
+        }
         var connection = connections.resolve(databaseId); var metadata = databases.getTableMeta(databaseId, tableName);
-        if (schema != null && !schema.isBlank() && !Objects.equals(schema, metadata.getSchemaName())) throw invalid("节点 Schema 与当前元数据不一致");
+        if (schema != null
+                && !schema.isBlank()
+                && !Objects.equals(schema, metadata.getSchemaName())) {
+            throw invalid("节点 Schema 与当前元数据不一致");
+        }
         var path = new ArrayList<>(namespace); path.add(binding.getTableAliases().getOrDefault(tableName, tableName));
         var columns = new LinkedHashMap<String, String>();
         metadata.getColumns().forEach(column -> columns.put(column.getFieldName(), column.getFieldTypeName()));
@@ -511,16 +671,33 @@ public class IntegrationFlowCompiler {
     /** 控制面只接受真实非空主键；执行端 LIKE 继承后再次检查 JDBC 服务、物理表、目录 PK 和 NULL 策略。 */
     private cn.iocoder.yudao.framework.etl.core.compile.EtlNativeConnectorCompiler.TablePlan nativeUpsertTable(Long databaseId, JSONObject config) {
         var binding = properties.getNativeTableBindings().get(databaseId);
-        if (binding == null || !binding.isFlinkVerifiedJdbcSinkInstalled()) throw invalid("目标尚未安装受管 Flink JDBC 增量输出校验器");
+        if (binding == null || !binding.isFlinkVerifiedJdbcSinkInstalled()) {
+            throw invalid("目标尚未安装受管 Flink JDBC 增量输出校验器");
+        }
         var table = nativeTable("FLINK", databaseId, config.getStr("tableName"), config.getStr("schemaName"));
-        if (table.product() != cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL) throw invalid("实时增量输出当前只支持已验证的 PostgreSQL JDBC 目标");
+        if (table.product()
+                != cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL) {
+            throw invalid("实时增量输出当前只支持已验证的 PostgreSQL JDBC 目标");
+        }
         var metadata = databases.getTableMeta(databaseId, config.getStr("tableName"));
         var actual = metadata.getColumns().stream().filter(column -> Boolean.TRUE.equals(column.getPk())).toList();
         var declared = binding.getFlinkUpsertPrimaryKeys().get(metadata.getTableName());
-        if (actual.isEmpty() || actual.stream().anyMatch(column -> !Boolean.FALSE.equals(column.getNullable())) || declared == null || declared.isEmpty()
+        if (actual.isEmpty()
+                || actual.stream().anyMatch(column -> !Boolean.FALSE.equals(column.getNullable()))
+                || declared == null
+                || declared.isEmpty()
                 || declared.stream().distinct().count() != declared.size()
-                || !new HashSet<>(declared).equals(actual.stream().map(cn.iocoder.yudao.module.dataforge.controller.admin.database.vo.DatabaseTableColumnRespVO::getFieldName).collect(java.util.stream.Collectors.toSet())))
+                || !new HashSet<>(declared)
+                        .equals(
+                                actual.stream()
+                                        .map(
+                                                cn.iocoder.yudao.module.dataforge.controller.admin
+                                                                .database.vo
+                                                                .DatabaseTableColumnRespVO
+                                                        ::getFieldName)
+                                        .collect(java.util.stream.Collectors.toSet()))) {
             throw invalid("真实数据库非空主键与管理员受管 Catalog 主键声明不一致");
+        }
         int batch;
         try { batch = new java.math.BigDecimal(String.valueOf(config.getOrDefault("batchSize", 1000))).intValueExact(); }
         catch (RuntimeException failure) { throw invalid("实时增量写入批次必须为整数"); }
@@ -537,22 +714,32 @@ public class IntegrationFlowCompiler {
         Map<String, EtlNodeDef> byId = new HashMap<>(); nodes.forEach(node -> byId.put(node.getNo(), node));
         var result = new ArrayList<Step>(); var consumed = new HashSet<String>();
         for (var output : nodes) {
-            if (!"insert-db".equals(output.getToolCode())) continue;
+            if (!"insert-db".equals(output.getToolCode())) {
+                continue;
+            }
             var parents = upstream.get(output.getNo());
-            if (parents.size() != 1) throw invalid("DataX表输出需要唯一的表输入或去重上游");
+            if (parents.size() != 1) {
+                throw invalid("DataX表输出需要唯一的表输入或去重上游");
+            }
             var input = byId.get(parents.getFirst()); JSONObject dedup = null;
             if (input != null && "data-clean".equals(input.getToolCode())) {
                 var before = upstream.get(input.getNo());
-                if (before.size() != 1 || !consumed.add(input.getNo())) throw invalid("DataX去重必须连接唯一表输入且只连接一个输出");
+                if (before.size() != 1 || !consumed.add(input.getNo())) {
+                    throw invalid("DataX去重必须连接唯一表输入且只连接一个输出");
+                }
                 dedup = JSONUtil.parseObj(input.getNodeJson()); input = byId.get(before.getFirst());
             }
-            if (input == null || !"read-db".equals(input.getToolCode())) throw invalid("DataX去重与输出需要连接表输入");
+            if (input == null || !"read-db".equals(input.getToolCode())) {
+                throw invalid("DataX去重与输出需要连接表输入");
+            }
             if (!upstream.get(input.getNo()).isEmpty() || !consumed.add(input.getNo())) {
                 throw invalid("DataX 输入必须独立且只能连接一个输出");
             }
             consumed.add(output.getNo());
             var source = JSONUtil.parseObj(input.getNodeJson()); var target = JSONUtil.parseObj(output.getNodeJson());
-            if (!target.getStr("whereCondition", "").isBlank()) throw invalid("表输出不支持 WHERE 条件，请将条件配置在输入或过滤组件");
+            if (!target.getStr("whereCondition", "").isBlank()) {
+                throw invalid("表输出不支持 WHERE 条件，请将条件配置在输入或过滤组件");
+            }
             Long sourceId = source.getLong("databaseId"), targetId = target.getLong("databaseId");
             access.requireDatabase(sourceId); access.requireDatabase(targetId);
             var sourceBinding = binding(sourceId); var targetBinding = binding(targetId);
@@ -563,8 +750,12 @@ public class IntegrationFlowCompiler {
             var selected = source.getJSONArray("selectedColumns");
             String sql; var projectedTypes = new LinkedHashMap<String, String>(); var aliases = new LinkedHashMap<String, String>();
             if (source.getInt("ifSql", 0) == 1) {
-                if (dedup != null) throw invalid("DataX去重需要可核验字段合同的表输入，请使用表模式");
-                if (!where.isBlank() || mappings != null || selected != null) throw invalid("自定义 SQL 请在查询中完成字段选择、别名映射和条件过滤");
+                if (dedup != null) {
+                    throw invalid("DataX去重需要可核验字段合同的表输入，请使用表模式");
+                }
+                if (!where.isBlank() || mappings != null || selected != null) {
+                    throw invalid("自定义 SQL 请在查询中完成字段选择、别名映射和条件过滤");
+                }
                 sql = source.getStr("sql");
             } else {
                 var sourceMetadata = databases.getTableMeta(sourceId, source.getStr("tableName")).getColumns();
@@ -576,20 +767,33 @@ public class IntegrationFlowCompiler {
                 var projections = new ArrayList<String>(); var usedTargets = new HashSet<String>();
                 if (mappings != null) {
                     for (Object entry : mappings) {
-                        var mapping = JSONUtil.parseObj(entry); if (!mapping.getBool("enabled", true)) continue;
+                        var mapping = JSONUtil.parseObj(entry);
+                        if (!mapping.getBool("enabled", true)) {
+                            continue;
+                        }
                         String from = mapping.getStr("source"), to = mapping.getStr("target");
-                        if (!sourceColumns.contains(from) || !targetColumns.contains(to) || !usedTargets.add(to)
-                                || (selected != null && !selected.contains(from))) throw invalid("字段映射包含不存在、未选中或重复的字段");
+                        if (!sourceColumns.contains(from)
+                                || !targetColumns.contains(to)
+                                || !usedTargets.add(to)
+                                || (selected != null && !selected.contains(from))) {
+                            throw invalid("字段映射包含不存在、未选中或重复的字段");
+                        }
                         projections.add(connection.getProductType().quoteName(from) + " AS " + connection.getProductType().quoteName(to));
                         projectedTypes.put(to, sourceTypes.get(from)); aliases.putIfAbsent(from, to);
                     }
-                    if (projections.isEmpty()) throw invalid("请至少启用一个有效字段映射");
+                    if (projections.isEmpty()) {
+                        throw invalid("请至少启用一个有效字段映射");
+                    }
                 } else if (selected != null) {
                     for (String field : selected.toList(String.class)) {
-                        if (!sourceColumns.contains(field)) throw invalid("选择了不存在的输入字段");
+                        if (!sourceColumns.contains(field)) {
+                            throw invalid("选择了不存在的输入字段");
+                        }
                         projections.add(connection.getProductType().quoteName(field)); projectedTypes.put(field, sourceTypes.get(field)); aliases.put(field, field);
                     }
-                    if (projections.isEmpty()) throw invalid("请至少选择一个输入字段");
+                    if (projections.isEmpty()) {
+                        throw invalid("请至少选择一个输入字段");
+                    }
                 }
                 if (projections.isEmpty()) { projectedTypes.putAll(sourceTypes); sourceTypes.keySet().forEach(name -> aliases.put(name, name)); }
                 sql = "SELECT " + (projections.isEmpty() ? "*" : String.join(", ", projections)) + " FROM "
@@ -597,7 +801,9 @@ public class IntegrationFlowCompiler {
                         + (where.isBlank() ? "" : " WHERE " + where);
             }
             sql = RestrictedSelectGuard.parseBound(connection.getProductType(), sql, connection.getSchema()).getNormalizedSql();
-            if (dedup != null) sql = dataxDedup(connection, sql, projectedTypes, aliases, dedup);
+            if (dedup != null) {
+                sql = dataxDedup(connection, sql, projectedTypes, aliases, dedup);
+            }
             var targetConnection = connections.resolve(targetId);
             var targetReference = EtlTableReference.resolve(targetConnection, target.getStr("tableName"), target.getStr("schemaName"));
             int syncType = target.getInt("dataSyncType", 1);
@@ -613,18 +819,27 @@ public class IntegrationFlowCompiler {
                     config.getRecordSpeed(), config.getErrorLimit(), target.getInt("batchSize", 1000));
             Map<String, Object> params;
             if (upsert) {
-                if (!properties.getDataxUpsertWorkerGroups().contains(task.getWorkerGroup()))
+                if (!properties.getDataxUpsertWorkerGroups().contains(task.getWorkerGroup())) {
                     throw invalid("当前工作组尚未安装受管 DATAX_UPSERT 插件");
-                if (!"POSTGRESQL".equals(targetBinding.getDsType())) throw invalid("幂等 DataX 当前仅支持 PostgreSQL 目标");
+                }
+                if (!"POSTGRESQL".equals(targetBinding.getDsType())) {
+                    throw invalid("幂等 DataX 当前仅支持 PostgreSQL 目标");
+                }
                 var keys = target.getJSONArray("upsertKeys");
-                if (keys == null) throw invalid("幂等写入必须选择目标表的非空唯一键");
+                if (keys == null) {
+                    throw invalid("幂等写入必须选择目标表的非空唯一键");
+                }
                 var pre = cn.iocoder.yudao.framework.dbswitch.dbwriter.pg.PostgresUpsertHooks.parse(target.getStr("preSql", ""), targetReference.schema());
                 var post = cn.iocoder.yudao.framework.dbswitch.dbwriter.pg.PostgresUpsertHooks.parse(target.getStr("postSql", ""), targetReference.schema());
                 params = DataxTaskParameters.upsertWithHooks(options, targetReference.schema(), targetReference.table(), keys.toList(String.class), pre, post);
-            } else params = DataxTaskParameters.build(options);
+            } else {
+                params = DataxTaskParameters.build(options);
+            }
             result.add(new Step(output.getNo(), input.getName() + " → " + output.getName(), upsert ? "DATAX_UPSERT" : "DATAX", params, List.of()));
         }
-        if (consumed.size() != nodes.size() || result.isEmpty()) throw invalid("DataX仅支持表输入 → 可选去重 → 表输出的完整链路");
+        if (consumed.size() != nodes.size() || result.isEmpty()) {
+            throw invalid("DataX仅支持表输入 → 可选去重 → 表输出的完整链路");
+        }
         return result;
     }
 
@@ -632,30 +847,55 @@ public class IntegrationFlowCompiler {
     private static String dataxDedup(EtlConnectionInfo connection, String sql, Map<String, String> types,
                                     Map<String, String> aliases, JSONObject config) {
         var allowed = Set.of("enableDeduplication", "deduplicationStrategy", "keyFields", "ignoreCase", "ignoreCaseFields", "orderBy", "uniqueFields", "executionMode");
-        for (String key : config.keySet()) if (!allowed.contains(key)) throw invalid("DataX去重不支持其它清洗参数：" + key);
-        if (!config.getBool("enableDeduplication", false) || !"LOCAL".equalsIgnoreCase(config.getStr("executionMode", "LOCAL")))
+        for (String key : config.keySet()) {
+            if (!allowed.contains(key)) {
+                throw invalid("DataX去重不支持其它清洗参数：" + key);
+            }
+        }
+        if (!config.getBool("enableDeduplication", false)
+                || !"LOCAL".equalsIgnoreCase(config.getStr("executionMode", "LOCAL"))) {
             throw invalid("DataX仅支持本地去重组件");
+        }
         String strategy = config.getStr("deduplicationStrategy", "ALL_FIELDS");
-        if (!Set.of("ALL_FIELDS", "KEY_FIELDS").contains(strategy)) throw invalid("DataX去重策略无效");
+        if (!Set.of("ALL_FIELDS", "KEY_FIELDS").contains(strategy)) {
+            throw invalid("DataX去重策略无效");
+        }
         var keys = config.getJSONArray("keyFields");
         var namedKeys = keys == null ? List.<String>of() : keys.toList(String.class);
-        if ("ALL_FIELDS".equals(strategy) && !namedKeys.isEmpty()) throw invalid("整行去重不能同时指定去重键");
-        java.util.function.Function<String, String> mapped = name -> {
-            String alias = aliases.get(name); if (alias == null) throw invalid("去重或排序字段未包含在当前输出投影：" + name); return alias;
-        };
+        if ("ALL_FIELDS".equals(strategy) && !namedKeys.isEmpty()) {
+            throw invalid("整行去重不能同时指定去重键");
+        }
+        java.util.function.Function<String, String> mapped =
+                name -> {
+                    String alias = aliases.get(name);
+                    if (alias == null) {
+                        throw invalid("去重或排序字段未包含在当前输出投影：" + name);
+                    }
+                    return alias;
+                };
         var insensitive = config.getJSONArray("ignoreCaseFields");
         Set<String> folded = insensitive != null ? new LinkedHashSet<>(insensitive.toList(String.class).stream().map(mapped).toList())
                 : config.getBool("ignoreCase", false) ? types.entrySet().stream().filter(entry -> entry.getValue() != null
                     && ("ALL_FIELDS".equals(strategy) || namedKeys.stream().map(mapped).toList().contains(entry.getKey()))
                     && entry.getValue().toUpperCase(Locale.ROOT).matches("(?:TEXT|STRING|VARCHAR|CHAR|CHARACTER VARYING)(?:\\([0-9]+\\))?"))
                     .map(Map.Entry::getKey).collect(java.util.stream.Collectors.toSet()) : Set.of();
-        if (insensitive != null && folded.size() != insensitive.size()) throw invalid("忽略大小写字段不能重复");
+        if (insensitive != null && folded.size() != insensitive.size()) {
+            throw invalid("忽略大小写字段不能重复");
+        }
         var orders = new ArrayList<cn.iocoder.yudao.framework.dbswitch.core.service.DeduplicatingSelectSql.Order>();
         var configuredOrder = config.getJSONArray("orderBy");
-        if (configuredOrder != null) for (Object item : configuredOrder) {
-            var rule = JSONUtil.parseObj(item); String direction = rule.getStr("order", "ASC");
-            if (!Set.of("ASC", "DESC").contains(direction)) throw invalid("去重排序方向无效");
-            orders.add(new cn.iocoder.yudao.framework.dbswitch.core.service.DeduplicatingSelectSql.Order(mapped.apply(rule.getStr("field")), "DESC".equals(direction)));
+        if (configuredOrder != null) {
+            for (Object item : configuredOrder) {
+                var rule = JSONUtil.parseObj(item);
+                String direction = rule.getStr("order", "ASC");
+                if (!Set.of("ASC", "DESC").contains(direction)) {
+                    throw invalid("去重排序方向无效");
+                }
+                orders.add(
+                        new cn.iocoder.yudao.framework.dbswitch.core.service.DeduplicatingSelectSql
+                                .Order(
+                                mapped.apply(rule.getStr("field")), "DESC".equals(direction)));
+            }
         }
         var unique = config.getJSONArray("uniqueFields");
         var options = new cn.iocoder.yudao.framework.dbswitch.core.service.DeduplicatingSelectSql.Options("ALL_FIELDS".equals(strategy),
@@ -668,7 +908,9 @@ public class IntegrationFlowCompiler {
         if (binding == null || binding.getDsDatasourceId() == null || binding.getDsType() == null) {
             throw invalid("数据源 " + id + " 尚未配置受管 DS 数据源绑定");
         }
-        if (binding.getDsDatasourceId() <= 0) throw invalid("DS 数据源编号必须为正整数");
+        if (binding.getDsDatasourceId() <= 0) {
+            throw invalid("DS 数据源编号必须为正整数");
+        }
         return binding;
     }
 
@@ -678,7 +920,11 @@ public class IntegrationFlowCompiler {
         var nodes = checked.getJSONArray("nodes");
         for (int index = 0; index < nodes.size(); index++) {
             var node = nodes.getJSONObject(index); var properties = node.getJSONObject("properties");
-            if (properties == null || !scriptCode(properties.getStr("toolCode")) || properties.get("nodeJson") == null) continue;
+            if (properties == null
+                    || !scriptCode(properties.getStr("toolCode"))
+                    || properties.get("nodeJson") == null) {
+                continue;
+            }
             var config = JSONUtil.parseObj(properties.get("nodeJson"));
             rejectNodeSecrets(properties.getStr("toolCode"), config);
             config.remove("code"); properties.set("nodeJson", config); node.set("properties", properties); nodes.set(index, node);
@@ -692,23 +938,37 @@ public class IntegrationFlowCompiler {
         if (!scriptCode(toolCode)) { rejectSecrets(config); return; }
         var checked = JSONUtil.parseObj(config.toString()); Object value = checked.remove("code");
         if (value != null) {
-            if (!(value instanceof String source) || source.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 1024 * 1024)
+            if (!(value instanceof String source)
+                    || source.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                            > 1024 * 1024) {
                 throw invalid("脚本源码必须是有界字符串");
+            }
             // 派生或接口返回的 token 变量是脚本契约；仅明确的凭据字符串字面量仍不落画布。
-            if (source.matches("(?is).*\\b(password|passwd|secret|secretKey|accessKey|accessToken|refreshToken|token)\\b\\s*=\\s*\"(?:[^\"\\\\]|\\\\.)*\"\\s*;.*"))
+            if (source.matches(
+                    "(?is).*\\b(password|passwd|secret|secretKey|accessKey|accessToken|refreshToken|token)\\b\\s*=\\s*\"(?:[^\"\\\\]|\\\\.)*\"\\s*;.*")) {
                 throw invalid("脚本不得保存凭据字符串字面量，请使用受管秘密引用或派生认证上下文");
+            }
         }
         rejectSecrets(checked);
     }
 
     private static void rejectSecrets(Object value) {
-        if (value instanceof Map<?, ?> map) map.forEach((key, child) -> {
-            if (String.valueOf(key).matches("(?i)(password|passwd|secret|secretKey|accessKey|accessToken|refreshToken|token|jdbcUrl)")) throw invalid("流程不得保存连接凭据");
-            rejectSecrets(child);
-        });
-        else if (value instanceof Iterable<?> array) array.forEach(IntegrationFlowCompiler::rejectSecrets);
-        else if (value instanceof String text && (text.matches("(?is).*['\"]?(password|passwd|secret|token)['\"]?\\s*[:=].*")
-                )) throw invalid("流程包含凭据或未经绑定的模板参数");
+        if (value instanceof Map<?, ?> map) {
+            map.forEach(
+                    (key, child) -> {
+                        if (String.valueOf(key)
+                                .matches(
+                                        "(?i)(password|passwd|secret|secretKey|accessKey|accessToken|refreshToken|token|jdbcUrl)")) {
+                            throw invalid("流程不得保存连接凭据");
+                        }
+                        rejectSecrets(child);
+                    });
+        } else if (value instanceof Iterable<?> array) {
+            array.forEach(IntegrationFlowCompiler::rejectSecrets);
+        } else if (value instanceof String text
+                && (text.matches("(?is).*['\"]?(password|passwd|secret|token)['\"]?\\s*[:=].*"))) {
+            throw invalid("流程包含凭据或未经绑定的模板参数");
+        }
     }
 
     private static IllegalArgumentException invalid(String message) { return new IllegalArgumentException(message); }

@@ -51,7 +51,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.*;
 import static cn.iocoder.yudao.module.supply.enums.grant.ErrorCodeConstants.GRANT_SCOPE_CHANGED;
 
 /**
@@ -484,7 +484,9 @@ public class DataApiExecutor {
         if (publishedGateway && isQueryApi(api) && (DataApiDO.CONFIG_TYPE_TABLE.equals(api.getConfigType())
                 || DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType()))) {
             boolean table = DataApiDO.CONFIG_TYPE_TABLE.equals(api.getConfigType());
-            if (!table) requireNoFieldScope(grantSnapshot);
+            if (!table) {
+                requireNoFieldScope(grantSnapshot);
+            }
             var query = table ? prepareTableQuery(api, effectiveParams)
                     : prepareSql(processDynamicTags(api.getSqlText(), effectiveParams), effectiveParams);
             return queryPublished(api, query, pageNo, pageSize, grantSnapshot, permissionCtx);
@@ -535,8 +537,11 @@ public class DataApiExecutor {
         PublishedQueryApi.Projection scope = null;
         if (snapshot != null) {
             var binding = snapshot.binding();
-            if (binding == null || !Objects.equals(api.getDatabaseId(), binding.databaseId())
-                    || snapshot.approvedColumns().isEmpty()) throw exception(DATA_API_NOT_AUTHORIZED);
+            if (binding == null
+                    || !Objects.equals(api.getDatabaseId(), binding.databaseId())
+                    || snapshot.approvedColumns().isEmpty()) {
+                throw exception(DATA_API_NOT_AUTHORIZED);
+            }
             scope = new PublishedQueryApi.Projection(binding.schemaName(), binding.tableName(), snapshot.approvedColumns());
         }
         var request = new PublishedQueryApi.Query(api.getDatabaseId(), sql.sql(),
@@ -551,8 +556,12 @@ public class DataApiExecutor {
                 .getCode().equals(response.getCode())) {
             throw exception(DATA_API_READONLY_REQUIRED, "仅允许支持的只读查询");
         }
-        if (cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.DATABASE_PUBLISHED_SCOPE_INVALID
-                .getCode().equals(response.getCode())) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants
+                .DATABASE_PUBLISHED_SCOPE_INVALID
+                .getCode()
+                .equals(response.getCode())) {
+            throw exception(DATA_API_NOT_AUTHORIZED);
+        }
         if (!response.isSuccess() || response.getData() == null) {
             throw exception(DATA_API_EXECUTE_FAILED, "数据源查询未完成");
         }
@@ -884,11 +893,15 @@ public class DataApiExecutor {
                 prepared.connection().getConfigurationRevision(), api.getApiType(), statements, bindings,
                 Math.min(300, prepared.queryTimeoutSeconds())));
         var counts = publishedQueryApi.executeClaim(new PublishedQueryApi.Ticket(ticket)).getCheckedData();
-        if (counts == null || counts.size() != statements.size()) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (counts == null || counts.size() != statements.size()) {
+            throw exception(DATA_API_NOT_AUTHORIZED);
+        }
         var rows = new ArrayList<Map<String, Object>>();
         for (int index = 0; index < counts.size(); index++) {
             var row = new LinkedHashMap<String, Object>();
-            if (prepared.multi()) row.put("statement", index + 1);
+            if (prepared.multi()) {
+                row.put("statement", index + 1);
+            }
             row.put("affectedRows", counts.get(index));
             rows.add(row);
         }

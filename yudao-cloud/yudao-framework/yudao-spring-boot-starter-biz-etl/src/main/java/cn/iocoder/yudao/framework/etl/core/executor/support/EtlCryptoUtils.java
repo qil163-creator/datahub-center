@@ -91,8 +91,9 @@ public class EtlCryptoUtils {
 
     /** 参考配置使用16位字母数字密钥，兼容旧算法时不改变其摘要派生方式。 */
     private static byte[] referenceKey(String value) {
-        if (!value.matches("(?=.*[0-9])[A-Za-z0-9]{16}"))
+        if (!value.matches("(?=.*[0-9])[A-Za-z0-9]{16}")) {
             throw new IllegalStateException("AES/SM4 密钥必须为16位字母数字并包含数字");
+        }
         return value.getBytes(StandardCharsets.UTF_8);
     }
 

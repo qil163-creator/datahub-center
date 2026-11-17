@@ -26,7 +26,9 @@ final class RemoteFileSessionDeadline implements AutoCloseable {
     }
 
     void check() throws IOException {
-        if (expired) throw new IOException("文件操作超过会话时间上限");
+        if (expired) {
+            throw new IOException("文件操作超过会话时间上限");
+        }
     }
 
     @Override public void close() { pending.cancel(false); }

@@ -1,8 +1,10 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionCreateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionPageReqVO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionRespVO;
 import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.*;
 import cn.iocoder.yudao.module.dataforge.dal.mysql.fill.*;
 import cn.iocoder.yudao.module.dataforge.enums.fill.*;
@@ -13,10 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.module.dataforge.enums.ErrorCodeConstants.*;
 
 /**
@@ -144,8 +150,27 @@ public class FillCorrectionServiceImpl implements FillCorrectionService {
      * @return 更正分页结果
      */
     @Override
-    public PageResult<FillCorrectionDO> getCorrectionPage(FillCorrectionPageReqVO pageReqVO) {
-        return correctionMapper.selectPage(pageReqVO, pageReqVO.getTaskId(), pageReqVO.getStatus());
+    public PageResult<FillCorrectionRespVO> getCorrectionPage(FillCorrectionPageReqVO pageReqVO) {
+        PageResult<FillCorrectionRespVO> pageResult = BeanUtils.toBean(
+                correctionMapper.selectPage(pageReqVO, pageReqVO.getTaskId(), pageReqVO.getStatus()), FillCorrectionRespVO.class);
+        // 补充组织与任务名称
+        Set<Long> workItemIds = convertSet(pageResult.getList(), FillCorrectionRespVO::getWorkItemId);
+        Set<Long> taskIds = convertSet(pageResult.getList(), FillCorrectionRespVO::getTaskId);
+        if (!workItemIds.isEmpty()) {
+            Map<Long, FillWorkItemDO> itemMap = convertMap(workItemMapper.selectListByIds(workItemIds), FillWorkItemDO::getId);
+            Map<Long, FillTaskDO> taskMap = convertMap(taskMapper.selectByIds(taskIds), FillTaskDO::getId);
+            pageResult.getList().forEach(respVO -> {
+                FillWorkItemDO item = itemMap.get(respVO.getWorkItemId());
+                if (item != null) {
+                    respVO.setOrgName(item.getOrgName());
+                }
+                FillTaskDO task = taskMap.get(respVO.getTaskId());
+                if (task != null) {
+                    respVO.setTaskName(task.getName());
+                }
+            });
+        }
+        return pageResult;
     }
 
     /**

@@ -117,7 +117,9 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
         var row = owned(applyId);
         var state = present(List.of(row), requireNow()).getFirst();
         if (!Boolean.TRUE.equals(state.getCanDownload())) {
-            if ("文件下载次数已用完".equals(state.getDisabledReason())) throw exception(MARKET_FILE_LIMIT);
+            if ("文件下载次数已用完".equals(state.getDisabledReason())) {
+                throw exception(MARKET_FILE_LIMIT);
+            }
             throw exception(MARKET_APPLY_NOT_AUTHORIZED);
         }
         return row;
@@ -359,7 +361,9 @@ public class MarketMyAssetServiceImpl implements MarketMyAssetService {
         }
         try {
             if (Objects.equals(row.getDeliveryType(), DataAssetDO.TYPE_FILE)) {
-                if (file == null || file.getManagedFileId() == null) return "该目录版本尚无交付文件";
+                if (file == null || file.getManagedFileId() == null) {
+                    return "该目录版本尚无交付文件";
+                }
                 MarketFileDeliveryService.requireGrant(row, asset, file);
                 MarketQuotaPolicy.requireFrozen(row);
             } else {

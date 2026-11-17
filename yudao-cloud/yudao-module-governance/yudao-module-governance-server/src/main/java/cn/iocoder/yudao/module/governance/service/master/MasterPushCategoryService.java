@@ -40,7 +40,9 @@ public class MasterPushCategoryService {
         Set<Long> creatorIds = new LinkedHashSet<>();
         for (var row : result) {
             Long id = creatorId(row.getCreator());
-            if (id != null) creatorIds.add(id);
+            if (id != null) {
+                creatorIds.add(id);
+            }
         }
         Map<Long, String> creatorNames = new HashMap<>();
         if (!creatorIds.isEmpty()) {
@@ -75,7 +77,9 @@ public class MasterPushCategoryService {
 
     @Transactional(rollbackFor = Exception.class)
     public Long create(MasterPushCategorySaveReqVO request) {
-        if (request.getId() != null) throw invalid("新建时不能指定编号");
+        if (request.getId() != null) {
+            throw invalid("新建时不能指定编号");
+        }
         categories.lockTree();
         validateParent(null, request.getParentId());
         validateName(null, request.getParentId(), request.getName().strip());
@@ -112,70 +116,99 @@ public class MasterPushCategoryService {
 
     @Transactional(rollbackFor = Exception.class)
     public void delete(List<Long> ids) {
-        if (ids == null || ids.isEmpty() || ids.size() > 200 || ids.stream().anyMatch(id -> id == null || id <= 0))
+        if (ids == null
+                || ids.isEmpty()
+                || ids.size() > 200
+                || ids.stream().anyMatch(id -> id == null || id <= 0)) {
             throw invalid("类目编号无效");
+        }
         categories.lockTree();
         var all = categories.selectOrdered();
         Map<Long, MasterPushCategoryDO> byId = all.stream().collect(Collectors.toMap(MasterPushCategoryDO::getId, row -> row));
         Set<Long> pending = new LinkedHashSet<>(ids);
         for (Long id : pending) {
             MasterPushCategoryDO row = byId.get(id);
-            if (row == null) throw invalid("类目不存在");
-            if (!Objects.equals(row.getStatus(), 1)) throw invalid("启用中的类目不能删除，请先停用");
-            if (tasks.selectCount(MasterDistributeDO::getCategoryId, id) > 0) throw invalid("类目已被任务引用");
+            if (row == null) {
+                throw invalid("类目不存在");
+            }
+            if (!Objects.equals(row.getStatus(), 1)) {
+                throw invalid("启用中的类目不能删除，请先停用");
+            }
+            if (tasks.selectCount(MasterDistributeDO::getCategoryId, id) > 0) {
+                throw invalid("类目已被任务引用");
+            }
         }
         for (var row : all) {
-            if (pending.contains(row.getParentId()) && !pending.contains(row.getId()))
+            if (pending.contains(row.getParentId()) && !pending.contains(row.getId())) {
                 throw invalid("类目存在未选中的子类目");
+            }
         }
         while (!pending.isEmpty()) {
             var leaves = pending.stream().filter(id -> pending.stream().noneMatch(child -> Objects.equals(byId.get(child).getParentId(), id))).toList();
-            if (leaves.isEmpty()) throw invalid("类目层级存在循环");
+            if (leaves.isEmpty()) {
+                throw invalid("类目层级存在循环");
+            }
             for (Long id : leaves) { categories.deleteById(id); pending.remove(id); }
         }
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void validateReference(Long id, Long previousId) {
-        if (id == null) return;
+        if (id == null) {
+            return;
+        }
         categories.lockTree();
         MasterPushCategoryDO row = require(id);
-        if (!Objects.equals(id, previousId) && !Objects.equals(row.getStatus(), 0)) throw invalid("类目已停用，不能绑定新任务");
+        if (!Objects.equals(id, previousId) && !Objects.equals(row.getStatus(), 0)) {
+            throw invalid("类目已停用，不能绑定新任务");
+        }
     }
 
     public List<Long> descendants(Long id) {
         var rows = categories.selectOrdered();
-        if (rows.stream().noneMatch(row -> Objects.equals(row.getId(), id))) throw invalid("类目不存在");
+        if (rows.stream().noneMatch(row -> Objects.equals(row.getId(), id))) {
+            throw invalid("类目不存在");
+        }
         Map<Long, List<MasterPushCategoryDO>> children = rows.stream().collect(Collectors.groupingBy(MasterPushCategoryDO::getParentId));
         Set<Long> result = new LinkedHashSet<>();
         Deque<Long> pending = new ArrayDeque<>();
         pending.add(id);
         while (!pending.isEmpty()) {
             Long current = pending.removeFirst();
-            if (result.add(current)) children.getOrDefault(current, List.of()).forEach(row -> pending.add(row.getId()));
+            if (result.add(current)) {
+                children.getOrDefault(current, List.of()).forEach(row -> pending.add(row.getId()));
+            }
         }
         return new ArrayList<>(result);
     }
 
     private MasterPushCategoryDO require(Long id) {
         MasterPushCategoryDO row = id == null ? null : categories.selectById(id);
-        if (row == null) throw invalid("类目不存在");
+        if (row == null) {
+            throw invalid("类目不存在");
+        }
         return row;
     }
     private void validateParent(Long id, Long parentId) {
         Set<Long> seen = new HashSet<>();
         Long current = parentId;
         while (!Objects.equals(current, 0L)) {
-            if (current == null || Objects.equals(current, id) || !seen.add(current)) throw invalid("父类目无效或形成循环");
+            if (current == null || Objects.equals(current, id) || !seen.add(current)) {
+                throw invalid("父类目无效或形成循环");
+            }
             current = require(current).getParentId();
         }
     }
     private void validateName(Long id, Long parentId, String name) {
         MasterPushCategoryDO row = categories.selectFirstOne(MasterPushCategoryDO::getParentId, parentId, MasterPushCategoryDO::getName, name);
-        if (row != null && !Objects.equals(row.getId(), id)) throw invalid("同级目录下已存在同名类目");
+        if (row != null && !Objects.equals(row.getId(), id)) {
+            throw invalid("同级目录下已存在同名类目");
+        }
     }
     private static Long creatorId(String value) {
-        if (value == null || !value.matches("[1-9][0-9]{0,18}")) return null;
+        if (value == null || !value.matches("[1-9][0-9]{0,18}")) {
+            return null;
+        }
         try { return Long.valueOf(value); } catch (NumberFormatException ignored) { return null; }
     }
     private static cn.iocoder.yudao.framework.common.exception.ServiceException invalid(String reason) {

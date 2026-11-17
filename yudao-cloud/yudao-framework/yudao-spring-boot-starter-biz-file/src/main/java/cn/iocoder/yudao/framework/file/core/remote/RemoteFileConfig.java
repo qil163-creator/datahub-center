@@ -15,26 +15,45 @@ public record RemoteFileConfig(Protocol protocol, String host, int port, String 
     }
 
     public RemoteFileConfig {
-        if (protocol == null) throw new IllegalArgumentException("文件协议不能为空");
+        if (protocol == null) {
+            throw new IllegalArgumentException("文件协议不能为空");
+        }
         rootPath = RemoteFilePaths.normalize(rootPath);
         allowedDataNodeAuthorities = allowedDataNodeAuthorities == null
                 ? Set.of() : Set.copyOf(allowedDataNodeAuthorities);
-        if (username != null && (username.length() > 255 || hasControl(username))) throw new IllegalArgumentException("文件认证用户名不合法");
-        if (password != null && (password.length() > 4096 || hasControl(password))) throw new IllegalArgumentException("文件认证参数不合法");
-        if (host != null && !host.isBlank()) validateHost(host);
+        if (username != null && (username.length() > 255 || hasControl(username))) {
+            throw new IllegalArgumentException("文件认证用户名不合法");
+        }
+        if (password != null && (password.length() > 4096 || hasControl(password))) {
+            throw new IllegalArgumentException("文件认证参数不合法");
+        }
+        if (host != null && !host.isBlank()) {
+            validateHost(host);
+        }
         if (protocol == Protocol.FTP) {
-            if (host == null || host.isBlank() || port < 1 || port > 65535
-                    || username == null || username.isBlank()) throw new IllegalArgumentException("FTP 连接配置不合法");
+            if (host == null
+                    || host.isBlank()
+                    || port < 1
+                    || port > 65535
+                    || username == null
+                    || username.isBlank()) {
+                throw new IllegalArgumentException("FTP 连接配置不合法");
+            }
         } else {
             try {
                 URI endpoint = URI.create(webHdfsUrl);
                 validateHttpEndpoint(endpoint);
-                if (!(endpoint.getPath().isEmpty() || endpoint.getPath().equals("/")
-                        || endpoint.getPath().equals("/webhdfs/v1"))) throw new IllegalArgumentException();
+                if (!(endpoint.getPath().isEmpty()
+                        || endpoint.getPath().equals("/")
+                        || endpoint.getPath().equals("/webhdfs/v1"))) {
+                    throw new IllegalArgumentException();
+                }
                 for (String allowed : allowedDataNodeAuthorities) {
                     URI node = URI.create(endpoint.getScheme() + "://" + allowed);
                     validateHttpEndpoint(node);
-                    if (!node.getPath().isEmpty()) throw new IllegalArgumentException();
+                    if (!node.getPath().isEmpty()) {
+                        throw new IllegalArgumentException();
+                    }
                 }
             } catch (IllegalArgumentException | NullPointerException error) {
                 throw new IllegalArgumentException("WebHDFS 连接配置不合法");
@@ -52,8 +71,14 @@ public record RemoteFileConfig(Protocol protocol, String host, int port, String 
     private static void validateHost(String host) {
         try {
             URI uri = URI.create("ftp://" + host);
-            if (uri.getHost() == null || uri.getRawUserInfo() != null || uri.getPort() != -1
-                    || !uri.getPath().isEmpty() || uri.getQuery() != null || uri.getFragment() != null) throw new IllegalArgumentException();
+            if (uri.getHost() == null
+                    || uri.getRawUserInfo() != null
+                    || uri.getPort() != -1
+                    || !uri.getPath().isEmpty()
+                    || uri.getQuery() != null
+                    || uri.getFragment() != null) {
+                throw new IllegalArgumentException();
+            }
         } catch (IllegalArgumentException error) { throw new IllegalArgumentException("文件主机名不合法"); }
     }
 

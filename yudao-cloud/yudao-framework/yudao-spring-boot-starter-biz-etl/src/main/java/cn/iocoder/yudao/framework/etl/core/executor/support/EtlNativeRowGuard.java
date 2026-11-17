@@ -15,13 +15,19 @@ public final class EtlNativeRowGuard {
         String format = column.getStr("format", "");
         String type = guard.getStr("sqlType", "");
         if (!format.isBlank() && !format.equals("-")) {
-            if (!type.equals("DATE") && !type.equals("TIMESTAMP") || format.length() > 128) throw new IllegalArgumentException("仅日期时间字段接受有界格式声明");
+            if (!type.equals("DATE") && !type.equals("TIMESTAMP") || format.length() > 128) {
+                throw new IllegalArgumentException("仅日期时间字段接受有界格式声明");
+            }
             formatter(format); guard.set("format", format);
         }
         Object fallback = column.get("defaultValue");
         if (!JSONUtil.isNull(fallback) && !(fallback instanceof String text && text.isEmpty())) {
-            if (!(fallback instanceof String || fallback instanceof Number || fallback instanceof Boolean) || fallback.toString().length() > 65536)
+            if (!(fallback instanceof String
+                            || fallback instanceof Number
+                            || fallback instanceof Boolean)
+                    || fallback.toString().length() > 65536) {
                 throw new IllegalArgumentException("接口字段默认值必须为有界标量");
+            }
             guard.set("defaultValue", fallback);
             var check = JSONUtil.createObj().set("resultTypes", JSONUtil.createObj().set("value", guard));
             normalizeDeclared(JSONUtil.createObj().set("value", fallback).toString(), check);
@@ -30,18 +36,23 @@ public final class EtlNativeRowGuard {
 
     public static String normalizeDeclared(String json, JSONObject plan) {
         var types = plan.getJSONObject("resultTypes");
-        if (types == null) return json;
+        if (types == null) {
+            return json;
+        }
         var row = JSONUtil.parseObj(json, cn.hutool.json.JSONConfig.create().setIgnoreNullValue(false));
         for (String name : types.keySet()) {
             var field = types.getJSONObject(name);
             Object value = row.get(name);
             if (JSONUtil.isNull(value) && field.containsKey("defaultValue")) { value = field.get("defaultValue"); row.set(name, value); }
             String format = field.getStr("format", "");
-            if (JSONUtil.isNull(value) || format.isBlank()) continue;
+            if (JSONUtil.isNull(value) || format.isBlank()) {
+                continue;
+            }
             try {
                 var parsed = formatter(format).parse(value.toString());
-                if (field.getStr("sqlType").equals("DATE")) row.set(name, LocalDate.from(parsed).toString());
-                else {
+                if (field.getStr("sqlType").equals("DATE")) {
+                    row.set(name, LocalDate.from(parsed).toString());
+                } else {
                     java.time.LocalDateTime timestamp;
                     try { timestamp = java.time.OffsetDateTime.from(parsed).withOffsetSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime(); }
                     catch (java.time.DateTimeException ignored) { timestamp = java.time.LocalDateTime.from(parsed); }
@@ -61,46 +72,70 @@ public final class EtlNativeRowGuard {
 
     public static String validate(String json, JSONObject plan) {
         JSONObject types = plan.getJSONObject("resultTypes");
-        if (types == null) return json;
+        if (types == null) {
+            return json;
+        }
         JSONObject row = JSONUtil.parseObj(json);
         for (String name : types.keySet()) {
             JSONObject field = types.getJSONObject(name); Object value = row.get(name);
             if (JSONUtil.isNull(value)) {
-                if (Boolean.FALSE.equals(field.getBool("nullable"))) throw invalid(name);
+                if (Boolean.FALSE.equals(field.getBool("nullable"))) {
+                    throw invalid(name);
+                }
                 continue;
             }
             try {
                 String type = field.getStr("sqlType"), text = value.toString();
-                if (type.equals("BIGINT")) row.set(name, new BigDecimal(text).longValueExact() + "");
-                else if (type.equals("INT")) row.set(name, new BigDecimal(text).intValueExact() + "");
-                else if (type.startsWith("DECIMAL(")) {
+                if (type.equals("BIGINT")) {
+                    row.set(name, new BigDecimal(text).longValueExact() + "");
+                } else if (type.equals("INT")) {
+                    row.set(name, new BigDecimal(text).intValueExact() + "");
+                } else if (type.startsWith("DECIMAL(")) {
                     String[] shape = type.substring(8, type.length() - 1).split(","); int precision = Integer.parseInt(shape[0]), scale = Integer.parseInt(shape[1]);
                     BigDecimal decimal = new BigDecimal(text);
-                    if ((long) decimal.precision() - decimal.scale() > precision - scale || decimal.stripTrailingZeros().scale() > scale) throw invalid(name);
+                    if ((long) decimal.precision() - decimal.scale() > precision - scale
+                            || decimal.stripTrailingZeros().scale() > scale) {
+                        throw invalid(name);
+                    }
                     decimal = decimal.setScale(scale, RoundingMode.UNNECESSARY);
-                    if (decimal.precision() > precision) throw invalid(name);
+                    if (decimal.precision() > precision) {
+                        throw invalid(name);
+                    }
                     row.set(name, decimal.toPlainString());
                 } else if (type.equals("DOUBLE")) {
                     double parsed = Double.parseDouble(text);
-                    if (!Double.isFinite(parsed) || parsed == 0 && new BigDecimal(text).signum() != 0) throw invalid(name);
+                    if (!Double.isFinite(parsed)
+                            || parsed == 0 && new BigDecimal(text).signum() != 0) {
+                        throw invalid(name);
+                    }
                 } else if (type.equals("BOOLEAN")) {
-                    if (!text.equalsIgnoreCase("true") && !text.equalsIgnoreCase("false")) throw invalid(name);
+                    if (!text.equalsIgnoreCase("true") && !text.equalsIgnoreCase("false")) {
+                        throw invalid(name);
+                    }
                     row.set(name, text.toLowerCase(java.util.Locale.ROOT));
-                } else if (type.equals("DATE")) row.set(name, LocalDate.parse(text).toString());
-                else if (type.equals("TIMESTAMP")) {
+                } else if (type.equals("DATE")) {
+                    row.set(name, LocalDate.parse(text).toString());
+                } else if (type.equals("TIMESTAMP")) {
                     String normalized = text.replace(' ', 'T');
                     try {
                         var timestamp = java.time.OffsetDateTime.parse(normalized);
-                        if (timestamp.getNano() % 1000 != 0) throw invalid(name);
+                        if (timestamp.getNano() % 1000 != 0) {
+                            throw invalid(name);
+                        }
                         row.set(name, timestamp.toInstant().toString());
                     } catch (java.time.format.DateTimeParseException ignored) {
                         var timestamp = java.time.LocalDateTime.parse(normalized);
-                        if (timestamp.getNano() % 1000 != 0) throw invalid(name);
+                        if (timestamp.getNano() % 1000 != 0) {
+                            throw invalid(name);
+                        }
                         row.set(name, timestamp.toString());
                     }
                 }
                 else if (type.equals("STRING")) {
-                    if (field.getInt("length", 0) > 0 && text.codePointCount(0, text.length()) > field.getInt("length")) throw invalid(name);
+                    if (field.getInt("length", 0) > 0
+                            && text.codePointCount(0, text.length()) > field.getInt("length")) {
+                        throw invalid(name);
+                    }
                     row.set(name, text);
                 }
             } catch (RuntimeException failure) { throw invalid(name); }

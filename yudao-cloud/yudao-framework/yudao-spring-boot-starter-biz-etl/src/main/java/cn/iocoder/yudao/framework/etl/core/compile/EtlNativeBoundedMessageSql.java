@@ -13,14 +13,18 @@ public final class EtlNativeBoundedMessageSql {
 
     public static EtlNativeConnectorCompiler.TablePlan table(EtlNativeSqlCompiler.Engine engine, String identity,
             String kind, boolean output, Map<String, String> fields, JSONObject plan, List<Map<String, Object>> mappings) {
-        if (!Set.of("kafka", "rabbitmq", "rocketmq", "tdengine").contains(kind) || fields.isEmpty() || fields.size() > 1024)
+        if (!Set.of("kafka", "rabbitmq", "rocketmq", "tdengine").contains(kind)
+                || fields.isEmpty()
+                || fields.size() > 1024) {
             throw new IllegalArgumentException("有界消息计划或字段合同无效");
+        }
         plan.set("maxRows", 1_000_000).set("maxBytes", 67_108_864).set("timeoutMillis", 30_000);
         var guards = new JSONObject();
         fields.forEach((name, type) -> guards.set(name, new JSONObject().set("sqlType", engine == EtlNativeSqlCompiler.Engine.SPARK && type.startsWith("TIMESTAMP") ? "TIMESTAMP" : type).set("nullable", true).set("length", 0)));
         plan.set("resultTypes", guards);
-        if (engine == EtlNativeSqlCompiler.Engine.FLINK)
+        if (engine == EtlNativeSqlCompiler.Engine.FLINK) {
             return EtlNativeFlinkConnectorSql.table(identity, kind, output, fields, plan, mappings);
+        }
         String payload = Base64.getEncoder().encodeToString(plan.toString().getBytes(StandardCharsets.UTF_8));
         String alias = "dh_native_" + kind + "_" + DigestUtil.sha256Hex(identity).substring(0, 24);
         var columns = new LinkedHashMap<String, String>(); fields.forEach((name, type) -> { String canonical = EtlNativeScriptCompiler.canonical(type, engine); columns.put(name, canonical.startsWith("TIMESTAMP") ? "TIMESTAMP" : canonical); });
@@ -30,8 +34,12 @@ public final class EtlNativeBoundedMessageSql {
         return new EtlNativeConnectorCompiler.TablePlan(sql, new EtlNativeSqlCompiler.Table(List.of(alias), columns, ProductTypeEnum.UNKNOWN, null, alias, false), mappings);
     }
     private static String quote(String value) {
-        if (value == null || value.isBlank() || value.length() > 128 || value.codePoints().anyMatch(Character::isISOControl))
+        if (value == null
+                || value.isBlank()
+                || value.length() > 128
+                || value.codePoints().anyMatch(Character::isISOControl)) {
             throw new IllegalArgumentException("消息字段名称无效");
+        }
         return "`" + value.replace("`", "``") + "`";
     }
 }

@@ -40,8 +40,12 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
         try (var statement = connection.prepareStatement(sql)) {
             statement.setString(1, namespace); statement.setMaxRows(2); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server schema 不存在或不可见", "3F000");
-                if (!rows.getBoolean(1) || rows.wasNull()) throw new SQLException("SQL Server schema 或基本表 SELECT 被拒绝", "42501");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server schema 不存在或不可见", "3F000");
+                }
+                if (!rows.getBoolean(1) || rows.wasNull()) {
+                    throw new SQLException("SQL Server schema 或基本表 SELECT 被拒绝", "42501");
+                }
             }
         }
     }
@@ -54,7 +58,9 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
         try (var statement = connection.prepareStatement("SELECT USER_NAME(),COUNT(*) FROM sys.database_permissions WHERE grantee_principal_id=USER_ID()")) {
             statement.setMaxRows(2); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("SQL Server 当前账号授权目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("SQL Server 当前账号授权目录证据缺失");
+                }
             }
         }
     }
@@ -62,7 +68,9 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
     /** 排除视图、系统表和外部对象；使用 TOP 与 JDBC maxRows 双重限制。 */
     @Override
     public List<TableDescription> queryCatalogTableList(Connection connection, String namespace, int maxTables, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType() != ProductTypeEnum.SQLSERVER) return super.queryCatalogTableList(connection, namespace, maxTables, timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.SQLSERVER) {
+            return super.queryCatalogTableList(connection, namespace, maxTables, timeoutSeconds);
+        }
         diagnosticBounds(connection, namespace, maxTables, timeoutSeconds);
         var result = new java.util.ArrayList<TableDescription>();
         String sql = "SELECT TOP (" + (maxTables + 1) + ") t.name FROM sys.tables t JOIN sys.schemas s ON s.schema_id=t.schema_id WHERE s.name=? AND t.is_ms_shipped=0 ORDER BY t.name";
@@ -70,7 +78,9 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
             statement.setString(1, namespace); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("SQL Server 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("SQL Server 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -79,14 +89,25 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("SQL Server 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("SQL Server 诊断参数必须完整且有界");
+        }
     }
 
     /** 通过对象和列 ID 精确读取 MS_Description；不解码 SQL_VARIANT 或返回正文。 */
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             Connection connection, String namespace, String table, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.SQLSERVER) return super.probeExtendedProperties(connection,namespace,table,timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.SQLSERVER) {
+            return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        }
         diagnosticBounds(connection,namespace,1,timeoutSeconds); diagnosticBounds(connection,table,1,timeoutSeconds);
         String sql="SELECT MAX(CASE WHEN tp.value IS NULL THEN 0 ELSE 1 END),COUNT(c.column_id),"
                 + "SUM(CASE WHEN cp.value IS NULL THEN 0 ELSE 1 END) "
@@ -98,9 +119,19 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("SQL Server 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("SQL Server 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -110,22 +141,42 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic probeCdcReadiness(
             Connection connection, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.SQLSERVER) return super.probeCdcReadiness(connection,timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.SQLSERVER) {
+            return super.probeCdcReadiness(connection, timeoutSeconds);
+        }
         diagnosticBounds(connection,"CDC",1,timeoutSeconds);
         var metadata=connection.getMetaData();
-        if (!"Microsoft SQL Server".equals(metadata.getDatabaseProductName()) || !Set.of(13,14,15,16).contains(metadata.getDatabaseMajorVersion()))
-            throw new SQLFeatureNotSupportedException("SQL Server CDC 仅声明原生版本 13/14/15/16 的目录契约","0A000");
+        if (!"Microsoft SQL Server".equals(metadata.getDatabaseProductName())
+                || !Set.of(13, 14, 15, 16).contains(metadata.getDatabaseMajorVersion())) {
+            throw new SQLFeatureNotSupportedException(
+                    "SQL Server CDC 仅声明原生版本 13/14/15/16 的目录契约", "0A000");
+        }
         boolean enabled; boolean administrator;
         try (var statement=connection.prepareStatement("SELECT is_cdc_enabled,IS_SRVROLEMEMBER('sysadmin'),IS_MEMBER('db_owner') FROM sys.databases WHERE database_id=DB_ID()")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server CDC 配置目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server CDC 配置目录无响应");
+                }
                 int flag=rows.getInt(1); boolean missing=rows.wasNull(); int sysadmin=rows.getInt(2); missing|=rows.wasNull(); int owner=rows.getInt(3);
-                if (missing || rows.wasNull() || flag<0 || flag>1 || sysadmin<0 || sysadmin>1 || owner<0 || owner>1 || rows.next()) throw new SQLException("SQL Server CDC 配置或角色证据不完整");
+                if (missing
+                        || rows.wasNull()
+                        || flag < 0
+                        || flag > 1
+                        || sysadmin < 0
+                        || sysadmin > 1
+                        || owner < 0
+                        || owner > 1
+                        || rows.next()) {
+                    throw new SQLException("SQL Server CDC 配置或角色证据不完整");
+                }
                 enabled=flag==1; administrator=sysadmin==1 || owner==1;
             }
         }
-        if (!enabled) return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic(false,administrator);
+        if (!enabled) {
+            return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic(
+                    false, administrator);
+        }
         String sql="SELECT COUNT(*),COALESCE(SUM(CASE WHEN HAS_PERMS_BY_NAME(QUOTENAME(s.name)+'.'+QUOTENAME(t.name),'OBJECT','SELECT')=1 "
                 + "AND (ct.role_name IS NULL OR IS_MEMBER(ct.role_name)=1) THEN 1 ELSE 0 END),0) "
                 + "FROM cdc.change_tables ct JOIN sys.tables t ON t.object_id=ct.source_object_id "
@@ -133,9 +184,18 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
         try (var statement=connection.prepareStatement(sql)) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server CDC 捕获目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server CDC 捕获目录无响应");
+                }
                 int captures=rows.getInt(1); boolean missing=rows.wasNull(); int permitted=rows.getInt(2);
-                if (missing || rows.wasNull() || captures<0 || permitted<0 || permitted>captures || rows.next()) throw new SQLException("SQL Server CDC 捕获权限证据不完整");
+                if (missing
+                        || rows.wasNull()
+                        || captures < 0
+                        || permitted < 0
+                        || permitted > captures
+                        || rows.next()) {
+                    throw new SQLException("SQL Server CDC 捕获权限证据不完整");
+                }
                 // 未创建任何捕获实例时，不把数据库总开关当作已就绪的数据捕获链路。
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic(captures>0,
                         administrator || captures>0 && permitted==captures);
@@ -147,8 +207,12 @@ public class DatabaseSqlserverImpl extends AbstractDatabase implements IDatabase
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.TemporaryTableDiagnosticPlan temporaryTableDiagnosticPlan(
             String randomName) throws SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.SQLSERVER) return super.temporaryTableDiagnosticPlan(randomName);
-        if (randomName==null || !randomName.matches("dbswitch_diag_[a-f0-9]{32}")) throw new IllegalArgumentException("组件生成的诊断临时表名不合法");
+        if (getDatabaseType() != ProductTypeEnum.SQLSERVER) {
+            return super.temporaryTableDiagnosticPlan(randomName);
+        }
+        if (randomName == null || !randomName.matches("dbswitch_diag_[a-f0-9]{32}")) {
+            throw new IllegalArgumentException("组件生成的诊断临时表名不合法");
+        }
         String name="[#"+randomName+"]";
         return new cn.iocoder.yudao.framework.dbswitch.core.model.TemporaryTableDiagnosticPlan(
                 "CREATE TABLE "+name+" (probe_id INTEGER PRIMARY KEY,probe_value VARCHAR(40))", name,

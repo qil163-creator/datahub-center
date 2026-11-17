@@ -3,7 +3,7 @@ package cn.iocoder.yudao.module.dataforge.service.fill;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionCreateReqVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionPageReqVO;
-import cn.iocoder.yudao.module.dataforge.dal.dataobject.fill.FillCorrectionDO;
+import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillCorrectionRespVO;
 
 /**
  * 在线填报-数据更正 Service 接口
@@ -31,7 +31,7 @@ public interface FillCorrectionService {
     /**
      * 更正分页
      */
-    PageResult<FillCorrectionDO> getCorrectionPage(FillCorrectionPageReqVO pageReqVO);
+    PageResult<FillCorrectionRespVO> getCorrectionPage(FillCorrectionPageReqVO pageReqVO);
 
     /**
      * 是否存在进行中的更正（提交类型需强制为"更正"）。

@@ -15,6 +15,8 @@ public final class FieldRulesExecutor extends AbstractEtlNodeExecutor {
     protected void execute() throws Exception {
         var plan = EtlFieldRules.compile(node.getToolCode(), config());
         Map<String, Object> row;
-        while ((row = readNextRow()) != null) pushRow(plan.apply(row, this::checkStop));
+        while ((row = readNextRow()) != null) {
+            pushRow(plan.apply(row, this::checkStop));
+        }
     }
 }

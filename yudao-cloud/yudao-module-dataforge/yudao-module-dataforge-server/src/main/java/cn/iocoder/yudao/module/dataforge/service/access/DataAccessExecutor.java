@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.access;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.IdUtil;
@@ -65,7 +66,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,11 +208,7 @@ public class DataAccessExecutor {
             return thread;
         }, new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
         // 仅用于每个节点的内部维护；持久化 XXL-Job 扫描负责派发及恢复。
-        monitor = Executors.newScheduledThreadPool(2, runnable -> {
-            Thread thread = new Thread(runnable, "data-access-control");
-            thread.setDaemon(true);
-            return thread;
-        });
+        monitor = ThreadPoolUtils.newDaemonScheduler(2, "data-access-control");
         monitor.scheduleWithFixedDelay(this::monitorLocalRuns, 0, properties.getStopPoll().toSeconds(),
                 java.util.concurrent.TimeUnit.SECONDS);
     }

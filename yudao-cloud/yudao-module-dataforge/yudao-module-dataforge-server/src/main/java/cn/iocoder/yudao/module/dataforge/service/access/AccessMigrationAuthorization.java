@@ -54,7 +54,9 @@ public class AccessMigrationAuthorization {
     /** 仅检查源数据源与物理对象绑定，不执行行列权限或脱敏策略。 */
     public void requireSourceBinding(AccessDatabaseResolver.ConnectionInfo route, Long actor, String table) {
         requireRoute(route, actor);
-        if (route.getProductType() != ProductTypeEnum.POSTGRESQL) throw rejected();
+        if (route.getProductType() != ProductTypeEnum.POSTGRESQL) {
+            throw rejected();
+        }
         requireCurrentRoute(route);
         RestrictedSelectGuard.qualifiedTableName(route.getProductType(), route.getSchema(), table);
     }

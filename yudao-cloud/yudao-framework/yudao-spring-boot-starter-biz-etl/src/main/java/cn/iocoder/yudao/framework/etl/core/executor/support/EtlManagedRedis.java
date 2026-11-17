@@ -30,17 +30,47 @@ public final class EtlManagedRedis {
     public static Jedis connect(JSONObject plan, boolean output, Function<String, String> resolver) {
         try {
             var secret = new Properties(); secret.load(new StringReader(resolver.apply(plan.getStr("credentialRef"))));
-            if (!secret.stringPropertyNames().equals(Set.of("host", "port", "database", "useSsl", "sourcePatterns", "sinkPrefixes", "username", "password"))) throw new IllegalArgumentException();
-            for (String key : List.of("host", "port", "database", "useSsl")) if (!Objects.equals(plan.getStr(key), secret.getProperty(key))) throw new IllegalArgumentException();
-            if (!output && !Arrays.asList(secret.getProperty("sourcePatterns").split(",", -1)).contains(plan.getStr("keyPattern"))) throw new IllegalArgumentException();
+            if (!secret.stringPropertyNames()
+                    .equals(
+                            Set.of(
+                                    "host",
+                                    "port",
+                                    "database",
+                                    "useSsl",
+                                    "sourcePatterns",
+                                    "sinkPrefixes",
+                                    "username",
+                                    "password"))) {
+                throw new IllegalArgumentException();
+            }
+            for (String key : List.of("host", "port", "database", "useSsl")) {
+                if (!Objects.equals(plan.getStr(key), secret.getProperty(key))) {
+                    throw new IllegalArgumentException();
+                }
+            }
+            if (!output
+                    && !Arrays.asList(secret.getProperty("sourcePatterns").split(",", -1))
+                            .contains(plan.getStr("keyPattern"))) {
+                throw new IllegalArgumentException();
+            }
             if (output) {
                 var actual = Set.copyOf(Arrays.asList(secret.getProperty("sinkPrefixes").split(",", -1)));
                 var requested = plan.getJSONArray("sinkPrefixes");
-                if (requested == null || requested.isEmpty() || !actual.containsAll(requested.toList(String.class))) throw new IllegalArgumentException();
+                if (requested == null
+                        || requested.isEmpty()
+                        || !actual.containsAll(requested.toList(String.class))) {
+                    throw new IllegalArgumentException();
+                }
             }
             String username = secret.getProperty("username"), password = secret.getProperty("password");
-            if (username == null || !username.matches("[A-Za-z0-9_.-]{1,64}") || password == null || password.isEmpty() || password.length() > 1024
-                    || password.codePoints().anyMatch(Character::isISOControl)) throw new IllegalArgumentException();
+            if (username == null
+                    || !username.matches("[A-Za-z0-9_.-]{1,64}")
+                    || password == null
+                    || password.isEmpty()
+                    || password.length() > 1024
+                    || password.codePoints().anyMatch(Character::isISOControl)) {
+                throw new IllegalArgumentException();
+            }
             var options = DefaultJedisClientConfig.builder().user(username).password(password).database(plan.getInt("database"))
                     .ssl(plan.getBool("useSsl")).connectionTimeoutMillis(10000).socketTimeoutMillis(10000)
                     .hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier()).build();
@@ -60,39 +90,70 @@ public final class EtlManagedRedis {
             var batch = connection.scan(cursor.getBytes(StandardCharsets.US_ASCII), params); cursor = batch.getCursor();
             for (byte[] rawKey : batch.getResult()) {
                 String key = decode(rawKey);
-                if (!seen.add(key)) continue;
-                if (seen.size() > plan.getInt("maxKeys")) throw new IllegalArgumentException("Redis Key 数量超过预算");
+                if (!seen.add(key)) {
+                    continue;
+                }
+                if (seen.size() > plan.getInt("maxKeys")) {
+                    throw new IllegalArgumentException("Redis Key 数量超过预算");
+                }
                 String model = connection.type(key);
-                if (model.equals("none")) continue;
-                if (!model.equals(plan.getStr("dataType"))) throw new IllegalArgumentException("Redis Key 实际类型与声明不一致");
+                if (model.equals("none")) {
+                    continue;
+                }
+                if (!model.equals(plan.getStr("dataType"))) {
+                    throw new IllegalArgumentException("Redis Key 实际类型与声明不一致");
+                }
                 int remaining = Math.toIntExact(plan.getInt("maxBytes") - budget[1]);
                 if (model.equals("hash")) {
                     var selected = plan.getJSONObject("selectors").values().stream().map(Object::toString).filter(value -> !value.startsWith("@")).distinct().toList();
                     var values = bounded(connection, key, remaining, "hash", selected); var fields = new LinkedHashMap<String, String>();
-                    for (int i = 0; i < selected.size(); i++) fields.put(selected.get(i), values.get(i));
+                    for (int i = 0; i < selected.size(); i++) {
+                        fields.put(selected.get(i), values.get(i));
+                    }
                     emit(plan, key, -1, null, fields, budget, rows);
-                } else if (model.equals("string")) emit(plan, key, -1, bounded(connection, key, remaining, "string", List.of()).get(0), null, budget, rows);
-                else {
+                } else if (model.equals("string")) {
+                    emit(
+                            plan,
+                            key,
+                            -1,
+                            bounded(connection, key, remaining, "string", List.of()).get(0),
+                            null,
+                            budget,
+                            rows);
+                } else {
                     long length = connection.llen(key);
-                    if (length > plan.getInt("maxRows") - budget[0]) throw new IllegalArgumentException("Redis List 行数超过预算");
+                    if (length > plan.getInt("maxRows") - budget[0]) {
+                        throw new IllegalArgumentException("Redis List 行数超过预算");
+                    }
                     for (long offset = 0; offset < length; offset += 1000) {
                         var values = bounded(connection, key, Math.toIntExact(plan.getInt("maxBytes") - budget[1]), "list", List.of(Long.toString(offset), Long.toString(Math.min(length - 1, offset + 999))));
-                        for (int index = 0; index < values.size(); index++) emit(plan, key, offset + index, values.get(index), null, budget, rows);
+                        for (int index = 0; index < values.size(); index++) {
+                            emit(plan, key, offset + index, values.get(index), null, budget, rows);
+                        }
                     }
                 }
             }
         } while (!cursor.equals(ScanParams.SCAN_POINTER_START));
     }
     private static List<String> bounded(Jedis connection, String key, int maximum, String model, List<String> fields) {
-        if (maximum < 1) throw new IllegalArgumentException("Redis 字节预算已耗尽");
+        if (maximum < 1) {
+            throw new IllegalArgumentException("Redis 字节预算已耗尽");
+        }
         var arguments = new ArrayList<byte[]>(); arguments.add(Integer.toString(maximum).getBytes(StandardCharsets.US_ASCII)); arguments.add(model.getBytes(StandardCharsets.US_ASCII));
         fields.forEach(value -> arguments.add(value.getBytes(StandardCharsets.UTF_8)));
         Object raw = connection.evalReadonly(READ.getBytes(StandardCharsets.US_ASCII), List.of(key.getBytes(StandardCharsets.UTF_8)), arguments);
-        if (!(raw instanceof List<?> values)) throw new IllegalArgumentException("Redis 响应形状无效");
+        if (!(raw instanceof List<?> values)) {
+            throw new IllegalArgumentException("Redis 响应形状无效");
+        }
         var result = new ArrayList<String>();
         for (Object value : values) {
-            if (value == null || Boolean.FALSE.equals(value)) result.add(null);
-            else if (value instanceof byte[] bytes) result.add(decode(bytes)); else throw new IllegalArgumentException("Redis 字符串响应无效");
+            if (value == null || Boolean.FALSE.equals(value)) {
+                result.add(null);
+            } else if (value instanceof byte[] bytes) {
+                result.add(decode(bytes));
+            } else {
+                throw new IllegalArgumentException("Redis 字符串响应无效");
+            }
         }
         return result;
     }
@@ -101,32 +162,51 @@ public final class EtlManagedRedis {
         catch (Exception failure) { throw new IllegalArgumentException("Redis 字符串必须为无损 UTF-8"); }
     }
     private static void emit(JSONObject plan, String key, long index, String raw, Map<String, String> hash, long[] budget, Consumer<String> rows) {
-        if (++budget[0] > plan.getInt("maxRows")) throw new IllegalArgumentException("Redis 行数超过预算");
+        if (++budget[0] > plan.getInt("maxRows")) {
+            throw new IllegalArgumentException("Redis 行数超过预算");
+        }
         var result = JSONUtil.createObj(); JSONObject json = null;
         for (var field : plan.getJSONObject("selectors").entrySet()) {
             String selector = String.valueOf(field.getValue()); Object value;
-            if (selector.equals("@key")) value = key;
-            else if (selector.equals("@index")) value = index;
-            else if (selector.equals("@value")) value = raw;
-            else if (hash != null) value = hash.get(selector);
-            else {
-                if (raw == null) value = null;
-                else {
-                    if (json == null) { if (!JSONUtil.isTypeJSONObject(raw)) throw new IllegalArgumentException("Redis 字段解析需要 JSON 对象"); json = JSONUtil.parseObj(raw); }
+            if (selector.equals("@key")) {
+                value = key;
+            } else if (selector.equals("@index")) {
+                value = index;
+            } else if (selector.equals("@value")) {
+                value = raw;
+            } else if (hash != null) {
+                value = hash.get(selector);
+            } else {
+                if (raw == null) {
+                    value = null;
+                } else {
+                    if (json == null) {
+                        if (!JSONUtil.isTypeJSONObject(raw)) {
+                            throw new IllegalArgumentException("Redis 字段解析需要 JSON 对象");
+                        }
+                        json = JSONUtil.parseObj(raw); }
                     Object current = json;
                     for (String part : (selector.startsWith("$.") ? selector.substring(2) : selector).split("\\.")) {
-                        if (current == null || JSONUtil.isNull(current)) break;
-                        if (!(current instanceof JSONObject object)) throw new IllegalArgumentException("Redis JSON 路径穿过非对象值");
+                        if (current == null || JSONUtil.isNull(current)) {
+                            break;
+                        }
+                        if (!(current instanceof JSONObject object)) {
+                            throw new IllegalArgumentException("Redis JSON 路径穿过非对象值");
+                        }
                         current = object.get(part);
                     }
                     value = current;
-                    if (value instanceof Map<?, ?> || value instanceof Collection<?>) throw new IllegalArgumentException("Redis 标量字段不能读取对象或数组");
+                    if (value instanceof Map<?, ?> || value instanceof Collection<?>) {
+                        throw new IllegalArgumentException("Redis 标量字段不能读取对象或数组");
+                    }
                 }
             }
             result.set(field.getKey(), value);
         }
         String row = result.toString(); budget[1] += row.getBytes(StandardCharsets.UTF_8).length;
-        if (budget[1] > plan.getInt("maxBytes")) throw new IllegalArgumentException("Redis 行数据超过字节预算");
+        if (budget[1] > plan.getInt("maxBytes")) {
+            throw new IllegalArgumentException("Redis 行数据超过字节预算");
+        }
         rows.accept(EtlNativeRowGuard.validate(row, plan));
     }
 
@@ -134,13 +214,22 @@ public final class EtlManagedRedis {
         String pattern = plan.getStr("keyPattern"); var matcher = TOKEN.matcher(pattern); var result = new StringBuilder();
         while (matcher.find()) {
             String value = row.get(matcher.group(1));
-            if (value == null || value.isEmpty() || value.codePoints().anyMatch(Character::isISOControl)) throw new IllegalArgumentException("Redis Key 字段不能为 NULL、空字符串或控制字符");
+            if (value == null
+                    || value.isEmpty()
+                    || value.codePoints().anyMatch(Character::isISOControl)) {
+                throw new IllegalArgumentException("Redis Key 字段不能为 NULL、空字符串或控制字符");
+            }
             matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(value));
         }
         matcher.appendTail(result); String key = result.toString();
         var prefixes = plan.getJSONArray("sinkPrefixes");
-        if (key.isEmpty() || key.getBytes(StandardCharsets.UTF_8).length > 1024 || prefixes == null || prefixes.toList(String.class).stream().noneMatch(prefix -> !prefix.isEmpty() && key.startsWith(prefix)))
+        if (key.isEmpty()
+                || key.getBytes(StandardCharsets.UTF_8).length > 1024
+                || prefixes == null
+                || prefixes.toList(String.class).stream()
+                        .noneMatch(prefix -> !prefix.isEmpty() && key.startsWith(prefix))) {
             throw new IllegalArgumentException("Redis Key 超出授权前缀或长度预算");
+        }
         return key;
     }
 
@@ -149,12 +238,29 @@ public final class EtlManagedRedis {
         String key = key(plan, row), model = plan.getStr("dataType");
         if (model.equals("hash")) {
             var fields = new LinkedHashMap<String, String>(); var absent = new ArrayList<String>();
-            row.forEach((field, value) -> { if (value == null) absent.add(field); else fields.put(field, value); });
-            if (fields.isEmpty()) throw new IllegalArgumentException("Redis Hash 无法保存全部为 NULL 的记录");
-            if (!fields.isEmpty()) pipeline.hset(key, fields);
-            if (!absent.isEmpty()) pipeline.hdel(key, absent.toArray(String[]::new));
-        } else if (model.equals("string")) pipeline.set(key, JSONUtil.parseObj(row, false).toString());
-        else if (model.equals("list")) pipeline.rpush(key, JSONUtil.parseObj(row, false).toString());
-        else throw new IllegalArgumentException("Redis 输出类型无效");
+            row.forEach(
+                    (field, value) -> {
+                        if (value == null) {
+                            absent.add(field);
+                        } else {
+                            fields.put(field, value);
+                        }
+                    });
+            if (fields.isEmpty()) {
+                throw new IllegalArgumentException("Redis Hash 无法保存全部为 NULL 的记录");
+            }
+            if (!fields.isEmpty()) {
+                pipeline.hset(key, fields);
+            }
+            if (!absent.isEmpty()) {
+                pipeline.hdel(key, absent.toArray(String[]::new));
+            }
+        } else if (model.equals("string")) {
+            pipeline.set(key, JSONUtil.parseObj(row, false).toString());
+        } else if (model.equals("list")) {
+            pipeline.rpush(key, JSONUtil.parseObj(row, false).toString());
+        } else {
+            throw new IllegalArgumentException("Redis 输出类型无效");
+        }
     }
 }

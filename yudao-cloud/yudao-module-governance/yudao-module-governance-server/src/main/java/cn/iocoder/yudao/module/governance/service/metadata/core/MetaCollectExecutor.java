@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.service.metadata.core;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.StrUtil;
@@ -29,7 +30,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
@@ -97,11 +97,7 @@ public class MetaCollectExecutor {
             return thread;
         }, new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
         // 各工作线程的内部心跳；每个节点仅续租自己持有的令牌。
-        heartbeat = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "meta-collect-heartbeat");
-            thread.setDaemon(true);
-            return thread;
-        });
+        heartbeat = ThreadPoolUtils.newDaemonScheduler(1, "meta-collect-heartbeat");
     }
 
     /**

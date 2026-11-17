@@ -53,7 +53,9 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     @Transactional(rollbackFor = Exception.class)
     public void updateCategoryTerm(CategoryTermSaveReqVO reqVO) {
         CategoryTermDO existing = categoryTermMapper.selectById(reqVO.getId());
-        if (existing == null) throw exception(CATEGORY_TERM_NOT_EXISTS);
+        if (existing == null) {
+            throw exception(CATEGORY_TERM_NOT_EXISTS);
+        }
         validateParent(reqVO.getId(), reqVO.getParentId());
         validateNameUnique(reqVO.getId(), reqVO.getParentId(), reqVO.getCategoryName());
         CategoryTermDO update = BeanUtils.toBean(reqVO, CategoryTermDO.class);
@@ -111,7 +113,9 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     @Override
     public CategoryTermDO getCategoryTerm(Long id) {
         CategoryTermDO result = categoryTermMapper.selectById(id);
-        if (result == null) throw exception(CATEGORY_TERM_NOT_EXISTS);
+        if (result == null) {
+            throw exception(CATEGORY_TERM_NOT_EXISTS);
+        }
         return result;
     }
 
@@ -121,16 +125,28 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     }
 
     private void validateParent(Long id, Long parentId) {
-        if (parentId == null || CategoryTermDO.PARENT_ID_ROOT.equals(parentId)) return;
-        if (Objects.equals(id, parentId)) throw exception(CATEGORY_TERM_PARENT_ERROR);
+        if (parentId == null || CategoryTermDO.PARENT_ID_ROOT.equals(parentId)) {
+            return;
+        }
+        if (Objects.equals(id, parentId)) {
+            throw exception(CATEGORY_TERM_PARENT_ERROR);
+        }
         CategoryTermDO parent = categoryTermMapper.selectByIdForUpdate(parentId);
-        if (parent == null) throw exception(CATEGORY_TERM_PARENT_NOT_EXITS);
+        if (parent == null) {
+            throw exception(CATEGORY_TERM_PARENT_NOT_EXITS);
+        }
         for (int i = 0; id != null && i < Short.MAX_VALUE; i++) {
             Long ancestorId = parent.getParentId();
-            if (Objects.equals(id, ancestorId)) throw exception(CATEGORY_TERM_PARENT_IS_CHILD);
-            if (ancestorId == null || CategoryTermDO.PARENT_ID_ROOT.equals(ancestorId)) break;
+            if (Objects.equals(id, ancestorId)) {
+                throw exception(CATEGORY_TERM_PARENT_IS_CHILD);
+            }
+            if (ancestorId == null || CategoryTermDO.PARENT_ID_ROOT.equals(ancestorId)) {
+                break;
+            }
             parent = categoryTermMapper.selectById(ancestorId);
-            if (parent == null) break;
+            if (parent == null) {
+                break;
+            }
         }
     }
 
@@ -142,15 +158,21 @@ public class CategoryTermServiceImpl implements CategoryTermService {
     }
 
     private String buildCategoryCode(Long parentId, Long id) {
-        if (parentId == null || CategoryTermDO.PARENT_ID_ROOT.equals(parentId)) return CATEGORY_CODE_ROOT + "," + id;
+        if (parentId == null || CategoryTermDO.PARENT_ID_ROOT.equals(parentId)) {
+            return CATEGORY_CODE_ROOT + "," + id;
+        }
         CategoryTermDO parent = categoryTermMapper.selectById(parentId);
-        if (parent == null || StrUtil.isBlank(parent.getCategoryCode())) throw exception(CATEGORY_TERM_PARENT_NOT_EXITS);
+        if (parent == null || StrUtil.isBlank(parent.getCategoryCode())) {
+            throw exception(CATEGORY_TERM_PARENT_NOT_EXITS);
+        }
         return parent.getCategoryCode() + "," + id;
     }
 
     private void refreshChildrenCategoryCode(Long parentId) {
         CategoryTermDO parent = categoryTermMapper.selectById(parentId);
-        if (parent == null || StrUtil.isBlank(parent.getCategoryCode())) return;
+        if (parent == null || StrUtil.isBlank(parent.getCategoryCode())) {
+            return;
+        }
         for (CategoryTermDO child : categoryTermMapper.selectListByParentId(parentId)) {
             CategoryTermDO update = new CategoryTermDO();
             update.setId(child.getId());

@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_PARAM_REQUIRED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_PARAM_REQUIRED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

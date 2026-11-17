@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.etl;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
@@ -30,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -188,21 +188,8 @@ public class EtlPipelineExecutor {
             thread.setDaemon(true);
             return thread;
         }, new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
-        leases = Executors.newScheduledThreadPool(2, r -> daemon(r, "etl-lease"));
-        stopSignals = Executors.newScheduledThreadPool(2, r -> daemon(r, "etl-stop"));
-    }
-
-    /**
-     * 创建用于当前后台处理的守护线程。
-     *
-     * @param task 任务记录
-     * @param name 名称
-     * @return 线程
-     */
-    private static Thread daemon(Runnable task, String name) {
-        Thread thread = new Thread(task, name);
-        thread.setDaemon(true);
-        return thread;
+        leases = ThreadPoolUtils.newDaemonScheduler(2, "etl-lease");
+        stopSignals = ThreadPoolUtils.newDaemonScheduler(2, "etl-stop");
     }
 
     /**

@@ -5,7 +5,9 @@ import cn.iocoder.yudao.module.governance.controller.admin.categorycleanrule.vo.
 import cn.iocoder.yudao.module.governance.dal.dataobject.categorycleanrule.CategoryCleanRuleDO;
 import jakarta.validation.Valid;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 清洗规则 类目管理 Service 接口
@@ -54,5 +56,8 @@ public interface CategoryCleanRuleService {
      * @return 清洗规则 类目管理列表
      */
     List<CategoryCleanRuleDO> getCategoryCleanRuleList(CategoryCleanRuleListReqVO listReqVO);
+
+    /** 批量查询清洗规则所属类目的名称。 */
+    Map<Long, String> getCategoryNames(Collection<Long> ids);
 
 }

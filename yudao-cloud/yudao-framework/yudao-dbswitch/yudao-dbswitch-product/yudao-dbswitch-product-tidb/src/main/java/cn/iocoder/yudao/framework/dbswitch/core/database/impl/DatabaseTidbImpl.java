@@ -42,7 +42,9 @@ public class DatabaseTidbImpl extends DatabaseMysqlImpl implements IDatabaseInte
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             Connection connection, String namespace, String table, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType() != ProductTypeEnum.TIDB) return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.TIDB) {
+            return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        }
         return mysqlExtendedProperties(connection, namespace, table, timeoutSeconds);
     }
 

@@ -32,11 +32,8 @@ export function useFormSchema(): VbenFormSchema[] {
         allowClear: true,
         api: async () => {
           const data = await get${simpleClassName}List({});
-          data.unshift({
-            id: 0,
-            ${treeNameColumn.javaField}: '顶级${table.classComment}',
-          });
-          return handleTree(data, 'id', '${treeParentColumn.javaField}');
+          const root = { id: 0, ${treeNameColumn.javaField}: '顶级${table.classComment}' };
+          return handleTree([root, ...data], 'id', '${treeParentColumn.javaField}');
         },
         labelField: '${treeNameColumn.javaField}',
         valueField: 'id',
@@ -111,9 +108,13 @@ export function useFormSchema(): VbenFormSchema[] {
   #elseif($column.htmlType == "datetime")## 时间框
       component: 'DatePicker',
       componentProps: {
+#if ($column.javaType == "LocalDate")
+        valueFormat: 'YYYY-MM-DD',
+#else
         showTime: true,
         format: 'YYYY-MM-DD HH:mm:ss',
         valueFormat: 'x',
+#end
       },
   #elseif($column.htmlType == "textarea")## 文本域
       component: 'TextArea',
@@ -327,9 +328,13 @@ export function use${subSimpleClassName}FormSchema(): VbenFormSchema[] {
                             #elseif($column.htmlType == "datetime")## 时间框
                                 component: 'DatePicker',
                                 componentProps: {
+#if ($column.javaType == "LocalDate")
+                                    valueFormat: 'YYYY-MM-DD',
+#else
                                     showTime: true,
                                     format: 'YYYY-MM-DD HH:mm:ss',
                                     valueFormat: 'x',
+#end
                                 },
                             #elseif($column.htmlType == "textarea")## 文本域
                                 component: 'TextArea',
@@ -561,9 +566,13 @@ export function use${subSimpleClassName}GridColumns(): VxeTableGridOptions<${api
                                 #elseif($column.htmlType == "datetime")## 时间框
                                     component: 'DatePicker',
                                     componentProps: {
+#if ($column.javaType == "LocalDate")
+                                        valueFormat: 'YYYY-MM-DD',
+#else
                                         showTime: true,
                                         format: 'YYYY-MM-DD HH:mm:ss',
                                         valueFormat: 'x',
+#end
                                     },
                                 #elseif($column.htmlType == "textarea")## 文本域
                                     component: 'TextArea',

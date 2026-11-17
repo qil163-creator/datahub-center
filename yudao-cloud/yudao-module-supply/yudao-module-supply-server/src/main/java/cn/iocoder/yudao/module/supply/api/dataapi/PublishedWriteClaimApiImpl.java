@@ -46,11 +46,15 @@ public class PublishedWriteClaimApiImpl implements PublishedWriteClaimApi {
         }
         var contract = claims.redeem(ticket.value());
         var api = apis.selectById(contract.apiId());
-        if (api == null || !Integer.valueOf(1).equals(api.getStatus())
+        if (api == null
+                || !Integer.valueOf(1).equals(api.getStatus())
                 || !Objects.equals(contract.releaseId(), api.getActiveReleaseId())
                 || !Objects.equals(contract.databaseId(), api.getDatabaseId())
-                || !DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType()) || !DataApiDO.AUTH_TYPE_SIGN.equals(api.getAuthType())
-                || !Objects.equals(contract.apiType(), api.getApiType())) throw exception(UNAUTHORIZED);
+                || !DataApiDO.CONFIG_TYPE_SQL.equals(api.getConfigType())
+                || !DataApiDO.AUTH_TYPE_SIGN.equals(api.getAuthType())
+                || !Objects.equals(contract.apiType(), api.getApiType())) {
+            throw exception(UNAUTHORIZED);
+        }
         executor.validateClaimGrant(api, contract.appId());
         return CommonResult.success(contract);
     }

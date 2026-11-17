@@ -8,12 +8,16 @@ public final class RemoteFilePaths {
     private RemoteFilePaths() { }
 
     public static String normalize(String path) {
-        if (path == null || path.isEmpty()) return "/";
+        if (path == null || path.isEmpty()) {
+            return "/";
+        }
         if (!path.startsWith("/") || path.length() > 4096 || path.contains("\\")
                 || ENCODED_OCTET.matcher(path).find() || path.chars().anyMatch(c -> c < 32 || c == 127)) {
             throw new IllegalArgumentException("文件路径不合法");
         }
-        if (path.equals("/")) return path;
+        if (path.equals("/")) {
+            return path;
+        }
         String normalized = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
         for (String segment : normalized.substring(1).split("/", -1)) {
             validateName(segment);
@@ -39,7 +43,9 @@ public final class RemoteFilePaths {
     }
 
     public static void requireMutable(String path) {
-        if (normalize(path).equals("/")) throw new IllegalArgumentException("不允许修改根目录");
+        if (normalize(path).equals("/")) {
+            throw new IllegalArgumentException("不允许修改根目录");
+        }
     }
 
     static String resolve(String root, String path) {

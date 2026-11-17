@@ -190,7 +190,7 @@ async function handleDeleteBatch() {
   }
 }
 
-const checkedIds = ref<number[]>([])
+const checkedIds = ref<${simpleClassName}Api.Id[]>([])
 function handleRowCheckboxChange({
   records,
 }: {

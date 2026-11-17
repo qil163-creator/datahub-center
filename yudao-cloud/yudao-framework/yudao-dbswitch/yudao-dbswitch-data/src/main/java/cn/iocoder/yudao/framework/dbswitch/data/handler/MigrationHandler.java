@@ -67,7 +67,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -101,18 +103,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MigrationHandler implements Supplier<DbSwitchTableResult> {
 
-    /** 读写流水线写线程编号器 */
-    private static final AtomicInteger PIPELINE_THREAD_SEQ = new AtomicInteger(0);
-
-    /**
-     * 读写流水线共享写线程池：按需创建线程（空闲 60 秒回收），
-     * 每张迁移中的表在全量同步阶段占用一个写线程，与读线程形成双缓冲并行
-     */
-    private static final ExecutorService PIPELINE_WRITE_EXECUTOR = Executors.newCachedThreadPool(r -> {
-        Thread thread = new Thread(r, "dbswitch-pipeline-writer-" + PIPELINE_THREAD_SEQ.incrementAndGet());
-        thread.setDaemon(true);
-        return thread;
-    });
+    /** 写线程不足时本表回退到同步批量写入，避免生产者等待尚未调度的消费者。 */
+    private static final int MAX_PIPELINE_WRITERS = 32;
+    private static final ExecutorService PIPELINE_WRITE_EXECUTOR = new ThreadPoolExecutor(0, MAX_PIPELINE_WRITERS,
+            60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
+            Thread.ofPlatform().daemon().name("dbswitch-pipeline-writer-", 1).factory(),
+            new ThreadPoolExecutor.AbortPolicy());
 
     /**
      * 单批次缓存数据的最大字节数上限，达到即触发一次批量写入。
@@ -1454,7 +1450,6 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
             this.writer = writer;
             this.writeFields = writeFields;
             this.tableNameMapString = tableNameMapString;
-            this.async = async;
             if (async) {
                 this.queue = new ArrayBlockingQueue<>(2);
                 // FutureTask.done 会在 cancel 时提前执行，不能在 done 里递减。
@@ -1478,18 +1473,26 @@ public class MigrationHandler implements Supplier<DbSwitchTableResult> {
                         }
                     }
                 };
-                this.writeFuture = task;
                 activeWriters.incrementAndGet();
                 try {
                     PIPELINE_WRITE_EXECUTOR.execute(task);
+                } catch (RejectedExecutionException saturated) {
+                    activeWriters.decrementAndGet();
+                    writerExited.countDown();
+                    this.writeFuture = null;
+                    this.async = false;
+                    return;
                 } catch (RuntimeException | Error e) {
                     activeWriters.decrementAndGet();
                     writerExited.countDown();
                     throw e;
                 }
+                this.writeFuture = task;
+                this.async = true;
             } else {
                 this.queue = null;
                 this.writeFuture = null;
+                this.async = false;
             }
         }
 

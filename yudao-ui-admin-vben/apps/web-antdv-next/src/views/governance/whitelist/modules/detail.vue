@@ -62,12 +62,12 @@ const fields = computed<DetailFieldItem[]>(() => {
     {
       key: 'effectiveTime',
       label: '生效开始',
-      value: formatDateTime(row?.effectiveTime),
+      value: formatDateTime(row?.effectiveTime ?? undefined),
     },
     {
       key: 'expireTime',
       label: '生效结束',
-      value: formatDateTime(row?.expireTime),
+      value: formatDateTime(row?.expireTime ?? undefined),
     },
     {
       key: 'status',
@@ -151,7 +151,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       drawerApi.setState({ loading: false });
       return;
     }
-    const data = drawerApi.getData() as { id?: number };
+    const data = drawerApi.getData() as { id?: SafetyWhitelistApi.Id };
     if (!data?.id) {
       return;
     }

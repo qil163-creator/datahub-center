@@ -45,20 +45,40 @@ public final class NativeTaskParameters {
 
     /** 受管有界重启策略；不改变原始 SQL 的会话命令禁令，调用者只提供整数参数。 */
     public static Payload withFlinkRestartPolicy(Payload payload, int attempts, long delayMs) {
-        if (payload == null || !"FLINK".equals(payload.taskType()) || attempts < 0 || attempts > 10
-                || delayMs < 0 || delayMs > 300000 || attempts > 0 && delayMs < 1)
+        if (payload == null
+                || !"FLINK".equals(payload.taskType())
+                || attempts < 0
+                || attempts > 10
+                || delayMs < 0
+                || delayMs > 300000
+                || attempts > 0 && delayMs < 1) {
             throw new IllegalArgumentException("Flink 受管重启策略参数无效");
+        }
         var params = new LinkedHashMap<String, Object>(payload.taskParams());
         String strategy = attempts == 0 ? "none" : "fixed-delay";
         if ("SQL".equals(params.get("programType"))) {
             String init = Objects.toString(params.get("initScript"), "")
                     + "SET 'restart-strategy.type' = '" + strategy + "';\n";
-            if (attempts > 0) init += "SET 'restart-strategy.fixed-delay.attempts' = '" + attempts + "';\n"
-                    + "SET 'restart-strategy.fixed-delay.delay' = '" + delayMs + "ms';\n";
+            if (attempts > 0) {
+                init +=
+                        "SET 'restart-strategy.fixed-delay.attempts' = '"
+                                + attempts
+                                + "';\n"
+                                + "SET 'restart-strategy.fixed-delay.delay' = '"
+                                + delayMs
+                                + "ms';\n";
+            }
             params.put("initScript", init);
         } else {
             String flags = Objects.toString(params.get("others"), "") + " -Drestart-strategy.type=" + strategy;
-            if (attempts > 0) flags += " -Drestart-strategy.fixed-delay.attempts=" + attempts + " -Drestart-strategy.fixed-delay.delay=" + delayMs + "ms";
+            if (attempts > 0) {
+                flags +=
+                        " -Drestart-strategy.fixed-delay.attempts="
+                                + attempts
+                                + " -Drestart-strategy.fixed-delay.delay="
+                                + delayMs
+                                + "ms";
+            }
             params.put("others", flags.strip());
         }
         return new Payload(payload.taskType(), params);
@@ -66,7 +86,9 @@ public final class NativeTaskParameters {
 
     /** 受管 Catalog 的无凭据初始化语句与任务 SQL 使用相同安全约束。 */
     public static Payload withSqlInitialization(Payload payload, String initialization) {
-        if (initialization == null || initialization.isBlank()) return payload;
+        if (initialization == null || initialization.isBlank()) {
+            return payload;
+        }
         if (!"SQL".equals(payload.taskParams().get("programType"))
                 || initialization.matches("(?is).*['\"]?(password|passwd|secret|token)['\"]?\\s*[:=].*")) {
             throw new IllegalArgumentException("原生初始化仅接受不含凭据的 SQL");
@@ -81,7 +103,9 @@ public final class NativeTaskParameters {
     /** 管理员选择受管部署模式；不接受来自任务表单的任意命令参数。 */
     public static Payload flink(FlinkOptions options, FlinkDeployment deployment, String jobManager) {
         Payload original = flink(options);
-        if (deployment == FlinkDeployment.CLUSTER) return original;
+        if (deployment == FlinkDeployment.CLUSTER) {
+            return original;
+        }
         if (options.programType() != ProgramType.SQL) {
             throw new IllegalArgumentException("本地和独立部署当前仅支持 Flink SQL");
         }
@@ -101,7 +125,9 @@ public final class NativeTaskParameters {
         } else {
             int separator = jobManager.lastIndexOf(':');
             int port = Integer.parseInt(jobManager.substring(separator + 1));
-            if (port > 65535) throw new IllegalArgumentException("Flink JobManager 端口无效");
+            if (port > 65535) {
+                throw new IllegalArgumentException("Flink JobManager 端口无效");
+            }
             script += "SET 'rest.address' = '" + jobManager.substring(0, separator) + "';\n"
                     + "SET 'rest.port' = '" + port + "';\n";
         }
@@ -111,21 +137,34 @@ public final class NativeTaskParameters {
 
     /** 受管 JVM Launcher 的本地或独立集群部署入口；资源授权由调用方完成，任务不提供任意 flags。 */
     public static Payload flinkManagedProgram(FlinkOptions options, FlinkDeployment deployment, String jobManager) {
-        if (options == null || options.programType() != ProgramType.JAVA || options.mainResource() == null || options.mainClass() == null || deployment == null)
+        if (options == null
+                || options.programType() != ProgramType.JAVA
+                || options.mainResource() == null
+                || options.mainClass() == null
+                || deployment == null) {
             throw new IllegalArgumentException("受管 Flink 原生程序必须使用已授权的 JAVA 资源和入口类");
+        }
         Payload original = flink(options);
-        if (deployment == FlinkDeployment.CLUSTER) return original;
+        if (deployment == FlinkDeployment.CLUSTER) {
+            return original;
+        }
         var params = new LinkedHashMap<String, Object>(original.taskParams()); params.put("deployMode", deployment.name().toLowerCase(Locale.ROOT)); params.put("yarnQueue", "");
         String flags = Objects.toString(params.get("others"), "")
                 + " -Dexecution.target=" + (deployment == FlinkDeployment.LOCAL ? "local" : "remote")
                 + " -Djobmanager.memory.process.size=" + memory(options.jobManagerMemory())
                 + " -Dtaskmanager.memory.process.size=" + memory(options.taskManagerMemory())
                 + " -Dtaskmanager.numberOfTaskSlots=" + options.slots();
-        if (deployment == FlinkDeployment.LOCAL) flags += " -Dlocal.number-taskmanager=" + options.taskManagers();
-        else {
-            if (jobManager == null || !jobManager.matches("[A-Za-z0-9][A-Za-z0-9.-]{0,252}:[1-9][0-9]{0,4}")) throw new IllegalArgumentException("Flink JobManager 地址无效");
+        if (deployment == FlinkDeployment.LOCAL) {
+            flags += " -Dlocal.number-taskmanager=" + options.taskManagers();
+        } else {
+            if (jobManager == null
+                    || !jobManager.matches("[A-Za-z0-9][A-Za-z0-9.-]{0,252}:[1-9][0-9]{0,4}")) {
+                throw new IllegalArgumentException("Flink JobManager 地址无效");
+            }
             int separator = jobManager.lastIndexOf(':'); int port = Integer.parseInt(jobManager.substring(separator + 1));
-            if (port > 65535) throw new IllegalArgumentException("Flink JobManager 端口无效");
+            if (port > 65535) {
+                throw new IllegalArgumentException("Flink JobManager 端口无效");
+            }
             String host = jobManager.substring(0, separator);
             flags += " -Drest.address=" + host + " -Drest.port=" + port + " -Djobmanager.rpc.address=" + host;
         }
@@ -135,7 +174,9 @@ public final class NativeTaskParameters {
     /** Spark 本地、Standalone 与 YARN 均由管理员指定 master，任务只提供资源配置。 */
     public static Payload spark(SparkOptions options, String master) {
         Payload original = spark(options);
-        if ("yarn".equals(master)) return original;
+        if ("yarn".equals(master)) {
+            return original;
+        }
         if (master == null || !(master.matches("local\\[(?:[1-9]|[1-5][0-9]|6[0-4])\\]")
                 || master.matches("spark://[A-Za-z0-9][A-Za-z0-9.-]{0,252}:[1-9][0-9]{0,4}"))) {
             throw new IllegalArgumentException("Spark master 必须为受管本地核数或独立集群地址");

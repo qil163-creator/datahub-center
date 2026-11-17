@@ -68,7 +68,9 @@ public class OpsInstanceService {
      * @return 分页读取平台共享实例及源系统迁入快照结果
      */
     public PageResult<InstanceResp> page(PageReq req) {
-        if ("JOB".equals(req.getKind())) jobService.reconcileRecentForRead();
+        if ("JOB".equals(req.getKind())) {
+            jobService.reconcileRecentForRead();
+        }
         var scope = categoryScope(req.getKind(), req.getCategoryId());
         if (!scope.known()) {
             return PageResult.empty();
@@ -82,7 +84,13 @@ public class OpsInstanceService {
         long offset = ((long) req.getPageNo() - 1) * req.getPageSize();
         var rows = mapper.selectInstances(req, ids, origin, offset);
         enrichCreators(rows);
-        if ("JOB".equals(req.getKind())) rows.forEach(row -> {enrichChildren(row);jobService.populateRuntimeIdentity(row);});
+        if ("JOB".equals(req.getKind())) {
+            rows.forEach(
+                    row -> {
+                        enrichChildren(row);
+                        jobService.populateRuntimeIdentity(row);
+                    });
+        }
         return new PageResult<>(rows, total);
     }
 
@@ -119,7 +127,9 @@ public class OpsInstanceService {
      * @return 统计
      */
     public StatisticsResp statistics(StatisticsReq req) {
-        if ("JOB".equals(req.getKind())) jobService.reconcileRecentForRead();
+        if ("JOB".equals(req.getKind())) {
+            jobService.reconcileRecentForRead();
+        }
         var now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         var start = now.toLocalDate().atStartOfDay();
         var scope = categoryScope(req.getKind(), req.getCategoryId());
@@ -186,10 +196,14 @@ public class OpsInstanceService {
         enrichCreators(List.of(record));
         record.setFlowJson(safeFlow(record.getFlowJson()));
         if ("JOB".equals(req.getKind())) {enrichChildren(record);jobService.populateRuntimeIdentity(record);}
-        if ("FULL_SYNC".equals(req.getKind()) && "WIZARD".equals(req.getOrigin())) enrichWizard(record);
+        if ("FULL_SYNC".equals(req.getKind()) && "WIZARD".equals(req.getOrigin())) {
+            enrichWizard(record);
+        }
         if ("INTEGRATION".equals(req.getKind()) && "MANAGED".equals(req.getOrigin())) {
             var identity = mapper.selectManagedIntegrationIdentity(record.getId(), record.getTaskId());
-            if (identity == null) throw exception(DEV_RECORD_NOT_EXISTS);
+            if (identity == null) {
+                throw exception(DEV_RECORD_NOT_EXISTS);
+            }
             record.setDsProjectCode(identity.getDsProjectCode());
             record.setDsInstanceId(identity.getDsInstanceId());
         }
@@ -274,12 +288,18 @@ public class OpsInstanceService {
     private void enrichWizard(InstanceResp record) {
         record.setStatus("UNKNOWN");
         var target = mapper.selectWizardTarget(record.getId());
-        if (target == null || target.getProjectCode() == null || target.getInstanceId() == null) return;
+        if (target == null || target.getProjectCode() == null || target.getInstanceId() == null) {
+            return;
+        }
         try {
             var response = dolphinScheduler.workflowInstance().queryWorkflowInstanceById(target.getProjectCode(), target.getInstanceId());
-            if (response == null || response.getInt("code", -1) != 0) return;
+            if (response == null || response.getInt("code", -1) != 0) {
+                return;
+            }
             var data = response.getJSONObject("data");
-            if (data == null || !Objects.equals(data.getInt("id"), target.getInstanceId())) return;
+            if (data == null || !Objects.equals(data.getInt("id"), target.getInstanceId())) {
+                return;
+            }
             record.setStatus(switch (String.valueOf(data.getStr("state"))) {
                 case "SUCCESS", "FORCED_SUCCESS" -> "SUCCESS";
                 case "FAILURE" -> "FAILURE";
@@ -299,7 +319,10 @@ public class OpsInstanceService {
     }
 
     private static LocalDateTime runtimeTime(Object value) {
-        if (value instanceof Number number) return LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(number.longValue()), ZoneId.of("Asia/Shanghai"));
+        if (value instanceof Number number) {
+            return LocalDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(number.longValue()), ZoneId.of("Asia/Shanghai"));
+        }
         if (value instanceof String text) {
             try { return LocalDateTime.parse(text.replace('T', ' ').substring(0, 19), java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); }
             catch (RuntimeException ignored) { return null; }
@@ -310,20 +333,29 @@ public class OpsInstanceService {
     /** 子实例按已校验父实例身份加载；不继承日志访问身份，不生成推断的运行状态。 */
     private void enrichChildren(InstanceResp record) {
         String raw = mapper.selectJobChildren(record.getId(), record.getOrigin());
-        if ("SOURCE".equals(record.getOrigin())) record.setRunCount(1);
+        if ("SOURCE".equals(record.getOrigin())) {
+            record.setRunCount(1);
+        }
         if (StrUtil.isBlank(raw)) {
             record.setChildren(List.of());
             return;
         }
         try {
             var children = cn.iocoder.yudao.framework.common.util.json.JsonUtils.parseArray(raw, InstanceResp.class);
-            record.setChildren(children.stream().limit(200).map(child -> {
-                child.setFlowJson(safeFlow(child.getFlowJson()));
-                child.setDescription(safeLog(child.getDescription()));
-                child.setChildren(null);
-                if ("SOURCE".equals(record.getOrigin())) child.setRunCount(1);
-                return child;
-            }).toList());
+            record.setChildren(
+                    children.stream()
+                            .limit(200)
+                            .map(
+                                    child -> {
+                                        child.setFlowJson(safeFlow(child.getFlowJson()));
+                                        child.setDescription(safeLog(child.getDescription()));
+                                        child.setChildren(null);
+                                        if ("SOURCE".equals(record.getOrigin())) {
+                                            child.setRunCount(1);
+                                        }
+                                        return child;
+                                    })
+                            .toList());
         } catch (RuntimeException ignored) {
             record.setChildren(List.of());
         }

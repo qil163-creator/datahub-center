@@ -292,7 +292,7 @@ class SupplyLegacyGrantBoundaryTest extends SharingPostgresSupport {
                 return "CREATED";
             } catch (ServiceException failure) {
                 assertThat(failure.getCode()).isEqualTo(
-                        cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.SUPPLY_APP_API_DUPLICATE.getCode());
+                        cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.SUPPLY_APP_API_DUPLICATE.getCode());
                 return "DUPLICATE";
             } finally {
 
@@ -389,7 +389,7 @@ class SupplyLegacyGrantBoundaryTest extends SharingPostgresSupport {
         ReflectionTestUtils.setField(apis,"appApiMapper",context.getBean(AppApiMapper.class));
         sql("UPDATE dh_supply_api SET status=0 WHERE id=10");
         code(() -> apis.deleteDataApi(10L),
-                cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_AUTHORIZED_CANNOT_DELETE.getCode());
+                cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_AUTHORIZED_CANNOT_DELETE.getCode());
         assertThat(scalar("SELECT count(*) FROM dh_supply_api WHERE id=10 AND deleted=0")).isEqualTo(1);
     }
 
@@ -431,7 +431,7 @@ class SupplyLegacyGrantBoundaryTest extends SharingPostgresSupport {
         sql("UPDATE dh_supply_api SET status=0 WHERE id=10");
         // v2 聚合的 grant_status 固定为 3，不能因此绕过来源引用检查。
         code(() -> apis.deleteDataApi(10L),
-                cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_AUTHORIZED_CANNOT_DELETE.getCode());
+                cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_AUTHORIZED_CANNOT_DELETE.getCode());
         sql("UPDATE dh_supply_grant_source SET source_status='REVOKED' WHERE source_key='A'");
         apis.deleteDataApi(10L);
         assertThat(scalar("SELECT count(*) FROM dh_supply_api WHERE id=10 AND deleted=0")).isZero();

@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.LongFunction;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED;
 
 /** 仅在台账首次认领成功后签发；兑换原子删除，网络超时不得重发。 */
 @Service
@@ -33,14 +33,20 @@ public class PublishedWriteClaims {
         String token = HexFormat.of().formatHex(randomBytes());
         boolean stored = Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(key(token),
                 JsonUtils.toJsonString(build.apply(row.getId())), Duration.ofSeconds(30)));
-        if (!stored) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (!stored) {
+            throw exception(DATA_API_NOT_AUTHORIZED);
+        }
         return token;
     }
 
     public Contract redeem(String token) {
-        if (token == null || !token.matches("[a-f0-9]{64}")) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (token == null || !token.matches("[a-f0-9]{64}")) {
+            throw exception(DATA_API_NOT_AUTHORIZED);
+        }
         String value = redis.opsForValue().getAndDelete(key(token));
-        if (value == null) throw exception(DATA_API_NOT_AUTHORIZED);
+        if (value == null) {
+            throw exception(DATA_API_NOT_AUTHORIZED);
+        }
         var contract = JsonUtils.parseObject(value, Contract.class);
         requireClaim(operations.activeClaim(contract.operationId()), contract.appId(), contract.apiId(), contract.releaseId());
         return contract;

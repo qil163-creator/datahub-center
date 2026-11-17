@@ -25,7 +25,9 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic probeCdcReadiness(
             Connection connection,int timeoutSeconds) throws SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.HIGHGO) return super.probeCdcReadiness(connection,timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.HIGHGO) {
+            return super.probeCdcReadiness(connection, timeoutSeconds);
+        }
         diagnosticBounds(connection,"CDC",1,timeoutSeconds);
         String sql="SELECT pg_catalog.version(),pg_catalog.current_setting('server_version'),pg_catalog.current_setting('wal_level'),"
                 + "pg_catalog.current_setting('max_replication_slots')::int,pg_catalog.current_setting('max_wal_senders')::int,rolsuper,rolreplication "
@@ -33,13 +35,26 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
         try (var statement=connection.prepareStatement(sql)) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("HighGo CDC 配置及角色目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("HighGo CDC 配置及角色目录无响应");
+                }
                 String version=rows.getString(1); String server=rows.getString(2);
-                if (version==null || !version.matches("HighGo Database 6 Release 6[.]0[.]4[.]2(?:[- ].*)?") || !"12.7".equals(server))
-                    throw new java.sql.SQLFeatureNotSupportedException("HighGo CDC 仅声明 6.0.4.2 原生目录契约","0A000");
+                if (version == null
+                        || !version.matches("HighGo Database 6 Release 6[.]0[.]4[.]2(?:[- ].*)?")
+                        || !"12.7".equals(server)) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "HighGo CDC 仅声明 6.0.4.2 原生目录契约", "0A000");
+                }
                 String wal=rows.getString(3); int slots=rows.getInt(4); boolean missing=rows.wasNull(); int senders=rows.getInt(5); missing|=rows.wasNull();
                 boolean administrator=rows.getBoolean(6); missing|=rows.wasNull(); boolean replication=rows.getBoolean(7);
-                if (missing || rows.wasNull() || wal==null || slots<0 || senders<0 || rows.next()) throw new SQLException("HighGo CDC 配置及角色证据不完整");
+                if (missing
+                        || rows.wasNull()
+                        || wal == null
+                        || slots < 0
+                        || senders < 0
+                        || rows.next()) {
+                    throw new SQLException("HighGo CDC 配置及角色证据不完整");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic("logical".equals(wal)&&slots>0&&senders>0,administrator||replication);
             }
         }
@@ -49,7 +64,9 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             Connection connection, String namespace, String table, int timeoutSeconds) throws SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.HIGHGO) return super.probeExtendedProperties(connection,namespace,table,timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.HIGHGO) {
+            return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        }
         diagnosticBounds(connection,namespace,1,timeoutSeconds); diagnosticBounds(connection,table,1,timeoutSeconds);
         String sql="SELECT CASE WHEN pg_catalog.obj_description(c.oid,'pg_class') IS NULL THEN 0 ELSE 1 END,"
                 + "COUNT(a.attnum),COUNT(pg_catalog.col_description(c.oid,a.attnum)) "
@@ -59,9 +76,19 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("HighGo 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("HighGo 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("HighGo 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("HighGo 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -75,8 +102,12 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
         try (var statement = connection.prepareStatement("SELECT pg_catalog.has_schema_privilege(current_user,n.oid,'USAGE') FROM pg_catalog.pg_namespace n WHERE n.nspname=?")) {
             statement.setString(1, namespace); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLException("HighGo 命名空间不存在", "3F000");
-                if (!rows.getBoolean(1) || rows.wasNull()) throw new java.sql.SQLException("HighGo schema USAGE 被拒绝", "42501");
+                if (!rows.next()) {
+                    throw new java.sql.SQLException("HighGo 命名空间不存在", "3F000");
+                }
+                if (!rows.getBoolean(1) || rows.wasNull()) {
+                    throw new java.sql.SQLException("HighGo schema USAGE 被拒绝", "42501");
+                }
             }
         }
     }
@@ -88,7 +119,9 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
         try (var statement = connection.prepareStatement("SELECT rolname,rolsuper FROM pg_catalog.pg_roles WHERE rolname=current_user")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new java.sql.SQLException("HighGo 当前账号目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new java.sql.SQLException("HighGo 当前账号目录证据缺失");
+                }
             }
         }
     }
@@ -102,7 +135,9 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new java.sql.SQLException("HighGo 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new java.sql.SQLException("HighGo 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription();
                     table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
@@ -112,7 +147,16 @@ public class DatabaseHighgoImpl extends DatabasePostgresImpl implements IDatabas
     }
 
     private static void diagnosticBounds(java.sql.Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("HighGo 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("HighGo 诊断参数必须完整且有界");
+        }
     }
 
     /**

@@ -77,22 +77,44 @@ public class PublishedQueryApiImpl implements PublishedQueryApi {
     public CommonResult<List<Integer>> executeClaim(Ticket ticket) {
         requireSingleTenantSupplyPeer();
         var claim = writeClaims.redeem(new PublishedWriteClaimApi.Ticket(ticket.value())).getCheckedData();
-        if (claim == null || claim.apiId() <= 0 || claim.releaseId() <= 0 || claim.appId() <= 0 || claim.operationId() <= 0
-                || claim.databaseId() <= 0 || claim.revision() == null || claim.revision().isBlank()
-                || claim.timeoutSeconds() < 1 || claim.timeoutSeconds() > 300
-                || claim.steps() == null || claim.steps().isEmpty() || claim.steps().size() > 1000 || claim.bindings() == null
+        if (claim == null
+                || claim.apiId() <= 0
+                || claim.releaseId() <= 0
+                || claim.appId() <= 0
+                || claim.operationId() <= 0
+                || claim.databaseId() <= 0
+                || claim.revision() == null
+                || claim.revision().isBlank()
+                || claim.timeoutSeconds() < 1
+                || claim.timeoutSeconds() > 300
+                || claim.steps() == null
+                || claim.steps().isEmpty()
+                || claim.steps().size() > 1000
+                || claim.bindings() == null
                 || !Set.of("INSERT", "UPDATE", "DELETE", "MULTI").contains(claim.apiType())
-                || !"MULTI".equals(claim.apiType()) && claim.steps().size() != 1) throw exception(UNAUTHORIZED);
+                || !"MULTI".equals(claim.apiType()) && claim.steps().size() != 1) {
+            throw exception(UNAUTHORIZED);
+        }
         var conn = databases.resolveEnabled(claim.databaseId(), DATABASE_NOT_EXISTS);
-        if (conn.getProductType() != ProductTypeEnum.POSTGRESQL || !Objects.equals(conn.getConfigurationRevision(), claim.revision())
-                || conn.getSchema() == null || conn.getSchema().isBlank()) throw exception(UNAUTHORIZED);
+        if (conn.getProductType() != ProductTypeEnum.POSTGRESQL
+                || !Objects.equals(conn.getConfigurationRevision(), claim.revision())
+                || conn.getSchema() == null
+                || conn.getSchema().isBlank()) {
+            throw exception(UNAUTHORIZED);
+        }
         var sql = new ArrayList<String>();
         var targets = new ArrayList<RestrictedDmlTarget>();
         for (var step : claim.steps()) {
-            if (step == null || !conn.getSchema().equals(step.schema())) throw exception(UNAUTHORIZED);
+            if (step == null || !conn.getSchema().equals(step.schema())) {
+                throw exception(UNAUTHORIZED);
+            }
             var parsed = RestrictedDmlAuthorization.inspect(conn.getProductType(), step.sql(), conn.getSchema());
-            if (!Objects.equals(parsed.schemaName(), step.schema()) || !Objects.equals(parsed.tableName(), step.table())
-                    || !"MULTI".equals(claim.apiType()) && !claim.apiType().equals(parsed.operation())) throw exception(UNAUTHORIZED);
+            if (!Objects.equals(parsed.schemaName(), step.schema())
+                    || !Objects.equals(parsed.tableName(), step.table())
+                    || !"MULTI".equals(claim.apiType())
+                            && !claim.apiType().equals(parsed.operation())) {
+                throw exception(UNAUTHORIZED);
+            }
             var bound = RestrictedDmlGuard.bindAuthorizedTable(dbSwitchRuntime.products().metadata(conn.getProductType()),
                     step.sql(), step.schema(), step.table());
             sql.add(bound.getNormalizedSql());
@@ -106,8 +128,12 @@ public class PublishedQueryApiImpl implements PublishedQueryApi {
         var binds = claim.bindings().stream().map(PublishedWriteClaimApi.Bind::jdbcValue).toList();
         var result = dbSwitchRuntime.jdbcMetadata(conn.getProductType()).executeAuthorizedDmlPlan(
                 conn.getJdbcUrl(), conn.getUsername(), conn.getPassword(), plan, binds, targets, ignored -> { }, claim.timeoutSeconds());
-        if (result == null || !Boolean.TRUE.equals(result.getSuccess()) || result.getResults() == null
-                || result.getResults().size() != targets.size()) throw exception(DATABASE_QUERY_FAILED, "写入事务未确认");
+        if (result == null
+                || !Boolean.TRUE.equals(result.getSuccess())
+                || result.getResults() == null
+                || result.getResults().size() != targets.size()) {
+            throw exception(DATABASE_QUERY_FAILED, "写入事务未确认");
+        }
         return CommonResult.success(result.getResults().stream().map(JdbcSelectResult::getCount).toList());
     }
 
@@ -150,12 +176,22 @@ public class PublishedQueryApiImpl implements PublishedQueryApi {
         }
         List<Map<String, Object>> rows = result.getList() != null ? result.getList() : result.getRowData();
         if (rows != null) {
-            rows = rows.stream().map(row -> {
-                if (row == null) return null;
-                Map<String, Object> copy = new LinkedHashMap<>(row);
-                copy.replaceAll((key, value) -> value instanceof BigDecimal n ? n.toPlainString() : value);
-                return copy;
-            }).toList();
+            rows =
+                    rows.stream()
+                            .map(
+                                    row -> {
+                                        if (row == null) {
+                                            return null;
+                                        }
+                                        Map<String, Object> copy = new LinkedHashMap<>(row);
+                                        copy.replaceAll(
+                                                (key, value) ->
+                                                        value instanceof BigDecimal n
+                                                                ? n.toPlainString()
+                                                                : value);
+                                        return copy;
+                                    })
+                            .toList();
         }
         return CommonResult.success(new PageResult<>(rows, result.getTotal()));
     }

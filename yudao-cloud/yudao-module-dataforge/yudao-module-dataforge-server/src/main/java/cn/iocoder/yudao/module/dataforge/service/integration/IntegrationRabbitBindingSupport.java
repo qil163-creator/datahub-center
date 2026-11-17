@@ -23,31 +23,58 @@ public class IntegrationRabbitBindingSupport {
     @Resource private ExecutionAccessService access;
 
     public EtlNativeRabbitCompiler.Binding require(IntegrationTaskDO task, Long databaseId, String code, Map<String, Object> config) {
-        if (task == null || task.getId() == null || databaseId == null || code == null || !Set.of("read-rabbitmq", "write-rabbitmq").contains(code)
-                || !("FLINK".equals(task.getEngine()) && "REALTIME".equals(task.getMode()) || Set.of("SPARK", "FLINK").contains(task.getEngine()) && "OFFLINE".equals(task.getMode())) || config == null)
+        if (task == null
+                || task.getId() == null
+                || databaseId == null
+                || code == null
+                || !Set.of("read-rabbitmq", "write-rabbitmq").contains(code)
+                || !("FLINK".equals(task.getEngine()) && "REALTIME".equals(task.getMode())
+                        || Set.of("SPARK", "FLINK").contains(task.getEngine())
+                                && "OFFLINE".equals(task.getMode()))
+                || config == null) {
             throw invalid("RabbitMQ 需要已授权数据连接与明确的 Flink 实时任务");
+        }
         var binding = properties.getBindings() == null ? null : properties.getBindings().get(databaseId);
-        if (binding == null || !installed(binding, task) || !contains(binding.getAllowedTaskIds(), task.getId())
-                || !contains(binding.getWorkerGroups(), task.getWorkerGroup()) || !contains(binding.getEngines(), task.getEngine()))
+        if (binding == null
+                || !installed(binding, task)
+                || !contains(binding.getAllowedTaskIds(), task.getId())
+                || !contains(binding.getWorkerGroups(), task.getWorkerGroup())
+                || !contains(binding.getEngines(), task.getEngine())) {
             throw invalid("当前任务、引擎或工作组尚未授权 RabbitMQ 原生资源");
+        }
         String reference = binding.getCredentialRef();
         var secrets = runtimeProperties.getManagedSecretBindings();
         var secret = reference == null || secrets == null ? null : secrets.get(reference);
-        if (reference == null || !reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}") || secret == null
-                || !contains(secret.getAllowedTaskIds(), task.getId()) || !contains(secret.getWorkerGroups(), task.getWorkerGroup())
-                || !contains(secret.getEngines(), task.getEngine())) throw invalid("RabbitMQ 秘密引用未获当前任务、工作组和引擎授权");
+        if (reference == null
+                || !reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}")
+                || secret == null
+                || !contains(secret.getAllowedTaskIds(), task.getId())
+                || !contains(secret.getWorkerGroups(), task.getWorkerGroup())
+                || !contains(secret.getEngines(), task.getEngine())) {
+            throw invalid("RabbitMQ 秘密引用未获当前任务、工作组和引擎授权");
+        }
         String queue = Objects.toString(config.get("topic"), "");
-        if (!contains(code.startsWith("write-") ? binding.getSinkQueues() : binding.getSourceQueues(), queue))
+        if (!contains(
+                code.startsWith("write-") ? binding.getSinkQueues() : binding.getSourceQueues(),
+                queue)) {
             throw invalid("RabbitMQ 队列不在当前任务的受管读写范围");
+        }
         access.requireDatabase(databaseId);
         var database = databases.getDatabase(databaseId);
-        if (database == null || database.getDatabaseType() == null) throw invalid("RabbitMQ 平台连接不存在");
+        if (database == null || database.getDatabaseType() == null) {
+            throw invalid("RabbitMQ 平台连接不存在");
+        }
         var type = databaseTypes.getDatabaseType(database.getDatabaseType().longValue());
-        if (!"RABBITMQ".equals(ConnectionSettings.code(type))) throw invalid("RabbitMQ 组件不能借用其他产品的数据连接");
+        if (!"RABBITMQ".equals(ConnectionSettings.code(type))) {
+            throw invalid("RabbitMQ 组件不能借用其他产品的数据连接");
+        }
         var settings = ConnectionSettings.read(database, type);
-        if (!Objects.equals(binding.getHost(), database.getDatabaseIp()) || !Integer.toString(binding.getPort()).equals(database.getDatabasePort())
-                || !Objects.equals(binding.getVirtualHost(), settings.get("virtualHost", "/")) || binding.isUseSsl() != settings.flag("tls", false))
+        if (!Objects.equals(binding.getHost(), database.getDatabaseIp())
+                || !Integer.toString(binding.getPort()).equals(database.getDatabasePort())
+                || !Objects.equals(binding.getVirtualHost(), settings.get("virtualHost", "/"))
+                || binding.isUseSsl() != settings.flag("tls", false)) {
             throw invalid("RabbitMQ 平台连接与已批准的物理地址、虚拟主机或 TLS 设置不一致");
+        }
         return new EtlNativeRabbitCompiler.Binding(binding.getHost(), binding.getPort(), binding.getVirtualHost(), binding.getSourceQueues(),
                 binding.getSinkQueues(), reference, binding.isUseSsl(), binding.isFlinkConnectorInstalled(), binding.isSparkConnectorInstalled(), binding.isFlinkBoundedConnectorInstalled());
     }

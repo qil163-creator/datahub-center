@@ -92,7 +92,9 @@ public class MultiJoinExecutor extends AbstractEtlNodeExecutor {
                         // RIGHT JOIN：右侧未命中的行保留，左侧字段补 null。
                         for (Map<String, Object> right : rightRows) {
                             checkStop();
-                            if (matchedRight.contains(right)) continue;
+                            if (matchedRight.contains(right)) {
+                                continue;
+                            }
                             Map<String, Object> unmatched = new LinkedHashMap<>();
                             leftFields.forEach(field -> unmatched.put(field, null));
                             right.forEach(unmatched::put);

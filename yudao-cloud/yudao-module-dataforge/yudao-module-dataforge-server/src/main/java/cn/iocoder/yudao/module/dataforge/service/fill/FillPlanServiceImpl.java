@@ -118,8 +118,12 @@ public class FillPlanServiceImpl implements FillPlanService {
         tableVersionService.getTableVersion(updateReqVO.getTableVersionId());
         FillPlanDO update = BeanUtils.toBean(updateReqVO, FillPlanDO.class);
         // 调整分类或填报人时未提交的可选配置由 updateById 跳过，保留原值。
-        if (StrUtil.isBlank(update.getTimeZone())) update.setTimeZone(null);
-        if (StrUtil.isBlank(update.getPeriodConfig())) update.setPeriodConfig(null);
+        if (StrUtil.isBlank(update.getTimeZone())) {
+            update.setTimeZone(null);
+        }
+        if (StrUtil.isBlank(update.getPeriodConfig())) {
+            update.setPeriodConfig(null);
+        }
         planMapper.updateById(update);
         planOrgMapper.deleteByPlanId(updateReqVO.getId());
         planOrgAssigneeMapper.deleteByPlanId(updateReqVO.getId());

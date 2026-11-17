@@ -259,7 +259,9 @@ public class JdbcUrlUtils {
             throw new IllegalArgumentException("需要不含片段的 MySQL 协议 JDBC URL");
         }
         Objects.requireNonNull(required, "required");
-        if (required.isEmpty()) return jdbcUrl;
+        if (required.isEmpty()) {
+            return jdbcUrl;
+        }
         if (required.values().stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("覆盖连接参数不能为空");
         }
@@ -276,7 +278,9 @@ public class JdbcUrlUtils {
         var retained = new java.util.ArrayList<String>();
         if (question >= 0) {
             for (String field : jdbcUrl.substring(question + 1).split("&", -1)) {
-                if (field.isEmpty()) continue;
+                if (field.isEmpty()) {
+                    continue;
+                }
                 String key;
                 try {
                     key = java.net.URLDecoder.decode(field.split("=", 2)[0],
@@ -284,7 +288,9 @@ public class JdbcUrlUtils {
                 } catch (IllegalArgumentException invalid) {
                     throw new IllegalArgumentException("JDBC URL 参数名称包含不合法编码");
                 }
-                if (!keys.contains(key)) retained.add(field);
+                if (!keys.contains(key)) {
+                    retained.add(field);
+                }
             }
         }
         String preserved = retained.isEmpty() ? base : base + '?' + String.join("&", retained);

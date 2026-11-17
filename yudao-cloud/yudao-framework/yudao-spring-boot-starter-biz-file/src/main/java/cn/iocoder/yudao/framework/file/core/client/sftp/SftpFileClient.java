@@ -73,15 +73,21 @@ public class SftpFileClient extends AbstractFileClient<SftpFileClientConfig> {
                 continue;
             }
             cursor += "/" + part;
-            if (deadline != null) connection.session.setTimeout(remaining(deadline));
+            if (deadline != null) {
+                connection.session.setTimeout(remaining(deadline));
+            }
             SftpATTRS attributes = connection.channel.lstat(cursor);
             if (attributes.isLink() || !attributes.isDir()) {
                 throw new IllegalArgumentException("SFTP 根目录必须为真实目录，禁止符号链接");
             }
         }
-        if (deadline != null) connection.session.setTimeout(remaining(deadline));
+        if (deadline != null) {
+            connection.session.setTimeout(remaining(deadline));
+        }
         connection.channel.cd(root);
-        if (deadline != null) connection.session.setTimeout(remaining(deadline));
+        if (deadline != null) {
+            connection.session.setTimeout(remaining(deadline));
+        }
         connection.channel.pwd();
     }
 

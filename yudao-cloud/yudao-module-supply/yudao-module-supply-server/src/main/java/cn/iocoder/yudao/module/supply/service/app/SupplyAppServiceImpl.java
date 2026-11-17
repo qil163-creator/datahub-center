@@ -51,7 +51,7 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.*;
 import static cn.iocoder.yudao.module.supply.enums.grant.ErrorCodeConstants.*;
 
 /**

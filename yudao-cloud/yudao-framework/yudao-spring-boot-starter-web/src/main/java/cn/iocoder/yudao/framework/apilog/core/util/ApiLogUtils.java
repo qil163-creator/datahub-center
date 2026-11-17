@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.framework.apilog.core.util;
 
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.method.HandlerMethod;
 
@@ -33,7 +34,9 @@ public final class ApiLogUtils {
     public static String[] sanitizeKeys(HttpServletRequest request) {
         if (request.getAttribute(ATTRIBUTE_HANDLER_METHOD) instanceof HandlerMethod handler) {
             ApiAccessLog annotation = handler.getMethodAnnotation(ApiAccessLog.class);
-            if (annotation != null) return annotation.sanitizeKeys();
+            if (annotation != null) {
+                return annotation.sanitizeKeys();
+            }
         }
         return null;
     }
@@ -43,9 +46,7 @@ public final class ApiLogUtils {
         if (isRequestEnabled(request)) {
             return exception;
         }
-        Throwable sanitized = new Throwable(exception.getClass().getName());
-        sanitized.setStackTrace(exception.getStackTrace());
-        return sanitized;
+        return LogSanitizer.sanitizedException(exception);
     }
 
 }

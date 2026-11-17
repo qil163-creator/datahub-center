@@ -12,14 +12,37 @@ final class EtlScriptBrokerProtocol {
     record Claim(String binding, String sourceHash, String epoch, String task, String workerGroup, String engine,
                  String run, String partition) {
         Claim {
-            if (binding == null || !binding.matches("[A-Za-z0-9][A-Za-z0-9_.-]{0,99}") || sourceHash == null || !sourceHash.matches("[a-f0-9]{64}")
-                    || epoch == null || !epoch.matches("[a-f0-9-]{36}") || task == null || !task.matches("[A-Za-z0-9_.-]{1,128}")
-                    || workerGroup == null || !workerGroup.matches("[A-Za-z0-9_.-]{1,100}") || !Set.of("SPARK", "FLINK").contains(engine)
-                    || run == null || !run.matches("[A-Za-z0-9_.-]{1,128}") || partition == null || !partition.matches("[A-Za-z0-9_.-]{1,128}"))
+            if (binding == null
+                    || !binding.matches("[A-Za-z0-9][A-Za-z0-9_.-]{0,99}")
+                    || sourceHash == null
+                    || !sourceHash.matches("[a-f0-9]{64}")
+                    || epoch == null
+                    || !epoch.matches("[a-f0-9-]{36}")
+                    || task == null
+                    || !task.matches("[A-Za-z0-9_.-]{1,128}")
+                    || workerGroup == null
+                    || !workerGroup.matches("[A-Za-z0-9_.-]{1,100}")
+                    || !Set.of("SPARK", "FLINK").contains(engine)
+                    || run == null
+                    || !run.matches("[A-Za-z0-9_.-]{1,128}")
+                    || partition == null
+                    || !partition.matches("[A-Za-z0-9_.-]{1,128}")) {
                 throw new IllegalArgumentException("脚本运行实例声明无效");
+            }
         }
         void write(DataOutputStream output) throws IOException {
-            for (String value : List.of(binding, sourceHash, epoch, task, workerGroup, engine, run, partition)) EtlScriptProtocol.writeText(output, value, 128);
+            for (String value :
+                    List.of(
+                            binding,
+                            sourceHash,
+                            epoch,
+                            task,
+                            workerGroup,
+                            engine,
+                            run,
+                            partition)) {
+                EtlScriptProtocol.writeText(output, value, 128);
+            }
         }
         static Claim read(DataInputStream input) throws IOException {
             return new Claim(EtlScriptProtocol.readText(input, 128), EtlScriptProtocol.readText(input, 128), EtlScriptProtocol.readText(input, 128), EtlScriptProtocol.readText(input, 128),

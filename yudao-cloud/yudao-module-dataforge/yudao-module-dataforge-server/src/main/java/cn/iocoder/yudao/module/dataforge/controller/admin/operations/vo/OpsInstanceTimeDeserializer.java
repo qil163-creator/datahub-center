@@ -21,7 +21,9 @@ public final class OpsInstanceTimeDeserializer extends ValueDeserializer<LocalDa
     public LocalDateTime deserialize(JsonParser parser, DeserializationContext context) throws JacksonException {
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String value=parser.getString();
-            if (value==null||value.isBlank()) return null;
+            if (value == null || value.isBlank()) {
+                return null;
+            }
             return LocalDateTime.parse(value.trim().replace(' ', 'T'));
         }
         if (parser.hasToken(JsonToken.VALUE_NUMBER_INT)) {

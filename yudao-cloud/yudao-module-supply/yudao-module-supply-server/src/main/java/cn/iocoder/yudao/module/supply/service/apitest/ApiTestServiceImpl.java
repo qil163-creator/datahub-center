@@ -41,11 +41,11 @@ import java.util.Objects;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_EXISTS;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_RELEASED;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_EXISTS;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_RELEASED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
 
 /**
  * 测试目录在当前平台内可见；真实调用仍由公开网关独立验证应用凭据与授权。

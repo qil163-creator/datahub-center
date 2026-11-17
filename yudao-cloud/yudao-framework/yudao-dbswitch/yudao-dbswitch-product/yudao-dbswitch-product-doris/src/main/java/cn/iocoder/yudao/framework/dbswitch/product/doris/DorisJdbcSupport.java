@@ -37,9 +37,13 @@ public final class DorisJdbcSupport {
             statement.setQueryTimeout(timeout);
             statement.setMaxRows(2);
             try (var rows = statement.executeQuery("SELECT COUNT(*) FROM " + relation(schema, table))) {
-                if (!rows.next()) throw new SQLException("Doris row count is missing");
+                if (!rows.next()) {
+                    throw new SQLException("Doris row count is missing");
+                }
                 long count = rows.getLong(1);
-                if (rows.wasNull() || count < 0 || rows.next()) throw new SQLException("Doris row count is unverified");
+                if (rows.wasNull() || count < 0 || rows.next()) {
+                    throw new SQLException("Doris row count is unverified");
+                }
                 return count;
             }
         }
@@ -449,100 +453,172 @@ public final class DorisJdbcSupport {
         int capacity = insert && authorizedInsertSql == null ? limits.maxMultiValueRows(fields.size(), 0) : 1;
         long[] acknowledged = {0}, sent = {0};
         try {
-            return NonTransactionalWriteExecution.execute(source, (connection, attempt) -> {
-                Evidence current = inspect(connection, schema, name, timeout);
-                // FULL 在调用方显式 TRUNCATE 前准备；TRUNCATE 会替换分区编号，
-                // 但保留物理表。DIFF 必须保留完整捕获的分区代次。
-                if (!connection.getAutoCommit() || !captured.physical().equals(current.physical()) || !captured.table()
-                        .equals(current.table())
-                        || (operation != Operation.INSERT || authorizedInsertSql != null)
-                        && !captured.generation().equals(current.generation())) {
-                    throw new SQLException("Doris target changed before batch");
-                }
-                if (operation != Operation.INSERT) {
-                    var seen = new HashSet<List<Object>>();
-                    for (Object[] row : rows) {
-                        var key = new ArrayList<Object>();
-                        for (String f : table.keys()) {
-                            Object value = row[fields.indexOf(f)];
-                            if (value == null) {
-                                throw new SQLException("Doris mutation key is null");
-                            }
-                            key.add(value);
+            return NonTransactionalWriteExecution.execute(
+                    source,
+                    (connection, attempt) -> {
+                        Evidence current = inspect(connection, schema, name, timeout);
+                        // FULL 在调用方显式 TRUNCATE 前准备；TRUNCATE 会替换分区编号，
+                        // 但保留物理表。DIFF 必须保留完整捕获的分区代次。
+                        if (!connection.getAutoCommit()
+                                || !captured.physical().equals(current.physical())
+                                || !captured.table().equals(current.table())
+                                || (operation != Operation.INSERT || authorizedInsertSql != null)
+                                        && !captured.generation().equals(current.generation())) {
+                            throw new SQLException("Doris target changed before batch");
                         }
-                        Object[] before = read(connection, schema, name, table, fields, row, timeout);
-                        if (!seen.add(key) || (operation == Operation.DIFF_INSERT ? before != null : before == null)) {
-                            throw new SQLException("Doris mutation keys changed after comparison");
-                        }
-                    }
-                }
-                try (var literals = LiteralMode.open(connection, timeout); var settings = Settings.open(connection,
-                        timeout)) {
-                    for (int start = 0; start < rows.size(); start += capacity) {
-                        int size = Math.min(capacity, rows.size() - start);
-                        String sql;
-                        List<String> parameters;
-                        if (insert) {
-                            parameters = fields;
-                            sql = authorizedInsertSql != null ? authorizedInsertSql : "INSERT INTO " + relation(schema, name) + " (" + names(
-                                    fields) + ") VALUES " + String.join(",", Collections.nCopies(size,
-                                    "(" + String.join(",", Collections.nCopies(fields.size(), "?")) + ")"));
-                        } else {
-                            parameters = new ArrayList<>();
-                            if (operation == Operation.UPDATE) {
-                                parameters.addAll(values);
-                            }
-                            parameters.addAll(table.keys());
-                            String where = String.join(" AND ",
-                                    table.keys().stream().map(k -> quote(k) + "=?").toList());
-                            sql = operation == Operation.DELETE ? "DELETE FROM " + relation(schema,
-                                    name) + " WHERE " + where : "UPDATE " + relation(schema,
-                                    name) + " SET " + (values.isEmpty() ? quote(table.keys().getFirst()) + "=" + quote(
-                                    table.keys().getFirst()) : String.join(",",
-                                    values.stream().map(k -> quote(k) + "=?").toList())) + " WHERE " + where;
-                        }
-                        try (var statement = connection.prepareStatement(sql)) {
-                            statement.setQueryTimeout(timeout);
-                            int index = 1;
-                            for (int r = 0; r < size; r++) {
-                                for (String field : parameters) {
-                                    bind(statement, index++, rows.get(start + r)[fields.indexOf(field)],
-                                            table.column(field));
-                                }
-                            }
-                            attempt.sending();
-                            sent[0] = size;
-                            int count = statement.executeUpdate();
-                            if (count < 0 || count > size || insert && count != size || statement.getWarnings() != null) {
-                                throw new SQLException("Doris native acknowledgement is incomplete");
-                            }
-                            if (operation != Operation.INSERT) {
-                                for (int r = 0; r < size; r++) {
-                                    Object[] actual = read(connection, schema, name, table, fields, rows.get(start + r),
-                                            timeout);
-                                    if (operation == Operation.DELETE ? actual != null : actual == null || !Arrays.deepEquals(
-                                            actual, rows.get(start + r))) {
-                                        throw new SQLException("Doris mutation visibility is unconfirmed");
+                        if (operation != Operation.INSERT) {
+                            var seen = new HashSet<List<Object>>();
+                            for (Object[] row : rows) {
+                                var key = new ArrayList<Object>();
+                                for (String f : table.keys()) {
+                                    Object value = row[fields.indexOf(f)];
+                                    if (value == null) {
+                                        throw new SQLException("Doris mutation key is null");
                                     }
+                                    key.add(value);
+                                }
+                                Object[] before =
+                                        read(connection, schema, name, table, fields, row, timeout);
+                                if (!seen.add(key)
+                                        || (operation == Operation.DIFF_INSERT
+                                                ? before != null
+                                                : before == null)) {
+                                    throw new SQLException(
+                                            "Doris mutation keys changed after comparison");
                                 }
                             }
-                            acknowledged[0] += size;
+                        }
+                        try (var literals = LiteralMode.open(connection, timeout);
+                                var settings = Settings.open(connection, timeout)) {
+                            for (int start = 0; start < rows.size(); start += capacity) {
+                                int size = Math.min(capacity, rows.size() - start);
+                                String sql;
+                                List<String> parameters;
+                                if (insert) {
+                                    parameters = fields;
+                                    sql =
+                                            authorizedInsertSql != null
+                                                    ? authorizedInsertSql
+                                                    : "INSERT INTO "
+                                                            + relation(schema, name)
+                                                            + " ("
+                                                            + names(fields)
+                                                            + ") VALUES "
+                                                            + String.join(
+                                                                    ",",
+                                                                    Collections.nCopies(
+                                                                            size,
+                                                                            "("
+                                                                                    + String.join(
+                                                                                            ",",
+                                                                                            Collections
+                                                                                                    .nCopies(
+                                                                                                            fields
+                                                                                                                    .size(),
+                                                                                                            "?"))
+                                                                                    + ")"));
+                                } else {
+                                    parameters = new ArrayList<>();
+                                    if (operation == Operation.UPDATE) {
+                                        parameters.addAll(values);
+                                    }
+                                    parameters.addAll(table.keys());
+                                    String where =
+                                            String.join(
+                                                    " AND ",
+                                                    table.keys().stream()
+                                                            .map(k -> quote(k) + "=?")
+                                                            .toList());
+                                    sql =
+                                            operation == Operation.DELETE
+                                                    ? "DELETE FROM "
+                                                            + relation(schema, name)
+                                                            + " WHERE "
+                                                            + where
+                                                    : "UPDATE "
+                                                            + relation(schema, name)
+                                                            + " SET "
+                                                            + (values.isEmpty()
+                                                                    ? quote(table.keys().getFirst())
+                                                                            + "="
+                                                                            + quote(
+                                                                                    table.keys()
+                                                                                            .getFirst())
+                                                                    : String.join(
+                                                                            ",",
+                                                                            values.stream()
+                                                                                    .map(
+                                                                                            k ->
+                                                                                                    quote(
+                                                                                                                    k)
+                                                                                                            + "=?")
+                                                                                    .toList()))
+                                                            + " WHERE "
+                                                            + where;
+                                }
+                                try (var statement = connection.prepareStatement(sql)) {
+                                    statement.setQueryTimeout(timeout);
+                                    int index = 1;
+                                    for (int r = 0; r < size; r++) {
+                                        for (String field : parameters) {
+                                            bind(
+                                                    statement,
+                                                    index++,
+                                                    rows.get(start + r)[fields.indexOf(field)],
+                                                    table.column(field));
+                                        }
+                                    }
+                                    attempt.sending();
+                                    sent[0] = size;
+                                    int count = statement.executeUpdate();
+                                    if (count < 0
+                                            || count > size
+                                            || insert && count != size
+                                            || statement.getWarnings() != null) {
+                                        throw new SQLException(
+                                                "Doris native acknowledgement is incomplete");
+                                    }
+                                    if (operation != Operation.INSERT) {
+                                        for (int r = 0; r < size; r++) {
+                                            Object[] actual =
+                                                    read(
+                                                            connection,
+                                                            schema,
+                                                            name,
+                                                            table,
+                                                            fields,
+                                                            rows.get(start + r),
+                                                            timeout);
+                                            if (operation == Operation.DELETE
+                                                    ? actual != null
+                                                    : actual == null
+                                                            || !Arrays.deepEquals(
+                                                                    actual, rows.get(start + r))) {
+                                                throw new SQLException(
+                                                        "Doris mutation visibility is unconfirmed");
+                                            }
+                                        }
+                                    }
+                                    acknowledged[0] += size;
+                                    sent[0] = 0;
+                                }
+                            }
+                        }
+                        if (authorizedInsertSql != null) {
+                            // 新表复制不允许 TRUNCATE；结束复核失败时本批全部转为未知。
+                            long completed = acknowledged[0];
+                            acknowledged[0] = 0;
+                            sent[0] = rows.size();
+                            Evidence after = inspect(connection, schema, name, timeout);
+                            if (!captured.equals(after)) {
+                                throw new SQLException(
+                                        "Doris authorized target generation changed during batch");
+                            }
+                            acknowledged[0] = completed;
                             sent[0] = 0;
                         }
-                    }
-                }
-                if (authorizedInsertSql != null) {
-                    // 新表复制不允许 TRUNCATE；结束复核失败时本批全部转为未知。
-                    long completed = acknowledged[0];
-                    acknowledged[0] = 0;
-                    sent[0] = rows.size();
-                    Evidence after = inspect(connection, schema, name, timeout);
-                    if (!captured.equals(after)) throw new SQLException("Doris authorized target generation changed during batch");
-                    acknowledged[0] = completed;
-                    sent[0] = 0;
-                }
-                return acknowledged[0];
-            });
+                        return acknowledged[0];
+                    });
         } catch (UnconfirmedWriteException failure) {
             throw new PartialBatchWriteException(acknowledged[0], rows.size() - acknowledged[0] - sent[0], sent[0],
                     false);

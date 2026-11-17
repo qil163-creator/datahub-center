@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
 
 /**
  * v2 JSON 请求体：按原始字符串解析，拒绝重复属性，不重新序列化后再哈希。

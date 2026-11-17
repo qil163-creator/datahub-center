@@ -6,8 +6,8 @@ import cn.iocoder.yudao.framework.dbswitch.core.service.SqlStatementClassifier;
 import cn.iocoder.yudao.module.supply.dal.dataobject.dataapi.DataApiDO;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_READONLY_REQUIRED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_CONFIG_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_READONLY_REQUIRED;
 
 /**
  * 只读执行边界：同时看 API 类型和解析后的真实 SQL，不信任前端 apiType。

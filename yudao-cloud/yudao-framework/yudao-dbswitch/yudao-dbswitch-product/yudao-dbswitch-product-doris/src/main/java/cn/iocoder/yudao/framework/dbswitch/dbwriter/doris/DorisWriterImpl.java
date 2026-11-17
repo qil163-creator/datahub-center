@@ -73,32 +73,59 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
         }
         planInsertSql(authorizedInsert.schema(), authorizedInsert.table(), authorizedInsert.fields());
         authorizedCreateAttempted = true;
-        cn.iocoder.yudao.framework.dbswitch.dbcommon.database.NonTransactionalWriteExecution.execute(dataSource,
-                (connection, attempt) -> {
-                    if (!connection.getAutoCommit()) throw new java.sql.SQLException("Doris DDL requires an owned idle connection");
-                    var observed = cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaChanges.observe(connection,
-                            new cn.iocoder.yudao.framework.dbswitch.core.database.impl.DatabaseDorisImpl(),
-                            authorizedInsert.schema(), authorizedInsert.table(),
-                            cn.iocoder.yudao.framework.dbswitch.core.schema.MetadataReadOptions.fresh());
-                    if (observed.precondition().tableExists()) {
-                        throw new java.sql.SQLException("Authorized Doris CREATE_NEW refuses an existing native target");
-                    }
-                    try (var literals = DorisJdbcSupport.LiteralMode.open(connection, runtimeOptions.queryTimeoutSeconds());
-                         var statement = connection.createStatement()) {
-                        statement.setQueryTimeout(runtimeOptions.queryTimeoutSeconds());
-                        attempt.sending();
-                        statement.execute(plan.steps().getFirst().sql());
-                        if (statement.getWarnings() != null) throw new java.sql.SQLException("Doris CREATE returned warnings");
-                        var created = DorisJdbcSupport.inspect(connection, authorizedInsert.schema(),
-                                authorizedInsert.table(), runtimeOptions.queryTimeoutSeconds());
-                        if (!cn.iocoder.yudao.framework.dbswitch.product.doris.DorisModelingSchemaScript.matchesCreate(
-                                authorizedInsert.schema(), authorizedInsert.table(), plan.steps().getFirst().sql(), created.table())) {
-                            throw new java.sql.SQLException("Doris created definition differs from the authorized native plan");
-                        }
-                        authorizedCreated = created;
-                    }
-                    return 0;
-                });
+        cn.iocoder.yudao.framework.dbswitch.dbcommon.database.NonTransactionalWriteExecution
+                .execute(
+                        dataSource,
+                        (connection, attempt) -> {
+                            if (!connection.getAutoCommit()) {
+                                throw new java.sql.SQLException(
+                                        "Doris DDL requires an owned idle connection");
+                            }
+                            var observed =
+                                    cn.iocoder.yudao.framework.dbswitch.core.schema.SchemaChanges
+                                            .observe(
+                                                    connection,
+                                                    new cn.iocoder.yudao.framework.dbswitch.core
+                                                            .database.impl.DatabaseDorisImpl(),
+                                                    authorizedInsert.schema(),
+                                                    authorizedInsert.table(),
+                                                    cn.iocoder.yudao.framework.dbswitch.core.schema
+                                                            .MetadataReadOptions.fresh());
+                            if (observed.precondition().tableExists()) {
+                                throw new java.sql.SQLException(
+                                        "Authorized Doris CREATE_NEW refuses an existing native target");
+                            }
+                            try (var literals =
+                                            DorisJdbcSupport.LiteralMode.open(
+                                                    connection,
+                                                    runtimeOptions.queryTimeoutSeconds());
+                                    var statement = connection.createStatement()) {
+                                statement.setQueryTimeout(runtimeOptions.queryTimeoutSeconds());
+                                attempt.sending();
+                                statement.execute(plan.steps().getFirst().sql());
+                                if (statement.getWarnings() != null) {
+                                    throw new java.sql.SQLException(
+                                            "Doris CREATE returned warnings");
+                                }
+                                var created =
+                                        DorisJdbcSupport.inspect(
+                                                connection,
+                                                authorizedInsert.schema(),
+                                                authorizedInsert.table(),
+                                                runtimeOptions.queryTimeoutSeconds());
+                                if (!cn.iocoder.yudao.framework.dbswitch.product.doris
+                                        .DorisModelingSchemaScript.matchesCreate(
+                                        authorizedInsert.schema(),
+                                        authorizedInsert.table(),
+                                        plan.steps().getFirst().sql(),
+                                        created.table())) {
+                                    throw new java.sql.SQLException(
+                                            "Doris created definition differs from the authorized native plan");
+                                }
+                                authorizedCreated = created;
+                            }
+                            return 0;
+                        });
     }
 
     /**
@@ -199,7 +226,9 @@ public class DorisWriterImpl extends AbstractDatabaseWriter {
      */
     @Override
     public long write(List<String> fields, List<Object[]> rows) {
-        if (authorizedInsert != null) planInsertSql(schemaName, tableName, fields);
+        if (authorizedInsert != null) {
+            planInsertSql(schemaName, tableName, fields);
+        }
         refuseUnverifiedStreamLoad();
         if (stream != null) {
             stream.requireUsable();

@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.*;
 
 /** Supply 只编排服务发布/授权，提交证据、准入和数据读取由 DataForge 提供方校验。 */
 @Service

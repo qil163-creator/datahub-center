@@ -43,7 +43,7 @@ public interface ErrorCodeConstants {
     ErrorCode USER_UPLOAD_LIMIT_EXCEEDED = new ErrorCode(1_001_003_009, "用户上传文件大小超过 50MiB 限额");
 
     // ========== 代码生成器 1-001-004-000 ==========
-    ErrorCode CODEGEN_TABLE_EXISTS = new ErrorCode(1_001_004_002, "表定义已经存在");
+    ErrorCode CODEGEN_TABLE_EXISTS = new ErrorCode(1_001_004_000, "表定义已经存在");
     ErrorCode CODEGEN_IMPORT_TABLE_NULL = new ErrorCode(1_001_004_001, "导入的表不存在");
     ErrorCode CODEGEN_IMPORT_COLUMNS_NULL = new ErrorCode(1_001_004_002, "导入的字段不存在");
     ErrorCode CODEGEN_TABLE_NOT_EXISTS = new ErrorCode(1_001_004_004, "表定义不存在");

@@ -16,8 +16,12 @@ public final class EtlBoundedHttp {
 
     public static HttpResponse<byte[]> send(HttpClient client, HttpRequest request, int maximumBytes, int timeoutMillis)
             throws IOException, InterruptedException {
-        if (maximumBytes < 1 || maximumBytes > 64 * 1024 * 1024 || timeoutMillis < 1 || timeoutMillis > 300_000)
+        if (maximumBytes < 1
+                || maximumBytes > 64 * 1024 * 1024
+                || timeoutMillis < 1
+                || timeoutMillis > 300_000) {
             throw new IllegalArgumentException("HTTP响应预算无效");
+        }
         var subscriber = new LimitedBody(maximumBytes);
         var future = client.sendAsync(request, information -> subscriber);
         try {
@@ -45,10 +49,16 @@ public final class EtlBoundedHttp {
         @Override public CompletionStage<byte[]> getBody() { return result; }
         @Override public void onSubscribe(Flow.Subscription value) {
             subscription = value;
-            if (cancelled) value.cancel(); else value.request(1);
+            if (cancelled) {
+                value.cancel();
+            } else {
+                value.request(1);
+            }
         }
         @Override public void onNext(List<ByteBuffer> buffers) {
-            if (cancelled) return;
+            if (cancelled) {
+                return;
+            }
             for (var buffer : buffers) {
                 if (buffer.remaining() > maximum - bytes.size()) {
                     cancel(); result.completeExceptionally(new IOException("HTTP响应超过字节预算")); return;
@@ -56,10 +66,20 @@ public final class EtlBoundedHttp {
                 byte[] block = new byte[buffer.remaining()]; buffer.get(block); bytes.writeBytes(block);
             }
             var active = subscription;
-            if (!cancelled && active != null) active.request(1);
+            if (!cancelled && active != null) {
+                active.request(1);
+            }
         }
         @Override public void onError(Throwable failure) { result.completeExceptionally(new IOException("HTTP响应未完成")); }
-        @Override public void onComplete() { if (!cancelled) result.complete(bytes.toByteArray()); }
-        private void cancel() { cancelled = true; var active = subscription; if (active != null) active.cancel(); }
+        @Override public void onComplete() {
+            if (!cancelled) {
+                result.complete(bytes.toByteArray());
+            }
+        }
+        private void cancel() { cancelled = true; var active = subscription;
+            if (active != null) {
+                active.cancel();
+            }
+        }
     }
 }

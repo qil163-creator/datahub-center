@@ -7,8 +7,12 @@ public final class EtlTokenSplit {
     private EtlTokenSplit() { }
 
     public static Plan compile(String separator, boolean regex, String wrapper) {
-        if (separator == null || separator.isEmpty() || separator.length() > 4096) throw new IllegalArgumentException("拆分分隔符须为1至4096个字符");
-        if (wrapper != null && wrapper.length() > 4096) throw new IllegalArgumentException("包裹字符超过长度限制");
+        if (separator == null || separator.isEmpty() || separator.length() > 4096) {
+            throw new IllegalArgumentException("拆分分隔符须为1至4096个字符");
+        }
+        if (wrapper != null && wrapper.length() > 4096) {
+            throw new IllegalArgumentException("包裹字符超过长度限制");
+        }
         return new Plan(Pattern.compile(regex ? separator : Pattern.quote(separator)), wrapper == null ? "" : wrapper);
     }
 
@@ -16,7 +20,9 @@ public final class EtlTokenSplit {
     public static String token(String source, String separator, String regex, String wrapper, String index, String trim) {
         int ordinal;
         try { ordinal = Integer.parseInt(index); } catch (NumberFormatException failure) { throw new IllegalArgumentException("拆分字段序号无效"); }
-        if (ordinal < 0 || ordinal >= 200) throw new IllegalArgumentException("拆分字段序号超出范围");
+        if (ordinal < 0 || ordinal >= 200) {
+            throw new IllegalArgumentException("拆分字段序号超出范围");
+        }
         Plan plan = compile(separator, Boolean.parseBoolean(regex), wrapper); String[] tokens = plan.split(source);
         return ordinal >= tokens.length ? null : plan.clean(tokens[ordinal], trim);
     }
@@ -26,21 +32,44 @@ public final class EtlTokenSplit {
         private Plan(Pattern separator, String wrapper) { this.separator = separator; this.wrapper = wrapper; }
         public String[] split(String source) {
             String value = source == null ? "" : source;
-            if (value.length() > 1_000_000) throw new IllegalStateException("拆分来源超过字段长度预算");
+            if (value.length() > 1_000_000) {
+                throw new IllegalStateException("拆分来源超过字段长度预算");
+            }
             return separator.split(new CheckedText(value), -1);
         }
         public String clean(String token, String trim) {
-            if (token == null) return null;
+            if (token == null) {
+                return null;
+            }
             String value = token;
             if (!wrapper.isEmpty()) {
-                if (value.startsWith(wrapper)) value = value.substring(wrapper.length());
-                if (value.endsWith(wrapper)) value = value.substring(0, value.length() - wrapper.length());
+                if (value.startsWith(wrapper)) {
+                    value = value.substring(wrapper.length());
+                }
+                if (value.endsWith(wrapper)) {
+                    value = value.substring(0, value.length() - wrapper.length());
+                }
             }
-            if ("BOTH".equalsIgnoreCase(trim)) return value.trim();
-            if (!"LEFT".equalsIgnoreCase(trim) && !"RIGHT".equalsIgnoreCase(trim) && trim != null && !"NONE".equalsIgnoreCase(trim)) throw new IllegalArgumentException("去空格方式无效");
+            if ("BOTH".equalsIgnoreCase(trim)) {
+                return value.trim();
+            }
+            if (!"LEFT".equalsIgnoreCase(trim)
+                    && !"RIGHT".equalsIgnoreCase(trim)
+                    && trim != null
+                    && !"NONE".equalsIgnoreCase(trim)) {
+                throw new IllegalArgumentException("去空格方式无效");
+            }
             int start = 0, end = value.length();
-            if ("LEFT".equalsIgnoreCase(trim)) while (start < end && blank(value.charAt(start))) start++;
-            if ("RIGHT".equalsIgnoreCase(trim)) while (end > start && blank(value.charAt(end - 1))) end--;
+            if ("LEFT".equalsIgnoreCase(trim)) {
+                while (start < end && blank(value.charAt(start))) {
+                    start++;
+                }
+            }
+            if ("RIGHT".equalsIgnoreCase(trim)) {
+                while (end > start && blank(value.charAt(end - 1))) {
+                    end--;
+                }
+            }
             return value.substring(start, end);
         }
     }
@@ -49,8 +78,16 @@ public final class EtlTokenSplit {
         private final String text; private int reads;
         private CheckedText(String text) { this.text = text; }
         @Override public int length() { return text.length(); }
-        @Override public char charAt(int index) { if ((reads++ & 255) == 0 && Thread.currentThread().isInterrupted()) throw new IllegalStateException("字段拆分已取消"); return text.charAt(index); }
-        @Override public CharSequence subSequence(int start, int end) { if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("字段拆分已取消"); return text.subSequence(start, end); }
+        @Override public char charAt(int index) {
+            if ((reads++ & 255) == 0 && Thread.currentThread().isInterrupted()) {
+                throw new IllegalStateException("字段拆分已取消");
+            }
+            return text.charAt(index); }
+        @Override public CharSequence subSequence(int start, int end) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new IllegalStateException("字段拆分已取消");
+            }
+            return text.subSequence(start, end); }
         @Override public String toString() { return text; }
     }
 }

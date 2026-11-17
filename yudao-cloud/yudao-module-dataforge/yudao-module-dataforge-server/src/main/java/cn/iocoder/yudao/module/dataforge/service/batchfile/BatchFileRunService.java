@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.dataforge.service.batchfile;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
@@ -54,11 +55,7 @@ public class BatchFileRunService {
     },
             new ThreadPoolExecutor.AbortPolicy());
 
-    private final ScheduledExecutorService heartbeats = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread t = new Thread(r, "batch-file-heartbeat");
-        t.setDaemon(true);
-        return t;
-    });
+    private final ScheduledExecutorService heartbeats = ThreadPoolUtils.newDaemonScheduler(1, "batch-file-heartbeat");
 
     /**
      * 执行批次文件运行处理。

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.supply.service.dataapi;
 
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.module.supply.controller.admin.dataapi.vo.DataApiExecuteRespVO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
 import cn.iocoder.yudao.module.supply.dal.dataobject.appapi.AppApiDO;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.*;
 import static cn.iocoder.yudao.module.supply.enums.dataapi.ErrorCodeConstants.OPERATION_SIGN_REQUIRED;
 
 /**
@@ -297,8 +298,9 @@ public class DataApiGatewayService {
                     .traceId(currentTraceId())
                     .build();
             apiLogMapper.insert(logEntry);
-        } catch (Exception ignored) {
-            log.warn("[logReject][API({}) 拒绝日志写入失败]", api.getId());
+        } catch (Exception writeFailure) {
+            log.warn("[logReject][API({}) 拒绝日志写入失败，错误码({})]", api.getId(), ex.getCode(),
+                    LogSanitizer.sanitizedException(writeFailure));
         }
     }
 
@@ -371,7 +373,8 @@ public class DataApiGatewayService {
             plainSecret = SupplyAppSecretCipher.decrypt(app.getSecret());
         } catch (RuntimeException ex) {
             // 密文格式不受支持、主密钥不一致或被篡改：按认证失败处理，不暴露原因细节。
-            log.warn("[validateSign][应用({}) 密钥无法解密，请重置应用密钥]", app.getId());
+            log.warn("[validateSign][应用({}) 密钥无法解密，请重置应用密钥]", app.getId(),
+                    LogSanitizer.sanitizedException(ex));
             throw exception(DATA_API_AUTH_FAILED, "应用密钥不可用，请联系管理员重置");
         }
         String expected = DataApiSignature.sign(

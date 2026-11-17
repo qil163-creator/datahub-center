@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -193,6 +194,49 @@ class MigrationWriterTerminationTest {
         var method = pipeline.getClass().getDeclaredMethod(name);
         method.setAccessible(true);
         method.invoke(pipeline);
+    }
+
+    @Test
+    void saturatedWriterPoolCopiesOnTheSubmittingThread() throws Exception {
+        var field = MigrationHandler.class.getDeclaredField("PIPELINE_WRITE_EXECUTOR");
+        field.setAccessible(true);
+        var pool = (ThreadPoolExecutor) field.get(null);
+        int limit = pool.getMaximumPoolSize();
+        assertTrue(limit <= 64);
+        var release = new CountDownLatch(1);
+        var busy = new CountDownLatch(limit);
+        var finished = new CountDownLatch(limit);
+        try {
+            for (int index = 0; index < limit; index++) {
+                pool.execute(() -> {
+                    busy.countDown();
+                    try {
+                        release.await();
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        finished.countDown();
+                    }
+                });
+            }
+            assertTrue(busy.await(5, SECONDS));
+            var handler = newHandler();
+            var writer = mock(IDatabaseWriter.class);
+            Thread submitter = Thread.currentThread();
+            when(writer.write(anyList(), anyList())).thenAnswer(invocation -> {
+                assertSame(submitter, Thread.currentThread());
+                return 1L;
+            });
+            try (var pipeline = pipeline(handler, writer)) {
+                assertFalse(handler.hasActiveWriters());
+                submit(pipeline);
+                invoke(pipeline, "finish");
+                verify(writer, times(1)).write(anyList(), anyList());
+            }
+        } finally {
+            release.countDown();
+            assertTrue(finished.await(5, SECONDS));
+        }
     }
 
     @Test

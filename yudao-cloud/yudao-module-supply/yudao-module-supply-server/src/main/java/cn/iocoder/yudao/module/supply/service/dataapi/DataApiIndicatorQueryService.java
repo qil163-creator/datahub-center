@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
 
 /**
  * 指标接口执行：按发布时固定的口径调用 modeling 指标语义层，时间范围与维度过滤只取声明的请求参数。

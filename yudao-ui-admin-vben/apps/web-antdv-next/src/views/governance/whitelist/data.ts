@@ -111,10 +111,7 @@ async function loadCategoryTreeOptions(): Promise<TreeOption[]> {
   const catalogTree = handleTree(
     catalogList.map((item) => ({
       ...item,
-      parentId:
-        item.parentId === null || item.parentId === undefined
-          ? 0
-          : Number(item.parentId),
+      parentId: item.parentId ?? 0,
     })),
   );
   // 类目节点也可选：选中类目表示豁免范围覆盖其下所有子类目与分类

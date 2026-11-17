@@ -56,6 +56,87 @@ public class CodegenEngineVben5AntdvNextTest extends CodegenEngineAbstractTest {
             "codegen/vue3_vben5_antdv_next/schema/views/modules/list_sub_inner.vue.vm");
 
     @Test
+    public void testApiPreservesLongIdsAndDateWireValues() {
+        for (CodegenFrontTypeEnum front : List.of(CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA,
+                CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_GENERAL)) {
+            Map<String, String> generated = executeMaster(front.getType(), CodegenTemplateTypeEnum.MASTER_ERP);
+            String api = generated.entrySet().stream()
+                    .filter(entry -> entry.getKey().endsWith("/api/infra/demo/index.ts"))
+                    .findFirst().orElseThrow().getValue();
+            String namespace = front == CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA ? "InfraStudentApi" : "StudentApi";
+            assertTrue(api.contains("export type Id = number | string;"), api);
+            assertTrue(api.contains("id: number | string;"), api);
+            assertTrue(api.contains("birthday: number | string;"), api);
+            assertTrue(api.contains("createTime?: number | string;"), api);
+            assertTrue(api.contains("getStudent(id: " + namespace + ".Id)"), api);
+            assertTrue(api.contains("deleteStudentContact(id: number | string)"), api);
+            assertFalse(api.contains("Dayjs"), api);
+            assertTrue(api.contains("createStudentContact(data: " + namespace + ".StudentContactSave)"), api);
+            assertTrue(api.contains("updateStudentContact(data: " + namespace + ".StudentContactSave & { id: number | string })"), api);
+            assertTrue(api.contains("id?: number | string;"), api);
+            for (CodegenTemplateTypeEnum template : List.of(CodegenTemplateTypeEnum.MASTER_NORMAL,
+                    CodegenTemplateTypeEnum.MASTER_INNER)) {
+                Map<String, String> embedded = executeMaster(front.getType(), template);
+                String embeddedApi = embedded.get("yudao-ui-admin-vben/src/api/infra/demo/index.ts");
+                assertTrue(embeddedApi.contains("studentContacts?: StudentContactSave[];"), embeddedApi);
+                assertTrue(embeddedApi.contains("studentTeacher?: StudentTeacherSave;"), embeddedApi);
+                assertTrue(embeddedApi.contains("studentId?: number | string;"), embeddedApi);
+                assertTrue(embeddedApi.contains("updateStudent(data: " + namespace + ".StudentSave & { id: " + namespace + ".Id })"), embeddedApi);
+                String form = embedded.get(STUDENT_CONTACT_FORM_PATH);
+                assertTrue(form.contains(namespace + ".StudentContactSave[]"), form);
+                assertTrue(form.contains("inserted.has(row) ? { ...row, id: undefined } : { ...row }"), form);
+            }
+        }
+    }
+
+    @Test
+    public void testLocalDateEditorSendsCalendarDate() {
+        for (CodegenFrontTypeEnum front : List.of(CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA,
+                CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_GENERAL)) {
+            CodegenTableDO table = getTable("student").setFrontType(front.getType())
+                    .setTemplateType(CodegenTemplateTypeEnum.ONE.getType());
+            List<CodegenColumnDO> columns = getColumnList("student");
+            columns.stream().filter(column -> "birthday".equals(column.getJavaField())).findFirst()
+                    .orElseThrow().setJavaType("LocalDate");
+            Map<String, String> generated = codegenEngine.execute(DbType.MYSQL, table, columns, null, null);
+            String api = generated.get("yudao-ui-admin-vben/src/api/infra/demo/index.ts");
+            assertTrue(api.contains("birthday: string;"), api);
+            if (front == CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA) {
+                String schema = generated.get(SCHEMA_DATA_PATH);
+                assertTrue(schema.contains("valueFormat: 'YYYY-MM-DD'"), schema);
+            } else {
+                String form = generated.get("yudao-ui-admin-vben/src/views/infra/demo/modules/form.vue");
+                assertTrue(form.contains("valueFormat=\"YYYY-MM-DD\""), form);
+            }
+        }
+    }
+
+    @Test
+    public void testTreeParentOptionsPreserveConfiguredKeys() {
+        for (CodegenFrontTypeEnum front : List.of(CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA,
+                CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_GENERAL)) {
+            CodegenTableDO table = getTable("category").setFrontType(front.getType())
+                    .setTemplateType(CodegenTemplateTypeEnum.TREE.getType());
+            List<CodegenColumnDO> columns = getColumnList("category");
+            columns.stream().filter(column -> "parentId".equals(column.getJavaField())).findFirst()
+                    .orElseThrow().setJavaField("parentKey");
+            columns.stream().filter(column -> "name".equals(column.getJavaField())).findFirst()
+                    .orElseThrow().setJavaField("title");
+            Map<String, String> generated = codegenEngine.execute(DbType.MYSQL, table, columns, null, null);
+            String form = generated.get("yudao-ui-admin-vben/src/views/infra/demo/modules/form.vue");
+            boolean schema = front == CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA;
+            String options = schema ? generated.get(SCHEMA_DATA_PATH) : form;
+            assertTrue(options.contains("const root = { id: 0, title:"), options);
+            assertTrue(options.contains("handleTree([root, ...data], 'id', 'parentKey')"), options);
+            if (schema) {
+                assertTrue(form.contains("setValues(data ?? {})"), form);
+            } else {
+                assertTrue(form.indexOf("await getCategoryTree()") < form.indexOf("if (!data)"), form);
+            }
+        }
+    }
+
+    @Test
     public void testExecute_schemaMasterNormal() {
         // 调用
         Map<String, String> result = executeMaster(CodegenFrontTypeEnum.VUE3_VBEN5_ANTDV_NEXT_SCHEMA.getType(),

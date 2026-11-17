@@ -16,10 +16,22 @@ public final class EtlScriptBrokerClient implements AutoCloseable {
         public Binding {
             try {
                 URI address = URI.create(endpoint);
-                if (!"https".equals(address.getScheme()) || address.getHost() == null || address.getUserInfo() != null || address.getQuery() != null || address.getFragment() != null
-                        || !"/v1/script".equals(address.getPath()) || address.getPort() == 0 || address.getPort() > 65535) throw new IllegalArgumentException();
+                if (!"https".equals(address.getScheme())
+                        || address.getHost() == null
+                        || address.getUserInfo() != null
+                        || address.getQuery() != null
+                        || address.getFragment() != null
+                        || !"/v1/script".equals(address.getPath())
+                        || address.getPort() == 0
+                        || address.getPort() > 65535) {
+                    throw new IllegalArgumentException();
+                }
                 new EtlScriptBrokerProtocol.Claim(bindingId, sourceHash, epoch, task, workerGroup, engine, "validate", "validate");
-                for (String reference : List.of(privateKeyRef, certificateRef, authorityRef)) if (!reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}")) throw new IllegalArgumentException();
+                for (String reference : List.of(privateKeyRef, certificateRef, authorityRef)) {
+                    if (!reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}")) {
+                        throw new IllegalArgumentException();
+                    }
+                }
             } catch (RuntimeException failure) { throw new IllegalArgumentException("脚本客户端的受管地址、身份或引用无效"); }
         }
     }
@@ -43,13 +55,17 @@ public final class EtlScriptBrokerClient implements AutoCloseable {
 
     public String sessionReference() { return session; }
     public BatchResult execute(long sequence, List<Map<String, Object>> rows) {
-        if (closed || sequence < 0) throw unavailable();
+        if (closed || sequence < 0) {
+            throw unavailable();
+        }
         try {
             byte[] request = EtlScriptBrokerProtocol.request(EtlScriptBrokerProtocol.BATCH, output -> {
                 EtlScriptProtocol.writeText(output, session, 36); output.writeLong(sequence); EtlScriptProtocol.writeRows(output, rows, EtlScriptBrokerProtocol.MAX_ROWS, EtlScriptBrokerProtocol.MAX_BYTES);
             });
             try (var response = exchange(request, 45)) {
-                if (response.readLong() != sequence) throw unavailable();
+                if (response.readLong() != sequence) {
+                    throw unavailable();
+                }
                 String authentication = EtlScriptProtocol.readText(response, 36);
                 var result = EtlScriptProtocol.readRows(response, EtlScriptBrokerProtocol.MAX_ROWS, EtlScriptBrokerProtocol.MAX_BYTES); EtlScriptProtocol.requireEnd(response);
                 return new BatchResult(result, authentication);
@@ -57,14 +73,18 @@ public final class EtlScriptBrokerClient implements AutoCloseable {
         } catch (IOException failure) { throw unavailable(); }
     }
     public void acknowledge(long nextSequence) {
-        if (closed || nextSequence < 0) throw unavailable();
+        if (closed || nextSequence < 0) {
+            throw unavailable();
+        }
         try (var response = exchange(EtlScriptBrokerProtocol.request(EtlScriptBrokerProtocol.ACK, output -> { EtlScriptProtocol.writeText(output, session, 36); output.writeLong(nextSequence); }), 15)) { EtlScriptProtocol.requireEnd(response); }
         catch (IOException failure) { throw unavailable(); }
     }
     @Override public void close() { stop(EtlScriptBrokerProtocol.CLOSE); }
     public void cancel() { stop(EtlScriptBrokerProtocol.CANCEL); }
     private void stop(int operation) {
-        if (closed) return;
+        if (closed) {
+            return;
+        }
         try (var response = exchange(EtlScriptBrokerProtocol.request(operation, output -> EtlScriptProtocol.writeText(output, session, 36)), 15)) { EtlScriptProtocol.requireEnd(response); closed = true; }
         catch (IOException failure) { throw unavailable(); }
     }

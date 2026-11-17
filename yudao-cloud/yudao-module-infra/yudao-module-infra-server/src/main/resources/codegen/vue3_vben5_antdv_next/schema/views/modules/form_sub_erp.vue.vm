@@ -17,7 +17,7 @@
   import { use${subSimpleClassName}FormSchema } from '../data';
 
   const emit = defineEmits(['success']);
-  const formData = ref<${apiName}.${subSimpleClassName}>();
+  const formData = ref<Partial<${apiName}.${subSimpleClassName}>>();
   const getTitle = computed(() => {
     return formData.value?.id
         ? $t('ui.actionTitle.edit', ['${subTable.classComment}'])
@@ -37,7 +37,7 @@
     showDefaultActions: false
   });
 
-  const [Modal, modalApi] = useVbenModal({
+  const [Modal, modalApi] = useVbenModal<Partial<${apiName}.${subSimpleClassName}> | null>({
     async onConfirm() {
       const { valid } = await formApi.validate();
       if (!valid) {
@@ -45,10 +45,16 @@
       }
       modalApi.lock();
       // 提交表单
-      const data = (await formApi.getValues()) as ${apiName}.${subSimpleClassName};
-      data.${subJoinColumn.javaField} = formData.value?.${subJoinColumn.javaField};
+      const data = (await formApi.getValues()) as ${apiName}.${subSimpleClassName}Save;
+      if (formData.value?.${subJoinColumn.javaField} != null) {
+        data.${subJoinColumn.javaField} = formData.value.${subJoinColumn.javaField};
+      }
       try {
-        await (formData.value?.id ? update${subSimpleClassName}(data) : create${subSimpleClassName}(data));
+        if (formData.value?.id != null) {
+          await update${subSimpleClassName}({ ...data, id: formData.value.id });
+        } else {
+          await create${subSimpleClassName}(data);
+        }
         // 关闭并提示
         await modalApi.close();
         emit('success');
@@ -63,7 +69,7 @@
         return;
       }
       // 加载数据
-      let data = modalApi.getData<${apiName}.${subSimpleClassName}>();
+      let data = modalApi.getData();
       if (!data) {
         return;
       }

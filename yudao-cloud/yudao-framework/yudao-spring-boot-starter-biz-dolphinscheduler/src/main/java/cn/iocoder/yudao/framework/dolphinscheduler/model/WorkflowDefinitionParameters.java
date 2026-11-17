@@ -31,14 +31,19 @@ public final class WorkflowDefinitionParameters {
         }
         Map<String, Long> mapping = new HashMap<>();
         for (int i = 0; i < nodes.size(); i++) {
-            if (mapping.put(nodes.get(i).id(), taskCodes.get(i)) != null) throw new IllegalArgumentException("工作流节点编号重复");
+            if (mapping.put(nodes.get(i).id(), taskCodes.get(i)) != null) {
+                throw new IllegalArgumentException("工作流节点编号重复");
+            }
         }
         var definitions = new JSONArray(); var relations = new JSONArray();
         for (var node : nodes) {
-            if (!mapping.keySet().containsAll(node.upstream())) throw new IllegalArgumentException("工作流引用不存在的节点");
+            if (!mapping.keySet().containsAll(node.upstream())) {
+                throw new IllegalArgumentException("工作流引用不存在的节点");
+            }
             String priority = node.priority() == null ? options.priority() : node.priority();
-            if (!Set.of("HIGHEST", "HIGH", "MEDIUM", "LOW", "LOWEST").contains(priority))
+            if (!Set.of("HIGHEST", "HIGH", "MEDIUM", "LOW", "LOWEST").contains(priority)) {
                 throw new IllegalArgumentException("工作流节点优先级无效");
+            }
             definitions.add(new JSONObject().set("code", mapping.get(node.id())).set("name", node.name())
                     .set("description", description).set("flag", "YES").set("taskType", node.taskType())
                     .set("taskParams", node.parameters()).set("taskPriority", priority)
@@ -48,10 +53,17 @@ public final class WorkflowDefinitionParameters {
                     .set("delayTime", options.delayMinutes()).set("cpuQuota", -1).set("memoryMax", -1)
                     .set("isCache", "NO").set("taskExecuteType", "BATCH"));
             var parents = node.upstream().isEmpty() ? List.of("_root") : node.upstream();
-            for (var parent : parents) relations.add(new JSONObject().set("name", "")
-                    .set("preTaskCode", mapping.getOrDefault(parent, 0L)).set("preTaskVersion", 0)
-                    .set("postTaskCode", mapping.get(node.id())).set("postTaskVersion", 0)
-                    .set("conditionType", "NONE").set("conditionParams", new JSONObject()));
+            for (var parent : parents) {
+                relations.add(
+                        new JSONObject()
+                                .set("name", "")
+                                .set("preTaskCode", mapping.getOrDefault(parent, 0L))
+                                .set("preTaskVersion", 0)
+                                .set("postTaskCode", mapping.get(node.id()))
+                                .set("postTaskVersion", 0)
+                                .set("conditionType", "NONE")
+                                .set("conditionParams", new JSONObject()));
+            }
         }
         return new CreateWorkflowDefinitionRequest().setName(name).setDescription(description)
                 .setGlobalParams("[]").setLocations("[]").setTimeout(0).setExecutionType(options.strategy())

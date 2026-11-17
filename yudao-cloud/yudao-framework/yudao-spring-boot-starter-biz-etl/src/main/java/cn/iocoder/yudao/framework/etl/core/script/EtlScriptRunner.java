@@ -117,7 +117,9 @@ public final class EtlScriptRunner {
         Objects.requireNonNull(checkStop);
         Objects.requireNonNull(terminationUnconfirmed);
         List<Path> entries = workerEntries();
-        if (httpExecutor != null && !containsClass(entries, EtlScriptWorkerHttp.class.getName())) throw new IllegalStateException("隔离worker快照缺少受管HTTP桥，请更新固定worker包");
+        if (httpExecutor != null && !containsClass(entries, EtlScriptWorkerHttp.class.getName())) {
+            throw new IllegalStateException("隔离worker快照缺少受管HTTP桥，请更新固定worker包");
+        }
         EtlDockerWorker docker = null;
         if (policy.mode() == EtlScriptWorkerPolicy.Mode.DOCKER) {
             docker = new EtlDockerWorker(policy, entries);
@@ -262,11 +264,9 @@ public final class EtlScriptRunner {
 
         private final Set<ProcessHandle> descendants = new LinkedHashSet<>();
 
-        private final ExecutorService io = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task, "etl-worker-ipc");
-            thread.setDaemon(true);
-            return thread;
-        });
+        private final ExecutorService io = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(1), Thread.ofPlatform().daemon().name("etl-worker-ipc-", 1).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
 
         private final AtomicBoolean stderrExceeded = new AtomicBoolean();
 
@@ -322,18 +322,24 @@ public final class EtlScriptRunner {
                 stderrReader.setDaemon(true);
                 stderrReader.start();
                 checkStop.run(); // 有界启动期间的取消必须在发送任何用户源码前生效。
-                byte[] init = EtlScriptProtocol.encode(policy.maxSourceBytes() + 512, out -> {
-                    out.writeByte(EtlScriptProtocol.INIT);
-                    out.writeInt(1);
-                    EtlScriptProtocol.writeText(out, language.name(), 16);
-                    EtlScriptProtocol.writeText(out, source, policy.maxSourceBytes());
-                    out.writeInt(policy.maxBatchBytes());
-                    out.writeInt(policy.maxResultBytes());
-                    out.writeInt(policy.maxBatchRows());
-                    out.writeInt(policy.maxResultRows());
-                    out.writeInt(policy.maxLogBytes());
-                    if (httpExecutor != null) out.writeBoolean(true);
-                });
+                byte[] init =
+                        EtlScriptProtocol.encode(
+                                policy.maxSourceBytes() + 512,
+                                out -> {
+                                    out.writeByte(EtlScriptProtocol.INIT);
+                                    out.writeInt(1);
+                                    EtlScriptProtocol.writeText(out, language.name(), 16);
+                                    EtlScriptProtocol.writeText(
+                                            out, source, policy.maxSourceBytes());
+                                    out.writeInt(policy.maxBatchBytes());
+                                    out.writeInt(policy.maxResultBytes());
+                                    out.writeInt(policy.maxBatchRows());
+                                    out.writeInt(policy.maxResultRows());
+                                    out.writeInt(policy.maxLogBytes());
+                                    if (httpExecutor != null) {
+                                        out.writeBoolean(true);
+                                    }
+                                });
                 try (var response = exchange(init, policy.startupTimeoutMillis())) {
                     int status = response.readUnsignedByte();
                     if (language == Language.CHECK_JAVA && status == EtlScriptProtocol.CHECK_ERRORS) {
@@ -419,20 +425,53 @@ public final class EtlScriptRunner {
          * 返回当前交换。
          */
         private DataInputStream exchange(byte[] request, long timeoutMillis) {
-            Future<DataInputStream> future = io.submit(() -> {
-                EtlScriptProtocol.writeFrame(process.getOutputStream(), request);
-                while (true) {
-                    var response = EtlScriptProtocol.readFrame(process.getInputStream(), policy.maxResultBytes());
-                    response.mark(1); int operation = response.readUnsignedByte(); response.reset();
-                    if (operation != EtlScriptWorkerHttp.REQUEST) return response;
-                    response.readUnsignedByte(); var requestHttp = EtlScriptWorkerHttp.read(response); EtlScriptProtocol.requireEnd(response);
-                    if (httpExecutor == null || ++httpRequests > 32) throw new IOException("Script HTTP capability unavailable or request budget exceeded");
-                    byte[] reply;
-                    try { var result = httpExecutor.exchange(requestHttp); reply = EtlScriptProtocol.encode(policy.maxResultBytes(), out -> { out.writeByte(EtlScriptWorkerHttp.REPLY); out.writeBoolean(true); EtlScriptWorkerHttp.write(out, result); }); }
-                    catch (RuntimeException failure) { reply = EtlScriptProtocol.encode(16, out -> { out.writeByte(EtlScriptWorkerHttp.REPLY); out.writeBoolean(false); }); }
-                    EtlScriptProtocol.writeFrame(process.getOutputStream(), reply);
-                }
-            });
+            Future<DataInputStream> future =
+                    io.submit(
+                            () -> {
+                                EtlScriptProtocol.writeFrame(process.getOutputStream(), request);
+                                while (true) {
+                                    var response =
+                                            EtlScriptProtocol.readFrame(
+                                                    process.getInputStream(),
+                                                    policy.maxResultBytes());
+                                    response.mark(1);
+                                    int operation = response.readUnsignedByte();
+                                    response.reset();
+                                    if (operation != EtlScriptWorkerHttp.REQUEST) {
+                                        return response;
+                                    }
+                                    response.readUnsignedByte();
+                                    var requestHttp = EtlScriptWorkerHttp.read(response);
+                                    EtlScriptProtocol.requireEnd(response);
+                                    if (httpExecutor == null || ++httpRequests > 32) {
+                                        throw new IOException(
+                                                "Script HTTP capability unavailable or request budget exceeded");
+                                    }
+                                    byte[] reply;
+                                    try {
+                                        var result = httpExecutor.exchange(requestHttp);
+                                        reply =
+                                                EtlScriptProtocol.encode(
+                                                        policy.maxResultBytes(),
+                                                        out -> {
+                                                            out.writeByte(
+                                                                    EtlScriptWorkerHttp.REPLY);
+                                                            out.writeBoolean(true);
+                                                            EtlScriptWorkerHttp.write(out, result);
+                                                        });
+                                    } catch (RuntimeException failure) {
+                                        reply =
+                                                EtlScriptProtocol.encode(
+                                                        16,
+                                                        out -> {
+                                                            out.writeByte(
+                                                                    EtlScriptWorkerHttp.REPLY);
+                                                            out.writeBoolean(false);
+                                                        });
+                                    }
+                                    EtlScriptProtocol.writeFrame(process.getOutputStream(), reply);
+                                }
+                            });
             long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
             try {
                 while (true) {

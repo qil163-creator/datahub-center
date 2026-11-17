@@ -38,12 +38,18 @@ public class FileResourceDiagnosis {
         List<DatabaseDiagnosisRespVO.Item> writes = skippedWrites(includeWriteChecks
                 ? "连接或根目录未通过检查，未执行写入探测" : "本次未授权写入检查");
         try (RemoteFileClient client = connections.open(db, type, password)) {
-            if (!client.stat("/").directory()) throw new IOException("根目录无效");
+            if (!client.stat("/").directory()) {
+                throw new IOException("根目录无效");
+            }
             client.list("/");
             connected = true;
-            if (includeWriteChecks) writes = checkWrites(client);
+            if (includeWriteChecks) {
+                writes = checkWrites(client);
+            }
         } catch (ServiceException failure) {
-            if (FILE_RESOURCE_DISABLED.getCode().equals(failure.getCode())) throw failure;
+            if (FILE_RESOURCE_DISABLED.getCode().equals(failure.getCode())) {
+                throw failure;
+            }
         } catch (Exception ignored) { /* 不回显外部服务的地址、凭据或异常。 */ }
 
         var read = item("FILE_ROOT_READ", "连接与根目录", "连接认证、配置根目录与目录读取",
@@ -115,7 +121,9 @@ public class FileResourceDiagnosis {
     private static void requireContent(RemoteFileClient client, String path, byte[] expected) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         client.download(path, output, 1024);
-        if (!Arrays.equals(expected, output.toByteArray())) throw new IOException("探测内容不一致");
+        if (!Arrays.equals(expected, output.toByteArray())) {
+            throw new IOException("探测内容不一致");
+        }
     }
 
     private static void cleanupOwned(RemoteFileClient client, String path, byte[] first, byte[] second) {
@@ -123,7 +131,9 @@ public class FileResourceDiagnosis {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             client.download(path, output, 1024);
             byte[] actual = output.toByteArray();
-            if (Arrays.equals(actual, first) || Arrays.equals(actual, second)) client.delete(path);
+            if (Arrays.equals(actual, first) || Arrays.equals(actual, second)) {
+                client.delete(path);
+            }
         } catch (Exception ignored) { /* 结果不确定时保留文件并提示人工检查。 */ }
     }
 

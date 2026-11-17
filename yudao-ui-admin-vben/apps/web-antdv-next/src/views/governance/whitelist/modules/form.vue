@@ -49,14 +49,14 @@ const [Modal, modalApi] = useVbenModal({
       values.objectId.startsWith('catalog-')
     ) {
       data.objectType = 'CATALOG';
-      data.objectId = Number(values.objectId.slice('catalog-'.length));
+      data.objectId = values.objectId.slice('catalog-'.length);
     } else {
       data.objectType = 'CATEGORY';
     }
     const [effectiveTime, expireTime] = values.effectiveTimeRange ?? [];
     data.effectiveTime = fromTimestampPickerValue(effectiveTime);
     data.expireTime = fromTimestampPickerValue(expireTime);
-    const subjectIds: number[] =
+    const subjectIds: SafetyWhitelistApi.Id[] =
       (values.subjectType === 'USER' && values.userIds) ||
       (values.subjectType === 'ROLE' && values.roleIds) ||
       (values.subjectType === 'DEPT' && values.deptIds) ||
@@ -103,12 +103,8 @@ const [Modal, modalApi] = useVbenModal({
             ? `catalog-${formData.value.objectId}`
             : formData.value.objectId,
         effectiveTimeRange: (() => {
-          const start = toTimestampPickerValue(
-            formData.value.effectiveTime as null | number | string,
-          );
-          const end = toTimestampPickerValue(
-            formData.value.expireTime as null | number | string,
-          );
+          const start = toTimestampPickerValue(formData.value.effectiveTime);
+          const end = toTimestampPickerValue(formData.value.expireTime);
           return start && end ? [start, end] : undefined;
         })(),
         userIds: formData.value.subjectType === 'USER' ? subjectIds : [],

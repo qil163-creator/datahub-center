@@ -422,11 +422,15 @@ public class EtlSchemaService {
         Map<String, EtlFieldMeta> result = new LinkedHashMap<>();
         inputFields.forEach(field -> result.put(field.getName(), field.copy()));
         for (String required : plan.requiredFields()) {
-            if (!original.containsKey(required)) throw new IllegalStateException("上游字段不存在：" + required);
+            if (!original.containsKey(required)) {
+                throw new IllegalStateException("上游字段不存在：" + required);
+            }
         }
         for (var projection : plan.projections()) {
             EtlFieldMeta source = original.get(projection.sourceField());
-            if (source == null) throw new IllegalStateException("上游字段不存在：" + projection.sourceField());
+            if (source == null) {
+                throw new IllegalStateException("上游字段不存在：" + projection.sourceField());
+            }
             EtlFieldMeta target = projection.textResult()
                     ? new EtlFieldMeta(projection.targetField(), "String", source.getNullable(), null, null, null)
                     : source.renamed(projection.targetField());
@@ -657,8 +661,12 @@ public class EtlSchemaService {
     }
 
     private static String mergeSource(String left, String right) {
-        if (left == null) return right;
-        if (right == null || left.equals(right)) return left;
+        if (left == null) {
+            return right;
+        }
+        if (right == null || left.equals(right)) {
+            return left;
+        }
         return left + " | " + right;
     }
 

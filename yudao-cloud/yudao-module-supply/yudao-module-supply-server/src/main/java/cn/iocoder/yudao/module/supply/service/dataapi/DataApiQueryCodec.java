@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_REQUEST_INVALID;
 
 /**
  * v2 查询串的确定性编解码。重复键、非法百分号编码一律拒绝。

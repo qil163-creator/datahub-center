@@ -96,7 +96,7 @@ class DataApiCachePolicyTest {
 
         assertThatThrownBy(() -> invoke(false, 2L)).isInstanceOf(ServiceException.class)
                 .satisfies(error -> assertThat(((ServiceException) error).getCode())
-                        .isEqualTo(cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED.getCode()));
+                        .isEqualTo(cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED.getCode()));
         verify(redis).getResult(anyString());
         verify(redis, never()).putResult(anyString(), any(), anyLong());
         assertThat(executor.reads).isEqualTo(1);

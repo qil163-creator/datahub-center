@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_DATABASE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_DATABASE_NOT_EXISTS;
 
 /**
  * 数据服务 → 数据源连接信息解析器

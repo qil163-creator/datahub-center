@@ -44,13 +44,26 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
         try (var statement=connection.prepareStatement(sql)) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Kingbase CDC 配置及角色目录无响应");
+                if (!rows.next()) {
+                    throw new SQLException("Kingbase CDC 配置及角色目录无响应");
+                }
                 String version=rows.getString(1); String mode=rows.getString(2); String caseMode=rows.getString(8);
-                if (!VERIFIED_VERSION.equals(version) || !"oracle".equals(mode) || !"on".equals(caseMode))
-                    throw new java.sql.SQLFeatureNotSupportedException("Kingbase CDC 仅声明 V008R006C009B0014 Oracle/enable_ci=on 目录契约","0A000");
+                if (!VERIFIED_VERSION.equals(version)
+                        || !"oracle".equals(mode)
+                        || !"on".equals(caseMode)) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "Kingbase CDC 仅声明 V008R006C009B0014 Oracle/enable_ci=on 目录契约", "0A000");
+                }
                 String wal=rows.getString(3); int slots=rows.getInt(4); boolean missing=rows.wasNull(); int senders=rows.getInt(5); missing|=rows.wasNull();
                 boolean administrator=rows.getBoolean(6); missing|=rows.wasNull(); boolean replication=rows.getBoolean(7);
-                if (missing || rows.wasNull() || wal==null || slots<0 || senders<0 || rows.next()) throw new SQLException("Kingbase CDC 配置及角色证据不完整");
+                if (missing
+                        || rows.wasNull()
+                        || wal == null
+                        || slots < 0
+                        || senders < 0
+                        || rows.next()) {
+                    throw new SQLException("Kingbase CDC 配置及角色证据不完整");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.CdcReadinessDiagnostic("logical".equals(wal)&&slots>0&&senders>0,administrator||replication);
             }
         }
@@ -69,9 +82,19 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Kingbase 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("Kingbase 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("Kingbase 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("Kingbase 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -85,8 +108,12 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
         try (var statement = connection.prepareStatement("SELECT pg_catalog.has_schema_privilege(current_user,n.oid,'USAGE') FROM pg_catalog.pg_namespace n WHERE n.nspname=?")) {
             statement.setString(1, namespace); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("Kingbase 命名空间不存在", "3F000");
-                if (!rows.getBoolean(1) || rows.wasNull()) throw new SQLException("Kingbase schema USAGE 被拒绝", "42501");
+                if (!rows.next()) {
+                    throw new SQLException("Kingbase 命名空间不存在", "3F000");
+                }
+                if (!rows.getBoolean(1) || rows.wasNull()) {
+                    throw new SQLException("Kingbase schema USAGE 被拒绝", "42501");
+                }
             }
         }
     }
@@ -98,7 +125,9 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
         try (var statement = connection.prepareStatement("SELECT rolname FROM pg_catalog.pg_roles WHERE rolname=current_user")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("Kingbase 当前账号目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("Kingbase 当前账号目录证据缺失");
+                }
             }
         }
     }
@@ -112,7 +141,9 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("Kingbase 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("Kingbase 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -121,7 +152,16 @@ public class DatabaseKingbaseImpl extends AbstractDatabase implements IDatabaseI
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("Kingbase 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("Kingbase 诊断参数必须完整且有界");
+        }
     }
 
     private static final String SHOW_CREATE_VIEW_SQL =

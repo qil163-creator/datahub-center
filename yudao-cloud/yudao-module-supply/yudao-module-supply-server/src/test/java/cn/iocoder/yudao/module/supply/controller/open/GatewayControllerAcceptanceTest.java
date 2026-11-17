@@ -13,8 +13,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 import java.util.Map;
 
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_AUTH_FAILED;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_AUTH_FAILED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_NOT_AUTHORIZED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;

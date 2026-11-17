@@ -37,7 +37,9 @@ public interface PublishedWriteClaimApi {
     /** 参数和语句分开传输，JSON 数字不参与精确值或日期的转换。 */
     record Bind(String type, String value) {
         public static Bind from(Object value) {
-            if (value == null) return new Bind("NULL", null);
+            if (value == null) {
+                return new Bind("NULL", null);
+            }
             return switch (value) {
                 case Long number -> new Bind("LONG", number.toString());
                 case String text -> new Bind("STRING", text);
@@ -48,7 +50,9 @@ public interface PublishedWriteClaimApi {
         public Object jdbcValue() {
             return switch (type) {
                 case "NULL" -> {
-                    if (value != null) throw new IllegalArgumentException("空值参数无效");
+                    if (value != null) {
+                        throw new IllegalArgumentException("空值参数无效");
+                    }
                     yield null;
                 }
                 case "LONG" -> Long.valueOf(value);

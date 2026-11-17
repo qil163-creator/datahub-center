@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.governance.service.identify;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.util.json.LogSanitizer;
 import cn.iocoder.yudao.module.dataforge.api.database.DatabaseApi;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabaseColumnRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewReqDTO;
@@ -30,10 +31,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.TOO_MANY_REQUESTS;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 /**
  * 敏感数据扫描执行器：
@@ -49,6 +55,7 @@ import java.util.regex.PatternSyntaxException;
 @Component
 public class SafetyScanExecutor {
 
+    private static final int MAX_CONCURRENT_SCANS = 4;
     private static final int MAX_SAMPLE_ROWS = 100;
 
     @Resource
@@ -84,12 +91,9 @@ public class SafetyScanExecutor {
      */
     @PostConstruct
     public void init() {
-        AtomicInteger counter = new AtomicInteger();
-        executor = Executors.newCachedThreadPool(runnable -> {
-            Thread thread = new Thread(runnable, "safety-scan-" + counter.incrementAndGet());
-            thread.setDaemon(true);
-            return thread;
-        });
+        executor = new ThreadPoolExecutor(0, MAX_CONCURRENT_SCANS, 60L, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), Thread.ofPlatform().daemon().name("safety-scan-", 1).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
     }
 
     /**
@@ -126,16 +130,20 @@ public class SafetyScanExecutor {
         try {
             runMapper.insert(run);
 
-            executor.submit(() -> {
-
-                try {
-
-                    execute(run.getId(), databaseId, tableNames, rules);
-                } finally {
-
-                    runningDatabases.remove(databaseId);
-                }
-            });
+            try {
+                executor.execute(() -> {
+                    try {
+                        execute(run.getId(), databaseId, tableNames, rules);
+                    } finally {
+                        runningDatabases.remove(databaseId);
+                    }
+                });
+            } catch (RejectedExecutionException busy) {
+                runMapper.updateById(SafetyScanRunDO.builder().id(run.getId())
+                        .runStatus(SafetyScanRunDO.RUN_STATUS_FAILED).endTime(LocalDateTime.now())
+                        .errorInfo("扫描线程池未受理任务，请稍后重试").build());
+                throw exception(TOO_MANY_REQUESTS);
+            }
             return run.getId();
         } catch (Exception ex) {
             runningDatabases.remove(databaseId);
@@ -149,6 +157,7 @@ public class SafetyScanExecutor {
     private void execute(Long runId, Long databaseId, List<String> tableNames,
             List<SafetyIdentifyRuleDO> rules) {
         int tableCount = 0;
+        int failedReads = 0;
         int columnCount = 0;
         int hitCount = 0;
         try {
@@ -171,7 +180,9 @@ public class SafetyScanExecutor {
                 try {
                     columns = databaseApi.getTableColumnList(databaseId, tableName).getCheckedData();
                 } catch (Exception ex) {
-                    log.warn("[execute][扫描({}) 表({}) 获取字段失败：{}]", runId, tableName, ex.getMessage());
+                    failedReads++;
+                    log.warn("[execute][扫描({}) 表({}) 获取字段失败]", runId, tableName,
+                            LogSanitizer.sanitizedException(ex));
                     continue;
                 }
                 if (CollUtil.isEmpty(columns)) {
@@ -210,13 +221,16 @@ public class SafetyScanExecutor {
                     }
                 }
             }
-            // 4. 记录成功
+            // 部分表读取失败也保留已取得的结果，扫描记录明确标记为不完整。
+            boolean complete = failedReads == 0;
             runMapper.updateById(SafetyScanRunDO.builder()
-                    .id(runId).runStatus(SafetyScanRunDO.RUN_STATUS_SUCCESS)
+                    .id(runId).runStatus(complete ? SafetyScanRunDO.RUN_STATUS_SUCCESS : SafetyScanRunDO.RUN_STATUS_FAILED)
+                    .errorInfo(complete ? null : StrUtil.format("共 {} 张表，{} 张表字段读取失败", tableCount, failedReads))
                     .tableCount(tableCount).columnCount(columnCount).hitCount(hitCount)
                     .endTime(LocalDateTime.now())
                     .build());
-            log.info("[execute][扫描({}) 完成：表 {} / 字段 {} / 命中 {}]", runId, tableCount, columnCount, hitCount);
+            log.info("[execute][扫描({}) 结束：表 {} / 读取失败 {} / 字段 {} / 命中 {}]",
+                    runId, tableCount, failedReads, columnCount, hitCount);
         } catch (Exception ex) {
             log.error("[execute][扫描({}) 执行失败]", runId, ex);
             runMapper.updateById(SafetyScanRunDO.builder()

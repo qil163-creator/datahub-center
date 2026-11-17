@@ -779,7 +779,9 @@ public class DatabaseServiceImpl implements DatabaseService {
                 vo.setSchemaName(database.getDatabaseName());
                 vo.setTableName(structure.table().name());
                 vo.setRemarks(structure.table().comment());
-                if (structure.table().view() != null) vo.setTableType(structure.table().view() ? "VIEW" : "TABLE");
+                if (structure.table().view() != null) {
+                    vo.setTableType(structure.table().view() ? "VIEW" : "TABLE");
+                }
                 vo.setColumns(structure.columns().stream().map(column -> {
                     var field = new DatabaseTableColumnRespVO();
                     field.setFieldName(column.name());

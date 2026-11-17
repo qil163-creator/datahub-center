@@ -31,21 +31,30 @@ public final class MigrationColumnMappings {
 
     /** 只认可 PostgreSQL 常量默认值；函数、序列、运算和未知类型转换仍需独立结构计划。 */
     public static boolean ordinaryPostgresLiteralDefault(String expression) {
-        if (expression == null || expression.length() > 65536) return false;
+        if (expression == null || expression.length() > 65536) {
+            return false;
+        }
         try {
             var parser = com.alibaba.druid.sql.parser.SQLParserUtils.createExprParser(expression,
                     com.alibaba.druid.DbType.postgresql);
             var value = parser.expr();
-            if (parser.getLexer().token() != com.alibaba.druid.sql.parser.Token.EOF) return false;
+            if (parser.getLexer().token() != com.alibaba.druid.sql.parser.Token.EOF) {
+                return false;
+            }
             while (value instanceof com.alibaba.druid.sql.ast.expr.SQLCastExpr cast) {
                 if (!cn.iocoder.yudao.framework.dbswitch.core.schema.NativeColumnSql.supportedType(
                         cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL,
-                        cast.getDataType().toString().toLowerCase(java.util.Locale.ROOT))) return false;
+                        cast.getDataType().toString().toLowerCase(java.util.Locale.ROOT))) {
+                    return false;
+                }
                 value = cast.getExpr();
             }
             if (value instanceof com.alibaba.druid.sql.ast.expr.SQLUnaryExpr unary) {
                 if (unary.getOperator() != com.alibaba.druid.sql.ast.expr.SQLUnaryOperator.Negative
-                        && unary.getOperator() != com.alibaba.druid.sql.ast.expr.SQLUnaryOperator.Plus) return false;
+                        && unary.getOperator()
+                                != com.alibaba.druid.sql.ast.expr.SQLUnaryOperator.Plus) {
+                    return false;
+                }
                 value = unary.getExpr();
                 return value instanceof com.alibaba.druid.sql.ast.expr.SQLIntegerExpr
                         || value instanceof com.alibaba.druid.sql.ast.expr.SQLNumberExpr;

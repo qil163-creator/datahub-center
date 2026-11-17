@@ -48,9 +48,13 @@ final class OdpsReadTransport implements Transport {
                 || !paths.contains(uri.getRawPath()) || !queryAllowed(uri.getRawQuery())) {
             throw new IOException("MaxCompute 请求超出只读目录范围");
         }
-        if (++requests > 100) throw new IOException("MaxCompute 目录请求超过上限");
+        if (++requests > 100) {
+            throw new IOException("MaxCompute 目录请求超过上限");
+        }
         long remaining = deadline - System.nanoTime();
-        if (remaining <= 0 || Thread.currentThread().isInterrupted()) throw new java.net.SocketTimeoutException("MaxCompute 目录读取已超时");
+        if (remaining <= 0 || Thread.currentThread().isInterrupted()) {
+            throw new java.net.SocketTimeoutException("MaxCompute 目录读取已超时");
+        }
         int timeout = (int) Math.min(Integer.MAX_VALUE, Math.max(1, Duration.ofNanos(remaining).toMillis()));
         var connection = opener.open(uri);
         try {
@@ -66,8 +70,9 @@ final class OdpsReadTransport implements Transport {
             }
             String text = java.nio.charset.StandardCharsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
                     .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(bytes)).toString();
-            if (XML_ENTITY.matcher(text).find())
+            if (XML_ENTITY.matcher(text).find()) {
                 throw new IOException("MaxCompute 目录响应不允许实体声明");
+            }
             return new ReadResponse(connection.getHeaderFields(), bytes);
         } catch (ConnectionProbeException classified) {
             throw new IOException("MaxCompute 目录请求被拒绝", classified);
@@ -77,16 +82,32 @@ final class OdpsReadTransport implements Transport {
     }
 
     private boolean queryAllowed(String query) {
-        if (query == null || query.isEmpty()) return true;
-        if (query.length() > 8192) return false;
+        if (query == null || query.isEmpty()) {
+            return true;
+        }
+        if (query.length() > 8192) {
+            return false;
+        }
         var seen = new java.util.HashSet<String>();
         for (String pair : query.split("&", -1)) {
             String key = pair.split("=", 2)[0];
-            if (!seen.add(key)) return false;
+            if (!seen.add(key)) {
+                return false;
+            }
             if (key.equals("curr_project")) {
                 String project = java.net.URLDecoder.decode(pair.substring(Math.min(pair.length(), key.length() + 1)), java.nio.charset.StandardCharsets.UTF_8);
-                if (!project.matches("[A-Za-z0-9_-]{1,128}") || paths.stream().anyMatch(path -> !path.contains("/projects/" + project + "/") && !path.endsWith("/projects/" + project))) return false;
-            } else if (!queryKeys.contains(key)) return false;
+                if (!project.matches("[A-Za-z0-9_-]{1,128}")
+                        || paths.stream()
+                                .anyMatch(
+                                        path ->
+                                                !path.contains("/projects/" + project + "/")
+                                                        && !path.endsWith(
+                                                                "/projects/" + project))) {
+                    return false;
+                }
+            } else if (!queryKeys.contains(key)) {
+                return false;
+            }
         }
         return true;
     }
@@ -108,9 +129,12 @@ final class OdpsReadTransport implements Transport {
             status = 200;
             message = "OK";
             headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-            values.forEach((name, items) -> {
-                if (name != null && items != null && !items.isEmpty()) headers.put(name, items.getFirst());
-            });
+            values.forEach(
+                    (name, items) -> {
+                        if (name != null && items != null && !items.isEmpty()) {
+                            headers.put(name, items.getFirst());
+                        }
+                    });
             body = bytes;
         }
     }

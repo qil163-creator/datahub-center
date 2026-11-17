@@ -50,10 +50,14 @@ public final class DorisSchemaSynchronization {
             statement.setQueryTimeout(timeout);
             statement.setMaxRows(2);
             try (var rows = statement.executeQuery("SHOW VARIABLES LIKE 'version_comment'")) {
-                if (!rows.next()) throw new SQLException("Doris native version is missing");
+                if (!rows.next()) {
+                    throw new SQLException("Doris native version is missing");
+                }
                 var match = java.util.regex.Pattern.compile("^doris version (doris-4\\.0\\.[0-9]+(?:[-+][^\\s]*)?)$")
                         .matcher(rows.getString(2));
-                if (!match.matches() || rows.next()) throw new SQLException("Doris native version is unverified");
+                if (!match.matches() || rows.next()) {
+                    throw new SQLException("Doris native version is unverified");
+                }
                 version = match.group(1);
             }
         }
@@ -104,12 +108,18 @@ public final class DorisSchemaSynchronization {
             }
             Set<String> protectedColumns = new HashSet<>(actual.keys());
             protectedColumns.addAll(actual.distribution());
-            if (actual.partitioning() != null) protectedColumns.addAll(actual.partitioning().columns());
+            if (actual.partitioning() != null) {
+                protectedColumns.addAll(actual.partitioning().columns());
+            }
             actual.indexes().forEach(index -> protectedColumns.addAll(index.columns()));
             String sequence = actual.properties().get("function_column.sequence_col");
-            if (sequence != null) protectedColumns.add(sequence);
+            if (sequence != null) {
+                protectedColumns.add(sequence);
+            }
             String bloom = actual.properties().get("bloom_filter_columns");
-            if (bloom != null) protectedColumns.addAll(Arrays.asList(bloom.split(",\\s*")));
+            if (bloom != null) {
+                protectedColumns.addAll(Arrays.asList(bloom.split(",\\s*")));
+            }
             List<String> clauses = new ArrayList<>(), comments = new ArrayList<>();
             String relation = relation(schema, table);
             for (Column target : desired.columns()) {
@@ -160,7 +170,9 @@ public final class DorisSchemaSynchronization {
             }
             List<String> statements = new ArrayList<>();
             // 同一表的重型变更合并提交；执行方须确认异步任务结束后再验收结构。
-            if (!clauses.isEmpty()) statements.add("ALTER TABLE " + relation + " " + String.join(", ", clauses));
+            if (!clauses.isEmpty()) {
+                statements.add("ALTER TABLE " + relation + " " + String.join(", ", clauses));
+            }
             statements.addAll(comments);
             if (!actual.comment().equals(Objects.requireNonNullElse(comment, ""))) {
                 statements.add("ALTER TABLE " + relation + " MODIFY COMMENT " + literal(Objects.requireNonNullElse(comment, "")));
@@ -221,7 +233,9 @@ public final class DorisSchemaSynchronization {
                     throw new UnsupportedOperationException("Timezone timestamps require an explicit Doris mapping");
                 }
                 int scale = column.getLength() == null ? 0 : column.getLength();
-                if (scale < 0 || scale > 6) throw new IllegalArgumentException("Doris timestamp scale must be 0..6");
+                if (scale < 0 || scale > 6) {
+                    throw new IllegalArgumentException("Doris timestamp scale must be 0..6");
+                }
                 type = "datetime(" + scale + ")";
             }
             if (column.isPk() && Set.of("string", "float", "double", "json").contains(DorisNativeSchema.type(type))) {
@@ -232,7 +246,12 @@ public final class DorisSchemaSynchronization {
                     Objects.requireNonNullElse(column.getRemarks(), "")));
         }
         List<Column> ordered = new ArrayList<>();
-        for (String key : keys) complete.stream().filter(column -> column.name().equals(key)).findFirst().ifPresent(ordered::add);
+        for (String key : keys) {
+            complete.stream()
+                    .filter(column -> column.name().equals(key))
+                    .findFirst()
+                    .ifPresent(ordered::add);
+        }
         complete.stream().filter(column -> !keys.contains(column.name())).forEach(ordered::add);
         boolean unique = !keys.isEmpty() && Boolean.parseBoolean(options.getOrDefault("olap.preferUniqueKey",
                 options.getOrDefault("doris.preferUniqueKey", "false")));
@@ -250,12 +269,18 @@ public final class DorisSchemaSynchronization {
 
     private static String defaultLiteral(ColumnDescription column) {
         String value = SchemaSynchronization.defaultExpression(ProductTypeEnum.DORIS, column);
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         if (value.startsWith("'") && value.endsWith("'")) {
             return literal(value.substring(1, value.length() - 1).replace("''", "'"));
         }
-        if (value.matches("[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][-+]?[0-9]+)?")) return literal(value);
-        if (value.equals("TRUE") || value.equals("FALSE")) return literal(value.equals("TRUE") ? "1" : "0");
+        if (value.matches("[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][-+]?[0-9]+)?")) {
+            return literal(value);
+        }
+        if (value.equals("TRUE") || value.equals("FALSE")) {
+            return literal(value.equals("TRUE") ? "1" : "0");
+        }
         throw new UnsupportedOperationException("Doris default expression requires an explicit native strategy");
     }
 
@@ -273,21 +298,31 @@ public final class DorisSchemaSynchronization {
 
     /** 普通 ALTER 只接受可由类型本身证明的扩容；值域收窄、舍入和跨域解析须独立验数迁移。 */
     private static boolean losslessTypeChange(Column before, Column after) {
-        if (before.type().equals(after.type())) return true;
+        if (before.type().equals(after.type())) {
+            return true;
+        }
         List<String> integers = List.of("tinyint", "smallint", "int", "bigint", "largeint");
         int sourceInteger = integers.indexOf(before.kind()), targetInteger = integers.indexOf(after.kind());
-        if (sourceInteger >= 0 && targetInteger >= 0) return sourceInteger < targetInteger;
-        if (sourceInteger >= 0 && after.kind().equals("double")) return sourceInteger <= 2;
+        if (sourceInteger >= 0 && targetInteger >= 0) {
+            return sourceInteger < targetInteger;
+        }
+        if (sourceInteger >= 0 && after.kind().equals("double")) {
+            return sourceInteger <= 2;
+        }
         if (before.kind().equals("decimal") && after.kind().equals("decimal")) {
             return after.scale() >= before.scale()
                     && after.precision() - after.scale() >= before.precision() - before.scale();
         }
-        if (before.kind().equals("float") && after.kind().equals("double")) return true;
+        if (before.kind().equals("float") && after.kind().equals("double")) {
+            return true;
+        }
         if (Set.of("char", "varchar").contains(before.kind())) {
             return after.kind().equals("string")
                     || after.kind().equals("varchar") && after.precision() >= before.precision();
         }
-        if (before.kind().equals("date") && after.kind().equals("datetime")) return true;
+        if (before.kind().equals("date") && after.kind().equals("datetime")) {
+            return true;
+        }
         return before.kind().equals("datetime") && after.kind().equals("datetime") && after.scale() >= before.scale();
     }
 

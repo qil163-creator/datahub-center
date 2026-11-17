@@ -45,7 +45,7 @@ import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.mo
 #end
 
 const props = defineProps<{
-   ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
+   ${subJoinColumn.javaField}?: ${apiName}.Id // ${subJoinColumn.columnComment}（主表的关联字段）
 }>()
 
 #if ($subTable.subJoinMany) ## 一对多
@@ -79,7 +79,7 @@ const handleDelete =  async (row: ${apiName}.${subSimpleClassName}) => {
 }
 
 /** 获取当前子表数据，新增行不提交表格生成的临时编号 */
-function getData(): ${apiName}.${subSimpleClassName}[] {
+function getData(): ${apiName}.${subSimpleClassName}Save[] {
   const { fullData } = gridApi.grid.getTableData();
   const inserted = new Set(gridApi.grid.getInsertRecords());
   return fullData.map((row) =>
@@ -208,9 +208,13 @@ watch(
                 <template #${javaField}="{ row }">
                   <DatePicker
                       v-model:value="row.${javaField}"
+#if ($column.javaType == "LocalDate")
+                      valueFormat="YYYY-MM-DD"
+#else
                       :showTime="true"
                       format="YYYY-MM-DD HH:mm:ss"
                       valueFormat='x'
+#end
                   />
                 </template>
               #elseif($column.htmlType == "textarea" || $column.htmlType == "editor")## 文本框

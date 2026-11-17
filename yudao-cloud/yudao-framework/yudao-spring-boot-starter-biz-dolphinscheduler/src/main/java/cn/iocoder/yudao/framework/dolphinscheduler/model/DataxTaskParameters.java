@@ -20,14 +20,23 @@ public final class DataxTaskParameters {
 
     /** 必须配合独立 DATAX_UPSERT 任务类型，旧 Worker 缺少插件时拒绝执行，不能退化成 INSERT。 */
     public static Map<String, Object> upsert(Options options, String schema, String table, List<String> keys) {
-        if (!"POSTGRESQL".equals(options.targetType()) || keys == null || keys.isEmpty() || keys.size() > 32
-                || new java.util.HashSet<>(keys).size() != keys.size())
+        if (!"POSTGRESQL".equals(options.targetType())
+                || keys == null
+                || keys.isEmpty()
+                || keys.size() > 32
+                || new java.util.HashSet<>(keys).size() != keys.size()) {
             throw new IllegalArgumentException("DataX 幂等写入仅支持 PostgreSQL 和明确的非空唯一键");
+        }
         for (String identifier : java.util.stream.Stream.concat(java.util.stream.Stream.of(schema, table), keys.stream()).toList()) {
-            if (identifier == null || identifier.isBlank() || identifier.indexOf('\0') >= 0
+            if (identifier == null
+                    || identifier.isBlank()
+                    || identifier.indexOf('\0') >= 0
                     || identifier.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 63
-                    || identifier.contains("${") || identifier.contains("$[") || identifier.contains("!{"))
+                    || identifier.contains("${")
+                    || identifier.contains("$[")
+                    || identifier.contains("!{")) {
                 throw new IllegalArgumentException("DataX 幂等写入标识符无效");
+            }
         }
         var params = build(options);
         params.put("writeContract", "POSTGRESQL_UPSERT_V1");
@@ -39,12 +48,21 @@ public final class DataxTaskParameters {
     public static Map<String, Object> upsertWithHooks(Options options, String schema, String table, List<String> keys,
                                                      List<String> preStatements, List<String> postStatements) {
         var params = upsert(options, schema, table, keys);
-        if (preStatements == null || postStatements == null || preStatements.size() + postStatements.size() > 32)
+        if (preStatements == null
+                || postStatements == null
+                || preStatements.size() + postStatements.size() > 32) {
             throw new IllegalArgumentException("前后置 SQL 数量无效");
+        }
         for (String sql : java.util.stream.Stream.concat(preStatements.stream(), postStatements.stream()).toList()) {
-            if (sql == null || sql.isBlank() || sql.length() > 4000 || sql.indexOf('\0') >= 0
-                    || sql.contains("${") || sql.contains("$[") || sql.contains("!{"))
+            if (sql == null
+                    || sql.isBlank()
+                    || sql.length() > 4000
+                    || sql.indexOf('\0') >= 0
+                    || sql.contains("${")
+                    || sql.contains("$[")
+                    || sql.contains("!{")) {
                 throw new IllegalArgumentException("前后置 SQL 为空、过长或包含不支持的展开模板");
+            }
         }
         if (!preStatements.isEmpty() || !postStatements.isEmpty()) {
             params.put("writeContract", "POSTGRESQL_UPSERT_HOOKS_V2");
@@ -60,19 +78,29 @@ public final class DataxTaskParameters {
         validateRuntime(options);
         validatePlugin(reader, true); validatePlugin(writer, false);
         var speed = new LinkedHashMap<String, Object>(); speed.put("channel", options.channels());
-        if (options.byteSpeed() > 0) speed.put("byte", options.byteSpeed());
-        if (options.recordSpeed() > 0) speed.put("record", options.recordSpeed());
+        if (options.byteSpeed() > 0) {
+            speed.put("byte", options.byteSpeed());
+        }
+        if (options.recordSpeed() > 0) {
+            speed.put("record", options.recordSpeed());
+        }
         var job = Map.of("job", Map.of("setting", Map.of("speed", speed, "errorLimit", Map.of("record", 0)),
                 "content", List.of(Map.of("reader", reader, "writer", writer))));
         String json = JSONUtil.toJsonStr(job);
-        if (json.length() > 1_000_000) throw new IllegalArgumentException("DataX 配置超过大小限制");
+        if (json.length() > 1_000_000) {
+            throw new IllegalArgumentException("DataX 配置超过大小限制");
+        }
         rejectUnsafe(job, 0);
         var result = common(options);
         result.put("customConfig", 1); result.put("json", json);
-        if (resources == null || resources.size() > 32) throw new IllegalArgumentException("DataX 受管资源数量无效");
+        if (resources == null || resources.size() > 32) {
+            throw new IllegalArgumentException("DataX 受管资源数量无效");
+        }
         var staged = new ArrayList<Map<String, Object>>(); var names = new java.util.HashSet<String>();
         for (var resource : resources) {
-            if (resource == null || !names.add(resource.resourceName())) throw new IllegalArgumentException("DataX 受管资源重复");
+            if (resource == null || !names.add(resource.resourceName())) {
+                throw new IllegalArgumentException("DataX 受管资源重复");
+            }
             staged.add(resource.taskParameter());
         }
         result.put("resourceList", List.copyOf(staged));
@@ -89,7 +117,9 @@ public final class DataxTaskParameters {
         var runtime = new RuntimeOptions(options.initialMemoryMb(), options.maximumMemoryMb(), options.channels(),
                 options.byteSpeed(), options.recordSpeed(), options.errorLimit());
         validateRuntime(runtime);
-        if (options.batchSize() < 1 || options.batchSize() > 100000) throw new IllegalArgumentException("DataX 批量大小无效");
+        if (options.batchSize() < 1 || options.batchSize() > 100000) {
+            throw new IllegalArgumentException("DataX 批量大小无效");
+        }
         Map<String, Object> params = common(runtime);
         params.put("customConfig", 0);
         params.put("dataSource", options.sourceId()); params.put("dsType", options.sourceType());
@@ -101,7 +131,9 @@ public final class DataxTaskParameters {
     }
 
     private static void validateRuntime(RuntimeOptions options) {
-        if (options == null) throw new IllegalArgumentException("DataX 运行参数缺失");
+        if (options == null) {
+            throw new IllegalArgumentException("DataX 运行参数缺失");
+        }
         // DS 3.4.2 原生插件仅接受整数 GiB；禁止把页面 MB 静默解释成 GiB。
         if (options.initialMemoryMb() < 1024 || options.maximumMemoryMb() < options.initialMemoryMb()
                 || options.maximumMemoryMb() > 524288 || options.initialMemoryMb() % 1024 != 0
@@ -132,14 +164,28 @@ public final class DataxTaskParameters {
     }
 
     private static void rejectUnsafe(Object value, int depth) {
-        if (depth > 16) throw new IllegalArgumentException("DataX 配置嵌套过深");
-        if (value instanceof Map<?, ?> map) for (var item : map.entrySet()) {
-            String key = String.valueOf(item.getKey());
-            if (key.matches("(?i).*?(password|passwd|secret|token|credential|accesskey|accessid|username|principal|keytab).*"))
-                throw new IllegalArgumentException("DataX 自定义参数不得包含连接凭据");
-            rejectUnsafe(item.getValue(), depth + 1);
-        } else if (value instanceof Iterable<?> items) for (Object item : items) rejectUnsafe(item, depth + 1);
-        else if (value instanceof String text && (text.contains("${") || text.contains("$[") || text.contains("!{")
-                || text.indexOf('\0') >= 0)) throw new IllegalArgumentException("DataX 配置不得包含 DS 展开模板");
+        if (depth > 16) {
+            throw new IllegalArgumentException("DataX 配置嵌套过深");
+        }
+        if (value instanceof Map<?, ?> map) {
+            for (var item : map.entrySet()) {
+                String key = String.valueOf(item.getKey());
+                if (key.matches(
+                        "(?i).*?(password|passwd|secret|token|credential|accesskey|accessid|username|principal|keytab).*")) {
+                    throw new IllegalArgumentException("DataX 自定义参数不得包含连接凭据");
+                }
+                rejectUnsafe(item.getValue(), depth + 1);
+            }
+        } else if (value instanceof Iterable<?> items) {
+            for (Object item : items) {
+                rejectUnsafe(item, depth + 1);
+            }
+        } else if (value instanceof String text
+                && (text.contains("${")
+                        || text.contains("$[")
+                        || text.contains("!{")
+                        || text.indexOf('\0') >= 0)) {
+            throw new IllegalArgumentException("DataX 配置不得包含 DS 展开模板");
+        }
     }
 }

@@ -9,8 +9,7 @@ import cn.iocoder.yudao.module.governance.controller.admin.identify.vo.*;
 import cn.iocoder.yudao.module.governance.dal.dataobject.category.SafetyCategoryDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.identify.SafetyFieldTagDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.level.SafetyLevelDO;
-import cn.iocoder.yudao.module.governance.dal.mysql.category.SafetyCategoryMapper;
-import cn.iocoder.yudao.module.governance.dal.mysql.level.SafetyLevelMapper;
+import cn.iocoder.yudao.module.governance.service.category.SafetyClassificationReferenceService;
 import cn.iocoder.yudao.module.governance.service.identify.SafetyIdentifyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +25,6 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
 /**
  * 管理后台 - 敏感字段打标（含扫描触发）
@@ -43,10 +41,7 @@ public class SafetyFieldTagController {
     private SafetyIdentifyService identifyService;
 
     @Resource
-    private SafetyCategoryMapper categoryMapper;
-
-    @Resource
-    private SafetyLevelMapper levelMapper;
+    private SafetyClassificationReferenceService classificationService;
 
     // ==================== 扫描执行 ====================
 
@@ -153,9 +148,8 @@ public class SafetyFieldTagController {
             return;
         }
         List<Long> categoryIds = convertList(list, SafetyFieldTagRespVO::getCategoryId);
-        Map<Long, SafetyCategoryDO> categoryMap = CollUtil.isEmpty(categoryIds) ? Map.of()
-                : convertMap(categoryMapper.selectByIds(categoryIds), SafetyCategoryDO::getId);
-        Map<Long, SafetyLevelDO> levelMap = convertMap(levelMapper.selectList(), SafetyLevelDO::getId);
+        Map<Long, SafetyCategoryDO> categoryMap = classificationService.getCategoryMap(categoryIds);
+        Map<Long, SafetyLevelDO> levelMap = classificationService.getLevelMap();
         list.forEach(vo -> {
             SafetyCategoryDO category = categoryMap.get(vo.getCategoryId());
             if (category != null) {

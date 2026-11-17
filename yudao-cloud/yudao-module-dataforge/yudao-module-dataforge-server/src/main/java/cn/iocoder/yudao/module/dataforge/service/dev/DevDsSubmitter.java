@@ -80,7 +80,9 @@ public class DevDsSubmitter {
     public Long configuredEnvironmentCode() { return environmentCode == null ? -1L : environmentCode; }
 
     public Long executionEnvironment(DevTaskSnapshot snapshot) {
-        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) return nativeRuntimeSupport.requireFrozen(snapshot).getEnvironmentCode();
+        if (DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
+            return nativeRuntimeSupport.requireFrozen(snapshot).getEnvironmentCode();
+        }
         return snapshot.getManagedEnvironmentCode() == null ? -1L : snapshot.getManagedEnvironmentCode();
     }
 
@@ -228,25 +230,51 @@ public class DevDsSubmitter {
     /** 专属外部父流程只准备一次；独立调度扫描绝不能把这类记录再次投递。 */
     public cn.iocoder.yudao.module.dataforge.model.dev.DevJobNode prepareJobNode(Long recordId) {
         var record = recordMapper.selectById(recordId);
-        if (record == null || !"JOB".equals(record.getTriggerType()) || record.getRunKey() == null || !record.getRunKey().startsWith("JOB:")) throw exception(DEV_RECORD_NOT_EXISTS);
+        if (record == null
+                || !"JOB".equals(record.getTriggerType())
+                || record.getRunKey() == null
+                || !record.getRunKey().startsWith("JOB:")) {
+            throw exception(DEV_RECORD_NOT_EXISTS);
+        }
         var snapshot = DevTaskSnapshot.read(record.getSnapshotJson());
         var target = previewJobNode(snapshot, record.getVersionId());
-        if (!dependenciesReady(record, snapshot)) throw exception(DEV_TASK_DEPENDENCY_INVALID, "开发任务的冻结上游版本或质量门禁尚未满足");
+        if (!dependenciesReady(record, snapshot)) {
+            throw exception(DEV_TASK_DEPENDENCY_INVALID, "开发任务的冻结上游版本或质量门禁尚未满足");
+        }
         String owner = UUID.randomUUID().toString();
         LocalDateTime now = LocalDateTime.now();
-        if (recordMapper.update(null, Wrappers.<DevRecordDO>lambdaUpdate().eq(DevRecordDO::getId, recordId)
-                .eq(DevRecordDO::getTriggerType, "JOB").isNull(DevRecordDO::getDsInstanceId)
-                .in(DevRecordDO::getSubmissionStage, "JOB_RESERVED", "JOB_PREPARED")
-                .and(q -> q.isNull(DevRecordDO::getLeaseUntil).or().lt(DevRecordDO::getLeaseUntil, now))
-                .set(DevRecordDO::getLeaseOwner, owner).set(DevRecordDO::getLeaseUntil, now.plusMinutes(5))
-                .set(DevRecordDO::getStatus, DevRecordDO.STATUS_SUBMITTING)) != 1) throw exception(DEV_TASK_RUNNING);
+        if (recordMapper.update(
+                        null,
+                        Wrappers.<DevRecordDO>lambdaUpdate()
+                                .eq(DevRecordDO::getId, recordId)
+                                .eq(DevRecordDO::getTriggerType, "JOB")
+                                .isNull(DevRecordDO::getDsInstanceId)
+                                .in(DevRecordDO::getSubmissionStage, "JOB_RESERVED", "JOB_PREPARED")
+                                .and(
+                                        q ->
+                                                q.isNull(DevRecordDO::getLeaseUntil)
+                                                        .or()
+                                                        .lt(DevRecordDO::getLeaseUntil, now))
+                                .set(DevRecordDO::getLeaseOwner, owner)
+                                .set(DevRecordDO::getLeaseUntil, now.plusMinutes(5))
+                                .set(DevRecordDO::getStatus, DevRecordDO.STATUS_SUBMITTING))
+                != 1) {
+            throw exception(DEV_TASK_RUNNING);
+        }
         var logs = new StringBuilder(StrUtil.nullToEmpty(record.getLog()));
         try {
             var task = snapshot.getTask();
             var authorized = authorizeScript(task);
             Long definition = ensureRunWorkflow(record, task, buildTaskParams(task, logs, authorized, "dh_native_" + recordId), owner, snapshot.getWorkerGroup());
-            if (definition == null) throw exception(DEV_TASK_RUNNING);
-            if (updateOwned(record, owner).set(DevRecordDO::getSubmissionStage, "JOB_PREPARED").update() != true) throw exception(DEV_TASK_RUNNING);
+            if (definition == null) {
+                throw exception(DEV_TASK_RUNNING);
+            }
+            if (updateOwned(record, owner)
+                            .set(DevRecordDO::getSubmissionStage, "JOB_PREPARED")
+                            .update()
+                    != true) {
+                throw exception(DEV_TASK_RUNNING);
+            }
             return new cn.iocoder.yudao.module.dataforge.model.dev.DevJobNode(target.taskId(), target.versionId(), recordId,
                     target.projectCode(), definition, target.workerGroup(), target.tenantCode(), target.environmentCode(), target.terminalGuardRequired());
         } finally {
@@ -258,46 +286,87 @@ public class DevDsSubmitter {
     /** 只接受已核对的子定义与实例，绑定后沿用原有 observe、原生终态与质量门禁。 */
     public DevRecordDO bindJobNode(Long recordId, Long project, Long definition, Integer instanceId) {
         var record = recordMapper.selectById(recordId);
-        if (record == null || !"JOB".equals(record.getTriggerType()) || !Objects.equals(project, record.getDsProjectCode())
-                || !Objects.equals(definition, record.getDsWorkflowCode()) || instanceId == null || instanceId <= 0) throw exception(DEV_RECORD_NOT_EXISTS);
+        if (record == null
+                || !"JOB".equals(record.getTriggerType())
+                || !Objects.equals(project, record.getDsProjectCode())
+                || !Objects.equals(definition, record.getDsWorkflowCode())
+                || instanceId == null
+                || instanceId <= 0) {
+            throw exception(DEV_RECORD_NOT_EXISTS);
+        }
         var response = dsClient.workflowInstance().queryWorkflowInstanceById(project, instanceId);
         var actual = response == null || response.getInt("code", -1) != 0 ? null : response.getJSONObject("data");
-        if (actual == null || !Objects.equals(actual.getInt("id"), instanceId) || !Objects.equals(actual.getLong("projectCode"), project)
-                || !Objects.equals(actual.getLong("workflowDefinitionCode"), definition)) throw exception(DEV_TASK_SNAPSHOT_INVALID, "子工作流身份与冻结开发记录不一致");
-        if (recordMapper.update(null, Wrappers.<DevRecordDO>lambdaUpdate().eq(DevRecordDO::getId, recordId)
-                .eq(DevRecordDO::getTriggerType, "JOB").eq(DevRecordDO::getDsProjectCode, project).eq(DevRecordDO::getDsWorkflowCode, definition)
-                .and(q -> q.isNull(DevRecordDO::getDsInstanceId).or().eq(DevRecordDO::getDsInstanceId, instanceId))
-                .set(DevRecordDO::getDsInstanceId, instanceId).set(DevRecordDO::getSubmissionStage, "JOB_BOUND")
-                .set(DevRecordDO::getStartTime, record.getStartTime() == null ? LocalDateTime.now() : record.getStartTime())) != 1) throw exception(DEV_RUN_REQUEST_CONFLICT);
+        if (actual == null
+                || !Objects.equals(actual.getInt("id"), instanceId)
+                || !Objects.equals(actual.getLong("projectCode"), project)
+                || !Objects.equals(actual.getLong("workflowDefinitionCode"), definition)) {
+            throw exception(DEV_TASK_SNAPSHOT_INVALID, "子工作流身份与冻结开发记录不一致");
+        }
+        if (recordMapper.update(
+                        null,
+                        Wrappers.<DevRecordDO>lambdaUpdate()
+                                .eq(DevRecordDO::getId, recordId)
+                                .eq(DevRecordDO::getTriggerType, "JOB")
+                                .eq(DevRecordDO::getDsProjectCode, project)
+                                .eq(DevRecordDO::getDsWorkflowCode, definition)
+                                .and(
+                                        q ->
+                                                q.isNull(DevRecordDO::getDsInstanceId)
+                                                        .or()
+                                                        .eq(
+                                                                DevRecordDO::getDsInstanceId,
+                                                                instanceId))
+                                .set(DevRecordDO::getDsInstanceId, instanceId)
+                                .set(DevRecordDO::getSubmissionStage, "JOB_BOUND")
+                                .set(
+                                        DevRecordDO::getStartTime,
+                                        record.getStartTime() == null
+                                                ? LocalDateTime.now()
+                                                : record.getStartTime()))
+                != 1) {
+            throw exception(DEV_RUN_REQUEST_CONFLICT);
+        }
         process(recordId);
         return recordMapper.selectById(recordId);
     }
 
     public DevRecordDO observeJobNode(Long recordId) {
         var record = recordMapper.selectById(recordId);
-        if (record == null || !"JOB".equals(record.getTriggerType())) throw exception(DEV_RECORD_NOT_EXISTS);
-        if (record.getDsInstanceId() != null) process(recordId);
+        if (record == null || !"JOB".equals(record.getTriggerType())) {
+            throw exception(DEV_RECORD_NOT_EXISTS);
+        }
+        if (record.getDsInstanceId() != null) {
+            process(recordId);
+        }
         return recordMapper.selectById(recordId);
     }
 
     /** 后台取消只接受该作业的冻结本人，保留独立运行、原生权限与项目核验。 */
     public DevRecordDO authorizeJobNode(Long recordId,Long actor) {
         var record=authorizeJobNodeForCaller(recordId,actor);
-        if(!Objects.equals(actor,record.getExecutionUserId()))throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        if (!Objects.equals(actor, record.getExecutionUserId())) {
+            throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        }
         var snapshot=DevTaskSnapshot.read(record.getSnapshotJson());
-        if(!Objects.equals(actor,snapshot.getTask().getExecutionUserId()))throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        if (!Objects.equals(actor, snapshot.getTask().getExecutionUserId())) {
+            throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        }
         return record;
     }
 
     /** 发起停止的人独立持有权限；允许清理冻结旧目标，不能改投当前新项目。 */
     public DevRecordDO authorizeJobNodeForCaller(Long recordId,Long caller) {
         var record=recordMapper.selectById(recordId);
-        if(record==null||!"JOB".equals(record.getTriggerType())||caller==null)throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        if (record == null || !"JOB".equals(record.getTriggerType()) || caller == null) {
+            throw exception(DEV_EXECUTION_IDENTITY_REQUIRED);
+        }
         var snapshot=DevTaskSnapshot.read(record.getSnapshotJson());
         executionAccessService.requireUserPermission(caller,ExecutionAccessService.PERMISSION_DEV_TASK_RUN);
         if(DevNativeRuntimeSupport.isNative(snapshot.getTask())) {
             nativeRuntimeSupport.requireActor(snapshot.getTask(),caller);
-            if(!Objects.equals(record.getDsProjectCode(),snapshot.getNativeProjectCode()))throw exception(DEV_RECORD_NOT_EXISTS);
+            if (!Objects.equals(record.getDsProjectCode(), snapshot.getNativeProjectCode())) {
+                throw exception(DEV_RECORD_NOT_EXISTS);
+            }
         }
         return record;
     }

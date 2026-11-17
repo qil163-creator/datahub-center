@@ -33,7 +33,7 @@ import { use${subSimpleClassName}GridColumns } from '../data';
 #end
 
 const props = defineProps<{
-  ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
+  ${subJoinColumn.javaField}?: ${apiName}.Id // ${subJoinColumn.columnComment}（主表的关联字段）
 }>()
 
 #if ($table.templateType == 11) ## erp
@@ -89,7 +89,7 @@ async function handleDeleteBatch() {
   }
 }
 
-const checkedIds = ref<number[]>([])
+const checkedIds = ref<Array<${apiName}.${subSimpleClassName}['id']>>([])
 function handleRowCheckboxChange({
   records,
 }: {

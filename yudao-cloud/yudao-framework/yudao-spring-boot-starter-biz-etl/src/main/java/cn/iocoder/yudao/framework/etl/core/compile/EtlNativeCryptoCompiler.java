@@ -21,29 +21,44 @@ public final class EtlNativeCryptoCompiler {
                              Map<String, String> expressions, Map<String, String> types,
                              Set<String> allowedSecretRefs, Set<String> managedFunctions) {
         var fields = config.getJSONArray(decrypt ? "decryptFields" : "encryptFields");
-        if (fields == null || fields.isEmpty() || fields.size() > 5000)
+        if (fields == null || fields.isEmpty() || fields.size() > 5000) {
             throw invalid("请配置1至5000个加解密字段");
+        }
         for (Object item : fields) {
             var rule = JSONUtil.parseObj(item);
             String source = rule.getStr("fieldName", "");
-            if (!expressions.containsKey(source)) throw invalid("加解密来源字段不存在");
-            if (!rule.getStr("secretKey", "").isBlank()) throw invalid("加解密节点禁止内联密钥，请使用受管密钥绑定");
+            if (!expressions.containsKey(source)) {
+                throw invalid("加解密来源字段不存在");
+            }
+            if (!rule.getStr("secretKey", "").isBlank()) {
+                throw invalid("加解密节点禁止内联密钥，请使用受管密钥绑定");
+            }
             String algorithm = rule.getStr("algorithm", "AES256").toUpperCase(Locale.ROOT);
             String expression;
             if (Set.of("AES", "SM4", "AES128", "AES256", "DES", "3DES").contains(algorithm)) {
                 String reference = rule.getStr("secretKeyRef", "");
-                if (!reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}") || !allowedSecretRefs.contains(reference))
+                if (!reference.matches("[A-Za-z][A-Za-z0-9_.-]{0,99}")
+                        || !allowedSecretRefs.contains(reference)) {
                     throw invalid("当前任务未获授权使用此密钥引用");
+                }
                 String function = decrypt ? "DH_CRYPTO_DECRYPT" : "DH_CRYPTO_ENCRYPT";
-                if (!managedFunctions.contains(function)) throw invalid("当前引擎尚未注册受管加解密函数");
+                if (!managedFunctions.contains(function)) {
+                    throw invalid("当前引擎尚未注册受管加解密函数");
+                }
                 expression = function + "('" + algorithm + "', '" + reference + "', CAST(" + expressions.get(source) + " AS STRING))";
             } else {
-                if (!rule.getStr("secretKeyRef", "").isBlank()) throw invalid("摘要或 Base64 转换不应配置密钥引用");
+                if (!rule.getStr("secretKeyRef", "").isBlank()) {
+                    throw invalid("摘要或 Base64 转换不应配置密钥引用");
+                }
                 expression = expression(engine, decrypt, algorithm, expressions.get(source));
             }
             String target = rule.getStr("outputFieldName", "");
-            if (target.isBlank()) target = source;
-            if (target.length() > 200 || target.indexOf('\0') >= 0) throw invalid("加解密输出字段无效");
+            if (target.isBlank()) {
+                target = source;
+            }
+            if (target.length() > 200 || target.indexOf('\0') >= 0) {
+                throw invalid("加解密输出字段无效");
+            }
             if (!rule.getBool("keepOriginal", false) && !target.equals(source)) {
                 expressions.remove(source); types.remove(source);
             }
@@ -54,9 +69,12 @@ public final class EtlNativeCryptoCompiler {
     private static String expression(EtlNativeSqlCompiler.Engine engine, boolean decrypt, String algorithm, String input) {
         String value = "CAST(" + input + " AS STRING)";
         if (decrypt) {
-            if (!"BASE64".equals(algorithm))
-                throw invalid(Set.of("MD5", "SHA1", "SHA256", "SHA512").contains(algorithm)
-                        ? "摘要算法不可逆，不能用于解密" : "此密钥算法尚未绑定受管执行函数");
+            if (!"BASE64".equals(algorithm)) {
+                throw invalid(
+                        Set.of("MD5", "SHA1", "SHA256", "SHA512").contains(algorithm)
+                                ? "摘要算法不可逆，不能用于解密"
+                                : "此密钥算法尚未绑定受管执行函数");
+            }
             return engine == EtlNativeSqlCompiler.Engine.SPARK ? "DECODE(UNBASE64(" + value + "), 'UTF-8')"
                     : "FROM_BASE64(" + value + ")";
         }

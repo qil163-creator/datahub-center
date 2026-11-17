@@ -544,11 +544,9 @@ final class EtlDockerWorker {
      */
     private CommandResult command(List<String> arguments, long timeoutMillis) {
         Process process = null;
-        var readers = Executors.newFixedThreadPool(2, task -> {
-            var t = new Thread(task, "etl-docker-control");
-            t.setDaemon(true);
-            return t;
-        });
+        var readers = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(), Thread.ofPlatform().daemon().name("etl-docker-control-", 1).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
         try {
             process = builder(arguments).start();

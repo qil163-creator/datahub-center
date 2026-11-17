@@ -20,7 +20,9 @@ public class DatabaseGbase8aImpl extends DatabaseMysqlImpl {
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             java.sql.Connection connection, String namespace, String table, int timeoutSeconds) throws java.sql.SQLException {
-        if (getDatabaseType()!=ProductTypeEnum.GBASE8A) return super.probeExtendedProperties(connection,namespace,table,timeoutSeconds);
+        if (getDatabaseType() != ProductTypeEnum.GBASE8A) {
+            return super.probeExtendedProperties(connection, namespace, table, timeoutSeconds);
+        }
         return mysqlExtendedProperties(connection,namespace,table,timeoutSeconds);
     }
 
@@ -40,13 +42,24 @@ public class DatabaseGbase8aImpl extends DatabaseMysqlImpl {
     /** GBase8a 原生 information_schema 基本表目录；与 MySQL 分开声明、分开验证。 */
     @Override
     public java.util.List<cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription> queryCatalogTableList(java.sql.Connection connection, String namespace, int maxTables, int timeoutSeconds) throws java.sql.SQLException {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("GBase8a 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("GBase8a 诊断参数必须完整且有界");
+        }
         var result = new java.util.ArrayList<cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription>();
         try (var statement = connection.prepareStatement("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME LIMIT ?")) {
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new java.sql.SQLException("GBase8a 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new java.sql.SQLException("GBase8a 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new cn.iocoder.yudao.framework.dbswitch.core.model.TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }

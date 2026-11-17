@@ -101,7 +101,9 @@ public class ModelFieldApiImpl implements ModelFieldApi, ModelRuleContextApi {
 
     @Override
     public CommonResult<List<ModelStandardFieldRespDTO>> getFieldListByCodeTableId(Long codeTableId) {
-        if (codeTableId == null) return success(List.of());
+        if (codeTableId == null) {
+            return success(List.of());
+        }
         return success(collectStandardBoundFields(field -> Objects.equals(field.getCodeTableId(), codeTableId)));
     }
 

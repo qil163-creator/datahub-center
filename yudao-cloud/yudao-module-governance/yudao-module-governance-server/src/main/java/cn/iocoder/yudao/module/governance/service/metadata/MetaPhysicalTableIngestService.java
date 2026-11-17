@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.governance.enums.MetadataIngestErrorCodes.*;
+import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.META_INGEST_ENVELOPE_INVALID;
+import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.META_INGEST_EVENT_CONFLICT;
+import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.META_INGEST_REVISION_CONFLICT;
 
 /** 治理接收端拥有的目标修订水位与幂等收据，复用元数据登记/diff 引擎。 */
 @Service

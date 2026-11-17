@@ -15,9 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 可视化 ETL 流程执行引擎
@@ -158,12 +158,10 @@ public class EtlPipelineEngine implements AutoCloseable {
         if (!RUN_SLOTS.tryAcquire()) {
             throw new IllegalStateException("ETL 执行资源已满，包含可能仍未退出的节点");
         }
-        AtomicInteger counter = new AtomicInteger();
-        ExecutorService pool = Executors.newFixedThreadPool(dag.getNodes().size(), runnable -> {
-            Thread thread = new Thread(runnable, "etl-node-" + counter.incrementAndGet());
-            thread.setDaemon(true);
-            return thread;
-        });
+        int nodeCount = dag.getNodes().size();
+        ExecutorService pool = new ThreadPoolExecutor(nodeCount, nodeCount, 0L, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(), Thread.ofPlatform().daemon().name("etl-node-", 1).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
         var control = options.getExecutionControl();
         if (control != null) {
             control.register(() -> {

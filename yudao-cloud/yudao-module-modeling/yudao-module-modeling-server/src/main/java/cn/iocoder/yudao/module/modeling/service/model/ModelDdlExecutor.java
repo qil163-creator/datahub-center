@@ -103,7 +103,9 @@ public class ModelDdlExecutor {
             field.setDataPrecision(column.getPrecisionSize());
             field.setDataScale(column.getScaleSize());
             var length = column.getMetadataEvidence().characterLength().value();
-            if (length != null && length <= Integer.MAX_VALUE) field.setDataLength(length.intValue());
+            if (length != null && length <= Integer.MAX_VALUE) {
+                field.setDataLength(length.intValue());
+            }
             field.setNullableFlag(column.isNullable());
             field.setPkFlag(observed.metadata().primaryKeys().contains(column.getFieldName()));
             field.setComment(column.getRemarks());
@@ -213,7 +215,9 @@ public class ModelDdlExecutor {
             }
             var plan = SchemaSynchronization.createPlan(dbSwitchRuntime.products().metadata(conn.getProductType()),
                     conn.getSchema(), name, comment, columns, properties);
-            if (!plan.ready()) throw new IllegalArgumentException("Doris 建表定义未获组件支持：" + plan.diagnostics());
+            if (!plan.ready()) {
+                throw new IllegalArgumentException("Doris 建表定义未获组件支持：" + plan.diagnostics());
+            }
             return plan.statements();
         }
         if (conn.getProductType() == cn.iocoder.yudao.framework.dbswitch.common.type.ProductTypeEnum.POSTGRESQL

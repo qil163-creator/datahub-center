@@ -58,7 +58,9 @@ public final class EtlScriptWorker {
         }
         boolean httpEnabled = init.available() > 0 && init.readBoolean();
         EtlScriptProtocol.requireEnd(init);
-        if (httpEnabled) EtlScriptWorkerHttp.install(input, output);
+        if (httpEnabled) {
+            EtlScriptWorkerHttp.install(input, output);
+        }
         var discardedLogs = new BoundedLogSink(logBytes);
         var capture = new PrintStream(discardedLogs, true, StandardCharsets.UTF_8);
         System.setOut(capture);
@@ -142,22 +144,38 @@ public final class EtlScriptWorker {
             List<Map<String, Object>> rows, boolean token, int maximumRows) throws Exception {
         var data = new com.alibaba.fastjson2.JSONObject();
         var batch = new com.alibaba.fastjson2.JSONArray();
-        for (var row : rows) batch.add(new com.alibaba.fastjson2.JSONObject(row));
+        for (var row : rows) {
+            batch.add(new com.alibaba.fastjson2.JSONObject(row));
+        }
         data.put("data", batch);
         String status = script.execute(data, null);
         if (token) {
-            if (status == null || status.isBlank() || status.equals("0") || status.length() > 8192 || status.codePoints().anyMatch(Character::isISOControl)) throw new IllegalStateException("认证脚本没有返回有效结果");
+            if (status == null
+                    || status.isBlank()
+                    || status.equals("0")
+                    || status.length() > 8192
+                    || status.codePoints().anyMatch(Character::isISOControl)) {
+                throw new IllegalStateException("认证脚本没有返回有效结果");
+            }
             return List.of(Map.of("__token", status));
         }
-        if (!"1".equals(status)) throw new IllegalStateException("脚本请求终止任务或返回了无效状态");
+        if (!"1".equals(status)) {
+            throw new IllegalStateException("脚本请求终止任务或返回了无效状态");
+        }
         Object result = data.get("data");
-        if (!(result instanceof List<?> list) || list.size() > maximumRows) throw new IllegalStateException("脚本输出行超限或结构无效");
+        if (!(result instanceof List<?> list) || list.size() > maximumRows) {
+            throw new IllegalStateException("脚本输出行超限或结构无效");
+        }
         var output = new ArrayList<Map<String, Object>>(list.size());
         for (Object item : list) {
-            if (!(item instanceof Map<?, ?> row)) throw new IllegalStateException("脚本输出必须是对象行");
+            if (!(item instanceof Map<?, ?> row)) {
+                throw new IllegalStateException("脚本输出必须是对象行");
+            }
             var converted = new LinkedHashMap<String, Object>();
             for (var entry : row.entrySet()) {
-                if (!(entry.getKey() instanceof String key)) throw new IllegalStateException("脚本输出字段名无效");
+                if (!(entry.getKey() instanceof String key)) {
+                    throw new IllegalStateException("脚本输出字段名无效");
+                }
                 converted.put(key, entry.getValue());
             }
             output.add(converted);

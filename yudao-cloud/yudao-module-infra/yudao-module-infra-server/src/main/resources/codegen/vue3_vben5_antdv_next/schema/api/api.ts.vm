@@ -1,1 +1,2 @@
-#parse("codegen/vue3_vben5_ele/schema/api/api.ts.vm")
+#set ($schemaApi = true)
+#parse("codegen/vue3_vben5_antdv_next/general/api/api.ts.vm")

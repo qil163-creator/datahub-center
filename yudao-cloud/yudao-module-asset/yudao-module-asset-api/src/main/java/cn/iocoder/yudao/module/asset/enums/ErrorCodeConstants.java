@@ -29,15 +29,15 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_DATA_ASSET_IN_USE = new ErrorCode(1_500_011_007, "资产类目已被数据资产使用，无法删除");
 
     // ========== 数据资产目录 1_500_020_000 ==========
-    ErrorCode DATA_ASSET_NOT_EXISTS = new ErrorCode(1_500_020_001, "数据资产不存在");
-    ErrorCode DATA_ASSET_META_NOT_EXISTS = new ErrorCode(1_500_020_002, "表元数据不存在");
-    ErrorCode DATA_ASSET_META_NOT_PUBLISHED = new ErrorCode(1_500_020_003, "表元数据尚未发布定版，不能编目");
-    ErrorCode DATA_ASSET_META_DUPLICATE = new ErrorCode(1_500_020_004, "该表元数据已完成资产编目");
-    ErrorCode DATA_ASSET_CATALOG_LINK_FAILED = new ErrorCode(1_500_020_005, "元数据目录挂接状态更新失败");
-    ErrorCode DATA_ASSET_PUBLISH_CATEGORY_REQUIRED = new ErrorCode(1_500_020_006, "发布资产前必须选择资产类目");
-    ErrorCode DATA_ASSET_DELETE_PUBLISHED = new ErrorCode(1_500_020_007, "已发布资产不能直接删除，请先取消发布");
-    ErrorCode DATA_ASSET_PREVIEW_UNSUPPORTED = new ErrorCode(1_500_020_008, "当前资产类型不支持数据预览");
-    ErrorCode DATA_ASSET_APPLY_REQUIRED = new ErrorCode(1_500_020_009, "已发布资产需要有效的共享申请才能查看数据");
+    ErrorCode DATA_ASSET_NOT_EXISTS = new ErrorCode(1_500_020_201, "数据资产不存在");
+    ErrorCode DATA_ASSET_META_NOT_EXISTS = new ErrorCode(1_500_020_202, "表元数据不存在");
+    ErrorCode DATA_ASSET_META_NOT_PUBLISHED = new ErrorCode(1_500_020_203, "表元数据尚未发布定版，不能编目");
+    ErrorCode DATA_ASSET_META_DUPLICATE = new ErrorCode(1_500_020_204, "该表元数据已完成资产编目");
+    ErrorCode DATA_ASSET_CATALOG_LINK_FAILED = new ErrorCode(1_500_020_205, "元数据目录挂接状态更新失败");
+    ErrorCode DATA_ASSET_PUBLISH_CATEGORY_REQUIRED = new ErrorCode(1_500_020_206, "发布资产前必须选择资产类目");
+    ErrorCode DATA_ASSET_DELETE_PUBLISHED = new ErrorCode(1_500_020_207, "已发布资产不能直接删除，请先取消发布");
+    ErrorCode DATA_ASSET_PREVIEW_UNSUPPORTED = new ErrorCode(1_500_020_208, "当前资产类型不支持数据预览");
+    ErrorCode DATA_ASSET_APPLY_REQUIRED = new ErrorCode(1_500_020_209, "已发布资产需要有效的共享申请才能查看数据");
     ErrorCode DATA_ASSET_TECH_UNAVAILABLE = new ErrorCode(1_500_020_100,
             "当前目录未挂接可用技术资源，不能预览或开通取数");
     ErrorCode DATA_ASSET_TECH_LINK_DUPLICATE = new ErrorCode(1_500_020_101, "该技术资源已挂接到当前目录条目");
@@ -61,8 +61,8 @@ public interface ErrorCodeConstants {
     ErrorCode DATA_ASSET_IMPORT_ROW_NOT_EXISTS = new ErrorCode(1_500_020_115, "待维护的数据行不属于当前迁入资产");
 
     // ========== 资产标签 1_500_021_000 ==========
-    ErrorCode ASSET_TAG_NOT_EXISTS = new ErrorCode(1_500_021_001, "资产标签不存在");
-    ErrorCode ASSET_TAG_NAME_DUPLICATE = new ErrorCode(1_500_021_002, "同一类目下资产标签名称已存在");
+    ErrorCode ASSET_TAG_NOT_EXISTS = new ErrorCode(1_500_021_201, "资产标签不存在");
+    ErrorCode ASSET_TAG_NAME_DUPLICATE = new ErrorCode(1_500_021_202, "同一类目下资产标签名称已存在");
     ErrorCode ASSET_TAG_IN_USE = new ErrorCode(1_500_021_003, "资产标签已被使用，无法删除");
     ErrorCode ASSET_TAG_DISABLED = new ErrorCode(1_500_021_004, "资产标签已停用，不能绑定到资产");
     ErrorCode ASSET_TAG_ENABLED_IMMUTABLE = new ErrorCode(1_500_021_130, "请先禁用资产标签，再修改或删除");

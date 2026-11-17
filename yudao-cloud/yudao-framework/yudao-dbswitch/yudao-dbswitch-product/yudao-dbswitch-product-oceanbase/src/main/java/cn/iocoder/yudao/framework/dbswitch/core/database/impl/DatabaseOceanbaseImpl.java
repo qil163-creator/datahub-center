@@ -55,13 +55,18 @@ public class DatabaseOceanbaseImpl extends AbstractDatabase implements IDatabase
     @Override
     public List<TableDescription> queryCatalogTableList(Connection connection, String namespace, int maxTables, int timeoutSeconds) throws SQLException {
         diagnosticBounds(connection, namespace, maxTables, timeoutSeconds);
-        if (!diagnosticMysqlMode(connection, timeoutSeconds)) return oracleDelegate.queryCatalogTableList(connection, namespace, maxTables, timeoutSeconds);
+        if (!diagnosticMysqlMode(connection, timeoutSeconds)) {
+            return oracleDelegate.queryCatalogTableList(
+                    connection, namespace, maxTables, timeoutSeconds);
+        }
         var result = new java.util.ArrayList<TableDescription>();
         try (var statement = connection.prepareStatement("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME LIMIT ?")) {
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("OceanBase 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("OceanBase 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -83,16 +88,32 @@ public class DatabaseOceanbaseImpl extends AbstractDatabase implements IDatabase
         try (var statement = connection.prepareStatement("show global variables where variable_name = 'ob_compatibility_mode'")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new java.sql.SQLFeatureNotSupportedException("OceanBase 兼容模式证据缺失", "0A000");
+                if (!rows.next()) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "OceanBase 兼容模式证据缺失", "0A000");
+                }
                 String mode = rows.getString(2);
-                if (rows.next() || !("MYSQL".equalsIgnoreCase(mode) || "ORACLE".equalsIgnoreCase(mode))) throw new java.sql.SQLFeatureNotSupportedException("OceanBase 兼容模式不唯一或未知", "0A000");
+                if (rows.next()
+                        || !("MYSQL".equalsIgnoreCase(mode) || "ORACLE".equalsIgnoreCase(mode))) {
+                    throw new java.sql.SQLFeatureNotSupportedException(
+                            "OceanBase 兼容模式不唯一或未知", "0A000");
+                }
                 return "MYSQL".equalsIgnoreCase(mode);
             }
         }
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("OceanBase 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("OceanBase 诊断参数必须完整且有界");
+        }
     }
 
     /**

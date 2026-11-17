@@ -47,9 +47,19 @@ public class DatabaseDmImpl extends AbstractDatabase implements IDatabaseInterfa
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("DM 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("DM 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("DM 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("DM 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -64,7 +74,10 @@ public class DatabaseDmImpl extends AbstractDatabase implements IDatabaseInterfa
         try (var statement = connection.prepareStatement("SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER=? AND ROWNUM<=1")) {
             statement.setString(1, namespace); statement.setMaxRows(1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLFeatureNotSupportedException("DM8 schema 无可见基本表，无法只读证明对象访问权限", "0A000");
+                if (!rows.next()) {
+                    throw new SQLFeatureNotSupportedException(
+                            "DM8 schema 无可见基本表，无法只读证明对象访问权限", "0A000");
+                }
                 table = rows.getString(1);
             }
         }
@@ -89,7 +102,9 @@ public class DatabaseDmImpl extends AbstractDatabase implements IDatabaseInterfa
         try (var statement = connection.prepareStatement("SELECT USER,(SELECT COUNT(*) FROM SESSION_PRIVS) FROM DUAL")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("DM8 当前账号权限目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("DM8 当前账号权限目录证据缺失");
+                }
             }
         }
     }
@@ -103,7 +118,9 @@ public class DatabaseDmImpl extends AbstractDatabase implements IDatabaseInterfa
             statement.setString(1, namespace); statement.setInt(2, maxTables + 1); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("DM8 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("DM8 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -112,7 +129,16 @@ public class DatabaseDmImpl extends AbstractDatabase implements IDatabaseInterfa
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("DM8 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("DM8 诊断参数必须完整且有界");
+        }
     }
 
     /**

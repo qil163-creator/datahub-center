@@ -22,7 +22,9 @@ public final class RemoteFileOperations {
 
     /** 包含起点，父节点先于子节点；扫描不完整时抛错，不返回伪完整统计。 */
     public static List<RemoteFileEntry> walk(RemoteFileClient client, String path, int maxEntries, int maxDepth) throws IOException {
-        if (maxEntries < 1 || maxEntries > 100_000 || maxDepth < 0 || maxDepth > 64) throw new IllegalArgumentException("遍历上限不合法");
+        if (maxEntries < 1 || maxEntries > 100_000 || maxDepth < 0 || maxDepth > 64) {
+            throw new IllegalArgumentException("遍历上限不合法");
+        }
         record Pending(RemoteFileEntry entry, int depth) { }
         ArrayDeque<Pending> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
@@ -30,18 +32,30 @@ public final class RemoteFileOperations {
         long deadline = System.nanoTime() + java.time.Duration.ofSeconds(60).toNanos();
         queue.add(new Pending(client.stat(path), 0));
         while (!queue.isEmpty()) {
-            if (System.nanoTime() > deadline) throw new IOException("目录扫描超过时间上限");
+            if (System.nanoTime() > deadline) {
+                throw new IOException("目录扫描超过时间上限");
+            }
             Pending current = queue.removeFirst();
             String normalized = RemoteFilePaths.normalize(current.entry().path());
-            if (!visited.add(normalized)) throw new IOException("远程目录包含循环或重复项");
+            if (!visited.add(normalized)) {
+                throw new IOException("远程目录包含循环或重复项");
+            }
             result.add(current.entry());
-            if (result.size() > maxEntries) throw new IOException("目录扫描数量超过上限");
+            if (result.size() > maxEntries) {
+                throw new IOException("目录扫描数量超过上限");
+            }
             if (current.entry().directory()) {
                 List<RemoteFileEntry> children = client.list(normalized);
-                if (!children.isEmpty() && current.depth() >= maxDepth) throw new IOException("目录扫描深度超过上限");
-                if (result.size() + queue.size() + children.size() > maxEntries) throw new IOException("目录扫描数量超过上限");
+                if (!children.isEmpty() && current.depth() >= maxDepth) {
+                    throw new IOException("目录扫描深度超过上限");
+                }
+                if (result.size() + queue.size() + children.size() > maxEntries) {
+                    throw new IOException("目录扫描数量超过上限");
+                }
                 for (RemoteFileEntry child : children) {
-                    if (!RemoteFilePaths.parent(child.path()).equals(normalized)) throw new IOException("远程目录项越界");
+                    if (!RemoteFilePaths.parent(child.path()).equals(normalized)) {
+                        throw new IOException("远程目录项越界");
+                    }
                     queue.addLast(new Pending(child, current.depth() + 1));
                 }
             }
@@ -53,28 +67,43 @@ public final class RemoteFileOperations {
     public static void deleteRecursively(RemoteFileClient client, String path, int maxEntries, int maxDepth) throws IOException {
         RemoteFilePaths.requireMutable(path);
         List<RemoteFileEntry> entries = walk(client, path, maxEntries, maxDepth);
-        for (int index = entries.size() - 1; index >= 0; index--) client.delete(entries.get(index).path());
+        for (int index = entries.size() - 1; index >= 0; index--) {
+            client.delete(entries.get(index).path());
+        }
     }
 
     /** 输出前预检所有选中对象；按完整虚拟路径命名，避免同名目录碰撞。 */
     public static void zip(RemoteFileClient client, List<String> paths, OutputStream output,
             int maxEntries, int maxDepth, long maxBytes) throws IOException {
-        if (paths == null || paths.isEmpty() || paths.size() > 100 || maxBytes < 0
-                || maxBytes > RemoteFileStreams.MAX_TRANSFER) throw new IllegalArgumentException("打包参数不合法");
+        if (paths == null
+                || paths.isEmpty()
+                || paths.size() > 100
+                || maxBytes < 0
+                || maxBytes > RemoteFileStreams.MAX_TRANSFER) {
+            throw new IllegalArgumentException("打包参数不合法");
+        }
         Map<String, RemoteFileEntry> selected = new LinkedHashMap<>();
         List<String> roots = paths.stream().map(RemoteFilePaths::normalize).distinct()
                 .sorted(Comparator.comparingInt(String::length)).toList();
         for (String root : roots) {
             boolean covered = selected.values().stream().anyMatch(entry -> entry.directory()
                     && (entry.path().equals("/") || root.startsWith(entry.path() + "/")));
-            if (covered) continue;
-            for (RemoteFileEntry entry : walk(client, root, maxEntries, maxDepth)) selected.putIfAbsent(entry.path(), entry);
-            if (selected.size() > maxEntries) throw new IOException("打包文件数量超过上限");
+            if (covered) {
+                continue;
+            }
+            for (RemoteFileEntry entry : walk(client, root, maxEntries, maxDepth)) {
+                selected.putIfAbsent(entry.path(), entry);
+            }
+            if (selected.size() > maxEntries) {
+                throw new IOException("打包文件数量超过上限");
+            }
         }
         long total = 0;
         for (RemoteFileEntry entry : selected.values()) {
             if (!entry.directory()) {
-                if (entry.size() < 0 || entry.size() > maxBytes - total) throw new IOException("打包文件大小超过上限");
+                if (entry.size() < 0 || entry.size() > maxBytes - total) {
+                    throw new IOException("打包文件大小超过上限");
+                }
                 total += entry.size();
             }
         }
@@ -84,10 +113,14 @@ public final class RemoteFileOperations {
         })) {
             long actual = 0;
             for (RemoteFileEntry entry : selected.values()) {
-                if (entry.path().equals("/")) continue;
+                if (entry.path().equals("/")) {
+                    continue;
+                }
                 String name = RemoteFilePaths.normalize(entry.path()).substring(1) + (entry.directory() ? "/" : "");
                 ZipEntry item = new ZipEntry(name);
-                if (entry.modifiedTime() > 0) item.setTime(entry.modifiedTime());
+                if (entry.modifiedTime() > 0) {
+                    item.setTime(entry.modifiedTime());
+                }
                 zip.putNextEntry(item);
                 if (!entry.directory()) {
                     CountingOutput count = new CountingOutput(zip);
@@ -117,7 +150,9 @@ public final class RemoteFileOperations {
 
     static void checkUploadTarget(RemoteFileClient client, String target, boolean overwrite) throws IOException {
         RemoteFileEntry existing = existing(client, target);
-        if (existing != null && (existing.directory() || !overwrite)) throw new IOException("目标名称已存在");
+        if (existing != null && (existing.directory() || !overwrite)) {
+            throw new IOException("目标名称已存在");
+        }
     }
 
     /** 原件先备份，提交失败尝试恢复；FTP 无跨外部客户端的原子 CAS，需限制并发写入主体。 */
@@ -133,7 +168,9 @@ public final class RemoteFileOperations {
         } catch (IOException failure) {
             if (backup != null) {
                 try {
-                    if (existing(client, target) != null) throw new IOException("目标已被其他写入占用");
+                    if (existing(client, target) != null) {
+                        throw new IOException("目标已被其他写入占用");
+                    }
                     client.rename(backup, target);
                 } catch (IOException restoreFailure) {
                     IOException incomplete = new IOException("上传提交失败，原件备份已保留，需检查远程目录");

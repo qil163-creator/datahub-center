@@ -22,11 +22,15 @@ public final class DorisModelingSchemaScript {
 
     public static SqlScriptPlan plan(String schema, String table, List<String> input) {
         relation(schema, table);
-        if (input == null || input.isEmpty() || input.size() > 500) throw invalid();
+        if (input == null || input.isEmpty() || input.size() > 500) {
+            throw invalid();
+        }
         List<SqlScriptPlan.Step> steps = new ArrayList<>();
         long size = 0;
         for (String sql : input) {
-            if (sql == null || (size += sql.length()) > 1_048_576) throw invalid();
+            if (sql == null || (size += sql.length()) > 1_048_576) {
+                throw invalid();
+            }
             var parser = new Parser(sql);
             String canonical;
             if (parser.takeWord("CREATE")) {
@@ -40,11 +44,15 @@ public final class DorisModelingSchemaScript {
                 target(parser, schema, table);
                 List<String> clauses = new ArrayList<>();
                 do {
-                    if (clauses.size() >= 2000) throw invalid();
+                    if (clauses.size() >= 2000) {
+                        throw invalid();
+                    }
                     clauses.add(clause(parser));
                 } while (parser.take(","));
                 parser.take(";");
-                if (!parser.end()) throw invalid();
+                if (!parser.end()) {
+                    throw invalid();
+                }
                 canonical = "ALTER TABLE " + relation(schema, table) + " " + String.join(", ", clauses);
             }
             steps.add(new SqlScriptPlan.Step(steps.size() + 1, canonical, SqlStatementClassifier.Kind.DDL));
@@ -54,9 +62,13 @@ public final class DorisModelingSchemaScript {
     }
 
     private static void target(Parser parser, String schema, String table) {
-        if (!Objects.equals(parser.identifier(), schema)) throw invalid();
+        if (!Objects.equals(parser.identifier(), schema)) {
+            throw invalid();
+        }
         parser.require(".");
-        if (!Objects.equals(parser.identifier(), table)) throw invalid();
+        if (!Objects.equals(parser.identifier(), table)) {
+            throw invalid();
+        }
     }
 
     private static String clause(Parser parser) {
@@ -64,18 +76,24 @@ public final class DorisModelingSchemaScript {
         boolean drop = !add && parser.takeWord("DROP");
         if (!add && !drop) {
             parser.word("MODIFY");
-            if (parser.takeWord("COMMENT")) return "MODIFY COMMENT " + literal(parser.string());
+            if (parser.takeWord("COMMENT")) {
+                return "MODIFY COMMENT " + literal(parser.string());
+            }
         }
         parser.word("COLUMN");
         String name = parser.identifier();
-        if (drop) return "DROP COLUMN " + quote(name);
+        if (drop) {
+            return "DROP COLUMN " + quote(name);
+        }
         if (!add && parser.takeWord("COMMENT")) {
             return "MODIFY COLUMN " + quote(name) + " COMMENT " + columnCommentLiteral(parser.string());
         }
         String type = parser.bare();
         if (parser.take("(")) {
             type += "(" + parser.number();
-            if (parser.take(",")) type += "," + parser.number();
+            if (parser.take(",")) {
+                type += "," + parser.number();
+            }
             parser.require(")");
             type += ")";
         }
@@ -88,9 +106,13 @@ public final class DorisModelingSchemaScript {
             nullable = true;
         }
         String defaultSql = null;
-        if (parser.takeWord("DEFAULT")) defaultSql = parser.takeWord("NULL") ? "NULL" : literal(parser.string());
+        if (parser.takeWord("DEFAULT")) {
+            defaultSql = parser.takeWord("NULL") ? "NULL" : literal(parser.string());
+        }
         String comment = "";
-        if (parser.takeWord("COMMENT")) comment = parser.string();
+        if (parser.takeWord("COMMENT")) {
+            comment = parser.string();
+        }
         var column = new Column(name, type, nullable, defaultSql, comment);
         return (add ? "ADD" : "MODIFY") + " COLUMN " + quote(column.name()) + " " + column.type()
                 + (nullable ? " NULL" : " NOT NULL") + (defaultSql == null ? "" : " DEFAULT " + defaultSql)
@@ -111,27 +133,48 @@ public final class DorisModelingSchemaScript {
         parser.word("TABLE");
         target(parser, schema, table);
         Table expected = parse(createSql);
-        if (!expected.model().equals(actual.model()) || !expected.keys().equals(actual.keys())
+        if (!expected.model().equals(actual.model())
+                || !expected.keys().equals(actual.keys())
                 || !expected.distribution().equals(actual.distribution())
                 || !Objects.equals(expected.partitioning(), actual.partitioning())
-                || !expected.indexes().equals(actual.indexes()) || !expected.comment().equals(actual.comment())
-                || expected.columns().size() != actual.columns().size()) return false;
+                || !expected.indexes().equals(actual.indexes())
+                || !expected.comment().equals(actual.comment())
+                || expected.columns().size() != actual.columns().size()) {
+            return false;
+        }
         for (int i = 0; i < expected.columns().size(); i++) {
             var desired = expected.columns().get(i);
             var observed = actual.columns().get(i);
-            if (!desired.name().equals(observed.name()) || !desired.type().equals(observed.type())
-                    || desired.nullable() != observed.nullable() || !desired.comment().equals(observed.comment())
+            if (!desired.name().equals(observed.name())
+                    || !desired.type().equals(observed.type())
+                    || desired.nullable() != observed.nullable()
+                    || !desired.comment().equals(observed.comment())
                     || !Objects.equals(desired.aggregation(), observed.aggregation())
-                    || !Objects.equals(defaultValue(desired.defaultSql()), defaultValue(observed.defaultSql()))) return false;
+                    || !Objects.equals(
+                            defaultValue(desired.defaultSql()),
+                            defaultValue(observed.defaultSql()))) {
+                return false;
+            }
         }
         boolean actualAuto = actual.buckets() == 0 || "true".equals(actual.properties().get("auto_bucket"));
-        if (expected.buckets() == 0 ? !actualAuto : actualAuto || expected.buckets() != actual.buckets()) return false;
+        if (expected.buckets() == 0
+                ? !actualAuto
+                : actualAuto || expected.buckets() != actual.buckets()) {
+            return false;
+        }
         String replicas = replicaAllocation(expected.properties());
-        if (replicas != null && !replicas.equals(replicaAllocation(actual.properties()))) return false;
+        if (replicas != null && !replicas.equals(replicaAllocation(actual.properties()))) {
+            return false;
+        }
         for (var property : expected.properties().entrySet()) {
-            if (property.getKey().equals("replication_num") || property.getKey().equals("replication_allocation")
-                    || property.getKey().equals("auto_bucket")) continue;
-            if (!property.getValue().equals(actual.properties().get(property.getKey()))) return false;
+            if (property.getKey().equals("replication_num")
+                    || property.getKey().equals("replication_allocation")
+                    || property.getKey().equals("auto_bucket")) {
+                continue;
+            }
+            if (!property.getValue().equals(actual.properties().get(property.getKey()))) {
+                return false;
+            }
         }
         // 序列列改变 Unique 表的更新顺序，不能作为服务端自动补充的普通属性忽略。
         return Objects.equals(expected.properties().get("function_column.sequence_col"),
@@ -147,9 +190,13 @@ public final class DorisModelingSchemaScript {
     private static String replicaAllocation(Map<String, String> properties) {
         String count = properties.get("replication_num"), allocation = properties.get("replication_allocation");
         if (count != null) {
-            if (!count.matches("[1-9][0-9]{0,4}")) throw invalid();
+            if (!count.matches("[1-9][0-9]{0,4}")) {
+                throw invalid();
+            }
             String normalized = "tag.location.default:" + Integer.parseInt(count);
-            if (allocation != null && !normalized.equals(allocation.replaceAll("\\s+", ""))) throw invalid();
+            if (allocation != null && !normalized.equals(allocation.replaceAll("\\s+", ""))) {
+                throw invalid();
+            }
             return normalized;
         }
         return allocation == null ? null : allocation.replaceAll("\\s+", "");
@@ -157,11 +204,15 @@ public final class DorisModelingSchemaScript {
 
     /** 当前表没有活动变更才返回；超时和中断保留外部执行未知状态供业务对账。 */
     public static void await(Connection connection, String schema, String table, int timeoutSeconds) throws SQLException {
-        if (timeoutSeconds < 1 || timeoutSeconds > 120) throw new IllegalArgumentException("Invalid schema timeout");
+        if (timeoutSeconds < 1 || timeoutSeconds > 120) {
+            throw new IllegalArgumentException("Invalid schema timeout");
+        }
         long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(timeoutSeconds);
         String query = "SHOW ALTER TABLE COLUMN FROM " + quote(schema) + " WHERE TableName = " + literal(table);
         while (true) {
-            if (Thread.currentThread().isInterrupted()) throw new SQLException("Doris schema confirmation interrupted");
+            if (Thread.currentThread().isInterrupted()) {
+                throw new SQLException("Doris schema confirmation interrupted");
+            }
             boolean active = false;
             // CreateTime 只有秒级展示精度；按最新一条历史记录不能证明其他任务已结束。
             for (String state : List.of("PENDING", "WAITING_TXN", "RUNNING")) {
@@ -179,8 +230,12 @@ public final class DorisModelingSchemaScript {
                     }
                 }
             }
-            if (!active) return;
-            if (System.nanoTime() >= deadline) throw new SQLTimeoutException("Doris schema change is not confirmed");
+            if (!active) {
+                return;
+            }
+            if (System.nanoTime() >= deadline) {
+                throw new SQLTimeoutException("Doris schema change is not confirmed");
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException interrupted) {

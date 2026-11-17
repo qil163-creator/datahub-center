@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_CONCURRENCY_LIMITED;
-import static cn.iocoder.yudao.module.foundation.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_CONCURRENCY_LIMITED;
+import static cn.iocoder.yudao.module.supply.enums.ErrorCodeConstants.DATA_API_EXECUTE_FAILED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;

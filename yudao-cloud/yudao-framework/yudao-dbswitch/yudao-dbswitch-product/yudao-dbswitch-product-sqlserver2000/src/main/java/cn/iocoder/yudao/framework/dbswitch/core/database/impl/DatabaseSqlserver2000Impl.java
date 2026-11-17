@@ -31,7 +31,9 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.TemporaryTableDiagnosticPlan temporaryTableDiagnosticPlan(
             String randomName) throws SQLException {
-        if (randomName==null || !randomName.matches("dbswitch_diag_[a-f0-9]{32}")) throw new IllegalArgumentException("组件生成的诊断临时表名不合法");
+        if (randomName == null || !randomName.matches("dbswitch_diag_[a-f0-9]{32}")) {
+            throw new IllegalArgumentException("组件生成的诊断临时表名不合法");
+        }
         String name="[#"+randomName+"]";
         return new cn.iocoder.yudao.framework.dbswitch.core.model.TemporaryTableDiagnosticPlan(
                 "CREATE TABLE "+name+" (probe_id INTEGER PRIMARY KEY,probe_value VARCHAR(40))",name,
@@ -44,9 +46,17 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
     @Override
     public cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic probeExtendedProperties(
             Connection connection, String namespace, String table, int timeoutSeconds) throws SQLException {
-        if (connection==null || namespace==null || namespace.isBlank() || table==null || table.isBlank()
-                || namespace.indexOf('\0')>=0 || table.indexOf('\0')>=0 || timeoutSeconds<1 || timeoutSeconds>60)
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || table == null
+                || table.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || table.indexOf('\0') >= 0
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
             throw new IllegalArgumentException("SQL Server 2000 诊断参数必须完整且有界");
+        }
         String sql="SELECT MAX(CASE WHEN tp.value IS NULL THEN 0 ELSE 1 END),COUNT(c.colid),"
                 + "SUM(CASE WHEN cp.value IS NULL THEN 0 ELSE 1 END) FROM sysobjects t JOIN sysusers u ON u.uid=t.uid "
                 + "LEFT JOIN syscolumns c ON c.id=t.id "
@@ -56,9 +66,19 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
         try (var statement=connection.prepareStatement(sql)) {
             statement.setString(1,namespace); statement.setString(2,table); statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows=statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server 2000 目标表不存在或不可见","42S02");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server 2000 目标表不存在或不可见", "42S02");
+                }
                 int tableComments=rows.getInt(1); int columns=rows.getInt(2); int comments=rows.getInt(3);
-                if (rows.wasNull() || columns<1 || comments<0 || comments>columns || tableComments<0 || tableComments>1 || rows.next()) throw new SQLException("SQL Server 2000 注释目录证据不完整或不唯一");
+                if (rows.wasNull()
+                        || columns < 1
+                        || comments < 0
+                        || comments > columns
+                        || tableComments < 0
+                        || tableComments > 1
+                        || rows.next()) {
+                    throw new SQLException("SQL Server 2000 注释目录证据不完整或不唯一");
+                }
                 return new cn.iocoder.yudao.framework.dbswitch.core.model.ExtendedPropertyDiagnostic(columns,tableComments==1,comments);
             }
         }
@@ -73,8 +93,12 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
         try (var statement = connection.prepareStatement(sql)) {
             statement.setString(1, namespace); statement.setMaxRows(2); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next()) throw new SQLException("SQL Server 2000 对象所有者不存在", "3F000");
-                if (!rows.getBoolean(1) || rows.wasNull()) throw new SQLException("SQL Server 2000 所有者对象范围不可访问", "42501");
+                if (!rows.next()) {
+                    throw new SQLException("SQL Server 2000 对象所有者不存在", "3F000");
+                }
+                if (!rows.getBoolean(1) || rows.wasNull()) {
+                    throw new SQLException("SQL Server 2000 所有者对象范围不可访问", "42501");
+                }
             }
         }
     }
@@ -86,7 +110,9 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
         try (var statement = connection.prepareStatement("SELECT USER_NAME(),COUNT(*) FROM sysprotects WHERE uid IN (USER_ID(),0)")) {
             statement.setQueryTimeout(timeoutSeconds); statement.setMaxRows(2);
             try (var rows = statement.executeQuery()) {
-                if (!rows.next() || rows.getString(1) == null) throw new SQLException("SQL Server 2000 账号授权目录证据缺失");
+                if (!rows.next() || rows.getString(1) == null) {
+                    throw new SQLException("SQL Server 2000 账号授权目录证据缺失");
+                }
             }
         }
     }
@@ -101,7 +127,9 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
             statement.setString(1, namespace); statement.setMaxRows(maxTables + 1); statement.setQueryTimeout(timeoutSeconds);
             try (var rows = statement.executeQuery()) {
                 while (rows.next()) {
-                    if (result.size() == maxTables) throw new SQLException("SQL Server 2000 目录超过上限，拒绝截断", "54000");
+                    if (result.size() == maxTables) {
+                        throw new SQLException("SQL Server 2000 目录超过上限，拒绝截断", "54000");
+                    }
                     var table = new TableDescription(); table.setSchemaName(namespace); table.setTableName(rows.getString(1)); table.setTableType("TABLE"); result.add(table);
                 }
             }
@@ -110,7 +138,16 @@ public class DatabaseSqlserver2000Impl extends DatabaseSqlserverImpl implements 
     }
 
     private static void diagnosticBounds(Connection connection, String namespace, int maxTables, int timeoutSeconds) {
-        if (connection == null || namespace == null || namespace.isBlank() || namespace.indexOf('\0') >= 0 || maxTables < 1 || maxTables > 10000 || timeoutSeconds < 1 || timeoutSeconds > 60) throw new IllegalArgumentException("SQL Server 2000 诊断参数必须完整且有界");
+        if (connection == null
+                || namespace == null
+                || namespace.isBlank()
+                || namespace.indexOf('\0') >= 0
+                || maxTables < 1
+                || maxTables > 10000
+                || timeoutSeconds < 1
+                || timeoutSeconds > 60) {
+            throw new IllegalArgumentException("SQL Server 2000 诊断参数必须完整且有界");
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.governance.service.master;
 
+import cn.iocoder.yudao.framework.common.util.concurrent.ThreadPoolUtils;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -63,7 +64,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -165,11 +165,7 @@ public class MasterDistributeExecutor {
             thread.setDaemon(true);
             return thread;
         }, new ThreadPoolExecutor.AbortPolicy());
-        heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "master-distribute-heartbeat");
-            thread.setDaemon(true);
-            return thread;
-        });
+        heartbeatExecutor = ThreadPoolUtils.newDaemonScheduler(1, "master-distribute-heartbeat");
         // 每个节点只维护本机句柄的租约；失联恢复由持久Job执行。
         heartbeatExecutor.scheduleWithFixedDelay(this::heartbeat, 5, 5, TimeUnit.SECONDS);
     }
