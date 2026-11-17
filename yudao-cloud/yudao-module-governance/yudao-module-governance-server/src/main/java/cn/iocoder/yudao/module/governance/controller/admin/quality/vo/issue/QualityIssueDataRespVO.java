@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality.vo.issue;
 
-import cn.idev.excel.annotation.ExcelIgnore;
-import cn.idev.excel.annotation.ExcelProperty;
+import org.apache.fesod.sheet.annotation.ExcelIgnore;
+import org.apache.fesod.sheet.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

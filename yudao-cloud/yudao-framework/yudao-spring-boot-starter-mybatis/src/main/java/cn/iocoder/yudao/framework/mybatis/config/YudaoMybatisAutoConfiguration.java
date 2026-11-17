@@ -1,16 +1,19 @@
 package cn.iocoder.yudao.framework.mybatis.config;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.handler.DefaultDBFieldHandler;
+import cn.iocoder.yudao.framework.mybatis.core.injector.YudaoSqlInjector;
+import cn.iocoder.yudao.framework.mybatis.core.interceptor.ForUpdateInnerInterceptor;
+import cn.iocoder.yudao.framework.mybatis.core.util.CaseInsensitiveResultMap;
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
-import com.baomidou.mybatisplus.core.handlers.IJsonTypeHandler;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
+import com.baomidou.mybatisplus.core.injector.ISqlInjector;
 import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import com.baomidou.mybatisplus.extension.incrementer.*;
 import com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal;
@@ -19,18 +22,22 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,12 +56,16 @@ public class YudaoMybatisAutoConfiguration {
                 (cache) -> cache.maximumSize(1024)
                         .expireAfterWrite(5, TimeUnit.SECONDS))
         );
+        // 特殊：Jackson3TypeHandler 先使用 JsonUtils 的 ObjectMapper（支持 LocalDateTime），避免使用 MyBatis Plus 默认的 ObjectMapper
+        Jackson3TypeHandler.setObjectMapper(JsonUtils.getObjectMapper());
     }
 
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
         mybatisPlusInterceptor.addInnerInterceptor(new PaginationInnerInterceptor()); // 分页插件
+        // 锁定读插件：需要位于末尾，在租户、数据权限、分页等插件改写 SQL 之后，改写 SQL Server 的行锁
+        mybatisPlusInterceptor.addInnerInterceptor(new ForUpdateInnerInterceptor());
         // ↓↓↓ 按需开启，可能会影响到 updateBatch 的地方：例如说文件配置管理 ↓↓↓
         // mybatisPlusInterceptor.addInnerInterceptor(new BlockAttackInnerInterceptor()); // 拦截没有指定条件的 update 和 delete 语句
         return mybatisPlusInterceptor;
@@ -88,12 +99,26 @@ public class YudaoMybatisAutoConfiguration {
     }
 
     @Bean
+    @Primary // 特殊：使用 @Primary 的原因，避免 MyBatis Plus Join 再创建 MPJSqlInjector 包装它
+    public ISqlInjector yudaoSqlInjector() {
+        return new YudaoSqlInjector(); // selectMaps 的结果行，使用 CaseInsensitiveResultMap
+    }
+
+    @Bean
+    public ConfigurationCustomizer caseInsensitiveResultMapConfigurationCustomizer() {
+        // 注册 CaseInsensitiveResultMap 的 resultMap，用于注解 SQL 的 @ResultMap
+        return configuration -> configuration.addResultMap(new ResultMap.Builder(configuration,
+                CaseInsensitiveResultMap.RESULT_MAP_ID, CaseInsensitiveResultMap.class, new ArrayList<>()).build());
+    }
+
+    @Bean
     @ConditionalOnProperty(prefix = "mybatis-plus.global-config.db-config", name = "id-type", havingValue = "INPUT")
     public IKeyGenerator keyGenerator(ConfigurableEnvironment environment) {
         DbType dbType = IdTypeEnvironmentPostProcessor.getDbType(environment);
         if (dbType != null) {
             switch (dbType) {
                 case POSTGRE_SQL:
+                case OSCAR: // 神通：与 PostgreSQL 相同，使用 nextval('序列名') 获取序列值
                     return new PostgreKeyGenerator();
                 case ORACLE:
                 case ORACLE_12C:
@@ -110,15 +135,11 @@ public class YudaoMybatisAutoConfiguration {
         throw new IllegalArgumentException(StrUtil.format("DbType{} 找不到合适的 IKeyGenerator 实现类", dbType));
     }
 
-    @Bean // 特殊：返回结果使用 Object 而不用 Jackson3TypeHandler 的原因，避免因为 Jackson3TypeHandler 被 mybatis 全局使用！
-    public Object jacksonTypeHandler(List<ObjectMapper> objectMappers) {
-        // 特殊：设置 Jackson3TypeHandler 的 ObjectMapper！
-        ObjectMapper objectMapper = CollUtil.getFirst(objectMappers);
-        if (objectMapper == null) {
-            objectMapper = JsonUtils.getObjectMapper();
-        }
-        Jackson3TypeHandler.setObjectMapper(objectMapper);
-        return new Jackson3TypeHandler(Object.class);
+    @Bean
+    public SmartInitializingSingleton jacksonTypeHandlerInitializer(ObjectProvider<ObjectMapper> objectMappers) {
+        // 特殊：所有单例初始化后，设置 Jackson3TypeHandler 的 ObjectMapper，优先唯一或 @Primary 的 ObjectMapper，否则使用 JsonUtils 的
+        // 原因：避免延迟初始化未设置、多个 ObjectMapper 时取到不支持 LocalDateTime 的，且不在创建 SqlSessionFactory 时获取 ObjectMapper。https://t.zsxq.com/KmPNU
+        return () -> Jackson3TypeHandler.setObjectMapper(objectMappers.getIfUnique(JsonUtils::getObjectMapper));
     }
 
 }

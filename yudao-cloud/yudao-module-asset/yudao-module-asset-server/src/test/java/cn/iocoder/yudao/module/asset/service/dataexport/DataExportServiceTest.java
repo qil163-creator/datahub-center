@@ -12,7 +12,7 @@ import cn.iocoder.yudao.module.bpm.api.event.BpmProcessInstanceStatusEvent;
 import cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi;
 import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewRespDTO;
-import cn.idev.excel.FastExcelFactory;
+import org.apache.fesod.sheet.FesodSheet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,7 +144,7 @@ class DataExportServiceTest {
         when(mapper.markDownloaded(eq(5L), eq(0), any(), anyInt())).thenReturn(1).thenReturn(0);
 
         DataExportService.ExportFile file = service.download(5L);
-        List<Map<Integer, String>> sheet = FastExcelFactory.read(new ByteArrayInputStream(file.content()))
+        List<Map<Integer, String>> sheet = FesodSheet.read(new ByteArrayInputStream(file.content()))
                 .headRowNumber(0).sheet().doReadSync();
         assertThat(sheet.getFirst().get(0)).contains("导出人：张三（9）", "申请编号：5");
         assertThat(sheet.get(1)).containsValues("id", "phone（已脱敏）");

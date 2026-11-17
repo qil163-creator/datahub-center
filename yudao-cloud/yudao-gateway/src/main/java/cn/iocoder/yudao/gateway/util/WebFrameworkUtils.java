@@ -30,13 +30,18 @@ public class WebFrameworkUtils {
 
     private WebFrameworkUtils() {}
 
+    /** UReport2 通过查询参数传递凭据，模板正文也可能包含数据源密码。 */
+    public static boolean isReportPath(String decodedPath) {
+        return decodedPath != null && decodedPath.startsWith("/ureport");
+    }
+
     /** 敏感入口只保留路径及异常位置，不记录任意凭据或异常回显的输入。 */
     public static boolean isSensitivePayloadPath(String decodedPath) {
         if (decodedPath == null) {
             return false;
         }
         String path = decodedPath.replaceAll(";[^/]*", "");
-        return path.contains("/system/auth/") || path.contains("/system/oauth2/")
+        return isReportPath(path) || path.contains("/system/auth/") || path.contains("/system/oauth2/")
                 || path.endsWith("/supply/app/create") || path.endsWith("/supply/app/reset-secret")
                 || path.endsWith("/supply/data-api/sign")
                 || path.contains("/supply/api-test/") || path.endsWith("/supply/api-test")

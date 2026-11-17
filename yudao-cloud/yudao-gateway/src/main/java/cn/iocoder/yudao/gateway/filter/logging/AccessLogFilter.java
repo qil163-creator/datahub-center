@@ -86,7 +86,11 @@ public class AccessLogFilter implements GlobalFilter, Ordered {
                 values.put("schema", gatewayLog.getSchema());
                 values.put("requestUrl", gatewayLog.getRequestUrl());
                 values.put("requestMethod", gatewayLog.getRequestMethod());
-                if (!isSensitivePath(exchange.getRequest().getURI().getPath())) {
+                String path = exchange.getRequest().getURI().getPath();
+                if (WebFrameworkUtils.isReportPath(path)) {
+                    // 报表模板可能包含连接凭据，只记录脱敏后的查询参数。
+                    values.put("queryParams", LogSanitizer.sanitizeQuery(exchange.getRequest().getQueryParams().toSingleValueMap(), null));
+                } else if (!isSensitivePath(path)) {
                     values.put("queryParams", LogSanitizer.sanitizeQuery(gatewayLog.getQueryParams().toSingleValueMap(), null));
                     values.put("requestBody", LogSanitizer.sanitizeTree(gatewayLog.getRequestBody(), null));
                     values.put("requestHeaders", LogSanitizer.sanitizeQuery(gatewayLog.getRequestHeaders().toSingleValueMap(), null));

@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.collect;
 
-import cn.idev.excel.annotation.ExcelProperty;
+import org.apache.fesod.sheet.annotation.ExcelProperty;
 import lombok.Data;
 
 /**

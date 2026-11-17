@@ -17,8 +17,8 @@ import cn.iocoder.yudao.module.bpm.api.event.BpmProcessInstanceStatusEvent;
 import cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi;
 import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceCreateReqDTO;
 import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
-import cn.idev.excel.FastExcelFactory;
-import cn.idev.excel.converters.longconverter.LongStringConverter;
+import org.apache.fesod.sheet.FesodSheet;
+import org.apache.fesod.sheet.converters.longconverter.LongStringConverter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -314,7 +314,7 @@ public class DataExportService {
             data.add(values);
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        FastExcelFactory.write(out).registerConverter(new LongStringConverter())
+        FesodSheet.write(out).registerConverter(new LongStringConverter())
                 .head(head).sheet("导出" + record.getId()).doWrite(data);
         return out.toByteArray();
     }

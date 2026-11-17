@@ -94,7 +94,7 @@ class AccessLogFilterSensitiveTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/supply/gateway/services/v1/orders", "/admin-api/dataforge/file-resource/preview"})
+    @ValueSource(strings = {"/supply/gateway/services/v1/orders", "/admin-api/dataforge/file-resource/preview", "/ureport/preview"})
     void gatewayRoutingExceptionsOmitQueryAndExceptionEchoedSecrets(String path) {
         Logger logger = (Logger) LoggerFactory.getLogger(cn.iocoder.yudao.gateway.handler.GlobalExceptionHandler.class);
         ListAppender<ILoggingEvent> captured = new ListAppender<>();

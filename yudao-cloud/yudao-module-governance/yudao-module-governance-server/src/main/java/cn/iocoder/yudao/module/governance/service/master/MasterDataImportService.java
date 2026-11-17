@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.governance.service.master;
 
-import cn.idev.excel.enums.CellDataTypeEnum;
-import cn.idev.excel.metadata.data.ReadCellData;
+import org.apache.fesod.sheet.enums.CellDataTypeEnum;
+import org.apache.fesod.sheet.metadata.data.ReadCellData;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.dbswitch.core.model.ColumnMetaData;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
