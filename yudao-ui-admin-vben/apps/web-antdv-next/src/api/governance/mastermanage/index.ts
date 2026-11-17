@@ -208,6 +208,20 @@ export function getMasterChangeLogPage(
     { params },
   );
 }
+export function downloadMasterImportTemplate(modelId: GovernanceMasterManageApi.Id) {
+  return requestClient.download('/governance/master-data/import-template', {
+    params: { modelId },
+  });
+}
+
+export function importMasterData(modelId: GovernanceMasterManageApi.Id, requestId: string, file: File) {
+  return requestClient.upload<GovernanceMasterManageApi.SubmitReceipt>(
+    '/governance/master-data/import',
+    { modelId, requestId, file },
+    { silentError: true },
+  );
+}
+
 export function submitMasterData(data: GovernanceMasterManageApi.SubmitReq) {
   return requestClient.post<GovernanceMasterManageApi.SubmitReceipt>(
     '/governance/master-data/submit',

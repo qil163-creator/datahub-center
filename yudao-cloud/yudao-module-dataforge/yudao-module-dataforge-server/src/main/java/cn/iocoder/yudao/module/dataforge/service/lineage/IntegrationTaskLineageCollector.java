@@ -51,10 +51,10 @@ public class IntegrationTaskLineageCollector implements LineageSourceCollector {
      * 有界扫描待上报的集成任务。
      */
     @Override
-    public List<LineageMarkerRow> pending(int limit) {
-        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectIntegrationPending(analyzerVersion(), limit));
+    public List<LineageMarkerRow> pending(int limit, Long sourceId) {
+        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectIntegrationPending(analyzerVersion(), limit, sourceId));
         if (rows.size() < limit) {
-            rows.addAll(markerMapper.selectIntegrationRemoved(limit - rows.size()));
+            rows.addAll(markerMapper.selectIntegrationRemoved(limit - rows.size(), sourceId));
         }
         return rows;
     }

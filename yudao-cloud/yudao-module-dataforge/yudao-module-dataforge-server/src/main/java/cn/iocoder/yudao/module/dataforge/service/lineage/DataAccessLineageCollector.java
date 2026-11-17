@@ -71,10 +71,10 @@ public class DataAccessLineageCollector implements LineageSourceCollector {
      * 有界扫描待上报的数据同步任务。
      */
     @Override
-    public List<LineageMarkerRow> pending(int limit) {
-        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectDataAccessPending(analyzerVersion(), limit));
+    public List<LineageMarkerRow> pending(int limit, Long sourceId) {
+        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectDataAccessPending(analyzerVersion(), limit, sourceId));
         if (rows.size() < limit) {
-            rows.addAll(markerMapper.selectDataAccessRemoved(limit - rows.size()));
+            rows.addAll(markerMapper.selectDataAccessRemoved(limit - rows.size(), sourceId));
         }
         return rows;
     }

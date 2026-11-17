@@ -2,7 +2,7 @@ package cn.iocoder.yudao.module.dataforge.service.lineage;
 
 import cn.iocoder.yudao.framework.dbswitch.core.lineage.LineageCatalog;
 import cn.iocoder.yudao.framework.dbswitch.core.lineage.LineageTable;
-import cn.iocoder.yudao.module.governance.api.metadata.MetadataApi;
+import cn.iocoder.yudao.module.governance.api.lineage.LineageApi;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsBatchReqDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsRespDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableKeyDTO;
@@ -30,7 +30,7 @@ import java.util.Optional;
 public class LineageCatalogProvider {
 
     @Resource
-    private MetadataApi metadataApi;
+    private LineageApi lineageApi;
 
     /** 预取结果：可用的表结构与是否读取失败。 */
     public record Prefetched(LineageCatalog catalog, boolean failed) {
@@ -58,7 +58,7 @@ public class LineageCatalogProvider {
                 req.getTables().add(key);
             }
             try {
-                List<MetadataTableColumnsRespDTO> resp = metadataApi.getColumnNamesBatch(req).getCheckedData();
+                List<MetadataTableColumnsRespDTO> resp = lineageApi.getColumnNamesBatch(req).getCheckedData();
                 for (int i = 0; i < Math.min(resp.size(), chunk.size()); i++) {
                     MetadataTableColumnsRespDTO item = resp.get(i);
                     if (Boolean.TRUE.equals(item.getFound()) && item.getColumnNames() != null

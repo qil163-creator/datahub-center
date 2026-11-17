@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.bpm.framework.rpc.config;
 
+import cn.iocoder.yudao.module.asset.api.dataexport.DataExportStatusApi;
 import cn.iocoder.yudao.module.bpm.api.event.CrmContractStatusListener;
 import cn.iocoder.yudao.module.bpm.api.event.CrmReceivableStatusListener;
 import cn.iocoder.yudao.module.bpm.api.event.DataforgeFillStatusListener;
@@ -31,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(value = "bpmRpcConfiguration", proxyBeanMethods = false)
 @EnableFeignClients(clients = {RoleApi.class, DeptApi.class, PostApi.class, AdminUserApi.class, SmsSendApi.class, DictDataApi.class,
-        PermissionApi.class})
+        PermissionApi.class, DataExportStatusApi.class})
 public class RpcConfiguration {
 
     // ========== 特殊：解决微 yudao-cloud 微服务场景下，跨服务（进程）无法 Listener 的问题 ==========

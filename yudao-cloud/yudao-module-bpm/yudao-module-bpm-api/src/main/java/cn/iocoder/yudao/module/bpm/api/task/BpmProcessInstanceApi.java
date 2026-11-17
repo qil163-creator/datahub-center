@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.Set;
+import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
 
 @FeignClient(name = ApiConstants.NAME) // TODO 芋艿：fallbackFactory =
 @Tag(name = "RPC 服务 - 流程实例")
@@ -58,5 +63,11 @@ public interface BpmProcessInstanceApi {
             description = "返回 BpmProcessInstanceStatusEnum 的状态值；实例不存在返回 null")
     CommonResult<Integer> getProcessInstanceStatus(
             @RequestParam("processInstanceId") String processInstanceId);
+
+    @PostMapping(PREFIX + "/completed-results")
+    @Operation(summary = "按定义和指定实例查询终态回执")
+    CommonResult<List<BpmProcessInstanceResultRespDTO>> getCompletedResults(
+            @RequestParam("processDefinitionKey") String processDefinitionKey,
+            @RequestBody @NotEmpty @Size(max = 200) Set<String> instanceIds);
 
 }

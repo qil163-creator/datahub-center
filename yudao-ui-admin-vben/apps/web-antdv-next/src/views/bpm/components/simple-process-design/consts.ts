@@ -162,6 +162,8 @@ export enum AssignStartUserHandlerType {
    * 转交给部门负责人审批
    */
   ASSIGN_DEPT_LEADER = 3,
+  /** 排除发起人，剩余候选人为空时按节点配置处理。 */
+  EXCLUDE_START_USER = 4,
 }
 
 // 时间单位枚举
@@ -739,6 +741,7 @@ export const ASSIGN_START_USER_HANDLER_TYPES: DictDataType[] = [
   { label: '由发起人对自己审批', value: 1 },
   { label: '自动跳过', value: 2 },
   { label: '转交给部门负责人审批', value: 3 },
+  { label: '排除发起人，由其他候选人审批', value: 4 },
 ];
 
 // 比较运算符

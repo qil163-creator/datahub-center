@@ -3,6 +3,12 @@ package cn.iocoder.yudao.framework.excel.core.util;
 import cn.idev.excel.FastExcelFactory;
 import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.converters.longconverter.LongStringConverter;
+import cn.idev.excel.enums.ReadDefaultReturnEnum;
+import cn.idev.excel.metadata.data.ReadCellData;
+import cn.idev.excel.support.ExcelTypeEnum;
+import cn.idev.excel.write.handler.SheetWriteHandler;
+import cn.idev.excel.write.metadata.holder.WriteSheetHolder;
+import cn.idev.excel.write.metadata.holder.WriteWorkbookHolder;
 import cn.idev.excel.read.listener.ReadListener;
 import cn.iocoder.yudao.framework.common.util.http.HttpUtils;
 import cn.iocoder.yudao.framework.excel.core.handler.ColumnWidthMatchStyleStrategy;
@@ -66,6 +72,25 @@ public class ExcelUtils {
                 .registerWriteHandler(new ColumnWidthMatchStyleStrategy()) // 基于 column 长度，自动适配。最大 255 宽度
                 .registerConverter(new LongStringConverter()) // 避免 Long 类型丢失精度
                 .head(head).sheet(sheetName).doWrite(data);
+    }
+
+    /** 生成动态文本模板，避免 Excel 在录入编号和精确数值时自动转换格式。 */
+    public static void writeTextTemplate(HttpServletResponse response, String filename, String sheetName,
+            List<String> fields) throws IOException {
+        prepareDownload(response, filename);
+        FastExcelFactory.write(response.getOutputStream()).autoCloseStream(false)
+                .head(fields.stream().map(List::of).toList())
+                .registerWriteHandler(new SheetWriteHandler() {
+                    @Override
+                    public void afterSheetCreate(WriteWorkbookHolder workbook, WriteSheetHolder sheet) {
+                        var style = workbook.getWorkbook().createCellStyle();
+                        style.setDataFormat(workbook.getWorkbook().createDataFormat().getFormat("@"));
+                        for (int i = 0; i < fields.size(); i++) {
+                            sheet.getSheet().setDefaultColumnStyle(i, style);
+                            sheet.getSheet().setColumnWidth(i, Math.min(255, Math.max(fields.get(i).length() + 3, 18)) * 256);
+                        }
+                    }
+                }).sheet(sheetName).doWrite(List.of());
     }
 
     private static void prepareDownload(HttpServletResponse response, String filename) {
@@ -146,4 +171,33 @@ public class ExcelUtils {
         }
     }
 
+    /** 第一张工作表的原始行，保留单元格类型、精确数值、实际行号和日期基准。 */
+    public record RawRow(int number, Map<Integer, ReadCellData<?>> cells, boolean date1904) {}
+
+    /** 流式读取首张 XLSX 工作表，表头计入行数；多读一行可用于识别超出限额的工作簿。 */
+    public static List<RawRow> readXlsxRows(MultipartFile file, int limit) throws IOException {
+        if (limit < 1) {
+            throw new IllegalArgumentException("读取行数必须大于零");
+        }
+        List<RawRow> rows = new ArrayList<>(Math.min(limit, 256));
+        try (InputStream stream = file.getInputStream()) {
+            FastExcelFactory.read(stream, new ReadListener<Map<Integer, ReadCellData<?>>>() {
+                @Override
+                public void invoke(Map<Integer, ReadCellData<?>> cells, AnalysisContext context) {
+                    rows.add(new RawRow(context.readRowHolder().getRowIndex() + 1, cells,
+                            Boolean.TRUE.equals(context.readWorkbookHolder().getGlobalConfiguration().getUse1904windowing())));
+                }
+
+                @Override
+                public void doAfterAllAnalysed(AnalysisContext context) { }
+
+                @Override
+                public boolean hasNext(AnalysisContext context) {
+                    return rows.size() < limit;
+                }
+            }).excelType(ExcelTypeEnum.XLSX).readDefaultReturn(ReadDefaultReturnEnum.READ_CELL_DATA)
+                    .autoCloseStream(false).autoTrim(false).headRowNumber(0).sheet().doRead();
+        }
+        return rows;
+    }
 }

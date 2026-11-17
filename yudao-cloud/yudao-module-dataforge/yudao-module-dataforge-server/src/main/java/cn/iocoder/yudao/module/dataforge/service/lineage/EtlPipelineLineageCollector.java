@@ -52,10 +52,10 @@ public class EtlPipelineLineageCollector implements LineageSourceCollector {
      * 有界扫描待上报的流程。
      */
     @Override
-    public List<LineageMarkerRow> pending(int limit) {
-        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectEtlPipelinePending(analyzerVersion(), limit));
+    public List<LineageMarkerRow> pending(int limit, Long sourceId) {
+        List<LineageMarkerRow> rows = new ArrayList<>(markerMapper.selectEtlPipelinePending(analyzerVersion(), limit, sourceId));
         if (rows.size() < limit) {
-            rows.addAll(markerMapper.selectEtlPipelineRemoved(limit - rows.size()));
+            rows.addAll(markerMapper.selectEtlPipelineRemoved(limit - rows.size(), sourceId));
         }
         return rows;
     }

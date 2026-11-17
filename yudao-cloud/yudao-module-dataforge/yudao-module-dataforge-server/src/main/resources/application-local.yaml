@@ -5,6 +5,7 @@ spring:
       - optional:file:${user.home}/.local/share/datahub/published-query-tls/dataforge.properties
       - optional:file:${user.home}/.local/share/datahub/metadata-collection-tls/dataforge.properties
       - optional:file:${user.home}/.local/share/datahub/published-write-claim-tls/dataforge-claim.properties
+      - optional:file:${user.home}/.local/share/datahub/lineage-report-tls/dataforge-lineage.properties
   cloud:
     nacos:
       server-addr: 152.136.224.218:8848 # Nacos 服务器地址

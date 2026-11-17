@@ -2,6 +2,10 @@ package cn.iocoder.yudao.module.governance.service.metadata;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsBatchReqDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsRespDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableKeyDTO;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaColumnDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaDbDO;
@@ -24,6 +28,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 /**
  * 按 (数据源, schema, 表名) 定位当前有效的元数据表，供血缘关联元数据与 dataforge 展开 {@code SELECT *} 共用。
@@ -56,6 +62,38 @@ public class MetaTableKeyResolver {
      */
     public record TableMatch(Long tableId, Long dbId, Long datasourceId, String schemaName, String dbName,
                              String tableName, String businessName) {
+    }
+
+    /** 按输入顺序返回已采集字段；未找到的表也保留原位置。 */
+    public List<MetadataTableColumnsRespDTO> getColumnNamesBatch(MetadataTableColumnsBatchReqDTO req) {
+        List<MetadataTableKeyDTO> tables = req == null || req.getTables() == null ? List.of() : req.getTables();
+        if (tables.size() > MetadataTableColumnsBatchReqDTO.MAX_TABLES) {
+            throw exception(GlobalErrorCodeConstants.BAD_REQUEST);
+        }
+        List<TableKey> keys = tables.stream()
+                .map(table -> table == null ? null : new TableKey(
+                        table.getDatasourceId(), table.getSchemaName(), table.getTableName()))
+                .toList();
+        Map<TableKey, TableMatch> matches =
+                resolve(keys.stream().filter(Objects::nonNull).toList());
+        Map<Long, List<String>> columns = loadColumnNames(
+                matches.values().stream().map(TableMatch::tableId).toList());
+        List<MetadataTableColumnsRespDTO> result = new ArrayList<>(tables.size());
+        for (int i = 0; i < tables.size(); i++) {
+            MetadataTableKeyDTO table = tables.get(i);
+            MetadataTableColumnsRespDTO row = new MetadataTableColumnsRespDTO();
+            TableMatch match = keys.get(i) == null ? null : matches.get(keys.get(i));
+            if (table != null) {
+                row.setDatasourceId(table.getDatasourceId());
+                row.setSchemaName(table.getSchemaName());
+                row.setTableName(table.getTableName());
+            }
+            row.setFound(match != null);
+            row.setColumnNames(match == null ? new ArrayList<>()
+                    : new ArrayList<>(columns.getOrDefault(match.tableId(), List.of())));
+            result.add(row);
+        }
+        return result;
     }
 
     /**

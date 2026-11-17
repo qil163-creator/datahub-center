@@ -113,6 +113,23 @@ python3 workbench_tls_server.py start
 
 脚本只操作 PID 记录中、当前用户所属且主类和精确配置路径均匹配的 Asset 进程；新 PID 记录还核对启动时间，防止停止复用 PID 的其他进程。启动输出仅表示子进程已创建，需等待 `runtime/sync-tls/asset-console.log` 出现 `Started` 后使用页面。此本机辅助通道不替代常驻部署的证书配置。
 
+## 血缘上报与本地治理验证
+
+已有资产术语的 Governance 本地监听器时，在 `yudao-cloud` 目录执行：
+
+```sh
+python3 deploy/prepare_local_rpc_tls.py \
+  --directory "$HOME/.local/share/datahub/lineage-report-tls" \
+  --share-server-with "$HOME/.local/share/datahub/asset-term-tls" --trusted-client asset \
+  --server governance --client dataforge-lineage --port 50044 --context lineageReportApi \
+  --bundle-property yudao.governance.lineage-report.client.ssl-bundle \
+  --peer-property yudao.governance.lineage-report.rpc.peers.dataforge
+```
+
+脚本保留 Governance 服务端证书和既有 Asset 客户端信任，为 DataForge 单独签发证书。重启 Governance 和 DataForge 后，在 XXL 使用 `dataforge-server` 执行器新建或选择 `lineageReportJob`。执行一次时填写 `DEV_TASK:<任务编号>`，只同步该任务的待上报变化。在数据治理的血缘图搜索上游表，在「仅下游」和「影响分析」中核对目标表与任务来源。
+
+在部署环境中配置 Governance HTTPS 服务地址、双方 SSL bundle、服务端客户端证书验证和 DataForge 叶证书指纹。固定 Feign 地址使用 `spring.cloud.openfeign.client.config.lineageReportApi.url`，客户端 bundle 与服务端指纹属性见上述命令。缺少证书配置时，任务保留标记，等待后续重试。
+
 ## 停止与恢复
 
 ```sh

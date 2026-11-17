@@ -254,6 +254,15 @@ public class BpmTaskCandidateInvokerTest extends BaseMockitoUnitTest {
     }
 
     @Test
+    public void independentApprovalExcludesApplicantEvenFromFallback() {
+        UserTask node = mock(UserTask.class);
+        mockFlowElementExtensionElement(node, BpmnModelConstants.USER_TASK_ASSIGN_START_USER_HANDLER_TYPE, "4");
+        assertEquals(Set.of(2L), taskCandidateInvoker.resolveCandidates(Set.of(1L, 2L), node, 1L, Set::of));
+        assertEquals(Set.of(3L), taskCandidateInvoker.resolveCandidates(Set.of(1L), node, 1L, () -> Set.of(1L, 3L)));
+        assertEquals(Set.of(), taskCandidateInvoker.resolveCandidates(Set.of(1L), node, 1L, Set::of));
+    }
+
+    @Test
     public void testRemoveDisableUsers() {
         // 准备参数. 1L 可以找到；2L 是禁用的；3L 找不到
         Set<Long> assigneeUserIds = asSet(1L, 2L, 3L);

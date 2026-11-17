@@ -36,6 +36,7 @@ import { fieldTypePlaceholder } from '../../masterdata/data';
 import DataFilter from './data-filter.vue';
 
 const props = defineProps<{ model: GovernanceMasterDataApi.Model }>();
+const emit = defineEmits<{ importModel: [model: GovernanceMasterDataApi.Model] }>();
 const router = useRouter();
 const columns = computed(() => props.model.columns ?? []);
 const canWrite = computed(() => props.model.maintenanceSupported === true);
@@ -315,6 +316,7 @@ watch(
   },
   { immediate: true },
 );
+defineExpose({ refresh: load });
 function pageChange(page: number, size: number) {
   pagination.pageNo = page;
   pagination.pageSize = size;
@@ -390,9 +392,9 @@ function pageChange(page: number, size: number) {
                 },
               ]"
             />
-            <Tooltip title="参考功能尚未开放">
-              <span><Button disabled><IconifyIcon icon="lucide:upload" />导入</Button></span>
-            </Tooltip>
+            <Button v-access:code="'governance:master-data:create'" :disabled="!canWrite" @click="emit('importModel', model)">
+              <IconifyIcon icon="lucide:upload" />导入
+            </Button>
             <Tooltip title="参考功能尚未开放">
               <span><Button disabled><IconifyIcon icon="lucide:search-check" />查重</Button></span>
             </Tooltip>

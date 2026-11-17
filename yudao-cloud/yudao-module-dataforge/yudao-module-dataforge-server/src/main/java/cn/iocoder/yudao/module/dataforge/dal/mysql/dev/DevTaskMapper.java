@@ -135,10 +135,10 @@ public interface DevTaskMapper extends BaseMapperX<DevTaskDO> {
             + "lineage_report_key, FALSE AS removed FROM dh_dataforge_dev_task "
             + "WHERE deleted = 0 AND current_version_id IS NOT NULL "
             + "AND (lineage_report_key IS NULL OR lineage_report_key <> CONCAT(current_version_id, ':', #{analyzerVersion})) "
-            + "ORDER BY id LIMIT #{limit}")
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
     List<cn.iocoder.yudao.module.dataforge.service.lineage.LineageMarkerRow> selectLineagePending(
             @org.apache.ibatis.annotations.Param("analyzerVersion") int analyzerVersion,
-            @org.apache.ibatis.annotations.Param("limit") int limit);
+            @org.apache.ibatis.annotations.Param("limit") int limit, @org.apache.ibatis.annotations.Param("sourceId") Long sourceId);
 
     /**
      * 有界扫描已删除但仍保留上报标记的开发任务，用于上报 REMOVED。
@@ -149,9 +149,10 @@ public interface DevTaskMapper extends BaseMapperX<DevTaskDO> {
     @com.baomidou.mybatisplus.annotation.InterceptorIgnore(dataPermission = "true")
     @org.apache.ibatis.annotations.Select("SELECT id, name AS source_name, current_version_id AS source_revision, "
             + "lineage_report_key, TRUE AS removed FROM dh_dataforge_dev_task "
-            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL ORDER BY id LIMIT #{limit}")
+            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL "
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
     List<cn.iocoder.yudao.module.dataforge.service.lineage.LineageMarkerRow> selectLineageRemoved(
-            @org.apache.ibatis.annotations.Param("limit") int limit);
+            @org.apache.ibatis.annotations.Param("limit") int limit, @org.apache.ibatis.annotations.Param("sourceId") Long sourceId);
 
     /**
      * 按旧标记 CAS 更新血缘上报标记；只改这一列，不触碰修订号、更新时间与逻辑删除状态。

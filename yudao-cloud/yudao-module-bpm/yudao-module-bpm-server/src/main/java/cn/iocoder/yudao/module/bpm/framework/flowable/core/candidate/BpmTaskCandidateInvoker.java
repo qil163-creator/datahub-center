@@ -23,6 +23,7 @@ import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.runtime.ProcessInstance;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.bpm.enums.ErrorCodeConstants.MODEL_DEPLOY_FAIL_TASK_CANDIDATE_NOT_CONFIG;
@@ -109,19 +110,12 @@ public class BpmTaskCandidateInvoker {
             // 1.2 移除被禁用的用户
             removeDisableUsers(userIds);
 
-            // 2. 候选人为空时，根据“审批人为空”的配置补充
-            if (CollUtil.isEmpty(userIds)) {
-                userIds = getCandidateStrategy(BpmTaskCandidateStrategyEnum.ASSIGN_EMPTY.getStrategy())
-                        .calculateUsersByTask(execution, param);
-                // ASSIGN_EMPTY 策略，不需要移除被禁用的用户。原因是，再移除，可能会出现更没审批人了！！！
-            }
-
-            // 3. 移除发起人的用户
             ProcessInstance processInstance = SpringUtil.getBean(BpmProcessInstanceService.class)
                     .getProcessInstance(execution.getProcessInstanceId());
             Assert.notNull(processInstance, "流程实例({}) 不存在", execution.getProcessInstanceId());
-            removeStartUserIfSkip(userIds, flowElement, Long.valueOf(processInstance.getStartUserId()));
-            return userIds;
+            return resolveCandidates(userIds, flowElement, Long.valueOf(processInstance.getStartUserId()),
+                    () -> getCandidateStrategy(BpmTaskCandidateStrategyEnum.ASSIGN_EMPTY.getStrategy())
+                            .calculateUsersByTask(execution, param));
         });
     }
 
@@ -149,16 +143,33 @@ public class BpmTaskCandidateInvoker {
         // 1.2 移除被禁用的用户
         removeDisableUsers(userIds);
 
-        // 2. 候选人为空时，根据“审批人为空”的配置补充
-        if (CollUtil.isEmpty(userIds)) {
-            userIds = getCandidateStrategy(BpmTaskCandidateStrategyEnum.ASSIGN_EMPTY.getStrategy())
-                    .calculateUsersByActivity(bpmnModel, activityId, param, startUserId, processDefinitionId, processVariables);
-            // ASSIGN_EMPTY 策略，不需要移除被禁用的用户。原因是，再移除，可能会出现更没审批人了！！！
-        }
+        return resolveCandidates(userIds, flowElement, startUserId,
+                () -> getCandidateStrategy(BpmTaskCandidateStrategyEnum.ASSIGN_EMPTY.getStrategy())
+                        .calculateUsersByActivity(bpmnModel, activityId, param, startUserId, processDefinitionId, processVariables));
+    }
 
-        // 3. 移除发起人的用户
-        removeStartUserIfSkip(userIds, flowElement, startUserId);
-        return userIds;
+    /** 预览和实际任务按相同顺序执行独立审批、空候选人和跳过策略。 */
+    @VisibleForTesting
+    Set<Long> resolveCandidates(Set<Long> candidates, FlowElement node, Long startUserId, Supplier<Set<Long>> fallback) {
+        boolean exclude = Objects.equals(BpmnModelUtils.parseAssignStartUserHandlerType(node),
+                BpmUserTaskAssignStartUserHandlerTypeEnum.EXCLUDE_START_USER.getType());
+        if (exclude) {
+            candidates = withoutApplicant(candidates, startUserId);
+        }
+        if (CollUtil.isEmpty(candidates)) {
+            candidates = fallback.get();
+            if (exclude) {
+                candidates = withoutApplicant(candidates, startUserId);
+            }
+        }
+        removeStartUserIfSkip(candidates, node, startUserId);
+        return candidates;
+    }
+
+    private Set<Long> withoutApplicant(Set<Long> candidates, Long startUserId) {
+        Set<Long> eligible = new LinkedHashSet<>(CollUtil.emptyIfNull(candidates));
+        eligible.remove(startUserId);
+        return eligible;
     }
 
     @VisibleForTesting

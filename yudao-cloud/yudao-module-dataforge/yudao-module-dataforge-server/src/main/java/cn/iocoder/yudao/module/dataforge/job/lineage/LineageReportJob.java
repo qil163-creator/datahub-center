@@ -23,6 +23,20 @@ public class LineageReportJob {
      */
     @XxlJob("lineageReportJob")
     public void execute() {
-        XxlJobHelper.handleSuccess(reportService.reportPending(LineageReportService.DEFAULT_BATCH));
+        String parameter = XxlJobHelper.getJobParam();
+        if (parameter == null || parameter.isBlank()) {
+            XxlJobHelper.handleSuccess(reportService.reportPending(LineageReportService.DEFAULT_BATCH));
+            return;
+        }
+        String[] target = parameter.trim().split(":", -1);
+        if (target.length != 2 || !target[1].matches("[1-9][0-9]*")) {
+            XxlJobHelper.handleFail("请使用 来源类型:正整数编号，例如 DEV_TASK:123");
+            return;
+        }
+        try {
+            XxlJobHelper.handleSuccess(reportService.reportSource(target[0], Long.parseLong(target[1])));
+        } catch (IllegalArgumentException invalid) {
+            XxlJobHelper.handleFail("无效的血缘来源类型或编号");
+        }
     }
 }

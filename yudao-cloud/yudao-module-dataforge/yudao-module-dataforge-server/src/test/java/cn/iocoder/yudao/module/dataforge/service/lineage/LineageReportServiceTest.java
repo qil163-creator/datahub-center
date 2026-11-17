@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,6 +43,33 @@ class LineageReportServiceTest extends BaseMockitoUnitTest {
     }
 
     @Test
+    void manualRetryOnlyReadsTheSpecifiedSource() {
+        LineageSourceCollector other = org.mockito.Mockito.mock(LineageSourceCollector.class);
+        when(other.sourceType()).thenReturn("DATA_ACCESS");
+        when(collector.sourceType()).thenReturn("DEV_TASK");
+        ReflectionTestUtils.setField(service, "collectors", List.of(other, collector));
+        LineageMarkerRow row = row(false, null);
+        when(collector.pending(1, 3L)).thenReturn(List.of(row));
+        when(collector.build(row)).thenReturn(report(2L));
+        when(lineageApi.report(any())).thenReturn(CommonResult.success(resp("ACCEPTED")));
+        service.reportSource("DEV_TASK", 3L);
+        verify(collector).mark(row, "2:101");
+        verify(other, never()).pending(org.mockito.ArgumentMatchers.anyInt(), any());
+        assertThrows(IllegalArgumentException.class, () -> service.reportSource("UNKNOWN", 3L));
+    }
+
+    @Test
+    void manualRetryPropagatesRpcFailureWithoutMarkingTheSource() {
+        when(collector.sourceType()).thenReturn("DEV_TASK");
+        LineageMarkerRow row = row(false, null);
+        when(collector.pending(1, 3L)).thenReturn(List.of(row));
+        when(collector.build(row)).thenReturn(report(2L));
+        when(lineageApi.report(any())).thenThrow(new IllegalStateException("timeout"));
+        assertThrows(IllegalStateException.class, () -> service.reportSource("DEV_TASK", 3L));
+        verify(collector, never()).mark(any(), any());
+    }
+
+    @Test
     void acceptedReportUpdatesMarkerWithRevisionAndAnalyzerVersion() {
         LineageMarkerRow row = row(false, "1:101");
         when(collector.build(row)).thenReturn(report(2L));
@@ -58,6 +86,16 @@ class LineageReportServiceTest extends BaseMockitoUnitTest {
         when(lineageApi.report(any())).thenThrow(new IllegalStateException("connect timed out"));
         assertFalse(service.reportOne(collector, row));
         verify(collector, never()).mark(any(), anyString());
+    }
+
+    @Test
+    void authorizationFailureIsRetriedWithoutReplacingTheReport() {
+        LineageMarkerRow row = row(false, null);
+        when(collector.build(row)).thenReturn(report(2L));
+        when(lineageApi.report(any())).thenReturn(CommonResult.error(401, "生产者身份无效"));
+        assertFalse(service.reportOne(collector, row));
+        verify(lineageApi, times(1)).report(any());
+        verify(collector, never()).mark(any(), any());
     }
 
     @Test

@@ -29,9 +29,9 @@ public interface LineageMarkerMapper {
             + "FALSE AS removed FROM dh_dataforge_etl_pipeline "
             + "WHERE deleted = 0 AND published_revision IS NOT NULL AND published_config_json IS NOT NULL "
             + "AND (lineage_report_key IS NULL OR lineage_report_key <> CONCAT(published_revision, ':', #{analyzerVersion})) "
-            + "ORDER BY id LIMIT #{limit}")
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
     List<LineageMarkerRow> selectEtlPipelinePending(@Param("analyzerVersion") int analyzerVersion,
-                                                    @Param("limit") int limit);
+                                                    @Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 已删除但仍有标记的流程。
@@ -39,8 +39,9 @@ public interface LineageMarkerMapper {
     @InterceptorIgnore(dataPermission = "true")
     @Select("SELECT id, name AS source_name, published_revision AS source_revision, lineage_report_key, "
             + "TRUE AS removed FROM dh_dataforge_etl_pipeline "
-            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL ORDER BY id LIMIT #{limit}")
-    List<LineageMarkerRow> selectEtlPipelineRemoved(@Param("limit") int limit);
+            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL "
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
+    List<LineageMarkerRow> selectEtlPipelineRemoved(@Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 按旧标记 CAS 更新流程的上报标记。
@@ -60,9 +61,9 @@ public interface LineageMarkerMapper {
             + "FALSE AS removed FROM dh_dataforge_integration_task "
             + "WHERE deleted = 0 AND flow_json IS NOT NULL "
             + "AND (lineage_report_key IS NULL OR lineage_report_key <> CONCAT(COALESCE(revision, 0), ':', #{analyzerVersion})) "
-            + "ORDER BY id LIMIT #{limit}")
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
     List<LineageMarkerRow> selectIntegrationPending(@Param("analyzerVersion") int analyzerVersion,
-                                                    @Param("limit") int limit);
+                                                    @Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 已删除但仍有标记的集成任务。
@@ -70,8 +71,9 @@ public interface LineageMarkerMapper {
     @InterceptorIgnore(dataPermission = "true")
     @Select("SELECT id, name AS source_name, COALESCE(revision, 0) AS source_revision, lineage_report_key, "
             + "TRUE AS removed FROM dh_dataforge_integration_task "
-            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL ORDER BY id LIMIT #{limit}")
-    List<LineageMarkerRow> selectIntegrationRemoved(@Param("limit") int limit);
+            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL "
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
+    List<LineageMarkerRow> selectIntegrationRemoved(@Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 按旧标记 CAS 更新集成任务的上报标记。
@@ -92,9 +94,9 @@ public interface LineageMarkerMapper {
             + "JOIN dh_dataforge_access_task t ON t.id = a.latest_run_id AND t.deleted = 0 "
             + "WHERE a.deleted = 0 AND t.run_status IN (3, 4, 6) "
             + "AND (a.lineage_report_key IS NULL OR a.lineage_report_key <> CONCAT(a.latest_run_id, ':', #{analyzerVersion})) "
-            + "ORDER BY a.id LIMIT #{limit}")
+            + "AND a.id = COALESCE(#{sourceId,jdbcType=BIGINT}, a.id) ORDER BY a.id LIMIT #{limit}")
     List<LineageMarkerRow> selectDataAccessPending(@Param("analyzerVersion") int analyzerVersion,
-                                                   @Param("limit") int limit);
+                                                   @Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 已删除但仍有标记的数据同步任务。
@@ -102,8 +104,9 @@ public interface LineageMarkerMapper {
     @InterceptorIgnore(dataPermission = "true")
     @Select("SELECT id, task_name AS source_name, latest_run_id AS source_revision, lineage_report_key, "
             + "TRUE AS removed FROM dh_dataforge_access "
-            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL ORDER BY id LIMIT #{limit}")
-    List<LineageMarkerRow> selectDataAccessRemoved(@Param("limit") int limit);
+            + "WHERE deleted = 1 AND lineage_report_key IS NOT NULL "
+            + "AND id = COALESCE(#{sourceId,jdbcType=BIGINT}, id) ORDER BY id LIMIT #{limit}")
+    List<LineageMarkerRow> selectDataAccessRemoved(@Param("limit") int limit, @Param("sourceId") Long sourceId);
 
     /**
      * 按旧标记 CAS 更新数据同步任务的上报标记。

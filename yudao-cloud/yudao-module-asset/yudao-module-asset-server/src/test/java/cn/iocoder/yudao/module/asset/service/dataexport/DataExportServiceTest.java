@@ -10,6 +10,7 @@ import cn.iocoder.yudao.module.asset.dal.mysql.dataexport.DataExportRequestMappe
 import cn.iocoder.yudao.module.asset.service.dataquery.DataQueryService;
 import cn.iocoder.yudao.module.bpm.api.event.BpmProcessInstanceStatusEvent;
 import cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi;
+import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
 import cn.iocoder.yudao.module.dataforge.api.database.dto.DatabasePreviewRespDTO;
 import cn.idev.excel.FastExcelFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -19,9 +20,12 @@ import org.mockito.MockedStatic;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayInputStream;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -87,7 +91,7 @@ class DataExportServiceTest {
             ((DataExportRequestDO) invocation.getArgument(0)).setId(5L);
             return 1;
         });
-        when(bpm.createProcessInstance(eq(9L), any())).thenThrow(new IllegalStateException("no definition"));
+        when(bpm.createProcessInstance(eq(9L), any())).thenReturn(CommonResult.error(400, "no definition"));
 
         assertThatThrownBy(() -> service.submit(submit())).isInstanceOf(ServiceException.class)
                 .hasMessageContaining("asset_data_export");
@@ -95,21 +99,40 @@ class DataExportServiceTest {
     }
 
     @Test
+    void lostStartResponseRecoversTheExistingProcess() {
+        when(dataQuery.checkExportable(any())).thenReturn(new String[]{"ods", "users"});
+        when(mapper.insert(any(DataExportRequestDO.class))).thenAnswer(invocation -> {
+            ((DataExportRequestDO) invocation.getArgument(0)).setId(5L);
+            return 1;
+        });
+        when(bpm.createProcessInstance(eq(9L), any())).thenThrow(new IllegalStateException("read timeout"));
+        when(bpm.getProcessInstanceIdByBusinessKey(DataExportService.PROCESS_KEY, "5"))
+                .thenReturn(CommonResult.success("existing"));
+        assertThat(service.submit(submit())).isEqualTo(5L);
+        verify(mapper).bindProcess(5L, "existing");
+        verify(mapper, never()).transit(anyLong(), anyString(), anyString(), any(), any(), any());
+    }
+
+    @Test
     void forgedCallbackIsIgnoredAndRealApprovalTransitsOnce() {
         DataExportRequestDO record = record("PENDING");
         record.setProcessInstanceId("pi-1");
         when(mapper.selectById(5L)).thenReturn(record);
-        when(bpm.getProcessInstanceStatus("pi-1")).thenReturn(CommonResult.success(1));
+        LocalDateTime finished = LocalDateTime.now().minusDays(3);
+        var result = new BpmProcessInstanceResultRespDTO().setId("pi-1").setBusinessKey("5")
+                .setProcessDefinitionKey(DataExportService.PROCESS_KEY).setStatus(2).setEndTime(finished);
+        when(bpm.getCompletedResults(DataExportService.PROCESS_KEY, Set.of("pi-1")))
+                .thenReturn(CommonResult.success(List.of(result)));
+        service.handleBpmStatus(event("pi-1", 3));
+        verify(mapper, never()).transit(anyLong(), anyString(), anyString(), any(), any(), any());
+        result.setBusinessKey("999");
         service.handleBpmStatus(event("pi-1", 2));
         verify(mapper, never()).transit(anyLong(), anyString(), anyString(), any(), any(), any());
-
-        when(bpm.getProcessInstanceStatus("pi-1")).thenReturn(CommonResult.success(2));
+        result.setBusinessKey("5");
         service.handleBpmStatus(event("pi-1", 2));
-        verify(mapper).transit(eq(5L), eq("PENDING"), eq("APPROVED"), any(), any(LocalDateTime.class),
-                any(LocalDateTime.class));
-        // 其他实例的回调不能改动本申请。
+        verify(mapper).transit(eq(5L), eq("PENDING"), eq("APPROVED"), any(), eq(finished), eq(finished.plusHours(24)));
         service.handleBpmStatus(event("pi-other", 3));
-        verify(bpm, never()).getProcessInstanceStatus("pi-other");
+        verify(bpm, never()).getCompletedResults(DataExportService.PROCESS_KEY, Set.of("pi-other"));
     }
 
     @Test
@@ -129,6 +152,25 @@ class DataExportServiceTest {
         assertThat(file.rows()).isEqualTo(1);
 
         assertThatThrownBy(() -> service.download(5L)).isInstanceOf(ServiceException.class);
+    }
+
+    @Test
+    void fileGenerationReachingTheDeadlineDoesNotDeliverOrConsumeTheDownload() {
+        LocalDateTime cutoff = LocalDateTime.of(2026, 11, 16, 18, 0);
+        Clock clock = mock(Clock.class);
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        when(clock.instant()).thenReturn(cutoff.minusNanos(1).toInstant(ZoneOffset.UTC),
+                cutoff.toInstant(ZoneOffset.UTC));
+        ReflectionTestUtils.setField(service, "clock", clock);
+        DataExportRequestDO record = record("APPROVED");
+        record.setExpireTime(cutoff);
+        when(mapper.selectById(5L)).thenReturn(record);
+        when(dataQuery.executeForExport(any())).thenReturn(result());
+
+        assertThatThrownBy(() -> service.download(5L)).isInstanceOf(ServiceException.class)
+                .hasMessageContaining("有效期");
+        verify(dataQuery).executeForExport(any());
+        verify(mapper, never()).markDownloaded(anyLong(), anyInt(), any(), anyInt());
     }
 
     @Test

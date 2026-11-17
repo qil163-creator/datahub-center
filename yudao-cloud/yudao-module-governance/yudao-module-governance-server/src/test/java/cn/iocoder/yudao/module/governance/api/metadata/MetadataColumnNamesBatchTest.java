@@ -17,19 +17,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 
 class MetadataColumnNamesBatchTest {
 
     @Test
     void responsesFollowRequestOrderAndEchoKeys() {
-        var resolver = mock(MetaTableKeyResolver.class);
+        var resolver = mock(MetaTableKeyResolver.class, CALLS_REAL_METHODS);
         var api = new MetadataApiImpl();
         ReflectionTestUtils.setField(api, "tableKeyResolver", resolver);
         TableKey orders = new TableKey(1L, "ods", "ORDERS");
-        when(resolver.resolve(anyCollection())).thenReturn(Map.of(orders,
-                new TableMatch(100L, 10L, 1L, "ods", "ods", "orders", "订单")));
-        when(resolver.loadColumnNames(anyCollection())).thenReturn(Map.of(100L, List.of("id", "amount")));
+        doReturn(Map.of(orders,
+                new TableMatch(100L, 10L, 1L, "ods", "ods", "orders", "订单"))).when(resolver).resolve(anyCollection());
+        doReturn(Map.of(100L, List.of("id", "amount"))).when(resolver).loadColumnNames(anyCollection());
         var req = new MetadataTableColumnsBatchReqDTO();
         req.setTables(new ArrayList<>(List.of(new MetadataTableKeyDTO(1L, "ods", "missing"),
                 new MetadataTableKeyDTO(1L, "ods", "ORDERS"))));
@@ -48,7 +49,7 @@ class MetadataColumnNamesBatchTest {
     @Test
     void rejectsMoreThanOneHundredTables() {
         var api = new MetadataApiImpl();
-        ReflectionTestUtils.setField(api, "tableKeyResolver", mock(MetaTableKeyResolver.class));
+        ReflectionTestUtils.setField(api, "tableKeyResolver", mock(MetaTableKeyResolver.class, CALLS_REAL_METHODS));
         var req = new MetadataTableColumnsBatchReqDTO();
         for (int i = 0; i <= MetadataTableColumnsBatchReqDTO.MAX_TABLES; i++) {
             req.getTables().add(new MetadataTableKeyDTO(1L, null, "t" + i));

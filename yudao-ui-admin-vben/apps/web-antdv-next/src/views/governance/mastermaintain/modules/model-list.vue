@@ -25,6 +25,7 @@ import { useMetadataGrid } from '../../metadata-common/use-metadata-grid';
 
 const emit = defineEmits<{
   enter: [model: GovernanceMasterDataApi.Model];
+  importModel: [model: GovernanceMasterDataApi.Model];
 }>();
 const filters = reactive({
   createTime: undefined as [string, string] | undefined,
@@ -97,7 +98,7 @@ async function loadCounts(rows: GovernanceMasterDataApi.Model[]) {
     }),
   );
 }
-const { Grid, gridApi, load } =
+const { Grid, gridApi, load, selected } =
   useMetadataGrid<GovernanceMasterDataApi.Model>(
     [
       { type: 'checkbox', width: 45 },
@@ -232,6 +233,7 @@ function selectDomain(keys: (number | string)[]) {
   filters.domainId = keys[0] && keys[0] !== 'all' ? String(keys[0]) : undefined;
   search();
 }
+defineExpose({ refresh: load });
 onMounted(loadDomains);
 const expandedKeys = ref<string[]>([]);
 const sidebarCollapsed = ref(false);
@@ -294,8 +296,12 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           <template #toolbar-tools>
             <div class="metadata-toolbar">
               <div class="metadata-toolbar">
-                <Tooltip title="参考功能尚未开放">
-                  <span><Button type="primary" disabled><IconifyIcon icon="lucide:upload" />导入</Button></span>
+                <Tooltip :title="selected.length !== 1 ? '请勾选一个可维护模型' : selected[0]?.maintenanceUnsupportedReason">
+                  <span v-access:code="'governance:master-data:create'">
+                    <Button type="primary" :disabled="selected.length !== 1 || !selected[0]?.maintenanceSupported" @click="selected[0] && emit('importModel', selected[0])">
+                      <IconifyIcon icon="lucide:upload" />导入
+                    </Button>
+                  </span>
                 </Tooltip>
                 <Tooltip title="参考功能尚未开放">
                   <span><Button disabled><IconifyIcon icon="lucide:search-check" />查重</Button></span>
@@ -354,8 +360,10 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                   label: '导入',
                   type: 'link',
                   icon: 'lucide:upload',
-                  disabled: true,
-                  tooltip: '参考功能尚未开放',
+                  auth: ['governance:master-data:create'],
+                  disabled: !row.maintenanceSupported,
+                  tooltip: row.maintenanceUnsupportedReason,
+                  onClick: () => emit('importModel', row),
                 },
                 {
                   label: '查重',

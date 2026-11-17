@@ -8,6 +8,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,6 +59,28 @@ public class ExcelUtilsTest {
             MockMultipartFile workbook = new MockMultipartFile("file", response.getContentAsByteArray());
             assertEquals("员工一", ExcelUtils.read(workbook, TestRow.class).getFirst().getName());
         }
+    }
+
+    @Test
+    void dynamicTemplateAndBoundedReadPreserveTextNumbersAndWorksheetPositions() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ExcelUtils.writeTextTemplate(response, "bulk.xlsx", "数据", List.of("id", "value"));
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(response.getContentAsByteArray()))) {
+            var sheet = workbook.getSheetAt(0);
+            assertEquals("@", sheet.getColumnStyle(0).getDataFormatString());
+            var row = sheet.createRow(6);
+            row.createCell(0).setCellValue("00000000000000000001");
+            row.createCell(1).setCellValue(12.25);
+            sheet.createRow(7).createCell(0).setCellValue("下一行");
+            workbook.write(output);
+        }
+        var rows = ExcelUtils.readXlsxRows(new MockMultipartFile("file", output.toByteArray()), 2);
+        assertEquals(2, rows.size());
+        assertEquals("id", rows.getFirst().cells().get(0).getStringValue());
+        assertEquals(7, rows.getLast().number());
+        assertEquals("00000000000000000001", rows.getLast().cells().get(0).getStringValue());
+        assertEquals("12.25", rows.getLast().cells().get(1).getOriginalNumberValue().toPlainString());
     }
 
     public static class TestRow {

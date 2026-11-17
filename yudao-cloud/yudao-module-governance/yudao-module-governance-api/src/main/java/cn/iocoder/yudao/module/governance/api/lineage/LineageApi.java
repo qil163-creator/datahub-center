@@ -6,10 +6,14 @@ import cn.iocoder.yudao.module.governance.api.lineage.dto.LineageReportRespDTO;
 import cn.iocoder.yudao.module.governance.enums.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsBatchReqDTO;
+import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsRespDTO;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 /**
  * 数据血缘上报接口：governance 是血缘持久化与查询的唯一 owner，生产者（dataforge）只能经此契约写入。
@@ -18,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * 字典序判定新旧，落后返回 STALE、修订与内容摘要都未变返回 NOOP，均不改动数据；status=REMOVED 时不比较修订，
  * 直接清空该来源的边。调用是幂等的，生产者可在超时或未知结果时原样重试。</p>
  */
-@FeignClient(name = ApiConstants.NAME)
+@FeignClient(name = ApiConstants.NAME, contextId = "lineageReportApi", configuration = LineageReportClientConfiguration.class)
 @Tag(name = "RPC 服务 - 数据血缘")
 public interface LineageApi {
 
@@ -30,5 +34,10 @@ public interface LineageApi {
     @PostMapping(PREFIX + "/report")
     @Operation(summary = "上报一个来源对象的完整血缘（整体替换）")
     CommonResult<LineageReportRespDTO> report(@Valid @RequestBody LineageReportReqDTO req);
+
+    /** 供生产者展开 SQL 字段，仅返回已采集的字段名称。 */
+    @PostMapping(PREFIX + "/column-names-batch")
+    @Operation(summary = "读取血缘分析所需的已采集字段名")
+    CommonResult<List<MetadataTableColumnsRespDTO>> getColumnNamesBatch(@Valid @RequestBody MetadataTableColumnsBatchReqDTO req);
 
 }

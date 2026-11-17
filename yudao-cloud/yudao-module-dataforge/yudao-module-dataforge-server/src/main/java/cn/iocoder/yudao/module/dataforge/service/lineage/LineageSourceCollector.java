@@ -22,9 +22,9 @@ public interface LineageSourceCollector {
     int analyzerVersion();
 
     /**
-     * 有界扫描待上报的来源：标记与当前修订或解析器版本不一致的对象，以及已删除但仍有标记的对象。
+     * 有界扫描待上报的来源：标记与当前修订或解析器版本不一致的对象，以及已删除但仍有标记的对象。sourceId 为空时扫描全部，否则只检查指定来源编号。
      */
-    List<LineageMarkerRow> pending(int limit);
+    List<LineageMarkerRow> pending(int limit, Long sourceId);
 
     /**
      * 构造上报内容；已删除的来源返回 REMOVED。

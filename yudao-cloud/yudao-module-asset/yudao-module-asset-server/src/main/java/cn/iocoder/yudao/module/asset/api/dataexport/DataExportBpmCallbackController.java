@@ -2,13 +2,13 @@ package cn.iocoder.yudao.module.asset.api.dataexport;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.asset.service.dataexport.DataExportService;
+import cn.iocoder.yudao.module.asset.api.dataexport.DataExportStatusApi;
 import cn.iocoder.yudao.module.bpm.api.event.BpmProcessInstanceStatusEvent;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -19,9 +19,8 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
  * 位于 /rpc-api 前缀，网关不对外暴露；回调内容不被信任，服务端会向 BPM 回查实际状态后再迁移。
  */
 @RestController
-@RequestMapping("/rpc-api/asset/data-export")
 @Validated
-public class DataExportBpmCallbackController {
+public class DataExportBpmCallbackController implements DataExportStatusApi {
 
     @Resource
     private DataExportService exportService;
@@ -29,9 +28,14 @@ public class DataExportBpmCallbackController {
     /**
      * 处理 BPM 状态事件。
      */
-    @PostMapping("/bpm-status")
+    @PostMapping("/rpc-api/asset/data-export/bpm-status")
     public CommonResult<Boolean> handleBpmStatusEvent(@Valid @RequestBody BpmProcessInstanceStatusEvent event) {
         exportService.handleBpmStatus(event);
+        return success(true);
+    }
+    @Override
+    public CommonResult<Boolean> syncStatus(Long exportId, String processInstanceId) {
+        exportService.syncStatus(exportId, processInstanceId, null);
         return success(true);
     }
 }

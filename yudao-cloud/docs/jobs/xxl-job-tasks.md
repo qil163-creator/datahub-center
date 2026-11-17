@@ -15,7 +15,7 @@
 | `dataforge-server` | `etlFileRecoveryJob` | 单平台扫描已知文件意图后逐项核验执行人；失租约且文件锁可取得后核对同对象，并处理显式申请的到期本人发布文件及锚点清理，默认KEEP不按年龄删除；最多20项/次、10次自动重试，未知身份转人工；不重跑图、不强制覆盖目标 | 建议 `0 * * * * ?` |
 | `dataforge-server` | `jobManagementCoordinatorJob` | 作业平台 Quartz 槽位原子受理、三串行策略队列与真实父子恢复；到期和队列阶段各至多二十作业、每作业五槽或五次派发，单轮对账每作业至多十实例，每作业最多一百待结束请求；未知触发不重投 | 建议 `0/5 * * * * ?` |
 | `dataforge-server` | `devTaskJob` | DS 周期绑定同步、已触发实例导入、补数据批次逐日推进及运行恢复（不计算业务 Cron） | `0 * * * * ?` |
-| `dataforge-server` | `lineageReportJob` | 血缘上报：串行扫描开发任务、数据同步、集成任务、可视化 ETL 中修订号或解析器版本变化的对象（每类每轮最多 50 个），解析后经 governance-api 整体替换上报，成功后 CAS 更新 `lineage_report_key`；已删除对象上报 REMOVED。不连接源库，RPC 失败保留标记下轮重试 | 建议 `0 * * * * ?` |
+| `dataforge-server` | `lineageReportJob` | 血缘上报：参数留空时串行扫描开发任务、数据同步、集成任务、可视化 ETL 中修订号或解析器版本变化的对象（每类每轮最多 50 个），解析后经 governance-api 整体替换上报，成功后 CAS 更新 `lineage_report_key`；已删除对象上报 REMOVED。可在「执行一次」填写 来源类型:编号（如 `DEV_TASK:123`），只补报该来源的待更新或移除状态。RPC 失败保留标记下轮重试 | 建议 `0 * * * * ?` |
 | `dataforge-server` | `dataforgeRunAlertJob` | 任务运行失败通知：单平台扫描最近 24 小时（`dataforge.run-alert.lookback-hours`）内失败的数据开发、数据同步、ETL、受管数据集成、平台作业运行，按运行实例+渠道+接收人唯一登记，再租约认领发送站内信（可选短信/邮件，需开启 `dataforge.run-alert.extra-channels` 并启用模板）；接收人为负责人、发布人、执行身份、创建人中启用的用户，找不到时记死信。站内信带幂等键可自动重试，短信/邮件结果未确认转“结果未知”不自动重发；每轮最多登记 200 个运行、发送 50 条，清理 30 天前已送达记录。存在死信或结果未知时本轮标记失败 | 建议 `0 * * * * ?` |
 | `dataforge-server` | `dataforgeRunAlertDispositionJob` | 失败通知死信/结果未知的人工处置，参数 `{"alertId":编号,"action":"RETRY"或"ACKNOWLEDGE","reason":"原因"}`；执行身份取调度中心本次执行，只重发通知、不重跑任务 | 不配置 Cron，仅人工触发 |
 | `dataforge-server` | `fillTaskGenerateJob` | 生成在线填报期次任务；到开放时间的任务转为进行中并通知填报人 | `0 * * * * ?` |

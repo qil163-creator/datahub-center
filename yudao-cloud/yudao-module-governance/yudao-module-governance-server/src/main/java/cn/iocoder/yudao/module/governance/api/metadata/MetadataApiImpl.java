@@ -15,9 +15,7 @@ import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableIngestRe
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableRespDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsBatchReqDTO;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableColumnsRespDTO;
-import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableKeyDTO;
 import cn.iocoder.yudao.module.governance.service.metadata.MetaTableKeyResolver;
-import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.object.MetaColumnUpdateBizReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.object.MetaFinalizedDetailRespVO;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -196,34 +194,7 @@ public class MetadataApiImpl implements MetadataApi {
      */
     @Override
     public CommonResult<List<MetadataTableColumnsRespDTO>> getColumnNamesBatch(MetadataTableColumnsBatchReqDTO req) {
-        List<MetadataTableKeyDTO> tables = req == null || req.getTables() == null ? List.of() : req.getTables();
-        if (tables.size() > MetadataTableColumnsBatchReqDTO.MAX_TABLES) {
-            throw exception(GlobalErrorCodeConstants.BAD_REQUEST);
-        }
-        List<MetaTableKeyResolver.TableKey> keys = tables.stream()
-                .map(table -> table == null ? null : new MetaTableKeyResolver.TableKey(
-                        table.getDatasourceId(), table.getSchemaName(), table.getTableName()))
-                .toList();
-        Map<MetaTableKeyResolver.TableKey, MetaTableKeyResolver.TableMatch> matches =
-                tableKeyResolver.resolve(keys.stream().filter(Objects::nonNull).toList());
-        Map<Long, List<String>> columns = tableKeyResolver.loadColumnNames(
-                matches.values().stream().map(MetaTableKeyResolver.TableMatch::tableId).toList());
-        List<MetadataTableColumnsRespDTO> result = new ArrayList<>(tables.size());
-        for (int i = 0; i < tables.size(); i++) {
-            MetadataTableKeyDTO table = tables.get(i);
-            MetadataTableColumnsRespDTO row = new MetadataTableColumnsRespDTO();
-            MetaTableKeyResolver.TableMatch match = keys.get(i) == null ? null : matches.get(keys.get(i));
-            if (table != null) {
-                row.setDatasourceId(table.getDatasourceId());
-                row.setSchemaName(table.getSchemaName());
-                row.setTableName(table.getTableName());
-            }
-            row.setFound(match != null);
-            row.setColumnNames(match == null ? new ArrayList<>()
-                    : new ArrayList<>(columns.getOrDefault(match.tableId(), List.of())));
-            result.add(row);
-        }
-        return success(result);
+        return success(tableKeyResolver.getColumnNamesBatch(req));
     }
 
     /**

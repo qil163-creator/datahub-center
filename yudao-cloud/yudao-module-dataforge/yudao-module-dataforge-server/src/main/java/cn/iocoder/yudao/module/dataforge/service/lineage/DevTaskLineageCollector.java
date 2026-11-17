@@ -75,10 +75,10 @@ public class DevTaskLineageCollector implements LineageSourceCollector {
      * 有界扫描待上报的开发任务。
      */
     @Override
-    public List<LineageMarkerRow> pending(int limit) {
-        List<LineageMarkerRow> rows = new ArrayList<>(taskMapper.selectLineagePending(analyzerVersion(), limit));
+    public List<LineageMarkerRow> pending(int limit, Long sourceId) {
+        List<LineageMarkerRow> rows = new ArrayList<>(taskMapper.selectLineagePending(analyzerVersion(), limit, sourceId));
         if (rows.size() < limit) {
-            rows.addAll(taskMapper.selectLineageRemoved(limit - rows.size()));
+            rows.addAll(taskMapper.selectLineageRemoved(limit - rows.size(), sourceId));
         }
         return rows;
     }

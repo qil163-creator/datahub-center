@@ -1,6 +1,14 @@
 package cn.iocoder.yudao.module.governance.controller.admin.master;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
+import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
+import cn.iocoder.yudao.module.governance.service.master.MasterDataImportService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Pattern;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+
+import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.IMPORT;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.governance.controller.admin.master.vo.MasterDataPageReqVO;
@@ -44,6 +52,29 @@ public class MasterDataController {
 
     @Resource
     private MasterModelService modelService;
+
+    @Resource
+    private MasterDataImportService importService;
+
+    @GetMapping("/import-template")
+    @Operation(summary = "下载维护模型的主数据导入模板")
+    @PreAuthorize("@ss.hasPermission('governance:master-data:create')")
+    public void downloadImportTemplate(@RequestParam Long modelId, HttpServletResponse response) throws IOException {
+        importService.writeTemplate(modelId, response);
+    }
+
+    @PostMapping("/import")
+    @Operation(summary = "整批导入主数据，按模型的审批设置提交")
+    @PreAuthorize("@ss.hasPermission('governance:master-data:create')")
+    @ApiAccessLog(operateType = IMPORT)
+    @LogRecord(type = "数据治理-主数据记录维护", subType = "批量导入主数据",
+            bizNo = "{{#_ret.data.id}}", success = "模型【{{#modelId}}】导入主数据，变更单【{{#_ret.data.id}}】",
+            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
+    public CommonResult<MasterDataMutationRespVO> importRows(@RequestParam Long modelId,
+            @RequestParam @Pattern(regexp = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}") String requestId,
+            @RequestParam MultipartFile file) {
+        return success(importService.submit(modelId, requestId, file));
+    }
 
     /**
      * 分页查询可进入维护的已发布模型（平台内共享）。

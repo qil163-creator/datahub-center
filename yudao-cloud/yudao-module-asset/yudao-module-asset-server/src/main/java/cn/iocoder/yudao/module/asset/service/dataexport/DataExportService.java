@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.asset.service.dataexport;
 
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.http.HttpUtils;
@@ -15,6 +16,7 @@ import cn.iocoder.yudao.module.asset.service.dataquery.DataQueryService;
 import cn.iocoder.yudao.module.bpm.api.event.BpmProcessInstanceStatusEvent;
 import cn.iocoder.yudao.module.bpm.api.task.BpmProcessInstanceApi;
 import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceCreateReqDTO;
+import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
 import cn.idev.excel.FastExcelFactory;
 import cn.idev.excel.converters.longconverter.LongStringConverter;
 import jakarta.annotation.Resource;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,8 +32,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.asset.enums.ErrorCodeConstants.DATA_EXPORT_EXPIRED;
@@ -57,6 +60,8 @@ public class DataExportService {
     static final long DOWNLOAD_HOURS = 24;
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private Clock clock = Clock.systemDefaultZone();
+
     @Resource
     private DataExportRequestMapper exportMapper;
     @Resource
@@ -81,7 +86,7 @@ public class DataExportService {
         record.setStatus(DataExportRequestDO.STATUS_PENDING);
         record.setRevision(0);
         exportMapper.insert(record);
-        // 申请已落库再跨服务发起流程：流程发起失败时申请记为 FAILED，不留下无人审批的 PENDING。
+        // 业务拒绝可以立即结束。网络异常时，只核实已创建的实例，不重复发起。
         String processInstanceId;
         try {
             Map<String, Object> variables = new LinkedHashMap<>();
@@ -95,12 +100,17 @@ public class DataExportService {
             create.setBusinessKey(String.valueOf(record.getId()));
             create.setVariables(variables);
             processInstanceId = processInstanceApi.createProcessInstance(userId, create).getCheckedData();
-        } catch (RuntimeException failure) {
+        } catch (ServiceException failure) {
             log.warn("[submit][导出审批流程发起失败 exportId={} failureType={}]", record.getId(),
                     failure.getClass().getSimpleName());
             exportMapper.transit(record.getId(), DataExportRequestDO.STATUS_PENDING, DataExportRequestDO.STATUS_FAILED,
                     "审批流程未能发起", null, null);
             throw exception(DATA_EXPORT_PROCESS_FAILED, "请确认已在流程管理中发布 Key 为 " + PROCESS_KEY + " 的流程");
+        } catch (RuntimeException uncertain) {
+            log.warn("导出流程发起响应未知，按业务标识核实，exportId={} failure={}", record.getId(),
+                    uncertain.getClass().getSimpleName());
+            recoverBinding(record, true);
+            return record.getId();
         }
         exportMapper.bindProcess(record.getId(), processInstanceId);
         return record.getId();
@@ -114,32 +124,90 @@ public class DataExportService {
                 || !StrUtil.isNumeric(event.getBusinessKey())) {
             return;
         }
-        DataExportRequestDO record = exportMapper.selectById(Long.valueOf(event.getBusinessKey()));
-        if (record == null || (record.getProcessInstanceId() != null
-                && !record.getProcessInstanceId().equals(event.getId()))) {
+        syncStatus(Long.valueOf(event.getBusinessKey()), event.getId(), event.getStatus());
+    }
+
+    public void syncStatus(Long id, String instanceId, Integer expectedStatus) {
+        DataExportRequestDO record = exportMapper.selectById(id);
+        if (record == null || !DataExportRequestDO.STATUS_PENDING.equals(record.getStatus())) {
             return;
         }
-        Integer actual = processInstanceApi.getProcessInstanceStatus(event.getId()).getCheckedData();
-        if (actual == null || !actual.equals(event.getStatus())) {
-            // 回调内容与 BPM 实际状态不符：不信任，等待对账或下一次回调。
-            log.warn("[handleBpmStatus][回调状态与流程实际状态不一致，忽略 exportId={}]", record.getId());
-            return;
+        recoverBinding(record, false);
+        if (Objects.equals(record.getProcessInstanceId(), instanceId)) {
+            refreshPending(List.of(record), expectedStatus, false);
         }
-        if (record.getProcessInstanceId() == null) {
-            exportMapper.bindProcess(record.getId(), event.getId());
-        }
-        String reason = StrUtil.maxLength(StrUtil.nullToEmpty(event.getReason()), 500);
-        LocalDateTime now = LocalDateTime.now();
-        switch (actual) {
-            case 2 -> exportMapper.transit(record.getId(), DataExportRequestDO.STATUS_PENDING,
-                    DataExportRequestDO.STATUS_APPROVED, reason, now, now.plusHours(DOWNLOAD_HOURS));
-            case 3 -> exportMapper.transit(record.getId(), DataExportRequestDO.STATUS_PENDING,
-                    DataExportRequestDO.STATUS_REJECTED, reason, null, null);
-            case 4 -> exportMapper.transit(record.getId(), DataExportRequestDO.STATUS_PENDING,
-                    DataExportRequestDO.STATUS_CANCELED, reason, null, null);
-            default -> {
-                // 审批中：无需处理
+    }
+
+    /** 批量回查已绑定的待审实例，仅采信定义、业务键与编号三者都匹配的终态。 */
+    private boolean refreshPending(List<DataExportRequestDO> records, Integer expectedStatus, boolean allowStaleList) {
+        Map<String, DataExportRequestDO> pending = new LinkedHashMap<>();
+        for (DataExportRequestDO record : records) {
+            if (DataExportRequestDO.STATUS_PENDING.equals(record.getStatus())) {
+                recoverBinding(record, allowStaleList);
+                if (StrUtil.isNotBlank(record.getProcessInstanceId())) {
+                    pending.put(record.getProcessInstanceId(), record);
+                }
             }
+        }
+        if (pending.isEmpty()) {
+            return false;
+        }
+        boolean hasResult = false;
+        List<BpmProcessInstanceResultRespDTO> results;
+        try {
+            results = processInstanceApi.getCompletedResults(PROCESS_KEY, pending.keySet()).getCheckedData();
+        } catch (RuntimeException unavailable) {
+            if (!allowStaleList) {
+                throw unavailable;
+            }
+            // 待审记录下次刷新重试，已完成记录仍可查看和下载。
+            log.warn("BPM 终态暂不可用，保留列表中的已知状态，failure={}", unavailable.getClass().getSimpleName());
+            return false;
+        }
+        for (BpmProcessInstanceResultRespDTO result : results) {
+            DataExportRequestDO record = pending.get(result.getId());
+            if (record == null || !PROCESS_KEY.equals(result.getProcessDefinitionKey())
+                    || !String.valueOf(record.getId()).equals(result.getBusinessKey())
+                    || result.getEndTime() == null || result.getStatus() == null
+                    || (expectedStatus != null && !expectedStatus.equals(result.getStatus()))) {
+                continue;
+            }
+            String status = switch (result.getStatus()) {
+                case 2 -> DataExportRequestDO.STATUS_APPROVED;
+                case 3 -> DataExportRequestDO.STATUS_REJECTED;
+                case 4 -> DataExportRequestDO.STATUS_CANCELED;
+                default -> null;
+            };
+            if (status != null) {
+                LocalDateTime approved = DataExportRequestDO.STATUS_APPROVED.equals(status) ? result.getEndTime() : null;
+                exportMapper.transit(record.getId(), DataExportRequestDO.STATUS_PENDING, status,
+                        StrUtil.maxLength(StrUtil.nullToEmpty(result.getReason()), 500), approved,
+                        approved == null ? null : approved.plusHours(DOWNLOAD_HOURS));
+                hasResult = true;
+            }
+        }
+        return hasResult;
+    }
+
+    /** 为发起响应丢失的申请找回同一业务键的实例。正常已绑定记录不产生额外 RPC。 */
+    private void recoverBinding(DataExportRequestDO record, boolean allowUnavailable) {
+        if (StrUtil.isNotBlank(record.getProcessInstanceId())) {
+            return;
+        }
+        String instanceId;
+        try {
+            instanceId = processInstanceApi.getProcessInstanceIdByBusinessKey(PROCESS_KEY,
+                    String.valueOf(record.getId())).getCheckedData();
+        } catch (RuntimeException unavailable) {
+            if (!allowUnavailable) {
+                throw unavailable;
+            }
+            log.warn("导出流程绑定待核实，exportId={} failure={}", record.getId(), unavailable.getClass().getSimpleName());
+            return;
+        }
+        if (StrUtil.isNotBlank(instanceId)) {
+            exportMapper.bindProcess(record.getId(), instanceId);
+            record.setProcessInstanceId(instanceId);
         }
     }
 
@@ -163,7 +231,11 @@ public class DataExportService {
      * 本人的申请分页。
      */
     public PageResult<DataExportRespVO> myPage(PageParam page) {
-        PageResult<DataExportRequestDO> result = exportMapper.selectMyPage(requireUser(), page);
+        Long userId = requireUser();
+        PageResult<DataExportRequestDO> result = exportMapper.selectMyPage(userId, page);
+        if (refreshPending(result.getList(), null, true)) {
+            result = exportMapper.selectMyPage(userId, page);
+        }
         List<DataExportRespVO> list = new ArrayList<>(result.getList().size());
         for (DataExportRequestDO record : result.getList()) {
             DataExportRespVO vo = cn.iocoder.yudao.framework.common.util.object.BeanUtils.toBean(record,
@@ -183,7 +255,7 @@ public class DataExportService {
         if (!DataExportRequestDO.STATUS_APPROVED.equals(record.getStatus())) {
             throw exception(DATA_EXPORT_STATE_INVALID, record.getStatus());
         }
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         if (record.getExpireTime() == null || !record.getExpireTime().isAfter(now)) {
             throw exception(DATA_EXPORT_EXPIRED);
         }
@@ -191,7 +263,11 @@ public class DataExportService {
                 query(record.getDatasourceId(), record.getSqlText(), record.getRowLimit()));
         byte[] content = excel(record, result, watermark(record, now));
         int rows = result.getRows() == null ? 0 : result.getRows().size();
-        if (exportMapper.markDownloaded(record.getId(), record.getRevision(), now, rows) != 1) {
+        LocalDateTime completed = LocalDateTime.now(clock);
+        if (!record.getExpireTime().isAfter(completed)) {
+            throw exception(DATA_EXPORT_EXPIRED);
+        }
+        if (exportMapper.markDownloaded(record.getId(), record.getRevision(), completed, rows) != 1) {
             // 并发下载或刚好过期：只有一个请求能拿到文件。
             throw exception(DATA_EXPORT_STATE_INVALID, "已被下载或已过期");
         }
@@ -263,6 +339,9 @@ public class DataExportService {
         }
         if (!Objects.equals(record.getUserId(), userId)) {
             throw exception(DATA_EXPORT_FORBIDDEN);
+        }
+        if (refreshPending(List.of(record), null, false)) {
+            record = exportMapper.selectById(id);
         }
         return record;
     }

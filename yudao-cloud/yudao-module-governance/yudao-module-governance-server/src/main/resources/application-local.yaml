@@ -4,6 +4,7 @@ spring:
     import:
       - optional:file:${user.home}/.local/share/datahub/asset-term-tls/governance.properties
       - optional:file:${user.home}/.local/share/datahub/metadata-collection-tls/governance-collection.properties
+      - optional:file:${user.home}/.local/share/datahub/lineage-report-tls/governance.properties
   cloud:
     nacos:
       server-addr: 152.136.224.218:8848 # Nacos 服务器地址

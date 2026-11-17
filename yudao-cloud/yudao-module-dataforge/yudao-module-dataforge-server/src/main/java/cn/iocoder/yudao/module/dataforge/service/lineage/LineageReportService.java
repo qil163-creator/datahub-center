@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static cn.iocoder.yudao.module.governance.enums.ErrorCodeConstants.LINEAGE_REPORT_INVALID;
+
 /**
  * 血缘上报编排：扫描各来源的待上报对象，构造内容并调用 governance，成功后 CAS 更新标记。
  * <p>
@@ -38,7 +40,7 @@ public class LineageReportService {
         for (LineageSourceCollector collector : collectors) {
             int reported = 0;
             int failed = 0;
-            for (LineageMarkerRow row : collector.pending(batch)) {
+            for (LineageMarkerRow row : collector.pending(batch, null)) {
                 if (reportOne(collector, row)) {
                     reported++;
                 } else {
@@ -51,6 +53,23 @@ public class LineageReportService {
             summary.append(collector.sourceType()).append(" 上报 ").append(reported).append("，待重试 ").append(failed);
         }
         return summary.toString();
+    }
+
+    /**
+     * 只重试指定来源的待上报或待移除记录，沿用批处理相同的修订号及 CAS 规则。
+     */
+    public String reportSource(String sourceType, long sourceId) {
+        LineageSourceCollector collector = collectors.stream().filter(item -> item.sourceType().equals(sourceType))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("未知的血缘来源类型"));
+        List<LineageMarkerRow> rows = collector.pending(1, sourceId);
+        String source = sourceType + ":" + sourceId;
+        if (rows.isEmpty()) {
+            return source + " 没有待上报记录";
+        }
+        if (!reportOne(collector, rows.getFirst())) {
+            throw new IllegalStateException(source + " 上报失败，保留标记等待重试");
+        }
+        return source + " 已上报";
     }
 
     /**
@@ -94,7 +113,7 @@ public class LineageReportService {
         } catch (ServiceException rejected) {
             log.warn("[send][血缘上报被拒绝 type={} id={} code={}]", collector.sourceType(), row.getId(),
                     rejected.getCode());
-            if (row.isRemovedSource()) {
+            if (row.isRemovedSource() || !LINEAGE_REPORT_INVALID.getCode().equals(rejected.getCode())) {
                 return false;
             }
             try {

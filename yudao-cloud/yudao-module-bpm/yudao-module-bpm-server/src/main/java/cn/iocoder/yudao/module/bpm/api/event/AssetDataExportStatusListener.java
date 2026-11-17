@@ -1,8 +1,9 @@
 package cn.iocoder.yudao.module.bpm.api.event;
 
-import cn.iocoder.yudao.module.bpm.framework.flowable.core.util.BpmHttpRequestUtils;
+import cn.iocoder.yudao.module.asset.api.dataexport.DataExportStatusApi;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.Resource;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * 数据资产-数据查询结果导出审批结果的监听器
@@ -12,23 +13,26 @@ import org.springframework.web.client.RestTemplate;
  *
  * 约定：导出审批流程定义 Key 固定为 {@link #PROCESS_KEY}；审批节点使用默认拒绝策略（流程终止）。
  */
-public class AssetDataExportStatusListener extends BpmProcessInstanceStatusEventListener {
+@Slf4j
+public class AssetDataExportStatusListener {
 
     public static final String PROCESS_KEY = "asset_data_export";
 
     @Resource
-    private RestTemplate loadBalancedRestTemplate;
+    private DataExportStatusApi statusApi;
 
-    @Override
-    public String getProcessDefinitionKey() {
-        return PROCESS_KEY;
-    }
-
-    @Override
+    /** 资产会回查 BPM 终态；事务提交前的推送会读取到旧状态。 */
+    @TransactionalEventListener(fallbackExecution = true)
     public void onEvent(BpmProcessInstanceStatusEvent event) {
-        BpmHttpRequestUtils.executeBpmHttpRequest(event,
-                "http://asset-server/rpc-api/asset/data-export/bpm-status",
-                loadBalancedRestTemplate);
+        if (!PROCESS_KEY.equals(event.getProcessDefinitionKey())) {
+            return;
+        }
+        try {
+            statusApi.syncStatus(Long.valueOf(event.getBusinessKey()), event.getId()).checkError();
+        } catch (RuntimeException failure) {
+            log.warn("资产导出状态通知未送达，业务端下次读取时回查，instanceId={}, failure={}",
+                    event.getId(), failure.getClass().getSimpleName());
+        }
     }
 
 }

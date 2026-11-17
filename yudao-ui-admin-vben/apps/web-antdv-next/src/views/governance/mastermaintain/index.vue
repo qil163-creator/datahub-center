@@ -4,7 +4,7 @@ import type { GovernanceMasterDataApi } from '#/api/governance/masterdata';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { Page } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
 import { formatDateTime } from '@vben/utils';
 
 import {
@@ -18,6 +18,7 @@ import DetailBackButton from '#/components/detail-back-button/index.vue';
 
 import { useMasterScope } from '../mastercommon/use-master-scope';
 import DataContent from './modules/data-content.vue';
+import ImportForm from './modules/import-form.vue';
 import ModelList from './modules/model-list.vue';
 
 import '../mastercommon/qdata-master.css';
@@ -28,6 +29,16 @@ const router = useRouter();
 const model = ref<GovernanceMasterDataApi.Model>();
 const loading = ref(false);
 const failed = ref(false);
+const list = ref<InstanceType<typeof ModelList>>();
+const data = ref<InstanceType<typeof DataContent>>();
+const [ImportModal, importApi] = useVbenModal({ connectedComponent: ImportForm, destroyOnClose: true });
+function openImport(row: GovernanceMasterDataApi.Model) {
+  if (row.id !== undefined && row.maintenanceSupported) importApi.setData(row).open();
+}
+function refreshImport() {
+  void list.value?.refresh();
+  void data.value?.refresh();
+}
 const modelId = computed(() =>
   typeof route.query.modelId === 'string' && /^\d+$/u.test(route.query.modelId)
     ? route.query.modelId
@@ -59,11 +70,13 @@ function back() {
   void router.push({ path: route.path });
 }
 watch(modelId, load, { immediate: true });
+watch(modelId, () => { void importApi.close?.(); });
 </script>
 
 <template>
   <Page auto-content-height content-class="metadata-page qdata-master-page">
-    <ModelList v-if="!modelId" @enter="enter" />
+    <ImportModal @success="refreshImport" />
+    <ModelList v-if="!modelId" ref="list" @enter="enter" @import-model="openImport" />
     <Spin v-else-if="loading" class="m-auto" />
     <template v-else-if="failed"><DetailBackButton @click="back" /></template>
     <div v-else-if="model" class="metadata-detail">
@@ -111,7 +124,7 @@ watch(modelId, load, { immediate: true });
         </Descriptions>
       </section>
       <section class="metadata-panel">
-        <DataContent :key="String(model.id)" :model="model" />
+        <DataContent ref="data" :key="String(model.id)" :model="model" @import-model="openImport" />
       </section>
     </div>
   </Page>

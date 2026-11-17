@@ -17,6 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Set;
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
+import cn.iocoder.yudao.module.bpm.api.task.dto.BpmProcessInstanceResultRespDTO;
+import static cn.iocoder.yudao.module.bpm.framework.flowable.core.enums.BpmnVariableConstants.PROCESS_INSTANCE_VARIABLE_STATUS;
+import static cn.iocoder.yudao.module.bpm.framework.flowable.core.enums.BpmnVariableConstants.PROCESS_INSTANCE_VARIABLE_REASON;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -116,6 +122,18 @@ public class BpmProcessInstanceApiImpl implements BpmProcessInstanceApi {
                 .includeProcessVariables()
                 .singleResult();
         return success(instance != null ? FlowableUtils.getProcessInstanceStatus(instance) : null);
+    }
+
+    @Override
+    public CommonResult<List<BpmProcessInstanceResultRespDTO>> getCompletedResults(String processDefinitionKey, Set<String> instanceIds) {
+        var instances = historyService.createHistoricProcessInstanceQuery().processInstanceTenantId(requiredTenant())
+                .processDefinitionKey(processDefinitionKey).processInstanceIds(instanceIds).finished()
+                .includeProcessVariables(List.of(PROCESS_INSTANCE_VARIABLE_STATUS, PROCESS_INSTANCE_VARIABLE_REASON)).list();
+        return success(instances.stream().map(instance -> new BpmProcessInstanceResultRespDTO()
+                .setId(instance.getId()).setProcessDefinitionKey(instance.getProcessDefinitionKey())
+                .setBusinessKey(instance.getBusinessKey()).setEndTime(DateUtils.of(instance.getEndTime()))
+                .setStatus(FlowableUtils.getProcessInstanceStatus(instance))
+                .setReason((String) instance.getProcessVariables().get(PROCESS_INSTANCE_VARIABLE_REASON))).toList());
     }
 
     private String requiredTenant() {
