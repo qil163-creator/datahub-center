@@ -6,6 +6,7 @@ import type { GovernanceMasterManageApi } from '#/api/governance/mastermanage';
 import { computed, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
@@ -22,7 +23,6 @@ import {
   TabPane,
   Tabs,
   TextArea,
-  Tooltip,
 } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
@@ -38,8 +38,16 @@ import DataFilter from './data-filter.vue';
 const props = defineProps<{ model: GovernanceMasterDataApi.Model }>();
 const emit = defineEmits<{ importModel: [model: GovernanceMasterDataApi.Model] }>();
 const router = useRouter();
+const { hasAccessByCodes } = useAccess();
+const matchRouteName = 'GovernanceMasterMatch';
 const columns = computed(() => props.model.columns ?? []);
 const canWrite = computed(() => props.model.maintenanceSupported === true);
+const canOpenMatch = computed(
+  () =>
+    props.model.id !== undefined &&
+    hasAccessByCodes(['governance:master-match:query']) &&
+    router.hasRoute(matchRouteName),
+);
 const maintenanceHint = computed(
   () =>
     props.model.maintenanceUnsupportedReason ||
@@ -317,6 +325,12 @@ watch(
   { immediate: true },
 );
 defineExpose({ refresh: load });
+function openMatch() {
+  void router.push({
+    name: matchRouteName,
+    query: { modelId: String(props.model.id) },
+  });
+}
 function pageChange(page: number, size: number) {
   pagination.pageNo = page;
   pagination.pageSize = size;
@@ -395,9 +409,9 @@ function pageChange(page: number, size: number) {
             <Button v-access:code="'governance:master-data:create'" :disabled="!canWrite" @click="emit('importModel', model)">
               <IconifyIcon icon="lucide:upload" />导入
             </Button>
-            <Tooltip title="参考功能尚未开放">
-              <span><Button disabled><IconifyIcon icon="lucide:search-check" />查重</Button></span>
-            </Tooltip>
+            <Button v-if="canOpenMatch" @click="openMatch">
+              <IconifyIcon icon="lucide:search-check" />查重
+            </Button>
           </div>
 
           <div class="metadata-tools">

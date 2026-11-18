@@ -31,11 +31,19 @@ const harness = vi.hoisted(() => ({
   modalOpen: vi.fn(),
   modalClose: vi.fn(),
   confirm: undefined as (() => Promise<void>) | undefined,
+  hasAccessByCodes: vi.fn(),
+  hasRoute: vi.fn(),
+  push: vi.fn(),
   setGridOptions: vi.fn(),
   user: { userInfo: { userId: '7' } },
 }));
 
-vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ hasRoute: harness.hasRoute, push: harness.push }),
+}));
+vi.mock('@vben/access', () => ({
+  useAccess: () => ({ hasAccessByCodes: harness.hasAccessByCodes }),
+}));
 vi.mock('@vben/stores', () => ({
   useAccessStore: () => harness.access,
   useUserStore: () => harness.user,
@@ -90,7 +98,9 @@ vi.mock('antdv-next', () => {
       props: { message: { default: '', type: String } },
       setup: (props) => () => h('div', { 'data-alert': '' }, props.message),
     }),
-    Button: container,
+    Button: defineComponent({
+      setup: (_, { slots }) => () => h('button', slots.default?.()),
+    }),
     DatePicker: container,
     Form: container,
     FormItem: container,
@@ -103,7 +113,6 @@ vi.mock('antdv-next', () => {
     Tabs: container,
     TabPane: container,
     TextArea: container,
-    Tooltip: container,
     Modal: { confirm: vi.fn() },
     message: {
       error: vi.fn(),
@@ -198,7 +207,7 @@ async function mount() {
 }
 function button(label: string) {
   const result = [...host.querySelectorAll('button')].find(
-    (item) => item.textContent === label,
+    (item) => item.textContent?.trim() === label,
   );
   expect(result).toBeDefined();
   return result!;
@@ -215,6 +224,8 @@ function deferred() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  harness.hasAccessByCodes.mockReturnValue(true);
+  harness.hasRoute.mockReturnValue(true);
   harness.access = reactive({ accessToken: '1', refreshToken: '' });
   harness.user = reactive({ userInfo: { userId: '7' } });
   harness.applied = [];
@@ -249,6 +260,30 @@ afterEach(() => {
 });
 
 describe('主数据维护筛选与表格接线', () => {
+  it('查重打开现有匹配页，完整传递当前模型 ID', async () => {
+    await mount();
+    button('查重').click();
+
+    expect(harness.hasAccessByCodes).toHaveBeenCalledWith([
+      'governance:master-match:query',
+    ]);
+    expect(harness.hasRoute).toHaveBeenCalledWith('GovernanceMasterMatch');
+    expect(harness.push).toHaveBeenCalledWith({
+      name: 'GovernanceMasterMatch',
+      query: { modelId: '9007199254740993' },
+    });
+  });
+
+  it.each(['hasAccessByCodes', 'hasRoute'] as const)(
+    '缺少匹配查询权限或路由时隐藏查重入口（%s）',
+    async (check) => {
+      harness[check].mockReturnValue(false);
+      await mount();
+
+      expect(host.textContent).not.toContain('查重');
+    },
+  );
+
   it.each(['REJECTED', 'APPLIED'] as const)('写入回执%s按真实结果保留或关闭表单', async (status) => {
     await mount();
     button('修改').click(); await flush();

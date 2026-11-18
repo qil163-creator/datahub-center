@@ -1,4 +1,4 @@
--- Included migrations through: 0298
+-- Included migrations through: 0299
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -68900,4 +68900,40 @@ BEGIN
       FROM governance_0298_menu_alias a WHERE m.id = a.old_id;
 END;
 $refs$;
+COMMIT;
+
+-- Migration: 0299 隐藏相似匹配与合并的侧栏入口。
+-- Purpose: 从主数据维护的查重按钮进入相似匹配页面，保留原路由和角色授权。
+-- Depends on: 0298_governance_work-order-and-term-menus.sql（编号前驱），以及 0295_governance_master-match-merge.sql 创建的页面。
+-- Target: 已有 PostgreSQL 平台库的 "datahub-center" 模式。
+-- Repeatable: 是；只更新仍可见的目标菜单。
+-- Rollback: 提交前可回滚。提交后按执行前记录恢复对应菜单的 visible 值。
+BEGIN;
+SET LOCAL search_path TO "datahub-center", pg_catalog;
+SET LOCAL lock_timeout = '5s';
+
+DO $hide_master_match_menu$
+DECLARE
+    page_id bigint;
+BEGIN
+    SELECT m.id INTO STRICT page_id
+    FROM system_menu m
+    JOIN system_menu master ON master.id = m.parent_id AND master.type = 1 AND master.deleted = 0
+    JOIN system_menu govern ON govern.id = master.parent_id AND govern.type = 1 AND govern.deleted = 0
+    WHERE m.type = 2 AND m.deleted = 0
+      AND trim(both '/' from m.component) = 'governance/mastermatch/index'
+      AND trim(both '/' from m.path) = 'mastermatch'
+      AND trim(both '/' from master.path) = 'master'
+      AND trim(both '/' from govern.path) = 'govern'
+    FOR UPDATE OF m;
+
+    UPDATE system_menu
+    SET visible = false, updater = 'migration:0299', update_time = CURRENT_TIMESTAMP
+    WHERE id = page_id AND visible = true;
+EXCEPTION
+    WHEN NO_DATA_FOUND OR TOO_MANY_ROWS THEN
+        RAISE EXCEPTION '0299：主数据相似匹配菜单缺失或不唯一，请核对 0295 的菜单状态';
+END;
+$hide_master_match_menu$;
+
 COMMIT;
