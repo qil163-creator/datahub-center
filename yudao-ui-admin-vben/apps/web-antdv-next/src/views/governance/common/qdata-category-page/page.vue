@@ -13,6 +13,7 @@ import {
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { CommonStatusEnum } from '@vben/constants';
 import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
@@ -78,6 +79,25 @@ const parentTreeOptions = computed(() => parentOptions(rows.value));
 const displayedRows = computed(() =>
   filterCategoryTree(tree.value, applied.name, applied.parentId),
 );
+const deletableIds = computed(
+  () =>
+    new Set(
+      rows.value
+        .filter((row) => row.status === CommonStatusEnum.DISABLE)
+        .map((row) => String(row.id)),
+    ),
+);
+const canDeleteSelection = computed(
+  () =>
+    !busy.value &&
+    !loading.value &&
+    !failed.value &&
+    canDeleteIds(selectedKeys.value),
+);
+
+function canDeleteIds(ids: (number | string)[]) {
+  return ids.length > 0 && ids.every((id) => deletableIds.value.has(String(id)));
+}
 
 const [Grid, gridApi] = useVbenVxeGrid<CategoryRow>({
   formOptions: {
@@ -309,17 +329,15 @@ function openDetail(row: CategoryRow) {
 }
 
 function askDelete(row?: CategoryRow) {
-  if (inactive || !can('delete') || busy.value) return;
+  if (inactive || !can('delete') || busy.value || loading.value || failed.value)
+    return;
   const ids = row ? [row.id] : [...selectedKeys.value];
   if (ids.length === 0) return;
   if (ids.length > 200) {
     message.warning('一次最多删除200个类目');
     return;
   }
-  const selected = rows.value.filter((item) =>
-    ids.some((id) => String(item.id) === String(id)),
-  );
-  if (selected.some((item) => item.status === 0)) {
+  if (!canDeleteIds(ids)) {
     message.warning('请先禁用所选类目后再删除');
     return;
   }
@@ -344,6 +362,14 @@ async function confirmOperation() {
     !can(target.action === 'status' ? 'update' : 'delete')
   )
     return;
+  if (target.action === 'delete') {
+    if (loading.value || failed.value) return;
+    if (!canDeleteIds(target.ids)) {
+      confirmation.value = undefined;
+      message.warning('所选类目已变化，请重新选择后再删除');
+      return;
+    }
+  }
   busy.value = true;
   const current = mutation.begin();
   try {
@@ -420,7 +446,7 @@ onActivated(() => {
             v-if="can('delete')"
             type="link"
             danger
-            :disabled="!selectedKeys.length || busy"
+            :disabled="!canDeleteSelection"
             @click="askDelete()"
           >
             <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>批量删除

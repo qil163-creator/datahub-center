@@ -114,6 +114,9 @@ vi.mock('#/adapter/vxe-table', () => ({
   }),
   useVbenVxeGrid: (options: {
     gridEvents: { checkboxChange: (value: { records: CategoryRow[] }) => void };
+    gridOptions: {
+      toolbarConfig: { refreshOptions: { queryMethod: () => Promise<void> } };
+    };
   }) => [
     defineComponent({
       setup:
@@ -123,6 +126,11 @@ vi.mock('#/adapter/vxe-table', () => ({
             ...(slots.actions?.({ row: category }) ?? []),
             ...(harness.showToolbar ? [
               h('button', { onClick: () => options.gridEvents.checkboxChange({ records: [category, child] }) }, '选择父子'),
+              h(
+                'button',
+                { onClick: options.gridOptions.toolbarConfig.refreshOptions.queryMethod },
+                '刷新列表',
+              ),
               h('div', { 'data-testid': 'batch-toolbar' }, slots['toolbar-tools']?.()),
             ] : []),
           ]),
@@ -147,7 +155,7 @@ const adapter: CategoryAdapter = {
   label: '业务术语类目',
   nameLabel: '业务术语类目名称',
   permissionPrefix: 'governance:category-term',
-  list: vi.fn(async () => [category]),
+  list: vi.fn(async () => [category, child]),
   get: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -168,6 +176,7 @@ function button(label: string) {
 }
 beforeEach(async () => {
   vi.clearAllMocks();
+  vi.mocked(adapter.list).mockResolvedValue([category, child]);
   harness.access = reactive({
     accessCodes: ['governance:category-term:query'],
     accessToken: 'session-a',
@@ -243,6 +252,47 @@ describe('类目页面只读详情入口', () => {
     expect(adapter.removeList).toHaveBeenCalledTimes(2);
     expect(adapter.remove).not.toHaveBeenCalled();
     expect(button('确认删除')).toBeUndefined();
+  });
+
+  it('选中已启用的类目时禁用批量删除', async () => {
+    harness.showToolbar = true;
+    vi.mocked(adapter.list).mockResolvedValue([category, { ...child, status: 0 }]);
+    harness.access!.accessCodes = [
+      'governance:category-term:query',
+      'governance:category-term:delete',
+    ];
+    await flush();
+    button('选择父子')!.click();
+    await flush();
+
+    const batch = button('批量删除')!;
+    expect(batch.disabled).toBe(true);
+    batch.dispatchEvent(new MouseEvent('click'));
+    expect(button('确认删除')).toBeUndefined();
+    expect(adapter.removeList).not.toHaveBeenCalled();
+  });
+
+  it('刷新后拒绝提交已包含启用类目的批量确认', async () => {
+    harness.showToolbar = true;
+    harness.access!.accessCodes = [
+      'governance:category-term:query',
+      'governance:category-term:delete',
+    ];
+    await flush();
+    button('选择父子')!.click();
+    await flush();
+    button('批量删除')!.click();
+    await flush();
+
+    vi.mocked(adapter.list).mockResolvedValue([category, { ...child, status: 0 }]);
+    button('刷新列表')!.click();
+    await flush();
+    button('确认删除')!.click();
+    await flush();
+
+    expect(adapter.removeList).not.toHaveBeenCalled();
+    expect(button('确认删除')).toBeUndefined();
+    expect(button('批量删除')!.disabled).toBe(true);
   });
 
 });

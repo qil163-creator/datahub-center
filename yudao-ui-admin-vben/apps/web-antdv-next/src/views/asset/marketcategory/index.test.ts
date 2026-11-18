@@ -103,6 +103,7 @@ vi.mock('#/adapter/vxe-table', () => ({
             'data-confirm-disabled': action.popConfirm?.disabled,
             'data-row-action': action.label,
             disabled: action.disabled,
+            onClick: action.onClick,
           },
           action.label,
         ),
@@ -112,12 +113,15 @@ vi.mock('#/adapter/vxe-table', () => ({
     mock.options = options;
     return [
       (_: unknown, { slots }: SetupContext) =>
-        mock.gridState.row
-          ? h('div', [
-              slots.status?.({ row: mock.gridState.row }),
-              slots.actions?.({ row: mock.gridState.row }),
-            ])
-          : null,
+        h('div', [
+          h('div', { 'data-testid': 'grid-toolbar' }, slots['toolbar-tools']?.()),
+          mock.gridState.row
+            ? h('div', { 'data-testid': 'grid-row' }, [
+                slots.status?.({ row: mock.gridState.row }),
+                slots.actions?.({ row: mock.gridState.row }),
+              ])
+            : null,
+        ]),
       {
         query: mock.query,
         grid: {
@@ -158,19 +162,23 @@ const row = (id: number | string, parentId: number | string = 0): Category => ({
   status: 0,
   sort: 0,
 });
+const stoppedRow = (id: number | string, parentId: number | string = 0) => ({
+  ...row(id, parentId),
+  status: 1,
+});
 let app: App;
 let host: HTMLDivElement;
 let state: {
   append: (row: Category) => void;
   changeStatus: (row: Category) => Promise<void>;
-  checkedIds: (number | string)[];
+  checkedRows: Category[];
   create: () => void;
   deleting: boolean;
   detail: (row: Category) => void;
   edit: (row: Category) => void;
   expanded: boolean;
   pendingStatus: Set<string>;
-  remove: (ids: (number | string)[], ask: boolean) => Promise<void>;
+  remove: (rows: Category[], ask: boolean) => Promise<void>;
   removeRow: (row: Category) => Promise<void> | undefined;
   toggleExpand: () => void;
   updatingStatus: Set<string>;
@@ -245,18 +253,48 @@ describe('集市类目管理', () => {
 
   it('批量删除父子原始 ID，成功后清理选择，失败后允许重试', async () => {
     const ids = ['9007199254740993', 2];
-    mock.options!.gridEvents.checkboxChange({
-      records: [row(ids[0]!), row(ids[1]!, ids[0]!)],
-    });
+    const records = [stoppedRow(ids[0]!), stoppedRow(ids[1]!, ids[0]!)];
+    mock.options!.gridEvents.checkboxChange({ records });
     mock.removeBatch.mockResolvedValueOnce(true);
-    await state.remove([...state.checkedIds], true);
+    await state.remove([...state.checkedRows], true);
     expect(mock.removeBatch).toHaveBeenCalledWith(ids);
-    expect(state.checkedIds).toEqual([]);
+    expect(state.checkedRows).toEqual([]);
     expect(mock.clear).toHaveBeenCalledOnce();
     mock.removeBatch.mockRejectedValueOnce(new Error('仍有关联集市资源'));
-    await expect(state.remove(ids, true)).resolves.toBeUndefined();
+    await expect(state.remove(records, true)).resolves.toBeUndefined();
     expect(state.deleting).toBe(false);
     await nextTick();
+  });
+  it('未勾选或混选启用类目时禁用批量删除，选中类目停用后恢复', async () => {
+    const batchDelete = host.querySelector<HTMLButtonElement>(
+      '[data-testid="grid-toolbar"] [data-row-action="批量删除"]',
+    );
+    const enabled = reactive(row('9007199254740993'));
+    const stopped = stoppedRow(2);
+    expect(batchDelete?.disabled).toBe(true);
+
+    mock.options!.gridEvents.checkboxChange({ records: [enabled, stopped] });
+    await nextTick();
+    expect(batchDelete?.disabled).toBe(true);
+    batchDelete?.click();
+    await state.remove([...state.checkedRows], true);
+    expect(mock.confirm).not.toHaveBeenCalled();
+    expect(mock.removeBatch).not.toHaveBeenCalled();
+
+    enabled.status = 1;
+    await nextTick();
+    expect(batchDelete?.disabled).toBe(false);
+  });
+  it('确认期间选中类目启用时不提交批量删除', async () => {
+    const confirmation = deferred<undefined>();
+    const item = reactive(stoppedRow(1));
+    mock.confirm.mockReturnValueOnce(confirmation.promise);
+    const request = state.remove([item], true);
+    item.status = 0;
+    confirmation.resolve(undefined);
+    await request;
+    expect(mock.removeBatch).not.toHaveBeenCalled();
+    expect(state.deleting).toBe(false);
   });
   it('forwards enabled status zero and disabled status without falling back to a parent filter', async () => {
     const query = mock.options!.gridOptions.proxyConfig.ajax.query;
@@ -288,7 +326,9 @@ describe('集市类目管理', () => {
     mock.gridState.row = row('9007199254740993');
     await nextTick();
     const actions = [
-      ...host.querySelectorAll<HTMLButtonElement>('[data-row-action]'),
+      ...host.querySelectorAll<HTMLButtonElement>(
+        '[data-testid="grid-row"] [data-row-action]',
+      ),
     ];
     expect(actions.map((action) => action.textContent)).toEqual([
       '详情',
@@ -315,7 +355,7 @@ describe('集市类目管理', () => {
     state.append(row(1));
     state.edit(row(1));
     await state.changeStatus(row(1));
-    await state.remove([1], false);
+    await state.remove([stoppedRow(1)], false);
     expect(mock.formOpen).not.toHaveBeenCalled();
     expect(mock.status).not.toHaveBeenCalled();
     expect(mock.remove).not.toHaveBeenCalled();
@@ -351,24 +391,24 @@ describe('集市类目管理', () => {
     expect(state.pendingStatus.size).toBe(0);
   });
   it('cancels a batch confirmation without issuing a delete and can retry', async () => {
+    const records = [stoppedRow(1)];
     mock.confirm.mockRejectedValueOnce(new Error('cancel'));
-    await state.remove([1], true);
+    await state.remove(records, true);
     expect(mock.removeBatch).not.toHaveBeenCalled();
     expect(state.deleting).toBe(false);
-    await state.remove([1], true);
+    await state.remove(records, true);
     expect(mock.removeBatch).toHaveBeenCalledWith([1]);
   });
   it('keeps the selection on delete failure and clears only after a successful atomic retry', async () => {
     const ids = ['9007199254740993', 2];
-    mock.options!.gridEvents.checkboxChange({
-      records: [row(ids[0]!), row(ids[1]!, ids[0]!)],
-    });
+    const records = [stoppedRow(ids[0]!), stoppedRow(ids[1]!, ids[0]!)];
+    mock.options!.gridEvents.checkboxChange({ records });
     mock.removeBatch.mockRejectedValueOnce(new Error('references'));
-    await state.remove([...state.checkedIds], true);
-    expect(state.checkedIds).toEqual(ids);
+    await state.remove([...state.checkedRows], true);
+    expect(state.checkedRows).toEqual(records);
     expect(mock.clear).not.toHaveBeenCalled();
-    await state.remove([...state.checkedIds], true);
-    expect(state.checkedIds).toEqual([]);
+    await state.remove([...state.checkedRows], true);
+    expect(state.checkedRows).toEqual([]);
     expect(mock.removeBatch).toHaveBeenNthCalledWith(2, ids);
   });
   it('requires query permission before querying the administrative tree', async () => {

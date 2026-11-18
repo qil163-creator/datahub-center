@@ -68,6 +68,10 @@ const loading = ref(false);
 const failed = ref(false);
 const busy = ref(false);
 const selectedKeys = ref<string[]>([]);
+const hasEnabledSelection = computed(() => {
+  const keys = new Set(selectedKeys.value);
+  return rows.value.some((row) => row.status === 0 && keys.has(String(row.id)));
+});
 const expandedKeys = ref<string[]>([]);
 const expanded = ref(false);
 const filter = reactive({
@@ -363,12 +367,7 @@ function askDelete(row?: Api.Category) {
       `本次选择 ${ids.length} 个类目，存在被任务引用的类目，不能删除。`,
     );
     return;
-  } else if (
-    rows.value.some(
-      (item) =>
-        ids.some((id) => String(item.id) === String(id)) && item.status === 0,
-    )
-  ) {
+  } else if (hasEnabledSelection.value) {
     message.warning('请先禁用所选类目后再删除');
     return;
   }
@@ -480,7 +479,7 @@ onActivated(() => {
               danger: true,
               icon: ACTION_ICON.DELETE,
               ifShow: can('delete'),
-              disabled: !selectedKeys.length || busy,
+              disabled: !selectedKeys.length || hasEnabledSelection || busy,
               onClick: () => askDelete(),
             },
             {

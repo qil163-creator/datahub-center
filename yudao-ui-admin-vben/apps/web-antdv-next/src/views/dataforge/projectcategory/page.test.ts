@@ -468,21 +468,35 @@ describe('项目类目列表', () => {
     ).toBe('false');
   });
 
-  it('启用类目行禁用删除，批量删除也先提示禁用', async () => {
+  it('所选类目包含启用项时禁用批量删除，取消该项后恢复', async () => {
+    const disabled = { ...row, id: '9007199254740995', status: 1 };
+    harness.list.mockResolvedValueOnce([row, disabled]);
     mount();
     await flush();
     expect(rowButton('删除').disabled).toBe(true);
-    harness.table!.rowSelection.onChange?.([id], [row as CategoryNode], {
-      type: 'multiple',
-    });
+    harness.table!.rowSelection.onChange?.(
+      [id, disabled.id],
+      harness.table!.dataSource,
+      { type: 'multiple' },
+    );
     await flush();
+    expect(toolbarButton('批量删除').disabled).toBe(true);
     toolbarButton('批量删除').click();
     await flush();
-    expect(harness.warning).toHaveBeenCalledExactlyOnceWith(
-      '请先禁用所选类目后再删除',
-    );
     expect(host.querySelector('[role="alertdialog"]')).toBeNull();
     expect(harness.removeList).not.toHaveBeenCalled();
+
+    harness.table!.rowSelection.onChange?.(
+      [disabled.id],
+      [harness.table!.dataSource[1]!],
+      { type: 'multiple' },
+    );
+    await flush();
+    expect(toolbarButton('批量删除').disabled).toBe(false);
+
+    harness.table!.rowSelection.onChange?.([], [], { type: 'multiple' });
+    await flush();
+    expect(toolbarButton('批量删除').disabled).toBe(true);
   });
 
   it.each([

@@ -49,10 +49,16 @@ const canQuery = computed(
     !!parseResourceId(user.userInfo?.userId) &&
     hasAccessByCodes(['asset:market-category:query']),
 );
-const checkedIds = ref<AssetMarketCategoryApi.Id[]>([]);
+const checkedRows = ref<AssetMarketCategoryApi.MarketCategory[]>([]);
 const pendingStatus = ref(new Set<string>());
 const updatingStatus = ref(new Set<string>());
 const deleting = ref(false);
+const bulkDeleteDisabled = computed(
+  () =>
+    deleting.value ||
+    checkedRows.value.length === 0 ||
+    checkedRows.value.some((row) => row.status === 0),
+);
 const expanded = ref(true);
 let querySequence = 0;
 let activeQuery: number | undefined;
@@ -114,7 +120,7 @@ function selectRows({
 }: {
   records: AssetMarketCategoryApi.MarketCategory[];
 }) {
-  checkedIds.value = records.map((row) => row.id);
+  checkedRows.value = records;
 }
 
 /** 开关始终受后端结果驱动，失败时保留原状态。 */
@@ -166,13 +172,18 @@ async function changeStatus(row: AssetMarketCategoryApi.MarketCategory) {
 }
 
 /** 批量删除保存点击时的原始 ID，允许父子一起交由服务端原子校验。 */
-async function remove(ids: AssetMarketCategoryApi.Id[], ask: boolean) {
+async function remove(
+  rows: AssetMarketCategoryApi.MarketCategory[],
+  ask: boolean,
+) {
+  const ids = rows.map((row) => row.id);
   if (
     inactive ||
     !canQuery.value ||
     !hasAccessByCodes(['asset:market-category:delete']) ||
     deleting.value ||
     ids.length === 0 ||
+    rows.some((row) => row.status === 0) ||
     ids.some((id) => !parseResourceId(id))
   )
     return;
@@ -181,6 +192,7 @@ async function remove(ids: AssetMarketCategoryApi.Id[], ask: boolean) {
     return;
   }
   const current = contextRevision;
+  const listAtStart = displayedRows;
   deleting.value = true;
   try {
     if (ask) {
@@ -190,10 +202,15 @@ async function remove(ids: AssetMarketCategoryApi.Id[], ask: boolean) {
         return;
       }
     }
-    if (current !== contextRevision) return;
+    if (
+      current !== contextRevision ||
+      (ask &&
+        (listAtStart !== displayedRows || rows.some((row) => row.status === 0)))
+    )
+      return;
     await (ask ? deleteMarketCategoryList(ids) : deleteMarketCategory(ids[0]!));
     if (current !== contextRevision) return;
-    checkedIds.value = [];
+    checkedRows.value = [];
     await gridApi.grid.clearCheckboxRow();
     message.success('删除成功');
     refresh();
@@ -210,7 +227,7 @@ function isRowDeleteDisabled(row: AssetMarketCategoryApi.MarketCategory) {
 
 function removeRow(row: AssetMarketCategoryApi.MarketCategory) {
   if (isRowDeleteDisabled(row)) return;
-  return remove([row.id], false);
+  return remove([row], false);
 }
 
 const [Grid, gridApi] = useVbenVxeGrid<AssetMarketCategoryApi.MarketCategory>({
@@ -247,7 +264,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AssetMarketCategoryApi.MarketCategory>({
             if (current !== querySequence) return displayedRows;
             displayedRows = marketCategoryTree(rows);
             lastStatusFilter = params.status;
-            checkedIds.value = [];
+            checkedRows.value = [];
             return displayedRows;
           } catch (error) {
             if (current !== querySequence) return displayedRows;
@@ -268,7 +285,7 @@ function invalidate() {
   activeQuery = undefined;
   lastStatusFilter = undefined;
   ++contextRevision;
-  checkedIds.value = [];
+  checkedRows.value = [];
   pendingStatus.value = new Set();
   updatingStatus.value = new Set();
   deleting.value = false;
@@ -318,8 +335,8 @@ onBeforeUnmount(invalidate);
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['asset:market-category:delete'],
-              disabled: checkedIds.length === 0 || deleting,
-              onClick: () => remove([...checkedIds], true),
+              disabled: bulkDeleteDisabled,
+              onClick: () => remove([...checkedRows], true),
             },
             {
               label: expanded ? '收缩' : '展开',
