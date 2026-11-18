@@ -8,7 +8,6 @@ import type { DataforgeDevApi } from '#/api/dataforge/dev';
 import type { ModelHomeApi } from '#/api/governance/model-home';
 import type { QualityWorkOrderApi } from '#/api/governance/quality/workorder';
 import type { SupplyApiLogApi } from '#/api/supply/apilog';
-import type { SystemNoticeApi } from '#/api/system/notice';
 import type { SystemUserProfileApi } from '#/api/system/user/profile';
 
 import { formatDateTime } from '@vben/utils';
@@ -22,7 +21,6 @@ import {
   getDashboardGovernanceSummary,
   getDashboardModelOverview,
   getDashboardMyWorkOrderList,
-  getDashboardNoticePage,
   getDashboardTodoTaskPage,
   getDashboardUnreadNotifyCount,
   getDashboardUserProfile,
@@ -115,8 +113,6 @@ export interface WorkspaceData {
     available: boolean;
     items: RunItem[];
   };
-  /** undefined 表示公告接口不可用 */
-  notices?: SystemNoticeApi.Notice[];
   /** 近 7 天 API 调用统计（含按天趋势）；undefined 表示不可用 */
   apiStats?: SupplyApiLogApi.Statistics;
   /** 近 7 天质量工单统计（含按天趋势）；undefined 表示不可用 */
@@ -528,7 +524,6 @@ export async function loadWorkspaceData(): Promise<WorkspaceData> {
     unreadCount,
     devPage,
     accessPage,
-    noticePage,
   ] = await Promise.all([
     settle(getDashboardUserProfile()),
     settle(getDashboardDataforgeSummary()),
@@ -542,7 +537,6 @@ export async function loadWorkspaceData(): Promise<WorkspaceData> {
     settle(getDashboardUnreadNotifyCount()),
     settle(getDashboardDevRecordPage(RUN_LIMIT)),
     settle(getDashboardAccessTaskPage(RUN_LIMIT)),
-    settle(getDashboardNoticePage(5)),
   ]);
 
   const domains: DomainData = {
@@ -559,7 +553,6 @@ export async function loadWorkspaceData(): Promise<WorkspaceData> {
     health: buildHealthMetrics(domains),
     todo: buildTodoSummary({ governance, todoPage, unreadCount, workOrders }),
     runs: buildRecentRuns(devPage, accessPage, RUN_LIMIT),
-    notices: noticePage?.list,
     apiStats,
     workOrderStats,
   };

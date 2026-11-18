@@ -26,7 +26,6 @@ import type { GovernanceStandardElementApi } from '#/api/governance/standardelem
 import type { GovernanceStandardTermApi } from '#/api/governance/standardterm';
 import type { SupplyApiLogApi } from '#/api/supply/apilog';
 import type { SupplyAppApi } from '#/api/supply/app';
-import type { SystemNoticeApi } from '#/api/system/notice';
 import type { SystemUserProfileApi } from '#/api/system/user/profile';
 
 import { requestClient } from '#/api/request';
@@ -164,15 +163,6 @@ export function getDashboardMyWorkOrderList() {
 /** 未读站内信数量 */
 export function getDashboardUnreadNotifyCount() {
   return silentGet<number>('/system/notify-message/get-unread-count');
-}
-
-/** 系统公告（仅开启状态） */
-export function getDashboardNoticePage(pageSize = 5) {
-  return silentGet<PageResult<SystemNoticeApi.Notice>>('/system/notice/page', {
-    pageNo: 1,
-    pageSize,
-    status: 0,
-  });
 }
 
 // ==================== 数据集成 / 数据研发（dataforge） ====================

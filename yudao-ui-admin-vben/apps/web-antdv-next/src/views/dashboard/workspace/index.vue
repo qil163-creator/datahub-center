@@ -14,7 +14,6 @@ import { todayText } from '../shared/utils';
 import DataChain from './modules/data-chain.vue';
 import HealthMetrics from './modules/health-metrics.vue';
 import HomeBanner from './modules/home-banner.vue';
-import NoticePanel from './modules/notice-panel.vue';
 import QuickNav from './modules/quick-nav.vue';
 import RecentRuns from './modules/recent-runs.vue';
 import TodoPanel from './modules/todo-panel.vue';
@@ -23,7 +22,7 @@ import TrendPanel from './modules/trend-panel.vue';
 /**
  * 首页：面向当前用户的“今天要做什么”。
  * 横幅（问候 + 个人待办数）→ 左：数据全链路总览 / 近 7 天趋势 / 今日运行概况；
- * 右：快捷入口 / 待办事项 / 最近运行动态 / 系统公告。
+ * 右：快捷入口 / 待办事项 / 最近运行动态。
  * 所有数据来自各业务域已有接口，无权限或服务未启动时对应卡片降级为 “--” / 空态。
  */
 defineOptions({ name: 'DashboardWorkspace' });
@@ -207,6 +206,7 @@ onMounted(loadData);
           @navigate="navTo"
         />
         <HealthMetrics
+          class="lg:grow"
           :loading="loading"
           :metrics="data.health"
           :updated-at="updatedAt"
@@ -221,15 +221,11 @@ onMounted(loadData);
         />
         <TodoPanel :loading="loading" :todo="data.todo" @navigate="navTo" />
         <RecentRuns
+          class="lg:grow"
           :available="data.runs.available"
           :items="data.runs.items"
           :loading="loading"
           @navigate="navTo"
-        />
-        <NoticePanel
-          v-if="data.notices !== undefined || loading"
-          :loading="loading"
-          :notices="data.notices ?? []"
         />
       </div>
     </div>
