@@ -83,6 +83,14 @@ const tokenTheme = computed(() => {
   scrollbar-color: rgb(128 128 128 / 28%) transparent;
 }
 
+.compact-directory-tree .ant-tree-switcher {
+  margin-inline-end: 0;
+}
+
+.compact-directory-tree .ant-tree-node-content-wrapper {
+  padding-inline-start: 2px;
+}
+
 .subtle-grid-scrollbar .vxe-table--scroll-x-handle::-webkit-scrollbar {
   height: 6px;
 }

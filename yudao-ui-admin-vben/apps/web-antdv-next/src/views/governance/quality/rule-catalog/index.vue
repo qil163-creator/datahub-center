@@ -428,6 +428,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           <Spin :spinning="categoryLoading">
             <Tree
               v-model:expanded-keys="expandedKeys"
+              class="compact-directory-tree"
               :tree-data="treeData"
               :selected-keys="[selectedCategory ?? 'all']"
               block-node

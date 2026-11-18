@@ -271,7 +271,7 @@ onMounted(reload);
           :selected-keys="selectedId != null ? [selectedId] : []"
           :tree-data="fileTree as any"
           block-node
-          class="pt-2"
+          class="compact-directory-tree pt-2"
           @select="handleSelect"
           @expand="expandAll = isExpanded"
         >

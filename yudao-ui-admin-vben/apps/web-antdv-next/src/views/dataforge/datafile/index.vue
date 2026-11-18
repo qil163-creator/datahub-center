@@ -378,6 +378,7 @@ function treeEntry(node: unknown) {
             <Tree
               v-if="connection"
               v-model:expanded-keys="expandedKeys"
+              class="compact-directory-tree"
               :tree-data="tree"
               :auto-expand-parent="false"
               :selected-keys="[path]"

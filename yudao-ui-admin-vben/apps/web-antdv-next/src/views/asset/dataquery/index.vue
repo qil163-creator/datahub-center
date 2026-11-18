@@ -749,6 +749,7 @@ onUnmounted(() => {
               :selected-keys="treeSelectedKeys"
               :tree-data="filteredTreeData as any"
               block-node
+              class="compact-directory-tree"
               @select="onTreeSelect"
             >
               <template #titleRender="node">

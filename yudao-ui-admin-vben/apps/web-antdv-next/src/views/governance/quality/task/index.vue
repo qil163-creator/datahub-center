@@ -301,6 +301,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           <div class="q-task-tree-scroll subtle-tree-scrollbar">
             <Tree
               v-model:expanded-keys="expandedKeys"
+              class="compact-directory-tree"
               :tree-data="treeData"
               block-node
                   :selected-keys="[filters.taskCategory ?? 'all']"

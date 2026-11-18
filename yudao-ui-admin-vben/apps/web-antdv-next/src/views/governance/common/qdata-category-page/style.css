@@ -29,14 +29,6 @@
   white-space: normal;
 }
 
-.qpc-row-actions {
-  display: flex;
-  gap: 0;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
 .qpc .ant-switch-checked { background: #4a6cf7; }
 
 .qpc .ant-switch-checked:hover:not(.ant-switch-disabled) { background: #4163e8; }

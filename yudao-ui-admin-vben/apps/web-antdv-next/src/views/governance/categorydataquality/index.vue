@@ -82,6 +82,7 @@ function handleDetail(
 async function handleDelete(
   row: FoundationCategoryDataQualityApi.CategoryDataQuality,
 ) {
+  if (row.status === CommonStatusEnum.ENABLE) return;
   const hideLoading = message.loading({
     content: $t('ui.actionMessage.deleting', [row.id]),
     duration: 0,
@@ -190,11 +191,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
-              label: '新增下级',
+              label: $t('common.detail'),
               type: 'link',
-              icon: ACTION_ICON.ADD,
-              auth: ['governance:category-data-quality:create'],
-              onClick: handleAppend.bind(null, row),
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:category-data-quality:query'],
+              onClick: handleDetail.bind(null, row),
             },
             {
               label: $t('common.edit'),
@@ -203,14 +204,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
               auth: ['governance:category-data-quality:update'],
               onClick: handleEdit.bind(null, row),
             },
-          ]"
-          :drop-down-actions="[
             {
-              label: $t('common.detail'),
-              icon: ACTION_ICON.VIEW,
+              label: $t('common.create'),
               type: 'link',
-              auth: ['governance:category-data-quality:query'],
-              onClick: handleDetail.bind(null, row),
+              icon: ACTION_ICON.ADD,
+              auth: ['governance:category-data-quality:create'],
+              onClick: handleAppend.bind(null, row),
             },
             {
               label: $t('common.delete'),
@@ -218,7 +217,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['governance:category-data-quality:delete'],
+              disabled: row.status === CommonStatusEnum.ENABLE,
               popConfirm: {
+                disabled: row.status === CommonStatusEnum.ENABLE,
                 title: $t('ui.actionMessage.deleteConfirm', [row.id]),
                 confirm: handleDelete.bind(null, row),
               },

@@ -1,7 +1,9 @@
 /* eslint-disable vue/one-component-per-file -- 页面入口测试使用隔离的展示组件 */
-import type { App } from 'vue';
+import type { App, PropType } from 'vue';
 
 import type { CategoryAdapter, CategoryRow } from './model';
+
+import type { ActionItem } from '#/components/table-action';
 
 import { createApp, defineComponent, h, nextTick, reactive } from 'vue';
 
@@ -93,6 +95,23 @@ vi.mock('./form.vue', () => ({
 }));
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: { ADD: 'plus', DELETE: 'trash', EDIT: 'edit', VIEW: 'eye' },
+  TableAction: defineComponent({
+    props: {
+      actions: { type: Array as PropType<ActionItem[]>, required: true },
+    },
+    setup: (props) => () =>
+      props.actions
+        .filter((action) =>
+          action.auth?.some((code) => harness.access!.accessCodes.includes(code)),
+        )
+        .map((action) =>
+          h(
+            'button',
+            { disabled: action.disabled, onClick: action.onClick },
+            action.label,
+          ),
+        ),
+  }),
   useVbenVxeGrid: (options: {
     gridEvents: { checkboxChange: (value: { records: CategoryRow[] }) => void };
   }) => [

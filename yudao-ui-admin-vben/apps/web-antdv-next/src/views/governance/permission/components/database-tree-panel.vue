@@ -301,7 +301,7 @@ onMounted(loadDatabases);
       <Spin :spinning="loading">
         <Tree
           v-if="filteredTreeData.length > 0"
-          class="permission-database-tree"
+          class="permission-database-tree compact-directory-tree"
           v-model:expanded-keys="expandedKeys"
           :load-data="handleLoadData"
           :selected-keys="selectedKeys"

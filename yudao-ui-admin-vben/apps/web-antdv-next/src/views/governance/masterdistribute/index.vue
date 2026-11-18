@@ -522,7 +522,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         </div>
         <Tree
           v-model:expanded-keys="expandedKeys"
-          class="subtle-tree-scrollbar"
+          class="compact-directory-tree subtle-tree-scrollbar"
           :selected-keys="selectedKeys"
           :tree-data="categoryTree"
           :disabled="treeLoading"

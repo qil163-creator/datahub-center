@@ -40,7 +40,7 @@ onMounted(observeTableSections);
   >
     <Card
       v-show="!collapsed"
-      class="standard-list-tree h-full w-1/6 shrink-0 overflow-hidden"
+      class="standard-list-tree compact-directory-tree h-full w-1/6 shrink-0 overflow-hidden"
       :classes="{ body: 'subtle-tree-scrollbar' }"
       :styles="{
         body: {

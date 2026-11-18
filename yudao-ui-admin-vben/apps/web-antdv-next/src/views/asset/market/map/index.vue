@@ -1106,6 +1106,7 @@ function syncFilterValues() {
             :selected-keys="selectedGroupKey ? [selectedGroupKey] : []"
             :tree-data="groupTree"
             block-node
+            class="compact-directory-tree"
             @select="onGroupSelect"
           >
             <template #titleRender="node">

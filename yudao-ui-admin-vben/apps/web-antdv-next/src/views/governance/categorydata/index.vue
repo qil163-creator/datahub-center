@@ -80,7 +80,11 @@ function handleDetail(row: FoundationCategoryDataApi.CategoryData) {
 
 /** 删除数据分类 类目管理 */
 async function handleDelete(row: FoundationCategoryDataApi.CategoryData) {
-  if (!can('delete', 'category-data') || !validCategoryRevision(row.revision))
+  if (
+    row.status === CommonStatusEnum.ENABLE ||
+    !can('delete', 'category-data') ||
+    !validCategoryRevision(row.revision)
+  )
     return;
   const subject = identity.value;
   const hideLoading = message.loading({
@@ -206,11 +210,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
-              label: '新增下级',
+              label: $t('common.detail'),
               type: 'link',
-              icon: ACTION_ICON.ADD,
-              auth: ['governance:category-data:create'],
-              onClick: handleAppend.bind(null, row),
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:category-data:query'],
+              onClick: handleDetail.bind(null, row),
             },
             {
               label: $t('common.edit'),
@@ -219,14 +223,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
               auth: ['governance:category-data:update'],
               onClick: handleEdit.bind(null, row),
             },
-          ]"
-          :drop-down-actions="[
             {
-              label: $t('common.detail'),
-              icon: ACTION_ICON.VIEW,
+              label: $t('common.create'),
               type: 'link',
-              auth: ['governance:category-data:query'],
-              onClick: handleDetail.bind(null, row),
+              icon: ACTION_ICON.ADD,
+              auth: ['governance:category-data:create'],
+              onClick: handleAppend.bind(null, row),
             },
             {
               label: $t('common.delete'),
@@ -234,7 +236,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['governance:category-data:delete'],
+              disabled: row.status === CommonStatusEnum.ENABLE,
               popConfirm: {
+                disabled: row.status === CommonStatusEnum.ENABLE,
                 title: $t('ui.actionMessage.deleteConfirm', [row.id]),
                 confirm: handleDelete.bind(null, row),
               },

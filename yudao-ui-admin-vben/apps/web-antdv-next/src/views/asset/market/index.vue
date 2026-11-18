@@ -555,6 +555,7 @@ function assetImage(name: string) {
               :selected-keys="selectedCategoryKeys"
               block-node
               v-model:expanded-keys="categoryExpandedKeys"
+              class="compact-directory-tree"
               @select="selectCategory"
             >
               <template #titleRender="node">

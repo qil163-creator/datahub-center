@@ -520,6 +520,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
               :selected-keys="selectedCategories"
               :tree-data="tree"
               :auto-expand-parent="false"
+              class="compact-directory-tree"
               show-icon
               block-node
               @select="selectCategory"

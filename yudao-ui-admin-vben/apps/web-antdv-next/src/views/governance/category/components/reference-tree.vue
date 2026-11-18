@@ -96,6 +96,7 @@ function isFolder(node: unknown) {
     <div class="category-sidebar-scroll subtle-tree-scrollbar">
       <Spin :spinning="loading">
         <Tree
+          class="compact-directory-tree"
           v-model:expanded-keys="expanded"
           :selected-keys="selected"
           :tree-data="nodes"

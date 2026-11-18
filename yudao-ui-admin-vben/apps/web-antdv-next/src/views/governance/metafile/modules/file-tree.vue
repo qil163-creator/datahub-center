@@ -102,6 +102,7 @@ useTreeReload(load);
     <Spin :spinning="loading">
       <Tree
         v-model:expanded-keys="expanded"
+        class="compact-directory-tree"
         :selected-keys="selected"
         :tree-data="tree"
         :field-names="{ key: 'id', title: 'name', children: 'children' }"

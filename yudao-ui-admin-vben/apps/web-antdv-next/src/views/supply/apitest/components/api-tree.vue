@@ -211,6 +211,7 @@ function select(keys: (number | string)[]) {
       <Tree
         v-if="treeData.length"
         v-model:expanded-keys="expandedKeys"
+        class="compact-directory-tree"
         :selected-keys="selectedApiId ? [`api-${selectedApiId}`] : []"
         :tree-data="treeData"
         block-node

@@ -528,7 +528,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           </Button>
           <Tree
             v-model:expanded-keys="domainExpandedKeys"
-            class="master-model-domains subtle-tree-scrollbar"
+            class="master-model-domains compact-directory-tree subtle-tree-scrollbar"
             :selected-keys="domainTreeSelectedKeys"
             :tree-data="domainTree"
             block-node

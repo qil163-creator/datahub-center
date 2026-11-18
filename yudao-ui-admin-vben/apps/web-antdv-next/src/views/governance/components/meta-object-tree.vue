@@ -174,7 +174,7 @@ useTreeReload(loadTree);
             v-model:selected-keys="selectedKeys"
             :tree-data="treeData"
             block-node
-            class="pt-2"
+            class="compact-directory-tree pt-2"
             @select="handleSelect"
           >
             <template #titleRender="node">

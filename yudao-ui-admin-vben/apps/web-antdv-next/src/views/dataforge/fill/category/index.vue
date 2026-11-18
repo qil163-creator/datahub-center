@@ -5,12 +5,11 @@ import { computed, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
-import { DICT_TYPE } from '@vben/constants';
-import { IconifyIcon } from '@vben/icons';
+import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
-import { Alert, Button, Descriptions, DescriptionsItem, message, Modal } from 'antdv-next';
+import { Alert, Descriptions, DescriptionsItem, message, Modal } from 'antdv-next';
 
 import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { deletePlanCategory, getPlanCategory, getPlanCategoryList } from '#/api/dataforge/fill';
@@ -179,7 +178,12 @@ async function openDetail(row: CategoryNode) {
 }
 async function confirmDelete() {
   const target = toDelete.value;
-  if (!target || busy.value || !can('delete')) return;
+  if (
+    !target ||
+    target.status === CommonStatusEnum.ENABLE ||
+    busy.value ||
+    !can('delete')
+  ) return;
   const current = mutationRequest.begin();
   busy.value = true;
   try {
@@ -243,24 +247,44 @@ onActivated(() => { if (inactive) { inactive = false; void load(); } });
         />
       </template>
       <template #actions="{ row }">
-        <div class="qpc-row-actions">
-          <Button v-if="canQuery" type="link" :disabled="busy" @click="openDetail(row)">
-            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
-            详情
-          </Button>
-          <Button v-if="can('update')" type="link" :disabled="busy" @click="openForm({ id: row.id })">
-            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
-            修改
-          </Button>
-          <Button v-if="can('create')" type="link" :disabled="busy" @click="openForm({ parentId: row.id })">
-            <template #icon><IconifyIcon :icon="ACTION_ICON.ADD" /></template>
-            新增
-          </Button>
-          <Button v-if="can('delete')" type="link" danger :disabled="busy" @click="toDelete = row">
-            <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
-            删除
-          </Button>
-        </div>
+        <TableAction
+          class="qpc-row-actions"
+          :actions="[
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              ifShow: canQuery,
+              disabled: busy,
+              onClick: () => openDetail(row),
+            },
+            {
+              label: '修改',
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              ifShow: can('update'),
+              disabled: busy,
+              onClick: () => openForm({ id: row.id }),
+            },
+            {
+              label: '新增',
+              type: 'link',
+              icon: ACTION_ICON.ADD,
+              ifShow: can('create'),
+              disabled: busy,
+              onClick: () => openForm({ parentId: row.id }),
+            },
+            {
+              label: '删除',
+              type: 'link',
+              icon: ACTION_ICON.DELETE,
+              ifShow: can('delete'),
+              danger: true,
+              disabled: busy || row.status === CommonStatusEnum.ENABLE,
+              onClick: () => (toDelete = row),
+            },
+          ]"
+        />
       </template>
     </Grid>
     <CategoryFormModal @success="load" />

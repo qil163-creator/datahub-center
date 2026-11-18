@@ -19,7 +19,11 @@ import { formatDate } from '@vben/utils';
 
 import { Alert, Button, message, Modal, Switch } from 'antdv-next';
 
-import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -447,41 +451,43 @@ onActivated(() => {
       />
 </template>
       <template #actions="{ row }">
-        <div class="qpc-row-actions">
-          <Button
-            v-if="can('query')"
-            type="link"
-            :disabled="busy"
-            @click="openDetail(row)"
-          >
-            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
-          </Button>
-          <Button
-            v-if="can('update')"
-            type="link"
-            :disabled="busy"
-            @click="openForm({ id: row.id })"
-            >
-<template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
-</Button>
-          <Button
-            v-if="can('create')"
-            type="link"
-            :disabled="busy"
-            @click="openForm({ parentId: row.id })"
-            >
-<template #icon><IconifyIcon :icon="ACTION_ICON.ADD" /></template>新增
-</Button>
-          <Button
-            v-if="can('delete')"
-            type="link"
-            danger
-            :disabled="busy || row.status === 0"
-            @click="askDelete(row)"
-            >
-<template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>删除
-</Button>
-        </div>
+        <TableAction
+          :actions="[
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: [`${adapter.permissionPrefix}:query`],
+              disabled: busy,
+              onClick: () => openDetail(row),
+            },
+            {
+              label: '修改',
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              auth: [`${adapter.permissionPrefix}:update`],
+              disabled: busy,
+              onClick: () => openForm({ id: row.id }),
+            },
+            {
+              label: '新增',
+              type: 'link',
+              icon: ACTION_ICON.ADD,
+              auth: [`${adapter.permissionPrefix}:create`],
+              disabled: busy,
+              onClick: () => openForm({ parentId: row.id }),
+            },
+            {
+              label: '删除',
+              type: 'link',
+              icon: ACTION_ICON.DELETE,
+              auth: [`${adapter.permissionPrefix}:delete`],
+              danger: true,
+              disabled: busy || row.status === 0,
+              onClick: () => askDelete(row),
+            },
+          ]"
+        />
       </template>
     </Grid>
     <CategoryDetail ref="detail" :adapter="adapter" />

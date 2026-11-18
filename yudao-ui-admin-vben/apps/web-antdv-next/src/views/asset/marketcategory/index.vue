@@ -204,6 +204,15 @@ async function remove(ids: AssetMarketCategoryApi.Id[], ask: boolean) {
   }
 }
 
+function isRowDeleteDisabled(row: AssetMarketCategoryApi.MarketCategory) {
+  return deleting.value || row.status === 0;
+}
+
+function removeRow(row: AssetMarketCategoryApi.MarketCategory) {
+  if (isRowDeleteDisabled(row)) return;
+  return remove([row.id], false);
+}
+
 const [Grid, gridApi] = useVbenVxeGrid<AssetMarketCategoryApi.MarketCategory>({
   formOptions: {
     schema: useGridFormSchema(),
@@ -348,6 +357,13 @@ onBeforeUnmount(invalidate);
         <TableAction
           :actions="[
             {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['asset:market-category:query'],
+              onClick: () => detail(row),
+            },
+            {
               label: '修改',
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -367,18 +383,12 @@ onBeforeUnmount(invalidate);
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['asset:market-category:delete'],
-              disabled: deleting,
+              disabled: isRowDeleteDisabled(row),
               popConfirm: {
                 title: `确认删除“${row.name}”吗？`,
-                confirm: () => remove([row.id], false),
+                disabled: isRowDeleteDisabled(row),
+                confirm: () => removeRow(row),
               },
-            },
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['asset:market-category:query'],
-              onClick: () => detail(row),
             },
           ]"
         />

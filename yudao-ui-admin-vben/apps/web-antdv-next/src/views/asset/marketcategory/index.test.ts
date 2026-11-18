@@ -1,6 +1,7 @@
 import type { App, ComponentPublicInstance, SetupContext } from 'vue';
 
 import type { AssetMarketCategoryApi } from '#/api/asset/marketcategory';
+import type { ActionItem } from '#/components/table-action/typing';
 
 import { createApp, h, nextTick, reactive } from 'vue';
 
@@ -92,13 +93,30 @@ vi.mock('antdv-next', () => ({
 }));
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: {},
-  TableAction: () => null,
+  TableAction: ({ actions }: { actions: ActionItem[] }) =>
+    h(
+      'div',
+      actions.map((action) =>
+        h(
+          'button',
+          {
+            'data-confirm-disabled': action.popConfirm?.disabled,
+            'data-row-action': action.label,
+            disabled: action.disabled,
+          },
+          action.label,
+        ),
+      ),
+    ),
   useVbenVxeGrid: (options: GridOptions) => {
     mock.options = options;
     return [
       (_: unknown, { slots }: SetupContext) =>
         mock.gridState.row
-          ? h('div', slots.status?.({ row: mock.gridState.row }))
+          ? h('div', [
+              slots.status?.({ row: mock.gridState.row }),
+              slots.actions?.({ row: mock.gridState.row }),
+            ])
           : null,
       {
         query: mock.query,
@@ -153,6 +171,7 @@ let state: {
   expanded: boolean;
   pendingStatus: Set<string>;
   remove: (ids: (number | string)[], ask: boolean) => Promise<void>;
+  removeRow: (row: Category) => Promise<void> | undefined;
   toggleExpand: () => void;
   updatingStatus: Set<string>;
 };
@@ -264,6 +283,31 @@ describe('集市类目管理', () => {
     state.detail(value);
     expect(mock.detailData).toHaveBeenCalledWith({ id: value.id });
     expect(mock.detailOpen).toHaveBeenCalledOnce();
+  });
+  it('按详情、修改、新增、删除展示行操作，已启用时禁止行删除', async () => {
+    mock.gridState.row = row('9007199254740993');
+    await nextTick();
+    const actions = [
+      ...host.querySelectorAll<HTMLButtonElement>('[data-row-action]'),
+    ];
+    expect(actions.map((action) => action.textContent)).toEqual([
+      '详情',
+      '修改',
+      '新增',
+      '删除',
+    ]);
+    expect(actions.slice(0, 3).every((action) => !action.disabled)).toBe(true);
+    expect(actions[3]?.disabled).toBe(true);
+    expect(actions[3]?.dataset.confirmDisabled).toBe('true');
+    await state.removeRow(mock.gridState.row);
+    expect(mock.remove).not.toHaveBeenCalled();
+
+    mock.gridState.row.status = 1;
+    await nextTick();
+    expect(actions[3]?.disabled).toBe(false);
+    expect(actions[3]?.dataset.confirmDisabled).toBe('false');
+    await state.removeRow(mock.gridState.row);
+    expect(mock.remove).toHaveBeenCalledExactlyOnceWith('9007199254740993');
   });
   it('checks action permissions before opening editors or issuing writes', async () => {
     mock.access.accessCodes = ['asset:market-category:query'];

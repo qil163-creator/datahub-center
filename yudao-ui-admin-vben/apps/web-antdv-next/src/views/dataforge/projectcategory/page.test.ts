@@ -316,6 +316,11 @@ function toolbarButton(label: string) {
     ...host.querySelectorAll<HTMLButtonElement>('.qpc-toolbar-actions button'),
   ].find((button) => button.textContent?.trim() === label)!;
 }
+function rowButton(label: string) {
+  return [
+    ...host.querySelectorAll<HTMLButtonElement>('.qpc-row-actions button'),
+  ].find((button) => button.textContent?.trim() === label)!;
+}
 beforeEach(() => {
   vi.clearAllMocks();
   Object.assign(harness.access!, {
@@ -466,10 +471,7 @@ describe('项目类目列表', () => {
   it('启用类目行禁用删除，批量删除也先提示禁用', async () => {
     mount();
     await flush();
-    expect(
-      host.querySelector<HTMLButtonElement>('.qpc-row-actions button[danger]')!
-        .disabled,
-    ).toBe(true);
+    expect(rowButton('删除').disabled).toBe(true);
     harness.table!.rowSelection.onChange?.([id], [row as CategoryNode], {
       type: 'multiple',
     });
@@ -495,9 +497,7 @@ describe('项目类目列表', () => {
       ]);
       mount();
       await flush();
-      host
-        .querySelector<HTMLButtonElement>('.qpc-row-actions button[danger]')!
-        .click();
+      rowButton('删除').click();
       await flush();
       expect(harness.warning).toHaveBeenCalledExactlyOnceWith(warning);
       expect(host.querySelector('[role="alertdialog"]')).toBeNull();

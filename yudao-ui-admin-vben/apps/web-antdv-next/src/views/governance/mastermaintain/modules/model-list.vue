@@ -267,6 +267,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
       <Tree
         v-model:expanded-keys="expandedKeys"
         v-else
+        class="compact-directory-tree"
         :tree-data="treeData"
         :selected-keys="[String(filters.domainId ?? 'all')]"
         block-node

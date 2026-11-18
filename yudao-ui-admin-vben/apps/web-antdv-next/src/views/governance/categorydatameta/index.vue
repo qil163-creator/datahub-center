@@ -78,6 +78,7 @@ function handleDetail(row: FoundationCategoryDatametaApi.CategoryDatameta) {
 async function handleDelete(
   row: FoundationCategoryDatametaApi.CategoryDatameta,
 ) {
+  if (row.status === CommonStatusEnum.ENABLE) return;
   const hideLoading = message.loading({
     content: $t('ui.actionMessage.deleting', [row.id]),
     duration: 0,
@@ -186,6 +187,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: $t('common.detail'),
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:category-datameta:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: $t('common.edit'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -193,18 +201,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
               onClick: handleEdit.bind(null, row),
             },
             {
-              label: '新增',
+              label: $t('common.create'),
               type: 'link',
               icon: ACTION_ICON.ADD,
               auth: ['governance:category-datameta:create'],
               onClick: handleAppend.bind(null, row),
-            },
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['governance:category-datameta:query'],
-              onClick: handleDetail.bind(null, row),
             },
             {
               label: $t('common.delete'),
@@ -212,7 +213,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['governance:category-datameta:delete'],
+              disabled: row.status === CommonStatusEnum.ENABLE,
               popConfirm: {
+                disabled: row.status === CommonStatusEnum.ENABLE,
                 title: $t('ui.actionMessage.deleteConfirm', [row.id]),
                 confirm: handleDelete.bind(null, row),
               },

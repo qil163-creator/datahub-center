@@ -166,17 +166,30 @@ describe('数据填报类目管理', () => {
     expect(state.rows[0].children[0].id).toBe(child.id);
   });
   it('独立权限控制操作并保留大整数 ID', async () => {
+    state.list.mockResolvedValue([parent, { ...child, parentId: '0' }]);
     app.mount(host);
     await flush();
-    const actions = host.querySelector('[data-id] .qpc-row-actions')!;
-    button('修改', actions).click();
+    const enabledActions = host.querySelector(
+      `[data-id="${parent.id}"] .qpc-row-actions`,
+    )!;
+    const disabledActions = host.querySelector(
+      `[data-id="${child.id}"] .qpc-row-actions`,
+    )!;
+    expect(
+      [...enabledActions.querySelectorAll('button')].map((item) => item.textContent?.trim()),
+    ).toEqual(['详情', '修改', '新增', '删除']);
+    button('修改', enabledActions).click();
     expect(state.modalData).toEqual({ id: parent.id, categoryLabel: '数据填报类目' });
-    button('删除', actions).click();
+    expect(button('删除', enabledActions).disabled).toBe(true);
+    button('删除', enabledActions).click();
+    expect(host.querySelector('[data-confirm]')).toBeNull();
+    expect(button('删除', disabledActions).disabled).toBe(false);
+    button('删除', disabledActions).click();
     await flush();
     expect(state.remove).not.toHaveBeenCalled();
     host.querySelector<HTMLButtonElement>('[data-confirm]')!.click();
     await flush();
-    expect(state.remove).toHaveBeenCalledWith(parent.id);
+    expect(state.remove).toHaveBeenCalledWith(child.id);
     expect(state.list).toHaveBeenCalledTimes(2);
   });
   it('仅有查询权限时没有写入操作', async () => {

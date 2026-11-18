@@ -462,7 +462,7 @@ onMounted(() => {
               "
               :tree-data="categoryTree as any"
               block-node
-              class="pt-2"
+              class="compact-directory-tree pt-2"
               @select="handleCategorySelect"
             >
               <template #titleRender="node">

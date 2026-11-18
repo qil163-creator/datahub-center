@@ -170,7 +170,7 @@ function isCategory(key: number | string) {
           :tree-data="treeData"
           :auto-expand-parent="false"
           block-node
-          class="pt-2"
+          class="compact-directory-tree pt-2"
           @select="onSelect"
         >
           <template #titleRender="node">
