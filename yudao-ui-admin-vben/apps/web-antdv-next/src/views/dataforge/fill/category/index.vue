@@ -6,16 +6,17 @@ import { computed, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
-import { Alert, Button, Descriptions, DescriptionsItem, message, Modal, Tooltip } from 'antdv-next';
+import { Alert, Button, Descriptions, DescriptionsItem, message, Modal } from 'antdv-next';
 
 import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import { deletePlanCategory, getPlanCategory, getPlanCategoryList } from '#/api/dataforge/fill';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
-import ReferenceIcon from '../../projectcategory/reference-icon.vue';
 import CategoryForm from '../plan/modules/category-form.vue';
 
 import '../../projectcategory/style.css';
@@ -37,7 +38,6 @@ const loading = ref(false);
 const failed = ref(false);
 const busy = ref(false);
 const expanded = ref(false);
-const showFilter = ref(true);
 const keyword = ref('');
 const appliedKeyword = ref('');
 const detail = ref<DataforgeFillApi.PlanCategory>();
@@ -117,7 +117,12 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
     showOverflow: false,
     rowConfig: { keyField: 'key', isHover: true },
     treeConfig: { rowField: 'key', childrenField: 'children', indent: 24, iconOpen: 'qpc-tree-open', iconClose: 'qpc-tree-closed' },
-    toolbarConfig: { refresh: false, search: false, custom: false, zoom: false },
+    toolbarConfig: {
+      refresh: true,
+      refreshOptions: { queryMethod: () => (loading.value ? undefined : load()) },
+      search: true,
+      custom: true,
+    },
     proxyConfig: { autoLoad: false, ajax: { query: async (_: unknown, values: { name?: string }) => {
       keyword.value = values.name ?? '';
       appliedKeyword.value = keyword.value;
@@ -213,22 +218,48 @@ onActivated(() => { if (inactive) { inactive = false; void load(); } });
   <Page auto-content-height class="qpc">
     <Alert v-if="!canQuery" message="暂无类目查询权限" type="warning" show-icon class="mb-4" />
 
-    <Grid table-title="数据填报类目列表" :show-search-form="showFilter">
+    <Grid table-title="数据填报类目列表">
       <template #toolbar-tools>
-        <div class="qpc-toolbar-actions flex items-center gap-2">
-          <Button v-if="can('create')" type="primary" :disabled="!canQuery || busy" @click="openForm()"><template #icon><ReferenceIcon name="add" /></template>新增</Button>
-          <Button type="primary" @click="toggleExpand"><template #icon><ReferenceIcon :name="expanded ? 'collapse' : 'expand'" /></template>{{ expanded ? '折叠' : '展开' }}</Button>
-          <Tooltip title="显示/隐藏查询"><Button aria-label="显示/隐藏查询" @click="showFilter = !showFilter"><ReferenceIcon name="search" /></Button></Tooltip>
-          <Tooltip title="刷新"><Button aria-label="刷新" :loading="loading" @click="load"><ReferenceIcon name="refresh" /></Button></Tooltip>
-          <Tooltip title="列设置"><Button aria-label="列设置" @click="gridApi.grid?.openCustom()"><ReferenceIcon name="columns" /></Button></Tooltip>
-        </div>
+        <TableAction
+          class="qpc-toolbar-actions"
+          :actions="[
+            {
+              label: '新增',
+              type: 'primary',
+              icon: ACTION_ICON.ADD,
+              ifShow: can('create'),
+              disabled: !canQuery || busy,
+              onClick: () => openForm(),
+            },
+            {
+              label: expanded ? '收缩' : '展开',
+              icon: expanded
+                ? 'lucide:chevrons-down-up'
+                : 'lucide:chevrons-up-down',
+              type: 'primary',
+              onClick: toggleExpand,
+            },
+          ]"
+        />
       </template>
       <template #actions="{ row }">
         <div class="qpc-row-actions">
-          <Button v-if="canQuery" type="link" :disabled="busy" @click="openDetail(row)"><template #icon><ReferenceIcon name="query" /></template>详情</Button>
-          <Button v-if="can('update')" type="link" :disabled="busy" @click="openForm({ id: row.id })"><template #icon><ReferenceIcon name="edit" /></template>修改</Button>
-          <Button v-if="can('create')" type="link" :disabled="busy" @click="openForm({ parentId: row.id })"><template #icon><ReferenceIcon name="add" /></template>新增</Button>
-          <Button v-if="can('delete')" type="link" danger :disabled="busy" @click="toDelete = row"><template #icon><ReferenceIcon name="delete" /></template>删除</Button>
+          <Button v-if="canQuery" type="link" :disabled="busy" @click="openDetail(row)">
+            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
+            详情
+          </Button>
+          <Button v-if="can('update')" type="link" :disabled="busy" @click="openForm({ id: row.id })">
+            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
+            修改
+          </Button>
+          <Button v-if="can('create')" type="link" :disabled="busy" @click="openForm({ parentId: row.id })">
+            <template #icon><IconifyIcon :icon="ACTION_ICON.ADD" /></template>
+            新增
+          </Button>
+          <Button v-if="can('delete')" type="link" danger :disabled="busy" @click="toDelete = row">
+            <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
+            删除
+          </Button>
         </div>
       </template>
     </Grid>

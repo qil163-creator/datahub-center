@@ -34,6 +34,7 @@ import {
 } from '#/api/governance/metaobject';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ListPagination from '#/components/list-pagination/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { metadataTime } from '../metadata-common/helpers';
@@ -419,7 +420,7 @@ const technicalFields = computed(() =>
                         @click="selectedField = record"
                       >
                         <template #icon>
-                          <IconifyIcon :icon="metadataIcon('detail')" />
+                          <IconifyIcon :icon="ACTION_ICON.VIEW" />
                         </template>
                         详情
                       </Button>
@@ -430,7 +431,7 @@ const technicalFields = computed(() =>
                         @click="columnApi.setData(record).open()"
                       >
                         <template #icon>
-                          <IconifyIcon :icon="metadataIcon('edit')" />
+                          <IconifyIcon :icon="ACTION_ICON.EDIT" />
                         </template>
                         修改
                       </Button>

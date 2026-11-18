@@ -27,6 +27,7 @@ import {
   indexMaskedColumns,
   renderMaskedColumnTitle,
 } from '#/components/masked-column';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 
 import {
@@ -370,6 +371,7 @@ onUnmounted(() => {
             :disabled="!record.rowId || record.revision === undefined"
             @click="editRow(record)"
           >
+            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
             修改
           </Button>
           <Button
@@ -378,6 +380,7 @@ onUnmounted(() => {
             :disabled="!record.rowId"
             @click="showHistory(record.rowId)"
           >
+            <template #icon><IconifyIcon icon="lucide:history" /></template>
             修改记录
           </Button>
         </template>

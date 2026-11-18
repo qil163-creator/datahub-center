@@ -539,7 +539,7 @@ function syncFilterValues() {
                   "
                   @click="edit(record as SensitiveListApi.Record)"
                 >
-                  <template #icon><SourceIcon name="edit" /></template>修改
+                  <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
                 </Button>
                 <Button
                   v-if="can('delete')"
@@ -551,14 +551,14 @@ function syncFilterValues() {
                   "
                   @click="remove(record as SensitiveListApi.Record)"
                 >
-                  <template #icon><SourceIcon name="delete" /></template>删除
+                  <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>删除
                 </Button>
                 <Button
                   type="link"
                   size="small"
                   @click="detail(record as SensitiveListApi.Record)"
                 >
-                  <template #icon><SourceIcon name="view" /></template>详情
+                  <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
                 </Button>
               </div>
             </template>

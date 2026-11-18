@@ -9,6 +9,8 @@ import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 
 import { computed, ref, watch } from 'vue';
 
+import { IconifyIcon } from '@vben/icons';
+
 import {
   Alert,
   Button,
@@ -22,6 +24,8 @@ import {
   Table,
   TextArea,
 } from 'antdv-next';
+
+import { ACTION_ICON } from '#/components/table-action/icons';
 
 import {
   createTableInputBatchRead,
@@ -105,7 +109,7 @@ const batchFields = computed(() =>
 const conditionWidths = computed(() =>
   props.referenceLayout
     ? [176, 176, 176, 176, 176, 240]
-    : [150, 100, 130, 200, 180, 126],
+    : [150, 100, 130, 200, 180, 150],
 );
 const conditionScrollWidth = computed(() =>
   conditionWidths.value.reduce((total, width) => total + width, 0),
@@ -337,17 +341,26 @@ defineExpose({ validate });
             <span
               v-else-if="column.key === 'actions'"
               class="qi-table-condition-actions"
-              ><Button
+            >
+              <Button
                 type="link"
                 size="small"
                 :disabled="disabled"
                 @click="openCondition(record.index)"
-                >编辑</Button><Button
+              >
+                <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
+                编辑
+              </Button>
+              <Button
                 type="link"
                 size="small"
                 :disabled="disabled"
                 @click="removeCondition(record.index)"
-                >删除</Button></span>
+              >
+                <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
+                删除
+              </Button>
+            </span>
           </template>
           <template #emptyText>
 <div class="qi-table-input-empty">

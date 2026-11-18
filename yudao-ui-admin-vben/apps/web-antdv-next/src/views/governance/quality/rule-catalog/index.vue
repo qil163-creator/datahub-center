@@ -28,7 +28,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   getRuleCatalogCategories,
   getRuleCatalogDetail,
@@ -465,7 +465,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
         </template>
         <template #actions="{ row }">
           <Button v-if="canQuery" type="link" @click="openDetail(row.id)">
-            <template #icon><CatalogIcon name="eye" /></template>
+            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
             详情
           </Button>
         </template>

@@ -41,22 +41,6 @@
 
 .qpc .ant-switch-checked:hover:not(.ant-switch-disabled) { background: #4163e8; }
 
-.qpc .vxe-toolbar {
-  min-height: 54px;
-  padding: 8px 14px;
-  background: #fff;
-}
-
-.qpc-toolbar-actions .ant-btn-primary {
-  background: #4a6cf7;
-  border-color: #4a6cf7;
-}
-
-.qpc-toolbar-actions .ant-btn-primary:hover {
-  background: #4163e8;
-  border-color: #4163e8;
-}
-
 .qpc-modal .ant-modal-header { border-bottom: 1px solid #edf0f5; }
 
 .qpc-modal .ant-modal-footer { border-top: 1px solid #edf0f5; }

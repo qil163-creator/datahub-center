@@ -29,6 +29,7 @@ import {
   getQualityTaskRuleCatalog,
   suggestQualityTaskRules,
 } from '#/api/governance/quality/task';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 import { dimensionLabel } from '#/views/governance/quality/report/report-presentation';
@@ -261,7 +262,7 @@ const columns = [
   },
   { title: '质量维度', key: 'dimension', width: 110 },
   { title: '状态', key: 'status', width: 80 },
-  { title: '操作', key: 'actions', width: 180 },
+  { title: '操作', key: 'actions', width: 220, fixed: 'right' as const },
 ];
 </script>
 
@@ -362,6 +363,7 @@ const columns = [
                 editor?.open(record as QualityTaskApi.Evaluation, index, true)
               "
             >
+              <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
               查看
             </Button>
             <Button
@@ -369,6 +371,7 @@ const columns = [
               size="small"
               @click="editor?.open(record as QualityTaskApi.Evaluation, index)"
             >
+              <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
               修改
             </Button>
             <Button
@@ -377,6 +380,7 @@ const columns = [
               size="small"
               @click="evaluations.splice(index, 1)"
             >
+              <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
               删除
             </Button>
           </template>

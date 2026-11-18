@@ -7,6 +7,7 @@ import { useRoute } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
 import { Button, message } from 'antdv-next';
@@ -309,8 +310,10 @@ async function remove() {
               size="small"
               @click="showLog(row)"
             >
-              <MetadataIcon name="detail" />查看日志
-</Button><Button
+              <template #icon><IconifyIcon icon="lucide:file-text" /></template>
+              查看日志
+            </Button>
+            <Button
               v-if="
                 hasAccessByCodes(['governance:meta-collect-instance:query'])
               "
@@ -319,7 +322,8 @@ async function remove() {
               :loading="downloadIds.has(String(row.id))"
               @click="download(row)"
             >
-              <MetadataIcon name="download" />下载日志
+              <template #icon><IconifyIcon :icon="ACTION_ICON.DOWNLOAD" /></template>
+              下载日志
             </Button>
           </div>
         </template>

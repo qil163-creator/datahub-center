@@ -26,6 +26,7 @@ import {
   getFillTableRuleList,
   updateFillTableRule,
 } from '#/api/dataforge/filltable';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { validateExpression } from '#/views/dataforge/fill/workbench/fill-expression';
 
 import { RULE_SCOPE_OPTIONS, RULE_SEVERITY_OPTIONS, ruleExamples } from '../data';
@@ -178,10 +179,14 @@ defineExpose({ reload: loadRules });
         <template v-else-if="column.key === 'actions'">
           <div v-if="editable" class="flex gap-1">
             <Button size="small" type="link" @click="openEdit(record as any)">
+              <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
               编辑
             </Button>
             <Popconfirm title="确认删除该规则吗？" @confirm="handleDelete(record as any)">
-              <Button danger size="small" type="link">删除</Button>
+              <Button danger size="small" type="link">
+                <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
+                删除
+              </Button>
             </Popconfirm>
           </div>
           <span v-else>-</span>

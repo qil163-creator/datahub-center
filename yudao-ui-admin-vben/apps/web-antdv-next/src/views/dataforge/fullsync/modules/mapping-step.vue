@@ -15,6 +15,8 @@ import {
   watch,
 } from 'vue';
 
+import { IconifyIcon } from '@vben/icons';
+
 import {
   Button,
   Input,
@@ -28,6 +30,7 @@ import {
 import {
   getDatabaseTables,
 } from '#/api/dataforge/fullsync';
+import { ACTION_ICON } from '#/components/table-action/icons';
 
 import ReferenceIcon from './reference-icon.vue';
 
@@ -525,7 +528,7 @@ defineExpose({
               class="fsm-danger"
               @click="removeRow(record.source)"
             >
-              <ReferenceIcon name="delete" />删除
+              <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
             </button>
           </div>
         </template>
@@ -594,7 +597,7 @@ defineExpose({
               class="fsm-danger fsm-delete-column"
               @click="removeColumn(record.index)"
             >
-              <ReferenceIcon name="delete" />删除
+              <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
             </button>
 </template>
           <template v-else>

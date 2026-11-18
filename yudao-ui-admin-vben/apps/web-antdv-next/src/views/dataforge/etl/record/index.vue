@@ -33,6 +33,7 @@ import {
   resolveEtlCommand,
   stopEtlCommand,
 } from '#/api/dataforge/etl';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { $t } from '#/locales';
 import { parseResourceId } from '#/utils/resource-id';
 import { getRunState } from '#/views/dataforge/execution/run-status';
@@ -396,7 +397,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
               onClick: () => openResolution(row),
             },
             {
-              icon: 'lucide:scroll-text',
+              icon: ACTION_ICON.LOG,
               label: '日志',
               type: 'link',
               onClick: handleShowLog.bind(null, row),

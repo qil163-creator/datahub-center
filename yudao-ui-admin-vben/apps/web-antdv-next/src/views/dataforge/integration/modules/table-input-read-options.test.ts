@@ -20,6 +20,13 @@ import {
 } from './table-input-config';
 import Editor from './table-input-read-options.vue';
 
+vi.mock('@vben/icons', () => ({
+  IconifyIcon: defineComponent({
+    props: { icon: String },
+    setup: (props) => () => h('svg', { 'data-icon': props.icon }),
+  }),
+}));
+
 vi.mock('#/components/monaco/sql-editor.vue', () => ({
   default: defineComponent({ props: { modelValue: String, readonly: Boolean }, emits: ['update:modelValue'], setup: (props, { emit }) => () => h('textarea', { value: props.modelValue, disabled: props.readonly, onInput: (event: Event) => emit('update:modelValue', (event.target as HTMLTextAreaElement).value) }) }),
 }));
@@ -86,7 +93,10 @@ vi.mock('antdv-next', () => {
       setup:
         (props, { slots }) =>
         () =>
-          h('button', { disabled: props.disabled }, slots.default?.()),
+          h('button', { disabled: props.disabled }, [
+            slots.icon?.(),
+            slots.default?.(),
+          ]),
     }),
     Alert: defineComponent({
       props: { message: String },
@@ -164,7 +174,7 @@ async function input(label: string, value: string) {
 }
 async function click(label: string) {
   const element = [...host.querySelectorAll('button')].find(
-    (button) => button.textContent === label,
+    (button) => button.textContent?.trim() === label,
   )!;
   expect(element).toBeTruthy();
   element.click();
@@ -369,6 +379,13 @@ describe('表输入读取配置交互', () => {
         baselineValue: '2026-11-03',
         operator: '>',
       },
+    ]);
+    const icons = host.querySelectorAll<SVGElement>(
+      '.qi-table-condition-actions [data-icon]',
+    );
+    expect(Array.from(icons, (icon) => icon.dataset.icon)).toEqual([
+      'lucide:edit',
+      'lucide:trash-2',
     ]);
     await click('编辑');
     await input('基准类型', 'TIME_RANGE');

@@ -55,7 +55,10 @@ vi.mock('@vben/access', () => ({
       codes.some((code) => harness.access!.accessCodes.includes(code)),
   }),
 }));
-vi.mock('@vben/utils', () => ({ formatDate: String }));
+vi.mock('@vben/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@vben/utils')>()),
+  formatDate: String,
+}));
 vi.mock('@vben/common-ui', () => ({
   Page: defineComponent({
     setup:
@@ -79,6 +82,10 @@ vi.mock('#/adapter/vxe-table', () => ({
             values: { name?: string },
           ) => Promise<unknown>;
         };
+      };
+      toolbarConfig: {
+        refresh: boolean;
+        refreshOptions: { queryMethod: () => Promise<void> | undefined };
       };
     };
   }) => {
@@ -140,6 +147,13 @@ vi.mock('#/adapter/vxe-table', () => ({
               }),
             ]),
             slots['toolbar-tools']?.(),
+            options.gridOptions.toolbarConfig.refresh
+              ? h('button', {
+                  'aria-label': '刷新',
+                  onClick:
+                    options.gridOptions.toolbarConfig.refreshOptions.queryMethod,
+                })
+              : null,
             ...state.data.map((row) =>
               h('div', { 'data-row-id': String(row.id) }, [
                 row.name,
@@ -175,7 +189,7 @@ vi.mock('./form.vue', () => ({
     },
   }),
 }));
-vi.mock('antdv-next', () => {
+vi.mock('antdv-next', async (importOriginal) => {
   const Container = defineComponent({
     setup:
       (_, { slots }) =>
@@ -183,6 +197,7 @@ vi.mock('antdv-next', () => {
         h('div', slots.default?.()),
   });
   return {
+    ...(await importOriginal<typeof import('antdv-next')>()),
     Alert: defineComponent({
       props: { message: { type: String, default: '' } },
       setup: (props) => () => h('div', { role: 'alert' }, props.message),
@@ -399,13 +414,13 @@ describe('项目类目列表', () => {
     harness.list.mockResolvedValueOnce([{ ...row, status: 1 }]);
     mount();
     await flush();
-    expect(toolbarButton('删除').disabled).toBe(true);
+    expect(toolbarButton('批量删除').disabled).toBe(true);
     harness.table!.rowSelection.onChange?.([id], [row as CategoryNode], {
       type: 'multiple',
     });
     await flush();
     harness.removeList.mockRejectedValueOnce(new Error('类目被任务引用'));
-    toolbarButton('删除').click();
+    toolbarButton('批量删除').click();
     await flush();
     expect(harness.removeList).not.toHaveBeenCalled();
     host.querySelector<HTMLButtonElement>('[data-confirm]')!.click();
@@ -419,7 +434,7 @@ describe('项目类目列表', () => {
     await flush();
     expect(harness.table!.rowSelection.selectedRowKeys).toEqual([]);
     expect(host.querySelector('[role="alertdialog"]')).toBeNull();
-    expect(toolbarButton('删除').disabled).toBe(true);
+    expect(toolbarButton('批量删除').disabled).toBe(true);
   });
 
   it('状态开关先确认并等服务端成功，不乐观改变原状态', async () => {
@@ -459,7 +474,7 @@ describe('项目类目列表', () => {
       type: 'multiple',
     });
     await flush();
-    toolbarButton('删除').click();
+    toolbarButton('批量删除').click();
     await flush();
     expect(harness.warning).toHaveBeenCalledExactlyOnceWith(
       '请先禁用所选类目后再删除',
@@ -499,7 +514,7 @@ describe('项目类目列表', () => {
       type: 'multiple',
     });
     await flush();
-    toolbarButton('删除').click();
+    toolbarButton('批量删除').click();
     await flush();
     expect(harness.warning).toHaveBeenCalledExactlyOnceWith(
       '本次选择 1 个类目，存在被任务引用的类目，不能删除。',

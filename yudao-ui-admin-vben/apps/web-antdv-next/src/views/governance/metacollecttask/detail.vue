@@ -7,6 +7,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
 import {
   Button,
@@ -243,7 +244,7 @@ watch(
                     size="small"
                     @click="logApi.setData(row).open()"
                   >
-                    <template #icon><MetadataIcon name="instances" /></template>
+                    <template #icon><IconifyIcon icon="lucide:file-text" /></template>
                     查看日志
                   </Button>
                 </template>

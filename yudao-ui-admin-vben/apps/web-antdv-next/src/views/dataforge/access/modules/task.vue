@@ -689,7 +689,7 @@ const [DrawerComponent, drawerApi] = useVbenDrawer({
                   label: '日志',
                   auth: ['dataforge:access:query'],
                   type: 'link',
-                  icon: 'lucide:history',
+                  icon: ACTION_ICON.LOG,
                   onClick: handleShowLog.bind(null, record as any),
                 },
                 {

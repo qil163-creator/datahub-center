@@ -287,7 +287,7 @@ async function remove(rows = selected.value) {
               {
                 label: '修改',
                 type: 'link',
-                icon: metadataIcon('edit'),
+                icon: ACTION_ICON.EDIT,
                 auth: ['governance:meta-collect-task:update'],
                 disabled: row.enabled === 1,
                 onClick: () => edit(row),
@@ -295,7 +295,7 @@ async function remove(rows = selected.value) {
               {
                 label: '详情',
                 type: 'link',
-                icon: metadataIcon('detail'),
+                icon: ACTION_ICON.VIEW,
                 auth: ['governance:meta-collect-task:query'],
                 onClick: () => detail(row),
               },
@@ -318,7 +318,7 @@ async function remove(rows = selected.value) {
               },
               {
                 label: '删除',
-                icon: metadataIcon('delete'),
+                icon: ACTION_ICON.DELETE,
                 danger: true,
                 disabled: row.enabled === 1,
                 auth: ['governance:meta-collect-task:delete'],
@@ -327,7 +327,7 @@ async function remove(rows = selected.value) {
             ]"
           >
             <template #more>
-              <Button type="link"><IconifyIcon icon="lucide:ellipsis-vertical" />更多</Button>
+              <Button type="link"><IconifyIcon :icon="ACTION_ICON.MORE" />更多</Button>
             </template>
           </TableAction>
         </template>

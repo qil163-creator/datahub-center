@@ -928,7 +928,7 @@ const themeConfig = computed(() => ({
 type="link"
                               @click="openDetail(row)"
                             >
-                              <QdIcon name="view" /><span>详情</span>
+                              <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" /><span>详情</span>
                             </Button>
                             <Button
 type="link"
@@ -936,7 +936,7 @@ type="link"
                               :disabled="enabled(row)"
                               @click="openEdit(row)"
                             >
-                              <QdIcon name="edit" /><span>修改</span>
+                              <IconifyIcon class="qd-icon" :icon="ACTION_ICON.EDIT" /><span>修改</span>
                             </Button>
                             <Popover
                               trigger="click"
@@ -975,12 +975,12 @@ type="link" danger
                                     :disabled="enabled(row) || deleting"
                                     @click="removeRow(row)"
                                   >
-                                    <QdIcon name="delete" /><span>删除</span>
+                                    <IconifyIcon class="qd-icon" :icon="ACTION_ICON.DELETE" /><span>删除</span>
                                   </Button>
                                 </div>
                               </template>
                               <Button type="link">
-                                <IconifyIcon icon="lucide:ellipsis-vertical" /><span>更多</span>
+                                <IconifyIcon :icon="ACTION_ICON.MORE" /><span>更多</span>
                               </Button>
                             </Popover>
                           </template>

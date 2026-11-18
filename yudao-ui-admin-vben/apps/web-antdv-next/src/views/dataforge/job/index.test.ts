@@ -61,7 +61,7 @@ describe('作业列表工具栏', () => {
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
     const actions = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')];
     expect(actions.map((button) => [button.textContent?.trim(), button.querySelector('svg')?.dataset.icon])).toEqual([
-      ['修改', 'lucide:pencil'],
+      ['修改', 'lucide:edit'],
       ['复制', 'lucide:copy'],
       ['调度周期', 'lucide:calendar-clock'],
       ['运行实例', 'lucide:history'],
@@ -70,8 +70,15 @@ describe('作业列表工具栏', () => {
       ['停止运行', 'lucide:square'],
       ['删除', 'lucide:trash-2'],
     ]);
-    const more = [...host.querySelectorAll<HTMLButtonElement>('.qj-actions button')].find((button) => button.textContent?.trim() === '更多');
-    expect(more?.querySelector('svg')?.getAttribute('data-icon')).toBe('lucide:ellipsis-vertical');
+    const rowActions = [
+      ...host.querySelectorAll<HTMLButtonElement>('.qj-actions button'),
+    ];
+    const more = rowActions.find((button) => button.textContent?.trim() === '更多');
+    expect(more?.querySelector('svg')?.dataset.icon).toBe('lucide:ellipsis-vertical');
+    const detail = rowActions.find((button) => button.textContent?.trim() === '详情');
+    expect(detail?.querySelector('svg')?.dataset.icon).toBe('lucide:eye');
+    const config = rowActions.find((button) => button.textContent?.trim() === '配置');
+    expect(config?.querySelector('svg')?.dataset.icon).toBe('lucide:settings');
   });
 
   it('使用真实网格配置列设置并刷新当前分页，保留搜索显隐', async () => {

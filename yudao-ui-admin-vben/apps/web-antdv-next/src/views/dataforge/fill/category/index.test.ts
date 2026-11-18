@@ -19,8 +19,8 @@ const state = vi.hoisted(() => ({
   query: undefined as any,
   rows: [] as any[],
   columns: [] as VxeTableGridOptions<DataforgeFillApi.PlanCategory>['columns'],
+  toolbar: undefined as VxeTableGridOptions<DataforgeFillApi.PlanCategory>['toolbarConfig'],
   expand: vi.fn(),
-  custom: vi.fn(),
 }));
 vi.mock('@vben/stores', () => {
   state.access = reactive({
@@ -56,6 +56,7 @@ vi.mock('#/adapter/vxe-table', () => ({
   useVbenVxeGrid: (options: any) => {
     state.query = options.gridOptions.proxyConfig.ajax.query;
     state.columns = options.gridOptions.columns;
+    state.toolbar = options.gridOptions.toolbarConfig;
     const gridState = reactive({ data: [] as any[] });
     return [
       defineComponent({
@@ -70,7 +71,7 @@ vi.mock('#/adapter/vxe-table', () => ({
         setGridOptions(value: any) {
           if (value.data) { gridState.data = value.data; state.rows = value.data; }
         },
-        grid: { setAllTreeExpand: state.expand, openCustom: state.custom },
+        grid: { setAllTreeExpand: state.expand },
       },
     ];
   },
@@ -81,10 +82,11 @@ vi.mock('#/api/dataforge/fill', () => ({
   deletePlanCategory: state.remove,
 }));
 vi.mock('../plan/modules/category-form.vue', () => ({ default: defineComponent({ setup: () => () => null }) }));
-vi.mock('antdv-next', () => {
+vi.mock('antdv-next', async (importOriginal) => {
   const container = defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) });
   return {
-    Alert: container, Descriptions: container, DescriptionsItem: container, Tooltip: container,
+    ...(await importOriginal<typeof import('antdv-next')>()),
+    Alert: container, Descriptions: container, DescriptionsItem: container,
     Button: defineComponent({ setup: (_, { attrs, slots }) => () => h('button', attrs, slots.default?.()) }),
     Modal: defineComponent({
       props: { open: Boolean },
@@ -200,7 +202,7 @@ describe('数据填报类目管理', () => {
     expect(state.list).toHaveBeenCalledOnce();
     expect([...host.querySelectorAll('button')].some((item) => item.textContent?.trim() === '新增')).toBe(false);
   });
-  it('重置查询可恢复完整类目，展开和列设置仍可操作', async () => {
+  it('重置查询可恢复完整类目，保留展开和原生工具栏配置', async () => {
     app.mount(host);
     await flush();
     await state.query(undefined, { name: '水情' });
@@ -212,8 +214,13 @@ describe('数据填报类目管理', () => {
     expect(state.expand).toHaveBeenLastCalledWith(false);
     button('展开').click();
     expect(state.expand).toHaveBeenLastCalledWith(true);
-    host.querySelector<HTMLButtonElement>('[aria-label="列设置"]')!.click();
-    expect(state.custom).toHaveBeenCalledOnce();
+    const toolbar = state.toolbar!;
+    expect(toolbar).toMatchObject({ custom: true, refresh: true, search: true });
+    const previous = state.list.mock.calls.length;
+    await toolbar.refreshOptions?.queryMethod?.({});
+    expect(state.list).toHaveBeenCalledTimes(previous + 1);
+    expect(state.expand).toHaveBeenLastCalledWith(true);
+    expect(button('批量删除')).toBeUndefined();
   });
   it('缓存页面切回时重新加载类目', async () => {
     const view = reactive({ active: true });

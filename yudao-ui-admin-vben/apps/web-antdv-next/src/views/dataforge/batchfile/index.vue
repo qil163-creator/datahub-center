@@ -523,13 +523,13 @@ watch(
             "
             @click="edit(row)"
           >
-            <ReferenceIcon name="edit" />配置
+            <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
           </Button>
           <Button type="link" @click="detail(row)">
-            <ReferenceIcon name="eye" />详情
+            <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
           </Button>
           <Dropdown :trigger="['click']">
-            <Button type="link"><IconifyIcon icon="lucide:ellipsis-vertical" />更多</Button>
+            <Button type="link"><IconifyIcon :icon="ACTION_ICON.MORE" />更多</Button>
             <template #popupRender>
               <Menu class="batch-file-menu">
                 <MenuItem
@@ -558,7 +558,7 @@ watch(
                 >
                   <IconifyIcon
                     class="mr-1 inline-flex size-4 align-middle"
-                    icon="lucide:trash-2"
+                    :icon="ACTION_ICON.DELETE"
                   />删除
                 </MenuItem>
               </Menu>

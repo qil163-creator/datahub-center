@@ -4,10 +4,12 @@ import type { ImportedAssetApi } from '#/api/asset/dataasset/imported';
 import { computed, h, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, Form, FormItem, Input, Table, Tag } from 'antdv-next';
 
 import { CronTab } from '#/components/cron-tab';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 
 const props = defineProps<{ snapshot?: ImportedAssetApi.Snapshot }>();
@@ -50,7 +52,7 @@ const columns = [
       }),
   },
   { title: '状态', key: 'status', width: 80 },
-  { title: '操作', key: 'actions', width: 80 },
+  { title: '操作', key: 'actions', width: 104, fixed: 'right' as const },
 ];
 function text(value: unknown): string {
   if (value === null || value === undefined || value === '') return '-';
@@ -94,6 +96,7 @@ function configValue(key: string, value: unknown) {
         :columns="columns"
         :data-source="snapshot?.quality?.evaluations ?? []"
         :pagination="false"
+        :scroll="{ x: 'max-content' }"
         row-key="sourceId"
       >
         <template #bodyCell="{ column, record }">
@@ -112,6 +115,7 @@ function configValue(key: string, value: unknown) {
               size="small"
               @click="open('rule', record as ImportedAssetApi.Evaluation)"
             >
+              <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
               查看
             </Button>
           </template>

@@ -59,7 +59,6 @@ import {
   categoryDescendants,
   categoryDirectoryName,
   categoryDisplayId,
-  categoryIcon,
   categoryLevel,
   categoryTime,
   validCategoryRevision,
@@ -549,19 +548,13 @@ onBeforeUnmount(() => {
                     type="link"
                     @click="open({ mode: 'detail', id: record.id })"
                   >
-                    <i
-                      class="category-icon"
-                      :style="{ maskImage: `url(${categoryIcon('detail')})` }"
-                    ></i>详情
+                    <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
 </Button><Button
                     v-if="can('update')"
                     type="link"
                     @click="open({ mode: 'edit', id: record.id })"
                   >
-                    <i
-                      class="category-icon"
-                      :style="{ maskImage: `url(${categoryIcon('edit')})` }"
-                    ></i>修改
+                    <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
 </Button><Dropdown
                     v-if="can('update') || can('delete')"
                     :trigger="['hover']"

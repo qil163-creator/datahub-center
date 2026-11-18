@@ -52,6 +52,7 @@ import {
 } from '#/api/dataforge/integration';
 import ListPagination from '#/components/list-pagination/index.vue';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
@@ -755,17 +756,17 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                     <template #owner="{ row: task }"><p>{{ task.ownerName || '-' }}</p><p class="qi-phone">{{ task.contactNumber || '-' }}</p></template>
                     <template #actions="{ row: task }">
                       <div class="qi-actions">
-                        <Button v-if="can('update')" type="link" :disabled="isActive(task) || busy" @click="configure(task)"><ReferenceIcon name="edit" />配置</Button>
-                        <Button type="link" :disabled="busy" @click="openTask(task, 'detail')"><ReferenceIcon name="eye" />详情</Button>
+                        <Button v-if="can('update')" type="link" :disabled="isActive(task) || busy" @click="configure(task)"><IconifyIcon :icon="ACTION_ICON.CONFIG" />配置</Button>
+                        <Button type="link" :disabled="busy" @click="openTask(task, 'detail')"><IconifyIcon :icon="ACTION_ICON.VIEW" />详情</Button>
                         <Dropdown :trigger="['click']">
-                          <Button type="link"><IconifyIcon icon="lucide:ellipsis-vertical" />更多</Button>
+                          <Button type="link"><IconifyIcon :icon="ACTION_ICON.MORE" />更多</Button>
                           <template #popupRender>
                           <Menu class="qi-more-menu">
                             <MenuItem v-if="mode === 'OFFLINE'" key="schedule" @click="openTask(task, 'schedule')"><ReferenceIcon name="settings" />调度周期</MenuItem>
                             <MenuItem key="instances" @click="openTask(task, 'instances')"><ReferenceIcon name="clock" />运行实例</MenuItem>
                             <MenuItem v-if="can('run')" key="run" :disabled="!task.executable" @click="confirmAction(isActive(task) ? 'stop' : 'run', task)"><ReferenceIcon :name="isActive(task) ? 'stop' : 'play'" />{{ isActive(task) ? '停止任务' : mode === 'OFFLINE' ? '执行一次' : '执行任务' }}</MenuItem>
-                            <MenuItem v-if="can('delete')" key="delete" danger :disabled="task.status === 1 || isActive(task)" @click="confirmAction('delete', task)"><ReferenceIcon name="delete" />删除任务</MenuItem>
-                            <MenuItem v-if="can('create')" key="clone" :disabled="task.status === 1 || isActive(task)" @click="confirmAction('clone', task)"><ReferenceIcon name="clone" />克隆任务</MenuItem>
+                            <MenuItem v-if="can('delete')" key="delete" danger :disabled="task.status === 1 || isActive(task)" @click="confirmAction('delete', task)"><IconifyIcon :icon="ACTION_ICON.DELETE" />删除任务</MenuItem>
+                            <MenuItem v-if="can('create')" key="clone" :disabled="task.status === 1 || isActive(task)" @click="confirmAction('clone', task)"><IconifyIcon :icon="ACTION_ICON.COPY" />克隆任务</MenuItem>
                           </Menu>
                           </template>
                         </Dropdown>

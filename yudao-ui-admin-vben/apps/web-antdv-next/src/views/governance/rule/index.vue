@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
 import { Button, message, Switch, Tag } from 'antdv-next';
 
@@ -30,7 +31,6 @@ import { createLatestWins, resourceIdKey } from '#/utils/resource-id';
 import { useBatchConfirm as useOwnedConfirm } from '#/views/dataforge/batchfile/use-confirm';
 import {
   CATEGORY_STATUS_OPTIONS,
-  categoryIcon,
   categoryTime,
 } from '#/views/governance/category/reference-data';
 import { useCategorySession } from '#/views/governance/category/use-session';
@@ -389,19 +389,13 @@ onBeforeUnmount(() => {
         }}</span>
         <div v-else-if="column.key === 'actions'" class="category-row-actions">
           <Button type="link" @click="detail(record)">
-            <i
-              class="category-icon"
-              :style="{ maskImage: `url(${categoryIcon('detail')})` }"
-            ></i>详情
+            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
 </Button><Button
             v-if="can('update', 'rule')"
             type="link"
             @click="edit(record)"
           >
-            <i
-              class="category-icon"
-              :style="{ maskImage: `url(${categoryIcon('edit')})` }"
-            ></i>修改
+            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
 </Button><Button
             v-if="can('delete', 'rule')"
             type="link"
@@ -409,10 +403,7 @@ onBeforeUnmount(() => {
             :disabled="record.status === 0"
             @click="remove(record)"
           >
-            <i
-              class="category-icon"
-              :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-            ></i>删除
+            <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>删除
           </Button>
         </div>
       </template>

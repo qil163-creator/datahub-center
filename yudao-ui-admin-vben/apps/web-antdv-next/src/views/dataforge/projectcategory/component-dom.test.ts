@@ -178,6 +178,36 @@ describe('真实 Antdv Next 控件契约', () => {
     ).not.toBeNull();
   });
 
+  it('原生工具栏控制查询、刷新和列设置，刷新保留当前展开状态', async () => {
+    await mount();
+    const tools = host.querySelector('.vxe-toolbar')!;
+    const search = tools.querySelector<HTMLElement>('.vxe-icon-search')!;
+    const refresh = tools.querySelector<HTMLButtonElement>('button[title="刷新"]')!;
+    const customize = tools.querySelector<HTMLButtonElement>(
+      '.vxe-toolbar-custom-target',
+    )!;
+    const searchPanel = host.querySelector<HTMLElement>(
+      '.vxe-grid--form-wrapper .relative.rounded-sm',
+    )!;
+
+    search.closest('button')!.click();
+    await vi.waitFor(() => expect(searchPanel.style.display).toBe('none'));
+    search.closest('button')!.click();
+    await vi.waitFor(() => expect(searchPanel.style.display).not.toBe('none'));
+
+    const readCount = harness.list.mock.calls.length;
+    refresh.click();
+    await vi.waitFor(() =>
+      expect(harness.list).toHaveBeenCalledTimes(readCount + 1),
+    );
+    expect(host.querySelector('.qpc-tree-closed')).not.toBeNull();
+
+    customize.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector('.vxe-table-custom-modal-wrapper')).not.toBeNull(),
+    );
+  });
+
   it('原生新增弹窗保留字段校验约束、父级选择与继承主题', async () => {
     await mount();
     host

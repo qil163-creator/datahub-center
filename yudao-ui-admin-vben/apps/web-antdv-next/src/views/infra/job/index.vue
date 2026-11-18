@@ -296,7 +296,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
             },
             {
               label: '日志',
-              icon: 'lucide:scroll-text',
+              icon: 'lucide:file-text',
               type: 'link',
               auth: ['infra:job:query'],
               onClick: handleLog.bind(null, row),

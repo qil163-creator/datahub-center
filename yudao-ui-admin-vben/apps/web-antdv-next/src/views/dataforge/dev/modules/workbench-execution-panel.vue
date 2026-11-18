@@ -12,6 +12,7 @@ import {
 } from 'vue';
 
 import { useAccess } from '@vben/access';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { downloadFileFromBlobPart, formatDateTime } from '@vben/utils';
 
@@ -31,6 +32,7 @@ import {
   getDevRecordPage,
   getDevRecordTaskLog,
 } from '#/api/dataforge/dev';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { createLatestWins } from '#/utils/resource-id';
 
 import {
@@ -341,14 +343,21 @@ defineExpose({ refresh });
           </template>
           <div v-else-if="column.key === 'actions'" class="execution-actions">
             <Button type="link" @click="emit('openLog', record.id)">
-              <img :src="DEV_REFERENCE_ASSETS.eye" alt="" />查看日志 </Button
-            ><Button
+              <template #icon>
+                <IconifyIcon :icon="ACTION_ICON.LOG" />
+              </template>
+              查看日志
+            </Button>
+            <Button
               class="download-action"
               type="link"
               :loading="downloading"
               @click="download(record.id)"
             >
-              ↓ 下载日志
+              <template #icon>
+                <IconifyIcon :icon="ACTION_ICON.DOWNLOAD" />
+              </template>
+              下载日志
             </Button>
           </div>
         </template>
@@ -456,8 +465,7 @@ defineExpose({ refresh });
   padding: 12px 16px;
 }
 
-.execution-tools img,
-.execution-actions img {
+.execution-tools img {
   width: 16px;
   height: 16px;
   object-fit: contain;

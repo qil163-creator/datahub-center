@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -112,7 +113,7 @@ watch(() => [props.kind, props.ownerId, access.accessToken, access.accessCodes],
       <template #bodyCell="{ column, record }">
         <span v-if="column.dataIndex === 'fields'">{{ record.fields.join('、') || '-' }}</span>
         <div v-else-if="column.dataIndex === 'model'">{{ record.name }}（{{ record.table }}）<div class="text-muted-foreground">{{ record.description }}</div></div>
-        <Button v-else-if="column.dataIndex === 'actions' && hasAccessByCodes(['modeling:model:query'])" type="link" @click="router.push({ name: 'ModelingTableModelDetail', params: { id: record.id }, query: { from: route.fullPath } })">详情</Button>
+        <Button v-else-if="column.dataIndex === 'actions' && hasAccessByCodes(['modeling:model:query'])" type="link" @click="router.push({ name: 'ModelingTableModelDetail', params: { id: record.id }, query: { from: route.fullPath } })"><template #icon><IconifyIcon icon="lucide:eye" /></template>详情</Button>
       </template>
     </Table>
     <StandardPagination v-if="canQueryModels" v-model:page="page" v-model:page-size="pageSize" :total="models.length" />

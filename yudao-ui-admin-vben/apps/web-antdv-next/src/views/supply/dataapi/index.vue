@@ -665,7 +665,7 @@ onMounted(() => {
                 {
                   label: '发布',
                   type: 'link',
-                  icon: 'lucide:send',
+                  icon: ACTION_ICON.PUBLISH,
                   auth: ['supply:data-api:publish'],
                   onClick: handlePublish.bind(null, row),
                 },

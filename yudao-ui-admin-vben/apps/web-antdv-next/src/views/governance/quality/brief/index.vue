@@ -366,7 +366,7 @@ const [LogGrid, logGridApi] = useVbenVxeGrid({
             {
               label: '发布',
               type: 'link',
-              icon: 'lucide:send',
+              icon: ACTION_ICON.PUBLISH,
               auth: ['governance:quality-brief:update'],
               ifShow: row.briefStatus !== 'PUBLISHED',
               onClick: handlePublish.bind(null, row),
@@ -411,7 +411,7 @@ const [LogGrid, logGridApi] = useVbenVxeGrid({
             {
               label: '配置',
               type: 'link',
-              icon: ACTION_ICON.EDIT,
+              icon: ACTION_ICON.CONFIG,
               auth: ['governance:quality-brief:update'],
               onClick: () => {
                 if (row.id != null) {

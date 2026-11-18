@@ -439,12 +439,12 @@ watch(
                     :disabled="!editable(row)"
                     @click="openWizard(row)"
                   >
-                    <ReferenceIcon name="config" />配置
+                    <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
 </button><button class="fs-link" @click="details(row)">
-                    <ReferenceIcon name="eye" />详情
+                    <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
 </button><Dropdown :trigger="['click']">
                     <button class="fs-link">
-                      <IconifyIcon icon="lucide:ellipsis-vertical" />更多
+                      <IconifyIcon :icon="ACTION_ICON.MORE" />更多
 </button><template #popupRender>
                       <Menu>
                         <MenuItem
@@ -453,9 +453,9 @@ watch(
                           danger
                           @click="remove([row])"
                         >
-                          <ReferenceIcon name="delete" /> 删除任务
+                          <IconifyIcon :icon="ACTION_ICON.DELETE" /> 删除任务
 </MenuItem><MenuItem @click="details(row)">
-                          <ReferenceIcon name="eye" /> 配置详情
+                          <IconifyIcon :icon="ACTION_ICON.VIEW" /> 配置详情
                         </MenuItem>
                       </Menu>
                     </template>

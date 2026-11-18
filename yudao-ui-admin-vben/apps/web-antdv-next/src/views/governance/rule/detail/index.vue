@@ -15,6 +15,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, message, Spin, Tabs, Tag } from 'antdv-next';
 
@@ -24,6 +25,7 @@ import {
   getSafetyRuleSensitiveRows,
 } from '#/api/governance/rule/workbench';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import { ACTION_ICON } from '#/components/table-action';
 import {
   createLatestWins,
   parseResourceId,
@@ -34,7 +36,6 @@ import { useSensitiveAccess } from '#/views/asset/sensitive/use-sensitive-access
 import { useBatchConfirm as useOwnedConfirm } from '#/views/dataforge/batchfile/use-confirm';
 import ReferenceLevel from '#/views/governance/category/components/reference-level.vue';
 import {
-  categoryIcon,
   categoryTime,
   validCategoryRevision,
 } from '#/views/governance/category/reference-data';
@@ -376,12 +377,12 @@ onBeforeUnmount(() => {
                 type="link"
                 @click="showSensitive(record)"
               >
-                <i
-                  class="category-icon"
-                  :style="{ maskImage: `url(${categoryIcon('detail')})` }"
-                ></i
-                >详情 </Button
-              ><Button
+                <template #icon>
+                  <IconifyIcon :icon="ACTION_ICON.VIEW" />
+                </template>
+                详情
+              </Button>
+              <Button
                 v-if="canSensitive('delete')"
                 type="link"
                 danger
@@ -391,11 +392,10 @@ onBeforeUnmount(() => {
                 :loading="pending.has(resourceIdKey(record.id))"
                 @click="removeSensitive(record)"
               >
-                <i
-                  class="category-icon"
-                  :style="{ maskImage: `url(${categoryIcon('delete')})` }"
-                ></i
-                >删除
+                <template #icon>
+                  <IconifyIcon :icon="ACTION_ICON.DELETE" />
+                </template>
+                删除
               </Button>
             </div>
           </template>

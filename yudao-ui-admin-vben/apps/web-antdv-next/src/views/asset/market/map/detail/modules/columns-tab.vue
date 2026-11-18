@@ -21,6 +21,7 @@ import {
 
 import { getSimpleLevelList } from '#/api/governance/level';
 import ListPagination from '#/components/list-pagination/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 
 import { columnDisplayName } from '../../data';
 import ColumnForm from './column-form.vue';
@@ -296,7 +297,7 @@ onMounted(async () => {
             type="link"
             @click="handleEdit(record as any)"
           >
-            <template #icon><IconifyIcon icon="lucide:pencil" /></template>
+            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
             修改
           </Button>
           <Button

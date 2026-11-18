@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
             {
               label: '日志',
               type: 'link',
-              icon: 'lucide:history',
+              icon: ACTION_ICON.LOG,
               ifShow: canInspect(row),
               onClick: openLog.bind(null, row),
             },

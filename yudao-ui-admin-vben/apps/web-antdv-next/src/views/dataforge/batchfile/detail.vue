@@ -6,12 +6,14 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { formatDate } from '@vben/utils';
 
 import { Alert, Modal, Spin } from 'antdv-next';
 
 import { getBatchFile } from '#/api/dataforge/batchfile';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { useObjectRequest } from '#/hooks/use-object-request';
 import { formatSize } from '#/views/dataforge/datafile/data';
 
@@ -234,7 +236,10 @@ watch(
                     <button class="bf-link" @click="showFile(file, true)">
                       <ReferenceIcon name="field" />字段
 </button><button class="bf-link" @click="showFile(file, false)">
-                      <ReferenceIcon name="eye" />详情
+                      <IconifyIcon
+                        class="mr-1 inline-flex size-4 align-middle"
+                        :icon="ACTION_ICON.VIEW"
+                      />详情
                     </button>
                   </td>
                 </tr>

@@ -21,6 +21,8 @@ import {
   Tooltip,
 } from 'antdv-next';
 
+import { ACTION_ICON } from './icons';
+
 const props = defineProps({
   actions: {
     type: Array as PropType<ActionItem[]>,
@@ -43,6 +45,25 @@ const props = defineProps({
 const { hasAccessByCodes } = useAccess();
 const dropdownOpen = ref(false);
 const dropdownConfirmKey = ref<string>();
+const standardIcons = new Map([
+  ['修改', ACTION_ICON.EDIT],
+  ['删除', ACTION_ICON.DELETE],
+  ['复制', ACTION_ICON.COPY],
+  ['新增', ACTION_ICON.ADD],
+  ['新增下级', ACTION_ICON.ADD],
+  ['日志', ACTION_ICON.LOG],
+  ['查看日志', ACTION_ICON.LOG],
+  ['查看详情', ACTION_ICON.VIEW],
+  ['编辑', ACTION_ICON.EDIT],
+  ['详情', ACTION_ICON.VIEW],
+]);
+
+function getActionIcon(action: ActionItem): string {
+  if (action.icon !== undefined || (action.type && action.type !== 'link')) {
+    return action.icon ?? '';
+  }
+  return standardIcons.get(action.label ?? '') ?? '';
+}
 
 /** 检查是否显示 */
 function isIfShow(action: ActionItem): boolean {
@@ -198,8 +219,8 @@ watch(
           </template>
           <Tooltip v-bind="getTooltipProps(action.tooltip)">
             <Button v-bind="getButtonProps(action)">
-              <template v-if="action.icon" #icon>
-                <IconifyIcon :icon="action.icon" />
+              <template v-if="getActionIcon(action)" #icon>
+                <IconifyIcon :icon="getActionIcon(action)" />
               </template>
               {{ action.label }}
             </Button>
@@ -210,8 +231,8 @@ watch(
             v-bind="getButtonProps(action)"
             @click="handleButtonClick(action)"
           >
-            <template v-if="action.icon" #icon>
-              <IconifyIcon :icon="action.icon" />
+            <template v-if="getActionIcon(action)" #icon>
+              <IconifyIcon :icon="getActionIcon(action)" />
             </template>
             {{ action.label }}
           </Button>
@@ -231,7 +252,7 @@ watch(
         <Button type="link">
           {{ $t('page.action.more') }}
           <template #icon>
-            <IconifyIcon icon="lucide:ellipsis-vertical" />
+            <IconifyIcon :icon="ACTION_ICON.MORE" />
           </template>
         </Button>
       </slot>
@@ -276,7 +297,10 @@ watch(
                       : ''
                   "
                 >
-                  <IconifyIcon v-if="action.icon" :icon="action.icon" />
+                  <IconifyIcon
+                    v-if="getActionIcon(action)"
+                    :icon="getActionIcon(action)"
+                  />
                   <span>{{ action.label }}</span>
                 </div>
               </Popconfirm>
@@ -290,7 +314,10 @@ watch(
                     : ''
                 "
               >
-                <IconifyIcon v-if="action.icon" :icon="action.icon" />
+                <IconifyIcon
+                  v-if="getActionIcon(action)"
+                  :icon="getActionIcon(action)"
+                />
                 <span>{{ action.label }}</span>
               </div>
             </template>

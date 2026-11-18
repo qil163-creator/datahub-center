@@ -25,6 +25,7 @@ import {
   getMyDataExportPage,
   submitDataExport,
 } from '#/api/asset/dataexport';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { createLatestWins } from '#/utils/resource-id';
 import { formatTime } from '#/views/governance/accessalert/data';
 
@@ -113,7 +114,7 @@ const columns = [
   { title: '行数', dataIndex: 'rowLimit', key: 'rowLimit', width: 70 },
   { title: '状态', key: 'status', width: 130 },
   { title: '下载截止', key: 'expireTime', width: 150 },
-  { title: '操作', key: 'actions', width: 120 },
+  { title: '操作', key: 'actions', width: 120, fixed: 'right' as const },
 ];
 
 async function load() {
@@ -245,6 +246,7 @@ onBeforeUnmount(() => guard.invalidate());
         onChange: changePage,
       }"
       :row-key="(record: DataExportApi.Request) => String(record.id)"
+      :scroll="{ x: 620 }"
       size="small"
     >
       <template #bodyCell="{ column, record }">
@@ -266,6 +268,7 @@ onBeforeUnmount(() => guard.invalidate());
             type="link"
             @click="download(record)"
           >
+            <template #icon><IconifyIcon :icon="ACTION_ICON.DOWNLOAD" /></template>
             下载
           </Button>
           <Button
@@ -276,6 +279,7 @@ onBeforeUnmount(() => guard.invalidate());
             type="link"
             @click="cancel(record)"
           >
+            <template #icon><IconifyIcon icon="lucide:undo-2" /></template>
             撤回
           </Button>
         </template>

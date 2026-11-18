@@ -17,6 +17,7 @@ import { useRouter } from 'vue-router';
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useAntdDesignTokens } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -28,6 +29,7 @@ import {
   getModelMaterializedCatTree,
   getModelMaterializedPage,
 } from '#/api/modeling/model-materialized';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 
 import TableCustomization from '../components/table-customization.vue';
@@ -665,7 +667,7 @@ type="link"
                             v-if="canQuery"
                             @click="openDetail(row)"
                           >
-                            <QdIcon name="view" /><span>详情</span>
+                            <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" /><span>详情</span>
 </Button><Button
 type="link"
                             v-if="canPublish && recoveryAction(row)"

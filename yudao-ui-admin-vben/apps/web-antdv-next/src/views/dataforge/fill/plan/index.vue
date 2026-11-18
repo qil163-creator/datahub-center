@@ -359,7 +359,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
               {
                 label: '发布',
                 type: 'link',
-                icon: 'lucide:send',
+                icon: ACTION_ICON.PUBLISH,
                 ifShow: row.status === 0 || row.status === 2,
                 auth: ['dataforge:fill-plan:publish'],
                 onClick: handlePublish.bind(null, row),

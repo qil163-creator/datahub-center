@@ -20,10 +20,10 @@ import {
   getModelMaterializedLogPage,
 } from '#/api/modeling/model-materialized';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 
 import sectionIcon from '../logictable/assets/data-section-default-icon-small.svg';
 import { LOGIC_TABLE_PAGES } from '../logictable/config';
-import { QdIcon } from '../logictable/icons';
 import { useModelingRequest } from '../modelcommon/use-modeling-request';
 import materializeIcon from './assets/icon-wh.svg';
 import FieldDetailModal from './modules/field-detail-modal.vue';
@@ -466,7 +466,7 @@ watch([activeTab, logsPage, logsPageSize], () => {
                           class="qd-materialized-text-action"
                           @click="fieldModal?.open(field)"
                         >
-                          <QdIcon name="view" />详情
+                          <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" />详情
                         </button>
                       </td>
                     </tr>

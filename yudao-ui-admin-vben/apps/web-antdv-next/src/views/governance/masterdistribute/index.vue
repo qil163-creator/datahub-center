@@ -690,7 +690,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             {
               label: '配置',
               type: 'link',
-              icon: ACTION_ICON.EDIT,
+              icon: ACTION_ICON.CONFIG,
               auth: ['governance:master-distribute:update'],
               disabled:
                 (row.distributeType !== 2 && row.status === 1) ||
@@ -741,7 +741,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             {
               label: '重试',
               type: 'link',
-              icon: 'lucide:rotate-cw',
+              icon: ACTION_ICON.REFRESH,
               auth: ['governance:master-distribute:run'],
               ifShow: row.distributeType === 2,
               disabled:

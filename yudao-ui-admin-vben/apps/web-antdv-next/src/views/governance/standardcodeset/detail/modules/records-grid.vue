@@ -241,7 +241,7 @@ watch(
       }}</span>
       <div v-else-if="column.key === 'actions'" class="standard-row-actions">
         <Button type="link" v-if="can('update')" @click="open(record)">
-          <IconifyIcon icon="lucide:square-pen" />修改
+          <IconifyIcon icon="lucide:edit" />修改
         </Button>
         <Button type="link" danger v-if="can('delete')" @click="remove(record)">
           <IconifyIcon icon="lucide:trash-2" />删除

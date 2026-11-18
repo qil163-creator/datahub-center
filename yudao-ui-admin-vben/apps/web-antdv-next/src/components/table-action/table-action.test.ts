@@ -12,7 +12,8 @@ vi.mock('@vben/access', () => ({
   useAccess: () => ({ hasAccessByCodes: () => true }),
 }));
 vi.mock('@vben/icons', () => ({
-  IconifyIcon: () => h('span', { class: 'iconify' }),
+  IconifyIcon: ({ icon }: { icon: string }) =>
+    h('span', { class: 'iconify', 'data-icon': icon }),
 }));
 vi.mock('@vben/locales', () => ({
   $t: () => '更多',
@@ -93,6 +94,33 @@ afterEach(async () => {
   document.body.innerHTML = '';
   vi.clearAllTimers();
   vi.useRealTimers();
+});
+
+it('为缺少图标的常规操作补齐图标，保留业务指定的图标', async () => {
+  await mount(
+    [{ label: '删除', popConfirm: { title: '确认删除？', confirm: vi.fn() } }],
+    [
+      { label: '详情' },
+      { icon: 'lucide:file-search', label: '查看日志' },
+      { label: '执行一次' },
+      { icon: '', label: '修改' },
+      { label: '新增', type: 'primary' },
+    ],
+  );
+
+  expect(
+    findButton('详情', host).querySelector('[data-icon="lucide:eye"]'),
+  ).not.toBeNull();
+  expect(
+    findButton('查看日志', host).querySelector('[data-icon="lucide:file-search"]'),
+  ).not.toBeNull();
+  expect(findButton('执行一次', host).querySelector('[data-icon]')).toBeNull();
+  expect(findButton('修改', host).querySelector('[data-icon]')).toBeNull();
+  expect(findButton('新增', host).querySelector('[data-icon]')).toBeNull();
+  const menu = await openMenu();
+  expect(
+    menu.querySelector('[data-icon="lucide:trash-2"]'),
+  ).not.toBeNull();
 });
 
 describe('tableAction 下拉确认的原生浮层交互', () => {

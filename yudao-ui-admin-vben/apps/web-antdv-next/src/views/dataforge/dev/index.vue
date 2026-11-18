@@ -1008,20 +1008,18 @@ onBeforeUnmount(() => {
                     @click="workspaceTaskId = row.id"
                   >
                     <template #icon>
-                      <img
+                      <IconifyIcon
                         class="reference-icon"
-                        :src="DEV_REFERENCE_ASSETS.edit"
-                        alt=""
+                        :icon="ACTION_ICON.CONFIG"
                       />
                     </template>
                     配置任务
                   </Button>
                   <Button type="link" size="small" @click="showDetail(row.id)">
                     <template #icon>
-                      <img
+                      <IconifyIcon
                         class="reference-icon"
-                        :src="DEV_REFERENCE_ASSETS.eye"
-                        alt=""
+                        :icon="ACTION_ICON.VIEW"
                       />
                     </template>
                     详情
@@ -1029,7 +1027,7 @@ onBeforeUnmount(() => {
                   <Dropdown :trigger="['click']">
                     <Button type="link" size="small">
                       <template #icon>
-                        <IconifyIcon icon="lucide:ellipsis-vertical" />
+                        <IconifyIcon :icon="ACTION_ICON.MORE" />
                       </template>
                       更多
                     </Button>

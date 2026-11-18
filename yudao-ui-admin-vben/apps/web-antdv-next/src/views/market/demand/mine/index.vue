@@ -131,7 +131,7 @@ async function handleDelete(row: MarketApi.Demand) {
             {
               label: '发布',
               type: 'link',
-              icon: 'lucide:send',
+              icon: ACTION_ICON.PUBLISH,
               auth: ['asset:demand:submit'],
               ifShow: row.status === 0,
               popConfirm: {

@@ -16,6 +16,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
@@ -42,6 +43,7 @@ import {
   previewAssetRegistrationName,
   registerGenericDataAssets,
 } from '#/api/asset/dataasset/registration';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import {
   createLatestWins,
   parseResourceId,
@@ -658,7 +660,7 @@ const columns = computed(() => {
   return [
     ...result,
     { title: '描述', key: 'description', width: 166 },
-    { title: '操作', key: 'actions', width: 83, fixed: 'right' as const },
+    { title: '操作', key: 'actions', width: 104, fixed: 'right' as const },
   ];
 });
 const rowSelection = computed(() => ({
@@ -877,6 +879,7 @@ const tableTypeOptions = [
                 :disabled="saving || batchApplying"
                 @click="removeDraft(record.meta.id)"
               >
+                <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
                 删除
 </Button>
               <span v-else-if="column.key === 'entity' || column.key === 'granularity'">-</span>

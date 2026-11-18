@@ -15,6 +15,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
@@ -39,6 +40,7 @@ import {
 } from '#/api/asset/tag';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ListPagination from '#/components/list-pagination/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import {
   createLatestWins,
@@ -411,10 +413,8 @@ onBeforeUnmount(() => {
                   danger
                   @click="removeAsset(record)"
                 >
-                  <span
-                    class="ref-icon"
-                    :style="{ maskImage: `url(${tagAsset('delete.svg')})` }"
-                  ></span>删除
+                  <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
+                  删除
 </Button><span v-else>{{
                   column.key
                     ? record[column.key as keyof AssetTagApi.LinkedAsset] || '-'

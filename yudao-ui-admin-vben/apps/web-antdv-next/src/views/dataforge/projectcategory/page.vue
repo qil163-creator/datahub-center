@@ -15,10 +15,11 @@ import {
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
-import { Alert, Button, message, Modal, Switch, Tooltip } from 'antdv-next';
+import { Alert, Button, message, Modal, Switch } from 'antdv-next';
 
 import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
@@ -28,6 +29,7 @@ import {
   getProjectCategoryList,
   updateProjectCategoryStatus,
 } from '#/api/dataforge/projectcategory';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -66,7 +68,6 @@ const rows = ref<Api.Category[]>([]);
 const loading = ref(false);
 const failed = ref(false);
 const busy = ref(false);
-const showFilter = ref(true);
 const selectedKeys = ref<string[]>([]);
 const expandedKeys = ref<string[]>([]);
 const expanded = ref(false);
@@ -191,10 +192,10 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
       iconClose: 'qpc-tree-closed',
     },
     toolbarConfig: {
-      refresh: false,
-      search: false,
-      custom: false,
-      zoom: false,
+      refresh: true,
+      refreshOptions: { queryMethod: () => (loading.value ? undefined : load()) },
+      search: true,
+      custom: true,
     },
     proxyConfig: {
       autoLoad: false,
@@ -462,50 +463,37 @@ onActivated(() => {
       class="mb-4"
     />
 
-    <Grid :table-title="`${label}列表`" :show-search-form="showFilter">
+    <Grid :table-title="`${label}列表`">
       <template #toolbar-tools>
-        <div class="qpc-toolbar-actions flex items-center gap-2">
-          <Button
-            v-if="can('create')"
-            type="primary"
-            :disabled="!canQuery || busy"
-            @click="openForm()"
-          >
-            <template #icon><ReferenceIcon name="add" /></template>新增
-          </Button>
-          <Button
-            v-if="can('delete')"
-            danger
-            :disabled="!selectedKeys.length || busy"
-            @click="askDelete()"
-          >
-            <template #icon><ReferenceIcon name="delete" /></template>删除
-          </Button>
-          <Button type="primary" @click="toggleExpand">
-            <template #icon>
-              <ReferenceIcon :name="expanded ? 'collapse' : 'expand'" />
-            </template>
-            {{ expanded ? '折叠' : '展开' }}
-          </Button>
-          <Tooltip title="显示/隐藏查询">
-            <Button
-              aria-label="显示/隐藏查询"
-              @click="showFilter = !showFilter"
-            >
-              <ReferenceIcon name="search" />
-            </Button>
-          </Tooltip>
-          <Tooltip title="刷新">
-            <Button aria-label="刷新" :loading="loading" @click="load">
-              <ReferenceIcon name="refresh" />
-            </Button>
-          </Tooltip>
-          <Tooltip title="列设置">
-            <Button aria-label="列设置" @click="gridApi.grid?.openCustom()">
-              <ReferenceIcon name="columns" />
-            </Button>
-          </Tooltip>
-        </div>
+        <TableAction
+          class="qpc-toolbar-actions"
+          :actions="[
+            {
+              label: '新增',
+              type: 'primary',
+              icon: ACTION_ICON.ADD,
+              ifShow: can('create'),
+              disabled: !canQuery || busy,
+              onClick: () => openForm(),
+            },
+            {
+              label: '批量删除',
+              danger: true,
+              icon: ACTION_ICON.DELETE,
+              ifShow: can('delete'),
+              disabled: !selectedKeys.length || busy,
+              onClick: () => askDelete(),
+            },
+            {
+              label: expanded ? '收缩' : '展开',
+              icon: expanded
+                ? 'lucide:chevrons-down-up'
+                : 'lucide:chevrons-up-down',
+              type: 'primary',
+              onClick: toggleExpand,
+            },
+          ]"
+        />
       </template>
       <template #status="{ row }">
         <Switch
@@ -531,7 +519,8 @@ onActivated(() => {
             :disabled="busy"
             @click="openDetail(row)"
           >
-            <template #icon><ReferenceIcon name="query" /></template>详情
+            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>
+            详情
           </Button>
           <Button
             v-if="can('update')"
@@ -539,7 +528,8 @@ onActivated(() => {
             :disabled="busy"
             @click="openForm({ id: row.id })"
           >
-            <template #icon><ReferenceIcon name="edit" /></template>修改
+            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>
+            修改
           </Button>
           <Button
             v-if="can('create')"
@@ -547,7 +537,8 @@ onActivated(() => {
             :disabled="busy"
             @click="openForm({ parentId: row.id })"
           >
-            <template #icon><ReferenceIcon name="add" /></template>新增
+            <template #icon><IconifyIcon :icon="ACTION_ICON.ADD" /></template>
+            新增
           </Button>
           <Button
             v-if="can('delete')"
@@ -556,7 +547,8 @@ onActivated(() => {
             :disabled="busy || row.status === 0"
             @click="askDelete(row)"
           >
-            <template #icon><ReferenceIcon name="delete" /></template>删除
+            <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>
+            删除
           </Button>
         </div>
       </template>

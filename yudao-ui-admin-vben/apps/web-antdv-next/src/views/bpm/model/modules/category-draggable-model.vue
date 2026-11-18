@@ -42,6 +42,7 @@ import {
   updateModelSortBatch,
   updateModelState,
 } from '#/api/bpm/model';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { $t } from '#/locales';
 
 import CategoryRenameForm from '../../category/modules/rename-form.vue';
@@ -724,7 +725,7 @@ function handleRenameSuccess() {
                   :disabled="!isManagerUser(row) && !hasPermiDeploy"
                 >
                   <template #icon>
-                    <IconifyIcon icon="lucide:rocket" />
+                    <IconifyIcon :icon="ACTION_ICON.PUBLISH" />
                   </template>
                   发布
                 </Button>

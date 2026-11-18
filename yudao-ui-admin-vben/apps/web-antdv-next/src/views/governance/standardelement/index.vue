@@ -434,7 +434,7 @@ function lifecycleActions(row: Element): ActionItem[] {
   return [
     {
       label: '发布',
-      icon: 'lucide:rocket',
+      icon: ACTION_ICON.PUBLISH,
       ifShow: row.lifecycleStatus === 'DRAFT',
       auth: ['governance:standard-element:update'],
       onClick: () => lifecycle(row, 'publish'),

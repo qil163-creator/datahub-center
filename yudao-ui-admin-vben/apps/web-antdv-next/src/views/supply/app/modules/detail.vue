@@ -41,6 +41,7 @@ import {
 import { getDataApiSimpleList } from '#/api/supply/dataapi';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ListPagination from '#/components/list-pagination/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { getRangePickerDefaultProps } from '#/utils';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
@@ -989,7 +990,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
                   :disabled="mutationBusy"
                   @click="openEditAuthForm(authRecord(record))"
                 >
-                  <IconifyIcon class="mr-1" icon="lucide:square-pen" />修改
+                  <IconifyIcon class="mr-1" :icon="ACTION_ICON.EDIT" />修改
                 </Button>
                 <Button
                   v-if="
@@ -1003,7 +1004,7 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
                   :disabled="mutationBusy"
                   @click="handleControl(authRecord(record), 'REVOKE')"
                 >
-                  <IconifyIcon class="mr-1" icon="lucide:trash-2" />删除
+                  <IconifyIcon class="mr-1" :icon="ACTION_ICON.DELETE" />删除
                 </Button>
                 <span
                   v-if="isClosedAdminGrant(authRecord(record))"

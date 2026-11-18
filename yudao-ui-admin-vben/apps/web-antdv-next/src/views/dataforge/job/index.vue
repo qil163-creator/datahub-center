@@ -53,6 +53,7 @@ import { getOpsInstanceStatistics } from '#/api/dataforge/ops';
 import { CronTab } from '#/components/cron-tab';
 import ListPagination from '#/components/list-pagination/index.vue';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import TreeToolbar from '#/components/tree-toolbar/index.vue';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -727,25 +728,25 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                         type="button"
                         @click="configure(record.id)"
                       >
-                        <ReferenceIcon name="edit" />配置
+                        <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
 </button><button type="button" @click="detail(record)">
-                        <ReferenceIcon name="eye" />详情
+                        <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
 </button><JobActionDropdown>
 <button type="button">
-                          <IconifyIcon icon="lucide:ellipsis-vertical" />更多
+                          <IconifyIcon :icon="ACTION_ICON.MORE" />更多
 </button><template #actions>
                             <button
                               v-if="can('update')"
                               type="button"
                               @click="edit(record)"
                             >
-                              <IconifyIcon icon="lucide:pencil" />修改
+                              <IconifyIcon :icon="ACTION_ICON.EDIT" />修改
 </button><button
                               v-if="can('create')"
                               type="button"
                               @click="action(record, 'clone')"
                             >
-                              <IconifyIcon icon="lucide:copy" />复制
+                              <IconifyIcon :icon="ACTION_ICON.COPY" />复制
 </button><button
                               v-if="can('update')"
                               type="button"
@@ -774,7 +775,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                               type="button"
                               @click="action(record, 'delete')"
                             >
-                              <IconifyIcon icon="lucide:trash-2" />删除
+                              <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
                             </button>
 </template>
 </JobActionDropdown>

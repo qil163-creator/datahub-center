@@ -35,6 +35,7 @@ import {
   saveTableModelDraft,
 } from '#/api/modeling/tablemodel';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import ReferencePagination from '#/views/modeling/model-materialized/modules/reference-pagination.vue';
 
 import { assertCurrentDesign } from '../../modelcommon/current-design-state';
@@ -717,21 +718,21 @@ onBeforeUnmount(() => {
                             class="qd-logic-detail-link"
                             @click="fieldModal?.open(field, 'detail')"
                           >
-                            <QdIcon name="view" />详情
+                            <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" />详情
 </button><button
                             v-if="hasAccessByCodes(['modeling:model:save'])"
                             class="qd-logic-detail-link"
                             :disabled="!editable || saving || loading"
                             @click="fieldModal?.open(field)"
                           >
-                            <QdIcon name="edit" />修改
+                            <IconifyIcon class="qd-icon" :icon="ACTION_ICON.EDIT" />修改
 </button><button
                             v-if="hasAccessByCodes(['modeling:model:save'])"
                             class="qd-logic-detail-link danger"
                             :disabled="!editable || saving || loading"
                             @click="removeFields([field])"
                           >
-                            <QdIcon name="delete" />删除
+                            <IconifyIcon class="qd-icon" :icon="ACTION_ICON.DELETE" />删除
                           </button>
                         </div>
                       </td>
@@ -903,7 +904,7 @@ onBeforeUnmount(() => {
                             })
                           "
                         >
-                          <QdIcon name="view" />详情
+                          <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" />详情
                         </button>
                       </td>
                     </tr>

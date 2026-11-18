@@ -22,6 +22,7 @@ import {
   unpublishMetaTable,
 } from '#/api/governance/metaobject';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { useObjectDetailQuery } from '#/hooks/use-object-detail-query';
 
 import MetaObjectTree from '../../components/meta-object-tree.vue';
@@ -466,7 +467,7 @@ const sidebarCollapsed = ref(false);
                   {
                     label: '详情',
                     type: 'link',
-                    icon: metadataIcon('detail'),
+                    icon: ACTION_ICON.VIEW,
                     onClick: () => detail(row, 'base'),
                     auth: ['governance:meta-table:query'],
                   },
@@ -495,14 +496,14 @@ const sidebarCollapsed = ref(false);
                   {
                     label: '详情',
                     type: 'link',
-                    icon: metadataIcon('detail'),
+                    icon: ACTION_ICON.VIEW,
                     onClick: () => detail(row),
                     auth: ['governance:meta-table:query'],
                   },
                   {
                     label: '修改',
                     type: 'link',
-                    icon: metadataIcon('edit'),
+                    icon: ACTION_ICON.EDIT,
                     disabled: row.publishStatus === 1,
                     onClick: () =>
                       router.push({
@@ -516,7 +517,7 @@ const sidebarCollapsed = ref(false);
                   {
                     label: '删除',
                     danger: true,
-                    icon: metadataIcon('delete'),
+                    icon: ACTION_ICON.DELETE,
                     disabled: row.publishStatus === 1,
                     auth: ['governance:meta-table:update'],
                     popConfirm: {

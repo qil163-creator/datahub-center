@@ -14,6 +14,7 @@ import { Button, message } from 'antdv-next';
 import { TableAction } from '#/adapter/vxe-table';
 import { deleteMetaFileList, getMetaFilePage } from '#/api/governance/metafile';
 import SidebarCollapse from '#/components/sidebar-collapse/index.vue';
+import { ACTION_ICON } from '#/components/table-action/icons';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -302,14 +303,14 @@ const sidebarCollapsed = ref(false);
                   {
                     label: '详情',
                     type: 'link',
-                    icon: metadataIcon('detail'),
+                    icon: ACTION_ICON.VIEW,
                     auth: ['governance:meta-file:query'],
                     onClick: () => detail(row),
                   },
                   {
                     label: '修改',
                     type: 'link',
-                    icon: metadataIcon('edit'),
+                    icon: ACTION_ICON.EDIT,
                     auth: ['governance:meta-file:update'],
                     onClick: () => edit(row),
                   },
@@ -317,7 +318,7 @@ const sidebarCollapsed = ref(false);
                     label: '删除',
                     type: 'link',
                     danger: true,
-                    icon: metadataIcon('delete'),
+                    icon: ACTION_ICON.DELETE,
                     auth: ['governance:meta-file:delete'],
                     onClick: () => remove([row]),
                   },

@@ -92,6 +92,7 @@ vi.mock('./form.vue', () => ({
   }),
 }));
 vi.mock('#/adapter/vxe-table', () => ({
+  ACTION_ICON: { ADD: 'plus', DELETE: 'trash', EDIT: 'edit', VIEW: 'eye' },
   useVbenVxeGrid: (options: {
     gridEvents: { checkboxChange: (value: { records: CategoryRow[] }) => void };
   }) => [
@@ -211,7 +212,7 @@ describe('类目页面只读详情入口', () => {
     button('选择父子')!.click();
     await flush();
     const batch = [...host.querySelectorAll<HTMLButtonElement>('[data-testid="batch-toolbar"] button')]
-      .find((el) => el.textContent?.trim() === '删除');
+      .find((el) => el.textContent?.trim() === '批量删除');
     batch!.click();
     await flush();
     button('确认删除')!.click();

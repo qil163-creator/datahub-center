@@ -187,7 +187,7 @@ onBeforeUnmount(() => {
           v-if="deptTree.length > 0"
           v-model:expanded-keys="expandedKeys"
           v-model:selected-keys="selectedKeys"
-          class="pt-2"
+          class="dept-tree pt-2"
           :class="{ 'dept-tree-horizontal': props.horizontalScroll }"
           :field-names="{ title: 'name', key: 'id', children: 'children' }"
           :tree-data="deptTree"
@@ -202,6 +202,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.dept-tree :deep(.ant-tree-switcher) {
+  margin-inline-end: 0;
+}
+
+.dept-tree :deep(.ant-tree-node-content-wrapper) {
+  padding-inline-start: 2px;
+}
+
 .dept-tree-horizontal {
   width: max-content;
   min-width: 100%;
