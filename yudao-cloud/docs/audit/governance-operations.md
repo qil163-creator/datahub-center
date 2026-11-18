@@ -4,7 +4,7 @@
 
 ## 接入范围
 
-新增 **233 个入口**，分布在 **51 个控制器**。`bizNo` 使用原有日志组件的模板表达式；`#_ret.data` 为 `CommonResult` 中的业务返回值；无稳定单对象编号的导入及全局同步使用 `0`，摘要说明操作范围。
+清单覆盖 **230 个入口**，分布在 **50 个控制器**。`bizNo` 使用原有日志组件的模板表达式；`#_ret.data` 为 `CommonResult` 中的业务返回值；无稳定单对象编号的导入及全局同步使用 `0`，摘要说明操作范围。
 
 | 控制器 | 方法 | 操作 | 业务编号 |
 |---|---|---|---|
@@ -98,8 +98,6 @@
 | `metadata/MetaFileController.java` | `update` | 更新文件业务属性 | `#req.id` |
 | `metadata/MetaFileController.java` | `delete` | 删除文件元数据，不删除远端文件 | `#id` |
 | `metadata/MetaFileController.java` | `deleteList` | 批量删除文件元数据，不删除远端文件 | `#ids` |
-| `metadata/MetaImportController.java` | `importExcel` | 导入元数据字典（处理结果见导入回执） | `#datasourceId` |
-| `metadata/MetaImportController.java` | `registerTable` | 手工登记单张表（origin=手工） | `#_ret.data` |
 | `metadata/MetaObjectController.java` | `confirmDeleteDb` | 确认删除库（仅待确认删除状态；级联未删除的表与字段，历史与快照保留） | `#id` |
 | `metadata/MetaObjectController.java` | `publishDb` | 库级批量发布（发布本库全部正常且校验通过且未发布的表） | `#id` |
 | `metadata/MetaTableController.java` | `updateTableBiz` | 维护表的业务/管理属性（逐属性记录手工变更明细） | `#reqVO.id` |
@@ -107,7 +105,6 @@
 | `metadata/MetaTableController.java` | `publishTable` | 发布表（仅更新发布状态，保留独立定版） | `#id` |
 | `metadata/MetaTableController.java` | `unpublishTable` | 取消发布（保留定版镜像与资产引用） | `#id` |
 | `metadata/MetaTableController.java` | `updateColumnBiz` | 维护字段的业务/管理属性（逐属性记录手工变更明细） | `#reqVO.id` |
-| `metadata/MetaTableController.java` | `batchAssignOwner` | 批量认责（技术/业务负责人，逐表留痕） | `#reqVO.ids` |
 | `metadata/MetaTableController.java` | `finalizeTable` | 指定结构版本定版；业务属性按确认时冻结 | `#request.id` |
 | `metadata/MetaTableController.java` | `cancelFinalizeTable` | 撤销定版，不改变发布状态与已存在的资产快照引用 | `#request.id` |
 | `metadata/MetaTableController.java` | `deleteTable` | 删除未发布且未关联资产目录的表；历史版本保留 | `#request.id` |
@@ -268,7 +265,7 @@
 
 ## 操作名与操作内容
 
-233 个入口保留原 `subType`、`bizNo` 和成功条件，仅将 `success` 改为包含具体对象的业务叙述。操作名用于分类，内容记录本次涉及的名称、编号、编码、请求状态、版本或回执状态，不再复用接口摘要。
+清单中的入口沿用 `subType`、`bizNo` 和成功条件，`success` 记录涉及的名称、编号、编码、请求状态、版本或回执状态。操作名用于分类。
 
 - 业务术语新增记录名称和英文名称；修改读取真实旧对象名称、状态，与本次提交的新名称、状态分别呈现；单条删除在删除前保留真实名称。
 - 36 个控制器通过已有本领域 Service 的只读入口补充单对象名称和状态，使用原有 `LogRecordContext.putVariable`，只保存字符串，不把 DO、VO、请求体或配置全文放入日志上下文。补充读取失败时回退为对象编号，原写入方法继续负责业务校验及异常结果。

@@ -128,6 +128,15 @@ vi.mock('#/api/system/dept', () => ({
 let app: App;
 let state: any;
 let host: HTMLDivElement;
+function remountEmbeddedForm(
+  initialData: InstanceType<typeof Form>['$props']['initialData'],
+  onClose?: () => void,
+) {
+  app.unmount();
+  app = createApp(Form, { embedded: true, initialData, onClose });
+  state = (app.mount(host) as any).$.setupState;
+}
+
 async function flush() {
   await Promise.resolve();
   await nextTick();
@@ -180,9 +189,7 @@ describe('access wizard component contract', () => {
   }
 
   it('接口采集使用页内四步向导，不再请求独立 API 资源列表', async () => {
-    app.unmount();
-    app = createApp(Form, { embedded: true, initialData: { engineType: 3 } });
-    state = (app.mount(host) as any).$.setupState;
+    remountEmbeddedForm({ engineType: 3 });
     await flush();
     expect(state.stepKeys).toEqual(['basic', 'apiconfig', 'apiaccess', 'attributes']);
     expect(host.querySelector('.wizard--sync.wizard--embedded')).not.toBeNull();
@@ -192,6 +199,37 @@ describe('access wizard component contract', () => {
     await flush();
     expect(host.querySelector('[data-api-config-editor]')).not.toBeNull();
     expect(host.textContent).not.toContain('在 API 管理中维护');
+  });
+
+  it('接口采集编辑回显兼容详情中的空映射并关闭加载遮罩', async () => {
+    const id = '9007199254740993';
+    const onClose = vi.fn();
+    const pending = deferred<Awaited<ReturnType<typeof getAccess>>>();
+    vi.mocked(getAccess).mockReturnValueOnce(pending.promise);
+    remountEmbeddedForm({ engineType: 3, id }, onClose);
+    await flush();
+    expect(host.querySelector('.sync-form-page__loading')).not.toBeNull();
+
+    pending.resolve({
+      id,
+      engineType: 3,
+      taskName: '人口采集',
+      tableNameMapper: null,
+      columnNameMapper: null,
+    });
+    await flush();
+
+    expect(getAccess).toHaveBeenCalledWith(id);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(state.model).toMatchObject({
+      id,
+      taskName: '人口采集',
+      tableNameMapper: [],
+      columnNameMapper: [],
+    });
+    expect(host.querySelector('[aria-label="编辑接口采集任务"]')).not.toBeNull();
+    expect(host.querySelector('.sync-form-page__loading')).toBeNull();
+    expect(host.querySelector('.sync-form-page__body[inert]')).toBeNull();
   });
 
   it('采集保存完整接口定义与映射，不创建 API 资源或提交页面标识', async () => {

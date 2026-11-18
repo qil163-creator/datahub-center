@@ -6,7 +6,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
-import { Page, useVbenModal } from '@vben/common-ui';
+import { Page } from '@vben/common-ui';
 
 import { Alert, message, Modal, Switch } from 'antdv-next';
 
@@ -33,9 +33,6 @@ import {
 import MetadataIcon from '../../metadata-common/metadata-icon.vue';
 import { useMetadataGrid } from '../../metadata-common/use-metadata-grid';
 import { displayComment } from '../data';
-import ImportForm from './import-form.vue';
-import OwnerForm from './owner-form.vue';
-import RegisterForm from './register-form.vue';
 
 import '../../metadata-common/metadata.css';
 
@@ -184,18 +181,6 @@ const { Grid, gridApi, load, selected } = useMetadataGrid<Api.MetaTable>(
   true,
   true,
 );
-const [ImportModal, importApi] = useVbenModal({
-  connectedComponent: ImportForm,
-  destroyOnClose: true,
-});
-const [RegisterModal, registerApi] = useVbenModal({
-  connectedComponent: RegisterForm,
-  destroyOnClose: true,
-});
-const [OwnerModal, ownerApi] = useVbenModal({
-  connectedComponent: OwnerForm,
-  destroyOnClose: true,
-});
 function query() {
   applied.value = {
     pageNo: 1,
@@ -341,9 +326,6 @@ const sidebarCollapsed = ref(false);
 </script>
 <template>
   <Page auto-content-height content-class="metadata-page">
-    <ImportModal @success="refresh" /><RegisterModal
-      @success="refresh"
-    /><OwnerModal @success="refresh" />
     <div class="metadata-layout">
       <MetaObjectTree v-show="!sidebarCollapsed" ref="tree" @select="selectNode" @loaded="onTreeLoaded" />
       <SidebarCollapse :collapsed="sidebarCollapsed" label="目录" @toggle="sidebarCollapsed = !sidebarCollapsed" />
@@ -407,28 +389,6 @@ const sidebarCollapsed = ref(false);
                       },
                     ]"
                     :drop-down-actions="[
-                      {
-                        label: '手工登记',
-                        icon: metadataIcon('finalize'),
-                        auth: ['governance:meta-table:update'],
-                        onClick: () => registerApi.setData(undefined).open(),
-                      },
-                      {
-                        label: '导入数据字典',
-                        icon: metadataIcon('publish'),
-                        auth: ['governance:meta-table:update'],
-                        onClick: () => importApi.setData(undefined).open(),
-                      },
-                      {
-                        label: '批量认责',
-                        icon: metadataIcon('settings'),
-                        auth: ['governance:meta-table:update'],
-                        disabled: !selected.length,
-                        onClick: () =>
-                          ownerApi
-                            .setData({ ids: selected.map((row) => row.id) })
-                            .open(),
-                      },
                       {
                         label: '批量发布本库',
                         icon: metadataIcon('publish'),

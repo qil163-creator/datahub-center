@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 采集读取结果模型（READ 阶段产物，DIFF 阶段输入）
  *
- * 直连采集、Excel 导入、手工登记三个通道统一转换为本模型后进入同一 diff 引擎
+ * 直连采集和模型回写统一转换为本模型后进入同一 diff 引擎
  *
  * @author Li
  */

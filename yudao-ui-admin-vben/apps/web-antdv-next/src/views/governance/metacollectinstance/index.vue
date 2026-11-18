@@ -260,12 +260,14 @@ async function remove() {
         </template>
         <template #source="{ row }">
           <div class="metadata-info">
-            <span class="metadata-ellipsis">{{
-              row.sourceSystemName || '-'
-            }}</span><span class="metadata-tag metadata-tag--source"><MetadataIcon
+            <span class="metadata-ellipsis">{{ row.sourceSystemName || '-' }}</span>
+            <span class="metadata-tag metadata-tag--source" :title="row.datasourceName">
+              <MetadataIcon
                 :name="metadataConnectionIcon(row.dbType)"
                 :size="11"
-              />{{ row.datasourceName || '-' }}</span>
+              />
+              <span class="min-w-0 truncate">{{ row.datasourceName || '-' }}</span>
+            </span>
           </div>
         </template>
         <template #statistics="{ row }">

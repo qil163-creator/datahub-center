@@ -1390,6 +1390,7 @@ function reset() {
   ++previewRequest;
   ++mappingRequest;
   opened = false;
+  initializing.value = false;
   const defaults = defaultModel();
   for (const key of Object.keys(model)) {
     if (!(key in defaults)) Reflect.deleteProperty(model, key);
@@ -1582,7 +1583,10 @@ async function initializeForm(
       if (started !== generation || !opened) return;
       restoringSavedDeclarations = true;
       try {
-        Object.assign(model, defaultModel(), detail, {
+        // 先归一化可空字段，避免同步监听器读取到回显过程中的空值。
+        Object.assign(model, {
+          ...defaultModel(),
+          ...detail,
           tableNameMapper: detail.tableNameMapper ?? [],
           columnNameMapper: detail.columnNameMapper ?? [],
           sourceSelectedTables: detail.sourceSelectedTables ?? [],

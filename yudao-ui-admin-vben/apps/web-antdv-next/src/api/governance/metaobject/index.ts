@@ -476,15 +476,3 @@ export function searchMetaObject(params: PageParam) {
     { params },
   );
 }
-
-/** 批量认责 */
-export function batchAssignMetaOwner(data: {
-  businessLeaderPhone?: string;
-  businessLeaderUserId?: GovernanceMetaObjectApi.Id;
-  ids: GovernanceMetaObjectApi.Id[];
-  ownerDeptId?: GovernanceMetaObjectApi.Id;
-  techLeaderPhone?: string;
-  techLeaderUserId?: GovernanceMetaObjectApi.Id;
-}) {
-  return requestClient.put('/governance/meta-table/batch-owner', data);
-}

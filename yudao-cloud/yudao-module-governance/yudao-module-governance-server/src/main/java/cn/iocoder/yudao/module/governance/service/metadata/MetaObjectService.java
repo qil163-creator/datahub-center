@@ -127,9 +127,4 @@ public interface MetaObjectService {
      */
     MetaOverviewRespVO getOverview();
 
-    /**
-     * 批量认责：仅覆盖传入的负责人字段，逐表记录手工变更
-     */
-    void batchAssignOwner(MetaBatchOwnerReqVO reqVO);
-
 }

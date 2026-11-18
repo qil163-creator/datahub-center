@@ -114,6 +114,7 @@ const [Modal, modalApi] = useVbenModal({
   padding: 0 20px 20px;
   margin: 0;
   overflow: auto;
+  font-size: 12px;
   line-height: 1.4;
   overflow-wrap: anywhere;
   white-space: pre-wrap;

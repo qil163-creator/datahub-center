@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.governance.api.metadata.dto.MetadataTableIngestReqDTO;
-import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.collect.MetaTableRegisterReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaIngestEventDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaTableDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaColumnDO;
@@ -33,7 +32,7 @@ public class MetaPhysicalTableIngestService {
     private MetaIngestEventMapper eventMapper;
 
     @Resource
-    private MetaImportService importService;
+    private MetaTableRegistrationService registrationService;
 
     @Resource
     private MetaTableMapper tableMapper;
@@ -57,9 +56,10 @@ public class MetaPhysicalTableIngestService {
                 return duplicateResult(duplicate, hash);
             }
         }
-        MetaTableRegisterReqVO registration = registration(request);
+        MetaTableRegistration registration = registration(request);
         // 唯一跨服务读取先完成；事务内不调用 DataForge、BPM、MQ 或外部目标数据库。
-        MetaImportService.RegistrationSource prepared = importService.prepareRegistration(request.getDatasourceId());
+        MetaTableRegistrationService.RegistrationSource prepared =
+                registrationService.prepareRegistration(request.getDatasourceId());
         String target = DigestUtil.sha256Hex(JsonUtils.toJsonString(List.of(request.getDatasourceId(),
                 registration.getDbName(), registration.getTableName())));
 
@@ -92,7 +92,7 @@ public class MetaPhysicalTableIngestService {
                     return latest.getTableId();
                 }
             }
-            Long tableId = importService.registerTablePrepared(registration, prepared);
+            Long tableId = registrationService.registerTablePrepared(registration, prepared);
             if (request.getMasterFlag() != null) {
                 tableMapper.updateById(MetaTableDO.builder().id(tableId).masterFlag(request.getMasterFlag()).build());
             }
@@ -143,15 +143,15 @@ public class MetaPhysicalTableIngestService {
     /**
      * 根据采集信封构造物理表元数据登记请求。
      */
-    private MetaTableRegisterReqVO registration(MetadataTableIngestReqDTO request) {
-        MetaTableRegisterReqVO result = new MetaTableRegisterReqVO();
+    private MetaTableRegistration registration(MetadataTableIngestReqDTO request) {
+        MetaTableRegistration result = new MetaTableRegistration();
         result.setDatasourceId(request.getDatasourceId());
         result.setDbName(StrUtil.blankToDefault(request.getDbName(), "default").trim());
         result.setTableName(request.getTableName().trim());
         result.setTableComment(request.getTableComment());
         result.setSourceSystemName(request.getSourceSystemName());
         result.setColumns(request.getColumns().stream().map(column -> {
-            MetaTableRegisterReqVO.RegisterColumn item = new MetaTableRegisterReqVO.RegisterColumn();
+            MetaTableRegistration.Column item = new MetaTableRegistration.Column();
             item.setColumnName(column.getColumnName());
             item.setColumnComment(column.getColumnComment());
             item.setDataType(column.getDataType());

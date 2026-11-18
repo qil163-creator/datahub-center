@@ -182,20 +182,6 @@ public class MetaTableController {
     }
 
     /**
-     * 批量认责（技术/业务负责人，逐表留痕）。
-     */
-    @PutMapping("/batch-owner")
-    @LogRecord(type = "数据治理-表元数据", subType = "批量认责（技术/业务负责人，逐表留痕）",
-            bizNo = "{{(#reqVO.ids) ?: 0}}", success = "为元数据表【{{(#reqVO.ids) ?: '未设置'}}】指定了负责人，技术负责人编号【{{(#reqVO.techLeaderUserId) ?: '未设置'}}】，业务负责人编号【{{(#reqVO.businessLeaderUserId) ?: '未设置'}}】",
-            extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
-    @Operation(summary = "批量认责（技术/业务负责人，逐表留痕）")
-    @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
-    public CommonResult<Boolean> batchAssignOwner(@Valid @RequestBody MetaBatchOwnerReqVO reqVO) {
-        objectService.batchAssignOwner(reqVO);
-        return success(true);
-    }
-
-    /**
      * 指定结构版本定版；业务属性按确认时冻结。
      */
     @PutMapping("/finalize")

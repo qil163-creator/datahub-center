@@ -49,7 +49,7 @@ public class MetaCollectInstanceRespVO {
     @Schema(description = "采集任务编号", example = "1")
     private Long taskId;
 
-    @Schema(description = "触发方式：1-调度 2-手动 3-事件 4-导入 5-手工登记", example = "1")
+    @Schema(description = "触发方式：1-调度 2-手动 3-事件 4-历史导入 5-登记", example = "1")
     private Integer triggerType;
 
     @Schema(description = "状态：1-运行中 2-成功 3-失败 4-部分成功", example = "2")

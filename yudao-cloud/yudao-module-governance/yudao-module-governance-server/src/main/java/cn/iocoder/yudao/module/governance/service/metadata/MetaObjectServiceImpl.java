@@ -1162,60 +1162,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     /**
-     * 批量认责：仅覆盖传入的负责人字段，逐表记录手工变更
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void batchAssignOwner(MetaBatchOwnerReqVO reqVO) {
-        if (reqVO.getTechLeaderUserId() == null && reqVO.getBusinessLeaderUserId() == null
-                && reqVO.getOwnerDeptId() == null) {
-            throw exception(META_TABLE_PUBLISH_VALIDATE_FAIL, "请至少指定一位负责人或责任部门");
-        }
-        List<Long> ids = reqVO.getIds().stream().distinct().sorted().toList();
-        // 跨库批量操作先按编号锁定全部库，再按编号锁表，避免多批次交叉持锁。
-        List<MetaTableDO> observed = ids.stream().map(this::validateTableExists).toList();
-        for (Long dbId : observed.stream().map(MetaTableDO::getDbId).distinct().sorted().toList()) {
-            MetaDbDO db = dbMapper.selectByIdForUpdate(dbId);
-            if (db == null || Objects.equals(db.getObjectStatus(), MetaDbDO.OBJECT_STATUS_DELETED)) {
-                throw exception(META_DB_NOT_EXISTS);
-            }
-        }
-        for (Long id : ids) {
-            MetaTableDO table = tableMapper.selectByIdForUpdate(id);
-            validateEditable(table == null ? null : table.getObjectStatus());
-            validateUnpublished(table);
-            List<MetaChangeDO> changes = new ArrayList<>();
-            Long techLeader = reqVO.getTechLeaderUserId() != null
-                    ? reqVO.getTechLeaderUserId() : table.getTechLeaderUserId();
-            String techPhone = reqVO.getTechLeaderUserId() != null
-                    ? reqVO.getTechLeaderPhone() : table.getTechLeaderPhone();
-            Long bizLeader = reqVO.getBusinessLeaderUserId() != null
-                    ? reqVO.getBusinessLeaderUserId() : table.getBusinessLeaderUserId();
-            String bizPhone = reqVO.getBusinessLeaderUserId() != null
-                    ? reqVO.getBusinessLeaderPhone() : table.getBusinessLeaderPhone();
-            Long deptId = reqVO.getOwnerDeptId() != null
-                    ? reqVO.getOwnerDeptId() : table.getOwnerDeptId();
-            trackChange(changes, table, MetaChangeDO.OBJECT_TYPE_TABLE, table.getId(),
-                    PROP_TECH_LEADER, toStr(table.getTechLeaderUserId()), toStr(techLeader));
-            trackChange(changes, table, MetaChangeDO.OBJECT_TYPE_TABLE, table.getId(),
-                    PROP_BUSINESS_LEADER, toStr(table.getBusinessLeaderUserId()), toStr(bizLeader));
-            trackChange(changes, table, MetaChangeDO.OBJECT_TYPE_TABLE, table.getId(),
-                    PROP_OWNER_DEPT, toStr(table.getOwnerDeptId()), toStr(deptId));
-            tableMapper.update(null, Wrappers.lambdaUpdate(MetaTableDO.class)
-                    .set(MetaTableDO::getTechLeaderUserId, techLeader)
-                    .set(MetaTableDO::getTechLeaderPhone, techPhone)
-                    .set(MetaTableDO::getBusinessLeaderUserId, bizLeader)
-                    .set(MetaTableDO::getBusinessLeaderPhone, bizPhone)
-                    .set(MetaTableDO::getOwnerDeptId, deptId)
-                    .set(MetaTableDO::getBizRevision, table.getBizRevision() + 1)
-                    .eq(MetaTableDO::getId, table.getId()));
-            if (!changes.isEmpty()) {
-                changeMapper.insertBatch(changes);
-            }
-        }
-    }
-
-    /**
      * 补充元数据对象的变更趋势。
      */
     private void fillChangeTrend(MetaOverviewRespVO respVO, LocalDateTime since) {

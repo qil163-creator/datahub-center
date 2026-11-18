@@ -180,8 +180,8 @@ export namespace DataforgeAccessApi {
     targetAutoIncrement?: boolean; // 主键自增
     batchSize?: number; // 批处理量
     mapperType?: string; // ALL / SINGLE
-    tableNameMapper?: PatternMapper[]; // 表名映射
-    columnNameMapper?: PatternMapper[]; // 字段名映射
+    tableNameMapper?: null | PatternMapper[]; // 表名映射
+    columnNameMapper?: null | PatternMapper[]; // 字段名映射
     configMap?: Record<string, TableMapping>; // 单表映射与建表配置
     sourceSql?: string; // 源端 SQL
     targetTable?: string; // 目标表名（SQL 接入）

@@ -30,9 +30,6 @@ public class MetaChangeDO extends BaseDO {
     /** 变更来源：手工 */
     public static final int SOURCE_MANUAL = 2;
 
-    /** 变更来源：导入 */
-    public static final int SOURCE_IMPORT = 3;
-
     /** 变更来源：回滚 */
     public static final int SOURCE_ROLLBACK = 4;
 

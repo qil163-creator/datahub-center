@@ -44,7 +44,7 @@ class MetaPhysicalTableIngestPostgreSqlTest {
     @Container static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
     private JdbcTemplate jdbc;
     private MetaPhysicalTableIngestService service;
-    private MetaImportService imports;
+    private MetaTableRegistrationService registrations;
 
     @BeforeEach
     void setup() throws Exception {
@@ -73,21 +73,21 @@ class MetaPhysicalTableIngestPostgreSqlTest {
         config.addInterceptor(plugins);
         config.addMapper(MetaIngestEventMapper.class);
         var mapper = new SqlSessionTemplate(new MybatisSqlSessionFactoryBuilder().build(config)).getMapper(MetaIngestEventMapper.class);
-        imports = mock(MetaImportService.class);
-        when(imports.prepareRegistration(anyLong())).thenAnswer(call -> {
+        registrations = mock(MetaTableRegistrationService.class);
+        when(registrations.prepareRegistration(anyLong())).thenAnswer(call -> {
             assertFalse(TransactionSynchronizationManager.isActualTransactionActive(), "source RPC must be outside transaction");
-            return new MetaImportService.RegistrationSource(call.getArgument(0), "测试源", "POSTGRESQL");
+            return new MetaTableRegistrationService.RegistrationSource(call.getArgument(0), "测试源", "POSTGRESQL");
         });
-        when(imports.registerTablePrepared(any(), any())).thenAnswer(call -> {
+        when(registrations.registerTablePrepared(any(), any())).thenAnswer(call -> {
             assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
-            var registration = (cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.collect.MetaTableRegisterReqVO) call.getArgument(0);
+            var registration = (MetaTableRegistration) call.getArgument(0);
             jdbc.update("INSERT INTO ingest_projection VALUES (?,?) ON CONFLICT (name) DO UPDATE SET field_name=EXCLUDED.field_name",
                     registration.getTableName(), registration.getColumns().getFirst().getColumnName());
             return 100L;
         });
         service = new MetaPhysicalTableIngestService();
         ReflectionTestUtils.setField(service, "eventMapper", mapper);
-        ReflectionTestUtils.setField(service, "importService", imports);
+        ReflectionTestUtils.setField(service, "registrationService", registrations);
         ReflectionTestUtils.setField(service, "tableMapper", mock(MetaTableMapper.class));
         ReflectionTestUtils.setField(service, "columnMapper", mock(MetaColumnMapper.class));
         ReflectionTestUtils.setField(service, "transactionTemplate", new TransactionTemplate(new DataSourceTransactionManager(source)));
@@ -102,7 +102,7 @@ class MetaPhysicalTableIngestPostgreSqlTest {
         assertEquals(100L, service.ingest(request("old", 10, "old_field")));
         assertEquals("new_field", jdbc.queryForObject("SELECT field_name FROM ingest_projection", String.class));
         assertEquals("SUPERSEDED", jdbc.queryForObject("SELECT status FROM dh_meta_ingest_event WHERE event_id='old'", String.class));
-        verify(imports, times(1)).registerTablePrepared(any(), any());
+        verify(registrations, times(1)).registerTablePrepared(any(), any());
     }
 
     @Test void sameEventWithDifferentPayloadAndSameRevisionWithDifferentEventAreRejected() {
@@ -118,7 +118,7 @@ class MetaPhysicalTableIngestPostgreSqlTest {
         doAnswer(call -> {
             jdbc.update("INSERT INTO ingest_projection VALUES ('dwd_case','incomplete')");
             throw new IllegalStateException("column update failed");
-        }).when(imports).registerTablePrepared(any(), any());
+        }).when(registrations).registerTablePrepared(any(), any());
         assertThrows(IllegalStateException.class, () -> service.ingest(request("event", 10, "field")));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM ingest_projection", Integer.class));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM dh_meta_ingest_event", Integer.class));
@@ -134,11 +134,11 @@ class MetaPhysicalTableIngestPostgreSqlTest {
 
     @Test void concurrentArrivalAlwaysKeepsHigherRevision() throws Exception {
         CountDownLatch ready = new CountDownLatch(2);
-        when(imports.prepareRegistration(anyLong())).thenAnswer(call -> {
+        when(registrations.prepareRegistration(anyLong())).thenAnswer(call -> {
             assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
             ready.countDown();
             assertTrue(ready.await(10, TimeUnit.SECONDS));
-            return new MetaImportService.RegistrationSource(1L, "测试源", "POSTGRESQL");
+            return new MetaTableRegistrationService.RegistrationSource(1L, "测试源", "POSTGRESQL");
         });
         try (var pool = Executors.newFixedThreadPool(2)) {
             Future<Long> older = pool.submit(() -> ingestOnTenant(request("old", 10, "old_field")));

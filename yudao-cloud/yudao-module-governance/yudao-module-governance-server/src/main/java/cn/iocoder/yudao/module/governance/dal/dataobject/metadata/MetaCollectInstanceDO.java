@@ -77,10 +77,7 @@ public class MetaCollectInstanceDO extends BaseDO {
     /** 触发方式：事件 */
     public static final int TRIGGER_EVENT = 3;
 
-    /** 触发方式：Excel 导入 */
-    public static final int TRIGGER_IMPORT = 4;
-
-    /** 触发方式：手工登记 */
+    /** 触发方式：登记 */
     public static final int TRIGGER_REGISTER = 5;
 
     /** 状态：运行中 */
@@ -132,12 +129,12 @@ public class MetaCollectInstanceDO extends BaseDO {
     private Long id;
 
     /**
-     * 采集任务编号（导入/手工登记的虚拟实例可空）
+     * 采集任务编号（历史导入和登记实例可空）
      */
     private Long taskId;
 
     /**
-     * 触发方式：1-调度 2-手动 3-事件 4-导入 5-手工登记
+     * 触发方式：1-调度 2-手动 3-事件 4-历史导入 5-登记
      */
     private Integer triggerType;
 

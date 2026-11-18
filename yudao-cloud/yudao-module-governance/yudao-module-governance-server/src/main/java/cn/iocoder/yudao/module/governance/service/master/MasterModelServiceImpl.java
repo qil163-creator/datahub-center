@@ -36,13 +36,13 @@ import cn.iocoder.yudao.module.governance.dal.mysql.master.MasterDataChangeMappe
 import cn.iocoder.yudao.module.governance.dal.dataobject.master.MasterCodeRuleDO;
 import cn.iocoder.yudao.module.governance.dal.mysql.master.MasterColumnMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.master.MasterDistributeMapper;
-import cn.iocoder.yudao.module.governance.controller.admin.metadata.vo.collect.MetaTableRegisterReqVO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaColumnDO;
 import cn.iocoder.yudao.module.governance.dal.dataobject.metadata.MetaTableDO;
 import cn.iocoder.yudao.module.governance.dal.mysql.master.MasterModelMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.metadata.MetaColumnMapper;
 import cn.iocoder.yudao.module.governance.dal.mysql.metadata.MetaTableMapper;
-import cn.iocoder.yudao.module.governance.service.metadata.MetaImportService;
+import cn.iocoder.yudao.module.governance.service.metadata.MetaTableRegistration;
+import cn.iocoder.yudao.module.governance.service.metadata.MetaTableRegistrationService;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -123,7 +123,7 @@ public class MasterModelServiceImpl implements MasterModelService {
     private AdminUserApi adminUserApi;
 
     @Resource
-    private MetaImportService metaImportService;
+    private MetaTableRegistrationService registrationService;
 
     @Resource
     private MetaTableMapper metaTableMapper;
@@ -769,14 +769,14 @@ public class MasterModelServiceImpl implements MasterModelService {
     private void ingestMasterMetadata(MasterModelDO model, List<MasterColumnDO> columns,
             MasterDatabaseResolver.ConnectionInfo conn) {
         try {
-            MetaTableRegisterReqVO registerReq = new MetaTableRegisterReqVO();
+            MetaTableRegistration registerReq = new MetaTableRegistration();
             registerReq.setDatasourceId(model.getDatabaseId());
             registerReq.setDbName(StrUtil.blankToDefault(conn.getSchema(), "default"));
             registerReq.setTableName(model.getTableName());
             registerReq.setTableComment(model.getTableCn());
             registerReq.setSourceSystemName("主数据管理");
             registerReq.setColumns(columns.stream().map(column -> {
-                MetaTableRegisterReqVO.RegisterColumn item = new MetaTableRegisterReqVO.RegisterColumn();
+                MetaTableRegistration.Column item = new MetaTableRegistration.Column();
                 item.setColumnName(column.getName());
                 item.setColumnComment(column.getCommentStr());
                 item.setDataType(masterFieldTypeName(column.getFieldType()));
@@ -786,7 +786,7 @@ public class MasterModelServiceImpl implements MasterModelService {
                 item.setPkFlag(column.getPk());
                 return item;
             }).toList());
-            Long tableId = metaImportService.registerTable(registerReq);
+            Long tableId = registrationService.registerTable(registerReq);
             metaTableMapper.updateById(MetaTableDO.builder().id(tableId).masterFlag(1).build());
             for (MasterColumnDO column : columns) {
                 if (column.getStandardElementId() == null) {

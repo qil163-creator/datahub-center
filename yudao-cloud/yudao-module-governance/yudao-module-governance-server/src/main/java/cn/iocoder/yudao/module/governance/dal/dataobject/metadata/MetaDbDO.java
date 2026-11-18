@@ -41,9 +41,6 @@ public class MetaDbDO extends BaseDO {
     /** 来源：手工 */
     public static final int ORIGIN_MANUAL = 2;
 
-    /** 来源：导入 */
-    public static final int ORIGIN_IMPORT = 3;
-
     /** 对象状态：正常 */
     public static final int OBJECT_STATUS_ACTIVE = 1;
 

@@ -407,19 +407,16 @@ const [Modal, modalApi] = useVbenModal({
         />
       </div>
       <div class="metadata-form-item metadata-form-item--required">
-        <label>调度周期</label>
+        <label for="metadata-collect-cron">调度周期</label>
         <div>
-          <CronTab v-model="model.cron" class="metadata-cron w-full">
-            <template #trigger="{ open, disabled }">
-              <Button
-                type="primary"
-                :disabled="disabled || !ready"
-                @click="open"
-              >
-                <template #icon><MetadataIcon name="settings" /></template>配置
-              </Button>
-            </template>
-          </CronTab>
+          <CronTab
+            id="metadata-collect-cron"
+            v-model="model.cron"
+            :disabled="!ready || saving"
+            class="w-full"
+            placeholder="请输入 Cron 表达式或使用生成器"
+            week-mode="spring"
+          />
           <div class="metadata-form-hint">定义任务自动触发的时间和频率</div>
         </div>
       </div>
