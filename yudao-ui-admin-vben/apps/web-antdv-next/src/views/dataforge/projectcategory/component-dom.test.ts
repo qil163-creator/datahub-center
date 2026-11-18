@@ -132,6 +132,9 @@ describe('真实 Antdv Next 控件契约', () => {
       const idHeader = headers[1]!;
       expect(idHeader.textContent?.trim()).toBe('编号');
       expect(headers[2]?.textContent?.trim()).toBe(nameTitle);
+      const titles = Array.from(headers, (header) => header.textContent?.trim());
+      expect(titles).not.toContain('创建人');
+      expect(titles).toContain('创建时间');
 
       const idColumn = idHeader.getAttribute('colid');
       const idCells = () =>

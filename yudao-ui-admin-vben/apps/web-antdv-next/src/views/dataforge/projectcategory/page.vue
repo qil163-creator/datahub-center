@@ -155,13 +155,6 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
       },
       { field: 'sort', title: '排序', width: 100, sortable: true },
       {
-        field: 'creatorName',
-        title: '创建人',
-        width: 120,
-        formatter: ({ row }: { row: CategoryNode }) =>
-          row.creatorName || row.creator || '-',
-      },
-      {
         field: 'createTime',
         title: '创建时间',
         width: 190,
