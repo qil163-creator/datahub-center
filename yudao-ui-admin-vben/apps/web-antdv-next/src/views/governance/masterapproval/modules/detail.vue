@@ -4,7 +4,7 @@ import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-
 
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
 
@@ -115,26 +115,26 @@ const fields = computed<DetailFieldItem[]>(() => {
   ];
 });
 const scope = useMasterScope(() => {
-  void drawerApi.close();
+  void modalApi.close();
 });
 async function load(id: GovernanceMasterManageApi.Id) {
   const current = scope.begin('detail');
   failed.value = false;
-  drawerApi.setState({ loading: true });
+  modalApi.setState({ loading: true });
   try {
     const detail = await getMasterApproval(id);
     if (current()) row.value = detail;
   } catch {
     if (current()) failed.value = true;
   } finally {
-    if (current()) drawerApi.setState({ loading: false });
+    if (current()) modalApi.setState({ loading: false });
   }
 }
 async function review(approve: boolean) {
   if (!row.value || saving.value) return;
   const current = scope.begin('write');
   saving.value = true;
-  drawerApi.lock();
+  modalApi.lock();
   try {
     await (approve ? approveMasterData : rejectMasterData)({
       id: row.value.id,
@@ -147,7 +147,7 @@ async function review(approve: boolean) {
   } finally {
     if (current()) {
       saving.value = false;
-      drawerApi.unlock();
+      modalApi.unlock();
     }
   }
 }
@@ -199,15 +199,19 @@ function resolve() {
     },
   });
 }
-const [Drawer, drawerApi] = useVbenDrawer({
-  class: 'w-[960px] max-w-full',
-  placement: 'right',
+const [Modal, modalApi] = useVbenModal<{
+  id: GovernanceMasterManageApi.Id;
+}>({
+  title: '主数据审批详情',
+  class: 'w-[960px]',
+  centered: true,
+  fullscreenButton: false,
   showConfirmButton: false,
   cancelText: '关闭',
   async onOpenChange(open) {
     scope.invalidate();
-    drawerApi.unlock();
-    drawerApi.setState({ loading: false });
+    modalApi.unlock();
+    modalApi.setState({ loading: false });
     row.value = undefined;
     remark.value = '';
     failed.value = false;
@@ -215,16 +219,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
     outcome.value = undefined;
     reason.value = '';
     evidenceRef.value = '';
-    if (open)
-      await load(
-        (drawerApi.getData() as { id: GovernanceMasterManageApi.Id }).id,
-      );
+    const data = modalApi.getData();
+    if (open && data) await load(data.id);
   },
 });
 </script>
 
 <template>
-  <Drawer title="主数据审批详情">
+  <Modal>
     <div v-if="row" class="mx-4">
       <DetailFieldForm :fields="fields" label-width="100px">
         <template #status>
@@ -280,6 +282,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         class="mt-4"
       >
         <Alert
+          class="datahub-popup-help-alert"
           type="info"
           message="此申请使用审批流程，请在流程任务中处理；可在此同步最新结果。"
           show-icon
@@ -342,5 +345,5 @@ const [Drawer, drawerApi] = useVbenDrawer({
         </Form>
       </template>
     </div>
-  </Drawer>
+  </Modal>
 </template>

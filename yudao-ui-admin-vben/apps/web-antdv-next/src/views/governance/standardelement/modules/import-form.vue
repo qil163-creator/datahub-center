@@ -72,7 +72,7 @@ const [ModalComponent, modalApi] = useVbenModal({
     <div class="flex flex-col gap-3 px-2 pb-2">
       <Alert show-icon type="info">
         <template #message>
-          <span class="text-xs">
+          <span class="datahub-popup-help">
             按模板填写数据元清单后导入；导入的数据元默认为草稿态，需发布后正式生效。
             中文名称、英文名称、字段类型为必填，数据元类目按类目名称匹配。
           </span>

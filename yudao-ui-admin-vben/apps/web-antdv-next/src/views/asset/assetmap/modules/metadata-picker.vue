@@ -341,7 +341,7 @@ function iconPath(name: string) {
               }}
             </h3>
             <div class="picker__table">
-              <Alert v-if="tooManyResults" message="匹配结果较多，请输入关键字缩小查询范围。" type="warning" />
+              <Alert v-if="tooManyResults" class="datahub-popup-help-alert" message="匹配结果较多，请输入关键字缩小查询范围。" type="warning" />
               <Table
                 :columns="columns"
                 :data-source="visibleRows"

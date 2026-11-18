@@ -247,7 +247,7 @@ onBeforeUnmount(close);
     @close="close"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       show-icon
       message="执行、目标提交与质量验收是不同状态。只有全部目标提交且本批次质量通过后，才能读取受控批次；读取还会应用当前用户行权限与脱敏。直接访问目标库不经过此入口。"
@@ -378,11 +378,11 @@ onBeforeUnmount(close);
     @ok="retry"
     @cancel="closeRetry"
   >
-    <p v-if="retryMode === 'batch'" class="mb-3">
+    <p v-if="retryMode === 'batch'" class="datahub-popup-help mb-3">
       只恢复原批次提交回执或原质量实例对账，不重跑
       ETL，不把质量不通过改为通过。请填写核查与恢复原因。
     </p>
-    <p v-else class="mb-3">
+    <p v-else class="datahub-popup-help mb-3">
       只重报现有回放结果与治理复检的关联证据，不重跑
       ETL，不生成新的回放。请填写恢复原因。
     </p>

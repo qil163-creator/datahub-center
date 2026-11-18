@@ -75,7 +75,7 @@ defineExpose({ open });
     destroy-on-hidden
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       message="输入样例数据与规则配置，在线执行质量引擎清洗函数并查看清洗结果。"
       show-icon
       type="info"

@@ -3,7 +3,7 @@ import type { GovernanceMasterManageApi } from '#/api/governance/mastermanage';
 
 import { onMounted, reactive, ref } from 'vue';
 
-import { Page, useVbenDrawer } from '@vben/common-ui';
+import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 
 import { message, Modal } from 'antdv-next';
 
@@ -41,7 +41,9 @@ const scope = useMasterScope(() => {
   void gridApi.formApi.setFieldValue('modelId', undefined);
   void refresh();
 });
-const [FormDrawer, formApi] = useVbenDrawer({
+const [FormModal, formApi] = useVbenModal<{
+  id?: GovernanceMasterManageApi.Id;
+}>({
   connectedComponent: RuleForm,
   destroyOnClose: true,
 });
@@ -202,7 +204,7 @@ onMounted(refresh);
 
 <template>
   <Page auto-content-height>
-    <FormDrawer @success="load" />
+    <FormModal @success="load" />
     <DetailDrawer />
     <div class="flex h-full flex-col gap-4">
       <PageGuide

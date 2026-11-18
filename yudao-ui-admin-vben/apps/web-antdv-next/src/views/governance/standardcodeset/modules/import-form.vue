@@ -72,7 +72,7 @@ const [ModalComponent, modalApi] = useVbenModal({
     <div class="flex flex-col gap-3 px-2 pb-2">
       <Alert show-icon type="info">
         <template #message>
-          <span class="text-xs">
+          <span class="datahub-popup-help">
             每行填写一个码值，同一字典类型的行归属同一码表；码表不存在时按「码表名称」自动创建。
             字典类型、码值键值、码值标签为必填。
           </span>

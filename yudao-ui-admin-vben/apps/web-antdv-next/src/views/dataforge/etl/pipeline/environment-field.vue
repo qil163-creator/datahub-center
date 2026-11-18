@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
     @close="close"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       show-icon
       message="平台共享环境与逻辑连接。发布冻结连接和 Schema；修改绑定后旧发布运行会被阻止，需重新发布。这里不保存连接密码，发布和运行时会重新检查连接配置与环境绑定。"

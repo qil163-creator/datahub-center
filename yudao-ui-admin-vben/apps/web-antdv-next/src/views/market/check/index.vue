@@ -663,6 +663,7 @@ function syncFilterValues() {
 
 .check-review-form__count {
   margin: 0;
+  font-size: var(--datahub-popup-help-font-size);
   line-height: 20px;
   color: hsl(var(--muted-foreground));
   text-align: right;

@@ -239,8 +239,13 @@ defineExpose({ open, close });
       type="info"
       show-icon
       message="按业务日期逐日重跑任务当前保存版本"
-      description="同一任务同一时间只跑一个日期；每个日期仍校验上游同业务日期依赖和质量检查，未满足时会等待。任务保存了新版本、被下线或执行身份失去权限时，批次终止。"
-    />
+    >
+      <template #description>
+        <span class="datahub-popup-help">
+          同一任务同一时间只跑一个日期；每个日期仍校验上游同业务日期依赖和质量检查，未满足时会等待。任务保存了新版本、被下线或执行身份失去权限时，批次终止。
+        </span>
+      </template>
+    </Alert>
     <div class="backfill-form">
       <label>
         <span>业务日期</span>

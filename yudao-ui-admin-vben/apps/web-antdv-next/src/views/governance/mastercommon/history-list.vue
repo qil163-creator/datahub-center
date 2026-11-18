@@ -4,7 +4,7 @@ import type { GovernanceMasterManageApi } from '#/api/governance/mastermanage';
 
 import { computed, onMounted, reactive, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { formatDateTime } from '@vben/utils';
 
 import { Tag } from 'antdv-next';
@@ -39,14 +39,17 @@ type HistoryRow = Partial<GovernanceMasterManageApi.Approval> &
 const query = reactive<HistoryFilter>({});
 const pagination = reactive({ pageNo: 1, pageSize: 20, total: 0 });
 const failed = ref(false);
-const [DetailDrawer, detailApi] = useVbenDrawer({
+const [DetailModal, detailApi] = useVbenModal<{
+  id: GovernanceMasterManageApi.Id;
+}>({
   connectedComponent: Detail,
   destroyOnClose: true,
 });
-const [ChangeDetailDrawer, changeDetailApi] = useVbenDrawer({
-  connectedComponent: ChangeDetail,
-  destroyOnClose: true,
-});
+const [ChangeDetailModal, changeDetailApi] =
+  useVbenModal<GovernanceMasterManageApi.ChangeLog>({
+    connectedComponent: ChangeDetail,
+    destroyOnClose: true,
+  });
 const scope = useMasterScope(() => {
   detailApi.setState({ isOpen: false });
   changeDetailApi.setState({ isOpen: false });
@@ -225,8 +228,8 @@ onMounted(load);
 
 <template>
   <div class="flex h-full min-h-0 flex-col">
-    <DetailDrawer @success="load" />
-    <ChangeDetailDrawer />
+    <DetailModal @success="load" />
+    <ChangeDetailModal />
     <PageGuide
       :guide-id="
         approval

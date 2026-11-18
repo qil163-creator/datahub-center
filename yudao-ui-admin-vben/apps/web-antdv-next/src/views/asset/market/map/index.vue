@@ -1549,7 +1549,7 @@ function syncFilterValues() {
     @cancel="stopTarget = undefined"
     @ok="stopSupply"
   >
-    <p>
+    <p class="datahub-popup-help">
       停止新增申请并撤销既有授权。远端撤权可能仍在处理中，请以撤权和交付回执为准。
     </p>
     <Input.TextArea

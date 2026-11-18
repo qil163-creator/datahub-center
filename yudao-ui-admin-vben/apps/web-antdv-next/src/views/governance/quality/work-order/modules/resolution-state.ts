@@ -1,5 +1,7 @@
 import type { QualityWorkOrderApi } from '#/api/governance/quality/workorder';
 
+import { losslessId } from '../use-work-order-request';
+
 export const STATUS_LABELS: Record<string, [string, string]> = {
   PENDING: ['待受理', 'warning'],
   IN_PROGRESS: ['处理中', 'processing'],
@@ -57,6 +59,17 @@ export const ACTION_LABELS: Record<string, string> = {
   TRANSFER: '转派工单',
   WITHDRAW: '撤回提交',
 };
+
+export function workOrderOwnerLabel(order: QualityWorkOrderApi.WorkOrder) {
+  const name = order.ownerUserName?.trim();
+  if (name) return name;
+  const userId = losslessId(order.ownerUserId);
+  if (userId) return `用户 #${userId}`;
+  const deptId = losslessId(order.handlingDeptId);
+  return order.responsibilityStatus === 'ASSIGNED' && deptId
+    ? `部门 #${deptId}`
+    : '-';
+}
 
 /** 后端待确认类型与提交必须一致；未知类型绝不默认当成质量通过。 */
 export function acceptance(order: QualityWorkOrderApi.WorkOrder):

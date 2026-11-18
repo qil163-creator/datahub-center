@@ -33,7 +33,7 @@
 
 .qi-flow-condition-note {
   padding: 12px 26px;
-  font-size: 14px;
+  font-size: var(--datahub-popup-help-font-size, 12px);
   line-height: 23px;
   color: #303133;
   background: #edf5ff;

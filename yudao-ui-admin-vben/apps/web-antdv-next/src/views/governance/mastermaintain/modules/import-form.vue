@@ -95,13 +95,13 @@ async function downloadTemplate() {
     <div class="flex flex-col gap-4">
       <div>
         <Button @click="downloadTemplate">下载模板</Button>
-        <p class="mt-2 text-xs text-muted-foreground">
+        <p class="datahub-popup-help mt-2 text-muted-foreground">
           在首张工作表保留第一行字段名，从第二行填写新增记录。每批最多 200 行，支持 5 MB 以内的 .xlsx 文件。请将长编号和精确小数按文本填写。
         </p>
       </div>
       <Alert v-if="model?.approvalEnabled" type="info" show-icon>
         <template #message>
-          <span class="text-xs">本批数据将一起提交审批，审批通过后写入源表。</span>
+          <span class="datahub-popup-help">本批数据将一起提交审批，审批通过后写入源表。</span>
         </template>
       </Alert>
       <UploadDragger :file-list="files" :before-upload="() => false" :max-count="1" :disabled="busy" accept=".xlsx" @change="choose">

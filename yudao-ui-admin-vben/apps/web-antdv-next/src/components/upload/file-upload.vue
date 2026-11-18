@@ -308,7 +308,7 @@ function getValue() {
           <IconifyIcon icon="lucide:cloud-upload" />
         </p>
         <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
-        <p class="ant-upload-hint">
+        <p class="ant-upload-hint text-[14px]">
           支持{{ accept.join('/') }}格式文件，不超过{{ maxSize }}MB
         </p>
       </div>
@@ -320,7 +320,7 @@ function getValue() {
       </div>
       <div
         v-if="showDescription && !drag"
-        class="mt-2 flex flex-wrap items-center"
+        class="upload-description mt-2 flex flex-wrap items-center"
       >
         请上传不超过
         <div class="mx-1 font-bold text-primary">{{ maxSize }}MB</div>
@@ -359,7 +359,6 @@ function getValue() {
 }
 
 .ant-upload-hint {
-  font-size: 14px;
   color: #999;
 }
 </style>

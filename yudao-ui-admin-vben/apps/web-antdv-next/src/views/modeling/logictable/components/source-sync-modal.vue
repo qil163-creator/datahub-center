@@ -104,6 +104,7 @@ defineExpose({ open });
         <div class="qd-modal-scroll">
           <template v-if="preview">
             <Alert
+              class="datahub-popup-help-alert"
               type="info"
               show-icon
               :message="`读取来源表 ${preview.sourceTable} 的当前结构，与当前设计比对。确认后已对齐字段保留中文名、标准、分级等设计属性，只更新结构；${preview.status === 'PUBLISHED' ? '模型将重新发布并生成新版本。' : '模型保持草稿。'}`"

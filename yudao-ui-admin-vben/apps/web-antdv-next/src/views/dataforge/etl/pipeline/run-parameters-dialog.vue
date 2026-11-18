@@ -136,7 +136,7 @@ defineExpose({ open, openPreview, close });
       <p>{{ source }}</p>
       <Alert
         type="info"
-        class="my-3"
+        class="datahub-popup-help-alert my-3"
         message="未勾选“本次提供”的参数使用定义默认值；无默认值的可选参数保持未提供。提交时再次检查定义修订，版本变化需重新确认。"
       />
       <div v-for="item in definitions" :key="item.name" class="mb-3 space-y-1">

@@ -894,7 +894,7 @@ defineExpose({ open, close });
 .task-template small {
   min-height: 34px;
   margin: 6px 0;
-  font-size: 11px;
+  font-size: var(--datahub-popup-help-font-size, 12px);
   line-height: 16px;
   color: #909399;
 }

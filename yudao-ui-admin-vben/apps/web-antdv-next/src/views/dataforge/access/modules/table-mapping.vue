@@ -423,7 +423,7 @@ defineExpose({ validate });
       cancel-text="取消"
       @ok="applyPrefix"
     >
-      <p class="text-muted-foreground mb-3 text-sm">
+      <p class="datahub-popup-help text-muted-foreground mb-3">
         基于默认映射名称生成目标表名；可在列表中继续单独修改。
       </p>
       <Input

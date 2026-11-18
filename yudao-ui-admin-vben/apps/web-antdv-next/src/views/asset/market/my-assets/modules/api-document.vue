@@ -4,7 +4,7 @@ import type { MyAssetsApi } from '#/api/asset/my-assets';
 import { computed, h, onBeforeUnmount, ref, watch } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
-import {} from '@vben/icons';
+import '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { Alert, Empty, Spin, Table, Tag } from 'antdv-next';
@@ -136,7 +136,7 @@ defineExpose({ open, close });
         type="info"
         message="本文档仅包含当前申请批准的字段范围。实际调用仍需有效的应用授权。"
         show-icon
-        class="mb-4"
+        class="datahub-popup-help-alert mb-4"
       />
       <div class="mb-6 flex flex-wrap items-center gap-2 rounded border p-3">
         <Tag color="blue">{{ document.method || '--' }}</Tag><code class="break-all">{{ document.path || '--' }}</code><span class="text-muted-foreground ml-auto text-xs">版本 {{ document.version || '--' }}</span>

@@ -197,6 +197,7 @@ defineExpose({ open: show });
       />
       <Alert
         v-if="editable"
+        :classes="{ description: 'datahub-popup-help' }"
         type="info"
         show-icon
         class="mb-3"
@@ -354,8 +355,8 @@ defineExpose({ open: show });
 .match-detail__matrix td {
   min-width: 140px;
   padding: 6px 10px;
-  text-align: left;
   vertical-align: top;
+  text-align: left;
   border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
 }
 

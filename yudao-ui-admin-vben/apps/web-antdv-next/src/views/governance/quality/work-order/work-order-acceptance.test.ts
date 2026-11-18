@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { workOrderOwnerLabel } from './modules/resolution-state';
 import {
   createWorkOrderRequestGuard,
   losslessId,
@@ -8,6 +9,24 @@ import {
 } from './use-work-order-request';
 
 describe('quality work order acceptance', () => {
+  it('用昵称展示实际责任人，查不到昵称时显示原始用户编号', () => {
+    const owner = { ownerUserId: '9223372036854775807' };
+    expect(workOrderOwnerLabel({ ...owner, ownerUserName: '张三' })).toBe('张三');
+    expect(workOrderOwnerLabel({ ...owner, ownerUserName: ' ' })).toBe(
+      '用户 #9223372036854775807',
+    );
+  });
+
+  it('仅指派了部门时显示部门编号，待认责工单显示占位符', () => {
+    const department = { handlingDeptId: 42 };
+    expect(
+      workOrderOwnerLabel({ ...department, responsibilityStatus: 'ASSIGNED' }),
+    ).toBe('部门 #42');
+    expect(
+      workOrderOwnerLabel({ ...department, responsibilityStatus: 'UNASSIGNED' }),
+    ).toBe('-');
+  });
+
   it('t36 keeps only the latest work-order request', () => {
     const guard = createWorkOrderRequestGuard();
     const first = guard.begin();

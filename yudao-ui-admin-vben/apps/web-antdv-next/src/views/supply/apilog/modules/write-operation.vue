@@ -279,7 +279,7 @@ onBeforeUnmount(() => {
             记录核查结论
           </Button>
         </Form>
-        <p v-else>
+        <p v-else class="datahub-popup-help">
           执行中的操作将在失联巡检后转为结果未知；已成功记录不允许改写。
         </p>
       </template>

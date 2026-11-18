@@ -58,6 +58,7 @@ function deleteHttpResponseSetting(
 <template>
   <FormItem>
     <Alert
+      class="datahub-popup-help-alert"
       message="仅支持 POST 请求，以请求体方式接收参数"
       type="warning"
       show-icon
@@ -94,6 +95,7 @@ function deleteHttpResponseSetting(
       :wrapper-col="{ span: 24 }"
     >
       <Alert
+        class="datahub-popup-help-alert"
         message="通过请求返回值, 可以修改流程表单的值"
         type="warning"
         show-icon

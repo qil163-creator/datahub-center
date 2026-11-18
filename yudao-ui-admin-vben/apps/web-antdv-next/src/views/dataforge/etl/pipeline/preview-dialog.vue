@@ -454,16 +454,16 @@ function displayValue(value: unknown) {
     @cancel="cancelSession(true)"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       message="仅执行所选节点及其上游快照。支持生成记录、生成随机数和 PostgreSQL 整表采样（含环境逻辑连接），再执行受控字典、质量节点和纯内存转换（常量、值映射、扁平化、排序、字段映射/拆分/派生、过滤、清洗、脱敏、条件分流、计算、ID 生成、数值范围、列转多行、行列转换、合并、排序合并、多 JOIN、笛卡尔积）。自定义 SQL、HTTP、文件、脚本、加解密和目标写入不参与预览。最多 32 个节点、展示 100 行；查询和引擎执行预算 30 秒，请求总耗时可能包含额外连接检查时间。"
     />
-    <p class="mb-3 text-sm text-muted-foreground">
+    <p class="datahub-popup-help mb-3 text-muted-foreground">
       每个来源最多读取“展示行数 +
       1”行用于判断截断；权限过滤后可能少于请求行数，不继续补扫。输入、输出计数仅代表本次样本，不是全表总数；排序等转换也只处理这批样本，不代表全表结果；样本检测结果也不能证明全表唯一性等跨行规则成立。目标各输入端口合计最多展示指定行数，输出也最多展示指定行数，两侧共享响应字节预算。
     </p>
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       message="预览会话仅保存在当前服务实例，样本短时保留；不支持跨实例迁移或重启恢复。关闭时会请求取消，只有执行线程和数据库资源均确认退出后才显示已取消。切换身份或离开页面后仍由服务端期限触发清理。"
     />
@@ -571,7 +571,7 @@ function displayValue(value: unknown) {
       />
       <Alert
         v-if="result.success"
-        class="mb-3"
+        class="datahub-popup-help-alert mb-3"
         type="info"
         message="输入与输出是独立样本，不能按行号一一对应。过滤、排序、展开和 JOIN 会改变行数、顺序或关联关系；两侧行的位置不代表同一条记录。"
       />

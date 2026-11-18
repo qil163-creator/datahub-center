@@ -203,7 +203,7 @@ onBeforeUnmount(close);
     @close="close"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       show-icon
       message="模板为平台共享的结构化流程片段。应用时重新校验数据源与治理规则权限，追加到当前草稿，可撤销；保存和发布仍需完整校验。"
@@ -268,11 +268,11 @@ onBeforeUnmount(close);
     @cancel="close"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       :message="`共享 ${fragment.nodes.length} 个节点及其内部连线。支持结构化配置与整表读取，不共享脚本、外部文件、HTTP、MQ、凭据或流程参数默认值。`"
     />
-    <p class="mb-3 text-sm">
+    <p class="datahub-popup-help mb-3">
       有选中节点时保存选中片段，否则保存整个画布。请确认常量和映射值适合平台团队共享。
     </p>
     <Input

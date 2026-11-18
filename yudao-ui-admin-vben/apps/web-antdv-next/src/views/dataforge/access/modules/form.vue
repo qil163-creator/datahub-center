@@ -2761,7 +2761,7 @@ onMounted(() => {
                 type="info"
                 show-icon
                 message="以下规则决定默认名称；逐表填写的目标名称为最终名称，优先于表名规则和前缀。"
-                class="mb-4"
+                class="datahub-popup-help-alert mb-4"
               />
 
               <div v-if="model.sourceType === 1" class="mapper-block">

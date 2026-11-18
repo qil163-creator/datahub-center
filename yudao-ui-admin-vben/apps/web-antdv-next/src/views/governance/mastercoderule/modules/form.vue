@@ -4,7 +4,7 @@ import type { GovernanceMasterManageApi } from '#/api/governance/mastermanage';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, Input, message, Select } from 'antdv-next';
@@ -40,7 +40,7 @@ const shown = ref(false);
 let nextKey = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const scope = useMasterScope(() => {
-  void drawerApi.close();
+  void modalApi.close();
 });
 const title = computed(() =>
   editId.value === undefined ? '新增编码规则' : '修改编码规则',
@@ -154,16 +154,18 @@ watch(segments, queuePreview, { deep: true });
 onBeforeUnmount(() => {
   if (timer) clearTimeout(timer);
 });
-const [Drawer, drawerApi] = useVbenDrawer({
-  placement: 'right',
-  confirmText: '保存',
+const [Modal, modalApi] = useVbenModal<{ id?: GovernanceMasterManageApi.Id }>({
+  bordered: true,
   cancelText: '关闭',
+  centered: true,
+  confirmText: '保存',
+  fullscreenButton: false,
   async onOpenChange(open) {
     shown.value = false;
     scope.invalidate();
     const current = scope.begin('detail');
     if (timer) clearTimeout(timer);
-    drawerApi.unlock();
+    modalApi.unlock();
     await formApi.reset();
     if (!current()) return;
     editId.value = undefined;
@@ -174,8 +176,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
     loadFailed.value = false;
     previewFailed.value = false;
     if (!open) return;
-    const data = drawerApi.getData() as { id?: GovernanceMasterManageApi.Id };
-    drawerApi.lock();
+    const data = modalApi.getData();
+    modalApi.lock();
     try {
       const [modelList, rule] = await Promise.all([
         getMasterModelSimpleList(),
@@ -204,7 +206,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     } catch {
       if (current()) loadFailed.value = true;
     } finally {
-      if (current()) drawerApi.unlock();
+      if (current()) modalApi.unlock();
     }
   },
   async onConfirm() {
@@ -224,7 +226,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       message.warning('请填写每个编码段的内容');
       return;
     }
-    drawerApi.lock();
+    modalApi.lock();
     try {
       await (editId.value === undefined
         ? createMasterCodeRule(data)
@@ -232,16 +234,16 @@ const [Drawer, drawerApi] = useVbenDrawer({
       if (!current()) return;
       message.success('编码规则已保存');
       emit('success');
-      await drawerApi.close();
+      await modalApi.close();
     } finally {
-      if (current()) drawerApi.unlock();
+      if (current()) modalApi.unlock();
     }
   },
 });
 </script>
 
 <template>
-  <Drawer :title="title" class="w-[680px] max-w-full" content-class="p-5">
+  <Modal :title="title" class="w-[680px]" content-class="p-5">
     <Form />
     <div class="bg-muted/40 mb-5 rounded-md border border-dashed p-4">
       <div class="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -380,5 +382,5 @@ const [Drawer, drawerApi] = useVbenDrawer({
     <p class="mt-3 text-xs text-muted-foreground">
       流水号在新增数据时生成；预览不会占用流水号。启用后，同模型的其他编码规则将停用。
     </p>
-  </Drawer>
+  </Modal>
 </template>

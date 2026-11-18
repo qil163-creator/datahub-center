@@ -126,7 +126,7 @@ defineExpose({ open: () => drawerApi.open() });
 <template>
   <Drawer title="例外到期处理失败">
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       message="例外到期后自动创建复核单失败的提交会在这里登记：自动按退避重试，5 次仍失败转为“待人工”。排查并修复原因后授权重试；到期动作已生效的提交会被自动跳过，不会重复创建复核单。"
     />
@@ -197,7 +197,7 @@ defineExpose({ open: () => drawerApi.open() });
       @cancel="retryTarget = undefined"
       @ok="confirmRetry"
     >
-      <p class="mb-2">
+      <p class="datahub-popup-help mb-2">
         将清零自动处理次数并在下一轮扫描立即重新处理。请填写排查结论：
       </p>
       <Input.TextArea

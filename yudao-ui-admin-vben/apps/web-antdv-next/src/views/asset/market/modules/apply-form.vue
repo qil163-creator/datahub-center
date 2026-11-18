@@ -290,7 +290,7 @@ async function submit(asPending: boolean) {
               placeholder="选择已绑定到该资源的 API"
             />
           </div>
-          <div class="text-muted-foreground text-xs">
+          <div class="datahub-popup-help text-muted-foreground">
             应用请先在数据服务「应用管理」创建。未绑定 API
             的资源不能申请接口开通。门户与 API 使用同一批准来源的额度。
           </div>

@@ -2219,7 +2219,6 @@ defineExpose({ validate });
 
 .qi-reference-jsonl-upload .qi-reference-file-tip {
   margin-top: 10px;
-  font-size: 14px;
   color: #303133;
 }
 

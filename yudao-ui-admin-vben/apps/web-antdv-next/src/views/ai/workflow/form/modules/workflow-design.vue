@@ -278,7 +278,9 @@ defineExpose({ validate });
           >
             {{ JSON.stringify(testResult, null, 2) }}
           </pre>
-          <div v-else class="text-gray-400">点击运行查看结果</div>
+          <div v-else class="datahub-popup-help text-gray-400">
+            点击运行查看结果
+          </div>
         </div>
       </fieldset>
 

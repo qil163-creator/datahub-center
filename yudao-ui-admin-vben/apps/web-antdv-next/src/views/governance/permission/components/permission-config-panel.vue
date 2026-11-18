@@ -392,7 +392,7 @@ defineExpose({
               </div>
             </template>
             <div v-if="item.legacyUnbound" class="mb-3 space-y-2">
-              <div class="text-sm">
+              <div class="datahub-popup-help">
                 数据源 {{ item.databaseId }}：必须人工确认物理
                 schema/表和字段，不能自动猜测或覆盖已有策略。
               </div>
@@ -443,7 +443,7 @@ defineExpose({
         {{ legacyConfig?.tableName }}
       </div>
       <div class="mb-3 text-sm">目标：{{ bindingTarget?.tableReference }}</div>
-      <div class="mb-3 text-sm text-red-600">
+      <div class="datahub-popup-help mb-3 text-red-600">
         请确认实际数据含义、物理 schema
         和全部字段。原表/字段限制、行条件、脱敏规则及状态均保留；冲突和字段不匹配将拒绝绑定。
       </div>

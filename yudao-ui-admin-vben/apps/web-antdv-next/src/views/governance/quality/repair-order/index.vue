@@ -329,7 +329,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <pre
           class="max-h-56 overflow-auto whitespace-pre-wrap break-all rounded bg-[hsl(var(--accent))] p-2 text-xs"
           >{{ resultOrder?.approvedSnapshot ?? '未生成批准快照' }}</pre>
-        <p class="text-muted-foreground">
+        <p class="datahub-popup-help text-muted-foreground">
           数据源、物理位置或配置修订变更后须重新送审。结果待核验时禁止重放；执行成功后仍须完成质量复检。
         </p>
       </div>

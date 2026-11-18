@@ -83,7 +83,7 @@ defineExpose({ open });
     destroy-on-hidden
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       :message="
         requiresLiveSource
           ? '此规则必须读取授权数据源的真实字段、主键或结构。请在质量任务中配置该规则后使用抽查。'

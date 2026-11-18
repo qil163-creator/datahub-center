@@ -87,7 +87,7 @@ function configValue(key: string, value: unknown) {
     <Alert
       type="info"
       message="来源质量记录为导入快照，供查阅；接入本地数据连接后可创建并执行质量任务。"
-      class="mb-4"
+      class="datahub-popup-help-alert mb-4"
     />
     <div v-if="mode === 'task'" class="source-task">
       <Table

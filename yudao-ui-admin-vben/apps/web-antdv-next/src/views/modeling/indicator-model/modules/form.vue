@@ -590,7 +590,7 @@ const [Modal, modalApi] = useVbenModal<{
     />
     <template v-else>
       <Alert
-        class="mb-5"
+        class="datahub-popup-help-alert mb-5"
         type="info"
         show-icon
         message="维护指标定义与业务口径；来源固定到已发布逻辑模型版本。保存后为草稿，启用后可用于派生指标。"

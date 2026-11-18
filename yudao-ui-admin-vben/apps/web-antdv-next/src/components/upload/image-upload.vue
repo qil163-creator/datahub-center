@@ -331,7 +331,7 @@ function getValue() {
     </Upload>
     <div
       v-if="showDescription"
-      class="mt-2 flex flex-wrap items-center text-sm"
+      class="upload-description mt-2 flex flex-wrap items-center text-sm"
     >
       请上传不超过
       <div class="mx-1 font-bold text-primary">{{ maxSize }}MB</div>

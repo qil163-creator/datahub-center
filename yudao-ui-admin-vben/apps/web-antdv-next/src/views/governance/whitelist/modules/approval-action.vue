@@ -66,12 +66,14 @@ const [ModalComponent, modalApi] = useVbenModal<{
     <div class="flex flex-col gap-3 px-1 py-2">
       <Alert
         v-if="action === 'approve'"
+        class="datahub-popup-help-alert"
         :message="`通过后【${row?.name ?? ''}】将在生效时段内豁免脱敏，请确认豁免范围与生效主体无误。`"
         show-icon
         type="warning"
       />
       <Alert
         v-else
+        class="datahub-popup-help-alert"
         :message="`驳回后【${row?.name ?? ''}】不会生效，申请人可修改后重新提交。`"
         show-icon
         type="info"

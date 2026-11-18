@@ -152,7 +152,7 @@ onBeforeUnmount(reset);
     @close="emit('close')"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       message="显示升级后实际记录的授权及应用控制历史，不补造旧记录。历史状态不等于当前授权；此处不能恢复权限。"
     />

@@ -331,10 +331,11 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
             <span class="metadata-tag">{{ row.domainName || '-' }}</span>
           </template>
           <template #source="{ row }">
-            <div class="metadata-info">
-              <span>{{ row.databaseName || '-' }}</span><span v-if="row.databaseType" class="metadata-tag">{{
-                row.databaseType
-              }}</span>
+            <div class="metadata-info text-left">
+              <span>{{ row.databaseName || '-' }}</span>
+              <span v-if="row.databaseType" class="metadata-tag">
+                {{ row.databaseType }}
+              </span>
             </div>
           </template>
           <template #statistics="{ row }">

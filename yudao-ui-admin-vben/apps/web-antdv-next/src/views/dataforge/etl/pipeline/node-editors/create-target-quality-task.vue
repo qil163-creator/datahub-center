@@ -356,7 +356,7 @@ onBeforeUnmount(close);
   >
     <Alert
       type="info"
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       message="当前仅支持 PostgreSQL 连接默认 Schema、物理表名为普通小写标识符的目标；含大写、点号或其他特殊字符的物理表暂不支持自动生成。创建检查对象和独立 SQL 质量任务，不根据内联结果虚构检测通过。上线仅允许任务供 ETL 使用，不立即执行全表检测；实际运行仍绑定精确目标批次。"
     />
     <Alert
@@ -408,7 +408,7 @@ onBeforeUnmount(close);
       >
         创建后上线，供 ETL 批次验收使用（不会立即执行）
       </Checkbox>
-      <p class="my-2 text-sm text-gray-500">
+      <p class="datahub-popup-help my-2 text-gray-500">
         仅列出已启用且具有可用策略的规则；提交时服务端还会检查规则配置和目标 SQL
         是否兼容。
       </p>

@@ -366,7 +366,7 @@ const [Modal, modalApi] = useVbenModal<{ id?: IndicatorModelApi.Id }>({
 <template>
   <Modal :title="title" class="w-[960px]" :confirm-disabled="!canSave">
     <Alert
-      class="mb-4"
+      class="datahub-popup-help-alert mb-4"
       type="info"
       show-icon
       message="复合指标由公式引用同数据域的已启用指标（可引用其他复合指标），结果固定为小数，在服务端按维度精确计算；分母为 0 时结果为空。"

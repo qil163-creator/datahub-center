@@ -199,7 +199,7 @@ onBeforeUnmount(() => guard.invalidate());
     @ok="submit"
   >
     <Alert
-      class="mb-3"
+      class="datahub-popup-help-alert mb-3"
       type="info"
       show-icon
       message="审批通过后 24 小时内可下载一次。下载时重新执行查询，结果按导出口径脱敏，文件带导出人水印。"

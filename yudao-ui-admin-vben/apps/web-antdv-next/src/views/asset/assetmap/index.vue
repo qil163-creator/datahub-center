@@ -1147,11 +1147,13 @@ const tableTypeOptions = [
 
 .asset-register__batch > p {
   margin: 0;
+  font-size: var(--datahub-popup-help-font-size);
   color: hsl(var(--muted-foreground));
 }
 
 .asset-register__batch > small {
   padding-left: 110px;
+  font-size: var(--datahub-popup-help-font-size);
   color: hsl(var(--muted-foreground));
 }
 

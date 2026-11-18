@@ -42,6 +42,10 @@ const tokenTheme = computed(() => {
 </template>
 
 <style>
+:root {
+  --datahub-popup-help-font-size: 12px;
+}
+
 [data-slot='dialog-title'],
 [data-slot='alert-dialog-title'],
 [data-slot='sheet-title'],
@@ -50,6 +54,23 @@ const tokenTheme = computed(() => {
 .ant-drawer .ant-drawer-header .ant-drawer-title {
   font-size: 18px;
   font-weight: 600;
+}
+
+:is([role='dialog'], [role='alertdialog'], .ant-modal, .ant-drawer)
+  :is(
+    [data-slot='dialog-description'],
+    [data-slot='sheet-description'],
+    [data-slot='form-description'],
+    .ant-form-item-extra,
+    .ant-upload-hint,
+    .upload-description,
+    .datahub-popup-help
+  ),
+:is([role='dialog'], [role='alertdialog'], .ant-modal, .ant-drawer)
+  .datahub-popup-help-alert
+  > .ant-alert-section
+  > :is(.ant-alert-title, .ant-alert-description) {
+  font-size: var(--datahub-popup-help-font-size);
 }
 
 .subtle-tree-scrollbar {

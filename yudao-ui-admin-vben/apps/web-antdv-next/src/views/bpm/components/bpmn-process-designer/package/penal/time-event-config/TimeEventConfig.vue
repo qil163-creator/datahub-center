@@ -350,7 +350,7 @@ watch(
     <!-- 帮助说明 -->
     <HelpModal>
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <div v-html="helpHtml"></div>
+      <div class="datahub-popup-help" v-html="helpHtml"></div>
     </HelpModal>
   </div>
 </template>

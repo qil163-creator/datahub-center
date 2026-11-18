@@ -59,7 +59,7 @@ const [Modal, modalApi] = useVbenModal({
     :title="$t('ui.actionTitle.create', ['密钥引用'])"
   >
     <Alert
-      class="mx-4 mb-4"
+      class="datahub-popup-help-alert mx-4 mb-4"
       type="info"
       show-icon
       message="引用只登记名称和编码；数据密钥由主密钥派生，平台不保存、不展示任何密钥。编码创建后不可修改。"

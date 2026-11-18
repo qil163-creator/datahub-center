@@ -321,14 +321,14 @@ const [Modal, modalApi] = useVbenModal({
       <Form />
       <Alert
         v-if="!frozen"
-        class="mb-4"
+        class="datahub-popup-help-alert mb-4"
         type="info"
         message="保存草稿仅保存模型和属性。完善字段并设置主键后，在列表中发布生成目标表。"
         show-icon
       />
       <Alert
         v-if="frozen"
-        class="mb-4"
+        class="datahub-popup-help-alert mb-4"
         type="info"
         message="修改字段结构后保存为草稿，再次发布时同步目标表；目标数据源和物理表保持不变。"
         show-icon

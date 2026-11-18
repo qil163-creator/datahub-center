@@ -445,7 +445,7 @@ onBeforeUnmount(() => {
           <h4 class="dev-task-form-section dev-task-form-full">运行配置</h4>
           <Alert
             v-if="isRealtimeSql"
-            class="dev-task-form-full mb-4"
+            class="datahub-popup-help-alert dev-task-form-full mb-4"
             type="info"
             show-icon
             message="该 SQL 在实时任务列表管理，每次运行执行一次，并按设置的超时结束。"

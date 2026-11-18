@@ -348,6 +348,7 @@ const [Modal, modalApi] = useVbenModal({
         message="模型已启用，设计为只读。需要修改时，请先在列表中停用。"
       />
       <Alert
+        class="datahub-popup-help-alert"
         v-else-if="!readonly"
         type="info"
         show-icon

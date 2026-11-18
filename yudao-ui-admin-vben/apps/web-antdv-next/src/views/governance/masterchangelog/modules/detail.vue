@@ -4,7 +4,7 @@ import type { DetailFieldItem } from '#/views/modeling/modelcommon/detail-field-
 
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { formatDateTime } from '@vben/utils';
 
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
@@ -62,23 +62,24 @@ const fields = computed<DetailFieldItem[]>(() => {
 });
 useMasterScope(() => {
   detail.value = undefined;
-  drawerApi.setState({ isOpen: false });
+  modalApi.setState({ isOpen: false });
 });
 
-const [Drawer, drawerApi] = useVbenDrawer<GovernanceMasterManageApi.ChangeLog>({
+const [Modal, modalApi] = useVbenModal<GovernanceMasterManageApi.ChangeLog>({
   title: '主数据变更日志详情',
-  class: 'w-[960px] max-w-full',
-  placement: 'right',
+  class: 'w-[960px]',
+  centered: true,
+  fullscreenButton: false,
   showConfirmButton: false,
   cancelText: '关闭',
   onOpenChange(isOpen) {
-    detail.value = isOpen ? drawerApi.getData() : undefined;
+    detail.value = isOpen ? modalApi.getData() : undefined;
   },
 });
 </script>
 
 <template>
-  <Drawer>
+  <Modal>
     <DetailFieldForm :fields="fields" class="mx-4" label-width="100px" />
-  </Drawer>
+  </Modal>
 </template>

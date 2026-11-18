@@ -252,7 +252,7 @@ const [Modal, modalApi] = useVbenModal({
           />
           <Alert
             v-else-if="preview.prefixChanged"
-            class="mb-2"
+            class="datahub-popup-help-alert mb-2"
             type="info"
             message="保存后新建模型将按新前缀命名；已有物理表名不会被改动"
           />

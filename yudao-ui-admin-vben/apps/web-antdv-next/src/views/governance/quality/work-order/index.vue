@@ -24,7 +24,11 @@ import { $t } from '#/locales';
 import WorkOrderExpiryFailures from './modules/expiry-failures.vue';
 import WorkOrderForm from './modules/form.vue';
 import WorkOrderRawIssues from './modules/raw-issues.vue';
-import { CLOSE_LABELS, STATUS_LABELS } from './modules/resolution-state';
+import {
+  CLOSE_LABELS,
+  STATUS_LABELS,
+  workOrderOwnerLabel,
+} from './modules/resolution-state';
 import WorkOrderResolution from './modules/resolution.vue';
 import WorkOrderStatistics from './modules/statistics.vue';
 import {
@@ -82,7 +86,13 @@ const workOrderColumns: VxeTableGridOptions<QualityWorkOrderApi.WorkOrder>['colu
     },
     { field: 'issueCount', title: '问题条数', width: 90 },
     { field: 'orderCode', title: '工单编号', width: 120 },
-    { field: 'ownerUserName', title: '责任人', width: 100 },
+    {
+      field: 'ownerUserName',
+      title: '责任人',
+      width: 100,
+      showOverflow: 'tooltip',
+      formatter: ({ row }) => workOrderOwnerLabel(row),
+    },
     {
       field: 'responsibilityStatus',
       title: '认责',

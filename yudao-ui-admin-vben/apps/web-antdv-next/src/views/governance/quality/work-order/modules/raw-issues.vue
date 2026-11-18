@@ -127,7 +127,12 @@ defineExpose({ open });
         </template>
       </Alert>
       <template v-else-if="issues.length">
-        <Alert title="历史检出记录" show-icon type="info">
+        <Alert
+          title="历史检出记录"
+          :classes="{ description: 'datahub-popup-help' }"
+          show-icon
+          type="info"
+        >
           <template #description>
             <p v-for="note in liveValueNotes" :key="note" class="m-0 break-all">
               {{ note }}

@@ -314,7 +314,7 @@ onBeforeUnmount(reset);
 .connection-wizard__hint {
   flex-shrink: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--datahub-popup-help-font-size, 12px);
   line-height: 22px;
 }
 
@@ -366,7 +366,6 @@ onBeforeUnmount(reset);
   }
 
   .connection-wizard__hint {
-    font-size: 14px;
     line-height: 20px;
   }
 

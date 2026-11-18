@@ -360,6 +360,7 @@ onBeforeUnmount(reset);
     </Button>
     <template v-if="expanded">
       <Alert
+        class="datahub-popup-help-alert"
         type="info"
         message="发送中与发送结果未知不等于未送达。UNKNOWN 不自动重发，人工核验结论与实际投递回执分别保留。"
       />
@@ -463,6 +464,7 @@ onBeforeUnmount(reset);
         </Button>
         <div v-if="canReview || canRetry" class="my-3 space-y-2">
           <Alert
+            class="datahub-popup-help-alert"
             type="warning"
             message="请先独立核对系统站内信和运维证据。填写消息编号不构成系统验证，找不到消息也不能直接证明未发送。"
           />

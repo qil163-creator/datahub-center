@@ -516,7 +516,7 @@ onBeforeUnmount(invalidate);
         type="info"
         show-icon
         message="连接状态规则在连接断开时触发；响应时间阈值单位为毫秒。"
-        class="mb-4"
+        class="datahub-popup-help-alert mb-4"
       />
       <Form />
     </FormModal>

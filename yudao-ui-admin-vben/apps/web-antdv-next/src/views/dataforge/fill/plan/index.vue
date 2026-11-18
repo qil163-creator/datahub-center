@@ -412,7 +412,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
       width="800px"
       @ok="handleGenerate"
     >
-      <p class="text-muted-foreground mb-2 text-sm">
+      <p class="datahub-popup-help text-muted-foreground mb-2">
         一次性计划：重新生成任务。周期计划：缺省按当前时间生成本期任务；
         补生成历史期次时填写对应历史时点。
       </p>
