@@ -5,6 +5,8 @@ import type { DataforgeFillApi } from '#/api/dataforge/fill';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
+import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
+import { getDictOptions } from '@vben/hooks';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
@@ -120,6 +122,28 @@ const schema: VbenFormSchema<DataforgeFillApi.PlanCategorySaveReq>[] = [
     help: '数字越小越靠前',
     componentProps: { min: 0, max: 9999, precision: 0, step: 1 },
   },
+  {
+    fieldName: 'status',
+    label: '状态',
+    component: 'RadioGroup',
+    defaultValue: CommonStatusEnum.ENABLE,
+    rules: z
+      .number()
+      .int()
+      .min(CommonStatusEnum.ENABLE)
+      .max(CommonStatusEnum.DISABLE),
+    componentProps: () => ({
+      options: getDictOptions(DICT_TYPE.COMMON_STATUS, 'number'),
+    }),
+  },
+  {
+    fieldName: 'remark',
+    label: '备注',
+    component: 'TextArea',
+    defaultValue: '',
+    rules: z.string().max(256, '最多输入256个字符').optional(),
+    componentProps: { maxlength: 256, rows: 3, showCount: true },
+  },
 ];
 const [Form, formApi] = useVbenForm<DataforgeFillApi.PlanCategorySaveReq>({
   layout: 'horizontal',
@@ -172,6 +196,8 @@ const [Modal, modalApi] = useVbenModal<{
         parentId: values.parentId,
         name: values.name.trim(),
         sort: values.sort,
+        status: values.status,
+        remark: values.remark ?? '',
       };
       await (editingId.value === undefined
         ? createPlanCategory(data)
@@ -218,6 +244,8 @@ const [Modal, modalApi] = useVbenModal<{
         parentId: String(category?.parentId ?? initialData?.parentId ?? '0'),
         name: category?.name ?? '',
         sort: category?.sort ?? 0,
+        status: category?.status ?? CommonStatusEnum.ENABLE,
+        remark: category?.remark ?? '',
       });
     } catch {
       if (isCurrent(requestGeneration)) await modalApi.close();

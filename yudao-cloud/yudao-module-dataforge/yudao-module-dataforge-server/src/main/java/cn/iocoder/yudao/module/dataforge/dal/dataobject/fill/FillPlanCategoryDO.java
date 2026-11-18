@@ -1,7 +1,9 @@
 package cn.iocoder.yudao.module.dataforge.dal.dataobject.fill;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
@@ -26,5 +28,10 @@ public class FillPlanCategoryDO extends BaseDO {
     private String name;
 
     private Integer sort;
+
+    private Integer status;
+
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    private String remark;
 
 }

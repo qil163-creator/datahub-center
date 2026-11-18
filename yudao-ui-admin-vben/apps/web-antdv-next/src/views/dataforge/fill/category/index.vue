@@ -5,6 +5,7 @@ import { computed, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
+import { DICT_TYPE } from '@vben/constants';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
@@ -62,8 +63,9 @@ const tree = computed(() => handleTree<CategoryNode>(rows.value
 function filterTree(nodes: CategoryNode[], text: string): CategoryNode[] {
   return nodes.flatMap((node) => {
     const children = filterTree(node.children ?? [], text);
-    return !text || node.name.toLocaleLowerCase().includes(text) || children.length
-      ? [{ ...node, children: children.length ? children : undefined }]
+    const hasChildren = children.length > 0;
+    return !text || node.name.toLocaleLowerCase().includes(text) || hasChildren
+      ? [{ ...node, children: hasChildren ? children : undefined }]
       : [];
   });
 }
@@ -84,8 +86,31 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
     height: 'auto',
     data: [],
     columns: [
+      { field: 'id', title: '编号', minWidth: 160 },
       { field: 'name', title: '数据填报类目名称', minWidth: 240, treeNode: true, align: 'left' },
       { field: 'sort', title: '排序', width: 120 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 100,
+        cellRender: {
+          name: 'CellDict',
+          props: { type: DICT_TYPE.COMMON_STATUS },
+        },
+      },
+      {
+        field: 'remark',
+        title: '备注',
+        minWidth: 200,
+        showOverflow: 'tooltip',
+        formatter: ({ row }: { row: CategoryNode }) => row.remark || '—',
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
       { field: 'actions', title: '操作', width: 290, fixed: 'right', showOverflow: false, slots: { default: 'actions' } },
     ],
     pagerConfig: { enabled: false },

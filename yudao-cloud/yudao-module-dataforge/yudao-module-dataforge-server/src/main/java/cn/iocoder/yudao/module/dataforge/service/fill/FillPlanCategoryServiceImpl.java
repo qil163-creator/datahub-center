@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.dataforge.service.fill;
 
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanCategoryRespVO;
 import cn.iocoder.yudao.module.dataforge.controller.admin.fill.vo.FillPlanCategorySaveReqVO;
@@ -44,6 +46,8 @@ public class FillPlanCategoryServiceImpl implements FillPlanCategoryService {
         category.setId(null);
         category.setName(name);
         category.setSort(reqVO.getSort() == null ? 0 : reqVO.getSort());
+        category.setStatus(Objects.requireNonNullElse(reqVO.getStatus(), CommonStatusEnum.ENABLE.getStatus()));
+        category.setRemark(StrUtil.emptyToNull(reqVO.getRemark()));
         categoryMapper.insert(category);
         return category.getId();
     }
@@ -57,13 +61,15 @@ public class FillPlanCategoryServiceImpl implements FillPlanCategoryService {
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(FillPlanCategorySaveReqVO reqVO) {
         lockTree();
-        validateCategoryExists(reqVO.getId());
+        FillPlanCategoryDO current = validateCategoryExists(reqVO.getId());
         validateParent(reqVO.getId(), reqVO.getParentId());
         String name = reqVO.getName().trim();
         validateNameUnique(reqVO.getId(), reqVO.getParentId(), name);
         FillPlanCategoryDO update = BeanUtils.toBean(reqVO, FillPlanCategoryDO.class);
         update.setName(name);
         update.setSort(reqVO.getSort() == null ? 0 : reqVO.getSort());
+        update.setStatus(reqVO.getStatus() == null ? current.getStatus() : reqVO.getStatus());
+        update.setRemark(reqVO.getRemark() == null ? current.getRemark() : StrUtil.emptyToNull(reqVO.getRemark()));
         categoryMapper.updateById(update);
     }
 

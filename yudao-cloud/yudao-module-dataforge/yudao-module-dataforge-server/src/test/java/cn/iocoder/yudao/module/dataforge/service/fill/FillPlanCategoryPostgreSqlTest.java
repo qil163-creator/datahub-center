@@ -49,6 +49,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class FillPlanCategoryPostgreSqlTest {
 
     private static final String MIGRATION = "sql/postgresql/migrations/0167_dataforge_fill-plan-category.sql";
+    private static final String STATUS_REMARK_MIGRATION =
+            "sql/postgresql/migrations/0300_dataforge_fill-plan-category-status-remark.sql";
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES = new cn.iocoder.yudao.module.dataforge.support.DataforgePostgreSqlContainer();
@@ -79,6 +81,7 @@ class FillPlanCategoryPostgreSqlTest {
         // 从新库基线构建升级前计划表；已有业务数据须在加分类后继续保留
         execute(planDDL.group().replace(",\n  \"category_id\" int8", ""));
         execute(Files.readString(root().resolve(MIGRATION)));
+        execute(Files.readString(root().resolve(STATUS_REMARK_MIGRATION)));
 
         var source = new DriverManagerDataSource(POSTGRES.getJdbcUrl()
                 + (POSTGRES.getJdbcUrl().contains("?") ? "&" : "?") + "currentSchema=datahub-center",
@@ -119,6 +122,35 @@ class FillPlanCategoryPostgreSqlTest {
 
         if (app != null) app.close();
         if (control != null) control.close();
+    }
+
+    @Test
+    void persistsStatusRemarkAndCreationTimeAcrossLegacyUpdatesAndRemarkClears() {
+        var create = request(null, 0L, "填报目录");
+        create.setStatus(1);
+        create.setRemark("保留备注");
+        Long id = service.createCategory(create);
+
+        var created = service.getCategoryList().getFirst();
+        assertEquals(id, created.getId());
+        assertEquals(1, created.getStatus());
+        assertEquals("保留备注", created.getRemark());
+        assertNotNull(created.getCreateTime());
+
+        var update = request(id, 0L, "更新名称");
+        service.updateCategory(update);
+        var renamed = service.getCategory(id);
+        assertEquals("更新名称", renamed.getName());
+        assertEquals(1, renamed.getStatus());
+        assertEquals("保留备注", renamed.getRemark());
+
+        update.setStatus(0);
+        update.setRemark("");
+        service.updateCategory(update);
+        var cleared = service.getCategory(id);
+        assertEquals(0, cleared.getStatus());
+        assertNull(cleared.getRemark());
+        assertEquals(created.getCreateTime(), cleared.getCreateTime());
     }
 
     @Test

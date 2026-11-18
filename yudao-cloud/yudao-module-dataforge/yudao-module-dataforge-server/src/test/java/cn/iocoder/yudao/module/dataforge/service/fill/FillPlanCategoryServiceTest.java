@@ -43,7 +43,7 @@ class FillPlanCategoryServiceTest extends BaseMockitoUnitTest {
     }
 
     @Test
-    void creationTrimsNameDefaultsSortAndIgnoresClientId() {
+    void creationTrimsNameDefaultsSortAndStatusAndIgnoresClientId() {
         FillPlanCategorySaveReqVO request = request(99L, 0L, "  基础信息  ");
         doAnswer(call -> {
             call.<FillPlanCategoryDO>getArgument(0).setId(10L);
@@ -59,6 +59,8 @@ class FillPlanCategoryServiceTest extends BaseMockitoUnitTest {
         order.verify(categories).insert(saved.capture());
         assertEquals("基础信息", saved.getValue().getName());
         assertEquals(0, saved.getValue().getSort());
+        assertEquals(0, saved.getValue().getStatus());
+        assertNull(saved.getValue().getRemark());
     }
 
     @Test

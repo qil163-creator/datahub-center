@@ -117,7 +117,7 @@ export function useGridColumns(
   return [
     {
       field: 'id',
-      title: '主键',
+      title: '编号',
       minWidth: 120,
     },
     {

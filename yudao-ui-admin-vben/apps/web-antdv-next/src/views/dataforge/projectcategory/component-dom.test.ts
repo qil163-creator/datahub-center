@@ -1,6 +1,8 @@
 /* eslint-disable vue/one-component-per-file -- 保留真实 Antdv 控件，仅隔离外层布局和权限来源。 */
 import type { App } from 'vue';
 
+import type { ProjectCategoryApi as Api } from '#/api/dataforge/projectcategory';
+
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,7 +61,7 @@ let app: App;
 let host: HTMLDivElement;
 let styles: HTMLStyleElement;
 
-beforeEach(async () => {
+beforeEach(() => {
   vi.clearAllMocks();
   harness.list.mockResolvedValue([
     {
@@ -88,6 +90,9 @@ beforeEach(async () => {
   document.head.append(styles);
   host = document.createElement('div');
   document.body.append(host);
+});
+
+async function mount(kind: Api.Kind = 'integration') {
   app = createApp(
     defineComponent({
       setup: () => () =>
@@ -97,7 +102,7 @@ beforeEach(async () => {
           {
             default: () => [
               h(Radio, { checked: true, 'data-test-theme-probe': true }),
-              h(CategoryPage, { kind: 'integration' }),
+              h(CategoryPage, { kind }),
             ],
           },
         ),
@@ -105,7 +110,7 @@ beforeEach(async () => {
   );
   app.mount(host);
   await vi.waitUntil(() => host.querySelector('.qpc-tree-closed'));
-});
+}
 
 afterEach(async () => {
   app.unmount();
@@ -115,7 +120,37 @@ afterEach(async () => {
 });
 
 describe('真实 Antdv Next 控件契约', () => {
+  it.each([
+    ['integration', '数据集成类目名称'],
+    ['development', '数据开发类目名称'],
+    ['masterPush', '主数据推送类目名称'],
+  ] as const)(
+    '%s 在复选框后显示父子类目的完整编号',
+    async (kind, nameTitle) => {
+      await mount(kind);
+      const headers = host.querySelectorAll('.vxe-table--header-wrapper th');
+      const idHeader = headers[1]!;
+      expect(idHeader.textContent?.trim()).toBe('编号');
+      expect(headers[2]?.textContent?.trim()).toBe(nameTitle);
+
+      const idColumn = idHeader.getAttribute('colid');
+      const idCells = () =>
+        Array.from(
+          host.querySelectorAll(
+            `.vxe-table--body-wrapper td[colid="${idColumn}"]`,
+          ),
+          (cell) => cell.textContent?.trim(),
+        );
+      expect(idCells()).toEqual(['9007199254740993']);
+      host.querySelector<HTMLButtonElement>('.qpc-tree-closed')!.click();
+      await vi.waitFor(() =>
+        expect(idCells()).toEqual(['9007199254740993', '9007199254740995']),
+      );
+    },
+  );
+
   it('父复选联动未展开的子项，主操作与删除保留原生语义', async () => {
+    await mount();
     const parentCheckbox = host.querySelector<HTMLInputElement>(
       '.vxe-table--body-wrapper .vxe-cell--checkbox',
     )!;
@@ -144,6 +179,7 @@ describe('真实 Antdv Next 控件契约', () => {
   });
 
   it('原生新增弹窗保留字段校验约束、父级选择与继承主题', async () => {
+    await mount();
     host
       .querySelector<HTMLButtonElement>('.qpc-toolbar-actions button')!
       .click();

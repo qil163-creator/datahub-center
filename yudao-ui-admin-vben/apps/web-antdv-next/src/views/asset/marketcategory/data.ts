@@ -104,7 +104,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
 export function useGridColumns(): VxeTableGridOptions<AssetMarketCategoryApi.MarketCategory>['columns'] {
   return [
     { type: 'checkbox', width: 40 },
-    { type: 'seq', title: '编号', width: 70 },
+    { field: 'id', title: '编号', minWidth: 160 },
     {
       field: 'name',
       title: '集市类目名称',

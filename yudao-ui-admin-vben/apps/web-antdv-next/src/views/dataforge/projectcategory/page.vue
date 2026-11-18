@@ -129,6 +129,7 @@ const [Grid, gridApi] = useVbenVxeGrid<CategoryNode>({
     data: [],
     columns: [
       { type: 'checkbox', width: 44 },
+      { field: 'id', title: '编号', minWidth: 160 },
       {
         field: 'name',
         title: `${label.value}名称`,

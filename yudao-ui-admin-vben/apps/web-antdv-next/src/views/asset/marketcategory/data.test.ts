@@ -24,10 +24,11 @@ describe('market category subject-domain layout schema', () => {
     };
     expect(props().options.map((option) => option.value)).toEqual([0, 1]);
   });
-  it('retains checkbox selection and numbering with a tree name, two-line description slot and readable actions', () => {
+  it('shows the category ID alongside the tree name, checkbox and actions', () => {
     const columns = useGridColumns()!;
     expect(columns[0]).toMatchObject({ type: 'checkbox' });
-    expect(columns[1]).toMatchObject({ type: 'seq', title: '编号' });
+    expect(columns[1]).toMatchObject({ field: 'id', title: '编号' });
+    expect(columns[1]?.type).toBeUndefined();
     expect(columns.find((column) => column.field === 'name')).toMatchObject({
       treeNode: true,
       title: '集市类目名称',
@@ -40,6 +41,7 @@ describe('market category subject-domain layout schema', () => {
       slots: { default: 'actions' },
     });
     expect(columns.map((column) => column.field).filter(Boolean)).toEqual([
+      'id',
       'name',
       'description',
       'status',

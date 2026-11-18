@@ -27,4 +27,13 @@ public class FillPlanCategorySaveReqVO {
     @Max(value = 9999, message = "显示顺序不能超过 9999")
     private Integer sort;
 
+    @Schema(description = "分类状态，0 启用，1 停用。创建时默认启用，更新时省略则保留原值", example = "0")
+    @Min(value = 0, message = "分类状态只能为 0 或 1")
+    @Max(value = 1, message = "分类状态只能为 0 或 1")
+    private Integer status;
+
+    @Schema(description = "备注。更新时省略则保留原值，传空字符串则清空")
+    @Size(max = 256, message = "备注不能超过 256 个字符")
+    private String remark;
+
 }

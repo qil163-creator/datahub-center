@@ -1,4 +1,7 @@
 /* eslint-disable vue/one-component-per-file -- 通过轻量控件验证分类管理的交互。 */
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { DataforgeFillApi } from '#/api/dataforge/fill';
+
 import { createApp, defineComponent, h, KeepAlive, nextTick, reactive } from 'vue';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -15,6 +18,7 @@ const state = vi.hoisted(() => ({
   modalData: undefined as any,
   query: undefined as any,
   rows: [] as any[],
+  columns: [] as VxeTableGridOptions<DataforgeFillApi.PlanCategory>['columns'],
   expand: vi.fn(),
   custom: vi.fn(),
 }));
@@ -51,6 +55,7 @@ vi.mock('@vben/common-ui', () => ({
 vi.mock('#/adapter/vxe-table', () => ({
   useVbenVxeGrid: (options: any) => {
     state.query = options.gridOptions.proxyConfig.ajax.query;
+    state.columns = options.gridOptions.columns;
     const gridState = reactive({ data: [] as any[] });
     return [
       defineComponent({
@@ -93,8 +98,24 @@ vi.mock('antdv-next', () => {
 });
 let app: ReturnType<typeof createApp>;
 let host: HTMLDivElement;
-const parent = { id: '9007199254740993', parentId: '0', name: '父类目', sort: 0 };
-const child = { id: '9007199254740994', parentId: parent.id, name: '水情', sort: 1 };
+const parent = {
+  id: '9007199254740993',
+  parentId: '0',
+  name: '父类目',
+  sort: 0,
+  status: 0,
+  remark: null,
+  createTime: 1_793_719_200_000,
+};
+const child = {
+  id: '9007199254740994',
+  parentId: parent.id,
+  name: '水情',
+  sort: 1,
+  status: 1,
+  remark: '水情采集说明',
+  createTime: 1_793_722_800_000,
+};
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve(); await nextTick(); }
 function button(text: string, root: Element = host) {
   return [...root.querySelectorAll('button')].find((node) => node.textContent?.trim() === text)!;
@@ -112,6 +133,28 @@ beforeEach(() => {
 afterEach(() => { app?.unmount(); host.remove(); });
 
 describe('数据填报类目管理', () => {
+  it('列表使用真实编号、状态、备注和创建时间', async () => {
+    app.mount(host);
+    await flush();
+    expect(state.columns?.map(({ field, title }) => [field, title])).toEqual([
+      ['id', '编号'],
+      ['name', '数据填报类目名称'],
+      ['sort', '排序'],
+      ['status', '状态'],
+      ['remark', '备注'],
+      ['createTime', '创建时间'],
+      ['actions', '操作'],
+    ]);
+    expect(
+      state.columns?.find(({ field }) => field === 'status')?.cellRender,
+    ).toMatchObject({ name: 'CellDict', props: { type: 'common_status' } });
+    expect(
+      state.columns?.find(({ field }) => field === 'createTime')?.formatter,
+    ).toBe('formatDateTime');
+    expect(state.rows[0]).toMatchObject(parent);
+    expect(state.rows[0].children[0]).toMatchObject(child);
+  });
+
   it('使用现有计划分类数据，搜索子类目时保留父级', async () => {
     app.mount(host);
     await flush();

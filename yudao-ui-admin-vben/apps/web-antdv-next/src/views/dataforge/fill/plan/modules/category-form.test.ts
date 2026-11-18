@@ -71,6 +71,7 @@ vi.mock('#/adapter/form', () => {
     int: () => rule,
     max: () => rule,
     min: () => rule,
+    optional: () => rule,
     trim: () => rule,
   };
   return {
@@ -105,11 +106,26 @@ vi.mock('#/locales', () => ({ $t: (key: string) => key }));
 
 const LARGE_ID = '9223372036854775807';
 const CHILD_ID = '9223372036854775806';
+const categoryDefaults = { status: 0, createTime: 1_793_719_200_000 };
 const categories: DataforgeFillApi.PlanCategory[] = [
-  { id: '8', parentId: 0, name: '教育', sort: 0 },
-  { id: LARGE_ID, parentId: '8', name: '学生信息', sort: 0 },
-  { id: CHILD_ID, parentId: LARGE_ID, name: '学生明细', sort: 0 },
-  { id: '9', parentId: 0, name: '财务', sort: 1 },
+  { ...categoryDefaults, id: '8', parentId: 0, name: '教育', sort: 0 },
+  {
+    ...categoryDefaults,
+    id: LARGE_ID,
+    parentId: '8',
+    name: '学生信息',
+    sort: 0,
+    status: 1,
+    remark: '已停用的计划分类',
+  },
+  {
+    ...categoryDefaults,
+    id: CHILD_ID,
+    parentId: LARGE_ID,
+    name: '学生明细',
+    sort: 0,
+  },
+  { ...categoryDefaults, id: '9', parentId: 0, name: '财务', sort: 1 },
 ];
 
 let app: App | undefined;
@@ -167,7 +183,13 @@ describe('采集计划分类弹窗', () => {
     await harness.modalOptions.onOpenChange(true);
     expect(harness.getCategory).toHaveBeenCalledExactlyOnceWith(LARGE_ID);
     expect(parentKeys()).toEqual(['0', '8', '9']);
-    expect(harness.values).toEqual({ parentId: '8', name: '学生信息', sort: 0 });
+    expect(harness.values).toEqual({
+      parentId: '8',
+      name: '学生信息',
+      sort: 0,
+      status: 1,
+      remark: '已停用的计划分类',
+    });
 
     await harness.modalOptions.onConfirm();
     expect(harness.updateCategory).toHaveBeenCalledExactlyOnceWith({
@@ -175,6 +197,8 @@ describe('采集计划分类弹窗', () => {
       parentId: '8',
       name: '学生信息',
       sort: 0,
+      status: 1,
+      remark: '已停用的计划分类',
     });
     expect(harness.createCategory).not.toHaveBeenCalled();
     expect(harness.saved).toHaveBeenCalledOnce();
@@ -190,6 +214,15 @@ describe('采集计划分类弹窗', () => {
     expect(harness.validate).not.toHaveBeenCalled();
     expect(harness.createCategory).not.toHaveBeenCalled();
     expect(harness.updateCategory).not.toHaveBeenCalled();
+  });
+
+  it('清空已有备注时发送空字符串并保留停用状态', async () => {
+    await harness.modalOptions.onOpenChange(true);
+    harness.values.remark = '';
+    await harness.modalOptions.onConfirm();
+    expect(harness.updateCategory).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ id: LARGE_ID, status: 1, remark: '' }),
+    );
   });
 
   it('切换登录会话后忽略旧详情，不覆盖新弹窗和上级选项', async () => {
@@ -209,7 +242,13 @@ describe('采集计划分类弹窗', () => {
     oldLoad.resolve(categories[1]!);
     await pending;
     expect(harness.setValues).toHaveBeenCalledOnce();
-    expect(harness.values).toEqual({ parentId: '0', name: '', sort: 0 });
+    expect(harness.values).toEqual({
+      parentId: '0',
+      name: '',
+      sort: 0,
+      status: 0,
+      remark: '',
+    });
     expect(parentKeys()).toEqual(['0', '10']);
   });
 

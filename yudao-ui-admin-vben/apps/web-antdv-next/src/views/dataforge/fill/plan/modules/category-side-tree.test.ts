@@ -88,6 +88,7 @@ afterEach(() => {
 
 const LARGE_ID = '9223372036854775807';
 const CHILD_ID = '9223372036854775806';
+const categoryDefaults = { status: 0, createTime: 1_793_719_200_000 };
 
 function mountTree() {
   const selected = ref<number | string>();
@@ -98,9 +99,21 @@ function mountTree() {
       setup: () => () =>
         h(CategorySideTree, {
           items: [
-            { id: LARGE_ID, parentId: 0, name: '教育', sort: 0 },
-            { id: CHILD_ID, parentId: LARGE_ID, name: '学生信息', sort: 0 },
-            { id: '3', parentId: 0, name: '财务', sort: 1 },
+            {
+              ...categoryDefaults,
+              id: LARGE_ID,
+              parentId: 0,
+              name: '教育',
+              sort: 0,
+            },
+            {
+              ...categoryDefaults,
+              id: CHILD_ID,
+              parentId: LARGE_ID,
+              name: '学生信息',
+              sort: 0,
+            },
+            { ...categoryDefaults, id: '3', parentId: 0, name: '财务', sort: 1 },
           ],
           selected: selected.value,
           'onUpdate:selected': (value: number | string | undefined) => {

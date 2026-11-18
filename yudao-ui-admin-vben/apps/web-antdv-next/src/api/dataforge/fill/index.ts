@@ -233,6 +233,9 @@ export namespace DataforgeFillApi {
     parentId: number | string;
     name: string;
     sort: number;
+    status: number;
+    remark?: null | string;
+    createTime: number;
   }
 
   export interface PlanCategorySaveReq {
@@ -240,6 +243,8 @@ export namespace DataforgeFillApi {
     parentId: number | string;
     name: string;
     sort: number;
+    status?: number;
+    remark?: string;
   }
 
   /** 采集任务 */
