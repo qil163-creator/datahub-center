@@ -371,11 +371,6 @@
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.q-quality-dialog-header h2 {
-  font-size: 16px;
-  line-height: 18px;
-}
-
 .q-quality-dialog-content {
   padding: 0;
   overflow: hidden;

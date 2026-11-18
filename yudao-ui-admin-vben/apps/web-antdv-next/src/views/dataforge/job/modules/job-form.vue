@@ -287,7 +287,7 @@ async function save(configure = false) {
 }
 
 .qj-form-modal .ant-modal-header {
-  height: 42px;
+  min-height: 42px;
   padding: 9px 20px;
   margin: 0;
   background: #f8f8f8;

@@ -135,6 +135,7 @@ vi.mock('#/locales', () => ({ $t: (key: string) => key }));
 vi.mock('./form.vue', () => ({
   default: defineComponent({ setup: () => () => h('div') }),
 }));
+vi.mock('./raw-issues.vue', () => ({ default: () => null }));
 vi.mock('./resolution.vue', () => ({
   default: defineComponent({ setup: () => () => h('div') }),
 }));

@@ -1080,11 +1080,6 @@
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.qo-modal .ant-modal-title {
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .qo-modal .ant-modal-close {
   top: 9px;
   right: 11px;

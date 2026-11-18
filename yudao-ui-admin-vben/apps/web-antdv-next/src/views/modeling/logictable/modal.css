@@ -21,8 +21,6 @@
 }
 
 .qd-logic-modal .ant-modal-title {
-  font-size: 16px;
-  font-weight: 600;
   line-height: 20px;
 }
 
@@ -193,7 +191,6 @@
 }
 
 .qd-summary-modal .ant-modal-title {
-  font-size: 16px;
   line-height: 22px;
 }
 

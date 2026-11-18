@@ -42,6 +42,16 @@ const tokenTheme = computed(() => {
 </template>
 
 <style>
+[data-slot='dialog-title'],
+[data-slot='alert-dialog-title'],
+[data-slot='sheet-title'],
+.ant-modal .ant-modal-header .ant-modal-title,
+.ant-modal.ant-modal-confirm .ant-modal-confirm-title,
+.ant-drawer .ant-drawer-header .ant-drawer-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
 .subtle-tree-scrollbar {
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;

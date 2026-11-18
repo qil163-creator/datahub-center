@@ -118,7 +118,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
       },
       {
         title: '操作',
-        width: 180,
+        width: 240,
         fixed: 'right',
         showOverflow: false,
         slots: { default: 'actions' },
@@ -177,8 +177,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               auth: ['governance:quality-rule-set:update'],
               onClick: () => formRef?.open(row.id),
             },
-          ]"
-          :drop-down-actions="[
             {
               label: '规则管理',
               type: 'link',

@@ -291,7 +291,10 @@ onMounted(load);
         <span>{{ index + 1 }}</span>{{ title }}
       </div>
     </section>
-    <section class="q-panel q-task-content">
+    <section
+      class="q-panel q-task-content"
+      :class="{ 'quality-task-readonly': readonly }"
+    >
       <Tabs v-if="readonly" v-model:active-key="tab">
         <TabPane key="objects" tab="稽查对象" /><TabPane
           key="rules"
@@ -426,8 +429,8 @@ onMounted(load);
       </template>
       <template v-if="readonly ? tab === 'objects' : step === 1">
         <h3 v-if="!readonly" class="q-section">稽查对象信息</h3>
-        <div class="q-toolbar">
-          <Button v-if="!readonly" type="primary" @click="objectEditor?.open()">
+        <div v-if="!readonly" class="q-toolbar">
+          <Button type="primary" @click="objectEditor?.open()">
             ＋ 新增
           </Button>
         </div>
@@ -657,14 +660,16 @@ onMounted(load);
   width: 280px;
   min-width: 280px;
   white-space: nowrap;
-  background: #fff;
+  background: hsl(var(--card));
 }
 
-th.quality-task-actions {
-  background: #f1f1f5;
+.quality-task-table thead th {
+  background: hsl(var(--accent));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
-tr:nth-child(even) .quality-task-actions {
-  background: #fafafb;
+.quality-task-readonly .quality-task-actions {
+  width: 120px;
+  min-width: 120px;
 }
 </style>

@@ -284,7 +284,7 @@ export function getWorkOrderRawIssues(id: QualityWorkOrderApi.Id) {
   return requestClient.get<{
     issues: {
       evidenceTime?: number | string;
-      issueCount?: number;
+      issueCount?: number | string;
       issueId?: QualityWorkOrderApi.Id;
       liveValueNote?: string;
       locationSql?: string;

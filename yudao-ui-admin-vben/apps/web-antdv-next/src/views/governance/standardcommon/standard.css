@@ -219,11 +219,6 @@
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.standard-modal-header h2 {
-  font-size: 16px;
-  line-height: 18px;
-}
-
 .standard-modal-content {
   min-height: 0;
   max-height: calc(100dvh - 220px);

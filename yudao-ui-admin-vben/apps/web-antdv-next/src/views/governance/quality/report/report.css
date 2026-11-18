@@ -254,6 +254,11 @@
   min-height: 380px;
 }
 
+.quality-report-table .ant-table-content {
+  scrollbar-color: hsl(var(--muted-foreground) / 20%) transparent;
+  scrollbar-width: thin;
+}
+
 .quality-report-dimension-tag {
   display: inline-block;
   padding: 0 8px;

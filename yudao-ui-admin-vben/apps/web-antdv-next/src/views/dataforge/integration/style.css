@@ -972,7 +972,6 @@
 }
 
 .qi-modal .ant-modal-title {
-  font-size: 14px;
   color: #454545;
 }
 
@@ -1922,10 +1921,6 @@
 .qi-task-modal .ant-modal-header {
   padding: 12px 20px;
   background: #fafafa;
-}
-
-.qi-task-modal .ant-modal-title {
-  font-size: 16px;
 }
 
 .qi-task-modal .ant-modal-footer {

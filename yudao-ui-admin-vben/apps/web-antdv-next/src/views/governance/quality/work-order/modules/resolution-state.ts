@@ -1,5 +1,15 @@
 import type { QualityWorkOrderApi } from '#/api/governance/quality/workorder';
 
+export const STATUS_LABELS: Record<string, [string, string]> = {
+  PENDING: ['待受理', 'warning'],
+  IN_PROGRESS: ['处理中', 'processing'],
+  PENDING_RECHECK: ['待复检', 'gold'],
+  RECHECKING: ['复检中', 'blue'],
+  PENDING_CONFIRMATION: ['待确认', 'purple'],
+  PROCESSED: ['已关闭', 'success'],
+  TRANSFERRED: ['历史转办', 'default'],
+};
+
 export const SUBMISSION_LABELS: Record<
   QualityWorkOrderApi.SubmissionType,
   string
@@ -23,6 +33,29 @@ export const RECHECK_LABELS: Record<string, string> = {
   WAITING_DATA: '等待数据 / 尚不可比',
   ERROR: '复检异常',
   OBSOLETE: '已失效轮次',
+};
+export const RECHECK_COLORS: Record<string, string> = {
+  QUEUED: 'warning',
+  RUNNING: 'processing',
+  PASS: 'success',
+  FAIL: 'error',
+  WAITING_DATA: 'warning',
+  ERROR: 'error',
+};
+
+export const ACTION_LABELS: Record<string, string> = {
+  ASSIGN: '指派工单',
+  CLAIM: '认领工单',
+  CONFIRM: '验收处理',
+  COORDINATE: '协调处理',
+  ETL_RECHECK_ATTACH: '绑定 ETL 复检实例',
+  EXCEPTION_EXPIRED: '例外到期',
+  EXTEND: '延长截止时间',
+  RECHECK: '启动复检',
+  REOPEN: '重新打开工单',
+  SUBMIT: '提交整改',
+  TRANSFER: '转派工单',
+  WITHDRAW: '撤回提交',
 };
 
 /** 后端待确认类型与提交必须一致；未知类型绝不默认当成质量通过。 */

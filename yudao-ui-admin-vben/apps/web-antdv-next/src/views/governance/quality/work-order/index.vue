@@ -5,7 +5,6 @@ import type { QualityWorkOrderApi } from '#/api/governance/quality/workorder';
 import { h, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
-import { formatDateTime } from '@vben/utils';
 
 import { message, Modal, Segmented, Select, Tag } from 'antdv-next';
 
@@ -16,7 +15,6 @@ import {
   deleteWorkOrder,
   getMyTodoWorkOrderList,
   getWorkOrderPage,
-  getWorkOrderRawIssues,
   transferWorkOrderCommand,
   withdrawWorkOrder,
 } from '#/api/governance/quality/workorder';
@@ -25,7 +23,8 @@ import { $t } from '#/locales';
 
 import WorkOrderExpiryFailures from './modules/expiry-failures.vue';
 import WorkOrderForm from './modules/form.vue';
-import { CLOSE_LABELS } from './modules/resolution-state';
+import WorkOrderRawIssues from './modules/raw-issues.vue';
+import { CLOSE_LABELS, STATUS_LABELS } from './modules/resolution-state';
 import WorkOrderResolution from './modules/resolution.vue';
 import WorkOrderStatistics from './modules/statistics.vue';
 import {
@@ -35,14 +34,9 @@ import {
 
 defineOptions({ name: 'GovernanceQualityWorkOrder' });
 
-const STATUS_LABELS: Record<string, [string, string]> = {
-  PENDING: ['待受理', 'warning'],
-  IN_PROGRESS: ['处理中', 'processing'],
-  PENDING_RECHECK: ['待复检', 'gold'],
-  RECHECKING: ['复检中', 'blue'],
-  PENDING_CONFIRMATION: ['待确认', 'purple'],
-  PROCESSED: ['已关闭', 'success'],
-  TRANSFERRED: ['历史转办', 'default'],
+const RESPONSIBILITY_LABELS: Record<string, [string, string]> = {
+  UNASSIGNED: ['待认责', 'warning'],
+  ASSIGNED: ['已指派', 'processing'],
 };
 
 const activeTab = ref('all');
@@ -53,6 +47,7 @@ const viewOptions = [
 ];
 const formRef = ref<InstanceType<typeof WorkOrderForm>>();
 const expiryFailuresRef = ref<InstanceType<typeof WorkOrderExpiryFailures>>();
+const rawIssuesRef = ref<InstanceType<typeof WorkOrderRawIssues>>();
 const resolutionRef = ref<InstanceType<typeof WorkOrderResolution>>();
 
 /** 系统用户（转办下拉用） */
@@ -72,12 +67,28 @@ let lastPageResult: { list: QualityWorkOrderApi.WorkOrder[]; total: number } = {
 const workOrderColumns: VxeTableGridOptions<QualityWorkOrderApi.WorkOrder>['columns'] =
   [
     { field: 'id', title: '编号', width: 70 },
-    { field: 'orderName', title: '工单名称', minWidth: 180, align: 'left' },
-    { field: 'taskName', title: '所属任务', width: 150 },
+    {
+      field: 'orderName',
+      title: '工单名称',
+      minWidth: 180,
+      align: 'left',
+      showOverflow: 'tooltip',
+    },
+    {
+      field: 'taskName',
+      title: '所属任务',
+      width: 150,
+      showOverflow: 'tooltip',
+    },
     { field: 'issueCount', title: '问题条数', width: 90 },
     { field: 'orderCode', title: '工单编号', width: 120 },
     { field: 'ownerUserName', title: '责任人', width: 100 },
-    { field: 'responsibilityStatus', title: '认责', width: 90 },
+    {
+      field: 'responsibilityStatus',
+      title: '认责',
+      width: 90,
+      slots: { default: 'responsibilityStatus' },
+    },
     { field: 'creatorUserName', title: '发起人', width: 100 },
     {
       field: 'deadline',
@@ -222,16 +233,8 @@ async function handleDelete(row: QualityWorkOrderApi.WorkOrder) {
   handleRefresh();
 }
 
-async function handleRawIssues(row: QualityWorkOrderApi.WorkOrder) {
-  const raw = await getWorkOrderRawIssues(losslessId(row.id));
-  const lines = (raw.issues ?? []).map(
-    (item) =>
-      `问题 ${losslessId(item.issueId)}：检出时间 ${formatDateTime(item.evidenceTime) || '-'}；${item.liveValueNote ?? ''}`,
-  );
-  Modal.info({
-    title: `原文明细（历史检出 ≠ 实时值）：${row.orderName}`,
-    content: lines.length > 0 ? lines.join('\n') : '暂无已授权明细',
-  });
+function handleRawIssues(row: QualityWorkOrderApi.WorkOrder) {
+  rawIssuesRef.value?.open(row);
 }
 
 const [AllGrid, allGridApi] = useVbenVxeGrid({
@@ -335,6 +338,11 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
             },
           ]"
         />
+      </template>
+      <template #responsibilityStatus="{ row }">
+        <Tag :color="RESPONSIBILITY_LABELS[row.responsibilityStatus ?? '']?.[1]">
+          {{ RESPONSIBILITY_LABELS[row.responsibilityStatus ?? '']?.[0] ?? '-' }}
+        </Tag>
       </template>
       <template #orderStatus="{ row }">
         <Tag :color="STATUS_LABELS[row.orderStatus ?? '']?.[1]">
@@ -445,6 +453,11 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
           ]"
         />
       </template>
+      <template #responsibilityStatus="{ row }">
+        <Tag :color="RESPONSIBILITY_LABELS[row.responsibilityStatus ?? '']?.[1]">
+          {{ RESPONSIBILITY_LABELS[row.responsibilityStatus ?? '']?.[0] ?? '-' }}
+        </Tag>
+      </template>
       <template #orderStatus="{ row }">
         <Tag :color="STATUS_LABELS[row.orderStatus ?? '']?.[1]">
           {{ STATUS_LABELS[row.orderStatus ?? '']?.[0] ?? '-' }}
@@ -544,6 +557,7 @@ const [TodoGrid, todoGridApi] = useVbenVxeGrid({
     <WorkOrderExpiryFailures ref="expiryFailuresRef" />
 
     <WorkOrderForm ref="formRef" @saved="handleRefresh" />
+    <WorkOrderRawIssues ref="rawIssuesRef" />
     <WorkOrderResolution ref="resolutionRef" @saved="handleRefresh" />
   </Page>
 </template>

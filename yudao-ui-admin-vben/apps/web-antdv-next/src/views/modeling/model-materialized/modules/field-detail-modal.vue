@@ -96,7 +96,6 @@ defineExpose({ open: show });
 }
 
 .qd-materialized-field-modal .ant-modal-title {
-  font-size: 16px;
   line-height: 22px;
   color: #333;
 }

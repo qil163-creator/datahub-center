@@ -376,11 +376,6 @@ defineExpose({ open: openCreate, openBatch, openRepublish });
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.materialized-publish-modal .ant-modal-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
 .materialized-publish-modal .ant-modal-close {
   top: 7px;
   right: 10px;

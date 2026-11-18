@@ -12,6 +12,7 @@ import {
   confirmWorkOrder,
   extendWorkOrderDeadline,
   getWorkOrder,
+  getWorkOrderRawIssues,
   recheckWorkOrder,
   reopenWorkOrder,
   submitWorkOrderResolution,
@@ -46,6 +47,7 @@ vi.mock('@vben/access', () => ({
       !codes.some((code) => harness.access.denied.includes(code)),
   }),
 }));
+vi.mock('@vben/icons', () => ({ IconifyIcon: 'span' }));
 vi.mock('@vben/utils', () => ({
   formatDateTime: (value: unknown) => String(value ?? '-'),
 }));
@@ -119,7 +121,8 @@ vi.mock('antdv-next', () => {
     }),
     Alert: defineComponent({
       props: ['title'],
-      setup: (props) => () => h('p', props.title),
+      setup: (props, { slots }) => () =>
+        h('div', [props.title, slots.description?.(), slots.action?.()]),
     }),
     Spin: 'span',
     Select: defineComponent({
@@ -457,7 +460,7 @@ describe('真实工单处理组件', () => {
   });
   it('缺版本的旧服务响应明确报错，不用版本零继续提交', async () => {
     await open(fixture({ lockVersion: undefined }));
-    expect(host.textContent).not.toContain('详情加载失败');
+    expect(host.textContent).toContain('未取得最新工单，请刷新核对后再操作');
     expect(host.querySelector('[data-action="submit"]')).toBeNull();
   });
   it('处理权限撤销会关闭弹窗并丢弃未完成结果', async () => {
@@ -728,5 +731,36 @@ describe('真实工单处理组件', () => {
       expect.objectContaining({ expectedVersion: 7 }),
     );
     expect(harness.refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it('原文明细关闭再打开时只展示当前授权记录，并保留原始 Long 编号', async () => {
+    const old = deferred<Awaited<ReturnType<typeof getWorkOrderRawIssues>>>();
+    vi.mocked(getWorkOrderRawIssues)
+      .mockReturnValueOnce(old.promise)
+      .mockResolvedValueOnce({
+        issues: [
+          { issueId: ID, liveValueNote: '实时回源须单独授权查询' },
+          { issueId: '8', evidenceTime: '2026-11-16 22:21:28' },
+        ],
+      });
+    await mount(Page);
+    const openRaw = [...host.querySelectorAll('button')].find(
+      (button) => button.textContent === '原文明细',
+    )!;
+    openRaw.click();
+    await flush();
+    await click('close');
+    openRaw.click();
+    await flush();
+    old.resolve({ issues: [{ issueId: '77', liveValueNote: '旧请求提示' }] });
+    await flush();
+
+    expect(getWorkOrderRawIssues).toHaveBeenNthCalledWith(2, ID);
+    const details = node('[aria-label="已授权明细"]');
+    expect(details.querySelectorAll('li')).toHaveLength(2);
+    expect(details.textContent).toContain(ID);
+    expect(details.textContent).toContain('2026-11-16 22:21:28');
+    expect(host.textContent).toContain('实时回源须单独授权查询');
+    expect(host.textContent).not.toContain('旧请求提示');
   });
 });
