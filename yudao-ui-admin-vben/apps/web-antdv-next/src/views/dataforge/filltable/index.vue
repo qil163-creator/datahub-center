@@ -180,19 +180,19 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['dataforge:fill-table:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: $t('common.edit'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
               auth: ['dataforge:fill-table:update'],
               ifShow: row.status !== 1,
               onClick: handleEdit.bind(null, row),
-            },
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['dataforge:fill-table:query'],
-              onClick: handleDetail.bind(null, row),
             },
             {
               label: '下载模板',

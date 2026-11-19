@@ -299,7 +299,7 @@ export function useGridColumns(): VxeTableGridOptions<GovernanceStandardTermApi.
     },
     {
       title: '操作',
-      width: 160,
+      width: 220,
       fixed: 'right',
       showOverflow: false,
       slots: { default: 'actions' },

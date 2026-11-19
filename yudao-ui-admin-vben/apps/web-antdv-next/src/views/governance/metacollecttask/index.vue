@@ -285,19 +285,19 @@ async function remove(rows = selected.value) {
           <TableAction
             :actions="[
               {
+                label: '详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                auth: ['governance:meta-collect-task:query'],
+                onClick: () => detail(row),
+              },
+              {
                 label: '修改',
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
                 auth: ['governance:meta-collect-task:update'],
                 disabled: row.enabled === 1,
                 onClick: () => edit(row),
-              },
-              {
-                label: '详情',
-                type: 'link',
-                icon: ACTION_ICON.VIEW,
-                auth: ['governance:meta-collect-task:query'],
-                onClick: () => detail(row),
               },
             ]"
             :drop-down-actions="[

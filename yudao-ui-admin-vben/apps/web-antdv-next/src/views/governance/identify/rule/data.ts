@@ -118,7 +118,7 @@ export function useGridColumns(): VxeTableGridOptions<SafetyIdentifyApi.Identify
     },
     {
       title: '操作',
-      width: 180,
+      width: 220,
       fixed: 'right',
       showOverflow: false,
       slots: { default: 'actions' },

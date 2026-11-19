@@ -227,6 +227,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['modeling:biz-category:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: $t('common.edit'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -239,13 +246,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               icon: ACTION_ICON.ADD,
               auth: ['modeling:biz-category:create'],
               onClick: handleAppend.bind(null, row),
-            },
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['modeling:biz-category:query'],
-              onClick: handleDetail.bind(null, row),
             },
             {
               label: $t('common.delete'),

@@ -511,6 +511,13 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           <TableAction
             :actions="[
               {
+                label: '详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                auth: ['governance:standard-code-set:query'],
+                onClick: () => openDetail(row),
+              },
+              {
                 label: '修改',
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
@@ -524,13 +531,6 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 icon: ACTION_ICON.DELETE,
                 auth: ['governance:standard-code-set:delete'],
                 onClick: () => remove(row),
-              },
-              {
-                label: '详情',
-                type: 'link',
-                icon: ACTION_ICON.VIEW,
-                auth: ['governance:standard-code-set:query'],
-                onClick: () => openDetail(row),
               },
             ]"
           />

@@ -429,6 +429,13 @@ function pageChange(page: number, size: number) {
         <TableAction
           :actions="[
             {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:master-data:query'],
+              onClick: () => editRow(dataRow(row), true),
+            },
+            {
               label: '修改',
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -444,13 +451,6 @@ function pageChange(page: number, size: number) {
               auth: ['governance:master-data:delete'],
               ifShow: canWrite,
               onClick: () => remove(dataRow(row)),
-            },
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['governance:master-data:query'],
-              onClick: () => editRow(dataRow(row), true),
             },
           ]"
         />

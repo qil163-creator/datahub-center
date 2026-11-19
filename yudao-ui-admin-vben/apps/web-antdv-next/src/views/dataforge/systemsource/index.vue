@@ -296,6 +296,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
             <TableAction
               :actions="[
                 {
+                  label: $t('common.detail'),
+                  type: 'link',
+                  icon: ACTION_ICON.VIEW,
+                  auth: ['dataforge:system-source:query'],
+                  onClick: handleDetail.bind(null, row),
+                },
+                {
                   label: $t('common.edit'),
                   type: 'link',
                   icon: ACTION_ICON.EDIT,
@@ -307,18 +314,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
                   type: 'link',
                   danger: true,
                   icon: ACTION_ICON.DELETE,
+                  disabled: row.status === CommonStatusEnum.ENABLE,
                   auth: ['dataforge:system-source:delete'],
                   popConfirm: {
                     title: $t('ui.actionMessage.deleteConfirm', [row.id]),
                     confirm: handleDelete.bind(null, row),
                   },
-                },
-                {
-                  label: $t('common.detail'),
-                  type: 'link',
-                  icon: ACTION_ICON.VIEW,
-                  auth: ['dataforge:system-source:query'],
-                  onClick: handleDetail.bind(null, row),
                 },
               ]"
             />

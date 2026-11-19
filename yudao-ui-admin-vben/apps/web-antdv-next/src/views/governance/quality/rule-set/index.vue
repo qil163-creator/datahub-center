@@ -171,13 +171,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
-              label: $t('common.edit'),
-              type: 'link',
-              icon: ACTION_ICON.EDIT,
-              auth: ['governance:quality-rule-set:update'],
-              onClick: () => formRef?.open(row.id),
-            },
-            {
               label: '规则管理',
               type: 'link',
               icon: 'lucide:list',
@@ -185,10 +178,18 @@ const [Grid, gridApi] = useVbenVxeGrid({
               onClick: () => itemDrawerRef?.open(row),
             },
             {
+              label: $t('common.edit'),
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              auth: ['governance:quality-rule-set:update'],
+              onClick: () => formRef?.open(row.id),
+            },
+            {
               label: $t('common.delete'),
               type: 'link',
               danger: true,
               icon: ACTION_ICON.DELETE,
+              disabled: row.status === 0,
               auth: ['governance:quality-rule-set:delete'],
               popConfirm: {
                 title: `确认删除规则集「${row.setName}」吗？`,

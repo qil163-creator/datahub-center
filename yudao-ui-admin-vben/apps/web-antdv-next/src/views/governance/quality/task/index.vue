@@ -361,18 +361,18 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 <TableAction
                   :actions="[
                     {
-                      label: '修改',
-                      icon: ACTION_ICON.EDIT,
-                      type: 'link',
-                      auth: ['governance:quality-task:update'],
-                      onClick: () => enter('edit', row.id),
-                    },
-                    {
                       label: '详情',
                       icon: ACTION_ICON.VIEW,
                       type: 'link',
                       auth: ['governance:quality-task:query'],
                       onClick: () => enter('detail', row.id),
+                    },
+                    {
+                      label: '修改',
+                      icon: ACTION_ICON.EDIT,
+                      type: 'link',
+                      auth: ['governance:quality-task:update'],
+                      onClick: () => enter('edit', row.id),
                     },
                   ]"
                   :drop-down-actions="[

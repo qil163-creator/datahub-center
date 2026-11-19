@@ -166,18 +166,18 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
-              label: $t('common.edit'),
-              type: 'link',
-              icon: ACTION_ICON.EDIT,
-              auth: ['governance:level:update'],
-              onClick: handleEdit.bind(null, row),
-            },
-            {
               label: $t('common.detail'),
               type: 'link',
               icon: ACTION_ICON.VIEW,
               auth: ['governance:level:query'],
               onClick: handleDetail.bind(null, row),
+            },
+            {
+              label: $t('common.edit'),
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              auth: ['governance:level:update'],
+              onClick: handleEdit.bind(null, row),
             },
             {
               label: $t('common.delete'),

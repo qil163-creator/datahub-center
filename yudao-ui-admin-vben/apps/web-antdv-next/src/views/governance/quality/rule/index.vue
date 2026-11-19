@@ -193,7 +193,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
       },
       {
         title: '操作',
-        width: 200,
+        width: 260,
         fixed: 'right',
         showOverflow: false,
         slots: { default: 'actions' },
@@ -283,20 +283,18 @@ onActivated(consumePrefill);
         <TableAction
           :actions="[
             {
-              label: $t('common.edit'),
-              type: 'link',
-              icon: ACTION_ICON.EDIT,
-              auth: ['governance:quality-rule:update'],
-              onClick: () => ruleFormRef?.open(row.id),
-            },
-          ]"
-          :drop-down-actions="[
-            {
               label: 'SQL预览',
               type: 'link',
               icon: 'lucide:code',
               disabled: !row.strategyKey,
               onClick: () => previewModalRef?.open(row),
+            },
+            {
+              label: $t('common.edit'),
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              auth: ['governance:quality-rule:update'],
+              onClick: () => ruleFormRef?.open(row.id),
             },
             {
               label: $t('common.delete'),

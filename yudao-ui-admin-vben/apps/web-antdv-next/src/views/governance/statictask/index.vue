@@ -252,6 +252,13 @@ onMounted(async () => {
         <TableAction
           :actions="[
             {
+              label: $t('common.detail'),
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:safety-static-task:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: $t('common.edit'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -260,13 +267,6 @@ onMounted(async () => {
             },
           ]"
           :drop-down-actions="[
-            {
-              label: $t('common.detail'),
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['governance:safety-static-task:query'],
-              onClick: handleDetail.bind(null, row),
-            },
             {
               label: '执行一次',
               type: 'link',

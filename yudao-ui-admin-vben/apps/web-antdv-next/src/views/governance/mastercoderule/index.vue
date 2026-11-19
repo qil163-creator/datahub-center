@@ -240,18 +240,18 @@ onMounted(refresh);
           <TableAction
             :actions="[
               {
-                label: '编辑',
-                type: 'link',
-                icon: ACTION_ICON.EDIT,
-                auth: ['governance:master-code-rule:update'],
-                onClick: () => edit(row),
-              },
-              {
                 label: '详情',
                 type: 'link',
                 icon: ACTION_ICON.VIEW,
                 auth: ['governance:master-code-rule:query'],
                 onClick: () => detail(row),
+              },
+              {
+                label: '编辑',
+                type: 'link',
+                icon: ACTION_ICON.EDIT,
+                auth: ['governance:master-code-rule:update'],
+                onClick: () => edit(row),
               },
               {
                 label: row.status === 0 ? '停用' : '启用',

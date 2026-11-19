@@ -322,6 +322,7 @@ onUnmounted(() => { scopeRevision++; });
               type: 'link',
               danger: true,
               icon: ACTION_ICON.DELETE,
+              disabled: row.status === CommonStatusEnum.ENABLE,
               auth: ['dataforge:database-type:delete'],
               popConfirm: {
                 title: $t('ui.actionMessage.deleteConfirm', [row.id]),

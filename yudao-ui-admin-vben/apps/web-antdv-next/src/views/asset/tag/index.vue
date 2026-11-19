@@ -619,9 +619,9 @@ function syncFilterValues() {
               <template #actions="{ row }">
                 <TableAction
                   :actions="[
+                    { label: '详情', icon: ACTION_ICON.VIEW, onClick: () => openDetail(row) },
                     { label: '修改', icon: ACTION_ICON.EDIT, ifShow: can('update'), disabled: row.status === 0, onClick: () => openEdit(row) },
                     { label: '删除', icon: ACTION_ICON.DELETE, danger: true, ifShow: can('delete'), disabled: row.status === 0, onClick: () => remove(row) },
-                    { label: '详情', icon: ACTION_ICON.VIEW, onClick: () => openDetail(row) },
                   ]"
                 />
               </template>

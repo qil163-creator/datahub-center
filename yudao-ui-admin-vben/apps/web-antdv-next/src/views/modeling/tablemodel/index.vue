@@ -418,6 +418,13 @@ onBeforeUnmount(() => {
           <TableAction
             :actions="[
               {
+                label: '详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                auth: ['modeling:model:query'],
+                onClick: () => openDetail(row.id),
+              },
+              {
                 label: '修改',
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
@@ -434,13 +441,6 @@ onBeforeUnmount(() => {
                   title: `确认删除模型 ${row.name}？`,
                   confirm: () => remove(row as TableModelApi.Model),
                 },
-              },
-              {
-                label: '详情',
-                type: 'link',
-                icon: ACTION_ICON.VIEW,
-                auth: ['modeling:model:query'],
-                onClick: () => openDetail(row.id),
               },
             ]"
           />

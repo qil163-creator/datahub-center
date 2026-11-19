@@ -128,6 +128,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: $t('common.detail'),
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:safety-identify:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: $t('common.edit'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -136,13 +143,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
             },
           ]"
           :drop-down-actions="[
-            {
-              label: $t('common.detail'),
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['governance:safety-identify:query'],
-              onClick: handleDetail.bind(null, row),
-            },
             {
               label: $t('common.delete'),
               type: 'link',

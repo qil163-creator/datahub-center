@@ -98,6 +98,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
         <TableAction
           :actions="[
             {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              auth: ['governance:meta-tag:query'],
+              onClick: handleDetail.bind(null, row),
+            },
+            {
               label: '编辑',
               type: 'link',
               icon: ACTION_ICON.EDIT,
@@ -106,13 +113,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
             },
           ]"
           :drop-down-actions="[
-            {
-              label: '详情',
-              type: 'link',
-              icon: ACTION_ICON.VIEW,
-              auth: ['governance:meta-tag:query'],
-              onClick: handleDetail.bind(null, row),
-            },
             {
               label: '删除',
               type: 'link',

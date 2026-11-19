@@ -326,19 +326,19 @@ const [Grid, gridApi] = useVbenVxeGrid({
           <TableAction
             :actions="[
               {
+                label: '详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                auth: ['dataforge:fill-plan:query'],
+                onClick: handleDetail.bind(null, row),
+              },
+              {
                 label: $t('common.edit'),
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
                 ifShow: row.status !== 1,
                 auth: ['dataforge:fill-plan:update'],
                 onClick: handleEdit.bind(null, row),
-              },
-              {
-                label: '详情',
-                type: 'link',
-                icon: ACTION_ICON.VIEW,
-                auth: ['dataforge:fill-plan:query'],
-                onClick: handleDetail.bind(null, row),
               },
             ]"
             :drop-down-actions="[

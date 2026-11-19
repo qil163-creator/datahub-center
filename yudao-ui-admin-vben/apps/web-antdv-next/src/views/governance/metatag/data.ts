@@ -79,7 +79,7 @@ export function useGridColumns(): VxeTableGridOptions<GovernanceMetaTagApi.Tag>[
     },
     {
       title: '操作',
-      width: 160,
+      width: 220,
       fixed: 'right',
       showOverflow: false,
       className: 'metatag-action-column',

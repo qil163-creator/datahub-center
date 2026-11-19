@@ -215,6 +215,13 @@ onMounted(load);
           <TableAction
             :actions="[
               {
+                label: '详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                auth: ['governance:master-domain:query'],
+                onClick: () => detail(row),
+              },
+              {
                 label: '修改',
                 type: 'link',
                 icon: ACTION_ICON.EDIT,
@@ -228,13 +235,6 @@ onMounted(load);
                 icon: ACTION_ICON.DELETE,
                 auth: ['governance:master-domain:delete'],
                 onClick: () => remove(row),
-              },
-              {
-                label: '详情',
-                type: 'link',
-                icon: ACTION_ICON.VIEW,
-                auth: ['governance:master-domain:query'],
-                onClick: () => detail(row),
               },
             ]"
           />
