@@ -31,6 +31,11 @@ const harness = vi.hoisted(() => ({
     | undefined,
   columns: [] as { title?: string }[],
 }));
+vi.mock('#/adapter/business-vxe-table', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#/adapter/business-vxe-table')>()),
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: harness.push }),
   onBeforeRouteLeave: vi.fn(),

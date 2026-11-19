@@ -398,7 +398,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                       icon: ACTION_ICON.DELETE,
                       danger: true,
                       auth: ['governance:quality-task:delete'],
+                      disabled: row.taskStatus === 0,
                       popConfirm: {
+                        disabled: row.taskStatus === 0,
                         title: `确认删除「${row.taskName}」？`,
                         confirm: () => remove(row),
                       },

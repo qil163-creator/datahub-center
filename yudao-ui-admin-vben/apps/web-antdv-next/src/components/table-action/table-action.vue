@@ -139,6 +139,14 @@ function getButtonProps(action: ActionItem) {
   };
 }
 
+/** 「更多」下拉项颜色：与平铺按钮一致，危险项红色、链接项主题色、禁用项置灰 */
+function getMoreItemClass(action: ActionItem) {
+  if (action.disabled === true) return 'cursor-not-allowed text-gray-300';
+  if (action.danger) return 'text-destructive';
+  if ((action.type || 'link') === 'link') return 'text-primary';
+  return '';
+}
+
 /** 获取 Tooltip 属性 */
 function getTooltipProps(tooltip: any | string) {
   if (!tooltip) return {};
@@ -291,11 +299,7 @@ watch(
                 <div
                   class="table-action-more-item"
                   @click.stop
-                  :class="
-                    action.disabled === true
-                      ? 'cursor-not-allowed text-gray-300'
-                      : ''
-                  "
+                  :class="getMoreItemClass(action)"
                 >
                   <IconifyIcon
                     v-if="getActionIcon(action)"
@@ -308,11 +312,7 @@ watch(
             <template v-else>
               <div
                 class="table-action-more-item"
-                :class="
-                  action.disabled === true
-                    ? 'cursor-not-allowed text-gray-300'
-                    : ''
-                "
+                :class="getMoreItemClass(action)"
               >
                 <IconifyIcon
                   v-if="getActionIcon(action)"

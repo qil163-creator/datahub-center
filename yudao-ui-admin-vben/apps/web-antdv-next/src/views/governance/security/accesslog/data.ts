@@ -160,7 +160,7 @@ export function useGridColumns(): VxeTableGridOptions<SafetySecurityApi.AccessLo
     },
     {
       title: '操作',
-      width: 90,
+      width: 120,
       fixed: 'right',
       showOverflow: false,
       slots: { default: 'actions' },

@@ -12,15 +12,16 @@ import { formatDate } from '@vben/utils';
 import {
   Alert,
   Button,
-  Dropdown,
-  Menu,
-  MenuItem,
   message,
   Switch,
   Tag,
 } from 'antdv-next';
 
-import { ACTION_ICON, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import {
   deleteBatchFile,
   executeBatchFile,
@@ -510,71 +511,55 @@ watch(
         />
       </template>
       <template #actions="{ row }">
-        <div
-          class="batch-file-table-actions flex items-center justify-center gap-1 whitespace-nowrap"
-        >
-          <Button
-            v-if="can('update')"
-            type="link"
-            :disabled="
-              busy ||
-              row.online ||
-              activeRun(row.lastStatus, row.lastRunResolvedTime)
-            "
-            @click="edit(row)"
-          >
-            <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
-          </Button>
-          <Button type="link" @click="detail(row)">
-            <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
-          </Button>
-          <Dropdown :trigger="['click']">
-            <Button type="link"><IconifyIcon :icon="ACTION_ICON.MORE" />更多</Button>
-            <template #popupRender>
-              <Menu class="batch-file-menu">
-                <MenuItem
-                  v-if="can('execute')"
-                  :disabled="
-                    busy ||
-                    !row.online ||
-                    activeRun(row.lastStatus, row.lastRunResolvedTime)
-                  "
-                  @click="confirmExecute(row)"
-                >
-                  <ReferenceIcon name="play" />执行一次
-                </MenuItem>
-                <MenuItem @click="detail(row, 'runs')">
-                  <ReferenceIcon name="play" />运行实例
-                </MenuItem>
-                <MenuItem
-                  v-if="can('delete')"
-                  danger
-                  :disabled="
-                    busy ||
-                    row.online ||
-                    activeRun(row.lastStatus, row.lastRunResolvedTime)
-                  "
-                  @click="remove(row)"
-                >
-                  <IconifyIcon
-                    class="mr-1 inline-flex size-4 align-middle"
-                    :icon="ACTION_ICON.DELETE"
-                  />删除
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
-        </div>
+        <TableAction
+          :actions="[
+            {
+              label: '配置',
+              type: 'link',
+              icon: ACTION_ICON.CONFIG,
+              ifShow: can('update'),
+              disabled: busy || row.online || activeRun(row.lastStatus, row.lastRunResolvedTime),
+              onClick: () => edit(row),
+            },
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              onClick: () => detail(row),
+            },
+          ]"
+          :drop-down-actions="[
+            {
+              label: '执行一次',
+              type: 'link',
+              icon: 'lucide:play',
+              ifShow: can('execute'),
+              disabled: busy || !row.online || activeRun(row.lastStatus, row.lastRunResolvedTime),
+              onClick: () => confirmExecute(row),
+            },
+            {
+              label: '运行实例',
+              type: 'link',
+              icon: 'lucide:history',
+              onClick: () => detail(row, 'runs'),
+            },
+            {
+              label: '删除',
+              type: 'link',
+              danger: true,
+              icon: ACTION_ICON.DELETE,
+              ifShow: can('delete'),
+              disabled: busy || row.online || activeRun(row.lastStatus, row.lastRunResolvedTime),
+              onClick: () => remove(row),
+            },
+          ]"
+        />
       </template>
       <template #empty><EmptyState v-if="!loading" /></template>
     </Grid>
   </Page>
 </template>
 <style scoped>
-.batch-file-list :deep(.batch-file-table-actions .ant-btn-link) {
-  padding: 4px;
-}
-
 .batch-file-list :deep(.bf-empty) {
   display: flex;
   flex-direction: column;

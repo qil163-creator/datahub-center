@@ -36,7 +36,12 @@ import {
 } from 'antdv-next';
 import dayjs from 'dayjs';
 
-import { ACTION_ICON, NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  NativeVxeButton,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import { getDatabaseTypeSimpleList } from '#/api/dataforge/databasetype';
 import {
   deleteDevDir,
@@ -1000,123 +1005,21 @@ onBeforeUnmount(() => {
                 </Tooltip>
               </template>
               <template #actions="{ row }">
-                <div class="task-actions">
-                  <Button
-                    v-if="canSave"
-                    type="link"
-                    size="small"
-                    @click="workspaceTaskId = row.id"
-                  >
-                    <template #icon>
-                      <IconifyIcon
-                        class="reference-icon"
-                        :icon="ACTION_ICON.CONFIG"
-                      />
-                    </template>
-                    配置任务
-                  </Button>
-                  <Button type="link" size="small" @click="showDetail(row.id)">
-                    <template #icon>
-                      <IconifyIcon
-                        class="reference-icon"
-                        :icon="ACTION_ICON.VIEW"
-                      />
-                    </template>
-                    详情
-                  </Button>
-                  <Dropdown :trigger="['click']">
-                    <Button type="link" size="small">
-                      <template #icon>
-                        <IconifyIcon :icon="ACTION_ICON.MORE" />
-                      </template>
-                      更多
-                    </Button>
-                    <template #popupRender>
-                      <Menu>
-                        <Menu.Item
-                          v-if="canSave"
-                          @click="taskInfo?.open(row.id)"
-                        >
-                          <template #icon>
-                            <IconifyIcon :icon="ACTION_ICON.EDIT" />
-                          </template>
-                          编辑任务
-                        </Menu.Item>
-                        <Menu.Item
-                          v-if="
-                            !isRealtime &&
-                            canSave &&
-                            canRun &&
-                            hasNativeAccess(row)
-                          "
-                          @click="scheduleForm?.open(row.id!)"
-                        >
-                          <template #icon>
-                            <IconifyIcon icon="lucide:clock-3" />
-                          </template>
-                          调度周期
-                        </Menu.Item>
-                        <Menu.Item @click="instanceModal?.open(row.id!)">
-                          <template #icon>
-                            <IconifyIcon icon="lucide:list" />
-                          </template>
-                          运行实例
-                        </Menu.Item>
-                        <Menu.Item
-                          v-if="canRun && hasNativeAccess(row)"
-                          :disabled="
-                            !row.currentVersionId ||
-                            row.status !== 1 ||
-                            isNativeProgramNotReady(row) ||
-                            commands.busy.value
-                          "
-                          @click="runOnce(row)"
-                        >
-                          <template #icon>
-                            <IconifyIcon icon="lucide:play" />
-                          </template>
-                          执行一次
-                        </Menu.Item>
-                        <Menu.Item
-                          v-if="!isRealtime && canRun && hasNativeAccess(row)"
-                          :disabled="
-                            !row.currentVersionId ||
-                            row.status !== 1 ||
-                            isNativeProgramNotReady(row)
-                          "
-                          @click="backfillModal?.open(row)"
-                        >
-                          <template #icon>
-                            <IconifyIcon icon="lucide:history" />
-                          </template>
-                          补数据
-                        </Menu.Item>
-                        <Menu.Item
-                          :disabled="!row.latestRecord || !hasNativeAccess(row)"
-                          @click="
-                            instanceModal?.open(row.id!, row.latestRecord?.id)
-                          "
-                        >
-                          <template #icon>
-                            <IconifyIcon icon="lucide:activity" />
-                          </template>
-                          实时日志
-                        </Menu.Item>
-                        <Menu.Item
-                          v-if="canDelete"
-                          danger
-                          :disabled="row.status === 1"
-                          @click="confirmDeleteTask(row)"
-                        >
-                          <template #icon>
-                            <IconifyIcon :icon="ACTION_ICON.DELETE" />
-                          </template>
-                          删除
-                        </Menu.Item>
-                      </Menu>
-                    </template>
-                  </Dropdown>
-                </div>
+                <TableAction
+                  :actions="[
+                    { label: '配置任务', type: 'link', icon: ACTION_ICON.CONFIG, ifShow: canSave, onClick: () => (workspaceTaskId = row.id) },
+                    { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, onClick: () => showDetail(row.id) },
+                  ]"
+                  :drop-down-actions="[
+                    { label: '编辑任务', type: 'link', icon: ACTION_ICON.EDIT, ifShow: canSave, onClick: () => taskInfo?.open(row.id) },
+                    { label: '调度周期', type: 'link', icon: 'lucide:clock-3', ifShow: !isRealtime && canSave && canRun && hasNativeAccess(row), onClick: () => scheduleForm?.open(row.id!) },
+                    { label: '运行实例', type: 'link', icon: 'lucide:list', onClick: () => instanceModal?.open(row.id!) },
+                    { label: '执行一次', type: 'link', icon: 'lucide:play', ifShow: canRun && hasNativeAccess(row), disabled: !row.currentVersionId || row.status !== 1 || isNativeProgramNotReady(row) || commands.busy.value, onClick: () => runOnce(row) },
+                    { label: '补数据', type: 'link', icon: 'lucide:history', ifShow: !isRealtime && canRun && hasNativeAccess(row), disabled: !row.currentVersionId || row.status !== 1 || isNativeProgramNotReady(row), onClick: () => backfillModal?.open(row) },
+                    { label: '实时日志', type: 'link', icon: 'lucide:activity', disabled: !row.latestRecord || !hasNativeAccess(row), onClick: () => instanceModal?.open(row.id!, row.latestRecord?.id) },
+                    { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: canDelete, disabled: row.status === 1, onClick: () => confirmDeleteTask(row) },
+                  ]"
+                />
               </template>
             </Grid>
           </div>
@@ -1373,13 +1276,6 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 
-.reference-icon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-}
-
 .development-table {
   flex: 1;
   min-height: 280px;
@@ -1548,23 +1444,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.task-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.task-actions :deep(.ant-btn) {
-  gap: 5px;
-  padding-inline: 5px;
-  font-size: 14px;
-}
-
-.task-actions :deep(svg) {
-  width: 14px;
-  height: 14px;
 }
 
 @media (max-width: 1450px) {

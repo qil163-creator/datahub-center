@@ -368,6 +368,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
               type: 'link',
               danger: true,
               icon: ACTION_ICON.DELETE,
+              disabled: row.status === CommonStatusEnum.ENABLE,
               auth: ['dataforge:database:delete'],
               onClick: handleDelete.bind(null, row),
             },

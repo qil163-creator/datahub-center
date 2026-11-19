@@ -405,6 +405,29 @@ async function lifecycle(row: Element, action: 'deprecate' | 'publish') {
 function rowActions(row: Element): ActionItem[] {
   return [
     {
+      label: '详情',
+      type: 'link',
+      icon: ACTION_ICON.VIEW,
+      auth: ['governance:standard-element:query'],
+      onClick: () => detail(row),
+    },
+    {
+      label: '发布',
+      type: 'link',
+      icon: ACTION_ICON.PUBLISH,
+      ifShow: row.lifecycleStatus === 'DRAFT',
+      auth: ['governance:standard-element:update'],
+      onClick: () => lifecycle(row, 'publish'),
+    },
+    {
+      label: '废止',
+      type: 'link',
+      icon: 'lucide:circle-off',
+      ifShow: row.lifecycleStatus === 'PUBLISHED',
+      auth: ['governance:standard-element:update'],
+      onClick: () => lifecycle(row, 'deprecate'),
+    },
+    {
       label: '修改',
       type: 'link',
       icon: ACTION_ICON.EDIT,
@@ -420,31 +443,6 @@ function rowActions(row: Element): ActionItem[] {
       auth: ['governance:standard-element:delete'],
       disabled: row.status === 0 || row.lifecycleStatus === 'PUBLISHED',
       onClick: () => remove(row),
-    },
-    {
-      label: '详情',
-      type: 'link',
-      icon: ACTION_ICON.VIEW,
-      auth: ['governance:standard-element:query'],
-      onClick: () => detail(row),
-    },
-  ];
-}
-function lifecycleActions(row: Element): ActionItem[] {
-  return [
-    {
-      label: '发布',
-      icon: ACTION_ICON.PUBLISH,
-      ifShow: row.lifecycleStatus === 'DRAFT',
-      auth: ['governance:standard-element:update'],
-      onClick: () => lifecycle(row, 'publish'),
-    },
-    {
-      label: '废止',
-      icon: 'lucide:circle-off',
-      ifShow: row.lifecycleStatus === 'PUBLISHED',
-      auth: ['governance:standard-element:update'],
-      onClick: () => lifecycle(row, 'deprecate'),
     },
   ];
 }
@@ -534,7 +532,6 @@ onMounted(() => {
         <template #actions="{ row }">
           <TableAction
             :actions="rowActions(row)"
-            :drop-down-actions="lifecycleActions(row)"
           />
         </template>
       </Grid>

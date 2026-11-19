@@ -36,7 +36,11 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { NativeVxeButton, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  NativeVxeButton,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import {
   cloneIntegration,
   deleteIntegration,
@@ -755,22 +759,19 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                     </template>
                     <template #owner="{ row: task }"><p>{{ task.ownerName || '-' }}</p><p class="qi-phone">{{ task.contactNumber || '-' }}</p></template>
                     <template #actions="{ row: task }">
-                      <div class="qi-actions">
-                        <Button v-if="can('update')" type="link" :disabled="isActive(task) || busy" @click="configure(task)"><IconifyIcon :icon="ACTION_ICON.CONFIG" />配置</Button>
-                        <Button type="link" :disabled="busy" @click="openTask(task, 'detail')"><IconifyIcon :icon="ACTION_ICON.VIEW" />详情</Button>
-                        <Dropdown :trigger="['click']">
-                          <Button type="link"><IconifyIcon :icon="ACTION_ICON.MORE" />更多</Button>
-                          <template #popupRender>
-                          <Menu class="qi-more-menu">
-                            <MenuItem v-if="mode === 'OFFLINE'" key="schedule" @click="openTask(task, 'schedule')"><ReferenceIcon name="settings" />调度周期</MenuItem>
-                            <MenuItem key="instances" @click="openTask(task, 'instances')"><ReferenceIcon name="clock" />运行实例</MenuItem>
-                            <MenuItem v-if="can('run')" key="run" :disabled="!task.executable" @click="confirmAction(isActive(task) ? 'stop' : 'run', task)"><ReferenceIcon :name="isActive(task) ? 'stop' : 'play'" />{{ isActive(task) ? '停止任务' : mode === 'OFFLINE' ? '执行一次' : '执行任务' }}</MenuItem>
-                            <MenuItem v-if="can('delete')" key="delete" danger :disabled="task.status === 1 || isActive(task)" @click="confirmAction('delete', task)"><IconifyIcon :icon="ACTION_ICON.DELETE" />删除任务</MenuItem>
-                            <MenuItem v-if="can('create')" key="clone" :disabled="task.status === 1 || isActive(task)" @click="confirmAction('clone', task)"><IconifyIcon :icon="ACTION_ICON.COPY" />克隆任务</MenuItem>
-                          </Menu>
-                          </template>
-                        </Dropdown>
-                      </div>
+                      <TableAction
+                        :actions="[
+                          { label: '配置', type: 'link', icon: ACTION_ICON.CONFIG, ifShow: can('update'), disabled: isActive(task) || busy, onClick: () => configure(task) },
+                          { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, disabled: busy, onClick: () => openTask(task, 'detail') },
+                        ]"
+                        :drop-down-actions="[
+                          { label: '调度周期', type: 'link', icon: 'lucide:settings', ifShow: mode === 'OFFLINE', onClick: () => openTask(task, 'schedule') },
+                          { label: '运行实例', type: 'link', icon: 'lucide:clock', onClick: () => openTask(task, 'instances') },
+                          { label: isActive(task) ? '停止任务' : mode === 'OFFLINE' ? '执行一次' : '执行任务', type: 'link', icon: isActive(task) ? 'lucide:square' : 'lucide:play', ifShow: can('run'), disabled: !task.executable, onClick: () => confirmAction(isActive(task) ? 'stop' : 'run', task) },
+                          { label: '删除任务', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: task.status === 1 || isActive(task), onClick: () => confirmAction('delete', task) },
+                          { label: '克隆任务', type: 'link', icon: ACTION_ICON.COPY, ifShow: can('create'), disabled: task.status === 1 || isActive(task), onClick: () => confirmAction('clone', task) },
+                        ]"
+                      />
                     </template>
                     <template #pager>
                       <ListPagination :current="page" :page-size="pageSize" :total="total" :page-size-options="[10, 20, 50, 100]" @change="changePage" />

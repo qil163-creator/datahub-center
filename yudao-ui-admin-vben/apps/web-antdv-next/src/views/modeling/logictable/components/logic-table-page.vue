@@ -4,6 +4,7 @@ import type { LogicColumn, LogicTableKind } from '../config';
 
 import type { ModelingLogicTableApi } from '#/api/modeling/logictable';
 import type { SystemUserApi } from '#/api/system/user';
+import type { ActionItem } from '#/components/table-action';
 
 import {
   computed,
@@ -22,7 +23,6 @@ import { useAccess } from '@vben/access';
 import { confirm, Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions, useAntdDesignTokens } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -31,7 +31,6 @@ import {
   Checkbox,
   ConfigProvider,
   message,
-  Popover,
   Tooltip,
 } from 'antdv-next';
 
@@ -53,8 +52,6 @@ import TableCustomization from '../../components/table-customization.vue';
 import { useTableCustomization } from '../../components/use-table-customization';
 import sectionIcon from '../assets/data-section-default-icon-small.svg';
 import dbIcon from '../assets/db-dm.svg';
-import syncIcon from '../assets/sync-structure.svg';
-import versionIcon from '../assets/version.svg';
 import { LOGIC_TABLE_PAGES } from '../config';
 import { QdIcon } from '../icons';
 import CatTree from './cat-tree.vue';
@@ -482,6 +479,27 @@ async function toggleStatus(row: Row, id: string) {
     rest.delete(id);
     busyIds.value = rest;
   }
+}
+
+/** 「更多」下拉：贴源表为同步结构/版本比对，其余为属性字段；启用中不可删除 */
+function moreActions(row: Row): ActionItem[] {
+  const items: ActionItem[] =
+    page.value.kind === 'source'
+      ? [
+          { label: '同步结构', type: 'link', icon: 'lucide:refresh-cw', onClick: () => syncModal.value?.open(row.id, row.name) },
+          { label: '版本比对', type: 'link', icon: 'lucide:git-compare', onClick: () => compareModal.value?.open(row.id, row.name) },
+        ]
+      : [{ label: '属性字段', type: 'link', icon: 'lucide:list', onClick: () => openDetail(row) }];
+  items.push({
+    label: '删除',
+    type: 'link',
+    danger: true,
+    icon: ACTION_ICON.DELETE,
+    auth: [PERM.delete],
+    disabled: enabled(row) || deleting.value,
+    onClick: () => removeRow(row),
+  });
+  return items;
 }
 
 async function removeRow(row: Row) {
@@ -924,65 +942,13 @@ const themeConfig = computed(() => ({
                             {{ formatTime(row.createTime) }}
                           </template>
                           <template v-else-if="col.key === 'action'">
-                            <Button
-type="link"
-                              @click="openDetail(row)"
-                            >
-                              <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" /><span>详情</span>
-                            </Button>
-                            <Button
-type="link"
-                              v-if="can(PERM.update)"
-                              :disabled="enabled(row)"
-                              @click="openEdit(row)"
-                            >
-                              <IconifyIcon class="qd-icon" :icon="ACTION_ICON.EDIT" /><span>修改</span>
-                            </Button>
-                            <Popover
-                              trigger="click"
-                              placement="bottom"
-                              :arrow="true"
-                              :classes="{ root: 'qd-action-popover', container: 'qd-action-popover__inner' }"
-                            >
-                              <template #content>
-                                <div class="qd-action-list">
-                                  <template v-if="page.kind === 'source'">
-                                    <Button
-type="link"
-                                      @click="syncModal?.open(row.id, row.name)"
-                                    >
-                                      <img :src="syncIcon" class="qd-action-list__img" alt="" />
-                                      同步结构
-                                    </Button>
-                                    <Button
-type="link"
-                                      @click="compareModal?.open(row.id, row.name)"
-                                    >
-                                      <img :src="versionIcon" class="qd-action-list__img" alt="" />
-                                      版本比对
-                                    </Button>
-                                  </template>
-                                  <Button
-type="link"
-                                    v-else
-                                    @click="openDetail(row)"
-                                  >
-                                    <QdIcon name="menu" /><span>属性字段</span>
-                                  </Button>
-                                  <Button
-type="link" danger
-                                    v-if="can(PERM.delete)"
-                                    :disabled="enabled(row) || deleting"
-                                    @click="removeRow(row)"
-                                  >
-                                    <IconifyIcon class="qd-icon" :icon="ACTION_ICON.DELETE" /><span>删除</span>
-                                  </Button>
-                                </div>
-                              </template>
-                              <Button type="link">
-                                <IconifyIcon :icon="ACTION_ICON.MORE" /><span>更多</span>
-                              </Button>
-                            </Popover>
+                            <TableAction
+                              :actions="[
+                                { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, onClick: () => openDetail(row) },
+                                { label: '修改', type: 'link', icon: ACTION_ICON.EDIT, auth: [PERM.update], disabled: enabled(row), onClick: () => openEdit(row) },
+                              ]"
+                              :drop-down-actions="moreActions(row)"
+                            />
                           </template>
                         </div>
                       </td>

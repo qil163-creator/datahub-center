@@ -12,16 +12,12 @@ import { useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 import { formatDate } from '@vben/utils';
 
 import {
   Alert,
   Button,
-  Dropdown,
   Input,
-  Menu,
-  MenuItem,
   message,
   Modal,
   Select,
@@ -432,35 +428,41 @@ watch(
                 }}
               </template>
               <template #actions="{ row }">
-                <div class="fs-row-actions">
-                  <button
-                    v-if="can('update')"
-                    class="fs-link"
-                    :disabled="!editable(row)"
-                    @click="openWizard(row)"
-                  >
-                    <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
-</button><button class="fs-link" @click="details(row)">
-                    <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
-</button><Dropdown :trigger="['click']">
-                    <button class="fs-link">
-                      <IconifyIcon :icon="ACTION_ICON.MORE" />更多
-</button><template #popupRender>
-                      <Menu>
-                        <MenuItem
-                          v-if="can('delete')"
-                          :disabled="!editable(row)"
-                          danger
-                          @click="remove([row])"
-                        >
-                          <IconifyIcon :icon="ACTION_ICON.DELETE" /> 删除任务
-</MenuItem><MenuItem @click="details(row)">
-                          <IconifyIcon :icon="ACTION_ICON.VIEW" /> 配置详情
-                        </MenuItem>
-                      </Menu>
-                    </template>
-                  </Dropdown>
-                </div>
+                <TableAction
+                  :actions="[
+                    {
+                      label: '配置',
+                      type: 'link',
+                      icon: ACTION_ICON.CONFIG,
+                      ifShow: can('update'),
+                      disabled: !editable(row),
+                      onClick: () => openWizard(row),
+                    },
+                    {
+                      label: '详情',
+                      type: 'link',
+                      icon: ACTION_ICON.VIEW,
+                      onClick: () => details(row),
+                    },
+                  ]"
+                  :drop-down-actions="[
+                    {
+                      label: '删除任务',
+                      type: 'link',
+                      danger: true,
+                      icon: ACTION_ICON.DELETE,
+                      ifShow: can('delete'),
+                      disabled: !editable(row),
+                      onClick: () => remove([row]),
+                    },
+                    {
+                      label: '配置详情',
+                      type: 'link',
+                      icon: ACTION_ICON.VIEW,
+                      onClick: () => details(row),
+                    },
+                  ]"
+                />
               </template>
             <template #empty><div class="fs-empty">暂无记录</div></template>
             <template #pager>

@@ -684,18 +684,6 @@
   margin-top: 7px !important;
 }
 
-.qi-actions {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.qi-actions .ant-btn {
-  padding-inline: 0;
-}
-
 .qi-link {
   display: inline-flex;
   align-items: center;
@@ -1905,11 +1893,6 @@
 
 .qi-switch-row .ant-switch-checked .ant-switch-handle {
   inset-inline-start: calc(100% - 18px);
-}
-
-.qi-actions .qi-icon {
-  width: 14px;
-  height: 14px;
 }
 
 .qi-task-modal {

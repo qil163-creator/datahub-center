@@ -271,13 +271,6 @@
   margin-top: 12px;
 }
 
-.fs-row-actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  white-space: nowrap;
-}
-
 .fs-link {
   display: inline-flex;
   gap: 5px;

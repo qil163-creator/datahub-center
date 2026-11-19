@@ -307,27 +307,6 @@
   overflow-wrap: anywhere;
 }
 
-.qj-actions {
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.qj-actions button {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  padding: 0;
-  color: hsl(var(--primary));
-  white-space: nowrap;
-}
-
-.qj-actions .qo-icon {
-  margin-right: 0;
-}
-
 .qj-popup {
   min-width: 120px;
   padding: 5px 0;

@@ -33,7 +33,7 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import { TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
 import {
   cloneJob,
   createJobCategory,
@@ -75,7 +75,6 @@ import {
   shouldObserveJob,
   strategyOptions,
 } from './model';
-import JobActionDropdown from './modules/job-action-dropdown.vue';
 import JobForm from './modules/job-form.vue';
 
 import './style.css';
@@ -723,64 +722,22 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                 </template>
                 <template #created="{ row: record }">{{ displayDate(record.createTime) }}</template>
                 <template #actions="{ row: record }">
-                    <div class="qj-actions">
-                      <button
-                        v-if="can('update')"
-                        type="button"
-                        @click="configure(record.id)"
-                      >
-                        <IconifyIcon :icon="ACTION_ICON.CONFIG" />配置
-</button><button type="button" @click="detail(record)">
-                        <IconifyIcon :icon="ACTION_ICON.VIEW" />详情
-</button><JobActionDropdown>
-<button type="button">
-                          <IconifyIcon :icon="ACTION_ICON.MORE" />更多
-</button><template #actions>
-                            <button
-                              v-if="can('update')"
-                              type="button"
-                              @click="edit(record)"
-                            >
-                              <IconifyIcon :icon="ACTION_ICON.EDIT" />修改
-</button><button
-                              v-if="can('create')"
-                              type="button"
-                              @click="action(record, 'clone')"
-                            >
-                              <IconifyIcon :icon="ACTION_ICON.COPY" />复制
-</button><button
-                              v-if="can('update')"
-                              type="button"
-                              @click="openCron(record)"
-                            >
-                              <IconifyIcon icon="lucide:calendar-clock" />调度周期
-</button><button
-                              type="button"
-                              @click="router.push({ path: '/develop/operations/job', query: { jobId: String(record.id) } })"
-                            >
-                              <IconifyIcon icon="lucide:history" />运行实例
-</button><button
-                              v-if="record.latestRecord"
-                              type="button"
-                              @click="logRow = record.latestRecord"
-                            >
-                              <IconifyIcon icon="lucide:file-text" />查看日志
-</button><button v-if="can('run')" type="button" @click="action(record, 'run')"><IconifyIcon icon="lucide:play" />执行一次</button><button
-                              v-if="can('run') && hasActiveJobRuns(record)"
-                              type="button"
-                              @click="action(record, 'stop')"
-                            >
-                              <IconifyIcon icon="lucide:square" />停止运行
-</button><button
-                              v-if="can('delete')"
-                              type="button"
-                              @click="action(record, 'delete')"
-                            >
-                              <IconifyIcon :icon="ACTION_ICON.DELETE" />删除
-                            </button>
-</template>
-</JobActionDropdown>
-                    </div>
+                  <TableAction
+                    :actions="[
+                      { label: '配置', type: 'link', icon: ACTION_ICON.CONFIG, ifShow: can('update'), onClick: () => configure(record.id) },
+                      { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, onClick: () => detail(record) },
+                    ]"
+                    :drop-down-actions="[
+                      { label: '修改', type: 'link', icon: ACTION_ICON.EDIT, ifShow: can('update'), onClick: () => edit(record) },
+                      { label: '复制', type: 'link', icon: ACTION_ICON.COPY, ifShow: can('create'), onClick: () => action(record, 'clone') },
+                      { label: '调度周期', type: 'link', icon: 'lucide:calendar-clock', ifShow: can('update'), onClick: () => openCron(record) },
+                      { label: '运行实例', type: 'link', icon: 'lucide:history', onClick: () => router.push({ path: '/develop/operations/job', query: { jobId: String(record.id) } }) },
+                      { label: '查看日志', type: 'link', icon: 'lucide:file-text', ifShow: !!record.latestRecord, onClick: () => (logRow = record.latestRecord) },
+                      { label: '执行一次', type: 'link', icon: 'lucide:play', ifShow: can('run'), onClick: () => action(record, 'run') },
+                      { label: '停止运行', type: 'link', icon: 'lucide:square', ifShow: can('run') && hasActiveJobRuns(record), onClick: () => action(record, 'stop') },
+                      { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), onClick: () => action(record, 'delete') },
+                    ]"
+                  />
                 </template>
                 <template #pager>
               <ListPagination

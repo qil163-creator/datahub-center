@@ -15,14 +15,10 @@ import {
 } from 'vue';
 
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
 import {
   Alert,
   Button,
-  Dropdown,
-  Menu,
-  MenuItem,
   message,
   Switch,
   Tag,
@@ -540,47 +536,17 @@ onBeforeUnmount(() => {
                 }}</span><span v-else-if="column.field === 'createTime'">{{
                   categoryTime(record.createTime)
                 }}</span>
-                <div
+                <TableAction
                   v-else-if="column.field === 'actions'"
-                  class="category-row-actions"
-                >
-                  <Button
-                    type="link"
-                    @click="open({ mode: 'detail', id: record.id })"
-                  >
-                    <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
-</Button><Button
-                    v-if="can('update')"
-                    type="link"
-                    @click="open({ mode: 'edit', id: record.id })"
-                  >
-                    <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
-</Button><Dropdown
-                    v-if="can('update') || can('delete')"
-                    :trigger="['hover']"
-                  >
-                    <Button type="link">
-                      <IconifyIcon icon="lucide:ellipsis-vertical" />更多
-</Button><template #popupRender>
-                      <Menu>
-                        <MenuItem
-                          v-if="can('update')"
-                          key="mask"
-                          @click="open({ mode: 'mask', id: record.id })"
-                        >
-                          设置脱敏
-</MenuItem><MenuItem
-                          v-if="can('delete')"
-                          key="delete"
-                          danger
-                          @click="remove(record)"
-                        >
-                          删除
-                        </MenuItem>
-                      </Menu>
-                    </template>
-                  </Dropdown>
-                </div>
+                  :actions="[
+                    { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, onClick: () => open({ mode: 'detail', id: record.id }) },
+                    { label: '修改', type: 'link', icon: ACTION_ICON.EDIT, ifShow: can('update'), onClick: () => open({ mode: 'edit', id: record.id }) },
+                  ]"
+                  :drop-down-actions="[
+                    { label: '设置脱敏', type: 'link', icon: 'lucide:eye-off', ifShow: can('update'), onClick: () => open({ mode: 'mask', id: record.id }) },
+                    { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: record.status === 0, onClick: () => remove(record) },
+                  ]"
+                />
               </template>
               <template #pager>
                 <ReferencePagination v-model:page="query.pageNo" v-model:page-size="query.pageSize" :total="total" @change="loadRows" />

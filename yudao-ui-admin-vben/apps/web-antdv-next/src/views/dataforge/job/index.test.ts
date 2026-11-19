@@ -29,7 +29,7 @@ vi.mock('antdv-next', () => {
   return { Alert: Container, Button, ConfigProvider: Container, Dropdown: Container, Input: Container, Select: Container, Switch: Container, Tree: Container, Modal: Object.assign(ModalStub, { confirm: vi.fn() }), message: { info: vi.fn(), success: vi.fn() }, theme: { defaultAlgorithm: {} } };
 });
 vi.mock('#/adapter/vxe-table', () => ({ NativeVxeButton: ref(defineComponent({ setup: (_, { attrs }) => () => h('button', attrs) })) }));
-vi.mock('#/adapter/business-vxe-table', () => ({ useVbenVxeGrid: (options: any) => {
+vi.mock('#/adapter/business-vxe-table', async () => ({ TableAction: (await import('#/components/table-action/testing')).TableActionStub, useVbenVxeGrid: (options: any) => {
   harness.options = options.gridOptions;
   const Grid = defineComponent({ props: { tableData: { type: Array, default: () => [] }, tableTitle: { type: String, default: '' } }, setup: (props, { slots }) => () => h('div', { class: 'grid-stub' }, [h('h2', props.tableTitle), slots['toolbar-tools']?.(), ...props.tableData.map((row) => h('div', [slots.info?.({ row }), slots.actions?.({ row })])), slots.pager?.()]) });
   return [Grid, { setLoading: vi.fn() }];
@@ -59,7 +59,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const actions = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')];
+    const actions = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')];
     expect(actions.map((button) => [button.textContent?.trim(), button.querySelector('svg')?.dataset.icon])).toEqual([
       ['修改', 'lucide:edit'],
       ['复制', 'lucide:copy'],
@@ -71,10 +71,8 @@ describe('作业列表工具栏', () => {
       ['删除', 'lucide:trash-2'],
     ]);
     const rowActions = [
-      ...host.querySelectorAll<HTMLButtonElement>('.qj-actions button'),
+      ...host.querySelectorAll<HTMLButtonElement>('[data-row-action]'),
     ];
-    const more = rowActions.find((button) => button.textContent?.trim() === '更多');
-    expect(more?.querySelector('svg')?.dataset.icon).toBe('lucide:ellipsis-vertical');
     const detail = rowActions.find((button) => button.textContent?.trim() === '详情');
     expect(detail?.querySelector('svg')?.dataset.icon).toBe('lucide:eye');
     const config = rowActions.find((button) => button.textContent?.trim() === '配置');
@@ -107,7 +105,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const edit = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')].find((button) => button.textContent?.trim() === '修改');
+    const edit = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')].find((button) => button.textContent?.trim() === '修改');
     edit!.click();
     await nextTick();
     const form = host.querySelector('[data-job-form]');
@@ -121,7 +119,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const clone = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')].find((button) => button.textContent?.trim() === '复制');
+    const clone = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')].find((button) => button.textContent?.trim() === '复制');
     clone!.click();
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
     expect(api.getJob).toHaveBeenCalledWith('9007199254740993');
@@ -133,7 +131,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const cronButton = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')].find((button) => button.textContent?.trim() === '调度周期');
+    const cronButton = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')].find((button) => button.textContent?.trim() === '调度周期');
     cronButton!.click();
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
     expect(api.getJob).toHaveBeenCalledWith('9007199254740993');
@@ -152,7 +150,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const instances = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')].find((button) => button.textContent?.trim() === '运行实例');
+    const instances = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')].find((button) => button.textContent?.trim() === '运行实例');
     instances!.click();
     expect(harness.push).toHaveBeenCalledWith({ path: '/develop/operations/job', query: { jobId: '9007199254740993' } });
   });
@@ -165,7 +163,7 @@ describe('作业列表工具栏', () => {
     app = createApp(Job);
     app.mount(host);
     for (let i = 0; i < 10; i++) { await Promise.resolve(); await nextTick(); }
-    const button = [...host.querySelectorAll<HTMLButtonElement>('.qj-popup > button')].find((item) => item.textContent?.trim() === label);
+    const button = [...host.querySelectorAll<HTMLButtonElement>('[data-more-action]')].find((item) => item.textContent?.trim() === label);
     button!.click();
     expect(Modal.confirm).toHaveBeenCalledWith(expect.objectContaining({ title }));
     expect(api.getJob).not.toHaveBeenCalled();

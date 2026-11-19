@@ -233,6 +233,7 @@ onMounted(load);
                 type: 'link',
                 danger: true,
                 icon: ACTION_ICON.DELETE,
+                disabled: row.status === CommonStatusEnum.ENABLE,
                 auth: ['governance:master-domain:delete'],
                 onClick: () => remove(row),
               },

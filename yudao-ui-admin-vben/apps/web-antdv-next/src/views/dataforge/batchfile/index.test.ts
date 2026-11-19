@@ -74,6 +74,11 @@ vi.mock('#/api/dataforge/batchfile', () => ({
   getBatchFileSummary: vi.fn(),
   updateBatchFileStatus: vi.fn(),
 }));
+vi.mock('#/adapter/business-vxe-table', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#/adapter/business-vxe-table')>()),
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('#/adapter/vxe-table', () => ({
   ACTION_ICON: { ADD: 'lucide:plus' },
   useVbenVxeGrid: (options: GridOptions) => {

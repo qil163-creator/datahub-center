@@ -136,10 +136,10 @@ const [DetailModal, detailApi] = useVbenModal({
 });
 const baseColumns = [
   { title: '编号', dataIndex: 'id', key: 'id', width: 75, sorter: true },
-  { title: '资产名称/描述', key: 'asset', width: 290 },
+  { title: '资产名称/描述', key: 'asset', minWidth: 220 },
   { title: '数据分类', key: 'classification', width: 170 },
   { title: '数据分级', key: 'level', width: 120 },
-  { title: '表名', dataIndex: 'tableName', key: 'tableName', width: 240 },
+  { title: '表名', dataIndex: 'tableName', key: 'tableName', minWidth: 160 },
   { title: '字段名', dataIndex: 'columnName', key: 'columnName', width: 140 },
   { title: '状态', key: 'status', width: 100 },
   { title: '创建人', key: 'creator', width: 120 },
@@ -157,7 +157,9 @@ const [Grid, gridApi] = useVbenVxeGrid<SensitiveListApi.Record>({
     columns: [
       { type: 'checkbox', width: 45 },
       ...baseColumns.map((column) => ({
-        field: column.key, title: column.title, width: column.width,
+        field: column.key, title: column.title,
+        width: 'width' in column ? column.width : undefined,
+        minWidth: 'minWidth' in column ? column.minWidth : undefined,
         fixed: 'fixed' in column ? column.fixed : undefined,
         sortable: 'sorter' in column && column.sorter,
         slots: { default: 'body' },
@@ -529,38 +531,13 @@ function syncFilterValues() {
               {{ formatDate(record.createTime, 'YYYY-MM-DD HH:mm') || '-' }}
             </template>
             <template v-else-if="column.field === 'actions'">
-              <div class="sensitive-actions">
-                <Button
-                  v-if="can('update')"
-                  type="link"
-                  size="small"
-                  :disabled="
-                    record.status === 0 || pending.has(String(record.id))
-                  "
-                  @click="edit(record as SensitiveListApi.Record)"
-                >
-                  <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
-                </Button>
-                <Button
-                  v-if="can('delete')"
-                  type="link"
-                  size="small"
-                  danger
-                  :disabled="
-                    record.status === 0 || pending.has(String(record.id))
-                  "
-                  @click="remove(record as SensitiveListApi.Record)"
-                >
-                  <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>删除
-                </Button>
-                <Button
-                  type="link"
-                  size="small"
-                  @click="detail(record as SensitiveListApi.Record)"
-                >
-                  <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
-                </Button>
-              </div>
+              <TableAction
+                :actions="[
+                  { label: '详情', type: 'link', icon: ACTION_ICON.VIEW, onClick: () => detail(record as SensitiveListApi.Record) },
+                  { label: '修改', type: 'link', icon: ACTION_ICON.EDIT, ifShow: can('update'), disabled: record.status === 0 || pending.has(String(record.id)), onClick: () => edit(record as SensitiveListApi.Record) },
+                  { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: record.status === 0 || pending.has(String(record.id)), onClick: () => remove(record as SensitiveListApi.Record) },
+                ]"
+              />
             </template>
           </template>
           <template #pager>
@@ -591,14 +568,6 @@ function syncFilterValues() {
 .sensitive-grid {
   flex: 1;
   min-height: 0;
-}
-
-.sensitive-actions {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  align-items: center;
-  white-space: nowrap;
 }
 
 .sensitive-asset {
