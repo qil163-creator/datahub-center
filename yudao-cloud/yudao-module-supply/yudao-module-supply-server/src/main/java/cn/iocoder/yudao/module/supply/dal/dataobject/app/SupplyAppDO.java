@@ -53,11 +53,6 @@ public class SupplyAppDO extends BaseDO {
     private String secret;
 
     /**
-     * 是否公开：0-非公开 1-公开
-     */
-    private Integer publicFlag;
-
-    /**
      * 描述
      */
     private String description;

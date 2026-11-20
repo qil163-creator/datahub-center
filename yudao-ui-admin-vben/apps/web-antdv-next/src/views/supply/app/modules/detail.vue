@@ -149,11 +149,6 @@ const headerFields = computed<DetailFieldItem[]>(() => {
   return [
     { key: 'name', label: '应用名称', value: row.name },
     { key: 'appType', label: '应用类型', value: row.appType },
-    {
-      key: 'publicFlag',
-      label: '是否公开',
-      value: row.publicFlag === 1 ? '公开' : '非公开',
-    },
     { key: 'appKey', label: 'AppKey', value: row.appKey, span: 2 },
     {
       key: 'secretHint',
@@ -812,12 +807,6 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
         <div class="app-profile__identity">
           <span v-if="detail.id" class="app-profile__id">{{ detail.id }}</span>
           <h1 class="app-profile__name">{{ detail.name || '应用详情' }}</h1>
-          <Tag
-            v-if="detail.id"
-            :color="detail.publicFlag === 1 ? 'success' : 'default'"
-          >
-            {{ detail.publicFlag === 1 ? '公开' : '非公开' }}
-          </Tag>
         </div>
         <DetailBackButton @click="handleBack" />
       </div>

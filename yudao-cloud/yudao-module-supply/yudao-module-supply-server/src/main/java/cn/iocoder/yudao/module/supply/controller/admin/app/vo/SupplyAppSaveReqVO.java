@@ -25,9 +25,6 @@ public class SupplyAppSaveReqVO {
     @Size(max = 500, message = "应用图标地址不能超过 500 个字符")
     private String icon;
 
-    @Schema(description = "是否公开：0-非公开 1-公开", example = "1")
-    private Integer publicFlag;
-
     @Schema(description = "描述")
     @Size(max = 500, message = "描述不能超过 500 个字符")
     private String description;

@@ -106,9 +106,6 @@ public class SupplyAppServiceImpl implements SupplyAppService {
         app.setAppKey(IdUtil.fastSimpleUUID());
         String plainSecret = generateSecret();
         app.setSecret(SupplyAppSecretCipher.encrypt(plainSecret));
-        if (app.getPublicFlag() == null) {
-            app.setPublicFlag(1);
-        }
         if (app.getAppStatus() == null) {
             app.setAppStatus(SupplyGrantValidity.APP_ENABLED);
         }

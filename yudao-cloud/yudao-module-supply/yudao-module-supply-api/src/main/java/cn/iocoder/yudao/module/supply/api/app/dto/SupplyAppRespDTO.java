@@ -19,8 +19,6 @@ public class SupplyAppRespDTO {
 
     private String secret;
 
-    private Integer publicFlag;
-
     private String description;
 
     private String remark;

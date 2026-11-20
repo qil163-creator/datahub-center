@@ -27,9 +27,6 @@ public class SupplyAppRespVO {
     @Schema(description = "应用秘钥 AppSecret（签名认证用）")
     private String secret;
 
-    @Schema(description = "是否公开：0-非公开 1-公开", example = "1")
-    private Integer publicFlag;
-
     @Schema(description = "描述")
     private String description;
 

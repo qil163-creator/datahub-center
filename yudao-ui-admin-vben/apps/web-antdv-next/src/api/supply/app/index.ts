@@ -13,7 +13,6 @@ export namespace SupplyAppApi {
     icon?: string;
     appKey?: string; // 应用 AppKey（认证标识）
     secret?: string; // 应用秘钥 AppSecret（签名认证用）
-    publicFlag?: number; // 0-非公开 1-公开
     description?: string;
     remark?: string;
     creator?: string;

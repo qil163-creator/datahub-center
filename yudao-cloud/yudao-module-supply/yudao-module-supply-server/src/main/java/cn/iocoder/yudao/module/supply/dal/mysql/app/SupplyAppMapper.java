@@ -44,7 +44,6 @@ public interface SupplyAppMapper extends BaseMapperX<SupplyAppDO> {
         return selectPage(reqVO, new LambdaQueryWrapperX<SupplyAppDO>()
                 .likeIfPresent(SupplyAppDO::getName, reqVO.getName())
                 .eqIfPresent(SupplyAppDO::getAppType, reqVO.getAppType())
-                .eqIfPresent(SupplyAppDO::getPublicFlag, reqVO.getPublicFlag())
                 .orderByDesc(SupplyAppDO::getId));
     }
 

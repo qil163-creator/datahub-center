@@ -14,12 +14,6 @@ export const APP_TYPE_OPTIONS = [
   { label: '小程序', value: '小程序' },
 ];
 
-/** 是否公开 */
-export const PUBLIC_FLAG_OPTIONS = [
-  { label: '非公开', value: 0 },
-  { label: '公开', value: 1 },
-];
-
 /** 新增/修改的表单 */
 export function useFormSchema(): VbenFormSchema[] {
   return [
@@ -56,15 +50,6 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'ImageUpload',
       componentProps: {
         maxNumber: 1,
-      },
-    },
-    {
-      fieldName: 'publicFlag',
-      label: '是否公开',
-      component: 'RadioGroup',
-      defaultValue: 1,
-      componentProps: {
-        options: PUBLIC_FLAG_OPTIONS,
       },
     },
     {
@@ -116,16 +101,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
         placeholder: '请选择应用类型',
       },
     },
-    {
-      fieldName: 'publicFlag',
-      label: '是否公开',
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: PUBLIC_FLAG_OPTIONS,
-        placeholder: '请选择是否公开',
-      },
-    },
   ];
 }
 
@@ -158,20 +133,14 @@ export function useGridColumns(): VxeTableGridOptions<SupplyAppApi.App>['columns
     {
       field: 'appKey',
       title: 'AppKey',
-      minWidth: 200,
-      showOverflow: 'tooltip',
+      minWidth: 300,
+      showOverflow: false,
     },
     {
       field: 'icon',
       title: '应用图标',
       minWidth: 90,
       cellRender: { name: 'CellImage' },
-    },
-    {
-      field: 'publicFlag',
-      title: '是否公开',
-      minWidth: 90,
-      formatter: ({ cellValue }) => (cellValue === 1 ? '公开' : '非公开'),
     },
     {
       field: 'creator',

@@ -302,7 +302,6 @@ export namespace MarketApi {
     appType?: string;
     appKey?: string;
     secret?: string;
-    publicFlag?: number;
     description?: string;
     remark?: string;
     createTime?: string;
