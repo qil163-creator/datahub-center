@@ -2,8 +2,6 @@ import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { SupplyDataApiApi } from '#/api/supply/dataapi';
 
-import { getRangePickerDefaultProps } from '#/utils';
-
 import { formatSupplyDateTime } from '../utils/format';
 import { getUserNickname } from '../utils/user';
 
@@ -123,15 +121,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
           value,
         })),
         placeholder: '请选择状态',
-      },
-    },
-    {
-      fieldName: 'createTime',
-      label: '创建时间',
-      component: 'RangePicker',
-      componentProps: {
-        ...getRangePickerDefaultProps(),
-        allowClear: true,
       },
     },
   ];

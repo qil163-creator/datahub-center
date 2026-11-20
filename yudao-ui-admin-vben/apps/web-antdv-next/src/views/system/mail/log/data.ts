@@ -74,6 +74,15 @@ export function useGridFormSchema(): VbenFormSchema[] {
         placeholder: '请输入模板编号',
       },
     },
+    {
+      fieldName: 'toMail',
+      label: '接收邮箱',
+      component: 'Input',
+      componentProps: {
+        placeholder: '请输入接收邮箱',
+        allowClear: true,
+      },
+    },
   ];
 }
 
@@ -165,7 +174,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
       field: 'createTime',
       label: '创建时间',
       render: (val) => {
-        return formatDateTime(val) as string;
+        return formatDateTime(val);
       },
     },
     {
@@ -246,7 +255,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'sendTime',
       label: '发送时间',
-      render: (val) => formatDateTime(val) as string,
+      render: (val) => formatDateTime(val),
     },
     {
       field: 'sendMessageId',

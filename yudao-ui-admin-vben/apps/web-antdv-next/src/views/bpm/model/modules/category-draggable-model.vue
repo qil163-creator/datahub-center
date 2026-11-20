@@ -95,6 +95,25 @@ const hasPermiExport = computed(() => {
   return hasAccessByCodes(['bpm:model:export']);
 });
 
+const hasPermiCreate = computed(() => hasAccessByCodes(['bpm:model:create']));
+const hasPermiPdQuery = computed(() =>
+  hasAccessByCodes(['bpm:process-definition:query']),
+);
+const hasPermiReport = computed(() =>
+  hasAccessByCodes(['bpm:process-instance:manager-query']),
+);
+const hasPermiClean = computed(() => hasAccessByCodes(['bpm:model:clean']));
+const hasPermiMore = computed(
+  () =>
+    hasPermiCreate.value ||
+    hasPermiExport.value ||
+    hasPermiPdQuery.value ||
+    hasPermiReport.value ||
+    hasPermiUpdate.value ||
+    hasPermiClean.value ||
+    hasPermiDelete.value,
+);
+
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useGridColumns(),
@@ -269,6 +288,10 @@ function isManagerUser(row: any) {
 }
 
 /** 模型操作 */
+function createModel() {
+  router.push({ name: 'BpmModelCreate' });
+}
+
 async function modelOperation(type: string, id: number) {
   await router.push({
     name: 'BpmModelUpdate',
@@ -443,6 +466,7 @@ function handleDefinitionList(row: any) {
 
 /** 跳转到流程报表页面 */
 function handleReport(row: any) {
+  if (!row.processDefinition) return;
   router.push({
     name: 'BpmProcessInstanceReport',
     query: {
@@ -529,6 +553,14 @@ function handleRenameSuccess() {
             :class="isModelSorting ? 'mr-4' : 'mr-8'"
           >
             <template v-if="!isModelSorting">
+              <Button
+                v-if="!categoryInfo.modelList.length && hasPermiCreate"
+                type="link"
+                size="small"
+                @click.stop="createModel"
+              >
+                新建模型
+              </Button>
               <Button
                 v-if="categoryInfo.modelList.length > 0"
                 type="link"
@@ -729,7 +761,7 @@ function handleRenameSuccess() {
                   </template>
                   发布
                 </Button>
-                <Dropdown placement="bottomRight" arrow>
+                <Dropdown v-if="hasPermiMore" placement="bottomRight" arrow>
                   <Button type="link" size="small" class="px-1">
                     <template #icon>
                       <IconifyIcon icon="lucide:ellipsis-vertical" />
@@ -740,13 +772,20 @@ function handleRenameSuccess() {
                     <Menu
                       @click="(e) => handleModelCommand(e.key as string, row)"
                     >
-                      <MenuItem key="handleCopy">
+                      <MenuItem
+                        v-if="hasPermiCreate"
+                        key="handleCopy"
+                        :disabled="!isManagerUser(row) && !hasPermiUpdate"
+                      >
                         <template #icon>
                           <IconifyIcon icon="lucide:copy" />
                         </template>
                         复制
                       </MenuItem>
-                      <MenuItem key="handleDefinitionList">
+                      <MenuItem
+                        v-if="hasPermiPdQuery"
+                        key="handleDefinitionList"
+                      >
                         <template #icon>
                           <IconifyIcon icon="lucide:history" />
                         </template>
@@ -760,6 +799,7 @@ function handleRenameSuccess() {
                       </MenuItem>
 
                       <MenuItem
+                        v-if="hasPermiReport && row.processDefinition"
                         key="handleReport"
                         :disabled="!isManagerUser(row)"
                       >
@@ -770,7 +810,7 @@ function handleRenameSuccess() {
                       </MenuItem>
                       <MenuItem
                         key="handleChangeState"
-                        v-if="row.processDefinition"
+                        v-if="hasPermiUpdate && row.processDefinition"
                         :disabled="!isManagerUser(row)"
                       >
                         <template #icon>
@@ -790,6 +830,7 @@ function handleRenameSuccess() {
                       </MenuItem>
                       <MenuItem
                         danger
+                        v-if="hasPermiClean"
                         key="handleClean"
                         :disabled="!isManagerUser(row)"
                       >
@@ -800,8 +841,9 @@ function handleRenameSuccess() {
                       </MenuItem>
                       <MenuItem
                         danger
+                        v-if="hasPermiDelete"
                         key="handleDelete"
-                        :disabled="!isManagerUser(row) && !hasPermiDelete"
+                        :disabled="!isManagerUser(row)"
                       >
                         <template #icon>
                           <IconifyIcon icon="lucide:trash-2" />
@@ -828,7 +870,8 @@ function handleRenameSuccess() {
 <style scoped>
 /* :deep() 实现样式穿透 */
 .collapse-no-padding :deep(.ant-collapse-header),
-.collapse-no-padding :deep(.ant-collapse-content-box) {
+.collapse-no-padding
+  :deep(.ant-collapse-item > .ant-collapse-panel > .ant-collapse-body) {
   padding: 0;
 }
 </style>

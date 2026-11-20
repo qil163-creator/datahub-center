@@ -97,6 +97,10 @@ export default defineComponent({
 
     function renderItem() {
       const { data, schema } = unref(getProps);
+      // 弹窗关闭等场景会先清空 data，此时不渲染描述项，避免 show、render、slot 访问空数据
+      if (!data) {
+        return [];
+      }
       return unref(schema)
         .map((item) => {
           const { contentMinWidth, field, render, show, span } = item;
@@ -126,11 +130,7 @@ export default defineComponent({
 
           const width = contentMinWidth;
           return (
-            <DescriptionsItem
-              key={field}
-              label={renderLabel(item)}
-              span={span}
-            >
+            <DescriptionsItem key={field} label={renderLabel(item)} span={span}>
               {() => {
                 if (item.slot) {
                   return getSlot(slots, item.slot, data);
@@ -150,12 +150,13 @@ export default defineComponent({
     }
 
     function renderDesc() {
+      // 使用函数插槽：antdv-next 在 computed 中解析默认插槽，需在其中读取 data 才能随异步数据更新
       return (
         <Descriptions
           class={`${prefixCls}`}
           {...(unref(getDescriptionsProps) as any)}
         >
-          {renderItem()}
+          {{ default: () => renderItem() }}
         </Descriptions>
       );
     }

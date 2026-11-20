@@ -1,8 +1,12 @@
-import { defineConfig } from '@vben/oxfmt-config';
+import { oxfmtConfig } from '@vben/oxfmt-config';
+
+import { defineConfig } from 'oxfmt';
 
 export default defineConfig({
+  ...oxfmtConfig,
   ignorePatterns: [
     'dist',
+    'output',
     'dev-dist',
     '.local',
     '.claude',

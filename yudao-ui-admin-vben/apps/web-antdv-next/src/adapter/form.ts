@@ -1,4 +1,5 @@
 import type {
+  VbenFormFieldSchema as FormFieldSchema,
   VbenFormProps as FormProps,
   VbenFormSchema as FormSchema,
   FormValues,
@@ -18,8 +19,14 @@ async function initSetupVbenForm() {
 
       // 一些组件是 v-model:checked 或者 v-model:fileList
       modelPropNameMap: {
+        ApiCascader: 'modelValue',
+        ApiSelect: 'modelValue',
+        ApiTreeSelect: 'modelValue',
+        IconPicker: 'modelValue',
         Checkbox: 'checked',
         Radio: 'checked',
+        // VbenTiptap uses Vue's standard modelValue/update:modelValue pair.
+        RichEditor: 'modelValue',
         Switch: 'checked',
         Upload: 'fileList',
       },
@@ -81,6 +88,9 @@ export { initSetupVbenForm, useVbenForm, z };
 export type VbenFormApi = ReturnType<typeof useVbenForm>[1]; // add by 芋艿：用于 data.ts 表单 schema 内调用 setFieldValue
 export type VbenFormSchema<TValues extends FormValues = FormValues> =
   FormSchema<ComponentType, ComponentPropsMap, TValues>;
+/** 字段 schema（不含分组），用于读取 rules、dependencies、componentProps 等字段属性 */
+export type VbenFormFieldSchema<TValues extends FormValues = FormValues> =
+  FormFieldSchema<ComponentType, ComponentPropsMap, TValues>;
 export type VbenFormProps<
   TFormValues extends FormValues = FormValues,
   TSubmitValues extends FormValues = TFormValues,

@@ -5,7 +5,7 @@ import type { DescriptionItemSchema } from '#/components/description';
 import { h } from 'vue';
 
 import { JsonViewer } from '@vben/common-ui';
-import { DICT_TYPE, InfraApiErrorLogProcessStatusEnum } from '@vben/constants';
+import { DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
 import { formatDateTime } from '@vben/utils';
 
@@ -64,7 +64,6 @@ export function useGridFormSchema(): VbenFormSchema[] {
         allowClear: true,
         placeholder: '请选择处理状态',
       },
-      defaultValue: InfraApiErrorLogProcessStatusEnum.INIT,
     },
   ];
 }
@@ -200,7 +199,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
       field: 'exceptionTime',
       label: '异常时间',
       render: (val) => {
-        return formatDateTime(val) as string;
+        return formatDateTime(val);
       },
     },
     {
@@ -210,7 +209,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'exceptionStackTrace',
       label: '异常堆栈',
-      show: (val) => !val,
+      show: (data) => !!data.exceptionStackTrace,
       render: (val) => {
         if (val) {
           return h('textarea', {
@@ -236,14 +235,14 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'processUserId',
       label: '处理人',
-      show: (val) => !val,
+      show: (data) => !!data.processUserId,
     },
     {
       field: 'processTime',
       label: '处理时间',
-      show: (val) => !val,
+      show: (data) => !!data.processTime,
       render: (val) => {
-        return formatDateTime(val) as string;
+        return formatDateTime(val);
       },
     },
   ];

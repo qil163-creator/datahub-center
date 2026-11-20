@@ -308,6 +308,11 @@ interface RouteMeta {
    */
   activePath?: string;
   /**
+   * 是否使用 activePath 对应的路由层级生成面包屑
+   * @default false
+   */
+  breadcrumbUseActivePath?: boolean;
+  /**
    * 是否固定标签页
    * @default false
    */
@@ -334,7 +339,12 @@ interface RouteMeta {
    * 徽标颜色
    */
   badgeVariants?:
-    'default' | 'destructive' | 'primary' | 'success' | 'warning' | string;
+    | 'default'
+    | 'destructive'
+    | 'primary'
+    | 'success'
+    | 'warning'
+    | string;
   /**
    * 路由的完整路径作为key（默认true）
    */
@@ -515,6 +525,13 @@ interface RouteMeta {
 - 默认值：`''`
 
 用于配置当前激活的菜单，有时候页面没有显示在菜单内，需要激活父级菜单时使用。
+
+### breadcrumbUseActivePath
+
+- 类型：`boolean`
+- 默认值：`false`
+
+设置为 `true` 时，面包屑会使用 `activePath` 对应的路由层级补充当前路由的匹配记录。适用于详情页等未嵌套在目标菜单路由下，但仍需要展示完整面包屑层级的页面。
 
 ### affixTab
 

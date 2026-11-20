@@ -78,6 +78,7 @@ export function useFormSchema(): VbenFormSchema[] {
         placeholder: '请输入访问令牌的有效期，单位：秒',
         min: 0,
       },
+      defaultValue: 1800,
       rules: 'required',
     },
     {
@@ -89,6 +90,7 @@ export function useFormSchema(): VbenFormSchema[] {
         placeholder: '请输入刷新令牌的有效期，单位：秒',
         min: 0,
       },
+      defaultValue: 43_200,
       rules: 'required',
     },
     {
@@ -107,7 +109,7 @@ export function useFormSchema(): VbenFormSchema[] {
       label: '授权范围',
       component: 'Select',
       componentProps: {
-        placeholder: '请输入授权范围',
+        placeholder: '输入授权范围后按回车确认',
         mode: 'tags',
         allowClear: true,
       },
@@ -139,7 +141,7 @@ export function useFormSchema(): VbenFormSchema[] {
       label: '可重定向的 URI 地址',
       component: 'Select',
       componentProps: {
-        placeholder: '请输入可重定向的 URI 地址',
+        placeholder: '输入可重定向的 URI 地址后按回车确认',
         mode: 'tags',
       },
       rules: 'required',
@@ -149,7 +151,7 @@ export function useFormSchema(): VbenFormSchema[] {
       label: '权限',
       component: 'Select',
       componentProps: {
-        placeholder: '请输入权限',
+        placeholder: '输入权限后按回车确认',
         mode: 'tags',
       },
     },
@@ -159,7 +161,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       componentProps: {
         mode: 'tags',
-        placeholder: '请输入资源',
+        placeholder: '输入资源后按回车确认',
       },
     },
     {

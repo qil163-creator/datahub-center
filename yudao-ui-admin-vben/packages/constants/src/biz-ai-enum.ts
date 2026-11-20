@@ -2,17 +2,17 @@
  * AI 平台的枚举
  */
 export const AiPlatformEnum = {
-  TONG_YI: 'TongYi', // 阿里
-  YI_YAN: 'YiYan', // 百度
-  DEEP_SEEK: 'DeepSeek', // DeepSeek
-  ZHI_PU: 'ZhiPu', // 智谱 AI
-  XING_HUO: 'XingHuo', // 讯飞
-  SiliconFlow: 'SiliconFlow', // 硅基流动
-  OPENAI: 'OpenAI',
-  Ollama: 'Ollama',
-  STABLE_DIFFUSION: 'StableDiffusion', // Stability AI
-  MIDJOURNEY: 'Midjourney', // Midjourney
-  SUNO: 'Suno', // Suno AI
+  ALIBABA: 'ALIBABA', // 阿里
+  BAIDU: 'BAIDU', // 百度
+  DEEPSEEK: 'DEEPSEEK', // DeepSeek
+  ZHIPU: 'ZHIPU', // 智谱 AI
+  IFLYTEK: 'IFLYTEK', // 讯飞
+  SILICONFLOW: 'SILICONFLOW', // 硅基流动
+  OPENAI: 'OPENAI',
+  OLLAMA: 'OLLAMA',
+  STABILITYAI: 'STABILITYAI', // Stability AI
+  MIDJOURNEY: 'MIDJOURNEY', // Midjourney
+  SUNO: 'SUNO', // Suno AI
 };
 
 export const AiModelTypeEnum = {
@@ -22,30 +22,142 @@ export const AiModelTypeEnum = {
   VIDEO: 4, // 视频
   EMBEDDING: 5, // 向量
   RERANK: 6, // 重排
+  MUSIC: 7, // 音乐
+  OCR: 8, // 文字识别
+  ASR: 9, // 语音识别
 };
 
-export interface ImageModel {
-  image?: string;
-  key: string;
-  name: string;
+/** AI 聊天消息类型的枚举 */
+export const AiChatMessageTypeEnum = {
+  USER: 'user', // 用户
+  ASSISTANT: 'assistant', // 助手
+  SYSTEM: 'system', // 系统
+};
+
+/** AI 模型输入模态的枚举 */
+export const AiModelInputModalityEnum = {
+  TEXT: 'text', // 文本
+  IMAGE: 'image', // 图片
+  VIDEO: 'video', // 视频
+};
+
+/** AI 模型输入模态的选项：text 必选，不允许取消 */
+export const AI_MODEL_INPUT_MODALITY_OPTIONS = [
+  { label: '文本', value: AiModelInputModalityEnum.TEXT, disabled: true },
+  { label: '图片', value: AiModelInputModalityEnum.IMAGE },
+  { label: '视频', value: AiModelInputModalityEnum.VIDEO },
+];
+
+/** AI 思考档位的展示名，未列出的档位直接展示档位值 */
+export const AI_REASONING_LEVEL_LABELS: Record<string, string> = {
+  off: '关闭',
+  on: '开启',
+  minimal: '最低',
+  low: '低',
+  medium: '中',
+  high: '高',
+  xhigh: '很高',
+  max: '最高',
+};
+
+/** AI 思考配置预设 */
+export interface AiReasoningPreset {
+  key: string; // 预设标识
+  name: string; // 预设名称
+  note: string; // 说明
+  defaultLevel: string; // 默认档位
+  levels: [string, Record<string, unknown>][]; // 档位及思考参数，从低到高
 }
 
-export const OtherPlatformEnum: ImageModel[] = [
+const DEEP_SEEK_LEVELS: [string, Record<string, unknown>][] = [
+  ['off', { thinking: { type: 'disabled' } }],
+  ['low', { thinking: { type: 'enabled' }, reasoning_effort: 'low' }],
+  ['high', { thinking: { type: 'enabled' }, reasoning_effort: 'high' }],
+  ['max', { thinking: { type: 'enabled' }, reasoning_effort: 'max' }],
+];
+
+/**
+ * AI 思考配置预设
+ *
+ * 只覆盖方案中已核对过官方文档的厂商和型号；预设只是示例，保存前仍需按厂商文档核对
+ */
+export const AI_REASONING_PRESETS: AiReasoningPreset[] = [
   {
-    key: AiPlatformEnum.TONG_YI,
-    name: '通义万相',
+    key: 'deepseek',
+    name: 'DeepSeek · 默认 high',
+    note: '思考模式下 temperature 被厂商忽略。',
+    defaultLevel: 'high',
+    levels: DEEP_SEEK_LEVELS,
   },
   {
-    key: AiPlatformEnum.YI_YAN,
-    name: '百度千帆',
+    key: 'glm53',
+    name: 'GLM-5.3 · 只有一个非 off 档',
+    note: '官方文档：GLM-5.3 不能关闭思考。',
+    defaultLevel: 'on',
+    levels: [['on', { thinking: { type: 'enabled' } }]],
   },
   {
-    key: AiPlatformEnum.ZHI_PU,
-    name: '智谱 AI',
+    key: 'kimi3',
+    name: 'Kimi k3（没有 off 档）',
+    note: 'k3 系列只支持 reasoning_effort。没有 off 只表示没提供关闭选项，不代表厂商一定在思考。',
+    defaultLevel: 'max',
+    levels: [
+      ['low', { reasoning_effort: 'low' }],
+      ['high', { reasoning_effort: 'high' }],
+      ['max', { reasoning_effort: 'max' }],
+    ],
   },
   {
-    key: AiPlatformEnum.SiliconFlow,
-    name: '硅基流动',
+    key: 'minimax',
+    name: 'MiniMax · MiniMax-M3',
+    note: 'M3.1-Flash 传 disabled 返回 400，该型号不要配 off；M2.x 的 off 不生效。',
+    defaultLevel: 'on',
+    levels: [
+      ['off', { thinking: { type: 'disabled' } }],
+      ['on', { thinking: { type: 'adaptive' } }],
+    ],
+  },
+  {
+    key: 'mimo',
+    name: '小米 MiMo · V2.6 系列',
+    note: '默认开启思考；思考模式下 temperature、top_p 被厂商固定为推荐值。',
+    defaultLevel: 'on',
+    levels: [
+      ['off', { thinking: { type: 'disabled' } }],
+      ['on', { thinking: { type: 'enabled' } }],
+    ],
+  },
+  {
+    key: 'qwen',
+    name: '通义 · 混合思考模型',
+    note: '未配置时仍是 enableThinking(true)。配置后每档必须写 enable_thinking；「仅思考」模型无法关闭。',
+    defaultLevel: 'on',
+    levels: [
+      ['off', { enable_thinking: false }],
+      ['on', { enable_thinking: true }],
+    ],
+  },
+  {
+    key: 'openai',
+    name: 'OpenAI · 推理模型（Chat）',
+    note: 'reasoning_effort 写强类型字段；temperature、max_tokens 仍会发送，需要去掉它们的型号暂不支持。',
+    defaultLevel: 'medium',
+    levels: [
+      ['low', { reasoning_effort: 'low' }],
+      ['medium', { reasoning_effort: 'medium' }],
+      ['high', { reasoning_effort: 'high' }],
+    ],
+  },
+  {
+    key: 'openrouter',
+    name: 'OpenRouter（OpenAI 平台 + 自定义 URL）',
+    note: 'reasoning 通过 extraBody 追加到请求顶层。exclude 只隐藏返回内容，不能当关闭用。',
+    defaultLevel: 'high',
+    levels: [
+      ['off', { reasoning: { enabled: false } }],
+      ['low', { reasoning: { effort: 'low' } }],
+      ['high', { reasoning: { effort: 'high' } }],
+    ],
   },
 ];
 
@@ -59,12 +171,134 @@ export const AiImageStatusEnum = {
 };
 
 /**
+ * AI 绘图生成方式的枚举（与后端 AiImageModeEnum 一致）
+ */
+export const AiImageModeEnum = {
+  DRAW: 10, // AI 生图：通用模型，含 Seedream
+  MIDJOURNEY_IMAGINE: 20, // MJ 文生图
+  MIDJOURNEY_IMAGE: 21, // MJ 图生图
+  MIDJOURNEY_BLEND: 22, // MJ 融图
+  MIDJOURNEY_SWAP_FACE: 23, // MJ 换脸
+  MIDJOURNEY_CONSISTENCY: 24, // MJ 一致性
+  MIDJOURNEY_ACTION: 30, // MJ 按钮动作
+  MIDJOURNEY_MODAL: 31, // MJ 局部重绘
+};
+
+/**
+ * AI 绘图输入图片角色的枚举（与后端 AiImageInputRoleEnum 一致）
+ */
+export const AiImageInputRoleEnum = {
+  REFERENCE: 'reference', // 参考图
+  BLEND: 'blend', // 融图
+  SWAP_SOURCE: 'swap_source', // 换脸：来源脸
+  SWAP_TARGET: 'swap_target', // 换脸：目标图
+  CREF: 'cref', // 角色参考
+  SREF: 'sref', // 风格参考
+  MASK: 'mask', // 局部重绘蒙版
+};
+
+// DONE @AI：看看，是不是一些类，要类似 vben5 里，或者 vue3 里，调整下位置噢；fms、hrm 等等，都可以参考呀。（原 views/ai/utils/music.ts 拆分：枚举、预置风格对齐 vue3 constants.ts 回到本文件；格式化函数对齐 fms、hrm 的 utils/format.ts，放到各应用 views/ai/utils/format.ts）
+// DONE @AI：是不是要抽到枚举类里噢？（AI_MUSIC_MODEL_TYPE 改为 AiModelTypeEnum.MUSIC）
+/**
  * AI 音乐生成状态的枚举
  */
 export const AiMusicStatusEnum = {
-  IN_PROGRESS: 10, // 进行中
+  PENDING: 10, // 待处理
+  IN_PROGRESS: 20, // 生成中
+  SAVING: 30, // 转存中
+  SUCCESS: 40, // 已完成
+  FAIL: 50, // 已失败
+};
+
+/** AI 音乐是否未结束：待处理、生成中、转存中 */
+export function isAiMusicRunning(status?: number) {
+  return (
+    status === AiMusicStatusEnum.PENDING ||
+    status === AiMusicStatusEnum.IN_PROGRESS ||
+    status === AiMusicStatusEnum.SAVING
+  );
+}
+
+/**
+ * AI 音乐生成模式的枚举
+ */
+export const AiMusicGenerateModeEnum = {
+  INSPIRATION: 1, // 灵感
+  CUSTOM: 2, // 自定义
+  EXTEND: 3, // 续写
+  CONCAT: 4, // 拼接
+  UPLOAD: 5, // 上传
+};
+
+/**
+ * AI PPT 状态的枚举：任务、每页共用；每页的状态为空表示待生成
+ */
+export const AiPptStatusEnum = {
+  IN_PROGRESS: 10, // 生成中
   SUCCESS: 20, // 已完成
   FAIL: 30, // 已失败
+};
+
+/**
+ * AI PPT 格式的枚举
+ */
+export const AiPptModeEnum = {
+  DETAILED: 1, // 详细演示文稿
+  SLIDES: 2, // 演示用幻灯片
+};
+
+/**
+ * AI PPT 素材来源的枚举
+ */
+export const AiPptSourceEnum = {
+  PASTE: 1, // 粘贴大纲
+  UPLOAD: 2, // 上传材料
+};
+
+/**
+ * AI PPT 语言的枚举
+ */
+export const AiPptLanguageEnum = {
+  ZH_CN: 'zh-CN', // 中文
+  EN: 'en', // English
+};
+
+/**
+ * AI PPT 导出格式的枚举
+ */
+export enum AiPptExportFormatEnum {
+  PDF = 'pdf',
+  PPTX = 'pptx',
+}
+
+/**
+ * AI PPT 支持的绘图平台，与后端一致
+ */
+export const AiPptImagePlatforms: string[] = [
+  AiPlatformEnum.OPENAI,
+  AiPlatformEnum.SILICONFLOW,
+  AiPlatformEnum.ALIBABA,
+];
+
+/**
+ * AI PPT 材料支持的格式，与后端一致
+ */
+export const AiPptFileTypes = ['pdf', 'doc', 'docx', 'txt', 'md', 'markdown'];
+
+/**
+ * AI 文字识别状态的枚举，与后端 AiOcrStatusEnum 一致
+ */
+export const AiOcrStatusEnum = {
+  SUCCESS: 20, // 识别成功
+  FAIL: 30, // 识别失败
+};
+
+/**
+ * AI 语音识别状态的枚举，与后端 AiAsrStatusEnum 一致
+ */
+export const AiAsrStatusEnum = {
+  SUCCESS: 20, // 识别成功
+  FAIL: 30, // 识别失败
 };
 
 /**
@@ -95,282 +329,26 @@ export const ImageHotEnglishWords = [
   'The Great Wall of China',
 ]; // 图片热词（英文）
 
-export const StableDiffusionSamplers: ImageModel[] = [
-  {
-    key: 'DDIM',
-    name: 'DDIM',
-  },
-  {
-    key: 'DDPM',
-    name: 'DDPM',
-  },
-  {
-    key: 'K_DPMPP_2M',
-    name: 'K_DPMPP_2M',
-  },
-  {
-    key: 'K_DPMPP_2S_ANCESTRAL',
-    name: 'K_DPMPP_2S_ANCESTRAL',
-  },
-  {
-    key: 'K_DPM_2',
-    name: 'K_DPM_2',
-  },
-  {
-    key: 'K_DPM_2_ANCESTRAL',
-    name: 'K_DPM_2_ANCESTRAL',
-  },
-  {
-    key: 'K_EULER',
-    name: 'K_EULER',
-  },
-  {
-    key: 'K_EULER_ANCESTRAL',
-    name: 'K_EULER_ANCESTRAL',
-  },
-  {
-    key: 'K_HEUN',
-    name: 'K_HEUN',
-  },
-  {
-    key: 'K_LMS',
-    name: 'K_LMS',
-  },
-];
+// ========== 【音乐 UI】相关的枚举 ==========
 
-export const StableDiffusionStylePresets: ImageModel[] = [
-  {
-    key: '3d-model',
-    name: '3d-model',
-  },
-  {
-    key: 'analog-film',
-    name: 'analog-film',
-  },
-  {
-    key: 'anime',
-    name: 'anime',
-  },
-  {
-    key: 'cinematic',
-    name: 'cinematic',
-  },
-  {
-    key: 'comic-book',
-    name: 'comic-book',
-  },
-  {
-    key: 'digital-art',
-    name: 'digital-art',
-  },
-  {
-    key: 'enhance',
-    name: 'enhance',
-  },
-  {
-    key: 'fantasy-art',
-    name: 'fantasy-art',
-  },
-  {
-    key: 'isometric',
-    name: 'isometric',
-  },
-  {
-    key: 'line-art',
-    name: 'line-art',
-  },
-  {
-    key: 'low-poly',
-    name: 'low-poly',
-  },
-  {
-    key: 'modeling-compound',
-    name: 'modeling-compound',
-  },
-  // neon-punk origami photographic pixel-art tile-texture
-  {
-    key: 'neon-punk',
-    name: 'neon-punk',
-  },
-  {
-    key: 'origami',
-    name: 'origami',
-  },
-  {
-    key: 'photographic',
-    name: 'photographic',
-  },
-  {
-    key: 'pixel-art',
-    name: 'pixel-art',
-  },
-  {
-    key: 'tile-texture',
-    name: 'tile-texture',
-  },
-];
-
-export const StableDiffusionClipGuidancePresets: ImageModel[] = [
-  {
-    key: 'NONE',
-    name: 'NONE',
-  },
-  {
-    key: 'FAST_BLUE',
-    name: 'FAST_BLUE',
-  },
-  {
-    key: 'FAST_GREEN',
-    name: 'FAST_GREEN',
-  },
-  {
-    key: 'SIMPLE',
-    name: 'SIMPLE',
-  },
-  {
-    key: 'SLOW',
-    name: 'SLOW',
-  },
-  {
-    key: 'SLOWER',
-    name: 'SLOWER',
-  },
-  {
-    key: 'SLOWEST',
-    name: 'SLOWEST',
-  },
-];
-
-export const Dall3Models: ImageModel[] = [
-  {
-    key: 'dall-e-3',
-    name: 'DALL·E 3',
-    image: `/static/imgs/ai/dall2.jpg`,
-  },
-  {
-    key: 'dall-e-2',
-    name: 'DALL·E 2',
-    image: `/static/imgs/ai/dall3.jpg`,
-  },
-];
-
-export const Dall3StyleList: ImageModel[] = [
-  {
-    key: 'vivid',
-    name: '清晰',
-    image: `/static/imgs/ai/qingxi.jpg`,
-  },
-  {
-    key: 'natural',
-    name: '自然',
-    image: `/static/imgs/ai/ziran.jpg`,
-  },
-];
-export const MidjourneyModels: ImageModel[] = [
-  {
-    key: 'midjourney',
-    name: 'MJ',
-    image: 'https://bigpt8.com/pc/_nuxt/mj.34a61377.png',
-  },
-  {
-    key: 'niji',
-    name: 'NIJI',
-    image: 'https://bigpt8.com/pc/_nuxt/nj.ca79b143.png',
-  },
-];
-
-export const MidjourneyVersions = [
-  {
-    value: '6.0',
-    label: 'v6.0',
-  },
-  {
-    value: '5.2',
-    label: 'v5.2',
-  },
-  {
-    value: '5.1',
-    label: 'v5.1',
-  },
-  {
-    value: '5.0',
-    label: 'v5.0',
-  },
-  {
-    value: '4.0',
-    label: 'v4.0',
-  },
-];
-
-export const NijiVersionList = [
-  {
-    value: '5',
-    label: 'v5',
-  },
-];
-
-export const MidjourneySizeList: ImageSize[] = [
-  {
-    key: '1:1',
-    width: '1',
-    height: '1',
-    style: 'width: 30px; height: 30px;background-color: #dcdcdc;',
-  },
-  {
-    key: '3:4',
-    width: '3',
-    height: '4',
-    style: 'width: 30px; height: 40px;background-color: #dcdcdc;',
-  },
-  {
-    key: '4:3',
-    width: '4',
-    height: '3',
-    style: 'width: 40px; height: 30px;background-color: #dcdcdc;',
-  },
-  {
-    key: '9:16',
-    width: '9',
-    height: '16',
-    style: 'width: 30px; height: 50px;background-color: #dcdcdc;',
-  },
-  {
-    key: '16:9',
-    width: '16',
-    height: '9',
-    style: 'width: 50px; height: 30px;background-color: #dcdcdc;',
-  },
-];
-
-export interface ImageSize {
-  height: string;
-  key: string;
-  name?: string;
-  style: string;
-  width: string;
-}
-export const Dall3SizeList: ImageSize[] = [
-  {
-    key: '1024x1024',
-    name: '1:1',
-    width: '1024',
-    height: '1024',
-    style: 'width: 30px; height: 30px;background-color: #dcdcdc;',
-  },
-  {
-    key: '1024x1792',
-    name: '3:5',
-    width: '1024',
-    height: '1792',
-    style: 'width: 30px; height: 50px;background-color: #dcdcdc;',
-  },
-  {
-    key: '1792x1024',
-    name: '5:3',
-    width: '1792',
-    height: '1024',
-    style: 'width: 50px; height: 30px;background-color: #dcdcdc;',
-  },
+/** 预置音乐风格：中文显示，英文写入 */
+export const MusicPresetTags = [
+  { label: '女声', value: 'female vocals' },
+  { label: '男声', value: 'male vocals' },
+  { label: '流行', value: 'pop' },
+  { label: '摇滚', value: 'rock' },
+  { label: '硬摇滚', value: 'hard rock' },
+  { label: '电音', value: 'electronic' },
+  { label: '金属', value: 'metal' },
+  { label: '重金属', value: 'heavy metal' },
+  { label: '节拍', value: 'beat' },
+  { label: '弱拍', value: 'upbeat' },
+  { label: '合成器', value: 'synth' },
+  { label: '吉他', value: 'guitar' },
+  { label: '钢琴', value: 'piano' },
+  { label: '小提琴', value: 'violin' },
+  { label: '贝斯', value: 'bass' },
+  { label: '嘻哈', value: 'hip hop' },
 ];
 
 // ========== 【写作 UI】相关的枚举 ==========

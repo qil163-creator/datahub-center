@@ -1,16 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { getDictOptions } from './use-dict';
+import { getDictOptions, groupDictData } from './use-dict';
 
 vi.mock('@vben/stores', () => ({
+  useAccessStore: () => ({ accessToken: '' }),
   useDictStore: () => ({
-    getDictOptions: (type: string) =>
-      (
-        {
-          unit: [{ label: '小时', value: '小时', remark: '时间单位' }],
-          status: [{ label: '启用', value: '0' }],
-        } as Record<string, unknown[]>
-      )[type] ?? [],
+    dictMap: {
+      unit: [{ label: '小时', value: '小时', remark: '时间单位' }],
+      status: [{ label: '启用', value: '0' }],
+    },
   }),
 }));
 
@@ -26,5 +24,19 @@ describe('字典选项分组备注', () => {
       { label: '启用', value: 0 },
     ]);
     expect(getDictOptions('missing')).toEqual([]);
+  });
+
+  it('全量字典分组保留备注', () => {
+    expect(
+      groupDictData([
+        { dictType: 'unit', label: '小时', value: '小时', remark: '时间单位' },
+        { dictType: 'unit', label: '个', value: '个' },
+      ]),
+    ).toEqual({
+      unit: [
+        { label: '小时', value: '小时', remark: '时间单位' },
+        { label: '个', value: '个' },
+      ],
+    });
   });
 });

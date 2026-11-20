@@ -7,7 +7,7 @@ import type { SystemUserApi } from '#/api/system/user';
 import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
-import { handleTree } from '@vben/utils';
+import { handleTree, isIdType, parseId } from '@vben/utils';
 
 import {
   Button,
@@ -21,7 +21,7 @@ import {
 } from 'antdv-next';
 
 import { getSimpleDeptList } from '#/api/system/dept';
-import { getUserPage } from '#/api/system/user';
+import { getUserList, getUserPage } from '#/api/system/user';
 
 type Key = number | string;
 
@@ -69,7 +69,7 @@ const deptSearchKeys = ref('');
 const userList = ref<SystemUserApi.User[]>([]); // 存储所有已知用户
 const selectedUserIds = ref<string[]>([]);
 
-const [Modal, modalApi] = useVbenModal<{ userIds?: Array<number | string> }>({
+const [Modal, modalApi] = useVbenModal<{ userIds?: number[] }>({
   onCancel: handleCancel,
   onClosed: handleClosed,
   async onOpenChange(isOpen: boolean) {
@@ -97,12 +97,8 @@ const [Modal, modalApi] = useVbenModal<{ userIds?: Array<number | string> }>({
       // 设置已选用户
       if (data.userIds?.length) {
         selectedUserIds.value = data.userIds.map(String);
-        // 加载已选用户的完整信息  TODO   目前接口暂不支持 多个用户ID 查询， 需要后端支持
-        const { list } = await getUserPage({
-          pageNo: 1,
-          pageSize: 100, // 临时使用固定值确保能加载所有已选用户
-          userIds: data.userIds,
-        });
+        // 加载已选用户的完整信息
+        const list = await getUserList(data.userIds);
         // 使用 Map 来去重，以用户 ID 为 key
         const userMap = new Map(userList.value.map((user) => [user.id, user]));
         list.forEach((user) => {
@@ -274,9 +270,14 @@ async function handleUserSearch(direction: TransferDirection, value: string) {
 
 /** 处理用户选择变化 */
 function handleUserChange(targetKeys: TransferKey[]) {
+  const ids = targetKeys.map((id) => parseId(id)).filter((id) => isIdType(id));
+  if (ids.length !== targetKeys.length) {
+    message.warning('请选择有效用户');
+    return;
+  }
   // 使用 Set 来去重选中的用户ID
   selectedUserIds.value = [...new Set(targetKeys.map(String))];
-  emit('update:value', selectedUserIds.value.map(Number));
+  emit('update:value', ids);
   updateRightListData();
 }
 
@@ -401,7 +402,7 @@ function processDeptNode(node: any): DeptTreeNode {
 </script>
 
 <template>
-  <Modal class="w-2/5" key="user-select-modal" :title="title">
+  <Modal class="w-3/5" key="user-select-modal" :title="title">
     <Row :gutter="[16, 16]">
       <Col :span="6">
         <div class="h-[500px] overflow-auto rounded border">
@@ -490,12 +491,13 @@ function processDeptNode(node: any): DeptTreeNode {
   height: 500px;
 }
 
-:deep(.ant-transfer-list) {
+/* antdv-next 的列表外壳为 .ant-transfer-section（默认 180×200），需覆盖为撑满高度 */
+:deep(.ant-transfer-section) {
   display: flex;
   flex: 1;
   flex-direction: column;
-  width: 300px !important;
-  height: 100%;
+  min-width: 0;
+  height: 100% !important;
 }
 
 :deep(.ant-transfer-list-header) {
@@ -529,9 +531,11 @@ function processDeptNode(node: any): DeptTreeNode {
 }
 
 :deep(.ant-pagination) {
+  flex-wrap: wrap;
+  row-gap: 4px;
+  justify-content: flex-end;
   margin: 8px;
   font-size: 12px;
-  text-align: right;
 }
 
 :deep(.ant-pagination-options) {

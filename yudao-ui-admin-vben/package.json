@@ -2,7 +2,7 @@
   "name": "vben-admin-monorepo",
   "version": "5.7.0",
   "private": true,
-  "yudao-version": "2026.08.0-snapshot",
+  "yudao-version": "2026.10.0-snapshot",
   "keywords": [
     "monorepo",
     "turbo",
@@ -93,6 +93,7 @@
     "cross-env": "catalog:",
     "cspell": "catalog:",
     "eslint": "catalog:",
+    "eslint-plugin-oxlint": "catalog:",
     "happy-dom": "catalog:",
     "is-ci": "catalog:",
     "lefthook": "catalog:",

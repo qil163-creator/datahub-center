@@ -15,7 +15,11 @@ import { getRangePickerDefaultProps } from '#/utils';
 
 /** 关联数据 */
 let channelList: SystemSmsChannelApi.SmsChannel[] = [];
-getSimpleSmsChannelList().then((data) => (channelList = data));
+
+/** 刷新列表关联数据 */
+export async function refreshGridRelatedData() {
+  channelList = await getSimpleSmsChannelList();
+}
 
 /** 列表的搜索表单 */
 export function useGridFormSchema(): VbenFormSchema[] {
@@ -94,6 +98,22 @@ export function useGridFormSchema(): VbenFormSchema[] {
 /** 列表的字段 */
 export function useGridColumns(): VxeTableGridOptions['columns'] {
   return [
+    {
+      field: 'channelCode',
+      title: '渠道编码',
+      minWidth: 120,
+      cellRender: {
+        name: 'CellDict',
+        props: { type: DICT_TYPE.SYSTEM_SMS_CHANNEL_CODE },
+      },
+    },
+    {
+      field: 'userType',
+      title: '用户类型',
+      minWidth: 100,
+      cellRender: { name: 'CellDict', props: { type: DICT_TYPE.USER_TYPE } },
+    },
+    { field: 'userId', title: '用户编号', minWidth: 100 },
     {
       field: 'id',
       title: '编号',
@@ -183,9 +203,15 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
 export function useDetailSchema(): DescriptionItemSchema[] {
   return [
     {
+      field: 'userType',
+      label: '用户类型',
+      render: (val) => h(DictTag, { type: DICT_TYPE.USER_TYPE, value: val }),
+    },
+    { field: 'userId', label: '用户编号' },
+    {
       field: 'createTime',
       label: '创建时间',
-      render: (val) => formatDateTime(val) as string,
+      render: (val) => formatDateTime(val),
     },
     {
       field: 'mobile',
@@ -194,6 +220,8 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'channelCode',
       label: '短信渠道',
+      render: (val) =>
+        h(DictTag, { type: DICT_TYPE.SYSTEM_SMS_CHANNEL_CODE, value: val }),
     },
     {
       field: 'templateId',
@@ -226,7 +254,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'sendTime',
       label: '发送时间',
-      render: (val) => formatDateTime(val) as string,
+      render: (val) => formatDateTime(val),
     },
     {
       field: 'apiSendCode',
@@ -249,7 +277,7 @@ export function useDetailSchema(): DescriptionItemSchema[] {
     {
       field: 'receiveTime',
       label: '接收时间',
-      render: (val) => formatDateTime(val) as string,
+      render: (val) => formatDateTime(val),
     },
     {
       field: 'apiReceiveCode',

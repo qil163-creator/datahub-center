@@ -2,15 +2,25 @@ import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AiModelApiKeyApi } from '#/api/ai/model/apiKey';
 
-import { AiModelTypeEnum, CommonStatusEnum, DICT_TYPE } from '@vben/constants';
+import {
+  AI_MODEL_INPUT_MODALITY_OPTIONS,
+  AiModelInputModalityEnum,
+  AiModelTypeEnum,
+  CommonStatusEnum,
+  DICT_TYPE,
+} from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
 
 import { z } from '#/adapter/form';
 import { getApiKeySimpleList } from '#/api/ai/model/apiKey';
 
+import { buildReasoningFormValue } from './reasoning';
+
 /** 关联数据 */
 let apiKeyList: AiModelApiKeyApi.ApiKey[] = [];
-getApiKeySimpleList().then((data) => (apiKeyList = data));
+export async function loadApiKeyList() {
+  apiKeyList = await getApiKeySimpleList();
+}
 
 /** 新增/修改的表单 */
 export function useFormSchema(): VbenFormSchema[] {
@@ -81,6 +91,21 @@ export function useFormSchema(): VbenFormSchema[] {
       },
     },
     {
+      component: 'Input',
+      fieldName: 'description',
+      label: '模型简介',
+      componentProps: {
+        placeholder: '选填，展示在模型选择框中，例如：通用推荐',
+        maxlength: 255,
+        showCount: true,
+      },
+    },
+    {
+      component: 'ImageUpload',
+      fieldName: 'iconUrl',
+      label: '模型图标',
+    },
+    {
       fieldName: 'sort',
       label: '模型排序',
       component: 'InputNumber',
@@ -110,6 +135,7 @@ export function useFormSchema(): VbenFormSchema[] {
         placeholder: '请输入温度参数',
         min: 0,
         max: 2,
+        precision: 2,
       },
       dependencies: {
         triggerFields: ['type'],
@@ -154,6 +180,34 @@ export function useFormSchema(): VbenFormSchema[] {
         }),
       },
       rules: 'required',
+    },
+    {
+      fieldName: 'inputModalities',
+      label: '输入能力',
+      component: 'CheckboxGroup',
+      defaultValue: [AiModelInputModalityEnum.TEXT],
+      componentProps: {
+        options: AI_MODEL_INPUT_MODALITY_OPTIONS,
+      },
+      dependencies: {
+        triggerFields: ['type'],
+        show: (values) => {
+          return [AiModelTypeEnum.CHAT].includes(values.type);
+        },
+      },
+    },
+    {
+      // 思考配置：通过 form.vue 的 #reasoningConfig 插槽渲染，提交时转换为 reasoningConfig
+      fieldName: 'reasoningConfig',
+      label: '思考配置',
+      component: 'Input',
+      defaultValue: buildReasoningFormValue(),
+      dependencies: {
+        triggerFields: ['type'],
+        show: (values) => {
+          return [AiModelTypeEnum.CHAT].includes(values.type);
+        },
+      },
     },
   ];
 }
@@ -211,6 +265,13 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
         props: { type: DICT_TYPE.AI_MODEL_TYPE },
       },
       minWidth: 100,
+    },
+    {
+      field: 'iconUrl',
+      title: '图标',
+      width: 70,
+      align: 'center',
+      slots: { default: 'iconUrl' },
     },
     {
       field: 'name',

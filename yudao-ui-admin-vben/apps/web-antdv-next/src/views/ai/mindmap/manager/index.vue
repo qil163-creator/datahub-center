@@ -2,6 +2,8 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AiMindmapApi } from '#/api/ai/mindmap';
 
+import { onMounted, ref } from 'vue';
+
 import { DocAlert, Page, useVbenDrawer } from '@vben/common-ui';
 
 import { message } from 'antdv-next';
@@ -11,7 +13,11 @@ import { deleteMindMap, getMindMapPage } from '#/api/ai/mindmap';
 import { $t } from '#/locales';
 
 import Right from '../index/modules/right.vue';
-import { useGridColumns, useGridFormSchema } from './data';
+import {
+  refreshGridRelatedData,
+  useGridColumns,
+  useGridFormSchema,
+} from './data';
 
 const [Drawer, drawerApi] = useVbenDrawer({
   header: false,
@@ -39,9 +45,12 @@ async function handleDelete(row: AiMindmapApi.MindMap) {
   }
 }
 
+const previewData = ref<AiMindmapApi.MindMap>(); // 预览的思维导图
+
 /** 预览思维导图 */
 async function openPreview(row: AiMindmapApi.MindMap) {
-  drawerApi.setData(row.generatedContent).open();
+  previewData.value = row;
+  drawerApi.open();
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({
@@ -53,6 +62,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     height: 'auto',
     keepSource: true,
     proxyConfig: {
+      autoLoad: false,
       ajax: {
         query: async ({ page }, formValues) => {
           return await getMindMapPage({
@@ -73,6 +83,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
     },
   } as VxeTableGridOptions<AiMindmapApi.MindMap>,
 });
+
+/** 初始化列表关联数据 */
+onMounted(async () => {
+  await refreshGridRelatedData();
+  gridApi.query();
+});
 </script>
 
 <template>
@@ -83,10 +99,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
 
     <Drawer class="w-3/5">
       <Right
-        :generated-content="drawerApi.getData() as any"
+        :generated-content="previewData?.generatedContent ?? ''"
         :is-end="true"
         :is-generating="false"
         :is-start="false"
+        :usage="previewData"
       />
     </Drawer>
     <Grid table-title="思维导图管理列表">
@@ -97,7 +114,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               label: $t('ui.cropper.preview'),
               type: 'link',
               icon: ACTION_ICON.EDIT,
-              auth: ['ai:api-key:update'],
               disabled: !row.generatedContent,
               onClick: openPreview.bind(null, row),
             },

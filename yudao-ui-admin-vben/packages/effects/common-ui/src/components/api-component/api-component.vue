@@ -44,6 +44,29 @@ const emit = defineEmits<{
 const modelValue = defineModel<any>({ default: undefined });
 
 const attrs = useAttrs();
+/**
+ * 是否以 modelValue 作为当前模型：
+ * modelPropName 为 modelValue，或父级未显式传入自定义 model 属性及其 update 事件
+ * （如表单适配层映射为 modelValue、内层使用 value 的场景）。
+ * 父级显式传入自定义属性（值为 undefined 也算传入）或其 update 事件时，以该属性及其 update 事件双向绑定。
+ */
+const usesDefaultModelValue = computed(() => {
+  const { modelPropName } = props;
+  if (['model-value', 'modelValue'].includes(modelPropName)) {
+    return true;
+  }
+  // useAttrs 只在读取属性时收集依赖，先读取再判断是否传入
+  return (
+    attrs[modelPropName] === undefined &&
+    !Reflect.has(attrs, modelPropName) &&
+    !Reflect.has(attrs, `onUpdate:${modelPropName}`)
+  );
+});
+const currentModelValue = computed(() => {
+  return usesDefaultModelValue.value
+    ? modelValue.value
+    : attrs[props.modelPropName];
+});
 const innerParams = ref({});
 const refOptions = ref<OptionsItem[]>([]);
 const loading = ref(false);
@@ -89,20 +112,14 @@ const getOptions = computed(() => {
 });
 
 const bindProps = computed(() => {
-  const modelProp = props.modelPropName;
-  const parentValue = attrs[modelProp];
-  const parentUpdate = attrs[`onUpdate:${modelProp}`];
+  const updateEvent = `onUpdate:${props.modelPropName}`;
   return {
-    // antd 表单绑的是 value，需把 onUpdate 回传给表单，否则选中后校验仍为空
-    [modelProp]: parentValue === undefined ? unref(modelValue) : parentValue,
+    [props.modelPropName]: unref(currentModelValue),
     [props.optionsPropName]: unref(getOptions),
-    [`onUpdate:${modelProp}`]: (val: unknown) => {
-      modelValue.value = val;
-      if (isFunction(parentUpdate)) {
-        parentUpdate(val);
-      }
+    [updateEvent]: (val: string) => {
+      updateModelValue(val);
     },
-    ...objectOmit(attrs, [modelProp, `onUpdate:${modelProp}`]),
+    ...objectOmit(attrs, [props.modelPropName, updateEvent]),
     ...(props.visibleEvent
       ? {
           [props.visibleEvent]: handleFetchForVisible,
@@ -110,6 +127,20 @@ const bindProps = computed(() => {
       : {}),
   };
 });
+
+/** 只回写当前模型对应的事件，避免同时传入 value 与 modelValue 时重复回写 */
+function updateModelValue(value: any) {
+  if (usesDefaultModelValue.value) {
+    modelValue.value = value;
+    return;
+  }
+  const updateHandlers = attrs[`onUpdate:${props.modelPropName}`];
+  for (const updateHandler of [updateHandlers].flat()) {
+    if (isFunction(updateHandler)) {
+      updateHandler(value);
+    }
+  }
+}
 
 async function fetchApi() {
   const { api, beforeFetch, shouldFetch, afterFetch, resultField } = props;
@@ -187,9 +218,9 @@ const mergedParams = computed(() => {
 });
 
 watch(
-  mergedParams,
-  (value, oldValue) => {
-    if (isEqual(value, oldValue)) {
+  [() => props.api, mergedParams],
+  ([api, value], [oldApi, oldValue]) => {
+    if (api === oldApi && isEqual(value, oldValue)) {
       return;
     }
     fetchApi();
@@ -198,11 +229,11 @@ watch(
 );
 
 function emitChange() {
-  if (
-    modelValue.value === undefined &&
-    props.autoSelect &&
-    unref(getOptions).length > 0
-  ) {
+  const value = unref(currentModelValue);
+  // 自定义 model 属性可能由表单以 emptyStateValue（如 Naive 的 null）表示空值
+  const isEmptyValue =
+    value === undefined || (!usesDefaultModelValue.value && value === null);
+  if (isEmptyValue && props.autoSelect && unref(getOptions).length > 0) {
     let firstOption;
     if (isFunction(props.autoSelect)) {
       firstOption = props.autoSelect(unref(getOptions));
@@ -225,7 +256,7 @@ function emitChange() {
       }
     }
 
-    if (firstOption) modelValue.value = firstOption.value;
+    if (firstOption) updateModelValue(firstOption.value);
   }
   emit('optionsChange', unref(getOptions));
 }
@@ -234,7 +265,7 @@ defineExpose({
   /** 获取options数据 */
   getOptions: () => unref(getOptions),
   /** 获取当前值 */
-  getValue: () => unref(modelValue),
+  getValue: () => unref(currentModelValue),
   /** 获取被包装的组件实例 */
   getComponentRef: <T = any>() => componentRef.value as T,
   /** 更新Api参数 */

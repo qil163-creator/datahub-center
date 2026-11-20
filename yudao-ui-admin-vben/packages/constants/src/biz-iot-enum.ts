@@ -324,6 +324,13 @@ export const IotDeviceMessageMethodEnum = {
     name: 'OTA 升级进度上报',
     upstream: true,
   },
+
+  // ========== 设备影子 ==========
+  SHADOW_UPDATE: {
+    method: 'thing.shadow.update',
+    name: '设备影子更新',
+    upstream: true,
+  },
 } as const;
 
 // ========== IOT - OTA ==========
@@ -718,3 +725,24 @@ export const getByteOrderOptions = (rawDataType: string) => {
   }
   return ModbusByteOrder16Options;
 };
+
+// ========== IOT - Redis 数据目的 ==========
+/** Redis 数据结构 */
+export const IotRedisDataStructureEnum = {
+  STREAM: 1,
+  HASH: 2,
+  LIST: 3,
+  SET: 4,
+  ZSET: 5,
+  STRING: 6,
+} as const;
+
+/** Redis 数据结构选项 */
+export const IOT_REDIS_DATA_STRUCTURE_OPTIONS = [
+  { label: 'Stream', value: IotRedisDataStructureEnum.STREAM },
+  { label: 'Hash', value: IotRedisDataStructureEnum.HASH },
+  { label: 'List', value: IotRedisDataStructureEnum.LIST },
+  { label: 'Set', value: IotRedisDataStructureEnum.SET },
+  { label: 'ZSet', value: IotRedisDataStructureEnum.ZSET },
+  { label: 'String', value: IotRedisDataStructureEnum.STRING },
+];

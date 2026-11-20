@@ -6,6 +6,7 @@ import { getDictOptions } from '@vben/hooks';
 
 import { z } from '#/adapter/form';
 import { getSimpleDictTypeList } from '#/api/system/dict/type';
+import { getRangePickerDefaultProps } from '#/utils';
 
 // ============================== 字典类型 ==============================
 
@@ -95,6 +96,15 @@ export function useTypeGridFormSchema(): VbenFormSchema[] {
         allowClear: true,
       },
     },
+    {
+      fieldName: 'createTime',
+      label: '创建时间',
+      component: 'RangePicker',
+      componentProps: {
+        ...getRangePickerDefaultProps(),
+        allowClear: true,
+      },
+    },
   ];
 }
 
@@ -155,18 +165,12 @@ export function useTypeGridColumns(): VxeTableGridOptions['columns'] {
  */
 const colorOptions = [
   { value: '', label: '无' },
-  { value: 'processing', label: '主要' },
-  { value: 'success', label: '成功' },
   { value: 'default', label: '默认' },
+  { value: 'primary', label: '主要' },
+  { value: 'success', label: '成功' },
+  { value: 'info', label: '信息' },
   { value: 'warning', label: '警告' },
-  { value: 'error', label: '危险' },
-  { value: 'pink', label: 'pink' },
-  { value: 'red', label: 'red' },
-  { value: 'orange', label: 'orange' },
-  { value: 'green', label: 'green' },
-  { value: 'cyan', label: 'cyan' },
-  { value: 'blue', label: 'blue' },
-  { value: 'purple', label: 'purple' },
+  { value: 'danger', label: '危险' },
 ];
 
 /** 数据新增/修改的表单 */

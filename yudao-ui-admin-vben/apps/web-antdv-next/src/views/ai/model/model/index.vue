@@ -3,14 +3,15 @@ import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AiModelModelApi } from '#/api/ai/model/model';
 
 import { DocAlert, Page, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 
-import { message } from 'antdv-next';
+import { Avatar, message } from 'antdv-next';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import { deleteModel, getModelPage } from '#/api/ai/model/model';
 import { $t } from '#/locales';
 
-import { useGridColumns, useGridFormSchema } from './data';
+import { loadApiKeyList, useGridColumns, useGridFormSchema } from './data';
 import Form from './modules/form.vue';
 
 const [FormModal, formModalApi] = useVbenModal({
@@ -59,6 +60,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         query: async ({ page }, formValues) => {
+          await loadApiKeyList();
           return await getModelPage({
             pageNo: page.currentPage,
             pageSize: page.pageSize,
@@ -98,6 +100,13 @@ const [Grid, gridApi] = useVbenVxeGrid({
             },
           ]"
         />
+      </template>
+      <template #iconUrl="{ row }">
+        <Avatar shape="square" :size="28" :src="row.iconUrl || undefined">
+          <template #icon>
+            <IconifyIcon icon="lucide:cpu" class="inline-block align-middle" />
+          </template>
+        </Avatar>
       </template>
       <template #actions="{ row }">
         <TableAction

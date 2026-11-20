@@ -74,7 +74,8 @@ const [Modal, modalApi] = useVbenModal<{ headers: string }>({
     if (!isOpen) {
       return;
     }
-    headerList.value = parseHeaders(modalApi.getData()?.headers ?? '');
+    const headers = modalApi.getData()?.headers ?? '';
+    headerList.value = parseHeaders(headers);
   },
   onConfirm: handleSave,
 });
@@ -92,14 +93,14 @@ const [Modal, modalApi] = useVbenModal<{ headers: string }>({
           <Input
             v-model:value="item.key"
             placeholder="请输入参数名"
-            class="w-48"
+            class="!w-48 shrink-0"
             allow-clear
           />
           <span class="font-medium text-gray-600">:</span>
           <Input
             v-model:value="item.value"
             placeholder="请输入参数值 (支持表达式 ${变量名})"
-            class="flex-1"
+            class="min-w-0 flex-1"
             allow-clear
           />
           <Button type="text" danger size="small" @click="removeHeader(index)">

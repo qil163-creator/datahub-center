@@ -4,10 +4,15 @@ import type { SystemUserApi } from '#/api/system/user';
 
 import { getSimpleUserList } from '#/api/system/user';
 import { getRangePickerDefaultProps } from '#/utils';
+import { formatTokenCount } from '#/views/ai/utils/format';
 
 /** 关联数据 */
 let userList: SystemUserApi.User[] = [];
-getSimpleUserList().then((data) => (userList = data));
+
+/** 刷新列表关联数据 */
+export async function refreshGridRelatedData() {
+  userList = await getSimpleUserList();
+}
 
 /** 列表的搜索表单 */
 export function useGridFormSchema(): VbenFormSchema[] {
@@ -30,7 +35,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
       component: 'Input',
       componentProps: {
         placeholder: '请输入提示词',
-        clearable: true,
+        allowClear: true,
       },
     },
     {
@@ -75,6 +80,24 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
       field: 'model',
       title: '模型',
       minWidth: 180,
+    },
+    {
+      field: 'inputTokens',
+      title: '输入 Token',
+      minWidth: 100,
+      formatter: ({ cellValue }) => formatTokenCount(cellValue),
+    },
+    {
+      field: 'outputTokens',
+      title: '输出 Token',
+      minWidth: 100,
+      formatter: ({ cellValue }) => formatTokenCount(cellValue),
+    },
+    {
+      field: 'totalTokens',
+      title: '合计 Token',
+      minWidth: 100,
+      formatter: ({ cellValue }) => formatTokenCount(cellValue),
     },
     {
       field: 'createTime',

@@ -1,8 +1,9 @@
 import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { AiImageApi } from '#/api/ai/image';
 import type { SystemUserApi } from '#/api/system/user';
 
-import { DICT_TYPE } from '@vben/constants';
+import { AiImageStatusEnum, DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
 
 import { getSimpleUserList } from '#/api/system/user';
@@ -13,7 +14,7 @@ async function getUserData() {
   userList = await getSimpleUserList();
 }
 
-getUserData();
+void getUserData();
 
 /** 列表的搜索表单 */
 export function useGridFormSchema(): VbenFormSchema[] {
@@ -38,6 +39,25 @@ export function useGridFormSchema(): VbenFormSchema[] {
         placeholder: '请选择平台',
         allowClear: true,
         options: getDictOptions(DICT_TYPE.AI_PLATFORM, 'string'),
+      },
+    },
+    {
+      fieldName: 'mode',
+      label: '生成方式',
+      component: 'Select',
+      componentProps: {
+        placeholder: '请选择生成方式',
+        allowClear: true,
+        options: getDictOptions(DICT_TYPE.AI_IMAGE_MODE, 'number'),
+      },
+    },
+    {
+      fieldName: 'prompt',
+      label: '提示词',
+      component: 'Input',
+      componentProps: {
+        placeholder: '请输入提示词',
+        allowClear: true,
       },
     },
     {
@@ -103,6 +123,15 @@ export function useGridColumns(
         userList.find((user) => user.id === cellValue)?.nickname || '-',
     },
     {
+      field: 'mode',
+      title: '生成方式',
+      minWidth: 120,
+      cellRender: {
+        name: 'CellDict',
+        props: { type: DICT_TYPE.AI_IMAGE_MODE },
+      },
+    },
+    {
       field: 'platform',
       title: '平台',
       minWidth: 120,
@@ -126,6 +155,18 @@ export function useGridColumns(
       },
     },
     {
+      field: 'progress',
+      title: '进度',
+      minWidth: 80,
+      formatter: ({ cellValue }) => `${cellValue ?? 0}%`,
+    },
+    {
+      field: 'parentId',
+      title: '来源',
+      minWidth: 100,
+      slots: { default: 'parentId' },
+    },
+    {
       minWidth: 100,
       title: '是否发布',
       field: 'publicStatus',
@@ -134,6 +175,8 @@ export function useGridColumns(
         attrs: { beforeChange: onPublicStatusChange },
         name: 'CellSwitch',
         props: {
+          disabled: (row: AiImageApi.Image) =>
+            row.status !== AiImageStatusEnum.SUCCESS,
           checkedValue: true,
           unCheckedValue: false,
         },
@@ -151,16 +194,6 @@ export function useGridColumns(
       formatter: 'formatDateTime',
     },
     {
-      field: 'width',
-      title: '宽度',
-      minWidth: 180,
-    },
-    {
-      field: 'height',
-      title: '高度',
-      minWidth: 180,
-    },
-    {
       field: 'errorMessage',
       title: '错误信息',
       minWidth: 180,
@@ -172,7 +205,7 @@ export function useGridColumns(
     },
     {
       title: '操作',
-      width: 130,
+      width: 160,
       fixed: 'right',
       slots: { default: 'actions' },
     },

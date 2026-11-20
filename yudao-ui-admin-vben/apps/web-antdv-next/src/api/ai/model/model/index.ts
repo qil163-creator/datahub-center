@@ -7,6 +7,8 @@ export namespace AiModelModelApi {
     id: number; // 编号
     keyId: number; // API 秘钥编号
     name: string; // 模型名字
+    description?: string; // 模型简介
+    iconUrl?: string; // 模型图标地址
     model: string; // 模型标识
     platform: string; // 模型平台
     type: number; // 模型类型
@@ -15,6 +17,20 @@ export namespace AiModelModelApi {
     temperature?: number; // 温度参数
     maxTokens?: number; // 单条回复的最大 Token 数量
     maxContexts?: number; // 上下文的最大 Message 数量
+    inputModalities?: string[]; // 输入模态数组
+    reasoningConfig?: ModelReasoningConfig; // 思考配置；为空表示未配置，simple-list 不返回
+  }
+
+  /** 思考配置 */
+  export interface ModelReasoningConfig {
+    levels: ModelReasoningLevel[]; // 档位数组，从低到高；为空表示清空
+    defaultLevel?: string; // 默认档位
+  }
+
+  /** 思考档位 */
+  export interface ModelReasoningLevel {
+    level: string; // 档位值
+    options: Record<string, unknown>; // 思考参数
   }
 }
 
@@ -27,10 +43,11 @@ export function getModelPage(params: PageParam) {
 }
 
 /** 获得模型列表 */
-export function getModelSimpleList(type?: number) {
+export function getModelSimpleList(type?: number, platform?: string) {
   return requestClient.get<AiModelModelApi.Model[]>('/ai/model/simple-list', {
     params: {
       type,
+      platform,
     },
   });
 }

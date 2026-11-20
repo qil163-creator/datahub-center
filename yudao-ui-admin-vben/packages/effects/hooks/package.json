@@ -1,6 +1,6 @@
 {
   "name": "@vben/hooks",
-  "version": "5.7.0",
+  "version": "5.8.0",
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -29,5 +29,8 @@
     "vue": "catalog:",
     "vue-router": "catalog:",
     "watermark-js-plus": "catalog:"
+  },
+  "devDependencies": {
+    "pinia": "catalog:"
   }
 }

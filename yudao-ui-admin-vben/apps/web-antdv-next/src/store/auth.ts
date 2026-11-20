@@ -6,8 +6,10 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { LOGIN_PATH } from '@vben/constants';
+import { isTenantEnable, refreshDicts } from '@vben/hooks';
 import { preferences } from '@vben/preferences';
 import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
+import { isPositiveId, parseId } from '@vben/utils';
 
 import { notification } from 'antdv-next';
 import { defineStore } from 'pinia';
@@ -41,6 +43,15 @@ export const useAuthStore = defineStore('auth', () => {
     params: Recordable<any>,
     onSuccess?: () => Promise<void> | void,
   ) {
+    if (isTenantEnable()) {
+      const tenantId = parseId(params.tenantId ?? accessStore.tenantId);
+      if (!isPositiveId(tenantId)) {
+        accessStore.setTenantId(null);
+        notification.warning({ title: '请选择有效租户' });
+        return { userInfo: null };
+      }
+      accessStore.setTenantId(tenantId);
+    }
     // 异步处理用户登录操作并获取 accessToken
     let userInfo: null | UserInfo = null;
     try {
@@ -69,6 +80,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (accessToken) {
         accessStore.setAccessToken(accessToken);
         accessStore.setRefreshToken(refreshToken);
+        // 新登录身份：废弃旧字典缓存与进行中的请求，重新加载（失败不影响登录）
+        void refreshDicts();
 
         // 获取用户信息并存储到 userStore、accessStore 中
         // TODO @芋艿：清理掉 accessCodes 相关的逻辑
@@ -120,14 +133,21 @@ export const useAuthStore = defineStore('auth', () => {
     resetAllStores();
     accessStore.setLoginExpired(false);
 
+    // 已经在登录页时不能再带 redirect：此时 currentRoute.fullPath 就是登录页本身，
+    // 再编码一层会得到「登录页?redirect=编码后的登录页」，下一次又在这个基础上再包一层，
+    // 反复登出会让 URL 逐跳变长，且没有上限。
+    // On the login page the current route is the login page itself, so carrying it as
+    // `redirect` would nest one more encoded layer on every repeat.
+    const currentRoute = router.currentRoute.value;
+    const alreadyOnLogin = currentRoute.path === LOGIN_PATH;
+
     // 回登录页带上当前路由地址
     await router.replace({
       path: LOGIN_PATH,
-      query: redirect
-        ? {
-            redirect: encodeURIComponent(router.currentRoute.value.fullPath),
-          }
-        : {},
+      query:
+        redirect && !alreadyOnLogin
+          ? { redirect: encodeURIComponent(currentRoute.fullPath) }
+          : {},
     });
   }
 

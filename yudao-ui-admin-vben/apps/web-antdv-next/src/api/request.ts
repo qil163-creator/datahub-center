@@ -75,17 +75,25 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   client.addRequestInterceptor({
     fulfilled: async (config) => {
       const accessStore = useAccessStore();
+      // 是否需要设置访问租户；该配置仅供前端请求拦截器使用，Axios 不会发送值为 false 的请求头
+      // 保留 false，刷新令牌后重新发起的请求，仍不设置访问租户
+      const isVisitTenant = config.headers.get('isVisitTenant') !== false;
+      config.headers.set('isVisitTenant', isVisitTenant ? undefined : false);
 
-      config.headers.Authorization = formatToken(accessStore.accessToken);
+      const isToken = config.headers.get('isToken') !== false;
+      // 保留 false 供响应拦截器判断匿名请求；Axios 不会发送值为 false 的请求头。
+      config.headers.set('isToken', isToken ? undefined : false);
+      config.headers.Authorization = isToken
+        ? formatToken(accessStore.accessToken)
+        : null;
       config.headers['Accept-Language'] = preferences.app.locale;
       // 添加租户编号
       config.headers['tenant-id'] = tenantEnable
         ? accessStore.tenantId
         : undefined;
       // 只有登录时，才设置 visit-tenant-id 访问租户
-      config.headers['visit-tenant-id'] = tenantEnable
-        ? accessStore.visitTenantId
-        : undefined;
+      config.headers['visit-tenant-id'] =
+        tenantEnable && isVisitTenant ? accessStore.visitTenantId : undefined;
 
       // 是否 API 加密
       if ((config.headers || {}).isEncrypt) {
@@ -181,15 +189,22 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   );
 
   // token过期的处理
-  client.addResponseInterceptor(
-    authenticateResponseInterceptor({
-      client,
-      doReAuthenticate,
-      doRefreshToken,
-      enableRefreshToken: preferences.app.enableRefreshToken,
-      formatToken,
-    }),
-  );
+  const authInterceptor = authenticateResponseInterceptor({
+    client,
+    doReAuthenticate,
+    doRefreshToken,
+    enableRefreshToken: preferences.app.enableRefreshToken,
+    formatToken,
+  });
+  client.addResponseInterceptor({
+    rejected: (error) => {
+      // 匿名扫码请求失败时重新扫码，不刷新或重试旧账号的登录态。
+      if (error.config?.headers?.get('isToken') === false) {
+        throw error;
+      }
+      return authInterceptor.rejected?.(error);
+    },
+  });
 
   // 通用的错误处理,如果没有进入上面的错误处理逻辑，就会进入这里
   client.addResponseInterceptor(
@@ -205,6 +220,12 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
       }
       // 调用方显式要求静默失败（如首页看板的可选数据源），不弹全局提示，由调用方自行降级
       if (error?.config?.silentError) {
+        return;
+      }
+      if (error?.data?.code === 901 || responseData.code === 901) {
+        message.error(
+          `${errorMessage || msg}，参考 https://doc.iocoder.cn/ 教程搭建本地环境`,
+        );
         return;
       }
       // 如果没有错误信息，则会根据状态码进行提示

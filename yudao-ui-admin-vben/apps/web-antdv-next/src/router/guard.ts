@@ -1,9 +1,10 @@
 import type { Router } from 'vue-router';
 
 import { LOGIN_PATH } from '@vben/constants';
+import { preloadDicts, setupDictHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
-import { useAccessStore, useDictStore, useUserStore } from '@vben/stores';
+import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
 
 import { message } from 'antdv-next';
@@ -29,7 +30,7 @@ function setupCommonGuard(router: Router) {
 
     // 页面加载进度条
     if (!to.meta.loaded && preferences.transition.progress) {
-      startProgress();
+      void startProgress();
     }
     return true;
   });
@@ -41,7 +42,7 @@ function setupCommonGuard(router: Router) {
 
     // 关闭页面加载进度条
     if (preferences.transition.progress) {
-      stopProgress();
+      void stopProgress();
     }
   });
 }
@@ -55,10 +56,9 @@ function setupAccessGuard(router: Router) {
     const accessStore = useAccessStore();
     const userStore = useUserStore();
     const authStore = useAuthStore();
-    const dictStore = useDictStore();
 
     // 基本路由，这些路由不需要进入权限拦截
-    if (coreRouteNames.includes(to.name as string)) {
+    if (coreRouteNames.includes(to.name)) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
         return decodeURIComponent(
           (to.query?.redirect as string) ||
@@ -97,8 +97,8 @@ function setupAccessGuard(router: Router) {
       return true;
     }
 
-    // 加载字典数据（不阻塞加载）
-    dictStore.setDictCacheByApi(getSimpleDictDataList);
+    // 加载字典数据：与用户、菜单加载并行；无缓存时在放行路由前等待，保证页面 schema 同步取到 options
+    const dictLoading = preloadDicts();
 
     // 生成路由表
     // 当前登录用户拥有的角色标识列表
@@ -128,19 +128,25 @@ function setupAccessGuard(router: Router) {
     });
 
     // 保存菜单信息和路由信息
+    await dictLoading;
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
     userStore.setUserRoles(userRoles);
     // 动态路由已生成，清理 sessionStorage 中恢复的失效标签（如已下线的概览 / 数据总览）
     await removeStaleTabs(router);
-    const redirectPath = (from.query.redirect ??
-      (to.path === preferences.app.defaultHomePath
+    // 跳转登录页时 redirect 已经 encode 过一次，所以 from.query.redirect 需要 decode 一次；
+    // to.fullPath 是路由编码后的地址，不能再 decode，否则会破坏 query（例如说，社交绑定回调的 code、state）
+    let redirectPath =
+      to.path === preferences.app.defaultHomePath
         ? userInfo?.homePath || preferences.app.defaultHomePath
-        : to.fullPath)) as string;
+        : to.fullPath;
+    if (from.query.redirect != null) {
+      redirectPath = decodeURIComponent(from.query.redirect as string);
+    }
 
     return {
-      ...router.resolve(decodeURIComponent(redirectPath)),
+      ...router.resolve(redirectPath),
       replace: true,
     };
   });
@@ -151,6 +157,8 @@ function setupAccessGuard(router: Router) {
  * @param router
  */
 function createRouterGuard(router: Router) {
+  /** 字典：注入芋道全量字典接口 */
+  setupDictHandler(getSimpleDictDataList);
   /** 通用 */
   setupCommonGuard(router);
   /** 权限访问 */

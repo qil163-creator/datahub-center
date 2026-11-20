@@ -6,6 +6,7 @@ import type { SystemMenuApi } from '#/api/system/menu';
 
 import { h } from 'vue';
 
+import { useAccess } from '@vben/access';
 import {
   CommonStatusEnum,
   DICT_TYPE,
@@ -41,7 +42,7 @@ export function useFormSchema(): VbenFormSchema[] {
           const data = await getMenuList();
           data.unshift({
             id: 0,
-            name: '顶级部门',
+            name: '顶级菜单',
           } as SystemMenuApi.Menu);
           return handleTree(data);
         },
@@ -103,7 +104,6 @@ export function useFormSchema(): VbenFormSchema[] {
         placeholder: '请选择菜单图标',
         prefix: 'carbon',
       },
-      rules: 'required',
       dependencies: {
         triggerFields: ['type'],
         resolve: ({ values }) => ({
@@ -188,9 +188,10 @@ export function useFormSchema(): VbenFormSchema[] {
     {
       fieldName: 'permission',
       label: '权限标识',
+      help: "Controller 方法上的权限字符，如：@PreAuthorize(`@ss.hasPermission('system:user:list')`)",
       component: 'Input',
       componentProps: {
-        placeholder: '请输入菜单描述',
+        placeholder: '请输入权限标识',
       },
       dependencies: {
         triggerFields: ['type'],
@@ -265,7 +266,9 @@ export function useFormSchema(): VbenFormSchema[] {
       dependencies: {
         triggerFields: ['type'],
         resolve: ({ values }) => ({
-          show: [SystemMenuTypeEnum.MENU].includes(values.type),
+          show: [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
+            values.type,
+          ),
         }),
       },
     },
@@ -295,7 +298,10 @@ export function useFormSchema(): VbenFormSchema[] {
 }
 
 /** 列表的字段 */
-export function useGridColumns(): VxeTableGridOptions<SystemMenuApi.Menu>['columns'] {
+export function useGridColumns(
+  onStatusChange: (status: number, row: SystemMenuApi.Menu) => Promise<boolean>,
+): VxeTableGridOptions<SystemMenuApi.Menu>['columns'] {
+  const { hasAccessByCodes } = useAccess();
   return [
     {
       field: 'name',
@@ -305,6 +311,12 @@ export function useGridColumns(): VxeTableGridOptions<SystemMenuApi.Menu>['colum
       fixed: 'left',
       slots: { default: 'name' },
       treeNode: true,
+    },
+    {
+      field: 'icon',
+      title: '图标',
+      width: 80,
+      slots: { default: 'icon' },
     },
     {
       field: 'type',
@@ -326,7 +338,7 @@ export function useGridColumns(): VxeTableGridOptions<SystemMenuApi.Menu>['colum
       minWidth: 200,
     },
     {
-      field: 'path',
+      field: 'component',
       title: '组件路径',
       minWidth: 200,
     },
@@ -340,8 +352,13 @@ export function useGridColumns(): VxeTableGridOptions<SystemMenuApi.Menu>['colum
       title: '状态',
       minWidth: 100,
       cellRender: {
-        name: 'CellDict',
-        props: { type: DICT_TYPE.COMMON_STATUS },
+        attrs: { beforeChange: onStatusChange },
+        name: 'CellSwitch',
+        props: {
+          disabled: !hasAccessByCodes(['system:menu:update']),
+          checkedValue: CommonStatusEnum.ENABLE,
+          unCheckedValue: CommonStatusEnum.DISABLE,
+        },
       },
     },
     {
@@ -350,6 +367,31 @@ export function useGridColumns(): VxeTableGridOptions<SystemMenuApi.Menu>['colum
       fixed: 'right',
       showOverflow: false,
       slots: { default: 'actions' },
+    },
+  ];
+}
+
+/** 列表的搜索表单 */
+export function useGridFormSchema(): VbenFormSchema[] {
+  return [
+    {
+      fieldName: 'name',
+      label: '菜单名称',
+      component: 'Input',
+      componentProps: {
+        placeholder: '请输入菜单名称',
+        allowClear: true,
+      },
+    },
+    {
+      fieldName: 'status',
+      label: '状态',
+      component: 'Select',
+      componentProps: {
+        options: getDictOptions(DICT_TYPE.COMMON_STATUS, 'number'),
+        allowClear: true,
+        placeholder: '请选择状态',
+      },
     },
   ];
 }

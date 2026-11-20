@@ -1,6 +1,6 @@
 {
   "name": "@vben/plugins",
-  "version": "5.7.0",
+  "version": "5.8.0",
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -75,6 +75,7 @@
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
     "@vueuse/motion": "catalog:",
+    "@vxe-ui/core": "catalog:",
     "codemirror": "catalog:",
     "echarts": "catalog:",
     "markdown-it": "catalog:",

@@ -177,7 +177,7 @@ function createFile0(
     type: file.type,
     size: file.size,
   };
-  createFile(fileVO);
+  void createFile(fileVO);
   return fileVO;
 }
 

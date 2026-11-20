@@ -2,24 +2,32 @@ import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { SystemUserApi } from '#/api/system/user';
 
-import { DICT_TYPE } from '@vben/constants';
+import { AiChatMessageTypeEnum, DICT_TYPE } from '@vben/constants';
 
 import { getSimpleUserList } from '#/api/system/user';
 import { getRangePickerDefaultProps } from '#/utils';
+import { formatTokenCount } from '#/views/ai/utils/format';
 
 /** 关联数据 */
 let userList: SystemUserApi.User[] = [];
-getSimpleUserList().then((data) => (userList = data));
+
+/** 刷新列表关联数据 */
+export async function refreshGridRelatedData() {
+  userList = await getSimpleUserList();
+}
 
 /** 列表的搜索表单 */
 export function useGridFormSchemaConversation(): VbenFormSchema[] {
   return [
     {
       fieldName: 'userId',
-      label: '用户编号',
-      component: 'Input',
+      label: '用户',
+      component: 'ApiSelect',
       componentProps: {
-        placeholder: '请输入用户编号',
+        api: getSimpleUserList,
+        labelField: 'nickname',
+        valueField: 'id',
+        placeholder: '请选择用户',
         allowClear: true,
       },
     },
@@ -129,7 +137,7 @@ export function useGridFormSchemaMessage(): VbenFormSchema[] {
     },
     {
       fieldName: 'userId',
-      label: '用户编号',
+      label: '用户',
       component: 'ApiSelect',
       componentProps: {
         api: getSimpleUserList,
@@ -212,6 +220,34 @@ export function useGridColumnsMessage(): VxeTableGridOptions['columns'] {
         props: { type: DICT_TYPE.INFRA_BOOLEAN_STRING },
       },
       minWidth: 100,
+    },
+    {
+      field: 'inputTokens',
+      title: '输入 Token',
+      minWidth: 100,
+      // 仅 assistant 消息有业务快照，user、system 消息不展示
+      formatter: ({ cellValue, row }) =>
+        row.type === AiChatMessageTypeEnum.ASSISTANT
+          ? formatTokenCount(cellValue)
+          : '',
+    },
+    {
+      field: 'outputTokens',
+      title: '输出 Token',
+      minWidth: 100,
+      formatter: ({ cellValue, row }) =>
+        row.type === AiChatMessageTypeEnum.ASSISTANT
+          ? formatTokenCount(cellValue)
+          : '',
+    },
+    {
+      field: 'totalTokens',
+      title: '合计 Token',
+      minWidth: 100,
+      formatter: ({ cellValue, row }) =>
+        row.type === AiChatMessageTypeEnum.ASSISTANT
+          ? formatTokenCount(cellValue)
+          : '',
     },
     {
       title: '操作',
