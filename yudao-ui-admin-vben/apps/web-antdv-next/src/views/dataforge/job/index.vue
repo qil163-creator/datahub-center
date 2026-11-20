@@ -735,7 +735,7 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                       { label: '查看日志', type: 'link', icon: 'lucide:file-text', ifShow: !!record.latestRecord, onClick: () => (logRow = record.latestRecord) },
                       { label: '执行一次', type: 'link', icon: 'lucide:play', ifShow: can('run'), onClick: () => action(record, 'run') },
                       { label: '停止运行', type: 'link', icon: 'lucide:square', ifShow: can('run') && hasActiveJobRuns(record), onClick: () => action(record, 'stop') },
-                      { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), onClick: () => action(record, 'delete') },
+                      { label: '删除', type: 'link', danger: true, icon: ACTION_ICON.DELETE, ifShow: can('delete'), disabled: record.status === 1, onClick: () => action(record, 'delete') },
                     ]"
                   />
                 </template>

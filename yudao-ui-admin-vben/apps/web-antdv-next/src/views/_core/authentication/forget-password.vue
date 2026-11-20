@@ -84,11 +84,12 @@ const formSchema = computed((): VbenFormSchema[] => {
       rules: z.string().min(1, { message: $t('authentication.tenantTip') }),
       dependencies: {
         triggerFields: ['tenantId'],
-        if: tenantEnable,
-        trigger(values) {
+        resolve: ({ values }) => {
+          if (!tenantEnable) return { if: false };
           if (values.tenantId) {
             accessStore.setTenantId(Number(values.tenantId));
           }
+          return { if: true };
         },
       },
     },
@@ -169,16 +170,18 @@ const formSchema = computed((): VbenFormSchema[] => {
         placeholder: $t('authentication.confirmPassword'),
       },
       dependencies: {
-        rules(values) {
-          const { password } = values;
-          return z
-            .string({ error: $t('authentication.passwordTip') })
-            .min(1, { message: $t('authentication.passwordTip') })
-            .refine((value) => value === password, {
-              message: $t('authentication.confirmPasswordTip'),
-            });
-        },
         triggerFields: ['password'],
+        resolve: ({ values }) => {
+          const { password } = values;
+          return {
+            rules: z
+              .string({ error: $t('authentication.passwordTip') })
+              .min(1, { message: $t('authentication.passwordTip') })
+              .refine((value) => value === password, {
+                message: $t('authentication.confirmPasswordTip'),
+              }),
+          };
+        },
       },
       fieldName: 'confirmPassword',
       label: $t('authentication.confirmPassword'),

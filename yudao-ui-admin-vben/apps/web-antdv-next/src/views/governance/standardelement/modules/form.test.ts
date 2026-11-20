@@ -72,7 +72,7 @@ vi.mock('#/adapter/form', () => ({
       setValues: async (values: object) => {
         Object.assign(harness.values, values);
       },
-      resetForm: async () => {
+      reset: async () => {
         harness.values = {};
       },
       setFieldValue: vi.fn(),

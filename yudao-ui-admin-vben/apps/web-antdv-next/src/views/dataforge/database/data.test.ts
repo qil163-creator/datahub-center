@@ -139,11 +139,17 @@ describe('editing jdbc URL dependencies', () => {
       preserveJdbcUrl: true,
       getInitialValues: () => values,
     });
-    return schema.find((field) => field.fieldName === 'jdbcUrl')!.dependencies!
-      .trigger as (
+    const resolve = schema.find((field) => field.fieldName === 'jdbcUrl')!
+      .dependencies!.resolve as (context: {
+      actions: { setFieldValue: (field: string, value: string) => void };
+      values: Partial<FoundationDatabaseApi.Database>;
+    }) => unknown;
+    return (
       current: Partial<FoundationDatabaseApi.Database>,
       form: { setFieldValue: (field: string, value: string) => void },
-    ) => void;
+    ) => {
+      resolve({ actions: form, values: current });
+    };
   }
   it('keeps a custom saved URL on initial load and after address edits', () => {
     const values = {

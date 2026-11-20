@@ -16,7 +16,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -163,7 +163,7 @@ export function useSendNotifyFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -183,10 +183,10 @@ export function useSendNotifyFormSchema(): VbenFormSchema[] {
         placeholder: '请输入用户编号',
       },
       dependencies: {
-        show(values) {
-          return values.userType === UserTypeEnum.MEMBER;
-        },
         triggerFields: ['userType'],
+        resolve: ({ values }) => ({
+          show: values.userType === UserTypeEnum.MEMBER,
+        }),
       },
       rules: 'required',
     },
@@ -201,10 +201,10 @@ export function useSendNotifyFormSchema(): VbenFormSchema[] {
         placeholder: '请选择接收人',
       },
       dependencies: {
-        show(values) {
-          return values.userType === UserTypeEnum.ADMIN;
-        },
         triggerFields: ['userType'],
+        resolve: ({ values }) => ({
+          show: values.userType === UserTypeEnum.ADMIN,
+        }),
       },
       rules: 'required',
     },
@@ -214,7 +214,7 @@ export function useSendNotifyFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
   ];

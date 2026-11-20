@@ -436,6 +436,7 @@ onBeforeUnmount(() => {
                 type: 'link',
                 danger: true,
                 icon: ACTION_ICON.DELETE,
+                disabled: row.enabled === 1,
                 auth: ['modeling:model:delete'],
                 popConfirm: {
                   title: `确认删除模型 ${row.name}？`,

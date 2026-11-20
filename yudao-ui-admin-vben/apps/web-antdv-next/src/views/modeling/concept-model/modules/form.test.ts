@@ -67,7 +67,7 @@ vi.mock('#/adapter/form', () => {
     useVbenForm: () => [
       () => h('div'),
       {
-        resetForm: async () => {
+        reset: async () => {
           harness.values = {};
         },
         setValues: async (values: Record<string, unknown>) => {

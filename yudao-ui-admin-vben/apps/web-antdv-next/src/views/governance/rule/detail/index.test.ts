@@ -75,6 +75,11 @@ vi.mock('@vben/common-ui', () => {
   calls.setData.mockReturnValue(modal);
   return { Page: box, useVbenModal: () => [box, modal] };
 });
+vi.mock('#/components/table-action', async () => ({
+  ACTION_ICON: (await import('#/components/table-action/icons')).ACTION_ICON,
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('antdv-next', () => {
   const box = defineComponent({
     setup:

@@ -136,7 +136,7 @@ async function load() {
         },
       ];
     }
-    await formApi.resetForm();
+    await formApi.reset();
     if (!current()) return;
     await formApi.setValues(
       detail
@@ -216,7 +216,7 @@ const [Modal, modalApi] = useVbenModal({
     failed.value = false;
     modalApi.unlock();
     formApi.setDisabled(false);
-    await formApi.resetForm();
+    await formApi.reset();
   },
 });
 watch(

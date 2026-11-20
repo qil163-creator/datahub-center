@@ -19,7 +19,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -81,7 +81,7 @@ export function useAssignDataPermissionFormSchema(): VbenFormSchema[] {
       fieldName: 'id',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -115,9 +115,9 @@ export function useAssignDataPermissionFormSchema(): VbenFormSchema[] {
       formItemClass: 'items-start',
       dependencies: {
         triggerFields: ['dataScope'],
-        show: (values) => {
-          return values.dataScope === SystemDataScopeEnum.DEPT_CUSTOM;
-        },
+        resolve: ({ values }) => ({
+          show: values.dataScope === SystemDataScopeEnum.DEPT_CUSTOM,
+        }),
       },
     },
   ];
@@ -131,7 +131,7 @@ export function useAssignMenuFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {

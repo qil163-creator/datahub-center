@@ -35,16 +35,18 @@ const formSchema = computed((): VbenFormSchema[] => {
         placeholder: '请再次输入新密码',
       },
       dependencies: {
-        rules(values) {
-          const { newPassword } = values;
-          return z
-            .string({ error: '请再次输入新密码' })
-            .min(1, { message: '请再次输入新密码' })
-            .refine((value) => value === newPassword, {
-              message: '两次输入的密码不一致',
-            });
-        },
         triggerFields: ['newPassword'],
+        resolve: ({ values }) => {
+          const { newPassword } = values;
+          return {
+            rules: z
+              .string({ error: '请再次输入新密码' })
+              .min(1, { message: '请再次输入新密码' })
+              .refine((value) => value === newPassword, {
+                message: '两次输入的密码不一致',
+              }),
+          };
+        },
       },
     },
   ];

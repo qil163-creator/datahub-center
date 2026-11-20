@@ -283,7 +283,7 @@ function handleCancelCorrection(correction: DataforgeFillApi.Correction) {
       </div>
     </Modal>
 
-    <Drawer v-model:open="correctionsOpen" :width="720" title="数据更正记录">
+    <Drawer v-model:open="correctionsOpen" :size="720" title="数据更正记录">
       <div class="mb-2 flex justify-end">
         <Button
           :loading="correctionsLoading"

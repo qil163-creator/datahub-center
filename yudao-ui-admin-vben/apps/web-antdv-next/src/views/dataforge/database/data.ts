@@ -113,7 +113,7 @@ export function useFormSchema(
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -133,7 +133,7 @@ export function useFormSchema(
           'databaseName',
           'databaseSchema',
         ],
-        trigger: (values, formApi) => {
+        resolve: ({ values, actions: formApi }) => {
           const type = options.getSelectedType?.();
           if (options.preserveJdbcUrl) {
             const initialUrl = buildJdbcUrlFromValues(
@@ -262,7 +262,9 @@ export function useFormSchema(
       component: 'Input',
       dependencies: {
         triggerFields: ['databaseType'],
-        show: () => hasSchemaConcept(options.getSelectedType?.()?.typeCode),
+        resolve: () => ({
+          show: hasSchemaConcept(options.getSelectedType?.()?.typeCode),
+        }),
       },
       componentProps: () => ({
         allowClear: true,

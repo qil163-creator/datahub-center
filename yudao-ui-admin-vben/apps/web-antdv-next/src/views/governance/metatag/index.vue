@@ -111,8 +111,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
               auth: ['governance:meta-tag:update'],
               onClick: handleEdit.bind(null, row),
             },
-          ]"
-          :drop-down-actions="[
             {
               label: '删除',
               type: 'link',

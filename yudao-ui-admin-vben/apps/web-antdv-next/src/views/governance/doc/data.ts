@@ -35,7 +35,7 @@ export function useFormSchema({
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -116,7 +116,7 @@ export function useFormSchema({
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -124,7 +124,7 @@ export function useFormSchema({
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -162,8 +162,10 @@ export function useFormSchema({
       },
       dependencies: {
         triggerFields: ['id'],
-        componentProps: (values) => ({
-          params: { excludeId: values.id },
+        resolve: ({ values }) => ({
+          componentProps: {
+            params: { excludeId: values.id },
+          },
         }),
       },
     },

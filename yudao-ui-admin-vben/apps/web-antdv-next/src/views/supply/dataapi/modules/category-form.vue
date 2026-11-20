@@ -42,7 +42,7 @@ function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -157,7 +157,7 @@ const [Modal, modalApi] = useVbenModal({
     formApi.setDisabled(true);
     if (!isOpen) {
       editId.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data = modalApi.getData() as SupplyApiCategoryApi.ApiCategory;
@@ -165,11 +165,12 @@ const [Modal, modalApi] = useVbenModal({
     editId.value = id;
     modalApi.lock();
     try {
-      await formApi.resetForm();
+      await formApi.reset();
       if (!load.isCurrent()) return;
-      const values = id === undefined
-        ? { parentId: data?.parentId ?? 0 }
-        : await getApiCategory(id);
+      const values =
+        id === undefined
+          ? { parentId: data?.parentId ?? 0 }
+          : await getApiCategory(id);
       if (!load.isCurrent()) return;
       await formApi.setValues(values);
       if (!load.isCurrent()) return;

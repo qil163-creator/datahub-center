@@ -58,7 +58,7 @@ vi.mock('#/adapter/form', () => ({
     return [
       () => null,
       {
-        resetForm: async () => {
+        reset: async () => {
           harness.values = {};
         },
         setValues: async (values: Record<string, unknown>) => {

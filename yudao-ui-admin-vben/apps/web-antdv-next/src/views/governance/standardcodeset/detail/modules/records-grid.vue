@@ -8,7 +8,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { useVbenModal } from '@vben/common-ui';
-import { IconifyIcon, Plus } from '@vben/icons';
+import { Plus } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -28,6 +28,7 @@ import {
   deleteCodeMapping,
   getCodeMappingPage,
 } from '#/api/governance/standardcodeset/mapping';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import StandardPagination from '../../../standardcommon/standard-pagination.vue';
@@ -239,17 +240,32 @@ watch(
           ? formatDate(record.createTime, 'YYYY-MM-DD HH:mm')
           : '-'
       }}</span>
-      <div v-else-if="column.key === 'actions'" class="standard-row-actions">
-        <Button type="link" v-if="can('update')" @click="open(record)">
-          <IconifyIcon icon="lucide:edit" />修改
-        </Button>
-        <Button type="link" danger v-if="can('delete')" @click="remove(record)">
-          <IconifyIcon icon="lucide:trash-2" />删除
-        </Button>
-        <Button type="link" @click="open(record, true)">
-          <IconifyIcon icon="lucide:eye" />详情
-        </Button>
-      </div>
+      <TableAction
+        v-else-if="column.key === 'actions'"
+        :actions="[
+          {
+            label: '详情',
+            type: 'link',
+            icon: ACTION_ICON.VIEW,
+            onClick: () => open(record, true),
+          },
+          {
+            label: '修改',
+            type: 'link',
+            icon: ACTION_ICON.EDIT,
+            ifShow: can('update'),
+            onClick: () => open(record),
+          },
+          {
+            label: '删除',
+            type: 'link',
+            danger: true,
+            icon: ACTION_ICON.DELETE,
+            ifShow: can('delete'),
+            onClick: () => remove(record),
+          },
+        ]"
+      />
       <span v-else>{{ cellText(record, column.key) }}</span>
     </template>
   </Table>
@@ -315,12 +331,7 @@ watch(
   line-height: 24px;
 }
 
-.standard-code-records :deep(.standard-row-actions .ant-btn) {
+.standard-code-records :deep(.table-actions .ant-btn) {
   height: 24px;
-}
-
-.standard-row-actions svg {
-  width: 14px;
-  height: 14px;
 }
 </style>

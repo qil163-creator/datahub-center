@@ -487,6 +487,7 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 type: 'link',
                 danger: true,
                 icon: ACTION_ICON.DELETE,
+                disabled: row.status === 0,
                 auth: ['governance:audit-rule:delete'],
                 onClick: () => handleDelete(row),
               },

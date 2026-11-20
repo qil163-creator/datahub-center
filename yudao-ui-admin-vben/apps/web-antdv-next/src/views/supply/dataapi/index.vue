@@ -689,6 +689,7 @@ onMounted(() => {
                   type: 'link',
                   danger: true,
                   icon: ACTION_ICON.DELETE,
+                  disabled: row.status === 1,
                   auth: ['supply:data-api:delete'],
                   popConfirm: {
                     title: $t('ui.actionMessage.deleteConfirm', [

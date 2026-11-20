@@ -32,6 +32,7 @@ import {
   getWorkOrderNotifyPage,
   reviewWorkOrderNotify,
 } from '#/api/governance/quality/workorder-notify';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { parseResourceId } from '#/utils/resource-id';
 
 const props = defineProps<{ workOrderId: QualityWorkOrderApi.Id }>();
@@ -395,15 +396,18 @@ onBeforeUnmount(reset);
           <template v-else-if="column.key === 'resolution'">
             {{ resolutionLabel(row(record)) }}
           </template>
-          <Button
+          <TableAction
             v-else-if="column.key === 'actions'"
-            size="small"
-            :disabled="busy"
-            @click="openDetail(row(record).id)"
-          >
-            <template #icon><IconifyIcon icon="lucide:eye" /></template>
-            查看通知详情
-          </Button>
+            :actions="[
+              {
+                label: '查看通知详情',
+                type: 'link',
+                icon: ACTION_ICON.VIEW,
+                disabled: busy,
+                onClick: () => openDetail(row(record).id),
+              },
+            ]"
+          />
         </template>
       </Table>
       <Button :disabled="loading || busy" @click="loadPage()">

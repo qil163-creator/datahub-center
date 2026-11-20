@@ -73,7 +73,10 @@ vi.mock('../standardcommon/standard-list-layout.vue', () => ({
         h('div', [slots.tree?.(), slots.default?.()]),
   }),
 }));
-vi.mock('#/adapter/vxe-table', () => ({
+vi.mock('#/adapter/vxe-table', async () => ({
+  ACTION_ICON: (await import('#/components/table-action/icons')).ACTION_ICON,
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
   useVbenVxeGrid: (options: {
     formOptions: {
       handleReset: () => Promise<void>;

@@ -28,7 +28,7 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'id',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -106,11 +106,11 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'required',
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
             values.type,
-          );
-        },
+          ),
+        }),
       },
     },
     {
@@ -124,26 +124,31 @@ export function useFormSchema(): VbenFormSchema[] {
       help: '访问的路由地址，如：`user`。如需外网地址时，则以 `http(s)://` 开头',
       dependencies: {
         triggerFields: ['type', 'parentId'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
-            values.type,
-          );
-        },
-        rules: (values) => {
+        resolve: ({ values }) => {
+          const show = [
+            SystemMenuTypeEnum.DIR,
+            SystemMenuTypeEnum.MENU,
+          ].includes(values.type);
           const schema = z.string().min(1, '路由地址不能为空');
           if (isHttpUrl(values.path)) {
-            return schema;
+            return { rules: schema, show };
           }
           if (values.parentId === 0) {
-            return schema.refine(
-              (path) => path.charAt(0) === '/',
-              '路径必须以 / 开头',
-            );
+            return {
+              rules: schema.refine(
+                (path) => path.charAt(0) === '/',
+                '路径必须以 / 开头',
+              ),
+              show,
+            };
           }
-          return schema.refine(
-            (path) => path.charAt(0) !== '/',
-            '路径不能以 / 开头',
-          );
+          return {
+            rules: schema.refine(
+              (path) => path.charAt(0) !== '/',
+              '路径不能以 / 开头',
+            ),
+            show,
+          };
         },
       },
     },
@@ -156,9 +161,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.MENU].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.MENU].includes(values.type),
+        }),
       },
     },
     {
@@ -175,9 +180,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.MENU].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.MENU].includes(values.type),
+        }),
       },
     },
     {
@@ -188,12 +193,12 @@ export function useFormSchema(): VbenFormSchema[] {
         placeholder: '请输入菜单描述',
       },
       dependencies: {
-        show: (values) => {
-          return [SystemMenuTypeEnum.BUTTON, SystemMenuTypeEnum.MENU].includes(
-            values.type,
-          );
-        },
         triggerFields: ['type'],
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.BUTTON, SystemMenuTypeEnum.MENU].includes(
+            values.type,
+          ),
+        }),
       },
     },
     {
@@ -235,11 +240,11 @@ export function useFormSchema(): VbenFormSchema[] {
       help: '选择隐藏时，路由将不会出现在侧边栏，但仍然可以访问',
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
             values.type,
-          );
-        },
+          ),
+        }),
       },
     },
     {
@@ -259,9 +264,9 @@ export function useFormSchema(): VbenFormSchema[] {
       help: '选择不是时，当该菜单只有一个子菜单时，不展示自己，直接展示子菜单',
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.MENU].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.MENU].includes(values.type),
+        }),
       },
     },
     {
@@ -281,9 +286,9 @@ export function useFormSchema(): VbenFormSchema[] {
       help: '选择缓存时，则会被 `keep-alive` 缓存，必须填写「组件名称」字段',
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [SystemMenuTypeEnum.MENU].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [SystemMenuTypeEnum.MENU].includes(values.type),
+        }),
       },
     },
   ];

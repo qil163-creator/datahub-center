@@ -868,7 +868,7 @@ onUnmounted(() => {
           </div>
         </Card>
 
-        <Card class="query-pane query-editor" :bordered="true">
+        <Card class="query-pane query-editor" variant="outlined">
           <div class="query-editor__host">
             <SqlEditor
               ref="editorRef"

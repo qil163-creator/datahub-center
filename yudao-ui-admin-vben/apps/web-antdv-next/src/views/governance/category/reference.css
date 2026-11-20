@@ -199,14 +199,6 @@
   border: 0;
 }
 
-.category-row-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
 .category-more-icon {
   margin-right: 4px;
   font-weight: 700;
@@ -321,10 +313,6 @@
 .category-sidebar,
 .category-results {
   background: hsl(var(--card));
-}
-
-.category-row-actions .ant-btn {
-  padding-inline: 4px;
 }
 
 @media (width <= 640px) {

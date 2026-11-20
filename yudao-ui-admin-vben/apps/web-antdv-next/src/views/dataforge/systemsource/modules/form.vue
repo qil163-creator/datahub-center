@@ -159,7 +159,7 @@ const [Modal, modalApi] = useVbenModal({
     if (!isOpen) {
       loading.value = true;
       formData.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     loading.value = true;
@@ -171,7 +171,7 @@ const [Modal, modalApi] = useVbenModal({
       ]);
 
       const data = modalApi.getData() as FoundationSystemSourceApi.SystemSource;
-      await formApi.resetForm();
+      await formApi.reset();
       if (!data?.id) {
         formData.value = undefined;
         await formApi.setValues({

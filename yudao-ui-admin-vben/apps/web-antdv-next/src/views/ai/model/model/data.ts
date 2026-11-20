@@ -20,7 +20,7 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'id',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -113,9 +113,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [AiModelTypeEnum.CHAT].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [AiModelTypeEnum.CHAT].includes(values.type),
+        }),
       },
       rules: 'required',
     },
@@ -131,9 +131,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [AiModelTypeEnum.CHAT].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [AiModelTypeEnum.CHAT].includes(values.type),
+        }),
       },
       rules: 'required',
     },
@@ -149,9 +149,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['type'],
-        show: (values) => {
-          return [AiModelTypeEnum.CHAT].includes(values.type);
-        },
+        resolve: ({ values }) => ({
+          show: [AiModelTypeEnum.CHAT].includes(values.type),
+        }),
       },
       rules: 'required',
     },

@@ -18,7 +18,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -78,8 +78,11 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['socialType'],
-        show: (values) =>
-          values.socialType === SystemUserSocialTypeEnum.WECHAT_ENTERPRISE.type,
+        resolve: ({ values }) => ({
+          show:
+            values.socialType ===
+            SystemUserSocialTypeEnum.WECHAT_ENTERPRISE.type,
+        }),
       },
     },
     {
@@ -91,7 +94,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['socialType'],
-        show: (values) => values.socialType === 40,
+        resolve: ({ values }) => ({ show: values.socialType === 40 }),
       },
     },
     {

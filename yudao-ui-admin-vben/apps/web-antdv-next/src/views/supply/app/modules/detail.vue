@@ -41,7 +41,7 @@ import {
 import { getDataApiSimpleList } from '#/api/supply/dataapi';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
 import ListPagination from '#/components/list-pagination/index.vue';
-import { ACTION_ICON } from '#/components/table-action/icons';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { getRangePickerDefaultProps } from '#/utils';
 import { createLatestWins, parseResourceId } from '#/utils/resource-id';
 import DetailFieldForm from '#/views/modeling/modelcommon/detail-field-form.vue';
@@ -983,29 +983,32 @@ function grantValidityText(row: SupplyAppApi.AppApi) {
                 </div>
               </template>
               <template v-else-if="column.key === 'actions'">
-                <Button
-                  v-if="canManage && canEditGrant(authRecord(record))"
-                  type="link"
-                  size="small"
-                  :disabled="mutationBusy"
-                  @click="openEditAuthForm(authRecord(record))"
-                >
-                  <IconifyIcon class="mr-1" :icon="ACTION_ICON.EDIT" />修改
-                </Button>
-                <Button
-                  v-if="
-                    canManage &&
-                    isIndependentAdminGrant(authRecord(record)) &&
-                    !isClosedAdminGrant(authRecord(record))
-                  "
-                  type="link"
-                  size="small"
-                  danger
-                  :disabled="mutationBusy"
-                  @click="handleControl(authRecord(record), 'REVOKE')"
-                >
-                  <IconifyIcon class="mr-1" :icon="ACTION_ICON.DELETE" />删除
-                </Button>
+                <TableAction
+                  :actions="[
+                    {
+                      label: '修改',
+                      type: 'link',
+                      size: 'small',
+                      icon: ACTION_ICON.EDIT,
+                      ifShow: canManage && canEditGrant(authRecord(record)),
+                      disabled: mutationBusy,
+                      onClick: () => openEditAuthForm(authRecord(record)),
+                    },
+                    {
+                      label: '删除',
+                      type: 'link',
+                      size: 'small',
+                      danger: true,
+                      icon: ACTION_ICON.DELETE,
+                      ifShow:
+                        canManage &&
+                        isIndependentAdminGrant(authRecord(record)) &&
+                        !isClosedAdminGrant(authRecord(record)),
+                      disabled: mutationBusy,
+                      onClick: () => handleControl(authRecord(record), 'REVOKE'),
+                    },
+                  ]"
+                />
                 <span
                   v-if="isClosedAdminGrant(authRecord(record))"
                   class="text-xs text-gray-500"

@@ -21,7 +21,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -73,7 +73,7 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'required',
       dependencies: {
         triggerFields: ['id'],
-        show: (values) => !values.id,
+        resolve: ({ values }) => ({ show: !values.id }),
       },
     },
     {
@@ -83,7 +83,7 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'required',
       dependencies: {
         triggerFields: ['id'],
-        show: (values) => !values.id,
+        resolve: ({ values }) => ({ show: !values.id }),
       },
     },
     {

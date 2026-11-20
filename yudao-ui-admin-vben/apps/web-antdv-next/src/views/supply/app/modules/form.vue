@@ -68,7 +68,7 @@ const [Modal, modalApi] = useVbenModal({
     if (!isOpen) return;
     modalApi.setState({ loading: true });
     try {
-      await formApi.resetForm();
+      await formApi.reset();
       if (!current()) return;
       if (data?.id) {
         const detail = await getSupplyApp(data.id);

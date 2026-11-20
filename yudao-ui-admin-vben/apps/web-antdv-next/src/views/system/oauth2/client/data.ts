@@ -14,7 +14,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -122,13 +122,15 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['scopes'],
-        componentProps: (values) => ({
-          options: values.scopes
-            ? values.scopes.map((scope: string) => ({
-                label: scope,
-                value: scope,
-              }))
-            : [],
+        resolve: ({ values }) => ({
+          componentProps: {
+            options: values.scopes
+              ? values.scopes.map((scope: string) => ({
+                  label: scope,
+                  value: scope,
+                }))
+              : [],
+          },
         }),
       },
     },

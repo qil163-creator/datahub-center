@@ -348,7 +348,7 @@ onUnmounted(() => {
       class="flex h-full min-h-0 flex-col gap-3 overflow-hidden"
     >
       <Card
-        :bordered="false"
+        variant="borderless"
         :loading="loading"
         :styles="{ body: { padding: '16px 20px' } }"
         class="detail-header shrink-0"
@@ -443,7 +443,7 @@ onUnmounted(() => {
       </Card>
 
       <Card
-        :bordered="false"
+        variant="borderless"
         :styles="{
           body: {
             display: 'flex',

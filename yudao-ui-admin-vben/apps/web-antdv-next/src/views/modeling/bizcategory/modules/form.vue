@@ -110,13 +110,13 @@ const [Modal, modalApi] = useVbenModal({
       request.begin();
       modalApi.unlock();
       formData.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data = modalApi.getData() as ModelingBizCategoryApi.BizCategory;
     identity.value = String(data?.id ?? 'new');
     const current = request.begin();
-    await formApi.resetForm();
+    await formApi.reset();
     if (!current()) return;
     if (!data?.id) {
       // 新建：支持从「新增下级」带入上级分类

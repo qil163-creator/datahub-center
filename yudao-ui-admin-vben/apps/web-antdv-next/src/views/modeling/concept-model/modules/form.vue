@@ -235,7 +235,7 @@ const [Modal, modalApi] = useVbenModal({
     design.value = emptyDesign();
     loadFailed.value = false;
     optionsFailed.value = false;
-    await formApi.resetForm();
+    await formApi.reset();
     if (!isOpen || !current()) return;
     const data = (modalApi.getData() ?? {}) as {
       dataDomainId?: ConceptModelApi.Id;

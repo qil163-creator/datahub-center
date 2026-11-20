@@ -57,7 +57,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -65,7 +65,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -73,7 +73,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -81,7 +81,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -89,7 +89,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -102,7 +102,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['createMode', 'id'],
-        show: (values) => values.createMode === 'layer' && !values.id,
+        resolve: ({ values }) => ({
+          show: values.createMode === 'layer' && !values.id,
+        }),
       },
     },
     {
@@ -128,7 +130,7 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'selectRequired',
       dependencies: {
         triggerFields: ['id', 'nodeType', 'createMode'],
-        show: (values) => !!values.id && isLayerNode(values),
+        resolve: ({ values }) => ({ show: !!values.id && isLayerNode(values) }),
       },
     },
     {
@@ -150,7 +152,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['nodeType'],
-        show: isLayerNode,
+        resolve: ({ values }) => ({ show: isLayerNode(values) }),
       },
     },
     {
@@ -163,7 +165,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['nodeType'],
-        show: isLayerNode,
+        resolve: ({ values }) => ({ show: isLayerNode(values) }),
       },
     },
     {
@@ -177,7 +179,7 @@ export function useFormSchema(): VbenFormSchema[] {
       }),
       dependencies: {
         triggerFields: ['nodeType'],
-        show: isLayerNode,
+        resolve: ({ values }) => ({ show: isLayerNode(values) }),
       },
     },
     {
@@ -237,7 +239,7 @@ export function useFormSchema(): VbenFormSchema[] {
       }),
       dependencies: {
         triggerFields: ['id'],
-        show: (values) => !!values.id,
+        resolve: ({ values }) => ({ show: !!values.id }),
       },
     },
   ];

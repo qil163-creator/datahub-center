@@ -63,7 +63,7 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
       alert.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     alert.value = modalApi.getData() as SafetySecurityApi.AccessAlert;

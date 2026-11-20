@@ -86,7 +86,7 @@ vi.mock('#/adapter/form', () => ({
         setValues: async (values: Record<string, unknown>) => {
           mock.values = { ...values };
         },
-        resetForm: async () => {
+        reset: async () => {
           mock.values = {};
         },
       },

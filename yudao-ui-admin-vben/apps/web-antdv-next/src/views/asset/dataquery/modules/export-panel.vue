@@ -232,7 +232,7 @@ onBeforeUnmount(() => guard.invalidate());
   <Drawer
     :open="listOpen"
     title="我的导出"
-    width="720"
+    :size="720"
     @close="listOpen = false"
   >
     <Table

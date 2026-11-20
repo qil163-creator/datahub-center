@@ -27,7 +27,9 @@ vi.mock('@vben/access', () => ({
   useAccess: () => ({ hasAccessByCodes: () => true }),
 }));
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: harness.push }) }));
-vi.mock('#/adapter/business-vxe-table', () => ({
+vi.mock('#/adapter/business-vxe-table', async () => ({
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
   NativeVxeButton: defineComponent({
     setup(_, { attrs }) {
       return () => h('button', attrs);

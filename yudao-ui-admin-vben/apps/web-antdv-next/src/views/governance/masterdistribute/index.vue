@@ -785,10 +785,11 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['governance:master-distribute:delete'],
-              disabled: isRunBlocked(row) || isRowPending(row),
-              ifShow: row.status !== 1,
+              disabled:
+                row.status === 1 || isRunBlocked(row) || isRowPending(row),
               popConfirm: {
-                disabled: isRunBlocked(row) || isRowPending(row),
+                disabled:
+                  row.status === 1 || isRunBlocked(row) || isRowPending(row),
                 title: $t('ui.actionMessage.deleteConfirm', [row.name]),
                 confirm: handleDelete.bind(null, row),
               },

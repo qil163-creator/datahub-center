@@ -114,7 +114,7 @@ const [Modal, modalApi] = useVbenModal({
     loadError.value = '';
     saving.value = false;
     modalApi.unlock();
-    await formApi.resetForm();
+    await formApi.reset();
     if (!open || current !== revision) return;
     const data = modalApi.getData() as
       | undefined

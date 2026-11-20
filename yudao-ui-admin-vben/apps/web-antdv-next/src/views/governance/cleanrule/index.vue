@@ -27,7 +27,11 @@ import {
   Tree,
 } from 'antdv-next';
 
-import { useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import { getCategoryCleanRuleList } from '#/api/governance/categorycleanrule';
 import {
   deleteCleanRule,
@@ -421,9 +425,9 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           type="text"
           @click="handleCategorySelect([])"
         >
-          <template #icon
-            ><IconifyIcon icon="lucide:folder-open" class="text-primary"
-          /></template>
+          <template #icon>
+            <IconifyIcon icon="lucide:folder-open" class="text-primary" />
+          </template>
           清洗规则类目
         </Button>
         <Tree
@@ -459,14 +463,17 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
 
       <Grid class="min-h-0 flex-1" table-title="清洗规则管理">
         <template #toolbar-tools>
-          <Button
-            v-access:code="'governance:clean-rule:create'"
-            type="primary"
-            @click="ruleFormRef?.open(undefined, selectedCategoryId)"
-          >
-            <template #icon><IconifyIcon icon="lucide:plus" /></template>
-            新增
-          </Button>
+          <TableAction
+            :actions="[
+              {
+                label: '新增',
+                type: 'primary',
+                icon: ACTION_ICON.ADD,
+                auth: ['governance:clean-rule:create'],
+                onClick: () => ruleFormRef?.open(undefined, selectedCategoryId),
+              },
+            ]"
+          />
         </template>
         <template #category="{ row }">
           <Tag color="blue">{{ row.categoryName ?? '-' }}</Tag>
@@ -488,38 +495,33 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
           />
         </template>
         <template #actions="{ row }">
-          <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-            <Button
-              :disabled="!row.engineSupported"
-              size="small"
-              type="link"
-              @click="testModalRef?.open(row)"
-            >
-              <template #icon>
-                <IconifyIcon icon="lucide:flask-conical" />
-              </template>
-              测试
-            </Button>
-            <Button
-              v-access:code="'governance:clean-rule:update'"
-              size="small"
-              type="link"
-              @click="ruleFormRef?.open(row.id)"
-            >
-              <template #icon><IconifyIcon icon="lucide:edit" /></template>
-              编辑
-            </Button>
-            <Button
-              v-access:code="'governance:clean-rule:delete'"
-              danger
-              size="small"
-              type="link"
-              @click="handleDelete(row)"
-            >
-              <template #icon><IconifyIcon icon="lucide:trash-2" /></template>
-              删除
-            </Button>
-          </div>
+          <TableAction
+            :actions="[
+              {
+                label: '测试',
+                type: 'link',
+                icon: 'lucide:flask-conical',
+                disabled: !row.engineSupported,
+                onClick: () => testModalRef?.open(row),
+              },
+              {
+                label: '编辑',
+                type: 'link',
+                icon: ACTION_ICON.EDIT,
+                auth: ['governance:clean-rule:update'],
+                onClick: () => ruleFormRef?.open(row.id),
+              },
+              {
+                label: '删除',
+                type: 'link',
+                danger: true,
+                icon: ACTION_ICON.DELETE,
+                auth: ['governance:clean-rule:delete'],
+                disabled: row.status === 0,
+                onClick: () => handleDelete(row),
+              },
+            ]"
+          />
         </template>
       </Grid>
     </StandardListLayout>

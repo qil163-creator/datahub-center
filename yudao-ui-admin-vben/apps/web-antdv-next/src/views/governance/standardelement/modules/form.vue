@@ -104,7 +104,7 @@ const [Modal, modalApi] = useVbenModal({
       identity.value = 'closed';
       formData.value = undefined;
       modalApi.unlock();
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data =

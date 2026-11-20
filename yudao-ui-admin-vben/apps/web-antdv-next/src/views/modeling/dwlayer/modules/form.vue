@@ -191,12 +191,12 @@ const [Modal, modalApi] = useVbenModal({
     if (!isOpen) {
       formData.value = undefined;
       createMode.value = 'category';
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
 
     const data = modalApi.getData() as DwLayerFormData;
-    await formApi.resetForm();
+    await formApi.reset();
     if (!current()) return;
 
     if (!data?.id) {

@@ -378,7 +378,7 @@ defineExpose({ open, close });
 </script>
 
 <template>
-  <Drawer :open="visible" title="本人文件输出回执" :width="1100" @close="close">
+  <Drawer :open="visible" title="本人文件输出回执" :size="1100" @close="close">
     <Alert
       type="info"
       show-icon

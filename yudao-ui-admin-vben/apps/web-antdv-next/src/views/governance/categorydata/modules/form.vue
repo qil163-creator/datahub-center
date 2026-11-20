@@ -113,7 +113,7 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.unlock();
     if (!isOpen) {
       formData.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     // 加载数据

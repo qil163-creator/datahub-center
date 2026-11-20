@@ -37,7 +37,7 @@ function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -151,12 +151,12 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
       formData.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data =
       modalApi.getData() as FoundationCategoryDataAssetApi.CategoryDataAsset;
-    await formApi.resetForm();
+    await formApi.reset();
     if (!data?.id) {
       await formApi.setValues({ parentId: data?.parentId ?? 0 });
       return;

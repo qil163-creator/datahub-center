@@ -202,6 +202,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
                   type: 'link',
                   danger: true,
                   icon: ACTION_ICON.DELETE,
+                  disabled: row.status === 0,
                   auth: ['governance:quality-task-template:delete'],
                   popConfirm: {
                     title: `确认删除任务模板「${row.templateName}」吗？`,

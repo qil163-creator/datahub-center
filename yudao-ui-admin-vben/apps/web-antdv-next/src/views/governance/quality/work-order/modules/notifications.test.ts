@@ -42,6 +42,11 @@ vi.mock('#/api/governance/quality/workorder-notify', () => ({
   reviewWorkOrderNotify: vi.fn(),
   authorizeWorkOrderNotifyRetry: vi.fn(),
 }));
+vi.mock('#/components/table-action', async () => ({
+  ACTION_ICON: (await import('#/components/table-action/icons')).ACTION_ICON,
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('antdv-next', () => {
   const slot = (tag: string) =>
     defineComponent({

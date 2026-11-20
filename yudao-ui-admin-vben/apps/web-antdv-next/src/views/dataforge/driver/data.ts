@@ -20,10 +20,11 @@ export const DRIVER_SOURCE_BUILTIN = 'BUILTIN';
 export const DRIVER_SOURCE_UPLOAD = 'UPLOAD';
 
 /** 上传驱动时显示驱动文件相关字段 */
-const uploadDriverDependencies = {
+const uploadDriverDependencies: VbenFormSchema['dependencies'] = {
   triggerFields: ['driverSource'],
-  show: (values: { driverSource?: string }) =>
-    values.driverSource === DRIVER_SOURCE_UPLOAD,
+  resolve: ({ values }) => ({
+    show: values.driverSource === DRIVER_SOURCE_UPLOAD,
+  }),
 };
 
 /** 表单分组标题 */
@@ -56,7 +57,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     createSectionDivider('basicDivider', '基本信息'),
@@ -166,12 +167,13 @@ export function useFormSchema(): VbenFormSchema[] {
       formItemClass: 'col-span-2',
       dependencies: {
         triggerFields: ['driverSource'],
-        show: (values: { driverSource?: string }) =>
-          values.driverSource === DRIVER_SOURCE_UPLOAD,
-        rules: (values: { driverSource?: string }) =>
-          values.driverSource === DRIVER_SOURCE_UPLOAD
-            ? z.string().min(1, '请上传驱动Jar文件')
-            : null,
+        resolve: ({ values }) => {
+          const upload = values.driverSource === DRIVER_SOURCE_UPLOAD;
+          return {
+            rules: upload ? z.string().min(1, '请上传驱动Jar文件') : null,
+            show: upload,
+          };
+        },
       },
       componentProps: {
         maxNumber: 1,
@@ -185,7 +187,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -193,7 +195,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'InputNumber',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -201,7 +203,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     createSectionDivider('otherDivider', '其他设置'),

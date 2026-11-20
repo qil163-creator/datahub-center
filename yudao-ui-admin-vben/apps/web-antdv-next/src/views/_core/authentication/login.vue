@@ -133,11 +133,12 @@ const formSchema = computed((): VbenFormSchema[] => {
       rules: z.string().min(1, { message: $t('authentication.tenantTip') }),
       dependencies: {
         triggerFields: ['tenantId'],
-        if: tenantEnable,
-        trigger(values) {
+        resolve: ({ values }) => {
+          if (!tenantEnable) return { if: false };
           if (values.tenantId) {
             accessStore.setTenantId(Number(values.tenantId));
           }
+          return { if: true };
         },
       },
     },

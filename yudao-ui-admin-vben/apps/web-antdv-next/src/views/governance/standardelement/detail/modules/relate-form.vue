@@ -196,7 +196,7 @@ const [Modal, modalApi] = useVbenModal({
     if (!isOpen) {
       requests.begin();
       elementId.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data = modalApi.getData() as {

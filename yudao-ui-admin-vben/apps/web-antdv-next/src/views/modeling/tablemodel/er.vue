@@ -316,8 +316,8 @@ watch(
     <Drawer
       :open="!!editingId"
       title="模型设计"
-      width="90vw"
-      :mask-closable="false"
+      size="90vw"
+      :mask="{ closable: false }"
       destroy-on-hidden
       @close="closeEditor"
     >

@@ -24,6 +24,7 @@ import {
   resolveBatchFileRun,
 } from '#/api/dataforge/batchfile';
 import { createCommandTracker } from '#/api/dataforge/execution/command';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
 import { activeRun, idOf, statusOf } from '../model';
@@ -229,7 +230,6 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="bf-run-list">
-
     <GridTools
       v-model:visible="visible"
       :columns="columns"
@@ -295,9 +295,16 @@ onBeforeUnmount(() => {
                 }}</span>
               </td>
               <td v-if="visible.includes('actions')" class="bf-sticky-actions">
-                <button class="bf-link" @click="detail(run.id)">
-                  <ReferenceIcon name="eye" />详情 / 日志
-                </button>
+                <TableAction
+                  :actions="[
+                    {
+                      label: '详情 / 日志',
+                      type: 'link',
+                      icon: ACTION_ICON.VIEW,
+                      onClick: () => detail(run.id),
+                    },
+                  ]"
+                />
               </td>
             </tr>
           </tbody>
@@ -319,7 +326,6 @@ onBeforeUnmount(() => {
       :footer="null"
       >
 <div class="qdata-batch-file bf-modal-body">
-
         <Spin :spinning="detailLoading">
 <template v-if="selected">
 <div class="bf-actions mb-4">

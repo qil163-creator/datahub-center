@@ -59,7 +59,7 @@ const [Modal, modalApi] = useVbenModal({
     detail.value = undefined;
     boundDocument.value = undefined;
     modalApi.setState({ confirmDisabled: true });
-    await formApi.resetForm();
+    await formApi.reset();
     if (!open || !current()) {
       modalApi.unlock();
       return;

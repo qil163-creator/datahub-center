@@ -180,7 +180,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -216,7 +216,7 @@ export function useFormSchema(): VbenFormSchema[] {
       defaultValue: 'ALL',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -248,7 +248,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['subjectType'],
-        show: (values) => values.subjectType === 'USER',
+        resolve: ({ values }) => ({ show: values.subjectType === 'USER' }),
       },
     },
     {
@@ -266,7 +266,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['subjectType'],
-        show: (values) => values.subjectType === 'ROLE',
+        resolve: ({ values }) => ({ show: values.subjectType === 'ROLE' }),
       },
     },
     {
@@ -288,7 +288,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['subjectType'],
-        show: (values) => values.subjectType === 'DEPT',
+        resolve: ({ values }) => ({ show: values.subjectType === 'DEPT' }),
       },
     },
     {

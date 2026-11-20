@@ -15,7 +15,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { useTabs } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 
 import { Alert, Button, message, Spin, Tabs, Tag } from 'antdv-next';
 
@@ -25,7 +24,7 @@ import {
   getSafetyRuleSensitiveRows,
 } from '#/api/governance/rule/workbench';
 import DetailBackButton from '#/components/detail-back-button/index.vue';
-import { ACTION_ICON } from '#/components/table-action';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import {
   createLatestWins,
   parseResourceId,
@@ -262,15 +261,16 @@ onBeforeUnmount(() => {
       /><Alert v-else-if="error" :message="error" type="error">
         <template #action>
           <Button @click="load">重试</Button>
-        </template> </Alert
-      ><Spin :spinning="loading">
+        </template>
+      </Alert><Spin :spinning="loading">
         <section v-if="row" class="safety-rule-overview">
           <header class="safety-rule-heading">
-            <span class="safety-rule-id">{{ ruleDisplayId(row) }}</span
-            ><strong>{{ row.ruleName }}</strong
-            ><Tag class="category-soft-tag">
-              {{ row.status === 0 ? '启用' : '禁用' }} </Tag
-            ><DetailBackButton @click="back" />
+            <span class="safety-rule-id">{{ ruleDisplayId(row) }}</span>
+            <strong>{{ row.ruleName }}</strong>
+            <Tag class="category-soft-tag">
+              {{ row.status === 0 ? '启用' : '禁用' }}
+            </Tag>
+            <DetailBackButton @click="back" />
           </header>
           <table>
             <tbody>
@@ -279,14 +279,11 @@ onBeforeUnmount(() => {
                 <td>{{ row.categoryName || '-' }}</td>
                 <td class="label">应用场景</td>
                 <td>
-                  <span class="safety-scene-tags"
-                    ><Tag
+                  <span class="safety-scene-tags"><Tag
                       v-for="scene in row.applicationScene"
                       :key="scene"
                       class="category-soft-tag"
-                      >{{ SCENE_LABELS[scene] || scene }}</Tag
-                    ></span
-                  >
+                      >{{ SCENE_LABELS[scene] || scene }}</Tag></span>
                 </td>
                 <td class="label">脱敏方式</td>
                 <td><Tag class="category-soft-tag">展示脱敏</Tag></td>
@@ -335,8 +332,9 @@ onBeforeUnmount(() => {
           <template #empty>
             <div class="safety-rule-empty">
               <img :src="emptyImage" alt="" /><span>暂无记录</span>
-            </div> </template
-          ><template #bodyCell="{ column, record }">
+            </div>
+          </template>
+          <template #bodyCell="{ column, record }">
             <span v-if="column.key === 'id'">{{
               record.sourceRecordId || resourceIdKey(record.id)
             }}</span>
@@ -349,11 +347,11 @@ onBeforeUnmount(() => {
             </div>
             <span v-else-if="column.key === 'tableName'">{{
               record.tableName || '-'
-            }}</span
-            ><span v-else-if="column.key === 'columnName'">{{
+            }}</span>
+            <span v-else-if="column.key === 'columnName'">{{
               record.columnName || '-'
-            }}</span
-            ><ReferenceLevel
+            }}</span>
+            <ReferenceLevel
               v-else-if="column.key === 'dataLevel'"
               :level="record.levelName"
               :color="record.levelColor"
@@ -361,43 +359,38 @@ onBeforeUnmount(() => {
               v-else-if="column.key === 'status'"
               class="category-soft-tag"
             >
-              {{ record.status === 0 ? '启用' : '禁用' }} </Tag
-            ><span v-else-if="column.key === 'creatorName'">{{
+              {{ record.status === 0 ? '启用' : '禁用' }}
+            </Tag>
+            <span v-else-if="column.key === 'creatorName'">{{
               record.creatorName || '-'
-            }}</span
-            ><span v-else-if="column.key === 'createTime'">{{
+            }}</span>
+            <span v-else-if="column.key === 'createTime'">{{
               categoryTime(record.createTime)
             }}</span>
-            <div
+            <TableAction
               v-else-if="column.key === 'actions'"
-              class="category-row-actions"
-            >
-              <Button
-                v-if="canSensitive('query')"
-                type="link"
-                @click="showSensitive(record)"
-              >
-                <template #icon>
-                  <IconifyIcon :icon="ACTION_ICON.VIEW" />
-                </template>
-                详情
-              </Button>
-              <Button
-                v-if="canSensitive('delete')"
-                type="link"
-                danger
-                :disabled="
-                  record.status !== 1 || !validCategoryRevision(record.revision)
-                "
-                :loading="pending.has(resourceIdKey(record.id))"
-                @click="removeSensitive(record)"
-              >
-                <template #icon>
-                  <IconifyIcon :icon="ACTION_ICON.DELETE" />
-                </template>
-                删除
-              </Button>
-            </div>
+              :actions="[
+                {
+                  label: '详情',
+                  type: 'link',
+                  icon: ACTION_ICON.VIEW,
+                  ifShow: canSensitive('query'),
+                  onClick: () => showSensitive(record),
+                },
+                {
+                  label: '删除',
+                  type: 'link',
+                  danger: true,
+                  icon: ACTION_ICON.DELETE,
+                  ifShow: canSensitive('delete'),
+                  disabled:
+                    record.status !== 1 ||
+                    !validCategoryRevision(record.revision),
+                  loading: pending.has(resourceIdKey(record.id)),
+                  onClick: () => removeSensitive(record),
+                },
+              ]"
+            />
           </template>
         </SafetyWorkbench>
         <table v-else class="safety-rule-info">

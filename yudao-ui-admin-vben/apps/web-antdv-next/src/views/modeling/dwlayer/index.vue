@@ -503,7 +503,9 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
                   danger: true,
                   auth: ['modeling:dwlayer:delete'],
                   ifShow: row.isBuiltin !== 1,
-                  disabled: busyIds.has(String(row.id)),
+                  disabled:
+                    row.status === CommonStatusEnum.ENABLE ||
+                    busyIds.has(String(row.id)),
                   popConfirm: {
                     title: `确认删除「${row.layerName}」？`,
                     confirm: () => handleDelete(row),
@@ -586,7 +588,9 @@ async function handleStatus(row: FoundationDwLayerApi.DwLayer) {
                   danger: true,
                   auth: ['modeling:dwlayer:delete'],
                   ifShow: record.isBuiltin !== 1,
-                  disabled: busyIds.has(String(record.id)),
+                  disabled:
+                    record.status === CommonStatusEnum.ENABLE ||
+                    busyIds.has(String(record.id)),
                   popConfirm: {
                     title: `确认删除分类「${record.layerName}」？`,
                     confirm: () => handleDelete(record),

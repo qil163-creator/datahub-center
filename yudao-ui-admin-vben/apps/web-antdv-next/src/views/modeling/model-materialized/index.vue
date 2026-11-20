@@ -17,13 +17,12 @@ import { useRouter } from 'vue-router';
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { useAntdDesignTokens } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
 import { Button, Checkbox, ConfigProvider } from 'antdv-next';
 
-import { NativeVxeButton } from '#/adapter/business-vxe-table';
+import { NativeVxeButton, TableAction } from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import {
   getModelMaterializedCatTree,
@@ -38,8 +37,6 @@ import dmIcon from '../logictable/assets/db-dm.svg';
 import dorisIcon from '../logictable/assets/db-doris.svg';
 import postgresqlIcon from '../logictable/assets/db-postgresql.svg';
 import { LOGIC_TABLE_PAGES } from '../logictable/config';
-import { QdIcon } from '../logictable/icons';
-import republishIcon from './assets/republish.svg';
 import publishIcon from './assets/send-plane.svg';
 import CategoryTree from './modules/category-tree.vue';
 import PublishModal from './modules/publish-modal.vue';
@@ -661,42 +658,44 @@ const themeConfig = computed(() => ({
                                   'YYYY-MM-DD HH:mm',
                                 )
                           }}</span>
-                          <template v-else-if="column.key === 'action'">
-                          <Button
-type="link"
-                            v-if="canQuery"
-                            @click="openDetail(row)"
-                          >
-                            <IconifyIcon class="qd-icon" :icon="ACTION_ICON.VIEW" /><span>详情</span>
-</Button><Button
-type="link"
-                            v-if="canPublish && recoveryAction(row)"
-                            @click="recoveryModal?.open(row)"
-                          >
-                            <QdIcon name="search" /><span>核验结果</span>
-</Button><Button
-type="link"
-                            v-else-if="
-                              canPublish && !isUnresolvedMaterialization(row)
-                            "
-                            @click="
-                              materializedStatus(row) === 'UNPUBLISHED'
-                                ? publishModal?.open(row.modelId)
-                                : publishModal?.openRepublish(row)
-                            "
-                          >
-                            <span
-                              class="materialized-action-icon"
-                              :style="{
-                                maskImage: `url(&quot;${materializedStatus(row) === 'UNPUBLISHED' ? publishIcon : republishIcon}&quot;)`,
-                              }"
-                            ></span><span>{{
-                              materializedStatus(row) === 'UNPUBLISHED'
-                                ? '发布模型'
-                                : '重新发布'
-                            }}</span>
-                          </Button>
-                          </template>
+                          <TableAction
+                            v-else-if="column.key === 'action'"
+                            :actions="[
+                              {
+                                label: '详情',
+                                type: 'link',
+                                icon: ACTION_ICON.VIEW,
+                                ifShow: canQuery,
+                                onClick: () => openDetail(row),
+                              },
+                              {
+                                label: '核验结果',
+                                type: 'link',
+                                icon: 'lucide:search',
+                                ifShow: canPublish && !!recoveryAction(row),
+                                onClick: () => recoveryModal?.open(row),
+                              },
+                              {
+                                label:
+                                  materializedStatus(row) === 'UNPUBLISHED'
+                                    ? '发布模型'
+                                    : '重新发布',
+                                type: 'link',
+                                icon:
+                                  materializedStatus(row) === 'UNPUBLISHED'
+                                    ? 'lucide:send'
+                                    : 'lucide:refresh-cw',
+                                ifShow:
+                                  canPublish &&
+                                  !recoveryAction(row) &&
+                                  !isUnresolvedMaterialization(row),
+                                onClick: () =>
+                                  materializedStatus(row) === 'UNPUBLISHED'
+                                    ? publishModal?.open(row.modelId)
+                                    : publishModal?.openRepublish(row),
+                              },
+                            ]"
+                          />
                         </div>
                       </td>
                     </tr>

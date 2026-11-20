@@ -61,7 +61,7 @@ defineExpose({ open, close });
 <template>
   <Drawer
     v-model:open="visible"
-    :width="860"
+    :size="860"
     destroy-on-hidden
     :title="`使用趋势 · ${metric?.assetName ?? ''}`"
     @close="close"

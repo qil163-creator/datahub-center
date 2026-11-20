@@ -56,7 +56,7 @@ vi.mock('#/adapter/form', () => ({
       validate: async () => ({ valid: state.values.codeSetId !== undefined }),
       getValues: async () => ({ ...state.values }),
       setValues: async (values: object) => { Object.assign(state.values, values); },
-      resetForm: async () => { state.values = {}; },
+      reset: async () => { state.values = {}; },
     }];
   },
 }));

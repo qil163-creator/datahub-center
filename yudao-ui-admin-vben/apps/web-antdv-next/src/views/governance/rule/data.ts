@@ -35,7 +35,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     // 规则来源固定为自定义，内置规则仅由初始化脚本产生
@@ -45,7 +45,7 @@ export function useFormSchema(): VbenFormSchema[] {
       defaultValue: 'CUSTOM',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -69,7 +69,7 @@ export function useFormSchema(): VbenFormSchema[] {
       // 算法类型不允许跨版本变更，编辑时禁止修改
       dependencies: {
         triggerFields: ['id'],
-        disabled: (values) => !!values.id,
+        resolve: ({ values }) => ({ disabled: !!values.id }),
       },
     },
     // ==================== 自定义掩码 MASK ====================
@@ -82,7 +82,7 @@ export function useFormSchema(): VbenFormSchema[] {
       formItemClass: 'col-span-2',
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'MASK',
+        resolve: ({ values }) => ({ show: values.methodCode === 'MASK' }),
       },
       description: '从起始位到截止位的字符替换为掩码字符，下标从 1 开始',
     },
@@ -96,7 +96,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'MASK',
+        resolve: ({ values }) => ({ show: values.methodCode === 'MASK' }),
       },
     },
     // ==================== 随机偏移 RANDOM_OFFSET ====================
@@ -116,7 +116,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'RANDOM_OFFSET',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'RANDOM_OFFSET',
+        }),
       },
     },
     {
@@ -132,7 +134,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'RANDOM_OFFSET',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'RANDOM_OFFSET',
+        }),
       },
       description: '开启后偏移数可为负数（不含 0）',
     },
@@ -151,7 +155,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => REPLACE_ITEM_METHODS.includes(values.methodCode),
+        resolve: ({ values }) => ({
+          show: REPLACE_ITEM_METHODS.includes(values.methodCode),
+        }),
       },
       description:
         '完全匹配：字段值与匹配值完全相等时替换；模糊匹配：字段值包含匹配值时替换',
@@ -164,7 +170,9 @@ export function useFormSchema(): VbenFormSchema[] {
       formItemClass: 'col-span-2',
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => REPLACE_ITEM_METHODS.includes(values.methodCode),
+        resolve: ({ values }) => ({
+          show: REPLACE_ITEM_METHODS.includes(values.methodCode),
+        }),
       },
     },
     // ==================== 随机替换 RANDOM_REPLACE ====================
@@ -178,7 +186,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'RANDOM_REPLACE',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'RANDOM_REPLACE',
+        }),
       },
     },
     {
@@ -193,7 +203,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'RANDOM_REPLACE',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'RANDOM_REPLACE',
+        }),
       },
     },
     // ==================== 降低精度 REDUCE_PRECISION ====================
@@ -212,7 +224,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'REDUCE_PRECISION',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'REDUCE_PRECISION',
+        }),
       },
       description: '数字截断小数位；日期时间将秒、分等低位精度置零',
     },
@@ -232,7 +246,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'TRUNCATE',
+        resolve: ({ values }) => ({ show: values.methodCode === 'TRUNCATE' }),
       },
     },
     // ==================== 正则替换 REGEX ====================
@@ -246,7 +260,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'REGEX',
+        resolve: ({ values }) => ({ show: values.methodCode === 'REGEX' }),
       },
     },
     {
@@ -258,7 +272,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'REGEX',
+        resolve: ({ values }) => ({ show: values.methodCode === 'REGEX' }),
       },
     },
     // ==================== 哈希 HASH ====================
@@ -273,7 +287,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'HASH',
+        resolve: ({ values }) => ({ show: values.methodCode === 'HASH' }),
       },
     },
     // ==================== 加解密 ENCRYPT ====================
@@ -293,7 +307,7 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode'],
-        show: (values) => values.methodCode === 'ENCRYPT',
+        resolve: ({ values }) => ({ show: values.methodCode === 'ENCRYPT' }),
       },
       description:
         '字段加密使用密钥中心派生的 SM4 密钥，规则中不保存密钥；Base64 可逆；Digest 与 SM3 为摘要；SM2 只需公钥。对称密钥不再允许写在规则里',
@@ -309,8 +323,10 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode', 'encryptType'],
-        show: (values) =>
-          values.methodCode === 'ENCRYPT' && values.encryptType === 'DIGEST',
+        resolve: ({ values }) => ({
+          show:
+            values.methodCode === 'ENCRYPT' && values.encryptType === 'DIGEST',
+        }),
       },
     },
     {
@@ -327,8 +343,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode', 'encryptType'],
-        show: (values) =>
-          values.methodCode === 'ENCRYPT' && values.encryptType === 'SM',
+        resolve: ({ values }) => ({
+          show: values.methodCode === 'ENCRYPT' && values.encryptType === 'SM',
+        }),
       },
     },
     {
@@ -342,10 +359,12 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode', 'encryptType', 'smAlgorithm'],
-        show: (values) =>
-          values.methodCode === 'ENCRYPT' &&
-          values.encryptType === 'SM' &&
-          values.smAlgorithm === 'SM2',
+        resolve: ({ values }) => ({
+          show:
+            values.methodCode === 'ENCRYPT' &&
+            values.encryptType === 'SM' &&
+            values.smAlgorithm === 'SM2',
+        }),
       },
     },
     {
@@ -361,8 +380,10 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['methodCode', 'encryptType'],
-        show: (values) =>
-          values.methodCode === 'ENCRYPT' && values.encryptType === 'KEY_REF',
+        resolve: ({ values }) => ({
+          show:
+            values.methodCode === 'ENCRYPT' && values.encryptType === 'KEY_REF',
+        }),
       },
     },
     // ==================== 通用字段 ====================

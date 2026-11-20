@@ -32,7 +32,7 @@ vi.mock('#/adapter/form', () => ({
   useVbenForm: () => [() => null, {
     validate: vi.fn(async () => ({ valid: true })),
     getValues: async () => ({ ...state.values }),
-    resetForm: vi.fn(),
+    reset: vi.fn(),
     setFieldValue: vi.fn(),
     setValues: async (values: Record<string, unknown>) => { state.values = { ...values }; },
   }],

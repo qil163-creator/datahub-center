@@ -21,7 +21,7 @@ export function useFormSchema(
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -98,7 +98,7 @@ export function useFormSchema(
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -117,15 +117,17 @@ export function useFormSchema(
       },
       dependencies: {
         triggerFields: ['deptId'],
-        componentProps(values) {
+        resolve: ({ values }) => {
           const deptId = values.deptId;
           return {
-            allowClear: true,
-            showSearch: true,
-            optionFilterProp: 'label',
-            disabled: !deptId,
-            options: getOwnerOptions(deptId),
-            placeholder: deptId ? '请选择负责人' : '请先选择所属部门',
+            componentProps: {
+              allowClear: true,
+              showSearch: true,
+              optionFilterProp: 'label',
+              disabled: !deptId,
+              options: getOwnerOptions(deptId),
+              placeholder: deptId ? '请选择负责人' : '请先选择所属部门',
+            },
           };
         },
       },
@@ -135,7 +137,7 @@ export function useFormSchema(
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {

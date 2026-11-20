@@ -289,6 +289,7 @@ onMounted(async () => {
               type: 'link',
               danger: true,
               icon: ACTION_ICON.DELETE,
+              disabled: row.status === 0,
               auth: ['governance:safety-static-task:delete'],
               popConfirm: {
                 title: $t('ui.actionMessage.deleteConfirm', [row.taskName]),

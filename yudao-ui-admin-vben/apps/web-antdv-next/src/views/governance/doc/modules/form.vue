@@ -120,12 +120,12 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
       currentDocId.value = undefined;
-      await formApi.resetForm();
+      await formApi.reset();
       return;
     }
     const data = modalApi.getData() as StandardDocApi.Doc;
     currentDocId.value = data?.id;
-    await formApi.resetForm();
+    await formApi.reset();
     await formApi.setValues(getCreateDefaultValues());
     if (!currentDocId.value) {
       return;

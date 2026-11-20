@@ -85,7 +85,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -266,7 +266,12 @@ export function useGridColumns(): VxeTableGridOptions<GovernanceStandardTermApi.
     { field: 'id', title: '编号', minWidth: 70 },
     { field: 'name', title: '术语名称', minWidth: 130 },
     { field: 'engName', title: '英文名称', minWidth: 120 },
-    { field: 'termCategoryId', title: '术语类目', minWidth: 130, slots: { default: 'category' } },
+    {
+      field: 'termCategoryId',
+      title: '术语类目',
+      minWidth: 130,
+      slots: { default: 'category' },
+    },
     { field: 'alias', title: '别名/同义词', minWidth: 140 },
     { field: 'definition', title: '业务定义', minWidth: 240 },
     {

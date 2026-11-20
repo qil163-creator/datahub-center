@@ -98,7 +98,7 @@ const [Modal, modalApi] = useVbenModal({
     const data =
       modalApi.getData() as FoundationDatasourceDriverApi.DatasourceDriver;
     if (!data?.id) {
-      await formApi.resetForm();
+      await formApi.reset();
       await formApi.setValues({
         driverSource: DRIVER_SOURCE_BUILTIN,
         status: CommonStatusEnum.ENABLE,

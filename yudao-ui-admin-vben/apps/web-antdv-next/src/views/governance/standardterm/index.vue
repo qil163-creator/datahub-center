@@ -409,13 +409,12 @@ const { allExpanded, toggleExpand } = useTreeExpansion(
                 auth: ['governance:standard-term:update'],
                 onClick: handleEdit.bind(null, row),
               },
-            ]"
-            :drop-down-actions="[
               {
                 label: $t('common.delete'),
                 type: 'link',
                 danger: true,
                 icon: ACTION_ICON.DELETE,
+                disabled: row.status === 0,
                 auth: ['governance:standard-term:delete'],
                 popConfirm: {
                   title: $t('ui.actionMessage.deleteConfirm', [row.name]),

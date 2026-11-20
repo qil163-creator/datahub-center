@@ -136,6 +136,11 @@ vi.mock('@vben/common-ui', () => {
     useVbenModal: usePopup,
   };
 });
+vi.mock('#/components/table-action', async () => ({
+  ACTION_ICON: (await import('#/components/table-action/icons')).ACTION_ICON,
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('antdv-next', () => {
   const Container = defineComponent({
     name: 'DetailContainerStub',

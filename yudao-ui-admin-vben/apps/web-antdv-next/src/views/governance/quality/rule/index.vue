@@ -301,7 +301,10 @@ onActivated(consumePrefill);
               type: 'link',
               danger: true,
               icon: ACTION_ICON.DELETE,
-              disabled: row.builtin === 1 || row.standardElementId != null,
+              disabled:
+                row.status === 0 ||
+                row.builtin === 1 ||
+                row.standardElementId != null,
               auth: ['governance:quality-rule:delete'],
               popConfirm: {
                 title: `确认删除质量规则「${row.ruleName}」吗？`,

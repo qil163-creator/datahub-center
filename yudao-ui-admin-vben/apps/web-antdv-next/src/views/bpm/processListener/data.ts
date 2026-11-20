@@ -36,7 +36,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Input',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -83,7 +83,7 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'required',
       dependencies: {
         triggerFields: ['type'],
-        trigger: (values) => {
+        resolve: ({ values, actions }) => {
           const options =
             values.type === 'execution'
               ? EVENT_EXECUTION_OPTIONS
@@ -92,15 +92,10 @@ export function useFormSchema(): VbenFormSchema[] {
             values.event &&
             !options.some((opt) => opt.value === values.event)
           ) {
-            values.event = undefined;
+            void actions.setFieldValue('event', undefined);
           }
+          return { componentProps: { options } };
         },
-        componentProps: (values) => ({
-          options:
-            values.type === 'execution'
-              ? EVENT_EXECUTION_OPTIONS
-              : EVENT_OPTIONS,
-        }),
       },
     },
     {
@@ -124,20 +119,22 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: 'required',
       dependencies: {
         triggerFields: ['valueType'],
-        trigger: (values) => {
+        resolve: ({ values, actions }) => {
           if (
             prevValueType &&
             values.valueType &&
             prevValueType !== values.valueType
           ) {
-            values.value = undefined;
+            void actions.setFieldValue('value', undefined);
           }
           prevValueType = values.valueType;
+          return {
+            componentProps: {
+              placeholder:
+                values.valueType === 'class' ? '请输入类路径' : '请输入表达式',
+            },
+          };
         },
-        componentProps: (values) => ({
-          placeholder:
-            values.valueType === 'class' ? '请输入类路径' : '请输入表达式',
-        }),
       },
     },
   ];

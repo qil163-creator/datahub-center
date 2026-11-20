@@ -8,7 +8,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
 import {
   Button,
@@ -413,29 +412,26 @@ const technicalFields = computed(() =>
                     >
                       {{ metadataTime(text, 'YYYY-MM-DD HH:mm') }}
                     </template>
-                    <template v-else-if="column.key === 'actions'">
-                      <Button
-                        type="link"
-                        size="small"
-                        @click="selectedField = record"
-                      >
-                        <template #icon>
-                          <IconifyIcon :icon="ACTION_ICON.VIEW" />
-                        </template>
-                        详情
-                      </Button>
-                      <Button
-                        v-if="canEdit"
-                        type="link"
-                        size="small"
-                        @click="columnApi.setData(record).open()"
-                      >
-                        <template #icon>
-                          <IconifyIcon :icon="ACTION_ICON.EDIT" />
-                        </template>
-                        修改
-                      </Button>
-                    </template>
+                    <TableAction
+                      v-else-if="column.key === 'actions'"
+                      :actions="[
+                        {
+                          label: '详情',
+                          type: 'link',
+                          size: 'small',
+                          icon: ACTION_ICON.VIEW,
+                          onClick: () => (selectedField = record),
+                        },
+                        {
+                          label: '修改',
+                          type: 'link',
+                          size: 'small',
+                          icon: ACTION_ICON.EDIT,
+                          ifShow: canEdit,
+                          onClick: () => columnApi.setData(record).open(),
+                        },
+                      ]"
+                    />
                     <template v-else>{{ text ?? '-' }}</template>
                   </template>
                 </Table>

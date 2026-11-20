@@ -17,7 +17,7 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'id',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -25,7 +25,7 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'formType',
       dependencies: {
         triggerFields: [''],
-        show: () => false,
+        resolve: () => ({ show: false }),
       },
     },
     {
@@ -56,9 +56,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['formType'],
-        show: (values) => {
-          return values.formType === 'create' || values.formType === 'update';
-        },
+        resolve: ({ values }) => ({
+          show: values.formType === 'create' || values.formType === 'update',
+        }),
       },
     },
     {
@@ -71,9 +71,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['formType'],
-        show: (values) => {
-          return values.formType === 'create' || values.formType === 'update';
-        },
+        resolve: ({ values }) => ({
+          show: values.formType === 'create' || values.formType === 'update',
+        }),
       },
     },
     {
@@ -143,9 +143,9 @@ export function useFormSchema(): VbenFormSchema[] {
       defaultValue: true,
       dependencies: {
         triggerFields: ['formType'],
-        show: (values) => {
-          return values.formType === 'create' || values.formType === 'update';
-        },
+        resolve: ({ values }) => ({
+          show: values.formType === 'create' || values.formType === 'update',
+        }),
       },
       rules: 'required',
     },
@@ -159,9 +159,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['formType'],
-        show: (values) => {
-          return values.formType === 'create' || values.formType === 'update';
-        },
+        resolve: ({ values }) => ({
+          show: values.formType === 'create' || values.formType === 'update',
+        }),
       },
       rules: 'required',
     },
@@ -176,9 +176,9 @@ export function useFormSchema(): VbenFormSchema[] {
       },
       dependencies: {
         triggerFields: ['formType'],
-        show: (values) => {
-          return values.formType === 'create' || values.formType === 'update';
-        },
+        resolve: ({ values }) => ({
+          show: values.formType === 'create' || values.formType === 'update',
+        }),
       },
       rules: z.number().default(CommonStatusEnum.ENABLE),
     },

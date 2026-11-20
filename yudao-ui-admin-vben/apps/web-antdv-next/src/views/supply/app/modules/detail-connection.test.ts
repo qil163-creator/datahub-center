@@ -134,6 +134,11 @@ vi.mock('@vben/icons', () => ({ IconifyIcon: () => null }));
 vi.mock('#/components/list-pagination/index.vue', () => ({
   default: defineComponent({ name: 'ListPaginationStub', render: () => null }),
 }));
+vi.mock('#/components/table-action', async () => ({
+  ACTION_ICON: (await import('#/components/table-action/icons')).ACTION_ICON,
+  TableAction: (await import('#/components/table-action/testing'))
+    .TableActionStub,
+}));
 vi.mock('antdv-next', () => {
   const Container = defineComponent({
     setup:

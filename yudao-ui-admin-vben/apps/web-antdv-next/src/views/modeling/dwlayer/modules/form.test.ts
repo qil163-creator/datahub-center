@@ -47,7 +47,7 @@ vi.mock('#/adapter/form', () => ({
   useVbenForm: () => [
     () => null,
     {
-      resetForm: vi.fn().mockResolvedValue(undefined),
+      reset: vi.fn().mockResolvedValue(undefined),
       setValues: harness.setValues,
       validate: vi.fn().mockResolvedValue({ valid: true }),
       getValues: () => Promise.resolve({ ...harness.values }),

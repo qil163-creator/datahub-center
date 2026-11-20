@@ -14,9 +14,8 @@ import {
 import { useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
-import { Button, message, Switch, Tag } from 'antdv-next';
+import { message, Switch, Tag } from 'antdv-next';
 
 import { ACTION_ICON, TableAction } from '#/adapter/business-vxe-table';
 import {
@@ -387,25 +386,33 @@ onBeforeUnmount(() => {
         }}</span><span v-else-if="column.key === 'createTime'">{{
           categoryTime(record.createTime)
         }}</span>
-        <div v-else-if="column.key === 'actions'" class="category-row-actions">
-          <Button type="link" @click="detail(record)">
-            <template #icon><IconifyIcon :icon="ACTION_ICON.VIEW" /></template>详情
-</Button><Button
-            v-if="can('update', 'rule')"
-            type="link"
-            @click="edit(record)"
-          >
-            <template #icon><IconifyIcon :icon="ACTION_ICON.EDIT" /></template>修改
-</Button><Button
-            v-if="can('delete', 'rule')"
-            type="link"
-            danger
-            :disabled="record.status === 0"
-            @click="remove(record)"
-          >
-            <template #icon><IconifyIcon :icon="ACTION_ICON.DELETE" /></template>删除
-          </Button>
-        </div>
+        <TableAction
+          v-else-if="column.key === 'actions'"
+          :actions="[
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              onClick: () => detail(record),
+            },
+            {
+              label: '修改',
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              ifShow: can('update', 'rule'),
+              onClick: () => edit(record),
+            },
+            {
+              label: '删除',
+              type: 'link',
+              danger: true,
+              icon: ACTION_ICON.DELETE,
+              ifShow: can('delete', 'rule'),
+              disabled: record.status === 0,
+              onClick: () => remove(record),
+            },
+          ]"
+        />
       </template>
 </SafetyWorkbench><RuleForm
       v-if="editing"

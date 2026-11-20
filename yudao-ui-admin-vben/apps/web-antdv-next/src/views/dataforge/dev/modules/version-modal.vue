@@ -164,7 +164,7 @@ defineExpose({ open, close });
 <template>
   <Drawer
     v-model:open="visible"
-    :width="720"
+    :size="720"
     destroy-on-hidden
     title="版本信息"
     @close="close"

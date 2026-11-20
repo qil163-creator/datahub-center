@@ -12,9 +12,9 @@ import type { DataforgeFillApi } from '#/api/dataforge/fill';
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
-import { useAccess } from '@vben/access';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { downloadFileFromBlobPart, formatDateTime } from '@vben/utils';
 
@@ -1133,7 +1133,7 @@ function handleOperation(op: DomainOperation) {
     <Drawer
       v-model:open="attachmentListOpen"
       :title="`附件列表：${selectedAttachmentField?.name ?? ''}`"
-      :width="420"
+      :size="420"
     >
       <p v-if="selectedAttachments.length === 0" class="text-muted-foreground text-sm">
         当前单元格还没有附件
@@ -1162,7 +1162,7 @@ function handleOperation(op: DomainOperation) {
       </p>
     </Drawer>
 
-    <Drawer v-model:open="logOpen" :width="560" title="领域操作日志（最近 200 条）">
+    <Drawer v-model:open="logOpen" :size="560" title="领域操作日志（最近 200 条）">
       <p class="text-muted-foreground mb-2 text-xs">
         所有编辑路径（输入/粘贴/删除/插行/删行）都转为 rowId + fieldCode 领域操作；
         真实模式下按批（400ms 合并）提交到服务端并推进 serverVersion。
@@ -1175,7 +1175,7 @@ function handleOperation(op: DomainOperation) {
       </div>
     </Drawer>
 
-    <Drawer v-model:open="issuesOpen" :width="520" title="提交校验问题">
+    <Drawer v-model:open="issuesOpen" :size="520" title="提交校验问题">
       <p class="text-muted-foreground mb-2 text-xs">
         点击问题条目可定位到对应单元格；错误必须全部修正后才能提交，警告不阻断提交。
       </p>
@@ -1200,7 +1200,7 @@ function handleOperation(op: DomainOperation) {
       </div>
     </Drawer>
 
-    <Drawer v-model:open="submissionsOpen" :width="560" title="提交历史">
+    <Drawer v-model:open="submissionsOpen" :size="560" title="提交历史">
       <div class="flex flex-col gap-3">
         <div v-for="submission in submissions" :key="submission.id" class="rounded-md border p-3">
           <div class="flex items-center justify-between">

@@ -26,7 +26,11 @@ import {
   Tag,
 } from 'antdv-next';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/business-vxe-table';
+import {
+  ACTION_ICON,
+  TableAction,
+  useVbenVxeGrid,
+} from '#/adapter/business-vxe-table';
 import { useVbenForm } from '#/adapter/form';
 import {
   createDatabaseRule,
@@ -101,7 +105,7 @@ const schema: VbenFormSchema[] = [
     componentProps: { options: OPERATOR_OPTIONS },
     dependencies: {
       triggerFields: ['metric'],
-      show: (values) => values.metric === 'RESPONSE_TIME',
+      resolve: ({ values }) => ({ show: values.metric === 'RESPONSE_TIME' }),
     },
   },
   {
@@ -111,7 +115,7 @@ const schema: VbenFormSchema[] = [
     componentProps: { placeholder: '请输入大于 0 的响应时间，单位 ms' },
     dependencies: {
       triggerFields: ['metric'],
-      show: (values) => values.metric === 'RESPONSE_TIME',
+      resolve: ({ values }) => ({ show: values.metric === 'RESPONSE_TIME' }),
     },
   },
   {
@@ -440,7 +444,6 @@ onBeforeUnmount(invalidate);
 
 <template>
   <div class="database-rules-panel">
-
     <Grid class="database-rules-grid">
       <template #toolbar-actions>
         <TableAction
@@ -497,7 +500,7 @@ onBeforeUnmount(invalidate);
               danger: true,
               icon: ACTION_ICON.DELETE,
               auth: ['dataforge:database:update'],
-              disabled: busy,
+              disabled: busy || row.status === 0,
               popConfirm: {
                 title: `确认删除规则“${row.name}”吗？`,
                 confirm: () => remove(row),
@@ -511,7 +514,6 @@ onBeforeUnmount(invalidate);
       :title="editingId ? '修改告警规则' : '新增告警规则'"
       class="w-[620px]"
     >
-
       <Alert
         type="info"
         show-icon

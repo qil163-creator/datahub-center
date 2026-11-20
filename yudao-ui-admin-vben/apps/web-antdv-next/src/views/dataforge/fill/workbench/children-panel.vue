@@ -329,7 +329,7 @@ function assigneeText(child: DataforgeFillApi.ChildItem) {
 </script>
 
 <template>
-  <Drawer v-model:open="open" :width="1000" title="下级单位">
+  <Drawer v-model:open="open" :size="1000" title="下级单位">
     <div class="flex flex-col gap-3">
       <Alert
         v-if="rollup && rollup.totalCount > 0"

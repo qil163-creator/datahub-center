@@ -229,7 +229,7 @@ defineExpose({ open, close });
 <template>
   <Drawer
     v-model:open="visible"
-    :width="920"
+    :size="920"
     destroy-on-hidden
     :title="`补数据 · ${task?.name ?? ''}`"
     @close="close"
@@ -255,9 +255,7 @@ defineExpose({ open, close });
           :allow-clear="true"
         />
         <span v-if="form.range" class="hint">
-          共 {{ days }} 天<template v-if="days > BACKFILL_MAX_DAYS"
-            >，超过单批次上限 {{ BACKFILL_MAX_DAYS }} 天</template
-          >
+          共 {{ days }} 天<template v-if="days > BACKFILL_MAX_DAYS">，超过单批次上限 {{ BACKFILL_MAX_DAYS }} 天</template>
         </span>
       </label>
       <label>

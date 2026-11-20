@@ -5,7 +5,7 @@ import { computed, h, nextTick, ref, watch } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { confirm } from '@vben/common-ui';
-import { IconifyIcon, Plus } from '@vben/icons';
+import { Plus } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 import { formatDate } from '@vben/utils';
 
@@ -15,6 +15,7 @@ import {
   deleteElementRule,
   getElementRulePage,
 } from '#/api/governance/standardelement/rule';
+import { ACTION_ICON, TableAction } from '#/components/table-action';
 import { TextEllipsisCell } from '#/components/text-ellipsis-cell';
 import { useObjectRequest } from '#/hooks/use-object-request';
 
@@ -195,38 +196,32 @@ watch(
         <span v-else-if="column.key === 'createTime'">{{
           record.createTime ? formatDate(record.createTime) : '-'
         }}</span>
-        <div v-else-if="column.key === 'actions'" class="standard-row-actions">
-          <Button
-            type="link"
-            v-if="can('update')"
-            @click="editor?.open(record)"
-          >
-            <IconifyIcon
-              icon="lucide:edit"
-              class="mr-1 inline-block size-4 align-middle"
-            />
-            修改
-          </Button>
-          <Button
-            type="link"
-            danger
-            v-if="can('update')"
-            @click="remove(record)"
-          >
-            <IconifyIcon
-              icon="lucide:trash-2"
-              class="mr-1 inline-block size-4 align-middle"
-            />
-            删除
-          </Button>
-          <Button type="link" @click="editor?.open(record, true)">
-            <IconifyIcon
-              icon="lucide:eye"
-              class="mr-1 inline-block size-4 align-middle"
-            />
-            详情
-          </Button>
-        </div>
+        <TableAction
+          v-else-if="column.key === 'actions'"
+          :actions="[
+            {
+              label: '详情',
+              type: 'link',
+              icon: ACTION_ICON.VIEW,
+              onClick: () => editor?.open(record, true),
+            },
+            {
+              label: '修改',
+              type: 'link',
+              icon: ACTION_ICON.EDIT,
+              ifShow: can('update'),
+              onClick: () => editor?.open(record),
+            },
+            {
+              label: '删除',
+              type: 'link',
+              danger: true,
+              icon: ACTION_ICON.DELETE,
+              ifShow: can('update'),
+              onClick: () => remove(record),
+            },
+          ]"
+        />
       </template>
     </Table>
     <StandardPagination

@@ -12,7 +12,7 @@ vi.mock('#/api/governance/categorydata', () => ({ getCategoryData: mock.get, cre
 vi.mock('../data', () => ({ useFormSchema: () => [] }));
 vi.mock('#/locales', () => ({ $t: (value: string) => value }));
 vi.mock('antdv-next', () => ({ message: { success: mock.success } }));
-vi.mock('#/adapter/form', () => ({ useVbenForm: () => [defineComponent({ setup: () => () => h('div') }), { validate: async () => ({ valid: true }), getValues: mock.values, setValues: mock.setValues, resetForm: vi.fn() }] }));
+vi.mock('#/adapter/form', () => ({ useVbenForm: () => [defineComponent({ setup: () => () => h('div') }), { validate: async () => ({ valid: true }), getValues: mock.values, setValues: mock.setValues, reset: vi.fn() }] }));
 vi.mock('@vben/common-ui', () => ({ useVbenModal: (options: typeof mock.modal) => {
   mock.modal = options;
   return [defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }), { getData: () => mock.data, close: () => options.onOpenChange(false), lock: vi.fn(), unlock: vi.fn() }];

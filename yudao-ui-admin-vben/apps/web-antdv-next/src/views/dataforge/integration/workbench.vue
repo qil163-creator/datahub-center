@@ -702,7 +702,6 @@ watch(loading, (value) => gridApi.setLoading(value), { immediate: true });
                   </form>
                 </section>
                 <section class="qi-table-panel">
-
                   <Grid
                     class="qi-native-grid"
                     :table-title="mode === 'REALTIME' ? '实时任务列表' : '离线任务列表'"

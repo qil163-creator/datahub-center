@@ -75,7 +75,7 @@ vi.mock('#/adapter/form', () => ({
       setState: (state: { schema: typeof harness.schema }) => {
         harness.schema = state.schema;
       },
-      resetForm: async () => {
+      reset: async () => {
         harness.values = {};
       },
       setValues: async (values: Record<string, unknown>) => {

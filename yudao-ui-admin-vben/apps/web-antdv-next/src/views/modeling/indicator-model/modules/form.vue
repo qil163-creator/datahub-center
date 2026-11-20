@@ -446,7 +446,7 @@ async function load() {
       }
     }
     await formApi.setState({ schema: schema() });
-    await formApi.resetForm();
+    await formApi.reset();
     if (!current()) return;
     const values: Partial<IndicatorModelApi.Save> = detail
       ? {
@@ -552,7 +552,7 @@ const [Modal, modalApi] = useVbenModal<{
     sourceError.value = '';
     modalApi.setState({ loading: false });
     modalApi.unlock();
-    await formApi.resetForm();
+    await formApi.reset();
   },
 });
 </script>

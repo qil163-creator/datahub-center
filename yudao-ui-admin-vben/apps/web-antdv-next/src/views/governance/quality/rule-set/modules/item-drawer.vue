@@ -119,7 +119,7 @@ defineExpose({ open });
   <Drawer
     v-model:open="visible"
     :title="`规则管理 - ${ruleSet?.setName ?? ''}`"
-    :width="960"
+    :size="960"
     destroy-on-hidden
   >
     <div class="flex h-full gap-3">
@@ -165,9 +165,7 @@ defineExpose({ open });
       <!-- 已选规则 + 权重 -->
       <div class="flex-1 overflow-auto rounded border p-2">
         <div class="mb-2 flex items-center justify-between">
-          <span class="font-semibold"
-            >已选规则（{{ selectedItems.length }}）</span
-          >
+          <span class="font-semibold">已选规则（{{ selectedItems.length }}）</span>
           <div class="flex items-center gap-1">
             <Select
               v-model:value="mergeRuleSetId"
@@ -182,10 +180,10 @@ defineExpose({ open });
               placeholder="合并其他规则集"
               size="small"
             />
-            <Button size="small" @click="handleMergeRuleSet"
-              ><template #icon><IconifyIcon icon="lucide:git-merge" /></template
-              >合并</Button
-            >
+            <Button size="small" @click="handleMergeRuleSet">
+              <template #icon><IconifyIcon icon="lucide:git-merge" /></template>
+              合并
+            </Button>
           </div>
         </div>
         <Table

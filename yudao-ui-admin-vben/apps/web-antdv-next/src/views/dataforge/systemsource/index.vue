@@ -240,12 +240,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
       <Card
         v-show="!sidebarCollapsed"
         class="source-sidebar h-full w-1/6 shrink-0"
-        :body-style="{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          overflow: 'hidden',
-          padding: '12px',
+        :styles="{
+          body: {
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden',
+            padding: '12px',
+          },
         }"
       >
         <DeptTreeSelect
