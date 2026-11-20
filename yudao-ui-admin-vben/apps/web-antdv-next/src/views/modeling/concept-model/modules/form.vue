@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema } from '#/adapter/form';
 import type { ConceptModelApi } from '#/api/modeling/concept-model';
 
 import { computed, ref } from 'vue';
@@ -65,7 +65,7 @@ const request = useModelingRequest(
   },
 );
 
-function subjectDependencies(): VbenFormSchema['dependencies'] {
+function subjectDependencies(): VbenFormFieldSchema['dependencies'] {
   return {
     triggerFields: ['dataDomainId'],
     resolve: ({ values }) => ({

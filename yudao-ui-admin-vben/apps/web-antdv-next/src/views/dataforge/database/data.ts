@@ -1,4 +1,4 @@
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema, VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
@@ -323,7 +323,7 @@ export function useFormSchema(
     'usageType',
   ]);
   if (protocol === 'HDFS') excluded.add('password');
-  const fields = schema.filter((field) => !excluded.has(field.fieldName));
+  const fields = schema.filter((field) => !excluded.has(field.fieldName ?? ''));
   if (protocol === 'SFTP') {
     for (const field of fields) {
       if (
@@ -438,8 +438,8 @@ function nativeFormSchema(
   }
   if (noDatabase) excluded.add('databaseName');
   const fields: VbenFormSchema[] = schema
-    .filter((field) => !excluded.has(field.fieldName))
-    .map((field): VbenFormSchema => {
+    .filter((field) => !excluded.has(field.fieldName ?? ''))
+    .map((field): VbenFormFieldSchema => {
       if (field.fieldName === 'userName' || field.fieldName === 'password') {
         const password = field.fieldName === 'password';
         const fieldLabel = password ? label.password : label.user;
@@ -521,13 +521,13 @@ function nativeFormSchema(
               }
             : {}),
         };
-      return field;
+      return field as VbenFormFieldSchema;
     });
   const addInput = (
     fieldName: string,
     fieldLabel: string,
     placeholder: string,
-    rules?: VbenFormSchema['rules'],
+    rules?: VbenFormFieldSchema['rules'],
     help?: string,
   ) =>
     fields.push({

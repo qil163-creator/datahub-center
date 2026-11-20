@@ -1,4 +1,4 @@
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema, VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { FoundationDatasourceDriverApi } from '#/api/dataforge/driver';
 import type { DescriptionItemSchema } from '#/components/description';
@@ -20,7 +20,7 @@ export const DRIVER_SOURCE_BUILTIN = 'BUILTIN';
 export const DRIVER_SOURCE_UPLOAD = 'UPLOAD';
 
 /** 上传驱动时显示驱动文件相关字段 */
-const uploadDriverDependencies: VbenFormSchema['dependencies'] = {
+const uploadDriverDependencies: VbenFormFieldSchema['dependencies'] = {
   triggerFields: ['driverSource'],
   resolve: ({ values }) => ({
     show: values.driverSource === DRIVER_SOURCE_UPLOAD,

@@ -1,3 +1,4 @@
+import type { VbenFormFieldSchema } from '#/adapter/form';
 import type { SafetySecurityApi } from '#/api/governance/security';
 
 import { describe, expect, it, vi } from 'vitest';
@@ -56,14 +57,14 @@ describe('access alert and key ref page data', () => {
   });
 
   it('defaults the alert search to open alerts', () => {
-    const status = useGridFormSchema().find(
+    const status = (useGridFormSchema() as VbenFormFieldSchema[]).find(
       (item) => item.fieldName === 'status',
     );
     expect(status?.defaultValue).toBe('OPEN');
   });
 
   it('requires a handle remark', () => {
-    const remark = useHandleFormSchema().find(
+    const remark = (useHandleFormSchema() as VbenFormFieldSchema[]).find(
       (item) => item.fieldName === 'remark',
     );
     const rule = remark?.rules as { safeParse: (v: unknown) => any };
@@ -76,7 +77,7 @@ describe('access alert and key ref page data', () => {
     expect(keyRefFormError('1bad', 'x')).toContain('字母开头');
     expect(keyRefFormError('ok', '  ')).toBe('请输入名称');
 
-    const keyCode = useFormSchema().find(
+    const keyCode = (useFormSchema() as VbenFormFieldSchema[]).find(
       (item) => item.fieldName === 'keyCode',
     );
     const rule = keyCode?.rules as { safeParse: (v: unknown) => any };

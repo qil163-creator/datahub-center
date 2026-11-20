@@ -76,7 +76,7 @@ const [Modal, modalApi] = useVbenModal({
       formApi.updateSchema(
         schema
           .filter((field) =>
-            ['documentId', 'standardType'].includes(field.fieldName),
+            ['documentId', 'standardType'].includes(field.fieldName ?? ''),
           )
           .map((field) =>
             boundDocument.value

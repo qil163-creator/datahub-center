@@ -1,3 +1,5 @@
+import type { VbenFormFieldSchema } from '#/adapter/form';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { formatTermUser, loadTermUserList, useFormSchema } from './data';
@@ -33,8 +35,8 @@ describe('业务术语类目与身份缓存', () => {
     ]);
     state.getElementCategories.mockResolvedValue([{ id: '9007199254741000', categoryName: '数据元' }]);
     const schemas = useFormSchema();
-    const term = schemas.find((item) => item.fieldName === 'termCategoryId');
-    const element = schemas.find((item) => item.fieldName === 'categoryId');
+    const term = (schemas as VbenFormFieldSchema[]).find((item) => item.fieldName === 'termCategoryId');
+    const element = (schemas as VbenFormFieldSchema[]).find((item) => item.fieldName === 'categoryId');
     const termTree = await (term!.componentProps as { api: () => Promise<any[]> }).api();
     const elementTree = await (element!.componentProps as { api: () => Promise<any[]> }).api();
     expect(termTree[0].id).toBe('9007199254740993');

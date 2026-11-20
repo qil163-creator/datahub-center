@@ -151,8 +151,8 @@ const schema = useFormSchema({
   .map((field) => {
     return {
       ...field,
-      formItemClass: pairedFields.has(field.fieldName)
-        ? `col-span-12 sm:col-span-6${rowStarts.has(field.fieldName) ? ' sm:col-start-1' : ''}`
+      formItemClass: pairedFields.has(field.fieldName ?? '')
+        ? `col-span-12 sm:col-span-6${rowStarts.has(field.fieldName ?? '') ? ' sm:col-start-1' : ''}`
         : 'col-span-12',
       ...(field.fieldName === 'databaseType'
         ? {
@@ -185,8 +185,8 @@ const schema = useFormSchema({
   })
   .toSorted(
     (left, right) =>
-      (fieldOrder.get(left.fieldName) ?? fieldOrder.size) -
-      (fieldOrder.get(right.fieldName) ?? fieldOrder.size),
+      (fieldOrder.get(left.fieldName ?? '') ?? fieldOrder.size) -
+      (fieldOrder.get(right.fieldName ?? '') ?? fieldOrder.size),
   );
 
 const [Form, formApi] = useVbenForm({

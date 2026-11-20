@@ -4,7 +4,8 @@ const captured = vi.hoisted(() => ({ paths: [] as string[] }));
 
 vi.mock('@vben/utils', () => ({
   mergeRouteModules: (files: Record<string, unknown>) => {
-    captured.paths = Object.keys(files);
+    // dynamic 与 external 路由分别调用一次，需累计全部路径
+    captured.paths.push(...Object.keys(files));
     return [];
   },
   traverseTreeValues: () => [],

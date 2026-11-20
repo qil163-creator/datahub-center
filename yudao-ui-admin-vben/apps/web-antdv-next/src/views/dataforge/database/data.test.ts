@@ -1,3 +1,4 @@
+import type { VbenFormFieldSchema } from '#/adapter/form';
 import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
 
@@ -19,7 +20,7 @@ describe('连接参数表单', () => {
         getSelectedType: () =>
           ({ typeCode }) as FoundationDatabaseTypeApi.DatabaseType,
       });
-      const timeout = schema.find(
+      const timeout = (schema as VbenFormFieldSchema[]).find(
         (field) => field.fieldName === 'connectionTimeoutSeconds',
       )!;
       const rules = timeout.rules as {
@@ -41,7 +42,7 @@ describe('连接参数表单', () => {
         getSelectedType: () =>
           ({ typeCode }) as FoundationDatabaseTypeApi.DatabaseType,
       });
-      const rules = schema.find(
+      const rules = (schema as VbenFormFieldSchema[]).find(
         (field) => field.fieldName === 'connectionServers',
       )!.rules as { safeParse: (input: unknown) => { success: boolean } };
       expect(
@@ -72,7 +73,7 @@ describe('连接参数表单', () => {
         'connectionSaslMechanism',
       ]),
     );
-    const password = schema.find((field) => field.fieldName === 'password')!;
+    const password = (schema as VbenFormFieldSchema[]).find((field) => field.fieldName === 'password')!;
     const resolve = password.dependencies!.resolve!;
     expect(
       resolve({
@@ -109,8 +110,8 @@ describe('连接参数表单', () => {
       productId: 'SQLITE3',
     } as FoundationDatabaseTypeApi.DatabaseType;
     const schema = useFormSchema({ getSelectedType: () => type });
-    const host = schema.find((item) => item.fieldName === 'databaseIp')!;
-    const port = schema.find((item) => item.fieldName === 'databasePort')!;
+    const host = (schema as VbenFormFieldSchema[]).find((item) => item.fieldName === 'databaseIp')!;
+    const port = (schema as VbenFormFieldSchema[]).find((item) => item.fieldName === 'databasePort')!;
     const resolveHost = host.dependencies!.resolve!;
     const resolvePort = port.dependencies!.resolve!;
     const context = {} as Parameters<typeof resolveHost>[0];
@@ -139,7 +140,7 @@ describe('editing jdbc URL dependencies', () => {
       preserveJdbcUrl: true,
       getInitialValues: () => values,
     });
-    const resolve = schema.find((field) => field.fieldName === 'jdbcUrl')!
+    const resolve = (schema as VbenFormFieldSchema[]).find((field) => field.fieldName === 'jdbcUrl')!
       .dependencies!.resolve as (context: {
       actions: { setFieldValue: (field: string, value: string) => void };
       values: Partial<FoundationDatabaseApi.Database>;

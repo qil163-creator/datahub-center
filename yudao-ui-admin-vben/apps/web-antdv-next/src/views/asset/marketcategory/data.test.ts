@@ -1,3 +1,5 @@
+import type { VbenFormFieldSchema } from '#/adapter/form';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -19,7 +21,7 @@ describe('market category subject-domain layout schema', () => {
   it('shows only name and status filters and preserves status zero as a numeric option', () => {
     const schema = useGridFormSchema();
     expect(schema.map((field) => field.fieldName)).toEqual(['name', 'status']);
-    const props = schema[1]!.componentProps as () => {
+    const props = (schema[1] as VbenFormFieldSchema).componentProps as () => {
       options: { value: number }[];
     };
     expect(props().options.map((option) => option.value)).toEqual([0, 1]);
@@ -75,18 +77,18 @@ describe('market category subject-domain layout schema', () => {
       'description',
     ]);
     expect(
-      schema.find((field) => field.fieldName === 'description')?.formItemClass,
+      (schema as VbenFormFieldSchema[]).find((field) => field.fieldName === 'description')?.formItemClass,
     ).toBe('col-span-1 sm:col-span-2');
-    const props = schema.find((field) => field.fieldName === 'parentId')!
+    const props = (schema as VbenFormFieldSchema[]).find((field) => field.fieldName === 'parentId')!
       .componentProps as () => { treeData: unknown };
     expect(props().treeData).toEqual(parents);
   });
   it('enforces the real name and description bounds without unrelated subject-domain fields', () => {
     const schema = useCategoryFormSchema(() => []);
-    const name = schema.find((field) => field.fieldName === 'name')!.rules as {
+    const name = (schema as VbenFormFieldSchema[]).find((field) => field.fieldName === 'name')!.rules as {
       safeParse: (value: unknown) => { success: boolean };
     };
-    const description = schema.find(
+    const description = (schema as VbenFormFieldSchema[]).find(
       (field) => field.fieldName === 'description',
     )!.rules as { safeParse: (value: unknown) => { success: boolean } };
     expect(name.safeParse('  ').success).toBe(false);

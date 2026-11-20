@@ -1,4 +1,4 @@
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema, VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { StandardDocApi } from '#/api/governance/doc';
 import type { GovernanceStandardElementApi } from '#/api/governance/standardelement';
@@ -176,7 +176,7 @@ export function useFormSchema(): VbenFormSchema[] {
         formItemClass: 'col-span-2',
       },
     ].map(
-      (schema): VbenFormSchema => ({
+      (schema): VbenFormFieldSchema => ({
         ...schema,
         dependencies: {
           triggerFields: ['__extended'],

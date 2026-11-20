@@ -1,7 +1,7 @@
 /* eslint-disable vue/one-component-per-file -- 新增、编辑与缺失类型挂载共享同一依赖桩 */
 import type { App, Component, SetupContext } from 'vue';
 
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema, VbenFormSchema } from '#/adapter/form';
 import type { FoundationDatabaseApi } from '#/api/dataforge/database';
 import type { FoundationDatabaseTypeApi } from '#/api/dataforge/databasetype';
 
@@ -31,7 +31,7 @@ vi.mock('#/adapter/form', async () => {
       state.options = options;
       return [
         (_: unknown, { attrs }: SetupContext) => {
-          const type = options.schema.find(
+          const type = (options.schema as VbenFormFieldSchema[]).find(
             (field) => field.fieldName === 'databaseType',
           )!;
           const props = type.componentProps as () => Record<string, unknown>;
@@ -84,7 +84,7 @@ async function mountDetails(
   await nextTick();
 }
 function field(name: string) {
-  return state.options!.schema.find((item) => item.fieldName === name)!;
+  return (state.options!.schema as VbenFormFieldSchema[]).find((item) => item.fieldName === name)!;
 }
 beforeEach(() => {
   state.values = {};

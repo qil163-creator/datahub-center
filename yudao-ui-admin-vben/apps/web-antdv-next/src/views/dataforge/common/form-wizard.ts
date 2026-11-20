@@ -36,17 +36,18 @@ export function createWizardSchema(
     ? schema
     : schema.toSorted(
         (left, right) =>
-          order.indexOf(left.fieldName) - order.indexOf(right.fieldName),
+          order.indexOf(left.fieldName ?? '') -
+          order.indexOf(right.fieldName ?? ''),
       );
   return sorted.map((field) => {
     const originalClass =
       typeof field.formItemClass === 'function'
         ? field.formItemClass()
         : (field.formItemClass ?? 'col-span-1');
-    const visible = confirming || fields.includes(field.fieldName);
+    const visible = confirming || fields.includes(field.fieldName ?? '');
     return {
       ...field,
-      disabled: confirming || field.disabled,
+      disabled: confirming || ('disabled' in field && field.disabled),
       formItemClass: `${originalClass} ${visible ? '' : 'hidden'}`,
       // Switches use the component's intrinsic width, not the text-input default.
       ...(field.component === 'Switch'

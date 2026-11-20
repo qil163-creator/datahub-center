@@ -1,6 +1,6 @@
 import type { App } from 'vue';
 
-import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema, VbenFormSchema } from '#/adapter/form';
 
 import { createApp, nextTick, reactive } from 'vue';
 
@@ -93,7 +93,7 @@ function deferred<T>() {
   return { promise, resolve };
 }
 function upload() {
-  const field = harness.schema.find((item) => item.fieldName === 'fileUrl')!;
+  const field = (harness.schema as VbenFormFieldSchema[]).find((item) => item.fieldName === 'fileUrl')!;
   return (
     field.componentProps as { api: (file: File) => Promise<unknown> }
   ).api(new File(['pdf'], 'standard.pdf'));
