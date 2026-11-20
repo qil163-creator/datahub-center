@@ -20,6 +20,7 @@ import { IconifyIcon } from '@vben/icons';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { handleTree } from '@vben/utils';
 
+import { useStorage } from '@vueuse/core';
 import {
   Alert,
   Button,
@@ -58,6 +59,8 @@ const router = useRouter();
 const access = useAccessStore();
 const user = useUserStore();
 const { hasAccessByCodes } = useAccess();
+// 横幅收起状态按浏览器记忆，收起后只保留标题与搜索框，给下方列表让出空间
+const bannerCollapsed = useStorage('asset.market.banner.collapsed', false);
 const canQuery = computed(
   () =>
     !!access.accessToken &&
@@ -401,7 +404,21 @@ function assetImage(name: string) {
   >
     <ApplyModal :key="childEpoch" @success="refresh" />
     <div class="asset-mart" data-testid="asset-market">
-      <header class="mart-banner">
+      <header
+        class="mart-banner"
+        :class="{ 'mart-banner--collapsed': bannerCollapsed }"
+      >
+        <button
+          type="button"
+          class="mart-banner__toggle"
+          :aria-expanded="!bannerCollapsed"
+          :title="bannerCollapsed ? '展开横幅' : '收起横幅'"
+          @click="bannerCollapsed = !bannerCollapsed"
+        >
+          <IconifyIcon
+            :icon="bannerCollapsed ? 'lucide:chevron-down' : 'lucide:chevron-up'"
+          />{{ bannerCollapsed ? '展开' : '收起' }}
+        </button>
         <div class="mart-banner__intro">
           <h1>数据资产集市</h1>
           <p>
@@ -771,6 +788,58 @@ function assetImage(name: string) {
   min-width: 0;
 }
 
+.mart-banner__toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #fff;
+  cursor: pointer;
+  background: rgb(255 255 255 / 16%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 13px;
+  transition: background 0.2s;
+}
+
+.mart-banner__toggle:hover {
+  background: rgb(255 255 255 / 28%);
+}
+
+.mart-banner.mart-banner--collapsed {
+  height: auto;
+  min-height: 0;
+  padding-top: 14px;
+  padding-right: 96px;
+  padding-bottom: 14px;
+  background-position: right center;
+  background-size: cover;
+}
+
+.mart-banner--collapsed .mart-banner__toggle {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mart-banner--collapsed h1 {
+  margin: 0;
+}
+
+.mart-banner--collapsed .mart-banner__intro > p,
+.mart-banner--collapsed .mart-banner__features,
+.mart-banner--collapsed .mart-hot-search {
+  display: none;
+}
+
+.mart-banner--collapsed .mart-banner__search {
+  margin-right: 0;
+}
+
 .mart-banner h1 {
   margin: 0 0 12px;
   font-size: 24px;
@@ -1053,8 +1122,8 @@ function assetImage(name: string) {
   display: flex;
   flex: none;
   align-items: center;
-  height: 80px;
-  padding: 16px 12px 16px 28px;
+  height: 60px;
+  padding: 8px 12px 8px 24px;
   background: #fff;
   border-radius: var(--radius);
 }
@@ -1062,10 +1131,10 @@ function assetImage(name: string) {
 .mart-summary__metric {
   display: flex;
   flex: 1;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
   min-width: 0;
-  height: 44px;
+  height: 38px;
   padding-right: 20px;
   border-right: 1px solid var(--mart-border);
 }
@@ -1079,27 +1148,27 @@ function assetImage(name: string) {
 }
 
 .mart-summary__metric > img {
-  width: 42px;
-  height: 44px;
+  width: 32px;
+  height: 34px;
   object-fit: contain;
 }
 
 .mart-summary__metric:first-child > img {
-  width: 62px;
+  width: 46px;
 }
 
 .mart-summary__metric span {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 0;
   font-size: 12px;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--mart-label);
 }
 
 .mart-summary__metric strong {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
-  line-height: 26px;
+  line-height: 22px;
 }
 
 .mart-summary__sort {
@@ -1346,8 +1415,8 @@ function assetImage(name: string) {
     flex-wrap: wrap;
     gap: 12px;
     height: auto;
-    min-height: 80px;
-    padding: 14px;
+    min-height: 60px;
+    padding: 10px 14px;
   }
 
   .mart-summary__metric {
