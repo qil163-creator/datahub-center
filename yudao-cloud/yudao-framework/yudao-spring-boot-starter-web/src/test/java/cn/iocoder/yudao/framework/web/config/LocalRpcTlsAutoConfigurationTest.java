@@ -11,6 +11,9 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 
+import java.net.InetAddress;
+import java.net.ServerSocket;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LocalRpcTlsAutoConfigurationTest {
@@ -30,8 +33,12 @@ class LocalRpcTlsAutoConfigurationTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void addsLoopbackMutualTlsAlongsideTheOriginalConnector() {
-        runner.withPropertyValues("spring.profiles.active=local", "yudao.web.local-rpc-tls.port=50044",
+    void addsLoopbackMutualTlsAlongsideTheOriginalConnector() throws Exception {
+        int port;
+        try (var probe = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            port = probe.getLocalPort();
+        }
+        runner.withPropertyValues("spring.profiles.active=local", "yudao.web.local-rpc-tls.port=" + port,
                 "yudao.web.local-rpc-tls.ssl-bundle=test").run(context -> {
             var factory = new TomcatServletWebServerFactory(50004);
             var customizer = (WebServerFactoryCustomizer<TomcatServletWebServerFactory>)
@@ -42,9 +49,24 @@ class LocalRpcTlsAutoConfigurationTest {
             var protocol = (AbstractHttp11Protocol<?>) connector.getProtocolHandler();
             assertThat(protocol.getAddress().isLoopbackAddress()).isTrue();
             assertThat(connector.getSecure()).isTrue();
-            assertThat(connector.getPort()).isEqualTo(50044);
+            assertThat(connector.getPort()).isEqualTo(port);
             assertThat(protocol.findSslHostConfigs()[0].getCertificateVerification())
                     .isEqualTo(SSLHostConfig.CertificateVerification.REQUIRED);
         });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void skipsTheListenerWhenThePortIsAlreadyTaken() throws Exception {
+        try (var occupied = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            runner.withPropertyValues("spring.profiles.active=local",
+                    "yudao.web.local-rpc-tls.port=" + occupied.getLocalPort(),
+                    "yudao.web.local-rpc-tls.ssl-bundle=test").run(context -> {
+                var factory = new TomcatServletWebServerFactory(50004);
+                ((WebServerFactoryCustomizer<TomcatServletWebServerFactory>) context.getBean("localRpcTlsConnector"))
+                        .customize(factory);
+                assertThat(factory.getAdditionalConnectors()).isEmpty();
+            });
+        }
     }
 }
