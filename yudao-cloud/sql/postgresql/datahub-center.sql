@@ -1,4 +1,4 @@
--- Included migrations through: 0301
+-- Included migrations through: 0302
 -- 0128 仅为首次统一前显式开启的测试数据清空；新库安装不执行清空，其结构与数据不受影响。
 -- 仅用于全新数据库，禁止在已有环境重复导入；已有库必须按编号执行增量迁移。
 -- 此基线供统一模型新版应用使用；旧版应用不兼容 0127 删除业务过程与业务对象后的结构。
@@ -24267,7 +24267,7 @@ INSERT INTO "datahub-center"."system_users" VALUES (141, 'admin1', '$2a$04$oj6F6
 INSERT INTO "datahub-center"."system_users" VALUES (142, 'test01', '$2a$04$4bCYWZkjxxOC4QE0LY2M9uEEKWeJbLfs489NFtQoyidL5I0FndRaO', 'test01', '', NULL, '[]', '', '19021719925', 1, '', 0, '0:0:0:0:0:0:0:1', '2025-07-29 19:47:17', '1', '2025-07-09 21:07:10', NULL, '2025-12-02 13:23:11', 0, 1);
 INSERT INTO "datahub-center"."system_users" VALUES (143, 'a00001', '$2a$04$GhVHFviOw/SsTmiQtifHJesDYFlHMeGK7OWh7aGCCjGGVCmbHVAwa', 'a00001', NULL, 104, NULL, '', '', 0, '', 0, '0:0:0:0:0:0:0:1', '2025-12-01 16:10:13', NULL, '2025-12-01 16:10:13', '1', '2025-12-05 21:34:05', 0, 1);
 INSERT INTO "datahub-center"."system_users" VALUES (144, 'aoteman001', '$2a$04$omQOmhz8OyUFBKw77nr8KOtMp6xdvoQ1gWStjk9r8.OYT3Bv6oEYe', 'aoteman001', NULL, 116, NULL, '', '', 0, '', 1, '0:0:0:0:0:0:0:1', '2025-12-01 17:05:27', '1', '2025-12-01 17:05:27', '1', '2026-07-09 21:04:33.556604', 1, 1);
-INSERT INTO "datahub-center"."system_users" VALUES (1, 'admin', '$2a$04$.vd8nPeLwxt6hnSzmAoAyul8BOLX7Cib6QhcxRe30rfvrIPQHH1OG', '芋道源码', '管理员', 103, '[1,2]', '13aoteman@126.com', '18818260272', 1, 'http://test.yudao.iocoder.cn/user/avatar/20251220/blob_1766215463801.jpg', 0, '172.22.112.1', '2026-09-01 18:05:58.328582', 'admin', '2021-01-05 17:03:47', NULL, '2026-09-01 18:05:58.329995', 0, 1);
+INSERT INTO "datahub-center"."system_users" VALUES (1, 'admin', '$2a$04$.vd8nPeLwxt6hnSzmAoAyul8BOLX7Cib6QhcxRe30rfvrIPQHH1OG', '芋道源码', '管理员', 103, '[1,2]', '13aoteman@126.com', '18818260272', 1, '', 0, '172.22.112.1', '2026-09-01 18:05:58.328582', 'admin', '2021-01-05 17:03:47', NULL, '2026-09-01 18:05:58.329995', 0, 1);
 
 -- ----------------------------
 -- 表结构： yudao_demo01_contact

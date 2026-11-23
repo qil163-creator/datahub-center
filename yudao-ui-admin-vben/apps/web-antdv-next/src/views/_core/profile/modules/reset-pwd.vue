@@ -10,7 +10,7 @@ import { updateUserPassword } from '#/api/system/user/profile';
 
 const [Form, formApi] = useVbenForm({
   commonConfig: {
-    labelWidth: 70,
+    labelWidth: 90,
   },
   schema: [
     {

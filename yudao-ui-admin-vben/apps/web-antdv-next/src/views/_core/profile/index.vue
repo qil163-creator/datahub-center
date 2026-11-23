@@ -14,7 +14,6 @@ import { getUserProfile } from '#/api/system/user/profile';
 import BaseInfo from './modules/base-info.vue';
 import ProfileUser from './modules/profile-user.vue';
 import ResetPwd from './modules/reset-pwd.vue';
-import UserSocial from './modules/user-social.vue';
 
 const userStore = useUserStore();
 const activeName = ref('basicInfo');
@@ -56,7 +55,9 @@ onMounted(loadProfile);
           <TabPane key="resetPwd" tab="密码设置">
             <ResetPwd />
           </TabPane>
-          <!-- antdv-next 的 TabPane 未声明 props，需要使用 camelCase 的 forceRender，才能预挂载以处理社交绑定回调 -->
+          <!--
+            社交绑定页签暂不展示。恢复时取消注释，并重新导入 ./modules/user-social.vue。
+            antdv-next 的 TabPane 未声明 props，需要使用 camelCase 的 forceRender，才能预挂载以处理社交绑定回调。
           <TabPane
             key="userSocial"
             tab="社交绑定"
@@ -64,6 +65,7 @@ onMounted(loadProfile);
           >
             <UserSocial @update:active-name="activeName = $event" />
           </TabPane>
+          -->
           <!-- TODO @芋艿：在线设备 -->
         </Tabs>
       </Card>

@@ -18,7 +18,6 @@ import {
   AntdProfileOutlined,
   BookOpenText,
   CircleHelp,
-  IconifyIcon,
   SvgGithubIcon,
 } from '@vben/icons';
 import {
@@ -33,7 +32,7 @@ import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { formatDateTime, openWindow } from '@vben/utils';
 
-import { message, Tooltip } from 'antdv-next';
+import { message } from 'antdv-next';
 
 import {
   getUnreadNotifyMessageCount,
@@ -164,11 +163,12 @@ function handleNotificationOpen(open: boolean) {
   handleNotificationGetUnreadCount();
 }
 
-/** 打开 IM 聊天 */
-function handleOpenImHome() {
-  const { href } = router.resolve({ name: 'ImHome' });
-  window.open(href, '_blank');
-}
+// IM 聊天入口暂不展示，恢复方式见模板中的注释
+// /** 打开 IM 聊天 */
+// function handleOpenImHome() {
+//   const { href } = router.resolve({ name: 'ImHome' });
+//   window.open(href, '_blank');
+// }
 
 // 租户列表
 const tenants = ref<SystemTenantApi.Tenant[]>([]);
@@ -312,6 +312,9 @@ watch(
         @read="handleNotificationRead"
         @on-click="handleClick"
       />
+      <!--
+        IM 聊天入口暂不展示。恢复时取消注释，并重新导入 antdv-next 的 Tooltip、
+        @vben/icons 的 IconifyIcon，以及 script 中的 handleOpenImHome。
       <Tooltip title="IM 聊天">
         <button
           class="hover:bg-accent hover:text-accent-foreground mr-1 inline-flex size-8 items-center justify-center rounded-md transition-colors"
@@ -322,6 +325,7 @@ watch(
           <IconifyIcon class="size-4" icon="lucide:message-circle" />
         </button>
       </Tooltip>
+      -->
     </template>
     <template #header-right-1>
       <div v-if="tenantEnable">
