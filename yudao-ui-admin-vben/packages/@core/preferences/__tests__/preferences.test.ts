@@ -127,6 +127,33 @@ describe('preferences', () => {
     expect(preferenceManager.getPreferences()).toEqual(expected);
   });
 
+  it('ignores cached logo images so app config wins, keeping other cached prefs', async () => {
+    const staleCache = {
+      ...defaultPreferences,
+      app: { ...defaultPreferences.app, locale: 'en-US' },
+      logo: {
+        ...defaultPreferences.logo,
+        source: 'https://example.com/old-logo.webp',
+        sourceDark: 'https://example.com/old-logo-dark.webp',
+      },
+    };
+    localStorageMock.getItem.mockImplementation((key: string) =>
+      key === 'logoNamespace-preferences'
+        ? JSON.stringify({ value: staleCache })
+        : null,
+    );
+
+    await preferenceManager.initPreferences({
+      namespace: 'logoNamespace',
+      overrides: { logo: { source: '/logo.svg' } },
+    });
+
+    const preferences = preferenceManager.getPreferences();
+    expect(preferences.logo.source).toBe('/logo.svg');
+    expect(preferences.logo.sourceDark).toBeUndefined();
+    expect(preferences.app.locale).toBe('en-US');
+  });
+
   it('updates theme mode correctly', () => {
     preferenceManager.updatePreferences({
       theme: {

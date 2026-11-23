@@ -141,6 +141,9 @@ class PreferenceManager {
     // 在每次 updatePreferences 时被 concat 追加，膨胀到几十/上百条重复 key。
     // 这里在加载缓存后做一次去重，保留首次出现的 key。
     this.sanitizeCachedArray(cachedPreferences, 'widget', 'order');
+    // logo 图片地址不是用户可调整项（偏好设置面板里没有入口），由应用配置决定；
+    // 若沿用缓存，更换 logo 后老用户仍会看到旧图，因此丢弃缓存值。
+    this.dropCachedFields(cachedPreferences, 'logo', ['source', 'sourceDark']);
     const mergedPreference = mergeWithArrayOverride(
       {},
       cachedPreferences, // 用户缓存的设置优先
@@ -246,6 +249,21 @@ class PreferenceManager {
     }
 
     return value;
+  }
+
+  /**
+   * 丢弃缓存中由应用配置决定、不应被缓存覆盖的字段
+   */
+  private dropCachedFields(
+    cached: Record<string, any>,
+    group: string,
+    fields: string[],
+  ) {
+    const node = cached?.[group];
+    if (!node || typeof node !== 'object') return;
+    for (const field of fields) {
+      delete node[field];
+    }
   }
 
   /**

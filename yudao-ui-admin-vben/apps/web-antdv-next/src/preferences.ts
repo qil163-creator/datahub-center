@@ -15,6 +15,10 @@ export const overridesPreferences = defineOverridesPreferences({
     name: import.meta.env.VITE_APP_TITLE,
     enableRefreshToken: true,
   },
+  logo: {
+    /** 项目自有图标，放在 public 下，避免内网部署时依赖 unpkg 外网资源 */
+    source: `${import.meta.env.BASE_URL}logo.svg`,
+  },
   footer: {
     /** 默认关闭 footer 页脚，因为有一定遮挡 */
     enable: false,

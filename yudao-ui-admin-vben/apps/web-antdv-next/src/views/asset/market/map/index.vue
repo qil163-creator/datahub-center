@@ -240,6 +240,7 @@ const query = reactive<{
 const [FilterForm, filterFormApi] = useVbenForm({
   actionWrapperClass: '[&>*]:shrink-0 whitespace-nowrap',
   commonConfig: { componentProps: { class: 'w-full' }, labelWidth: 100 },
+  compact: true,
   layout: 'horizontal',
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   showCollapseButton: false,
@@ -1129,7 +1130,7 @@ function syncFilterValues() {
       <main class="asset-main">
         <FilterForm
           @vue:mounted="syncFilterValues"
-          class="rounded-lg bg-background p-4"
+          class="rounded-lg bg-background px-4 pb-1 pt-3"
         >
           <template #expand-after>
             <SpaceCompact v-access:code="'asset:data-asset:create'">

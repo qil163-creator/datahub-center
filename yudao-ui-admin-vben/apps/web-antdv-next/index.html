@@ -13,7 +13,8 @@
     />
     <!-- 由 vite 注入 VITE_APP_TITLE 变量，在 .env 文件内配置 -->
     <title>%VITE_APP_TITLE%</title>
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <script>
       var HM_ID = '<%= VITE_APP_BAIDU_CODE %>';
       if (HM_ID) {

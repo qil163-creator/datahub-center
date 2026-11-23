@@ -1,0 +1,246 @@
+<style data-app-loading="inject-css">
+  html {
+    /* same as ant-design-vue/dist/reset.css setting, avoid the title line-height changed */
+    line-height: 1.15;
+  }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #f4f7f9;
+  }
+
+  .loading.hidden {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.8s ease-out;
+  }
+
+  .dark .loading {
+    background: #0d0d10;
+  }
+
+  /* 棱镜立方：三个面周期性汇聚、拼合、散开 */
+  .dh-loader {
+    width: 176px;
+    height: 176px;
+    overflow: visible;
+  }
+
+  .dh-face {
+    animation: dh-assemble 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  .dh-face-left {
+    animation-delay: 0.08s;
+  }
+
+  .dh-face-right {
+    animation-delay: 0.16s;
+  }
+
+  @keyframes dh-assemble {
+    0%,
+    100% {
+      opacity: 0.32;
+      transform: translate(calc(var(--dx) * 13px), calc(var(--dy) * 13px));
+    }
+
+    38%,
+    72% {
+      opacity: 1;
+      transform: translate(calc(var(--dx) * 3.3px), calc(var(--dy) * 3.3px));
+    }
+  }
+
+  .dh-shadow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: dh-shadow 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  @keyframes dh-shadow {
+    0%,
+    100% {
+      opacity: 0.12;
+      transform: scale(1.35, 1);
+    }
+
+    38%,
+    72% {
+      opacity: 0.32;
+      transform: scale(1, 1);
+    }
+  }
+
+  .dh-orbit {
+    transform-origin: 32px 32px;
+    animation: dh-spin 9s linear infinite;
+  }
+
+  .dh-orbit-ring {
+    stroke: #3b82f6;
+    stroke-opacity: 0.18;
+  }
+
+  .dark .dh-orbit-ring {
+    stroke: #93c5fd;
+    stroke-opacity: 0.16;
+  }
+
+  @keyframes dh-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .dh-title {
+    margin-top: 20px;
+    font-size: 26px;
+    font-weight: 600;
+    color: rgb(0 0 0 / 85%);
+    letter-spacing: 0.04em;
+  }
+
+  .dark .dh-title {
+    color: #fff;
+  }
+
+  .dh-progress {
+    position: relative;
+    width: 168px;
+    height: 3px;
+    margin-top: 20px;
+    overflow: hidden;
+    background: rgb(59 130 246 / 14%);
+    border-radius: 3px;
+  }
+
+  .dh-progress::after {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    content: '';
+    background: linear-gradient(90deg, #22d3ee, #3b82f6, #9333ea);
+    border-radius: 3px;
+    animation: dh-progress 1.4s ease-in-out infinite;
+  }
+
+  @keyframes dh-progress {
+    to {
+      left: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dh-face,
+    .dh-shadow,
+    .dh-orbit,
+    .dh-progress::after {
+      animation-duration: 6s;
+    }
+
+    .dh-face {
+      animation: none;
+      transform: translate(calc(var(--dx) * 3.3px), calc(var(--dy) * 3.3px));
+    }
+  }
+</style>
+<div class="loading" id="__app-loading__">
+  <svg class="dh-loader" viewBox="-20 -18 104 104" aria-hidden="true">
+    <defs>
+      <linearGradient
+        id="dh-top"
+        x1="12"
+        y1="10"
+        x2="52"
+        y2="30"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0" stop-color="#67E8F9" />
+        <stop offset="1" stop-color="#3B82F6" />
+      </linearGradient>
+      <linearGradient
+        id="dh-left"
+        x1="10"
+        y1="20"
+        x2="32"
+        y2="57"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0" stop-color="#3B82F6" />
+        <stop offset="1" stop-color="#4F46E5" />
+      </linearGradient>
+      <linearGradient
+        id="dh-right"
+        x1="54"
+        y1="20"
+        x2="32"
+        y2="57"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0" stop-color="#818CF8" />
+        <stop offset="1" stop-color="#9333EA" />
+      </linearGradient>
+    </defs>
+    <g class="dh-orbit">
+      <circle
+        class="dh-orbit-ring"
+        cx="32"
+        cy="32"
+        r="44"
+        fill="none"
+        stroke-width="1"
+        stroke-dasharray="2 5"
+      />
+      <circle cx="32" cy="-12" r="3" fill="#22D3EE" />
+      <circle cx="70.1" cy="54" r="3" fill="#6366F1" />
+      <circle cx="-6.1" cy="54" r="3" fill="#A855F7" />
+    </g>
+    <ellipse
+      class="dh-shadow"
+      cx="32"
+      cy="72"
+      rx="20"
+      ry="3.2"
+      fill="#3B82F6"
+    />
+    <g stroke-linejoin="round" stroke-width="3">
+      <path
+        class="dh-face dh-face-top"
+        style="--dx: 0; --dy: -1"
+        d="M32 8.5 52.4 20.3 32 32 11.6 20.3Z"
+        fill="url(#dh-top)"
+        stroke="url(#dh-top)"
+      />
+      <path
+        class="dh-face dh-face-left"
+        style="--dx: -0.866; --dy: 0.5"
+        d="M11.6 20.3 32 32v23.5L11.6 43.7Z"
+        fill="url(#dh-left)"
+        stroke="url(#dh-left)"
+      />
+      <path
+        class="dh-face dh-face-right"
+        style="--dx: 0.866; --dy: 0.5"
+        d="M52.4 20.3V43.7L32 55.5V32Z"
+        fill="url(#dh-right)"
+        stroke="url(#dh-right)"
+      />
+    </g>
+  </svg>
+  <div class="dh-title">%VITE_APP_TITLE%</div>
+  <div class="dh-progress"></div>
+</div>
