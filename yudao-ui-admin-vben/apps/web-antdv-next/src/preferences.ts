@@ -14,6 +14,8 @@ export const overridesPreferences = defineOverridesPreferences({
     defaultHomePath: '/home',
     name: import.meta.env.VITE_APP_TITLE,
     enableRefreshToken: true,
+    /** 项目默认头像，放在 public 下，避免依赖 unpkg 外网资源 */
+    defaultAvatar: `${import.meta.env.BASE_URL}avatar.svg`,
   },
   logo: {
     /** 项目自有图标，放在 public 下，避免内网部署时依赖 unpkg 外网资源 */

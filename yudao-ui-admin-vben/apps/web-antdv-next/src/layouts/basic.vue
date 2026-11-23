@@ -42,6 +42,7 @@ import {
   updateNotifyMessageRead,
 } from '#/api/system/notify/message';
 import { getSimpleTenantList } from '#/api/system/tenant';
+import { useAvatarFallback } from '#/hooks/use-avatar-fallback';
 import { $t } from '#/locales';
 import { router } from '#/router';
 import { useAuthStore } from '#/store';
@@ -98,9 +99,10 @@ const menus = computed(() => [
   },
 ]);
 
-const avatar = computed(() => {
-  return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
-});
+const avatar = useAvatarFallback(
+  () => userStore.userInfo?.avatar,
+  () => preferences.app.defaultAvatar,
+);
 
 async function handleLogout() {
   await authStore.logout(false);

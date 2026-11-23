@@ -127,10 +127,14 @@ describe('preferences', () => {
     expect(preferenceManager.getPreferences()).toEqual(expected);
   });
 
-  it('ignores cached logo images so app config wins, keeping other cached prefs', async () => {
+  it('ignores cached logo and avatar images so app config wins, keeping other cached prefs', async () => {
     const staleCache = {
       ...defaultPreferences,
-      app: { ...defaultPreferences.app, locale: 'en-US' },
+      app: {
+        ...defaultPreferences.app,
+        defaultAvatar: 'https://example.com/old-avatar.webp',
+        locale: 'en-US',
+      },
       logo: {
         ...defaultPreferences.logo,
         source: 'https://example.com/old-logo.webp',
@@ -145,12 +149,16 @@ describe('preferences', () => {
 
     await preferenceManager.initPreferences({
       namespace: 'logoNamespace',
-      overrides: { logo: { source: '/logo.svg' } },
+      overrides: {
+        app: { defaultAvatar: '/avatar.svg' },
+        logo: { source: '/logo.svg' },
+      },
     });
 
     const preferences = preferenceManager.getPreferences();
     expect(preferences.logo.source).toBe('/logo.svg');
     expect(preferences.logo.sourceDark).toBeUndefined();
+    expect(preferences.app.defaultAvatar).toBe('/avatar.svg');
     expect(preferences.app.locale).toBe('en-US');
   });
 

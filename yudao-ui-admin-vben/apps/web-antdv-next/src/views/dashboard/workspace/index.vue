@@ -8,6 +8,8 @@ import { preferences } from '@vben/preferences';
 import { useUserStore } from '@vben/stores';
 import { formatAxis, formatDate } from '@vben/utils';
 
+import { useAvatarFallback } from '#/hooks/use-avatar-fallback';
+
 import { loadWorkspaceData } from '../shared/data';
 import { DASHBOARD_TARGETS, useDashboardNav } from '../shared/route-resolver';
 import { todayText } from '../shared/utils';
@@ -28,6 +30,10 @@ import TrendPanel from './modules/trend-panel.vue';
 defineOptions({ name: 'DashboardWorkspace' });
 
 const userStore = useUserStore();
+const homeAvatar = useAvatarFallback(
+  () => userStore.userInfo?.avatar,
+  () => preferences.app.defaultAvatar,
+);
 const { navTo, resolve } = useDashboardNav();
 
 const loading = ref(true);
@@ -183,7 +189,7 @@ onMounted(loadData);
 <template>
   <div class="flex flex-col gap-5 p-5">
     <HomeBanner
-      :avatar="userStore.userInfo?.avatar || preferences.app.defaultAvatar"
+      :avatar="homeAvatar"
       :description="description"
       :loading="loading"
       :stats="headerStats"
