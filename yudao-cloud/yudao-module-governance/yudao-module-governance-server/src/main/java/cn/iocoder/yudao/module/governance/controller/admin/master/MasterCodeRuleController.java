@@ -45,7 +45,7 @@ public class MasterCodeRuleController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-主数据编码规则", subType = "修改编码规则",
-            bizNo = "{{(#req.id) ?: 0}}", success = "修改了主数据编码规则，原名称【{{(#auditObjectName) ?: '编号' + #req.id}}】，提交名称【{{(#req.name) ?: '未设置'}}】，提交编码【{{(#req.code) ?: '未设置'}}】，目标状态【{{(#req.status) ?: '未设置'}}】",
+            bizNo = "{{(#req.id) ?: 0}}", success = "修改了主数据编码规则，原名称【{{(#auditObjectName) ?: '编号' + #req.id}}】，提交名称【{{(#req.name) ?: '未设置'}}】，提交编码【{{(#req.code) ?: '未设置'}}】，目标状态【{getCommonStatus{#req.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:update')")
@@ -60,7 +60,7 @@ public class MasterCodeRuleController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-主数据编码规则", subType = "启停编码规则",
-            bizNo = "{{(#req.id) ?: 0}}", success = "调整了主数据编码规则【{{(#auditObjectName) ?: '编号' + #req.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#req.status) ?: '未设置'}}】",
+            bizNo = "{{(#req.id) ?: 0}}", success = "调整了主数据编码规则【{{(#auditObjectName) ?: '编号' + #req.id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#req.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "启停编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:update')")
@@ -90,7 +90,7 @@ public class MasterCodeRuleController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-主数据编码规则", subType = "批量删除编码规则",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除主数据编码规则，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除主数据编码规则【{getMasterCodeRuleName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除编码规则")
     @PreAuthorize("@ss.hasPermission('governance:master-code-rule:delete')")

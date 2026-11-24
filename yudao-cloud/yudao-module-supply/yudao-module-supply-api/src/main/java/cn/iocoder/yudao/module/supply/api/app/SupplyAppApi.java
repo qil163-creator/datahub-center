@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据服务应用 RPC：供资产申请大厅开通 API 订阅。
@@ -56,6 +58,16 @@ public interface SupplyAppApi {
     @GetMapping(PREFIX + "/list-by-creator")
     @Operation(summary = "按创建人列出应用")
     CommonResult<List<SupplyAppRespDTO>> listAppsByCreator(@RequestParam("userId") Long userId);
+
+    /**
+     * 按编号读取应用名称，仅用于操作日志展示；不存在的编号不返回。
+     *
+     * @param ids 应用编号集合
+     * @return 应用编号与名称映射
+     */
+    @GetMapping(PREFIX + "/names")
+    @Operation(summary = "按编号读取应用名称")
+    CommonResult<Map<Long, String>> getAppNames(@RequestParam("ids") Collection<Long> ids);
 
     /**
      * 查询授权交付结果。

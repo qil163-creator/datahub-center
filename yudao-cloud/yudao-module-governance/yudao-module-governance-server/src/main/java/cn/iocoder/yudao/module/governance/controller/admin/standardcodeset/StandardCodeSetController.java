@@ -77,7 +77,7 @@ public class StandardCodeSetController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-标准码", subType = "切换标准启用状态",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了标准码表【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了标准码表【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
@@ -115,7 +115,7 @@ public class StandardCodeSetController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准码", subType = "更新数据标准--标准码",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准码表，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.type) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准码表，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.type) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
@@ -149,7 +149,7 @@ public class StandardCodeSetController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准码", subType = "批量删除数据标准--标准码",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准码表，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准码表【{getStandardCodeSetName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--标准码")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")

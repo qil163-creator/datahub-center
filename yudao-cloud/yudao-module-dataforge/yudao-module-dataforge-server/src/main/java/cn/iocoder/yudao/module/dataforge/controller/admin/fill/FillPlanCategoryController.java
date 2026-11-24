@@ -63,7 +63,7 @@ public class FillPlanCategoryController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-采集计划分类", subType = "创建采集计划分类", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了采集计划分类【{{(#reqVO.name) ?: '未设置'}}】，父分类【{{(#reqVO.parentId) ?: '未设置'}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了采集计划分类【{{#reqVO.name}}】，父分类【{getFillPlanCategoryName{#reqVO.parentId}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建采集计划分类")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:create', 'dataforge:fill-plan-category:create')")
@@ -79,7 +79,7 @@ public class FillPlanCategoryController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-采集计划分类", subType = "更新采集计划分类", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "修改了采集计划分类【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#reqVO.name) ?: '未设置'}}】，父分类【{{(#reqVO.parentId) ?: '未设置'}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了采集计划分类【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{#reqVO.name}}】，父分类【{getFillPlanCategoryName{#reqVO.parentId}}】，排序【{{(#reqVO.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新采集计划分类")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:fill-plan:update', 'dataforge:fill-plan-category:update')")
@@ -107,7 +107,7 @@ public class FillPlanCategoryController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-采集计划分类", subType = "删除采集计划分类，有子分类或计划引用时拒绝", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了采集计划分类【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了采集计划分类【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除采集计划分类，有子分类或计划引用时拒绝")
     @Parameter(name = "id", description = "分类编号", required = true)

@@ -59,7 +59,7 @@ public class MasterCatalogController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-主数据目录", subType = "删除主数据目录节点",
-            bizNo = "{{(#id) ?: 0}}", success = "删除了主数据目录，编号【{{(#id) ?: 0}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了主数据目录【{getMasterCatalogName{#id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除主数据目录节点")
     @Parameter(name = "id", description = "编号", required = true)

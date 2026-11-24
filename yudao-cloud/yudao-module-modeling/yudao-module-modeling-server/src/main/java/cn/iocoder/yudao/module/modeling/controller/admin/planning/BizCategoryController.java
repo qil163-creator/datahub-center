@@ -72,7 +72,7 @@ public class BizCategoryController {
      * @return 业务分类
      */
     @LogRecord(type = "数据建模-业务分类", subType = "更新业务分类状态", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "将业务分类【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#reqVO.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
+            success = "将业务分类【{{#auditObjectName}}】状态由【{getCommonStatus{#auditBeforeStatus}}】改为【{getCommonStatus{#reqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "更新业务分类状态")

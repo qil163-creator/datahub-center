@@ -65,7 +65,7 @@ public class StandardCodeItemController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-码值", subType = "更新数据标准--码值",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准码值，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.label) ?: '未设置'}}】，提交编码【{{(#updateReqVO.value) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准码值，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.label) ?: '未设置'}}】，提交编码【{{(#updateReqVO.value) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--码值")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:update')")
@@ -99,7 +99,7 @@ public class StandardCodeItemController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-码值", subType = "批量删除数据标准--码值",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准码值，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准码值【{getStandardCodeItemName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--码值")
     @PreAuthorize("@ss.hasPermission('governance:standard-code-set:delete')")

@@ -106,7 +106,7 @@ public class QualityTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据质量-质量任务", subType = "更新质量任务",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了质量任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.taskName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.taskCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.taskStatus) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了质量任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.taskName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.taskCode) ?: '未设置'}}】，目标状态【{getCommonOnlineStatus{#updateReqVO.taskStatus}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新质量任务")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:update')")
@@ -121,7 +121,7 @@ public class QualityTaskController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-数据质量-质量任务", subType = "更新质量任务状态（上线/下线）",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了质量任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#taskStatus) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了质量任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getCommonOnlineStatus{#auditBeforeStatus}}】变为【{getCommonOnlineStatus{#taskStatus}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新质量任务状态（上线/下线）")
     @PreAuthorize("@ss.hasPermission('governance:quality-task:update')")
@@ -186,7 +186,7 @@ public class QualityTaskController {
      */
     @PostMapping("/execute")
     @LogRecord(type = "数据治理-数据质量-质量任务", subType = "手动执行一次质量任务",
-            bizNo = "{{(#id) ?: 0}}", success = "发起了质量任务【{{(#auditObjectName) ?: '编号' + #id}}】的一次手动检测，检测实例编号【{{(#_ret.data) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "发起了质量任务【{{(#auditObjectName) ?: '编号' + #id}}】的一次手动检测",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次质量任务")
     @Parameter(name = "id", description = "编号", required = true)

@@ -50,7 +50,7 @@ public class DataExportController {
     @Operation(summary = "提交数据导出申请")
     @PreAuthorize("@ss.hasPermission('asset:data-export:create')")
     @LogRecord(type = "数据资产-数据导出", subType = "提交导出申请", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "提交了数据源【{{#reqVO.datasourceId}}】的导出申请，行数上限【{{#reqVO.limit}}】，原因【{{#reqVO.reason}}】",
+            success = "提交了数据源【{getDataforgeDatabaseName{#reqVO.datasourceId}}】的导出申请，行数上限【{{#reqVO.limit}}】，原因【{{#reqVO.reason}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     public CommonResult<Long> submit(@Valid @RequestBody DataExportSubmitReqVO reqVO) {
         return success(exportService.submit(reqVO));
@@ -73,7 +73,7 @@ public class DataExportController {
     @Operation(summary = "撤回数据导出申请")
     @PreAuthorize("@ss.hasPermission('asset:data-export:create')")
     @LogRecord(type = "数据资产-数据导出", subType = "撤回导出申请", bizNo = "{{#id}}",
-            success = "撤回了导出申请【{{#id}}】", extra = "BUSINESS_OPERATION")
+            success = "撤回了表【{getDataExportName{#id}}】的导出申请", extra = "BUSINESS_OPERATION")
     public CommonResult<Boolean> cancel(@RequestParam("id") @Positive Long id) {
         exportService.cancel(id);
         return success(true);
@@ -87,7 +87,7 @@ public class DataExportController {
     @PreAuthorize("@ss.hasPermission('asset:data-export:query')")
     @ApiAccessLog(operateType = EXPORT)
     @LogRecord(type = "数据资产-数据导出", subType = "下载导出文件", bizNo = "{{#id}}",
-            success = "下载了导出申请【{{#id}}】的文件", extra = "BUSINESS_OPERATION")
+            success = "下载了表【{getDataExportName{#id}}】导出申请的文件", extra = "BUSINESS_OPERATION")
     public void download(@RequestParam("id") @Positive Long id, HttpServletResponse response) throws IOException {
         DataExportService.ExportFile file = exportService.download(id);
         response.addHeader("Content-Disposition", "attachment;filename=" + file.encodedFilename());

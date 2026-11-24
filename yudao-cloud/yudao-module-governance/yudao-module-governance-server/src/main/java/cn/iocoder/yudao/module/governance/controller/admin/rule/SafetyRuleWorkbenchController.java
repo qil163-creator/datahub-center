@@ -85,7 +85,7 @@ public class SafetyRuleWorkbenchController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "修改展示脱敏规则",
-            bizNo = "{{(#request.id) ?: 0}}", success = "修改了展示脱敏规则，原名称【{{(#auditObjectName) ?: '编号' + #request.id}}】，提交名称【{{(#request.ruleName) ?: '未设置'}}】，目标状态【{{(#request.status) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改了展示脱敏规则，原名称【{{(#auditObjectName) ?: '编号' + #request.id}}】，提交名称【{{(#request.ruleName) ?: '未设置'}}】，目标状态【{getCommonStatus{#request.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
@@ -100,7 +100,7 @@ public class SafetyRuleWorkbenchController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "修改展示脱敏规则状态",
-            bizNo = "{{(#request.id) ?: 0}}", success = "调整了展示脱敏规则【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#request.status) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "调整了展示脱敏规则【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#request.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改展示脱敏规则状态")
     @PreAuthorize("@ss.hasPermission('governance:rule:update')")
@@ -130,7 +130,7 @@ public class SafetyRuleWorkbenchController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-展示脱敏规则工作台", subType = "批量删除展示脱敏规则",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除展示脱敏规则，对象编号【{{(#request.items.![id]) ?: 0}}】",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除展示脱敏规则【{getSafetyRuleName{#request.items.![id]}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除展示脱敏规则")
     @PreAuthorize("@ss.hasPermission('governance:rule:delete')")

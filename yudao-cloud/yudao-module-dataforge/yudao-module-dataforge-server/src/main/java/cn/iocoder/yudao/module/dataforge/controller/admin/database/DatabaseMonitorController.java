@@ -62,7 +62,7 @@ public class DatabaseMonitorController {
      */
     @PostMapping("/collect")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "主动采集数据库连接状态与响应时间，每分钟幂等", bizNo = "{{(#databaseId) ?: 0}}",
-            success = "主动采集了数据源【{{(#databaseId) ?: '未设置'}}】的连接状态及响应时间", extra = "BUSINESS_OPERATION",
+            success = "主动采集了数据源【{getDataforgeDatabaseName{#databaseId}}】的连接状态及响应时间", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "主动采集数据库连接状态与响应时间，每分钟幂等")
     @PreAuthorize("@ss.hasPermission('dataforge:database:query')")
@@ -118,7 +118,7 @@ public class DatabaseMonitorController {
      */
     @PostMapping("/rule/create")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "创建数据库告警规则", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "为数据源【{{(#req.databaseId) ?: '未设置'}}】创建了告警规则【{{(#req.name) ?: '未设置'}}】，指标【{{(#req.metric) ?: '未设置'}}】，比较【{{(#req.operator) ?: '未设置'}}】，阈值【{{(#req.threshold) ?: '未设置'}}】，级别【{{(#req.level) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "为数据源【{getDataforgeDatabaseName{#req.databaseId}}】创建了告警规则【{{(#req.name) ?: '未设置'}}】，指标【{getAlarmMetricLabel{#req.metric}}】，比较【{getAlarmOperatorLabel{#req.operator}}】，阈值【{{(#req.threshold) ?: '未设置'}}】，级别【{getAlarmLevelLabel{#req.level}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
@@ -134,7 +134,7 @@ public class DatabaseMonitorController {
      */
     @PutMapping("/rule/update")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "更新数据库告警规则", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改了告警规则【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，指标【{{(#req.metric) ?: '未设置'}}】，比较【{{(#req.operator) ?: '未设置'}}】，阈值【{{(#req.threshold) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了告警规则【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，指标【{getAlarmMetricLabel{#req.metric}}】，比较【{getAlarmOperatorLabel{#req.operator}}】，阈值【{{(#req.threshold) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
@@ -162,7 +162,7 @@ public class DatabaseMonitorController {
      */
     @PutMapping("/rule/status")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "启停数据库告警规则", bizNo = "{{(#req.id) ?: 0}}",
-            success = "将告警规则【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#req.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将告警规则【{{(#operateName) ?: '未设置'}}】的状态从【{getCommonStatus{#operateStatus}}】改为【{getCommonStatus{#req.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "启停数据库告警规则")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
@@ -193,7 +193,7 @@ public class DatabaseMonitorController {
      */
     @DeleteMapping("/rule/delete")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "删除数据库告警规则，保留历史告警审计记录", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了数据源【{{(#databaseId) ?: '未设置'}}】的告警规则【{{(#operateName) ?: '未设置'}}】（规则编号【{{(#id) ?: '未设置'}}】），保留历史告警", extra = "BUSINESS_OPERATION",
+            success = "删除了数据源【{getDataforgeDatabaseName{#databaseId}}】的告警规则【{{(#operateName) ?: '未设置'}}】，保留历史告警", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库告警规则，保留历史告警审计记录")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
@@ -248,7 +248,7 @@ public class DatabaseMonitorController {
      */
     @PutMapping("/alarm/handle")
     @LogRecord(type = "数据开发-数据库运行监控与告警", subType = "处理或忽略数据库告警，保留操作人和原因", bizNo = "{{(#req.id) ?: 0}}",
-            success = "对数据源【{{(#req.databaseId) ?: '未设置'}}】的告警【{{(#req.id) ?: '未设置'}}】执行了【{{#req.action == 'HANDLE' ? '处理' : '忽略'}}】处置", extra = "BUSINESS_OPERATION",
+            success = "对数据源【{getDataforgeDatabaseName{#req.databaseId}}】的告警【{getDatabaseAlarmRecordName{#req.id}}】执行了【{{#req.action == 'HANDLE' ? '处理' : '忽略'}}】处置", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "处理或忽略数据库告警，保留操作人和原因")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")

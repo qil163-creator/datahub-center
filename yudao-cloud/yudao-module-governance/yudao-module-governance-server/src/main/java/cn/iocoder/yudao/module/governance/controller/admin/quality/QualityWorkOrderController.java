@@ -122,7 +122,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/assign")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "分派质量工单",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "分派了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，处理人编号【{{(#reqVO.ownerUserId) ?: '未设置'}}】，处理部门编号【{{(#reqVO.handlingDeptId) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "分派了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，处理人【{getGovernanceUserName{#reqVO.ownerUserId}}】，处理部门【{getGovernanceDeptName{#reqVO.handlingDeptId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:assign')")
     public CommonResult<QualityWorkOrderRespVO> assign(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -135,7 +135,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/claim")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "领取质量工单",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "领取了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，处理版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "领取了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:claim')")
     public CommonResult<QualityWorkOrderRespVO> claim(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -148,7 +148,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/transfer")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "转交质量工单",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "转交了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，新处理人编号【{{(#reqVO.ownerUserId) ?: '未设置'}}】，处理部门编号【{{(#reqVO.handlingDeptId) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "转交了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，新处理人【{getGovernanceUserName{#reqVO.ownerUserId}}】，处理部门【{getGovernanceDeptName{#reqVO.handlingDeptId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> transfer(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -161,7 +161,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/submit-resolution")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "提交质量工单处理结果",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "提交了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的处理结果，处理类型【{{(#reqVO.submissionType) ?: '未设置'}}】，提交编号【{{(#_ret.data.currentSubmissionId) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "提交了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的处理结果，处理类型【{getWorkOrderSubmissionTypeLabel{#reqVO.submissionType}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> submitResolution(
@@ -175,7 +175,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/recheck")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "提交质量工单复检",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "发起了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的复检，提交编号【{{(#reqVO.submissionId) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "发起了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的复检",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> recheck(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -188,7 +188,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/confirm")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "确认质量工单处理结论",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "确认了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的处理结论，确认动作【{{(#reqVO.confirmAction) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "确认了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的处理结论，确认动作【{getWorkOrderConfirmActionLabel{#reqVO.confirmAction}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:confirm')")
     public CommonResult<QualityWorkOrderRespVO> confirm(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -201,7 +201,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/withdraw-submission")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "撤销质量工单提交",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "撤销了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的当前提交，处理版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "撤销了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】的当前提交",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
     public CommonResult<QualityWorkOrderRespVO> withdraw(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -227,7 +227,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/reopen")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "重新打开质量工单",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "重新打开了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】，处理版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "重新打开了质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:reopen')")
     public CommonResult<QualityWorkOrderRespVO> reopen(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -240,7 +240,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/request-coordination")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "请求质量工单协调",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "为质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】提交了协调请求，处理部门编号【{{(#reqVO.handlingDeptId) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "为质量工单【{{(#auditObjectName) ?: '编号' + #reqVO.id}}】提交了协调请求，处理部门【{getGovernanceDeptName{#reqVO.handlingDeptId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:coordinate')")
     public CommonResult<QualityWorkOrderRespVO> coordinate(@Valid @RequestBody QualityWorkOrderCommandReqVO reqVO) {
@@ -284,7 +284,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/notify-review")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "人工核验结果未知的通知",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "人工核验了工单通知【{{(#reqVO.id) ?: '未设置'}}】的投递结果，结论【{{(#reqVO.outcome) ?: '未设置'}}】，核验版本【{{(#reqVO.expectedResolutionVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "人工核验了质量工单【{getQualityWorkOrderNotifyName{#reqVO.id}}】的通知投递结果，结论【{getStateLabel{#reqVO.outcome}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核验结果未知的通知")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
@@ -298,7 +298,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/notify-authorize-retry")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "基于人工未送达结论显式授权重试",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "依据核验决定【{{(#reqVO.decisionId) ?: '未设置'}}】授权重试了工单通知【{{(#reqVO.id) ?: '未设置'}}】，核验版本【{{(#reqVO.expectedResolutionVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "依据人工核验结果授权重试了质量工单【{getQualityWorkOrderNotifyName{#reqVO.id}}】的通知",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "基于人工未送达结论显式授权重试")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:process')")
@@ -323,7 +323,7 @@ public class QualityWorkOrderController {
      */
     @PostMapping("/expiry-failure/retry")
     @LogRecord(type = "数据治理-数据质量-问题工单", subType = "授权例外到期处理重试",
-            bizNo = "{{(#reqVO.id) ?: 0}}", success = "授权重试了例外到期处理失败记录【{{(#reqVO.id) ?: '未设置'}}】，账本版本【{{(#reqVO.expectedVersion) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.id) ?: 0}}", success = "授权重试了质量工单【{getQualityExpiryFailureName{#reqVO.id}}】的例外到期处理失败记录",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "授权例外到期处理重试", description = "清零自动处理次数并立即到期；到期动作已生效时下一轮自动跳过，不会重复创建复核单")
     @PreAuthorize("@ss.hasPermission('governance:quality-work-order:coordinate')")

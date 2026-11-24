@@ -116,7 +116,7 @@ public class MetaTagController {
      */
     @PutMapping("/bind")
     @LogRecord(type = "数据治理-元数据标签", subType = "绑定标签（全量覆盖该对象已绑标签）",
-            bizNo = "{{(#reqVO.objectId) ?: 0}}", success = "将标签编号【{{(#reqVO.tagIds) ?: '未设置'}}】绑定到类型【{{(#reqVO.objectType) ?: '未设置'}}】的元数据对象【{{(#reqVO.objectId) ?: '未设置'}}】，提交修订【{{(#reqVO.revision) ?: '未设置'}}】",
+            bizNo = "{{(#reqVO.objectId) ?: 0}}", success = "将标签【{getMetaTagName{#reqVO.tagIds}}】绑定到元数据【{getMetaObjectName{#reqVO.objectType + ':' + #reqVO.objectId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定标签（全量覆盖该对象已绑标签）")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")
@@ -130,7 +130,7 @@ public class MetaTagController {
      */
     @DeleteMapping("/unbind")
     @LogRecord(type = "数据治理-元数据标签", subType = "解绑单个标签",
-            bizNo = "{{(#objectId) ?: 0}}", success = "从类型【{{(#objectType) ?: '未设置'}}】的元数据对象【{{(#objectId) ?: '未设置'}}】解绑了标签【{{(#tagId) ?: '未设置'}}】，提交修订【{{(#revision) ?: '未设置'}}】",
+            bizNo = "{{(#objectId) ?: 0}}", success = "从元数据【{getMetaObjectName{#objectType + ':' + #objectId}}】解绑了标签【{getMetaTagName{#tagId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "解绑单个标签")
     @PreAuthorize("@ss.hasPermission('governance:meta-table:update')")

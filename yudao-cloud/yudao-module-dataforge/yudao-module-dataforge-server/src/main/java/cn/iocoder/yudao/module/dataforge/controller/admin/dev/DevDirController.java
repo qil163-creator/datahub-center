@@ -43,7 +43,7 @@ public class DevDirController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据开发目录", subType = "创建开发目录", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了开发目录【{{(#createReqVO.name) ?: '未设置'}}】，父目录【{{(#createReqVO.parentId) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了开发目录【{{#createReqVO.name}}】，父目录【{getDevDirName{#createReqVO.parentId}}】，状态【{getCommonStatus{#createReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建开发目录")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -59,7 +59,7 @@ public class DevDirController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据开发目录", subType = "更新开发目录", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了开发目录【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，父目录【{{(#updateReqVO.parentId) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了开发目录【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{#updateReqVO.name}}】，父目录【{getDevDirName{#updateReqVO.parentId}}】，状态【{getCommonStatus{#updateReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新开发目录")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -87,7 +87,7 @@ public class DevDirController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据开发目录", subType = "删除开发目录", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了开发目录【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了开发目录【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除开发目录")
     @Parameter(name = "id", description = "编号", required = true)

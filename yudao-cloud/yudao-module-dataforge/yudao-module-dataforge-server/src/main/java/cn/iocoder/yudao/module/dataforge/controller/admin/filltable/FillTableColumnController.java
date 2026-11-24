@@ -50,7 +50,7 @@ public class FillTableColumnController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据填报-填报表字段", subType = "创建填报表字段", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "在填报表【{{(#createReqVO.tableId) ?: '未设置'}}】创建了字段【{{(#createReqVO.cnName) ?: '未设置'}}】（字段名【{{(#createReqVO.name) ?: '未设置'}}】），字段类型【{{(#createReqVO.fieldType) ?: '未设置'}}】，允许为空【{{(#createReqVO.nullable) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "在填报表【{getFillTableName{#createReqVO.tableId}}】创建了字段【{{(#createReqVO.cnName) ?: '未设置'}}】（字段名【{{(#createReqVO.name) ?: '未设置'}}】），字段类型【{getFillFieldTypeLabel{#createReqVO.fieldType}}】，允许为空【{{#createReqVO.nullable == 1 ? '是' : '否'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建填报表字段")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
@@ -66,7 +66,7 @@ public class FillTableColumnController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据填报-填报表字段", subType = "更新填报表字段", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了填报表【{{(#updateReqVO.tableId) ?: '未设置'}}】的字段【{{(#operateName) ?: '未设置'}}】，字段名改为【{{(#updateReqVO.name) ?: '未设置'}}】，中文名【{{(#updateReqVO.cnName) ?: '未设置'}}】，类型【{{(#updateReqVO.fieldType) ?: '未设置'}}】，允许为空【{{(#updateReqVO.nullable) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了填报表【{getFillTableName{#updateReqVO.tableId}}】的字段【{{(#operateName) ?: '未设置'}}】，字段名改为【{{(#updateReqVO.name) ?: '未设置'}}】，中文名【{{(#updateReqVO.cnName) ?: '未设置'}}】，类型【{getFillFieldTypeLabel{#updateReqVO.fieldType}}】，允许为空【{{#updateReqVO.nullable == 1 ? '是' : '否'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新填报表字段")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
@@ -94,7 +94,7 @@ public class FillTableColumnController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据填报-填报表字段", subType = "删除填报表字段", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了填报字段【{{(#id) ?: '未设置'}}】的配置，后续发布不再使用该字段", extra = "BUSINESS_OPERATION",
+            success = "删除了填报字段【{getFillTableColumnName{#id}}】的配置，后续发布不再使用该字段", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除填报表字段")
     @Parameter(name = "id", description = "编号", required = true)

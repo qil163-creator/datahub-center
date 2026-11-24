@@ -99,7 +99,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "重置应用秘钥", bizNo = "{{(#id) ?: 0}}",
-            success = "重置了应用【{{#auditObjectName}}】（编号{{#id}}）的密钥", extra = "BUSINESS_OPERATION",
+            success = "重置了应用【{{#auditObjectName}}】的密钥", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/reset-secret")
     @Operation(summary = "重置应用秘钥")
@@ -177,7 +177,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "启用、暂停或撤销应用", bizNo = "{{(#id) ?: 0}}",
-            success = "将应用【{{#auditObjectName}}】状态设为【{{#appStatus}}】（1启用、0暂停、2撤销）", extra = "BUSINESS_OPERATION",
+            success = "将应用【{{#auditObjectName}}】状态设为【{{#appStatus == 1 ? '启用' : (#appStatus == 0 ? '暂停' : (#appStatus == 2 ? '撤销' : #appStatus))}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用、暂停或撤销应用")
@@ -229,7 +229,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "新增应用 API 授权", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "为应用【{{#auditObjectName}}】（编号{{#createReqVO.appId}}）授权API【编号{{#createReqVO.apiId}}】，授权记录【{{#_ret.data}}】，永久有效【{{#createReqVO.foreverFlag == 1}}】", extra = "BUSINESS_OPERATION",
+            success = "为应用【{{#auditObjectName}}】授权API【{getDataApiName{#createReqVO.apiId}}】，永久有效【{{#createReqVO.foreverFlag == 1 ? '是' : '否'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/api-auth/create")
     @Operation(summary = "新增应用 API 授权")
@@ -266,7 +266,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "明确重新启用应用 API 授权聚合", bizNo = "{{(#id) ?: 0}}",
-            success = "重新启用了应用API授权【编号{{#id}}】，原聚合修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "重新启用了应用API授权【{getAppApiGrantName{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/api-auth/enable")
     @Operation(summary = "明确重新启用应用 API 授权聚合")
@@ -287,7 +287,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "整体启用或禁用应用 API 授权（按聚合版本防止旧页面覆盖）", bizNo = "{{(#id) ?: 0}}",
-            success = "将应用API授权【编号{{#id}}】的整体禁用状态设为【{{#disabled}}】，原聚合修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "将应用API授权【{getAppApiGrantName{#id}}】设为【{{#disabled == true ? '整体禁用' : '整体启用'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/api-auth/control")
     @Operation(summary = "整体启用或禁用应用 API 授权（按聚合版本防止旧页面覆盖）")
@@ -308,7 +308,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "永久关闭管理端 ADMIN 授权（终态；市场来源须由来源系统撤销）", bizNo = "{{(#id) ?: 0}}",
-            success = "永久撤销了独立管理员API授权【编号{{#id}}】，原聚合修订【{{#expectedRevision}}】，不影响市场来源的独立生命周期", extra = "BUSINESS_OPERATION",
+            success = "永久撤销了独立管理员API授权【{getAppApiGrantName{#id}}】，不影响市场来源的独立生命周期", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/api-auth/revoke")
     @Operation(summary = "永久关闭管理端 ADMIN 授权（终态；市场来源须由来源系统撤销）")
@@ -326,7 +326,7 @@ public class SupplyAppController {
      * @return 供应应用
      */
     @LogRecord(type = "数据服务-应用管理", subType = "整体禁用应用 API 授权（保留来源记录）", bizNo = "{{(#id) ?: 0}}",
-            success = "整体禁用了应用API授权【编号{{#id}}】，来源记录继续保留", extra = "BUSINESS_OPERATION",
+            success = "整体禁用了应用API授权【{getAppApiGrantName{#id}}】，来源记录继续保留", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/api-auth/delete")
     @Operation(summary = "整体禁用应用 API 授权（保留来源记录）")

@@ -76,7 +76,7 @@ public class CleanRuleController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据质量清洗规则", subType = "更新清洗规则",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了清洗规则，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.code) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了清洗规则，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.code) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")
@@ -91,7 +91,7 @@ public class CleanRuleController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-数据质量清洗规则", subType = "更新清洗规则状态",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了清洗规则【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了清洗规则【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新清洗规则状态")
     @PreAuthorize("@ss.hasPermission('governance:clean-rule:update')")

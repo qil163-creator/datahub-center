@@ -60,7 +60,7 @@ public class FillPlanController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "创建采集计划", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了采集计划【{{(#createReqVO.name) ?: '未设置'}}】，模板版本【{{(#createReqVO.tableVersionId) ?: '未设置'}}】，周期类型【{{(#createReqVO.periodType) ?: '未设置'}}】，发布审批开关【{{(#createReqVO.publishApprovalEnabled) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了采集计划【{{(#createReqVO.name) ?: '未设置'}}】，模板版本【{getFillTableVersionName{#createReqVO.tableVersionId}}】，周期类型【{getFillPeriodTypeLabel{#createReqVO.periodType}}】，发布审批开关【{getSwitchStatus{#createReqVO.publishApprovalEnabled}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建采集计划")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:create')")
@@ -76,7 +76,7 @@ public class FillPlanController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "更新采集计划", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了采集计划【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，模板版本【{{(#updateReqVO.tableVersionId) ?: '未设置'}}】，周期类型【{{(#updateReqVO.periodType) ?: '未设置'}}】，发布审批开关【{{(#updateReqVO.publishApprovalEnabled) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了采集计划【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，模板版本【{getFillTableVersionName{#updateReqVO.tableVersionId}}】，周期类型【{getFillPeriodTypeLabel{#updateReqVO.periodType}}】，发布审批开关【{getSwitchStatus{#updateReqVO.publishApprovalEnabled}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新采集计划", description = "启用中的计划不允许变更模板版本与周期类型")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-plan:update')")
@@ -104,7 +104,7 @@ public class FillPlanController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "删除采集计划（仅草稿/停用状态）", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了采集计划【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除采集计划（仅草稿/停用状态）")
     @Parameter(name = "id", description = "编号", required = true)
@@ -160,7 +160,7 @@ public class FillPlanController {
      */
     @PutMapping("/publish")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "发布（启用）采集计划", bizNo = "{{(#id) ?: 0}}",
-            success = "启用了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "启用了采集计划【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布（启用）采集计划", description = "完整性校验并登记目标表写入；一次性计划发布即生成任务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -189,7 +189,7 @@ public class FillPlanController {
      */
     @PutMapping("/disable")
     @LogRecord(type = "数据开发-在线填报采集计划", subType = "停用采集计划", bizNo = "{{(#id) ?: 0}}",
-            success = "停用了采集计划【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "停用了采集计划【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停用采集计划", description = "停止未来任务生成；已生成任务不受影响")
     @Parameter(name = "id", description = "编号", required = true)

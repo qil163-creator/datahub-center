@@ -55,7 +55,7 @@ public class MasterMatchController {
     @PutMapping("/rule")
     @Operation(summary = "保存模型的相似匹配规则")
     @LogRecord(type = "数据治理-主数据相似匹配", subType = "保存匹配规则", bizNo = "{{#reqVO.modelId}}",
-            success = "保存了模型【{{#reqVO.modelId}}】的相似匹配规则，阈值【{{#reqVO.threshold}}】",
+            success = "保存了模型【{getMasterModelName{#reqVO.modelId}}】的相似匹配规则，阈值【{{#reqVO.threshold}}】",
             extra = "BUSINESS_OPERATION")
     @PreAuthorize("@ss.hasPermission('governance:master-match:rule')")
     public CommonResult<MasterMatchRuleVO> saveRule(@Valid @RequestBody MasterMatchRuleVO reqVO) {
@@ -65,7 +65,7 @@ public class MasterMatchController {
     @PostMapping("/run")
     @Operation(summary = "执行一次相似匹配")
     @LogRecord(type = "数据治理-主数据相似匹配", subType = "执行相似匹配", bizNo = "{{(#_ret.data.id) ?: 0}}",
-            success = "执行了模型【{{#modelId}}】的相似匹配，新增疑似重复组【{{(#_ret.data.groupCount) ?: 0}}】",
+            success = "执行了模型【{getMasterModelName{#modelId}}】的相似匹配，新增疑似重复组【{{(#_ret.data.groupCount) ?: 0}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @PreAuthorize("@ss.hasPermission('governance:master-match:run')")
     public CommonResult<MasterMatchRunRespVO> run(@RequestParam("modelId") Long modelId) {
@@ -96,7 +96,7 @@ public class MasterMatchController {
     @PostMapping("/merge")
     @Operation(summary = "提交疑似重复组合并，按模型审批配置生效")
     @LogRecord(type = "数据治理-主数据相似匹配", subType = "提交合并", bizNo = "{{(#_ret.data.id) ?: 0}}",
-            success = "提交了疑似重复组【{{#reqVO.groupId}}】的合并，保留记录【{{#reqVO.survivorKey}}】，"
+            success = "提交了模型【{getMasterMatchGroupName{#reqVO.groupId}}】一组疑似重复数据的合并，保留记录【{{#reqVO.survivorKey}}】，"
                     + "变更单编号【{{(#_ret.data.id) ?: 0}}】，受理状态【{{(#_ret.data.status) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @PreAuthorize("@ss.hasPermission('governance:master-match:merge')")
@@ -107,7 +107,7 @@ public class MasterMatchController {
     @PostMapping("/ignore")
     @Operation(summary = "忽略疑似重复组")
     @LogRecord(type = "数据治理-主数据相似匹配", subType = "忽略疑似重复", bizNo = "{{#reqVO.groupId}}",
-            success = "忽略了疑似重复组【{{#reqVO.groupId}}】，说明【{{(#reqVO.remark) ?: '无'}}】",
+            success = "忽略了模型【{getMasterMatchGroupName{#reqVO.groupId}}】的一组疑似重复数据，说明【{{(#reqVO.remark) ?: '无'}}】",
             extra = "BUSINESS_OPERATION")
     @PreAuthorize("@ss.hasPermission('governance:master-match:ignore')")
     public CommonResult<Boolean> ignore(@Valid @RequestBody MasterMatchIgnoreReqVO reqVO) {

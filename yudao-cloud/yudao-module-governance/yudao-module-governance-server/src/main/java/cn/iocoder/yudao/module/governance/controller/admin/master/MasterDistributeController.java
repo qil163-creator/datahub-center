@@ -58,7 +58,7 @@ public class MasterDistributeController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-主数据派发", subType = "启用或停用 REST 推送（不发送数据）",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了主数据派发任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了主数据派发任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getEnabledStatus{#auditBeforeStatus}}】变为【{getEnabledStatus{#status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "启用或停用 REST 推送（不发送数据）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:release')")
@@ -88,7 +88,7 @@ public class MasterDistributeController {
      */
     @PutMapping("/resolve")
     @LogRecord(type = "数据治理-主数据派发", subType = "人工核查未知派发结果并停用排期（不发送数据）",
-            bizNo = "{{(#request.recordId) ?: 0}}", success = "核查了派发运行【{{(#request.recordId) ?: '未设置'}}】的未知结果，结论【{{(#request.outcome) ?: '未设置'}}】，并停用了该任务排期",
+            bizNo = "{{(#request.recordId) ?: 0}}", success = "核查了主数据派发任务【{getMasterDistributeRunName{#request.recordId}}】一次运行的未知结果，结论【{getStateLabel{#request.outcome}}】，并停用了该任务排期",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知派发结果并停用排期（不发送数据）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:resolve')")
@@ -116,7 +116,7 @@ public class MasterDistributeController {
     @PutMapping("/update")
     @cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog(requestEnable = false)
     @LogRecord(type = "数据治理-主数据派发", subType = "更新主数据派发任务",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了主数据派发任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了主数据派发任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{getEnabledStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新主数据派发任务")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:update')")
@@ -217,7 +217,7 @@ public class MasterDistributeController {
      */
     @PutMapping("/stop")
     @LogRecord(type = "数据治理-主数据派发", subType = "停止指定派发运行（不改变发布及排期，发送后结果仍须核查）",
-            bizNo = "{{(#request.recordId) ?: 0}}", success = "提交了派发运行【{{(#request.recordId) ?: '未设置'}}】的停止请求，未更改任务发布状态与排期",
+            bizNo = "{{(#request.recordId) ?: 0}}", success = "提交了主数据派发任务【{getMasterDistributeRunName{#request.recordId}}】运行的停止请求，未更改任务发布状态与排期",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止指定派发运行（不改变发布及排期，发送后结果仍须核查）")
     @PreAuthorize("@ss.hasPermission('governance:master-distribute:run')")

@@ -68,7 +68,7 @@ public class DataAccessController {
      */
     @PostMapping("/stop-command")
     @LogRecord(type = "数据开发-数据同步", subType = "持久受理记录级停止", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "对数据同步实例【{{(#request.recordId) ?: '未设置'}}】提交了停止命令", extra = "BUSINESS_OPERATION",
+            success = "对数据同步任务【{getDataAccessRunName{#request.recordId}}】的执行实例提交了停止命令", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "持久受理记录级停止", description = "stopRequested=true 不表示资源已经停止；应查询该记录的状态")
     @PreAuthorize("@ss.hasPermission('dataforge:access:run')")
@@ -85,7 +85,7 @@ public class DataAccessController {
      */
     @PostMapping("/resolve-command")
     @LogRecord(type = "数据开发-数据同步", subType = "人工核查未知执行或部分输出", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "人工核查了数据同步实例【{{(#request.recordId) ?: '未设置'}}】，期望状态版本【{{(#request.expectedVersion) ?: '未设置'}}】，核查结论【{{(#request.outcome) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "人工核查了数据同步任务【{getDataAccessRunName{#request.recordId}}】的执行实例，核查结论【{getStateLabel{#request.outcome}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知执行或部分输出", description = "要求独立核查权限、停止与输出证据以及当前行版本")
     @PreAuthorize("@ss.hasPermission('dataforge:access:resolve')")
@@ -118,7 +118,7 @@ public class DataAccessController {
      */
     @PostMapping("/group-recover-command")
     @LogRecord(type = "数据开发-数据同步", subType = "恢复中断的数据组", bizNo = "{{(#request.recordId) ?: 0}}",
-            success = "对数据同步实例【{{(#request.recordId) ?: '未设置'}}】发起了中断数据组恢复，期望状态版本【{{(#request.expectedVersion) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "对数据同步任务【{getDataAccessRunName{#request.recordId}}】的执行实例发起了中断数据组恢复", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "恢复中断的数据组", description = "服务端确认上一执行器已退出后受理；组恢复完成仍须核查原同步输出")
     @PreAuthorize("@ss.hasPermission('dataforge:access:resolve')")
@@ -136,7 +136,7 @@ public class DataAccessController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据同步", subType = "创建数据同步任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了数据同步任务【{{(#createReqVO.taskName) ?: '未设置'}}】，引擎类型【{{(#createReqVO.engineType) ?: '未设置'}}】，源数据源【{{(#createReqVO.sourceDatabaseId) ?: '未设置'}}】，目标数据源【{{(#createReqVO.targetDatabaseId) ?: '未设置'}}】，写入模式【{{(#createReqVO.writeMode) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了数据同步任务【{{(#createReqVO.taskName) ?: '未设置'}}】，引擎类型【{getAccessEngineTypeLabel{#createReqVO.engineType}}】，源数据源【{getDataforgeDatabaseName{#createReqVO.sourceDatabaseId}}】，目标数据源【{getDataforgeDatabaseName{#createReqVO.targetDatabaseId}}】，写入模式【{getAccessWriteModeLabel{#createReqVO.writeMode == null ? '沿用任务已有目标选项' : #createReqVO.writeMode}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据同步任务")
     @ApiAccessLog(requestEnable = false)
@@ -153,7 +153,7 @@ public class DataAccessController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据同步", subType = "更新数据同步任务", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了数据同步任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.taskName) ?: '未设置'}}】，引擎类型【{{(#updateReqVO.engineType) ?: '未设置'}}】，源数据源【{{(#updateReqVO.sourceDatabaseId) ?: '未设置'}}】，目标数据源【{{(#updateReqVO.targetDatabaseId) ?: '未设置'}}】，写入模式【{{(#updateReqVO.writeMode) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了数据同步任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.taskName) ?: '未设置'}}】，引擎类型【{getAccessEngineTypeLabel{#updateReqVO.engineType}}】，源数据源【{getDataforgeDatabaseName{#updateReqVO.sourceDatabaseId}}】，目标数据源【{getDataforgeDatabaseName{#updateReqVO.targetDatabaseId}}】，写入模式【{getAccessWriteModeLabel{#updateReqVO.writeMode == null ? '沿用任务已有目标选项' : #updateReqVO.writeMode}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据同步任务")
     @ApiAccessLog(requestEnable = false)
@@ -182,7 +182,7 @@ public class DataAccessController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据同步", subType = "删除数据同步任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了数据同步任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了数据同步任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据同步任务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -282,7 +282,7 @@ public class DataAccessController {
      */
     @PutMapping("/release")
     @LogRecord(type = "数据开发-数据同步", subType = "发布任务", bizNo = "{{(#id) ?: 0}}",
-            success = "发布了数据同步任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "发布了数据同步任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布任务", description = "周期任务进入调度，一次性任务立即执行一次")
     @Parameter(name = "id", description = "编号", required = true)
@@ -311,7 +311,7 @@ public class DataAccessController {
      */
     @PutMapping("/cancel")
     @LogRecord(type = "数据开发-数据同步", subType = "取消发布", bizNo = "{{(#id) ?: 0}}",
-            success = "取消发布了数据同步任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "取消发布了数据同步任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布")
     @Parameter(name = "id", description = "编号", required = true)
@@ -340,7 +340,7 @@ public class DataAccessController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据开发-数据同步", subType = "提交数据同步手动执行请求", bizNo = "{{(#id) ?: 0}}",
-            success = "提交了数据同步任务的运行请求【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "提交了数据同步任务的运行请求【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手动执行一次")
     @Parameter(name = "id", description = "编号", required = true)
@@ -369,7 +369,7 @@ public class DataAccessController {
      */
     @PostMapping("/stop")
     @LogRecord(type = "数据开发-数据同步", subType = "提交数据同步停止执行请求", bizNo = "{{(#id) ?: 0}}",
-            success = "提交了数据同步任务的停止请求【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "提交了数据同步任务的停止请求【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "停止正在运行的任务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -427,7 +427,7 @@ public class DataAccessController {
      */
     @DeleteMapping("/task/delete-list")
     @LogRecord(type = "数据开发-数据同步", subType = "批量删除执行记录", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了数据同步执行记录，记录编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据同步执行记录，所属任务【{getDataAccessRunName{#ids}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除执行记录")
     @Parameter(name = "ids", description = "执行记录编号列表", required = true)

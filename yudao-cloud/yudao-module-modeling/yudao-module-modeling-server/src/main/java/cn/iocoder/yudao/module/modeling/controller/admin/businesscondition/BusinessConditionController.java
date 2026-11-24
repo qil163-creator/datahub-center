@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.businesscondition;
 
+import cn.hutool.core.util.StrUtil;
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.*;
 import cn.iocoder.yudao.module.modeling.controller.admin.businesscondition.vo.*;
@@ -38,7 +40,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "创建业务限定定义", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了业务限定【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了业务限定【{{#request.name}}】，编码【{{#request.code}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建业务限定定义")
@@ -54,7 +56,7 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "修改未启用的业务限定", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改了业务限定【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了业务限定【{{#request.name}}】，编码【{{#request.code}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改未启用的业务限定")
@@ -72,13 +74,14 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "删除未启用的业务限定", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了业务限定【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了业务限定【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除未启用的业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:delete')")
     public CommonResult<Boolean> delete(@RequestParam @Positive Long id,
             @RequestParam @PositiveOrZero Long expectedRevision) {
+        captureAuditName(id);
         service.delete(id, expectedRevision);
         return success(true);
     }
@@ -90,12 +93,13 @@ public class BusinessConditionController {
      * @return 业务限定
      */
     @LogRecord(type = "数据建模-业务限定", subType = "启用或停用业务限定", bizNo = "{{(#request.id) ?: 0}}",
-            success = "将业务限定【编号{{#request.id}}】状态设为【{{#request.status}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "将业务限定【{{#auditObjectName}}】状态设为【{{#request.status == 'ACTIVE' ? '启用' : '禁用'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用业务限定")
     @PreAuthorize("@ss.hasPermission('modeling:business-condition:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody BusinessConditionStatusReqVO request) {
+        captureAuditName(request.getId());
         service.updateStatus(request);
         return success(true);
     }
@@ -138,4 +142,20 @@ public class BusinessConditionController {
     public CommonResult<List<IndicatorSourceFieldRespVO>> sourceFields(@RequestParam @Positive Long modelId) {
         return success(indicatorService.sourceFields(modelId));
     }
+
+    /**
+     * 在写入前记录业务限定名称，供操作日志展示；读取失败时退回「编号X」，不影响原有业务校验。
+     */
+    private void captureAuditName(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        try {
+            var before = service.get(id);
+            if (before != null && StrUtil.isNotBlank(before.getName())) {
+                LogRecordContext.putVariable("auditObjectName", before.getName());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，仍由业务方法给出原有校验结果。
+        }
+    }
+
 }

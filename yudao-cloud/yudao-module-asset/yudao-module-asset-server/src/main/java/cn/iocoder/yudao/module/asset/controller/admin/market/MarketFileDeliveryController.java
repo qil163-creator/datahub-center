@@ -41,7 +41,7 @@ public class MarketFileDeliveryController {
     @PostMapping(value = "/file-delivery/binding", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("@ss.hasPermission('asset:data-asset:publish')")
     @LogRecord(type = "数据资产-市场文件", subType = "绑定交付文件", bizNo = "{{#assetId}}",
-            success = "绑定目录版本【{{#catalogVersionId}}】的交付文件", extra = "BUSINESS_OPERATION")
+            success = "绑定数据资产【{getAssetCatalogVersionName{#catalogVersionId}}】目录版本的交付文件", extra = "BUSINESS_OPERATION")
     public CommonResult<MarketFileBindingRespVO> upload(@RequestParam @Positive long assetId,
             @RequestParam @Positive long catalogVersionId, @RequestPart("file") MultipartFile file) throws IOException {
         return CommonResult.success(delivery.upload(assetId, catalogVersionId, file));
@@ -51,7 +51,7 @@ public class MarketFileDeliveryController {
     @GetMapping("/my-assets/download")
     @PreAuthorize("@ss.hasPermission('asset:market:my-assets:query')")
     @LogRecord(type = "数据资产-市场文件", subType = "下载交付文件", bizNo = "{{#id}}",
-            success = "下载申请【{{#id}}】的获批文件", extra = "BUSINESS_OPERATION")
+            success = "下载资源申请【{getMarketApplyName{#id}}】的获批文件", extra = "BUSINESS_OPERATION")
     public void download(@RequestParam("id") @Positive long id, HttpServletResponse response) throws IOException {
         var file = downloads.download(id);
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");

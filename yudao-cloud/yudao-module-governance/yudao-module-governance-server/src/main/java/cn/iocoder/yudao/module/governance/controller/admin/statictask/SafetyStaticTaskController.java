@@ -62,7 +62,7 @@ public class SafetyStaticTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-静态脱敏任务", subType = "更新静态脱敏任务",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了静态脱敏任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.taskName) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了静态脱敏任务，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.taskName) ?: '未设置'}}】，目标状态【{getCommonOnlineStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新静态脱敏任务")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:update')")
@@ -95,7 +95,7 @@ public class SafetyStaticTaskController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-静态脱敏任务", subType = "批量删除静态脱敏任务",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除静态脱敏任务，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除静态脱敏任务【{getSafetyStaticTaskName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除静态脱敏任务")
     @Parameter(name = "ids", description = "编号", required = true)
@@ -143,7 +143,7 @@ public class SafetyStaticTaskController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-静态脱敏任务", subType = "更新静态脱敏任务上下线状态",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了静态脱敏任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了静态脱敏任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getCommonOnlineStatus{#auditBeforeStatus}}】变为【{getCommonOnlineStatus{#status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新静态脱敏任务上下线状态")
     @PreAuthorize("@ss.hasPermission('governance:safety-static-task:update')")

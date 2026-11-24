@@ -46,7 +46,7 @@ public class MasterPushCategoryController {
 
     @PutMapping("/update")
     @LogRecord(type = "数据治理-主数据推送类目", subType = "修改推送类目",
-            bizNo = "{{(#request.id) ?: 0}}", success = "修改了主数据推送类目，原名称【{{(#auditObjectName) ?: '编号' + #request.id}}】，提交名称【{{(#request.name) ?: '未设置'}}】，目标状态【{{(#request.status) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "修改了主数据推送类目，原名称【{{(#auditObjectName) ?: '编号' + #request.id}}】，提交名称【{{(#request.name) ?: '未设置'}}】，目标状态【{getCommonStatus{#request.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:update')")
@@ -55,7 +55,7 @@ public class MasterPushCategoryController {
 
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-主数据推送类目", subType = "更新推送类目状态",
-            bizNo = "{{(#request.id) ?: 0}}", success = "调整了主数据推送类目【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#request.status) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "调整了主数据推送类目【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#request.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新推送类目状态")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:update')")
@@ -73,7 +73,7 @@ public class MasterPushCategoryController {
 
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-主数据推送类目", subType = "批量删除推送类目",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除主数据推送类目，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除主数据推送类目【{getMasterPushCategoryName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除推送类目")
     @PreAuthorize("@ss.hasPermission('governance:master-push-category:delete')")

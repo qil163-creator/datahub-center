@@ -53,7 +53,7 @@ public class QualityBriefTemplateController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据质量-简报模板", subType = "更新简报模板（段落全量覆盖）",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了质量简报模板，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.templateName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.templateCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了质量简报模板，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.templateName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.templateCode) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新简报模板（段落全量覆盖）")
     @PreAuthorize("@ss.hasPermission('governance:quality-brief:update')")

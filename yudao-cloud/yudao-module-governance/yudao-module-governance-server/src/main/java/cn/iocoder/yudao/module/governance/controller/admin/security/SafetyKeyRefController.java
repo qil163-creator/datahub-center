@@ -78,7 +78,7 @@ public class SafetyKeyRefController {
     @Operation(summary = "启停密钥引用")
     @PreAuthorize("@ss.hasPermission('governance:key-ref:update')")
     @LogRecord(type = "数据治理-字段加密", subType = "启停密钥引用", bizNo = "{{#reqVO.id}}",
-            success = "将密钥引用【{{#reqVO.id}}】设置为【{{#reqVO.status == 0 ? '启用' : '停用'}}】",
+            success = "将密钥引用【{getSafetyKeyRefName{#reqVO.id}}】设置为【{{#reqVO.status == 0 ? '启用' : '停用'}}】",
             extra = "BUSINESS_OPERATION")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody SafetyKeyRefStatusReqVO reqVO) {
         keyRefService.updateStatus(reqVO);

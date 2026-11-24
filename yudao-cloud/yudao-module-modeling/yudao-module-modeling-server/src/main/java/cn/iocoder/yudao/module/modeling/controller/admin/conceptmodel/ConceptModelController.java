@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.modeling.controller.admin.conceptmodel;
 
+import cn.hutool.core.util.StrUtil;
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -33,7 +35,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "创建概念模型草稿", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了概念模型【{{#request.name}}】，编码【{{#request.code}}】，编号【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了概念模型【{{#request.name}}】，编码【{{#request.code}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/create")
     @Operation(summary = "创建概念模型草稿")
@@ -49,7 +51,7 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "修改概念模型及实体关系设计", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改了概念模型【{{#request.name}}】（编号{{#request.id}}），编码【{{#request.code}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了概念模型【{{#request.name}}】，编码【{{#request.code}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update")
     @Operation(summary = "修改概念模型及实体关系设计")
@@ -66,12 +68,13 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "启用或停用概念模型", bizNo = "{{(#request.id) ?: 0}}",
-            success = "将概念模型【编号{{#request.id}}】状态设为【{{#request.status}}】，校验修订【{{#request.expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "将概念模型【{{#auditObjectName}}】状态设为【{{#request.status == 'ACTIVE' ? '启用' : '禁用'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用概念模型")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody ConceptModelStatusReqVO request) {
+        captureAuditName(request.getId());
         service.updateStatus(request);
         return success(true);
     }
@@ -84,13 +87,14 @@ public class ConceptModelController {
      * @return 概念模型
      */
     @LogRecord(type = "数据建模-概念模型", subType = "删除概念模型草稿", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了概念模型【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了概念模型【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete")
     @Operation(summary = "删除概念模型草稿")
     @PreAuthorize("@ss.hasPermission('modeling:concept-model:delete')")
     public CommonResult<Boolean> delete(@RequestParam("id") @Positive Long id,
             @RequestParam("expectedRevision") @PositiveOrZero Long expectedRevision) {
+        captureAuditName(id);
         service.delete(id, expectedRevision);
         return success(true);
     }
@@ -120,4 +124,20 @@ public class ConceptModelController {
     public CommonResult<PageResult<ConceptModelRespVO>> page(@Valid ConceptModelPageReqVO request) {
         return success(service.page(request));
     }
+
+    /**
+     * 在写入前记录概念模型名称，供操作日志展示；读取失败时退回「编号X」，不影响原有业务校验。
+     */
+    private void captureAuditName(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        try {
+            var before = service.get(id);
+            if (before != null && StrUtil.isNotBlank(before.getName())) {
+                LogRecordContext.putVariable("auditObjectName", before.getName());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，仍由业务方法给出原有校验结果。
+        }
+    }
+
 }

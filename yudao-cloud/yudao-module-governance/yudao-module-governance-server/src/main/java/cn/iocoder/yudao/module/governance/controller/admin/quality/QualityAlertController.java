@@ -1,11 +1,14 @@
 package cn.iocoder.yudao.module.governance.controller.admin.quality;
 
+import cn.hutool.core.util.StrUtil;
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.alert.QualityAlertPageReqVO;
 import cn.iocoder.yudao.module.governance.controller.admin.quality.vo.alert.QualityAlertRespVO;
+import cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityAlertDO;
 import cn.iocoder.yudao.module.governance.service.quality.QualityAlertService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -70,12 +73,13 @@ public class QualityAlertController {
      */
     @PutMapping("/process")
     @LogRecord(type = "数据治理-数据质量-告警记录", subType = "处理告警",
-            bizNo = "{{(#id) ?: 0}}", success = "将质量告警【{{(#id) ?: 0}}】标记为已处理",
+            bizNo = "{{(#id) ?: 0}}", success = "将质量告警【{{#auditObjectName}}】标记为已处理",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "处理告警")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:update')")
     public CommonResult<Boolean> processAlert(@RequestParam("id") Long id) {
+        captureAuditName(id);
         alertService.processAlert(id);
         return success(true);
     }
@@ -85,14 +89,30 @@ public class QualityAlertController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据治理-数据质量-告警记录", subType = "删除告警记录",
-            bizNo = "{{(#id) ?: 0}}", success = "删除了质量告警，编号【{{(#id) ?: 0}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "删除了质量告警【{{#auditObjectName}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除告警记录")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('governance:quality-alert:delete')")
     public CommonResult<Boolean> deleteAlert(@RequestParam("id") Long id) {
+        captureAuditName(id);
         alertService.deleteAlert(id);
         return success(true);
+    }
+
+    /**
+     * 在写入前记录告警标题，供操作日志展示；读取失败时退回「编号X」，不影响原有业务校验。
+     */
+    private void captureAuditName(Long id) {
+        LogRecordContext.putVariable("auditObjectName", "编号" + id);
+        try {
+            QualityAlertDO alert = alertService.getAlert(id);
+            if (alert != null && StrUtil.isNotBlank(alert.getAlertTitle())) {
+                LogRecordContext.putVariable("auditObjectName", alert.getAlertTitle());
+            }
+        } catch (RuntimeException ignored) {
+            // 审计名称读取失败时保留编号，仍由业务方法给出原有校验结果。
+        }
     }
 
 }

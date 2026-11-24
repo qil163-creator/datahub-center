@@ -66,7 +66,7 @@ public class FillMergeController {
      */
     @PutMapping("/retry")
     @LogRecord(type = "数据开发-在线填报合并记录", subType = "重试失败的合并批次", bizNo = "{{(#id) ?: 0}}",
-            success = "对填报合并批次【{{(#id) ?: '未设置'}}】提交了失败重试请求", extra = "BUSINESS_OPERATION",
+            success = "对填报工作项【{getFillMergeBatchName{#id}}】的合并批次提交了失败重试请求", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "重试失败的合并批次", description = "置回待执行，由合并 Job 拾取；不要求重新审批")
     @Parameter(name = "id", description = "批次编号", required = true)
@@ -85,7 +85,7 @@ public class FillMergeController {
      */
     @PutMapping("/return-rework")
     @LogRecord(type = "数据开发-在线填报合并记录", subType = "合并失败退回整改", bizNo = "{{(#id) ?: 0}}",
-            success = "把填报合并批次【{{(#id) ?: '未设置'}}】退回整改", extra = "BUSINESS_OPERATION",
+            success = "把填报工作项【{getFillMergeBatchName{#id}}】的合并批次退回整改", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "合并失败退回整改",
             description = "放弃本次合并，组织实例回到整改中，填报人修改后重新提交审批；正式表保持合并前的内容。与合并重试使用同一权限")

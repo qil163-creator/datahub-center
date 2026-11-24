@@ -64,7 +64,7 @@ public class StandardTermController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-业务术语", subType = "更新业务术语",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了业务术语，名称从【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，状态【{{(#auditBeforeStatus) ?: '未设置'}}】→【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了业务术语，名称从【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，状态【{getCommonStatus{#auditBeforeStatus}}】→【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新业务术语")
     @PreAuthorize("@ss.hasPermission('governance:standard-term:update')")
@@ -95,7 +95,7 @@ public class StandardTermController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-业务术语", subType = "批量删除业务术语",
-            bizNo = "{{(#ids) ?: 0}}", success = "删除了现有业务术语【{{(#auditTermNames) ?: '未设置'}}】，请求术语编号【{{(#ids) ?: '未设置'}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "删除了现有业务术语【{{(#auditTermNames) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除业务术语")
     @Parameter(name = "ids", description = "编号列表", required = true)

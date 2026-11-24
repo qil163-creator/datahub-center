@@ -74,7 +74,7 @@ public class EtlTemplateController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-ETL 团队模板", subType = "创建人删除团队模板，不影响已应用的流程", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了 ETL 团队模板【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】），保留已应用到流程的配置", extra = "BUSINESS_OPERATION",
+            success = "删除了 ETL 团队模板【{{(#operateName) ?: '未设置'}}】，保留已应用到流程的配置", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建人删除团队模板，不影响已应用的流程")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")

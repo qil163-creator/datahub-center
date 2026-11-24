@@ -109,7 +109,7 @@ public class MetaCollectTaskController {
      */
     @PutMapping("/update-enabled")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "任务上下线（发布/取消发布任务）",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#enabled) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getOnlineStatus{#auditBeforeStatus}}】变为【{getOnlineStatus{#enabled}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "任务上下线（发布/取消发布任务）")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
@@ -127,7 +127,7 @@ public class MetaCollectTaskController {
      */
     @PutMapping("/update-schedule-enabled")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "调度启停",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的调度开关，目标调度状态【{{(#scheduleEnabled) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了元数据采集任务【{{(#auditObjectName) ?: '编号' + #id}}】的调度开关，目标调度状态【{getSwitchStatus{#scheduleEnabled}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "调度启停")
     @Parameter(name = "id", description = "任务编号", required = true, example = "1")
@@ -185,7 +185,7 @@ public class MetaCollectTaskController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据治理-元数据采集任务", subType = "批量删除采集任务",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除元数据采集任务，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除元数据采集任务【{getMetaCollectTaskName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除采集任务")
     @PreAuthorize("@ss.hasPermission('governance:meta-collect-task:delete')")

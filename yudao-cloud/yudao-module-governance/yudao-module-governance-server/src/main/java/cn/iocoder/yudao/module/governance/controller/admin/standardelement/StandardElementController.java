@@ -70,7 +70,7 @@ public class StandardElementController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据治理-标准数据元", subType = "切换标准启用状态",
-            bizNo = "{{(#id) ?: 0}}", success = "调整了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#status) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "调整了标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换标准启用状态")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -108,7 +108,7 @@ public class StandardElementController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准数据元", subType = "更新数据标准--标准数据元",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准数据元，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.engName) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准数据元，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，提交编码【{{(#updateReqVO.engName) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:update')")
@@ -123,7 +123,7 @@ public class StandardElementController {
      */
     @PutMapping("/bind-code-set")
     @LogRecord(type = "数据治理-标准数据元", subType = "绑定数据标准--标准数据元的标准码表",
-            bizNo = "{{(#id) ?: 0}}", success = "为标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】绑定了标准码表【{{(#codeSetId) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "为标准数据元【{{(#auditObjectName) ?: '编号' + #id}}】绑定了标准码表【{getStandardCodeSetName{#codeSetId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "绑定数据标准--标准数据元的标准码表")
     @Parameter(name = "id", description = "数据元编号", required = true)
@@ -195,7 +195,7 @@ public class StandardElementController {
      */
     @PutMapping("/revoke-mapping")
     @LogRecord(type = "数据治理-标准数据元", subType = "撤销落标映射（同时解除元数据字段与该标准的绑定）",
-            bizNo = "{{(#mappingId) ?: 0}}", success = "撤销了落标映射【{{(#mappingId) ?: '未设置'}}】，并解除其元数据字段与标准的绑定",
+            bizNo = "{{(#mappingId) ?: 0}}", success = "撤销了落标映射【{getStandardMappingName{#mappingId}}】，并解除其元数据字段与标准的绑定",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "撤销落标映射（同时解除元数据字段与该标准的绑定）")
     @Parameter(name = "mappingId", description = "落标映射编号", required = true)
@@ -326,7 +326,7 @@ public class StandardElementController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准数据元", subType = "批量删除数据标准--标准数据元",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准数据元，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准数据元【{getStandardElementName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据标准--标准数据元")
     @PreAuthorize("@ss.hasPermission('governance:standard-element:delete')")

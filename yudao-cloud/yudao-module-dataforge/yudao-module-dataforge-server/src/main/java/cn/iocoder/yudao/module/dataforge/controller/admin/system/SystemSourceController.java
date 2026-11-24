@@ -47,7 +47,7 @@ public class SystemSourceController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-来源系统", subType = "创建来源系统", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了来源系统【{{(#createReqVO.name) ?: '未设置'}}】，系统类型【{{(#createReqVO.type) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了来源系统【{{(#createReqVO.name) ?: '未设置'}}】，系统类型【{getSystemSourceTypeLabel{#createReqVO.type}}】，状态【{getCommonStatus{#createReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:create')")
@@ -63,7 +63,7 @@ public class SystemSourceController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-来源系统", subType = "更新来源系统", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了来源系统【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，系统类型【{{(#updateReqVO.type) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了来源系统【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，系统类型【{getSystemSourceTypeLabel{#updateReqVO.type}}】，状态【{getCommonStatus{#updateReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:update')")
@@ -91,7 +91,7 @@ public class SystemSourceController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-来源系统", subType = "删除来源系统", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了来源系统【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了来源系统【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除来源系统")
     @Parameter(name = "id", description = "编号", required = true)
@@ -121,7 +121,7 @@ public class SystemSourceController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-来源系统", subType = "批量删除来源系统", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了来源系统【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除了来源系统【{{(#operateNames) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除来源系统")
     @PreAuthorize("@ss.hasPermission('dataforge:system-source:delete')")

@@ -68,7 +68,7 @@ public class SafetyCategoryController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据分类信息", subType = "更新数据分类信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了数据分类，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了数据分类，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.name) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
@@ -104,7 +104,7 @@ public class SafetyCategoryController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-数据分类信息", subType = "批量删除数据分类信息",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除数据分类，对象编号【{{(#request.items.![id]) ?: 0}}】",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "提交批量删除数据分类【{getSafetyCategoryName{#request.items.![id]}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据分类信息")
     @PreAuthorize("@ss.hasPermission('governance:category:delete')")
@@ -173,7 +173,7 @@ public class SafetyCategoryController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-数据分类信息", subType = "修改分类启停状态",
-            bizNo = "{{(#request.id) ?: 0}}", success = "调整了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#request.status) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "调整了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#request.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类启停状态")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
@@ -188,7 +188,7 @@ public class SafetyCategoryController {
      */
     @PutMapping("/batch-level")
     @LogRecord(type = "数据治理-数据分类信息", subType = "批量指定数据分级",
-            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "为数据分类【{{(#request.items.![id]) ?: 0}}】指定了数据分级【{{(#request.dataLevelId) ?: '未设置'}}】",
+            bizNo = "{{(#request.items.![id]) ?: 0}}", success = "为数据分类【{getSafetyCategoryName{#request.items.![id]}}】指定了数据分级【{getSafetyLevelName{#request.dataLevelId}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量指定数据分级")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")
@@ -212,7 +212,7 @@ public class SafetyCategoryController {
      */
     @PutMapping("/mask")
     @LogRecord(type = "数据治理-数据分类信息", subType = "保存分类展示脱敏配置及规则版本",
-            bizNo = "{{(#request.id) ?: 0}}", success = "保存了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的脱敏规则【{{(#request.ruleName) ?: '未设置'}}】，分类编号【{{(#request.id) ?: 0}}】，规则版本【{{(#request.ruleVersionId) ?: '未设置'}}】",
+            bizNo = "{{(#request.id) ?: 0}}", success = "保存了数据分类【{{(#auditObjectName) ?: '编号' + #request.id}}】的脱敏规则【{{(#request.ruleName) ?: '未设置'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存分类展示脱敏配置及规则版本")
     @PreAuthorize("@ss.hasPermission('governance:category:update')")

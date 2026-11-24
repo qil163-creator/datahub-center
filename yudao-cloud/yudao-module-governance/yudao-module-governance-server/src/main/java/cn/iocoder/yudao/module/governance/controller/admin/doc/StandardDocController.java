@@ -90,7 +90,7 @@ public class StandardDocController {
      */
     @PutMapping("/registration/update")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "更新标准文件登记工作台元信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准文件登记工作台元信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
@@ -107,7 +107,7 @@ public class StandardDocController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "更新标准文件登记信息",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准文件，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.nameCn) ?: '未设置'}}】，提交编码【{{(#updateReqVO.stdCode) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:update')")
@@ -141,7 +141,7 @@ public class StandardDocController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-标准文件登记信息", subType = "批量删除标准文件登记信息",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准文件，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除标准文件【{getStandardDocName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除标准文件登记信息")
     @PreAuthorize("@ss.hasPermission('governance:doc:delete')")

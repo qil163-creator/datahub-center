@@ -98,7 +98,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "启用或禁用逻辑模型", bizNo = "{{(#id) ?: 0}}",
-            success = "将逻辑模型【{{#auditObjectName}}】设为【{{#enabled == 1 ? '启用' : '停用'}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "将逻辑模型【{{#auditObjectName}}】设为【{{#enabled == 1 ? '启用' : '停用'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-enabled")
     @Operation(summary = "启用或禁用逻辑模型")
@@ -122,7 +122,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "原子保存统一模型草稿、字段与业务口径", bizNo = "{{(#reqVO.modelId) ?: 0}}",
-            success = "保存了逻辑模型【{{#reqVO.name}}】（编号{{#reqVO.modelId}}）的当前设计，编码【{{#reqVO.code}}】，校验修订【{{#reqVO.expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "保存了逻辑模型【{{#reqVO.name}}】的当前设计，编码【{{#reqVO.code}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/draft-save")
     @Operation(summary = "原子保存统一模型草稿、字段与业务口径")
@@ -220,7 +220,7 @@ public class LogicModelController {
 
     /** 发布当前设计，不保留模型历史版本。 */
     @LogRecord(type = "数据建模-逻辑模型", subType = "发布模型当前设计", bizNo = "{{(#modelId) ?: 0}}",
-            success = "发布了逻辑模型【{{#auditObjectName}}】（编号{{#modelId}}）的当前设计，发布前修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "发布了逻辑模型【{{#auditObjectName}}】的当前设计", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/publish")
     @Operation(summary = "发布模型当前设计")
@@ -243,7 +243,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "废弃逻辑模型", bizNo = "{{(#id) ?: 0}}",
-            success = "废弃了逻辑模型【{{#auditObjectName}}】（编号{{#id}}）", extra = "BUSINESS_OPERATION",
+            success = "废弃了逻辑模型【{{#auditObjectName}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/discard")
     @Operation(summary = "废弃逻辑模型")
@@ -299,7 +299,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "新增/修改逻辑模型关系", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "保存了模型关系【{{#reqVO.name}}】（编号{{#_ret.data}}），源模型【{{#reqVO.sourceModelId}}】，目标模型【{{#reqVO.targetModelId}}】，关系类型【{{#reqVO.relationType}}】", extra = "BUSINESS_OPERATION",
+            success = "保存了模型关系【{{#reqVO.name}}】，源模型【{getLogicModelName{#reqVO.sourceModelId}}】，目标模型【{getLogicModelName{#reqVO.targetModelId}}】，关系类型【{getLogicRelationTypeLabel{#reqVO.relationType}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/relation-save")
     @Operation(summary = "新增/修改逻辑模型关系")
@@ -316,7 +316,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "删除逻辑模型关系", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了模型关系【编号{{#id}}】，校验修订【{{#expectedRevision}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了模型关系【{getLogicRelationName{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/relation-delete")
     @Operation(summary = "删除逻辑模型关系")
@@ -335,7 +335,7 @@ public class LogicModelController {
      * @return 逻辑模型
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "批量保存模型 ER 画布坐标", bizNo = "{{(#reqVO.positions.![modelId]) ?: 0}}",
-            success = "保存了模型ER画布坐标，模型编号集合【{{#reqVO.positions.![modelId]}}】，共【{{#reqVO.positions.size()}}】个模型", extra = "BUSINESS_OPERATION",
+            success = "保存了模型ER画布坐标，涉及模型【{getLogicModelName{#reqVO.positions.![modelId]}}】，共【{{#reqVO.positions.size()}}】个模型", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/er-layout-save")
     @Operation(summary = "批量保存模型 ER 画布坐标")
@@ -474,7 +474,7 @@ public class LogicModelController {
      * @return 保存与重新发布结果
      */
     @LogRecord(type = "数据建模-逻辑模型", subType = "贴源表同步源表结构", bizNo = "{{#request.modelId}}",
-            success = "按源表结构同步了贴源表【{{#request.modelId}}】", extra = "BUSINESS_OPERATION",
+            success = "按源表结构同步了贴源表【{getLogicModelName{#request.modelId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @PutMapping("/source-sync/apply")
     @Operation(summary = "贴源表同步结构：按源表当前结构更新设计并重新发布")

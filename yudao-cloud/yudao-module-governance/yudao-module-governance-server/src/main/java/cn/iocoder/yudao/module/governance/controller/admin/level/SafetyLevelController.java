@@ -61,7 +61,7 @@ public class SafetyLevelController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-数据分级", subType = "更新数据分级",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了数据分级，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.safetyName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.safetyLevel) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了数据分级，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.safetyName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.safetyLevel) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据分级")
     @PreAuthorize("@ss.hasPermission('governance:level:update')")
@@ -95,7 +95,7 @@ public class SafetyLevelController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据治理-数据分级", subType = "批量删除数据分级",
-            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除数据分级，对象编号【{{(#ids) ?: 0}}】",
+            bizNo = "{{(#ids) ?: 0}}", success = "提交批量删除数据分级【{getSafetyLevelName{#ids}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据分级")
     @PreAuthorize("@ss.hasPermission('governance:level:delete')")

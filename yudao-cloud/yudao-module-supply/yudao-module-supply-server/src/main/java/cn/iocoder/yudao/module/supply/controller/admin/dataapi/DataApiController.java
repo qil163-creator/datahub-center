@@ -75,7 +75,7 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "上线/下线 API 服务", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "将API服务【{{#auditObjectName}}】状态设为【{{#reqVO.status == 1 ? '上线' : '下线'}}】，原控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
+            success = "将API服务【{{#auditObjectName}}】状态设为【{{#reqVO.status == 1 ? '上线' : '下线'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "上线/下线 API 服务")
@@ -259,7 +259,7 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "发布当前草稿为不可变快照", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "发布了API服务【{{#auditObjectName}}】（编号{{#reqVO.id}}），生成发布快照【{{#_ret.data}}】，发布前控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
+            success = "发布了API服务【{{#auditObjectName}}】，生成发布快照【{{#_ret.data}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/publish")
     @Operation(summary = "发布当前草稿为不可变快照")
@@ -280,7 +280,7 @@ public class DataApiController {
      * @return 数据 API
      */
     @LogRecord(type = "数据服务-API 管理", subType = "回滚到既有发布快照", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "将API服务【{{#auditObjectName}}】（编号{{#reqVO.id}}）回滚到发布快照【{{#reqVO.releaseId}}】，原控制版本【{{#reqVO.expectedRowVersion}}】", extra = "BUSINESS_OPERATION",
+            success = "将API服务【{{#auditObjectName}}】回滚到发布快照【{getDataApiReleaseName{#reqVO.releaseId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PostMapping("/rollback")
     @Operation(summary = "回滚到既有发布快照")

@@ -48,7 +48,7 @@ public class EtlEnvironmentController {
      */
     @PostMapping("/save")
     @LogRecord(type = "数据开发-ETL 环境连接", subType = "创建或按修订号更新环境", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "{{#req.id == null ? '创建了' : '修改了'}} ETL 环境【{{(#req.name) ?: '未设置'}}】，环境编码【{{(#req.code) ?: '未设置'}}】，启用状态【{{(#req.enabled) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "{{#req.id == null ? '创建了' : '修改了'}} ETL 环境【{{(#req.name) ?: '未设置'}}】，环境编码【{{(#req.code) ?: '未设置'}}】，启用状态【{getEnabledStatus{#req.enabled}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建或按修订号更新环境")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -65,7 +65,7 @@ public class EtlEnvironmentController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-ETL 环境连接", subType = "删除未被引用的环境", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了 ETL 环境【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】），要求修订【{{(#revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了 ETL 环境【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除未被引用的环境")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -108,7 +108,7 @@ public class EtlEnvironmentController {
      */
     @PostMapping("/binding/save")
     @LogRecord(type = "数据开发-ETL 环境连接", subType = "创建或按修订号更新连接绑定", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "{{#req.id == null ? '创建了' : '修改了'}} ETL 连接绑定【{{(#req.logicalKey) ?: '未设置'}}】，环境编号【{{(#req.environmentId) ?: '未设置'}}】，数据源编号【{{(#req.databaseId) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "{{#req.id == null ? '创建了' : '修改了'}} ETL 连接绑定【{{(#req.logicalKey) ?: '未设置'}}】，所属环境【{getEtlEnvironmentName{#req.environmentId}}】，数据源【{getDataforgeDatabaseName{#req.databaseId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建或按修订号更新连接绑定")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")
@@ -125,7 +125,7 @@ public class EtlEnvironmentController {
      */
     @DeleteMapping("/binding/delete")
     @LogRecord(type = "数据开发-ETL 环境连接", subType = "按修订号删除连接绑定，引用此修订的运行将被阻止", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了 ETL 连接绑定【{{(#id) ?: '未设置'}}】，要求修订【{{(#revision) ?: '未设置'}}】，后续运行不再使用该绑定", extra = "BUSINESS_OPERATION",
+            success = "删除了 ETL 连接绑定【{getEtlBindingName{#id}}】，后续运行不再使用该绑定", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按修订号删除连接绑定，引用此修订的运行将被阻止")
     @PreAuthorize("@ss.hasPermission('dataforge:etl:save')")

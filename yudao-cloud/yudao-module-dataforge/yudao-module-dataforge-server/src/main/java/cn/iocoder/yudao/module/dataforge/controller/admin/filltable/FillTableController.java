@@ -43,7 +43,7 @@ public class FillTableController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "创建填报表", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了填报表【{{(#createReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#createReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{{(#createReqVO.databaseId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了填报表【{{(#createReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#createReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{getDataforgeDatabaseName{#createReqVO.databaseId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建填报表")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:create')")
@@ -59,7 +59,7 @@ public class FillTableController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "更新填报表（已发布需先取消发布）", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了填报表【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#updateReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{{(#updateReqVO.databaseId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了填报表【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.tableCnName) ?: '未设置'}}】，物理表名【{{(#updateReqVO.tableEngName) ?: '未设置'}}】，目标数据源【{getDataforgeDatabaseName{#updateReqVO.databaseId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新填报表（已发布需先取消发布）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
@@ -87,7 +87,7 @@ public class FillTableController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "删除填报表（级联删除字段配置）", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了填报表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了填报表【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除填报表（级联删除字段配置）")
     @Parameter(name = "id", description = "编号", required = true)
@@ -143,7 +143,7 @@ public class FillTableController {
      */
     @PutMapping("/release")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "发布填报表", bizNo = "{{(#id) ?: 0}}",
-            success = "发布了填报表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "发布了填报表【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布填报表", description = "目标物理表不存在时创建，已存在时校验表结构")
     @Parameter(name = "id", description = "编号", required = true)
@@ -172,7 +172,7 @@ public class FillTableController {
      */
     @PutMapping("/cancel")
     @LogRecord(type = "数据开发-数据填报-填报表", subType = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）", bizNo = "{{(#id) ?: 0}}",
-            success = "停用了填报模板并保留物理表【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "停用了填报模板并保留物理表【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "取消发布（仅停用模板，不删除物理表；物理表退役走独立高权限流程）")
     @Parameter(name = "id", description = "编号", required = true)

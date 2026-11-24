@@ -52,7 +52,7 @@ public class SafetyAccessAlertController {
     @Operation(summary = "处理异常访问告警")
     @PreAuthorize("@ss.hasPermission('governance:access-alert:handle')")
     @LogRecord(type = "数据治理-异常访问", subType = "处理告警", bizNo = "{{#reqVO.id}}",
-            success = "将异常访问告警【{{#reqVO.id}}】处理为【{{#reqVO.status}}】，说明【{{#reqVO.remark}}】",
+            success = "将异常访问告警【{getSafetyAccessAlertName{#reqVO.id}}】处理为【{getStateLabel{#reqVO.status}}】，说明【{{#reqVO.remark}}】",
             extra = "BUSINESS_OPERATION")
     public CommonResult<Boolean> handle(@Valid @RequestBody SafetyAccessAlertHandleReqVO reqVO) {
         alertService.handle(reqVO);

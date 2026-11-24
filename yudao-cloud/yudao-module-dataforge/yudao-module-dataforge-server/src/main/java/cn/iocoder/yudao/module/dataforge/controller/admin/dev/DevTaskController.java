@@ -94,7 +94,7 @@ public class DevTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据开发任务", subType = "创建开发任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了开发任务【{{(#createReqVO.name) ?: '未设置'}}】，任务类型【{{(#createReqVO.taskType) ?: '未设置'}}】，数据源【{{(#createReqVO.databaseId) ?: '未设置'}}】，超时秒数【{{(#createReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了开发任务【{{(#createReqVO.name) ?: '未设置'}}】，任务类型【{getDevTaskTypeLabel{#createReqVO.taskType}}】，数据源【{getDataforgeDatabaseName{#createReqVO.databaseId}}】，超时秒数【{{(#createReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建开发任务")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -110,7 +110,7 @@ public class DevTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据开发任务", subType = "保存开发任务并立即生成当前运行版本", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，任务类型【{{(#updateReqVO.taskType) ?: '未设置'}}】，数据源【{{(#updateReqVO.databaseId) ?: '未设置'}}】，超时秒数【{{(#updateReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，任务类型【{getDevTaskTypeLabel{#updateReqVO.taskType}}】，数据源【{getDataforgeDatabaseName{#updateReqVO.databaseId}}】，超时秒数【{{(#updateReqVO.timeoutSeconds) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存开发任务并立即生成当前运行版本")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -138,7 +138,7 @@ public class DevTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据开发任务", subType = "删除开发任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了开发任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了开发任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除开发任务")
     @Parameter(name = "id", description = "编号", required = true)
@@ -251,7 +251,7 @@ public class DevTaskController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据开发-数据开发任务", subType = "更新已保存任务的启用状态", bizNo = "{{(#id) ?: 0}}",
-            success = "将开发任务【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将开发任务【{{(#operateName) ?: '未设置'}}】的状态从【{getOnlineStatus{#operateStatus}}】改为【{getOnlineStatus{#status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新已保存任务的启用状态")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:save')")
@@ -282,7 +282,7 @@ public class DevTaskController {
      */
     @PutMapping("/update-schedule")
     @LogRecord(type = "数据开发-数据开发任务", subType = "更新任务调度设置", bizNo = "{{(#reqVO.id) ?: 0}}",
-            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】的调度，开关【{{(#reqVO.scheduleStatus) ?: '未设置'}}】，Cron【{{(#reqVO.cronExpression) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了开发任务【{{(#operateName) ?: '未设置'}}】的调度，开关【{getSwitchStatus{#reqVO.scheduleStatus}}】，Cron【{{(#reqVO.cronExpression) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新任务调度设置")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
@@ -372,7 +372,7 @@ public class DevTaskController {
      */
     @PutMapping("/version/rollback")
     @LogRecord(type = "数据开发-数据开发任务", subType = "回滚到指定版本", bizNo = "{{(#versionId) ?: 0}}",
-            success = "将开发任务回滚到历史版本【{{(#versionId) ?: '未设置'}}】，要求当前修订为【{{(#expectedRevision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将开发任务回滚到历史版本【{getDevTaskVersionName{#versionId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "回滚到指定版本")
     @Parameter(name = "versionId", description = "版本编号", required = true)

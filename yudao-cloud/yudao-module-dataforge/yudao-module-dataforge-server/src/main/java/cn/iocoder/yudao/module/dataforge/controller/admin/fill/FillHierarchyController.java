@@ -56,7 +56,7 @@ public class FillHierarchyController {
 
     @PostMapping("/{id}/dispatch")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "向下级下发", bizNo = "{{#id}}",
-            success = "从填报工作项【{{#id}}】向下级下发了【{{#_ret.data}}】个组织", extra = "BUSINESS_OPERATION",
+            success = "从填报工作项【{getFillWorkItemName{#id}}】向下级下发了【{{#_ret.data}}】个组织", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "向下级下发")
     @Parameter(name = "id", description = "上级实例编号", required = true)
@@ -85,7 +85,7 @@ public class FillHierarchyController {
 
     @PutMapping("/child/review")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "上级单位审核下级", bizNo = "{{#reqVO.childWorkItemId}}",
-            success = "审核下级填报工作项【{{#reqVO.childWorkItemId}}】，结论【{{#reqVO.approve ? '通过' : '驳回'}}】，意见【{{(#reqVO.reason) ?: '无'}}】",
+            success = "审核下级填报工作项【{getFillWorkItemName{#reqVO.childWorkItemId}}】，结论【{{#reqVO.approve ? '通过' : '驳回'}}】，意见【{{(#reqVO.reason) ?: '无'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "上级单位审核下级提交")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")
@@ -96,7 +96,7 @@ public class FillHierarchyController {
 
     @PutMapping("/child/return")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "退回已汇入的下级", bizNo = "{{#reqVO.childWorkItemId}}",
-            success = "退回下级填报工作项【{{#reqVO.childWorkItemId}}】，原因【{{(#reqVO.reason) ?: '无'}}】",
+            success = "退回下级填报工作项【{getFillWorkItemName{#reqVO.childWorkItemId}}】，原因【{{(#reqVO.reason) ?: '无'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "退回已汇入的下级（逐级退回）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")
@@ -107,7 +107,7 @@ public class FillHierarchyController {
 
     @PutMapping("/child/cancel")
     @LogRecord(type = "数据开发-在线填报工作项", subType = "撤销下发", bizNo = "{{#reqVO.childWorkItemId}}",
-            success = "撤销下级填报工作项【{{#reqVO.childWorkItemId}}】的下发，原因【{{(#reqVO.reason) ?: '无'}}】",
+            success = "撤销下级填报工作项【{getFillWorkItemName{#reqVO.childWorkItemId}}】的下发，原因【{{(#reqVO.reason) ?: '无'}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "撤销下发（仅未提交的下级）")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-work-item:edit')")

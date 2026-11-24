@@ -14,8 +14,13 @@ import cn.iocoder.yudao.module.governance.api.etl.dto.CleanRulePlanRespDTO;
 import cn.iocoder.yudao.module.governance.enums.ApiConstants;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Collection;
+import java.util.Map;
 
 /** 供 ETL 执行服务使用的最小 Governance 契约。 */
 @FeignClient(name = ApiConstants.NAME)
@@ -60,4 +65,10 @@ public interface GovernanceEtlApi {
      */
     @PostMapping(PREFIX + "/can-archive-reports")
     CommonResult<Boolean> canArchiveReports(@Valid @RequestBody QualityEtlArchiveAuthorizeReqDTO request);
+
+    /**
+     * 按编号读取质量工单名称，仅用于操作日志展示；不存在的编号不返回。
+     */
+    @GetMapping(PREFIX + "/work-order-names")
+    CommonResult<Map<Long, String>> getQualityWorkOrderNames(@RequestParam("ids") Collection<Long> ids);
 }

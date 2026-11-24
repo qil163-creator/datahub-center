@@ -59,7 +59,7 @@ public class CategoryDatametaController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-标准数据元类目", subType = "更新标准数据元类目",
-            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准数据元类目，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.categoryName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，目标状态【{{(#updateReqVO.status) ?: '未设置'}}】",
+            bizNo = "{{(#updateReqVO.id) ?: 0}}", success = "修改了标准数据元类目，原名称【{{(#auditObjectName) ?: '编号' + #updateReqVO.id}}】，提交名称【{{(#updateReqVO.categoryName) ?: '未设置'}}】，提交编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，目标状态【{getCommonStatus{#updateReqVO.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新标准数据元类目")
     @PreAuthorize("@ss.hasPermission('governance:category-datameta:update')")

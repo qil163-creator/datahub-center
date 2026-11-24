@@ -96,7 +96,7 @@ public class MarketCategoryController {
      * 启用或停用集市类目。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "启用或停用集市类目", bizNo = "{{(#req.id) ?: 0}}",
-            success = "将集市类目【{{#auditObjectName}}】状态由【{{#auditBeforeStatus}}】改为【{{#req.status}}】（0启用、1停用）", extra = "BUSINESS_OPERATION",
+            success = "将集市类目【{{#auditObjectName}}】状态由【{getCommonStatus{#auditBeforeStatus}}】改为【{getCommonStatus{#req.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PutMapping("/update-status")
     @Operation(summary = "启用或停用集市类目")
@@ -135,7 +135,7 @@ public class MarketCategoryController {
      * 原子删除无引用的集市类目集合。
      */
     @LogRecord(type = "数据资产-集市类目", subType = "原子删除无引用的集市类目集合", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了无引用集市类目，编号集合【{{#ids}}】，共【{{#ids.size()}}】项", extra = "BUSINESS_OPERATION",
+            success = "批量删除了无引用集市类目【{getMarketCategoryName{#ids}}】，共【{{#ids.size()}}】项", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @DeleteMapping("/delete-list")
     @Operation(summary = "原子删除无引用的集市类目集合")

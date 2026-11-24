@@ -38,7 +38,7 @@ public class DevBackfillController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-补数据", subType = "发起补数据", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "为开发任务【{{#reqVO.taskId}}】发起补数据，业务日期【{{#reqVO.startDate}}】至【{{#reqVO.endDate}}】",
+            success = "为开发任务【{getDevTaskName{#reqVO.taskId}}】发起补数据，业务日期【{{#reqVO.startDate}}】至【{{#reqVO.endDate}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "发起补数据批次")
     @PreAuthorize("@ss.hasPermission('dataforge:dev-task:run')")
@@ -54,7 +54,7 @@ public class DevBackfillController {
      */
     @PutMapping("/cancel")
     @LogRecord(type = "数据开发-补数据", subType = "取消补数据", bizNo = "{{#id}}",
-            success = "取消了补数据批次【{{#id}}】", extra = "BUSINESS_OPERATION",
+            success = "取消了开发任务【{getDevBackfillName{#id}}】的补数据批次", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "取消补数据批次")
     @Parameter(name = "id", description = "批次编号", required = true)

@@ -2,11 +2,17 @@ package cn.iocoder.yudao.module.governance.api.etl;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.governance.api.etl.dto.*;
+import cn.iocoder.yudao.module.governance.dal.dataobject.quality.QualityWorkOrderDO;
+import cn.iocoder.yudao.module.governance.dal.mysql.quality.QualityWorkOrderMapper;
 import cn.iocoder.yudao.module.governance.service.etl.GovernanceEtlService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -16,6 +22,8 @@ public class GovernanceEtlApiImpl implements GovernanceEtlApi {
 
     @Resource
     private GovernanceEtlService governanceEtlService;
+    @Resource
+    private QualityWorkOrderMapper qualityWorkOrderMapper;
 
     /**
      * 读取数据行质量计划。
@@ -65,5 +73,19 @@ public class GovernanceEtlApiImpl implements GovernanceEtlApi {
     @Override
     public CommonResult<Boolean> canArchiveReports(@Valid QualityEtlArchiveAuthorizeReqDTO request) {
         return success(governanceEtlService.canArchiveReports(request));
+    }
+
+    @Override
+    public CommonResult<Map<Long, String>> getQualityWorkOrderNames(Collection<Long> ids) {
+        Map<Long, String> names = new HashMap<>();
+        if (ids == null || ids.isEmpty()) {
+            return success(names);
+        }
+        for (QualityWorkOrderDO order : qualityWorkOrderMapper.selectBatchIds(ids)) {
+            if (order.getOrderName() != null) {
+                names.put(order.getId(), order.getOrderName());
+            }
+        }
+        return success(names);
     }
 }

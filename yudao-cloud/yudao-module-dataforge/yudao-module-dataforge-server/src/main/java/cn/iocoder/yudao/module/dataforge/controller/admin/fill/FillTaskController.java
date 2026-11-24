@@ -139,7 +139,7 @@ public class FillTaskController {
      */
     @PostMapping("/generate")
     @LogRecord(type = "数据开发-在线填报采集任务", subType = "手工生成/补生成任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "为采集计划【{{(#reqVO.planId) ?: '未设置'}}】发起了任务生成，指定生成时点【{{(#reqVO.generateTime) ?: '未设置'}}】，任务编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "为采集计划【{getFillPlanName{#reqVO.planId}}】发起了任务生成，指定生成时点【{{(#reqVO.generateTime) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "手工生成/补生成任务", description = "一次性任务重新生成；调度停机后按历史生成时点补生成周期任务")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-task:create')")
@@ -211,7 +211,7 @@ public class FillTaskController {
      */
     @PutMapping("/extend")
     @LogRecord(type = "数据开发-在线填报采集任务", subType = "延期截止时间", bizNo = "{{(#reqVO.taskId) ?: 0}}",
-            success = "将填报采集任务【{{(#operateName) ?: '未设置'}}】的截止时间延期至【{{(#reqVO.deadlineTime) ?: '未设置'}}】，指定组织实例【{{(#reqVO.workItemIds) ?: '全部未提交'}}】，实际延期【{{(#_ret.data) ?: 0}}】个，原因【{{(#reqVO.reason) ?: '未填写'}}】", extra = "BUSINESS_OPERATION",
+            success = "将填报采集任务【{{(#operateName) ?: '未设置'}}】的截止时间延期至【{{(#reqVO.deadlineTime) ?: '未设置'}}】，指定组织【{getFillWorkItemName{#reqVO.workItemIds == null || #reqVO.workItemIds.isEmpty() ? '全部未提交' : #reqVO.workItemIds}}】，实际延期【{{(#_ret.data) ?: 0}}】个，原因【{{(#reqVO.reason) ?: '未填写'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "延期截止时间",
             description = "不指定组织实例时延期任务下全部未提交实例并同步任务截止时间；只推后不提前，延期后清除逾期标记并解除硬截止锁定")

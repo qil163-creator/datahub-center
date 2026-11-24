@@ -42,7 +42,7 @@ public class FillTableRuleController {
 
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据填报-填报表校验规则", subType = "创建校验规则", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "在填报表【{{(#reqVO.tableId) ?: '未设置'}}】创建了{{(#reqVO.scope) ?: ''}}规则【{{(#reqVO.name) ?: '未设置'}}】：{{(#reqVO.expression) ?: ''}}",
+            success = "在填报表【{getFillTableName{#reqVO.tableId}}】创建了{getFillRuleScopeLabel{#reqVO.scope}}规则【{{(#reqVO.name) ?: '未设置'}}】：{{(#reqVO.expression) ?: ''}}",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "创建填报表校验规则")
     @PreAuthorize("@ss.hasPermission('dataforge:fill-table:update')")
@@ -63,7 +63,7 @@ public class FillTableRuleController {
 
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据填报-填报表校验规则", subType = "删除校验规则", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了校验规则【{{(#id) ?: 0}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了校验规则【{getFillTableRuleName{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0}}")
     @Operation(summary = "删除填报表校验规则")
     @Parameter(name = "id", description = "编号", required = true)

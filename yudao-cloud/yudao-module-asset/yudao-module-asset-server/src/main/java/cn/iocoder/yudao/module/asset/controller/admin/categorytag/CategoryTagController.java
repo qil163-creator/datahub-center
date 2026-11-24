@@ -88,7 +88,7 @@ public class CategoryTagController {
     @DeleteMapping("/delete-list")
     @Operation(summary = "批量删除标签类目")
     @LogRecord(type = "数据资产-标签类目", subType = "批量删除标签类目", bizNo = "{{#ids}}",
-            success = "批量删除标签类目【{{#ids}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除标签类目【{getAssetTagCategoryName{#ids}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @PreAuthorize("@ss.hasPermission('asset:category-tag:delete')")
     public CommonResult<Boolean> deleteCategoryTagList(

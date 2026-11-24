@@ -112,7 +112,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/category/create")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "新增共享集成类目", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了集成类目【{{(#req.name) ?: '未设置'}}】，父类目【{{(#req.parentId) ?: '未设置'}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了集成类目【{{#req.name}}】，父类目【{getIntegrationCategoryName{#req.parentId}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "新增共享集成类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
@@ -128,7 +128,7 @@ public class IntegrationTaskController {
      */
     @PutMapping("/category/update")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "修改共享集成类目并防止循环引用", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改了集成类目【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，父类目【{{(#req.parentId) ?: '未设置'}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了集成类目【{{#operateName}}】，名称从【{{#operateName}}】改为【{{#req.name}}】，父类目【{getIntegrationCategoryName{#req.parentId}}】，排序【{{(#req.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改共享集成类目并防止循环引用")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
@@ -156,7 +156,7 @@ public class IntegrationTaskController {
      */
     @DeleteMapping("/category/delete")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "删除无子类目且无任务引用的共享类目", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了集成类目【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了集成类目【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除无子类目且无任务引用的共享类目")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
@@ -209,7 +209,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "新建集成任务基础信息", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了集成任务【{{(#req.name) ?: '未设置'}}】，执行引擎【{{(#req.engine) ?: '未设置'}}】，处理模式【{{(#req.mode) ?: '未设置'}}】，所属类目【{{(#req.categoryId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了集成任务【{{#req.name}}】，执行引擎【{{#req.engine}}】，处理模式【{getIntegrationModeLabel{#req.mode}}】，所属类目【{getIntegrationCategoryName{#req.categoryId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "新建集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
@@ -225,7 +225,7 @@ public class IntegrationTaskController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "修改集成任务基础信息", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，执行引擎【{{(#req.engine) ?: '未设置'}}】，处理模式【{{(#req.mode) ?: '未设置'}}】，所属类目【{{(#req.categoryId) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#req.name) ?: '未设置'}}】，执行引擎【{{(#req.engine) ?: '未设置'}}】，处理模式【{getIntegrationModeLabel{#req.mode}}】，所属类目【{getIntegrationCategoryName{#req.categoryId}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改集成任务基础信息")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
@@ -253,7 +253,7 @@ public class IntegrationTaskController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "删除已下线且关闭调度的集成任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了集成任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了集成任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除已下线且关闭调度的集成任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:delete')")
@@ -281,7 +281,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/clone")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "克隆集成定义为未上线的新任务", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "克隆了集成任务【{{(#operateName) ?: '未设置'}}】，新集成任务编号【{{(#_ret.data) ?: '未设置'}}】，保持未上线", extra = "BUSINESS_OPERATION",
+            success = "克隆了集成任务【{{(#operateName) ?: '未设置'}}】，保持未上线", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "克隆集成定义为未上线的新任务")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:create')")
@@ -308,7 +308,7 @@ public class IntegrationTaskController {
      */
     @PutMapping("/status")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "切换集成任务上下线状态", bizNo = "{{(#req.id) ?: 0}}",
-            success = "将集成任务【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#req.status) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将集成任务【{{(#operateName) ?: '未设置'}}】的状态从【{getOnlineStatus{#operateStatus}}】改为【{getOnlineStatus{#req.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "切换集成任务上下线状态")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
@@ -338,7 +338,7 @@ public class IntegrationTaskController {
      */
     @PutMapping("/schedule")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "保存调度周期或切换调度；开启要求绑定本平台可执行流程", bizNo = "{{(#req.id) ?: 0}}",
-            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】的调度设置，调度开关【{{(#req.scheduleStatus) ?: '未设置'}}】，Cron【{{(#req.cronExpression) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了集成任务【{{(#operateName) ?: '未设置'}}】的调度设置，调度开关【{getSwitchStatus{#req.scheduleStatus}}】，Cron【{{(#req.cronExpression) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存调度周期或切换调度；开启要求绑定本平台可执行流程")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")
@@ -405,7 +405,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/run")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置", bizNo = "{{(#id) ?: 0}}",
-            success = "提交了集成任务【{{(#operateName) ?: '未设置'}}】的执行请求，执行编号【{{(#_ret.data) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "提交了集成任务【{{(#operateName) ?: '未设置'}}】的执行请求", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "委托已绑定的受管 ETL 流程执行，不把源流程快照当作可执行配置")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
@@ -432,7 +432,7 @@ public class IntegrationTaskController {
      */
     @PostMapping("/stop")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "请求停止本平台正在执行的实例", bizNo = "{{(#id) ?: 0}}",
-            success = "对集成任务【{{(#operateName) ?: '未设置'}}】（任务编号【{{(#id) ?: '未设置'}}】）提交了停止请求，等待执行器确认退出", extra = "BUSINESS_OPERATION",
+            success = "对集成任务【{{(#operateName) ?: '未设置'}}】提交了停止请求，等待执行器确认退出", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "请求停止本平台正在执行的实例")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:run')")
@@ -454,7 +454,7 @@ public class IntegrationTaskController {
     /** 保存流程草稿，或编译并登记到 DolphinScheduler。 */
     @PutMapping("/flow")
     @LogRecord(type = "数据开发-离线与实时数据集成", subType = "保存集成流程并发布 DS 离线定义", bizNo = "{{(#req.id) ?: 0}}",
-            success = "保存了集成任务【{{(#operateName) ?: '未设置'}}】的流程配置，草稿模式【{{(#req.draft) ?: '未设置'}}】，提交修订【{{(#req.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "保存了集成任务【{{(#operateName) ?: '未设置'}}】的流程配置，仅保存草稿【{{#req.draft == true ? '是' : '否'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存集成流程并发布 DS 离线定义")
     @PreAuthorize("@ss.hasPermission('dataforge:integration:update')")

@@ -75,7 +75,7 @@ public class ProjectCategoryController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-项目类目管理", subType = "创建项目类目", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了项目类目【{{(#request.name) ?: '未设置'}}】，类目种类【{{(#request.kind) ?: '未设置'}}】，父类目【{{(#request.parentId) ?: '未设置'}}】，状态【{{(#request.status) ?: '未设置'}}】，排序【{{(#request.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了项目类目【{{#request.name}}】，类目种类【{{#request.kind == 'integration' ? '集成' : '开发'}}】，父类目【{getProjectCategoryName{#request.kind + ':' + #request.parentId}}】，状态【{getCommonStatus{#request.status}}】，排序【{{(#request.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:create' : 'dataforge:dev-category:create')")
@@ -91,7 +91,7 @@ public class ProjectCategoryController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-项目类目管理", subType = "修改项目类目", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改了项目类目【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#request.name) ?: '未设置'}}】，类目种类【{{(#request.kind) ?: '未设置'}}】，父类目【{{(#request.parentId) ?: '未设置'}}】，状态【{{(#request.status) ?: '未设置'}}】，排序【{{(#request.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了项目类目【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{#request.name}}】，类目种类【{{#request.kind == 'integration' ? '集成' : '开发'}}】，父类目【{getProjectCategoryName{#request.kind + ':' + #request.parentId}}】，状态【{getCommonStatus{#request.status}}】，排序【{{(#request.sort) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:update' : 'dataforge:dev-category:update')")
@@ -149,7 +149,7 @@ public class ProjectCategoryController {
      */
     @DeleteMapping("/delete-list")
     @LogRecord(type = "数据开发-项目类目管理", subType = "按叶子到父级的顺序整批删除项目类目", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了项目类目【{{(#operateNames) ?: '未设置'}}】，类目种类【{{(#request.kind) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除了项目类目【{{(#operateNames) ?: '未设置'}}】，类目种类【{getProjectCategoryKindLabel{#request.kind}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "按叶子到父级的顺序整批删除项目类目")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:delete' : 'dataforge:dev-category:delete')")
@@ -178,7 +178,7 @@ public class ProjectCategoryController {
      */
     @PutMapping("/update-status")
     @LogRecord(type = "数据开发-项目类目管理", subType = "仅修改项目类目启停状态", bizNo = "{{(#request.id) ?: 0}}",
-            success = "将项目类目【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#request.status) ?: '未设置'}}】（0启用，1停用）", extra = "BUSINESS_OPERATION",
+            success = "将项目类目【{{(#operateName) ?: '未设置'}}】的状态从【{getCommonStatus{#operateStatus}}】改为【{getCommonStatus{#request.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "仅修改项目类目启停状态")
     @PreAuthorize("@ss.hasPermission(#request.kind == 'integration' ? 'dataforge:integration-category:update' : 'dataforge:dev-category:update')")

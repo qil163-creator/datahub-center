@@ -84,7 +84,7 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "修改分类范围白名单",
-            bizNo = "{{(#req.id) ?: 0}}", success = "修改了分类范围白名单，原名称【{{(#auditObjectName) ?: '编号' + #req.id}}】，提交名称【{{(#req.name) ?: '未设置'}}】，目标状态【{{(#req.status) ?: '未设置'}}】",
+            bizNo = "{{(#req.id) ?: 0}}", success = "修改了分类范围白名单，原名称【{{(#auditObjectName) ?: '编号' + #req.id}}】，提交名称【{{(#req.name) ?: '未设置'}}】，目标状态【{getCommonStatus{#req.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类范围白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
@@ -99,7 +99,7 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PutMapping("/change-status")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "修改分类范围白名单状态",
-            bizNo = "{{(#req.id) ?: 0}}", success = "调整了分类范围白名单【{{(#auditObjectName) ?: '编号' + #req.id}}】的状态，从【{{(#auditBeforeStatus) ?: '未设置'}}】变为【{{(#req.status) ?: '未设置'}}】",
+            bizNo = "{{(#req.id) ?: 0}}", success = "调整了分类范围白名单【{{(#auditObjectName) ?: '编号' + #req.id}}】的状态，从【{getCommonStatus{#auditBeforeStatus}}】变为【{getCommonStatus{#req.status}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改分类范围白名单状态")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:update')")
@@ -129,7 +129,7 @@ public class SafetyWhitelistWorkbenchController {
      */
     @PostMapping("/delete-list")
     @LogRecord(type = "数据治理-分类脱敏白名单工作台", subType = "原子批量删除停用分类白名单",
-            bizNo = "{{(#req.items.![id]) ?: 0}}", success = "提交批量删除分类范围白名单，对象编号【{{(#req.items.![id]) ?: 0}}】",
+            bizNo = "{{(#req.items.![id]) ?: 0}}", success = "提交批量删除分类范围白名单【{getSafetyWhitelistName{#req.items.![id]}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "原子批量删除停用分类白名单")
     @PreAuthorize("@ss.hasPermission('governance:whitelist:delete')")

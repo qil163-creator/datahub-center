@@ -45,7 +45,7 @@ public class DatabaseController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "创建数据库信息", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了数据源【{{(#createReqVO.name) ?: '未设置'}}】，数据库类型【{{(#createReqVO.databaseType) ?: '未设置'}}】，用途【{{(#createReqVO.usageType) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了数据源【{{(#createReqVO.name) ?: '未设置'}}】，数据库类型【{getDataforgeDatabaseTypeName{#createReqVO.databaseType}}】，用途【{{#createReqVO.usageType == 1 ? '业务库' : (#createReqVO.usageType == 2 ? '中台库' : '未设置')}}】，状态【{getCommonStatus{#createReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:create')")
@@ -62,7 +62,7 @@ public class DatabaseController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "更新数据库信息", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了数据源【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，数据库类型【{{(#updateReqVO.databaseType) ?: '未设置'}}】，用途【{{(#updateReqVO.usageType) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了数据源【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.name) ?: '未设置'}}】，数据库类型【{getDataforgeDatabaseTypeName{#updateReqVO.databaseType}}】，用途【{{#updateReqVO.usageType == 1 ? '业务库' : (#updateReqVO.usageType == 2 ? '中台库' : '未设置')}}】，状态【{getCommonStatus{#updateReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:update')")
@@ -91,7 +91,7 @@ public class DatabaseController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "删除数据库信息", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了数据源【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了数据源【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库信息")
     @Parameter(name = "id", description = "编号", required = true)
@@ -121,7 +121,7 @@ public class DatabaseController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-数据源中心-数据库信息", subType = "批量删除数据库信息", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了数据源【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据源【{{(#operateNames) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据库信息")
     @PreAuthorize("@ss.hasPermission('dataforge:database:delete')")

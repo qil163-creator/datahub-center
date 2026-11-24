@@ -19,7 +19,8 @@ import org.springframework.context.annotation.Configuration;
         NotifyMessageSendApi.class, BpmProcessInstanceApi.class, ModelFieldApi.class, ModelRuleContextApi.class, PermissionApi.class,
         SyncBatchEvidenceApi.class, MasterDistributeAlertNotifyClient.class,
         cn.iocoder.yudao.module.asset.api.sensitive.AssetSensitivePolicyApi.class,
-        cn.iocoder.yudao.module.system.api.user.AdminUserOptionApi.class})
+        cn.iocoder.yudao.module.system.api.user.AdminUserOptionApi.class,
+        cn.iocoder.yudao.module.system.api.permission.RoleApi.class})
 public class RpcConfiguration {
 
 }

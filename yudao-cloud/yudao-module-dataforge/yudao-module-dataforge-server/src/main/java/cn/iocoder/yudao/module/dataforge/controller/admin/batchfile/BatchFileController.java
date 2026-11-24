@@ -92,7 +92,7 @@ public class BatchFileController {
      */
     @PostMapping("/upload")
     @LogRecord(type = "数据开发-批量文件入库", subType = "上传并解析当前用户的文件", bizNo = "{{(#_ret.data.id) ?: 0}}",
-            success = "上传并登记了批量入库文件【{{(#_ret.data.name) ?: '未设置'}}】，素材编号【{{(#_ret.data.id) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "上传并登记了批量入库文件【{{(#_ret.data.name) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "上传并解析当前用户的文件")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
@@ -109,7 +109,7 @@ public class BatchFileController {
      */
     @PostMapping("/system-file")
     @LogRecord(type = "数据开发-批量文件入库", subType = "选择已授权的系统文件并解析", bizNo = "{{(#_ret.data.id) ?: 0}}",
-            success = "从文件连接【{{(#request.connectionId) ?: '未设置'}}】选择并登记了入库文件【{{(#_ret.data.name) ?: '未设置'}}】，素材编号【{{(#_ret.data.id) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "从文件连接【{getDataforgeDatabaseName{#request.connectionId}}】选择并登记了入库文件【{{(#_ret.data.name) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "选择已授权的系统文件并解析")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
@@ -126,7 +126,7 @@ public class BatchFileController {
      */
     @DeleteMapping("/upload")
     @LogRecord(type = "数据开发-批量文件入库", subType = "移除本人未绑定素材", bizNo = "{{(#id) ?: 0}}",
-            success = "移除了本人尚未绑定任务的入库素材，素材编号【{{(#id) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "移除了本人尚未绑定任务的入库素材【{getBatchFileUploadName{#id}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "移除本人未绑定素材")
     @PreAuthorize("@ss.hasAnyPermissions('dataforge:batch-file:create','dataforge:batch-file:update')")
@@ -143,7 +143,7 @@ public class BatchFileController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-批量文件入库", subType = "保存四步入库配置，不执行数据写入", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了批量文件入库任务【{{(#request.taskName) ?: '未设置'}}】，目标数据源【{{(#request.targetDatabaseId) ?: '未设置'}}】，文件数【{{(#request.files.size()) ?: '未设置'}}】，目标表数【{{(#request.targets.size()) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了批量文件入库任务【{{(#request.taskName) ?: '未设置'}}】，目标数据源【{getDataforgeDatabaseName{#request.targetDatabaseId}}】，文件数【{{(#request.files.size()) ?: '未设置'}}】，目标表数【{{(#request.targets.size()) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存四步入库配置，不执行数据写入")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:create')")
@@ -159,7 +159,7 @@ public class BatchFileController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-批量文件入库", subType = "修改已下线且无活动运行的任务", bizNo = "{{(#request.id) ?: 0}}",
-            success = "修改了批量文件入库任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#request.taskName) ?: '未设置'}}】，目标数据源【{{(#request.targetDatabaseId) ?: '未设置'}}】，文件数【{{(#request.files.size()) ?: '未设置'}}】，目标表数【{{(#request.targets.size()) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了批量文件入库任务【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#request.taskName) ?: '未设置'}}】，目标数据源【{getDataforgeDatabaseName{#request.targetDatabaseId}}】，文件数【{{(#request.files.size()) ?: '未设置'}}】，目标表数【{{(#request.targets.size()) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改已下线且无活动运行的任务")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:update')")
@@ -188,7 +188,7 @@ public class BatchFileController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-批量文件入库", subType = "删除已下线任务", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了批量文件入库任务【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了批量文件入库任务【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除已下线任务")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:delete')")
@@ -216,7 +216,7 @@ public class BatchFileController {
      */
     @PutMapping("/status")
     @LogRecord(type = "数据开发-批量文件入库", subType = "修改上线状态", bizNo = "{{(#request.id) ?: 0}}",
-            success = "将批量文件入库任务【{{(#operateName) ?: '未设置'}}】的上线状态从【{{(#operateOnline) ?: '未设置'}}】改为【{{(#request.online) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将批量文件入库任务【{{(#operateName) ?: '未设置'}}】的上线状态从【{getOnlineStatus{#operateOnline}}】改为【{getOnlineStatus{#request.online}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "修改上线状态")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:update')")
@@ -246,7 +246,7 @@ public class BatchFileController {
      */
     @PostMapping("/execute")
     @LogRecord(type = "数据开发-批量文件入库", subType = "幂等排队执行一次", bizNo = "{{(#request.id) ?: 0}}",
-            success = "提交了批量文件入库任务【{{(#operateName) ?: '未设置'}}】的执行请求，返回实例【{{(#_ret.data.id) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "提交了批量文件入库任务【{{(#operateName) ?: '未设置'}}】的执行请求", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "幂等排队执行一次")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:execute')")
@@ -299,7 +299,7 @@ public class BatchFileController {
      */
     @PostMapping("/resolve")
     @LogRecord(type = "数据开发-批量文件入库", subType = "人工核查未知结果并解除任务占用", bizNo = "{{(#request.id) ?: 0}}",
-            success = "人工核查了批量文件入库实例【{{(#request.id) ?: '未设置'}}】，确认执行已停止【{{(#request.confirmedStopped) ?: '未设置'}}】，确认输出已核查【{{(#request.outputReviewed) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "人工核查了批量文件入库任务【{getBatchFileRunName{#request.id}}】的执行实例，确认执行已停止【{{#request.confirmedStopped == true ? '是' : '否'}}】，确认输出已核查【{{#request.outputReviewed == true ? '是' : '否'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "人工核查未知结果并解除任务占用")
     @PreAuthorize("@ss.hasPermission('dataforge:batch-file:execute')")

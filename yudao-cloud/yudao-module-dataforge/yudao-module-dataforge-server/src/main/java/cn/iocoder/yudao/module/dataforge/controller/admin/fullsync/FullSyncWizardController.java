@@ -38,7 +38,7 @@ public class FullSyncWizardController {
 
     @DeleteMapping("/{id}")
     @LogRecord(type = "数据开发-整库同步", subType = "删除未提交执行的整库同步配置", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了尚未提交执行的整库同步草稿【{{(#operateName) ?: '未设置'}}】（向导编号【{{(#id) ?: '未设置'}}】），要求修订【{{(#expectedRevision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "删除了尚未提交执行的整库同步草稿【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除未提交执行的整库同步配置")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:delete')")
@@ -61,7 +61,7 @@ public class FullSyncWizardController {
 
     @PostMapping
     @LogRecord(type = "数据开发-整库同步", subType = "创建整库同步向导草稿", bizNo = "{{(#_ret.data.id) ?: 0}}",
-            success = "创建了整库同步草稿【{{(#_ret.data.config?.taskName) ?: '未设置'}}】，向导编号【{{(#_ret.data.id) ?: '未设置'}}】，当前步骤【{{(#_ret.data.currentStep) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了整库同步草稿【{{(#_ret.data.config?.taskName) ?: '未设置'}}】，当前步骤【{{(#_ret.data.currentStep) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建整库同步向导草稿")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:create')")
@@ -71,7 +71,7 @@ public class FullSyncWizardController {
 
     @PutMapping("/{id}/step")
     @LogRecord(type = "数据开发-整库同步", subType = "保存整库同步向导步骤", bizNo = "{{(#id) ?: 0}}",
-            success = "保存了整库同步向导【{{(#id) ?: '未设置'}}】的第【{{(#req.step) ?: '未设置'}}】步，任务名称【{{(#_ret.data.config?.taskName) ?: '未设置'}}】，保存后修订【{{(#_ret.data.revision) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "保存了整库同步向导【{getFullSyncWizardName{#id}}】的第【{{(#req.step) ?: '未设置'}}】步，任务名称【{{(#_ret.data.config?.taskName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "保存整库同步向导步骤")
     @Parameter(name = "id", description = "向导编号", required = true)
@@ -97,7 +97,7 @@ public class FullSyncWizardController {
 
     @PostMapping("/{id}/submit")
     @LogRecord(type = "数据开发-整库同步", subType = "发布并提交整库同步", bizNo = "{{(#id) ?: 0}}",
-            success = "发起了整库同步向导【{{(#id) ?: '未设置'}}】的发布和执行提交，任务名称【{{(#_ret.data.config?.taskName) ?: '未设置'}}】，返回状态【{{(#_ret.data.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "发起了整库同步向导【{getFullSyncWizardName{#id}}】的发布和执行提交，任务名称【{{(#_ret.data.config?.taskName) ?: '未设置'}}】，返回状态【{getStateLabel{#_ret.data.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "发布并提交整库同步")
     @PreAuthorize("@ss.hasPermission('dataforge:full-sync:release')")

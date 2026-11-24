@@ -118,7 +118,7 @@ public class QualityRepairOrderController {
      */
     @PutMapping("/approve")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "审批修复工单（通过/拒绝）",
-            bizNo = "{{(#id) ?: 0}}", success = "审批了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，审批结论【{{(#approveStatus) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "审批了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，审批结论【{getStateLabel{#approveStatus}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "审批修复工单（通过/拒绝）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:approve')")
@@ -165,7 +165,7 @@ public class QualityRepairOrderController {
      */
     @PutMapping("/verify")
     @LogRecord(type = "数据治理-数据质量-修复工单", subType = "验证修复结果（验证通过/验证未通过）",
-            bizNo = "{{(#id) ?: 0}}", success = "核验了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，验证结论【{{(#verifyStatus) ?: '未设置'}}】",
+            bizNo = "{{(#id) ?: 0}}", success = "核验了修复工单【{{(#auditObjectName) ?: '编号' + #id}}】，验证结论【{getStateLabel{#verifyStatus}}】",
             extra = "BUSINESS_OPERATION", successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "验证修复结果（验证通过/验证未通过）")
     @PreAuthorize("@ss.hasPermission('governance:quality-repair-order:update')")

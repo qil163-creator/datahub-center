@@ -51,7 +51,7 @@ public class DatabaseTypeController {
      */
     @PostMapping("/create")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "创建数据库类型定义", bizNo = "{{(#_ret.data) ?: 0}}",
-            success = "创建了数据库类型【{{(#createReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#createReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#createReqVO.categoryCode) ?: '未设置'}}】，状态【{{(#createReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "创建了数据库类型【{{(#createReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#createReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#createReqVO.categoryCode) ?: '未设置'}}】，状态【{getCommonStatus{#createReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "创建数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:create')")
@@ -67,7 +67,7 @@ public class DatabaseTypeController {
      */
     @PutMapping("/update")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "更新数据库类型定义", bizNo = "{{(#updateReqVO.id) ?: 0}}",
-            success = "修改了数据库类型【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#updateReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，状态【{{(#updateReqVO.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "修改了数据库类型【{{(#operateName) ?: '未设置'}}】，名称从【{{(#operateName) ?: '未设置'}}】改为【{{(#updateReqVO.typeName) ?: '未设置'}}】，类型编码【{{(#updateReqVO.typeCode) ?: '未设置'}}】，分类编码【{{(#updateReqVO.categoryCode) ?: '未设置'}}】，状态【{getCommonStatus{#updateReqVO.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
@@ -89,7 +89,7 @@ public class DatabaseTypeController {
 
     @PutMapping("/update-status")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "更新数据库类型状态", bizNo = "{{(#request.id) ?: 0}}",
-            success = "将数据库类型【{{(#operateName) ?: '未设置'}}】的状态从【{{(#operateStatus) ?: '未设置'}}】改为【{{(#request.status) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "将数据库类型【{{(#operateName) ?: '未设置'}}】的状态从【{getCommonStatus{#operateStatus}}】改为【{getCommonStatus{#request.status}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "更新数据库类型状态")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:update')")
@@ -119,7 +119,7 @@ public class DatabaseTypeController {
      */
     @DeleteMapping("/delete")
     @LogRecord(type = "数据开发-数据库类型定义", subType = "删除数据库类型定义", bizNo = "{{(#id) ?: 0}}",
-            success = "删除了数据库类型【{{(#operateName) ?: '未设置'}}】（编号【{{(#id) ?: '未设置'}}】）", extra = "BUSINESS_OPERATION",
+            success = "删除了数据库类型【{{(#operateName) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "删除数据库类型定义")
     @Parameter(name = "id", description = "编号", required = true)
@@ -149,7 +149,7 @@ public class DatabaseTypeController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @LogRecord(type = "数据开发-数据库类型定义", subType = "批量删除数据库类型定义", bizNo = "{{(#ids) ?: 0}}",
-            success = "批量删除了数据库类型【{{(#operateNames) ?: '未设置'}}】，请求编号【{{(#ids) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
+            success = "批量删除了数据库类型【{{(#operateNames) ?: '未设置'}}】", extra = "BUSINESS_OPERATION",
             successCondition = "{{#_ret.code == 0 && #_ret.data != false}}")
     @Operation(summary = "批量删除数据库类型定义")
     @PreAuthorize("@ss.hasPermission('dataforge:database-type:delete')")

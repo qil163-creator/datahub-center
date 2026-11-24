@@ -6,12 +6,17 @@ import cn.iocoder.yudao.module.supply.api.app.dto.SupplyAppApiGrantReqDTO;
 import cn.iocoder.yudao.module.supply.api.app.dto.SupplyAppRespDTO;
 import cn.iocoder.yudao.module.supply.api.app.dto.SupplyGrantOpRespDTO;
 import cn.iocoder.yudao.module.supply.controller.admin.app.vo.AppApiSaveReqVO;
+import cn.iocoder.yudao.module.supply.dal.dataobject.app.SupplyAppDO;
+import cn.iocoder.yudao.module.supply.dal.mysql.app.SupplyAppMapper;
 import cn.iocoder.yudao.module.supply.service.app.SupplyAppService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -21,6 +26,9 @@ public class SupplyAppApiImpl implements SupplyAppApi {
 
     @Resource
     private SupplyAppService supplyAppService;
+
+    @Resource
+    private SupplyAppMapper supplyAppMapper;
 
     /**
      * 为应用授权订阅 API。
@@ -94,6 +102,20 @@ public class SupplyAppApiImpl implements SupplyAppApi {
                 SupplyAppRespDTO.class);
         list.forEach(item -> item.setSecret(null));
         return success(list);
+    }
+
+    @Override
+    public CommonResult<Map<Long, String>> getAppNames(Collection<Long> ids) {
+        Map<Long, String> names = new HashMap<>();
+        if (ids == null || ids.isEmpty()) {
+            return success(names);
+        }
+        for (SupplyAppDO app : supplyAppMapper.selectBatchIds(ids)) {
+            if (app.getName() != null) {
+                names.put(app.getId(), app.getName());
+            }
+        }
+        return success(names);
     }
 
 }
